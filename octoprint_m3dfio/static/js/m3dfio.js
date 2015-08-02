@@ -478,7 +478,7 @@ $(function() {
 			// Set commands
 			var commands = [
 				"G4 P100\n",
-				"M65537\n",
+				"M65537;stop\n",
 				"M104 S0\n",
 				"G91\n",
 				"G0 Y20 Z2 F150\n",
@@ -528,7 +528,7 @@ $(function() {
 			// Set commands
 			var commands = [
 				"G4 P100\n",
-				"M65537\n",
+				"M65537;stop\n",
 				"M104 S0\n",
 				"G91\n",
 				"G0 Y20 Z2 F150\n",
@@ -569,7 +569,7 @@ $(function() {
 			// Set commands
 			var commands = [
 				"G4 P100\n",
-				"M65537\n",
+				"M65537;stop\n",
 				"G90\n",
 				"G0 Z3 F100\n",
 				"G28\n",
@@ -592,7 +592,7 @@ $(function() {
 			// Set commands
 			var commands = [
 				"G4 P100\n",
-				"M65537\n",
+				"M65537;stop\n",
 				"G90\n",
 				"G0 Z3 F100\n",
 				"G28\n",
@@ -615,7 +615,7 @@ $(function() {
 			// Set commands
 			var commands = [
 				"G4 P100\n",
-				"M65537\n",
+				"M65537;stop\n",
 				"G90\n",
 				"G0 Z3 F100\n",
 				"G28\n",
@@ -638,7 +638,7 @@ $(function() {
 			// Set commands
 			var commands = [
 				"G4 P100\n",
-				"M65537\n",
+				"M65537;stop\n",
 				"G90\n",
 				"G0 Z3 F100\n",
 				"G28\n",
@@ -858,7 +858,7 @@ $(function() {
 			// Set commands
 			var commands = [
 				"G4 P100\n",
-				"M65537\n",
+				"M65537;stop\n",
 				"G91\n",
 				"G0 Z0.0999 F100\n",
 				"G33\n"
