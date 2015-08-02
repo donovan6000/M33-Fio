@@ -167,7 +167,7 @@ class M3DFioPlugin(
 				current = self._plugin_version,
 				user = "donovan6000",
 				repo = "M3D-Fio",
-				pip = "https://github.com/donovan6000/M3D-Fio/archive/{target}.zip"
+				pip = "https://github.com/donovan6000/M3D-Fio/archive/{target_version}.zip"
 			)
 		)
 	
