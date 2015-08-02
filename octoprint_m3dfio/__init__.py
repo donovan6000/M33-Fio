@@ -155,19 +155,19 @@ class M3DFioPlugin(
 		)
 	
 	# Get update information
-	def getUpdateInformation(self) :
+	def getUpdateInformation(self, *args, **kwargs) :
 	
 		# Return update information
 		return dict(
 			updateplugindemo = dict(
 			
-				displayName = "M3D Fio",
+				displayName = self._plugin_name,
 				displayVersion = self._plugin_version,
 				type = "github_release",
 				current = self._plugin_version,
 				user = "donovan6000",
 				repo = "M3D-Fio",
-				pip = "https://github.com/donovan6000/M3D-Fio/archive/{target_version}.zip"
+				pip = "https://github.com/donovan6000/M3D-Fio/archive/{target}.zip"
 			)
 		)
 	
