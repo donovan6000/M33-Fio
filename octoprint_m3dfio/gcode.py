@@ -14,8 +14,6 @@ class Gcode(object) :
 
 		# Initialize data members
 		self.dataType = 0x1080
-		self.parsed = False
-		self.empty = True
 		self.hostCommand = ""
 		self.originalCommand = ""
 		self.parameterValue = []
@@ -40,12 +38,6 @@ class Gcode(object) :
 	
 		# Reset data type
 		self.dataType = 0x1080
-		
-		# Reset parsed
-		self.parsed = False
-	
-		# Clear empty
-		self.empty = False
 		
 		# Clear parameter values
 		for i in xrange(16) :
@@ -74,9 +66,6 @@ class Gcode(object) :
 		
 			# Set host command
 			self.hostCommand = line
-			
-			#Set parsed
-			self.parsed = True
 			
 			# Return true
 			return True
@@ -252,9 +241,8 @@ class Gcode(object) :
 			# Increment index
 			index += 1
 		
-		# Return if data wasn't empty and set parsed
-		self.parsed = self.dataType != 0x1080
-		return self.parsed
+		# Return if data wasn't empty
+		return self.dataType != 0x1080
 	
 	# Get binary
 	def getBinary(self) :
@@ -1002,12 +990,6 @@ class Gcode(object) :
 	# Set value
 	def setValue(self, parameter, value) :
 	
-		# Clear empty
-		self.empty = False
-	
-		# Set parsed
-		self.parsed = True
-	
 		# Check if N is requested
 		if parameter == 'N' :
 		
@@ -1157,12 +1139,6 @@ class Gcode(object) :
 	
 	# Set string
 	def setString(self, value) :
-	
-		# Clear empty
-		self.empty = False
-	
-		# Set parsed
-		self.parsed = True
 
 		# Set data type
 		self.dataType |= (1 << 15)
@@ -1176,12 +1152,6 @@ class Gcode(object) :
 		# Reset data type
 		self.dataType = 0x1080
 		
-		# Clear parsed
-		self.parsed = False
-	
-		# Set empty
-		self.empty = True
-		
 		# Clear parameter values
 		for i in xrange(16) :
 			self.parameterValue[i] = ""
@@ -1192,12 +1162,6 @@ class Gcode(object) :
 		# Clear original command
 		self.originalCommand = ""
 	
-	# Is parsed
-	def isParsed(self) :
-
-		# Return parsed
-		return self.parsed
-	
 	# Is host command
 	def isHostCommand(self) :
 
@@ -1207,5 +1171,5 @@ class Gcode(object) :
 	# Is empty
 	def isEmpty(self) :
 
-		# Return if empty is set
-		return self.empty
+		# Return if doesn't contain any values
+		return self.dataType == 0x1080
