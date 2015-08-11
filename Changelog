@@ -1,5 +1,15 @@
 Changelog:
+
+V0.9 August 10, 2015
+
+	* Improved G-code class by using regular expressions for parsing the input and by aligning array offsets with the command values. Thanks Fylnn.
+	* Sped up centering model, thermal bonding, and wave bonding pre-processors.
+	* Sped up checking print dimensions.
+
+V0.8 August 2, 2015
+
+	* Utilizes OctoPrint's native update feature.
 	
 V0.7 August 1, 2015
 
-	* Initial release
+	* Initial release.

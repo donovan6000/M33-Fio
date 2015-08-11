@@ -1158,174 +1158,35 @@ class M3DFioPlugin(
 		# Initialize variables
 		localX = 54
 		localY = 60
-		relativeMode = False
-		gcode = Gcode()
-		
-		# Reset X and Y print values
-		self.maxXExtruder = 0
-		self.maxYExtruder = 0
-		self.minXExtruder = sys.float_info.max
-		self.minYExtruder = sys.float_info.max
-		
-		# Read in file
-		for line in open(file) :
-
-			# Check if line was parsed successfully and it's a G command
-			gcode.clear()
-			if gcode.parseLine(line) == True and gcode.hasValue('G') == True :
-			
-				# Check if command is G0 or G1
-				if gcode.getValue('G') == "0" or gcode.getValue('G') == "1" :
-				
-					# Check if command has an X value
-					if gcode.hasValue('X') == True :
-					
-						# Get X value of the command
-						commandX = float(gcode.getValue('X'))
-					
-						# Set local X
-						if relativeMode :
-							localX += commandX
-						else :
-							localX = commandX
-					
-					# Check if command has an Y value
-					if gcode.hasValue('Y') == True :
-					
-						# Get Y value of the command
-						commandY = float(gcode.getValue('Y'))
-					
-						# Set local Y
-						if relativeMode :
-							localY += commandY
-						else :
-							localY = commandY
-				
-					# Update minimums and maximums X and Y dimensions of extruder
-					self.minXExtruder = min(self.minXExtruder, localX)
-					self.maxXExtruder = max(self.maxXExtruder, localX)
-					self.minYExtruder = min(self.minYExtruder, localY)
-					self.maxYExtruder = max(self.maxYExtruder, localY)
-				
-				# Otherwise check if command is G90
-				elif gcode.getValue('G') == "90" :
-				
-					# Clear relative mode
-					relativeMode = False
-				
-				# Otherwise check if command is G91
-				elif gcode.getValue('G') == "91" :
-				
-					# Set relative mode
-					relativeMode = True
-	
-		# Move the input file to a temporary file
-		temp = tempfile.mkstemp()[1]
-		os.rename(file, temp)
-		
-		# Create ouput file in place of the input file
-		output = os.open(file, os.O_WRONLY | os.O_CREAT)
-		
-		# Calculate adjustments
-		displacementX = (max(self.bedLowMaxX, max(self.bedMediumMaxX, self.bedHighMaxX)) - self.maxXExtruder - self.minXExtruder + min(self.bedLowMinX, min(self.bedMediumMinX, self.bedHighMinX))) / 2
-		displacementY = (max(self.bedLowMaxY, max(self.bedMediumMaxY, self.bedHighMaxY)) - self.maxYExtruder - self.minYExtruder + min(self.bedLowMinY, min(self.bedMediumMinY, self.bedHighMinY))) / 2
-		
-		# Read in input file
-		for line in open(temp) :
-		
-			# Check if line was parsed successfully and it's G0 or G1
-			gcode.clear()
-			if gcode.parseLine(line) == True and gcode.hasValue('G') == True and (gcode.getValue('G') == "0" or gcode.getValue('G') == "1") :
-				
-				# Check if line contains an X value
-				if gcode.hasValue('X') == True :
-				
-					# Adjust X value
-					gcode.setValue('X', str(float(gcode.getValue('X')) + displacementX))
-				
-				# Check if line contains a Y value
-				if gcode.hasValue('Y') == True :
-				
-					# Adjust Y value
-					gcode.setValue('Y', str(float(gcode.getValue('Y')) + displacementY))
-				
-				# Set line to adjusted value
-				line = gcode.getAscii() + '\n'
-			
-			# Send line to output
-			os.write(output, line)
-		
-		# Close output file
-		os.close(output)
-		
-		# Remove temporary file
-		os.remove(temp)
-	
-	# Get print information
-	def getPrintInformation(self, file) :
-	
-		# Initialize variables
-		localX = 54
-		localY = 60
 		localZ = 0.4
-		localE = 0
 		relativeMode = False
 		tier = "Low"
 		gcode = Gcode()
 		
 		# Reset all print values
-		self.maxXModel = 0
-		self.maxYModel = 0
-		self.maxZModel = 0
-		self.maxXExtruder = 0
-		self.maxYExtruder = 0
+		self.maxXExtruderLow = 0
+		self.maxXExtruderMedium = 0
+		self.maxXExtruderHigh = 0
+		self.maxYExtruderLow = 0
+		self.maxYExtruderMedium = 0
+		self.maxYExtruderHigh = 0
 		self.maxZExtruder = 0
-		self.maxFeedRate = 0
-		self.minXModel = sys.float_info.max
-		self.minYModel = sys.float_info.max
-		self.minZModel = sys.float_info.max
-		self.minXExtruder = sys.float_info.max
-		self.minYExtruder = sys.float_info.max
+		self.minXExtruderLow = sys.float_info.max
+		self.minXExtruderMedium = sys.float_info.max
+		self.minXExtruderHigh = sys.float_info.max
+		self.minYExtruderLow = sys.float_info.max
+		self.minYExtruderMedium = sys.float_info.max
+		self.minYExtruderHigh = sys.float_info.max
 		self.minZExtruder = sys.float_info.max
-		self.minFeedRate = sys.float_info.max
 		
 		# Read in file
 		for line in open(file) :
 
 			# Check if line was parsed successfully and it's a G command
-			gcode.clear()
 			if gcode.parseLine(line) == True and gcode.hasValue('G') == True :
 			
 				# Check if command is G0 or G1
 				if gcode.getValue('G') == "0" or gcode.getValue('G') == "1" :
-				
-					# Clear positive extruding
-					positiveExtrusion = False
-				
-					# Check if command has an E value
-					if gcode.hasValue('E') == True :
-				
-						# Get E value of the command
-						commandE = float(gcode.getValue('E'))
-					
-						# Set positive extrusion based on adjusted E value
-						if relativeMode == True :
-							positiveExtrusion = commandE > 0
-							localE += commandE
-					
-						else :
-							positiveExtrusion = commandE > localE
-							localE = commandE
-				
-					# Check if command has a F value
-					if gcode.hasValue('F') == True :
-				
-						# Get F value of the command
-						commandF = float(gcode.getValue('F'))
-				
-						# Update minimum and maximum feed rate values
-						self.minFeedRate = min(self.minFeedRate, commandF)
-						self.maxFeedRate = max(self.maxFeedRate, commandF)
 				
 					# Check if command has an X value
 					if gcode.hasValue('X') == True :
@@ -1363,48 +1224,32 @@ class M3DFioPlugin(
 						else :
 							localZ = commandZ
 					
-						# Check if Z is out of bounds
-						if localZ < self.bedLowMinZ or localZ > self.bedHighMaxZ :
-						
-							# Return false
-							return False
-					
 						# Set print tier
-						if localZ >= self.bedLowMinZ and localZ < self.bedLowMaxZ :
+						if localZ < self.bedLowMaxZ :
 							tier = "Low"
 						
-						elif localZ >= self.bedMediumMinZ and localZ < self.bedMediumMaxZ :
+						elif localZ < self.bedMediumMaxZ :
 							tier = "Medium"
 						
-						elif localZ >= self.bedHighMinZ and localZ <= self.bedHighMaxZ :
+						else :
 							tier = "High"
 					
-					# Return false if X or Y are out of bounds				
-					if tier == "Low" and (localX < self.bedLowMinX or localX > self.bedLowMaxX or localY < self.bedLowMinY or localY > self.bedLowMaxY) :
-						return False
-					
-					elif tier == "Medium" and (localX < self.bedMediumMinX or localX > self.bedMediumMaxX or localY < self.bedMediumMinY or localY > self.bedMediumMaxY) :
-						return False
-
-					elif tier == "High" and (localX < self.bedHighMinX or localX > self.bedHighMaxX or localY < self.bedHighMinY or localY > self.bedHighMaxY) :
-						return False
-					
-					# Check if positive extruding
-					if positiveExtrusion :
-				
-						# Update minimums and maximums dimensions of the model
-						self.minXModel = min(self.minXModel, localX)
-						self.maxXModel = max(self.maxXModel, localX)
-						self.minYModel = min(self.minYModel, localY)
-						self.maxYModel = max(self.maxYModel, localY)
-						self.minZModel = min(self.minZModel, localZ)
-						self.maxZModel = max(self.maxZModel, localZ)
-				
 					# Update minimums and maximums dimensions of extruder
-					self.minXExtruder = min(self.minXExtruder, localX)
-					self.maxXExtruder = max(self.maxXExtruder, localX)
-					self.minYExtruder = min(self.minYExtruder, localY)
-					self.maxYExtruder = max(self.maxYExtruder, localY)
+					if tier == "Low" :
+						self.minXExtruderLow = min(self.minXExtruderLow, localX)
+						self.maxXExtruderLow = max(self.maxXExtruderLow, localX)
+						self.minYExtruderLow = min(self.minYExtruderLow, localY)
+						self.maxYExtruderLow = max(self.maxYExtruderLow, localY)
+					elif tier == "Medium" :
+						self.minXExtruderMedium = min(self.minXExtruderMedium, localX)
+						self.maxXExtruderMedium = max(self.maxXExtruderMedium, localX)
+						self.minYExtruderMedium = min(self.minYExtruderMedium, localY)
+						self.maxYExtruderMedium = max(self.maxYExtruderMedium, localY)
+					else :
+						self.minXExtruderHigh = min(self.minXExtruderHigh, localX)
+						self.maxXExtruderHigh = max(self.maxXExtruderHigh, localX)
+						self.minYExtruderHigh = min(self.minYExtruderHigh, localY)
+						self.maxYExtruderHigh = max(self.maxYExtruderHigh, localY)
 					self.minZExtruder = min(self.minZExtruder, localZ)
 					self.maxZExtruder = max(self.maxZExtruder, localZ)
 				
@@ -1419,6 +1264,167 @@ class M3DFioPlugin(
 				
 					# Set relative mode
 					relativeMode = True
+	
+		# Move the input file to a temporary file
+		temp = tempfile.mkstemp()[1]
+		os.rename(file, temp)
+		
+		# Create ouput file in place of the input file
+		output = os.open(file, os.O_WRONLY | os.O_CREAT)
+		
+		# Calculate adjustments
+		displacementX = (max(self.bedLowMaxX, max(self.bedMediumMaxX, self.bedHighMaxX)) - max(self.maxXExtruderLow, max(self.maxXExtruderMedium, self.maxXExtruderHigh)) - min(self.minXExtruderLow, min(self.minXExtruderMedium, self.minXExtruderHigh)) + min(self.bedLowMinX, min(self.bedMediumMinX, self.bedHighMinX))) / 2
+		displacementY = (max(self.bedLowMaxY, max(self.bedMediumMaxY, self.bedHighMaxY)) - max(self.maxYExtruderLow, max(self.maxYExtruderMedium, self.maxYExtruderHigh)) - min(self.minYExtruderLow, min(self.minYExtruderMedium, self.minYExtruderHigh)) + min(self.bedLowMinY, min(self.bedMediumMinY, self.bedHighMinY))) / 2
+		
+		# Adjust print values
+		self.maxXExtruderLow += displacementX
+		self.maxXExtruderMedium += displacementX
+		self.maxXExtruderHigh += displacementX
+		self.maxYExtruderLow += displacementY
+		self.maxYExtruderMedium += displacementY
+		self.maxYExtruderHigh += displacementY
+		self.minXExtruderLow += displacementX
+		self.minXExtruderMedium += displacementX
+		self.minXExtruderHigh += displacementX
+		self.minYExtruderLow += displacementY
+		self.minYExtruderMedium += displacementY
+		self.minYExtruderHigh += displacementY
+		
+		# Read in input file
+		for line in open(temp) :
+		
+			# Check if line was parsed successfully and it's G0 or G1
+			if gcode.parseLine(line) == True and gcode.hasValue('G') == True and (gcode.getValue('G') == "0" or gcode.getValue('G') == "1") :
+				
+				# Check if line contains an X value
+				if gcode.hasValue('X') == True :
+				
+					# Adjust X value
+					gcode.setValue('X', str(float(gcode.getValue('X')) + displacementX))
+				
+				# Check if line contains a Y value
+				if gcode.hasValue('Y') == True :
+				
+					# Adjust Y value
+					gcode.setValue('Y', str(float(gcode.getValue('Y')) + displacementY))
+				
+				# Set line to adjusted value
+				line = gcode.getAscii() + '\n'
+			
+			# Send line to output
+			os.write(output, line)
+		
+		# Close output file
+		os.close(output)
+		
+		# Remove temporary file
+		os.remove(temp)
+	
+	# Get print information
+	def getPrintInformation(self, file) :
+	
+		# Check if useing center model pre-processor
+		if self._settings.get_boolean(["UseCenterModelPreprocessor"]) == True :
+		
+			# Check if adjusted print values are out of bounds
+			if self.minZExtruder < self.bedLowMinZ or self.maxZExtruder > self.bedHighMaxZ or self.maxXExtruderLow > self.bedLowMaxX or self.maxXExtruderMedium > self.bedMediumMaxX or self.maxXExtruderHigh > self.bedHighMaxX or self.maxYExtruderLow > self.bedLowMaxY or self.maxYExtruderMedium > self.bedMediumMaxY or self.maxYExtruderHigh > self.bedHighMaxY or self.minXExtruderLow < self.bedLowMinX or self.minXExtruderMedium < self.bedMediumMinX or self.minXExtruderHigh < self.bedHighMinX or self.minYExtruderLow < self.bedLowMinY or self.minYExtruderMedium < self.bedMediumMinY or self.minYExtruderHigh < self.bedHighMinY :
+			
+				# Return false
+				return False
+		
+		# Otherwise
+		else :
+	
+			# Initialize variables
+			localX = 54
+			localY = 60
+			localZ = 0.4
+			relativeMode = False
+			tier = "Low"
+			gcode = Gcode()
+		
+			# Read in file
+			for line in open(file) :
+
+				# Check if line was parsed successfully and it's a G command
+				if gcode.parseLine(line) == True and gcode.hasValue('G') == True :
+			
+					# Check if command is G0 or G1
+					if gcode.getValue('G') == "0" or gcode.getValue('G') == "1" :
+				
+						# Check if command has an X value
+						if gcode.hasValue('X') == True :
+					
+							# Get X value of the command
+							commandX = float(gcode.getValue('X'))
+					
+							# Set local X
+							if relativeMode :
+								localX += commandX
+							else :
+								localX = commandX
+					
+						# Check if command has an Y value
+						if gcode.hasValue('Y') == True :
+					
+							# Get Y value of the command
+							commandY = float(gcode.getValue('Y'))
+					
+							# Set local Y
+							if relativeMode :
+								localY += commandY
+							else :
+								localY = commandY
+				
+						# Check if command has an Z value
+						if gcode.hasValue('Z') == True :
+					
+							# Get Z value of the command
+							commandZ = float(gcode.getValue('Z'))
+					
+							# Set local Z
+							if relativeMode :
+								localZ += commandZ
+							else :
+								localZ = commandZ
+					
+							# Check if Z is out of bounds
+							if localZ < self.bedLowMinZ or localZ > self.bedHighMaxZ :
+						
+								# Return false
+								return False
+					
+							# Set print tier
+							if localZ < self.bedLowMaxZ :
+								tier = "Low"
+						
+							elif localZ < self.bedMediumMaxZ :
+								tier = "Medium"
+						
+							else :
+								tier = "High"
+					
+						# Return false if X or Y are out of bounds				
+						if tier == "Low" and (localX < self.bedLowMinX or localX > self.bedLowMaxX or localY < self.bedLowMinY or localY > self.bedLowMaxY) :
+							return False
+					
+						elif tier == "Medium" and (localX < self.bedMediumMinX or localX > self.bedMediumMaxX or localY < self.bedMediumMinY or localY > self.bedMediumMaxY) :
+							return False
+
+						elif tier == "High" and (localX < self.bedHighMinX or localX > self.bedHighMaxX or localY < self.bedHighMinY or localY > self.bedHighMaxY) :
+							return False
+				
+					# Otherwise check if command is G90
+					elif gcode.getValue('G') == "90" :
+				
+						# Clear relative mode
+						relativeMode = False
+				
+					# Otherwise check if command is G91
+					elif gcode.getValue('G') == "91" :
+				
+						# Set relative mode
+						relativeMode = True
 		
 		# Return true
 		return True
@@ -1552,7 +1558,6 @@ class M3DFioPlugin(
 		for line in open(temp) :
 			
 			# Check if line contains valid G-code
-			gcode.clear()
 			if gcode.parseLine(line) == True :
 			
 				# Check if command isn't valid for the printer
@@ -1598,15 +1603,15 @@ class M3DFioPlugin(
 		if cornerExcess == True :
 		
 			# Set corner X
-			if self.maxXExtruder < self.bedLowMaxX :
+			if self.maxXExtruderLow < self.bedLowMaxX :
 				cornerX = (self.bedLowMaxX - self.bedLowMinX) / 2
-			elif self.minXExtruder > self.bedLowMinX :
+			elif self.minXExtruderLow > self.bedLowMinX :
 				cornerX = -(self.bedLowMaxX - self.bedLowMinX) / 2
 		
 			# Set corner Y
-			if self.maxYExtruder < self.bedLowMaxY :
+			if self.maxYExtruderLow < self.bedLowMaxY :
 				cornerY = (self.bedLowMaxY - self.bedLowMinY - 10) / 2
-			elif self.minYExtruder > self.bedLowMinY :
+			elif self.minYExtruderLow > self.bedLowMinY :
 				cornerY = -(self.bedLowMaxY - self.bedLowMinY - 10) / 2
 		
 		# Add intro to output
@@ -1642,8 +1647,9 @@ class M3DFioPlugin(
 			os.write(output, "G0 Z-4 F2900\n")
 			os.write(output, "G0 E7.5 F2000\n")
 			os.write(output, "G4 S3\n")
-			os.write(output, "G0 X" + str(cornerX * 0.1) + " Y" + str(cornerY * 0.1) +" Z-0.999 F2900\n")
-			os.write(output, "G0 X" + str(cornerX * 0.9) + " Y" + str(cornerY * 0.9) +" F1000\n")
+			os.write(output, "G0 X" + str(cornerX * 0.1) + " Y" + str(cornerY * 0.1) + " Z-0.999 F2900\n")
+			os.write(output, "G0 X" + str(cornerX * 0.9) + " Y" + str(cornerY * 0.9) + " F1000\n")
+		
 		os.write(output, "G92 E0\n")
 		os.write(output, "G90\n")
 		os.write(output, "G0 Z0.4 F2400\n")
@@ -1683,10 +1689,9 @@ class M3DFioPlugin(
 	
 		# Initialize variables
 		relativeMode = False
-		firstLayer = True
+		layerCounter = -1
 		changesPlane = False
 		cornerCounter = 0
-		baseLayer = 0
 		positionRelativeX = 0
 		positionRelativeY = 0
 		positionRelativeZ = 0
@@ -1708,219 +1713,212 @@ class M3DFioPlugin(
 		for line in open(temp) :
 		
 			# Check if line is a layer command
-			if line.find(";LAYER:") != -1 :
+			if ";LAYER:" in line :
 			
-				# Set layer number
-				layerNumber = int(line[7 :])
-				
-				# Set base number is layer number is less than it
-				if layerNumber < baseLayer :
-					baseLayer = layerNumber
-				
-				# Set first layer
-				firstLayer = layerNumber == baseLayer
+				# Increment layer counter
+				layerCounter += 1
 			
 			# Check if line was parsed successfully and it's a G command
-			gcode.clear()
 			if gcode.parseLine(line) == True and gcode.hasValue('G') == True :
 			
-				# Check if command is G0 or G1 and it's in absolute mode
-				if (gcode.getValue('G') == "0" or gcode.getValue('G') == "1") and relativeMode == False :
+				# Check if on first layer
+				if layerCounter == 0 :
+			
+					# Check if command is G0 or G1 and it's in absolute mode
+					if (gcode.getValue('G') == "0" or gcode.getValue('G') == "1") and relativeMode == False :
 				
-					# Check if line contains an X or Y value
-					if gcode.hasValue('X') == True or gcode.hasValue('Y') == True :
+						# Check if line contains an X or Y value
+						if gcode.hasValue('X') == True or gcode.hasValue('Y') == True :
 				
-						# Set changes plane
-						changesPlane = True
+							# Set changes plane
+							changesPlane = True
 					
-					# Set delta values
-					if gcode.hasValue('X') == True :
-						deltaX = float(gcode.getValue('X')) - positionRelativeX
-					else :
-						deltaX = 0
+						# Set delta values
+						if gcode.hasValue('X') == True :
+							deltaX = float(gcode.getValue('X')) - positionRelativeX
+						else :
+							deltaX = 0
 					
-					if gcode.hasValue('Y') == True :
-						deltaY = float(gcode.getValue('Y')) - positionRelativeY
-					else :
-						deltaY = 0
+						if gcode.hasValue('Y') == True :
+							deltaY = float(gcode.getValue('Y')) - positionRelativeY
+						else :
+							deltaY = 0
 					
-					if gcode.hasValue('Z') == True :
-						deltaZ = float(gcode.getValue('Z')) - positionRelativeZ
-					else :
-						deltaZ = 0
+						if gcode.hasValue('Z') == True :
+							deltaZ = float(gcode.getValue('Z')) - positionRelativeZ
+						else :
+							deltaZ = 0
 						
-					if gcode.hasValue('E') == True :
-						deltaE = float(gcode.getValue('E')) - positionRelativeE
-					else :
-						deltaE = 0
+						if gcode.hasValue('E') == True :
+							deltaE = float(gcode.getValue('E')) - positionRelativeE
+						else :
+							deltaE = 0
 				
-					# Adjust relative values for the changes
-					positionRelativeX += deltaX
-					positionRelativeY += deltaY
-					positionRelativeZ += deltaZ
-					positionRelativeE += deltaE
+						# Adjust relative values for the changes
+						positionRelativeX += deltaX
+						positionRelativeY += deltaY
+						positionRelativeZ += deltaZ
+						positionRelativeE += deltaE
 				
-					# Calculate distance of change
-					distance = math.sqrt(deltaX * deltaX + deltaY * deltaY)
+						# Calculate distance of change
+						distance = math.sqrt(deltaX * deltaX + deltaY * deltaY)
 					
-					# Set wave ratio
-					if distance > self.wavePeriodQuarter :
-						waveRatio = int(distance / self.wavePeriodQuarter)
-					else :
-						waveRatio = 1
+						# Set wave ratio
+						if distance > self.wavePeriodQuarter :
+							waveRatio = int(distance / self.wavePeriodQuarter)
+						else :
+							waveRatio = 1
 					
-					# Set relative differences
-					relativeDifferenceX = positionRelativeX - deltaX
-					relativeDifferenceY = positionRelativeY - deltaY
-					relativeDifferenceZ = positionRelativeZ - deltaZ
-					relativeDifferenceE = positionRelativeE - deltaE
+						# Set relative differences
+						relativeDifferenceX = positionRelativeX - deltaX
+						relativeDifferenceY = positionRelativeY - deltaY
+						relativeDifferenceZ = positionRelativeZ - deltaZ
+						relativeDifferenceE = positionRelativeE - deltaE
 				
-					# Set delta ratios
-					if distance != 0 :
-						deltaRatioX = deltaX / distance
-						deltaRatioY = deltaY / distance
-						deltaRatioZ = deltaZ / distance
-						deltaRatioE = deltaE / distance
-					else :
-						deltaRatioX = 0
-						deltaRatioY = 0
-						deltaRatioZ = 0
-						deltaRatioE = 0
+						# Set delta ratios
+						if distance != 0 :
+							deltaRatioX = deltaX / distance
+							deltaRatioY = deltaY / distance
+							deltaRatioZ = deltaZ / distance
+							deltaRatioE = deltaE / distance
+						else :
+							deltaRatioX = 0
+							deltaRatioY = 0
+							deltaRatioZ = 0
+							deltaRatioE = 0
 					
-					# Check if in first layer and delta E is greater than zero 
-					if firstLayer == True and deltaE > 0 :
+						# Check if delta E is greater than zero 
+						if deltaE > 0 :
 				
-						# Check if previous G-code is not empty
-						if previousGcode.isEmpty() == False :
+							# Check if previous G-code is not empty
+							if previousGcode.isEmpty() == False :
 					
-							# Check if corner count is at most one and sharp corner
-							if cornerCounter <= 1 and self.isSharpCorner(gcode, previousGcode) == True :
+								# Check if corner count is at most one and sharp corner
+								if cornerCounter <= 1 and self.isSharpCorner(gcode, previousGcode) == True :
 						
-								# Check if refrence G-codes isn't set
-								if refrenceGcode.isEmpty() == True :
+									# Check if refrence G-codes isn't set
+									if refrenceGcode.isEmpty() == True :
 							
-									# Check if a tack point was created
-									tackPoint.clear()
-									tackPoint = self.createTackPoint(gcode, previousGcode)
-									if tackPoint.isEmpty() == False :
+										# Check if a tack point was created
+										tackPoint = self.createTackPoint(gcode, previousGcode)
+										if tackPoint.isEmpty() == False :
 								
+											# Send tack point to output
+											os.write(output, tackPoint.getAscii() + '\n')
+							
+									# Set refrence G-code
+									refrenceGcode = copy.deepcopy(gcode)
+							
+									# Increment corner counter
+									cornerCounter += 1
+						
+								# Otherwise check is corner count is at least one and sharp corner
+								elif cornerCounter >= 1 and self.isSharpCorner(gcode, refrenceGcode) == True :
+						
+									# Check if a tack point was created
+									tackPoint = self.createTackPoint(gcode, refrenceGcode)
+									if tackPoint.isEmpty() == False :
+							
 										# Send tack point to output
 										os.write(output, tackPoint.getAscii() + '\n')
 							
-								# Set refrence G-code
-								refrenceGcode = copy.deepcopy(gcode)
-							
-								# Increment corner counter
-								cornerCounter += 1
-						
-							# Otherwise check is corner count is at least one and sharp corner
-							elif cornerCounter >= 1 and self.isSharpCorner(gcode, refrenceGcode) == True :
-						
-								# Check if a tack point was created
-								tackPoint.clear()
-								tackPoint = self.createTackPoint(gcode, refrenceGcode)
-								if tackPoint.isEmpty() == False :
-							
-									# Send tack point to output
-									os.write(output, tackPoint.getAscii() + '\n')
-							
-								# Set refrence G-code
-								refrenceGcode = copy.deepcopy(gcode)
+									# Set refrence G-code
+									refrenceGcode = copy.deepcopy(gcode)
 					
-						# Go through all of the wave
-						index = 1
-						while index <= waveRatio :
+							# Go through all of the wave
+							index = 1
+							while index <= waveRatio :
 					
-							# Check if at last component
-							if index == waveRatio :
+								# Check if at last component
+								if index == waveRatio :
 						
-								# Set temp relative values
-								tempRelativeX = positionRelativeX
-								tempRelativeY = positionRelativeY
-								tempRelativeZ = positionRelativeZ
-								tempRelativeE = positionRelativeE
+									# Set temp relative values
+									tempRelativeX = positionRelativeX
+									tempRelativeY = positionRelativeY
+									tempRelativeZ = positionRelativeZ
+									tempRelativeE = positionRelativeE
 						
-							# Otherwise
-							else :
-						
-								# Set temp relative values
-								tempRelativeX = relativeDifferenceX + index * self.wavePeriodQuarter * deltaRatioX
-								tempRelativeY = relativeDifferenceY + index * self.wavePeriodQuarter * deltaRatioY
-								tempRelativeZ = relativeDifferenceZ + index * self.wavePeriodQuarter * deltaRatioZ
-								tempRelativeE = relativeDifferenceE + index * self.wavePeriodQuarter * deltaRatioE
-						
-							# Check if not at least component
-							if index != waveRatio :
-						
-								# Set extra G-code G value
-								extraGcode.clear()
-								extraGcode.setValue('G', gcode.getValue('G'))
-							
-								# Set extra G-code X value
-								if gcode.hasValue('X') == True :
-									extraGcode.setValue('X', str(positionRelativeX - deltaX + tempRelativeX - relativeDifferenceX))
-							
-								# Set extra G-cdoe Y value
-								if gcode.hasValue('Y') == True :
-									extraGcode.setValue('Y', str(positionRelativeY - deltaY + tempRelativeY - relativeDifferenceY))
-							
-								# Set extra G-code F value if first element
-								if gcode.hasValue('F') == True and index == 1 :
-									extraGcode.setValue('F', gcode.getValue('F'))
-							
-								# Check if plane changed
-								if changesPlane == True :
-							
-									# Set extra G-code Z value
-									extraGcode.setValue('Z', str(positionRelativeZ - deltaZ + tempRelativeZ - relativeDifferenceZ + self.getCurrentAdjustmentZ()))
-							
-								# Otherwise check if command has a Z value and changes in Z are noticable
-								elif gcode.hasValue('Z') == True and deltaZ != sys.float_info.epsilon :
-							
-									# Set extra G-code Z value
-									extraGcode.setValue('Z', str(positionRelativeZ - deltaZ + tempRelativeZ - relativeDifferenceZ))
-								
-								# Set extra G-code E value
-								extraGcode.setValue('E', str(positionRelativeE - deltaE + tempRelativeE - relativeDifferenceE))
-								
-								# Send extra G-code to output
-								os.write(output, extraGcode.getAscii() + '\n')
-						
-							# Otherwise check if plane changed
-							elif changesPlane == True :
-						
-								# Check if command has a Z value
-								if gcode.hasValue('Z') == True :
-							
-									# Add to command's Z value
-									gcode.setValue('Z', str(float(gcode.getValue('Z')) + self.getCurrentAdjustmentZ()))
-							
 								# Otherwise
 								else :
+						
+									# Set temp relative values
+									tempRelativeX = relativeDifferenceX + index * self.wavePeriodQuarter * deltaRatioX
+									tempRelativeY = relativeDifferenceY + index * self.wavePeriodQuarter * deltaRatioY
+									tempRelativeZ = relativeDifferenceZ + index * self.wavePeriodQuarter * deltaRatioZ
+									tempRelativeE = relativeDifferenceE + index * self.wavePeriodQuarter * deltaRatioE
+						
+								# Check if not at least component
+								if index != waveRatio :
+						
+									# Set extra G-code G value
+									extraGcode.clear()
+									extraGcode.setValue('G', gcode.getValue('G'))
 							
-									# Set command's Z value
-									gcode.setValue('Z', str(relativeDifferenceZ + deltaZ + self.getCurrentAdjustmentZ()))
+									# Set extra G-code X value
+									if gcode.hasValue('X') == True :
+										extraGcode.setValue('X', str(positionRelativeX - deltaX + tempRelativeX - relativeDifferenceX))
 							
-							# Increment index
-							index += 1
+									# Set extra G-cdoe Y value
+									if gcode.hasValue('Y') == True :
+										extraGcode.setValue('Y', str(positionRelativeY - deltaY + tempRelativeY - relativeDifferenceY))
+							
+									# Set extra G-code F value if first element
+									if gcode.hasValue('F') == True and index == 1 :
+										extraGcode.setValue('F', gcode.getValue('F'))
+							
+									# Check if plane changed
+									if changesPlane == True :
+							
+										# Set extra G-code Z value
+										extraGcode.setValue('Z', str(positionRelativeZ - deltaZ + tempRelativeZ - relativeDifferenceZ + self.getCurrentAdjustmentZ()))
+							
+									# Otherwise check if command has a Z value and changes in Z are noticable
+									elif gcode.hasValue('Z') == True and deltaZ != sys.float_info.epsilon :
+							
+										# Set extra G-code Z value
+										extraGcode.setValue('Z', str(positionRelativeZ - deltaZ + tempRelativeZ - relativeDifferenceZ))
+								
+									# Set extra G-code E value
+									extraGcode.setValue('E', str(positionRelativeE - deltaE + tempRelativeE - relativeDifferenceE))
+								
+									# Send extra G-code to output
+									os.write(output, extraGcode.getAscii() + '\n')
+						
+								# Otherwise check if plane changed
+								elif changesPlane == True :
+						
+									# Check if command has a Z value
+									if gcode.hasValue('Z') == True :
+							
+										# Add to command's Z value
+										gcode.setValue('Z', str(float(gcode.getValue('Z')) + self.getCurrentAdjustmentZ()))
+							
+									# Otherwise
+									else :
+							
+										# Set command's Z value
+										gcode.setValue('Z', str(relativeDifferenceZ + deltaZ + self.getCurrentAdjustmentZ()))
+							
+								# Increment index
+								index += 1
 				
-					# Set previous G-code
-					previousGcode = copy.deepcopy(gcode)
+						# Set previous G-code
+						previousGcode = copy.deepcopy(gcode)
 				
-				# Otherwise check if command is G90
-				elif gcode.getValue('G') == "90" :
+					# Otherwise check if command is G90
+					elif gcode.getValue('G') == "90" :
 				
-					# Clear relative mode
-					relativeMode = False
+						# Clear relative mode
+						relativeMode = False
 				
-				# Otherwise check if command is G91
-				elif gcode.getValue('G') == "91" :
+					# Otherwise check if command is G91
+					elif gcode.getValue('G') == "91" :
 				
-					# Set relative mode
-					relativeMode = True
+						# Set relative mode
+						relativeMode = True
 				
-				# Otherwise check if command is G92
-				elif gcode.getValue('G') == "92" :
+				# Check if command is G92
+				if gcode.getValue('G') == "92" :
 				
 					# Check if command doesn't have an X, Y, Z, and E value
 					if gcode.hasValue('X') == False and gcode.hasValue('Y')  == False and gcode.hasValue('Z') == False and gcode.hasValue('E') == False :
@@ -1963,9 +1961,9 @@ class M3DFioPlugin(
 	def thermalBondingPreprocessor(self, file) :
 	
 		# Initialize variables
-		layerCounter = 0
+		layerCounter = -1
 		cornerCounter = 0
-		addingTemperatureCommands = False
+		addingTemperatureCommands = True
 		relativeMode = False
 		gcode = Gcode()
 		previousGcode = Gcode()
@@ -1983,58 +1981,54 @@ class M3DFioPlugin(
 		for line in open(temp) :
 		
 			# Check if line is a layer command
-			if line.find(";LAYER:") != -1 :
+			if ";LAYER:" in line:
 			
-				# Set layer number
-				layerNumber = int(line[7 :])
-			
-				# Check if on first counted layer
-				if layerCounter == 0 :
-				
-					# Check if filament type is PLA
-					if self.filamentType == "PLA" :
-				
-						# Send temperature command to output
-						os.write(output, "M109 S" + str(self.getBoundedTemperature(self.filamentTemperature + 10)) + '\n')
-					
-					# Otherwise
-					else :
-					
-						# Send temperature command to output
-						os.write(output, "M109 S" + str(self.getBoundedTemperature(self.filamentTemperature + 15)) + '\n')
-					
-					# Set adding temperature commands
-					addingTemperatureCommands = True
-			
-				# Otherwise check if on second counted layer
-				elif layerCounter == 1 :
-			
-					# Check if filament type is PLA
-					if self.filamentType == "PLA" :
-				
-						# Send temperature command to output
-						os.write(output, "M109 S" + str(self.getBoundedTemperature(self.filamentTemperature + 5)) + '\n')
-					
-					# Otherwise
-					else :
-					
-						# Send temperature command to output
-						os.write(output, "M109 S" + str(self.getBoundedTemperature(self.filamentTemperature + 10)) + '\n')
-				
-				# Otherwise check if past the second counted layer, layer number is at least zero, and adding temperature commands
-				elif layerCounter > 1 and layerNumber >= 0 and addingTemperatureCommands == True :
-				
-					# Send temperature command to output
-					os.write(output, "M109 S" + str(self.filamentTemperature) + '\n')
-				
-					# Clear adding temperature commands
-					addingTemperatureCommands = False
-				
 				# Increment layer counter
 				layerCounter += 1
 			
+				# Check if adding temperature controls
+				if addingTemperatureCommands == True :
+			
+					# Check if on first counted layer
+					if layerCounter == 0 :
+				
+						# Check if filament type is PLA
+						if self.filamentType == "PLA" :
+				
+							# Send temperature command to output
+							os.write(output, "M109 S" + str(self.getBoundedTemperature(self.filamentTemperature + 10)) + '\n')
+					
+						# Otherwise
+						else :
+					
+							# Send temperature command to output
+							os.write(output, "M109 S" + str(self.getBoundedTemperature(self.filamentTemperature + 15)) + '\n')
+			
+					# Otherwise check if on second counted layer
+					elif layerCounter == 1 :
+			
+						# Check if filament type is PLA
+						if self.filamentType == "PLA" :
+				
+							# Send temperature command to output
+							os.write(output, "M109 S" + str(self.getBoundedTemperature(self.filamentTemperature + 5)) + '\n')
+					
+						# Otherwise
+						else :
+					
+							# Send temperature command to output
+							os.write(output, "M109 S" + str(self.getBoundedTemperature(self.filamentTemperature + 10)) + '\n')
+				
+					# Otherwise
+					else :
+				
+						# Send temperature command to output
+						os.write(output, "M109 S" + str(self.filamentTemperature) + '\n')
+				
+						# Clear adding temperature commands
+						addingTemperatureCommands = False
+			
 			# Check if line was parsed successfully
-			gcode.clear()
 			if gcode.parseLine(line) == True :
 			
 				# Check if command contains temperature or fan controls past the first layer
@@ -2042,70 +2036,71 @@ class M3DFioPlugin(
 			
 					# Get next line
 					continue
-			
-				# Check if line is a G command and wave bonding isn't being used
-				if gcode.hasValue('G') == True and self._settings.get_boolean(["UseWaveBondingPreprocessor"]) != True :
-			
-					# Check if command is G0 or G1 and and it's in absolute
-					if (gcode.getValue('G') == "0" or gcode.getValue('G') == "1") and relativeMode == False :
 				
-						# Check if previous command exists, adding temperature commands, and filament is ABS, HIPS, or PLA
-						if previousGcode.isEmpty() == False and addingTemperatureCommands == True and (self.filamentType == "ABS" or self.filamentType == "HIPS" or self.filamentType == "PLA") :
+				# Otherwise check if layer counter is at most one
+				elif layerCounter <= 1 :
+			
+					# Check if wave bonding isn't being used and line is a G command
+					if self._settings.get_boolean(["UseWaveBondingPreprocessor"]) != True and gcode.hasValue('G') == True:
+			
+						# Check if command is G0 or G1 and and it's in absolute
+						if (gcode.getValue('G') == "0" or gcode.getValue('G') == "1") and relativeMode == False :
+				
+							# Check if previous command exists, adding temperature commands, and filament is ABS, HIPS, or PLA
+							if previousGcode.isEmpty() == False and addingTemperatureCommands == True and (self.filamentType == "ABS" or self.filamentType == "HIPS" or self.filamentType == "PLA") :
 					
-							# Check if both counters are less than or equal to one
-							if cornerCounter <= 1 and layerCounter <= 1 :
+								# Check if both counters are less than or equal to one
+								if cornerCounter <= 1 :
 						
-								# Check if sharp corner
-								if self.isSharpCorner(gcode, previousGcode) == True :
+									# Check if sharp corner
+									if self.isSharpCorner(gcode, previousGcode) == True :
 							
-									# Check if refrence G-codes isn't set
-									if refrenceGcode.isEmpty() == True :
+										# Check if refrence G-codes isn't set
+										if refrenceGcode.isEmpty() == True :
 								
-										# Check if a tack point was created
-										tackPoint.clear()
-										tackPoint = self.createTackPoint(gcode, previousGcode)
-										if tackPoint.isEmpty() == False :
+											# Check if a tack point was created
+											tackPoint = self.createTackPoint(gcode, previousGcode)
+											if tackPoint.isEmpty() == False :
 									
-											# Send tack point to output
-											os.write(output, tackPoint.getAscii() + '\n')
+												# Send tack point to output
+												os.write(output, tackPoint.getAscii() + '\n')
 								
+										# Set refrence G-code
+										refrenceGcode = copy.deepcopy(gcode)
+								
+										# Increment corner count
+										cornerCounter += 1
+						
+								# Otherwise check if corner counter is greater than one but layer counter isn't and sharp corner
+								elif cornerCounter >= 1 and self.isSharpCorner(gcode, refrenceGcode) == True :
+						
+									# Check if a tack point was created
+									tackPoint = self.createTackPoint(gcode, refrenceGcode)
+									if tackPoint.isEmpty() == False :
+							
+										# Send tack point to output
+										os.write(output, tackPoint.getAscii() + '\n')
+							
 									# Set refrence G-code
 									refrenceGcode = copy.deepcopy(gcode)
-								
-									# Increment corner count
-									cornerCounter += 1
-						
-							# Otherwise check if corner counter is greater than one but layer counter isn't and sharp corner
-							elif cornerCounter >= 1 and layerCounter <= 1 and self.isSharpCorner(gcode, refrenceGcode) == True :
-						
-								# Check if a tack point was created
-								tackPoint.clear()
-								tackPoint = self.createTackPoint(gcode, refrenceGcode)
-								if tackPoint.isEmpty() == False :
-							
-									# Send tack point to output
-									os.write(output, tackPoint.getAscii() + '\n')
-							
-								# Set refrence G-code
-								refrenceGcode = copy.deepcopy(gcode)
 				
-					# Otherwise check if command is G90
-					elif gcode.getValue('G') == "90" :
+						# Otherwise check if command is G90
+						elif gcode.getValue('G') == "90" :
 				
-						# Clear relative mode
-						relativeMode = False
+							# Clear relative mode
+							relativeMode = False
 				
-					# Otherwise check if command is G91
-					elif gcode.getValue('G') == "91" :
+						# Otherwise check if command is G91
+						elif gcode.getValue('G') == "91" :
 				
-						# Set relative mode
-						relativeMode = True
+							# Set relative mode
+							relativeMode = True
 				
-					# Set line to adjusted value
-					line = gcode.getAscii() + '\n'
+						# Set line to adjusted value
+						line = gcode.getAscii() + '\n'
 			
-				# Set previous G-code
-				previousGcode = copy.deepcopy(gcode)
+					# Set previous G-code
+					previousGcode = copy.deepcopy(gcode)
 			
 			# Send line to output
 			os.write(output, line)
@@ -2144,7 +2139,6 @@ class M3DFioPlugin(
 		for line in open(temp) :
 			
 			# Check if line was parsed successfully and it's a G command
-			gcode.clear()
 			if gcode.parseLine(line) == True and gcode.hasValue('G') == True :
 			
 				# Check if command is G0 or G1 and it's in absolute mode
@@ -2440,7 +2434,6 @@ class M3DFioPlugin(
 		for line in open(temp) :
 			
 			# Check if line was parsed successfully and it's a G command
-			gcode.clear()
 			if gcode.parseLine(line) == True and gcode.hasValue('G') == True :
 			
 				# Check if command is G0 or G1 and it's in absolute mode
@@ -2627,7 +2620,6 @@ class M3DFioPlugin(
 		for line in open(temp) :
 			
 			# Check if line was parsed successfully and it contains G and F values
-			gcode.clear()
 			if gcode.parseLine(line) == True and gcode.hasValue('G') == True and gcode.hasValue('F') == True :
 			
 				# Get command's feedrate
