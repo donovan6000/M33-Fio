@@ -50,7 +50,7 @@ class M3DFioPlugin(
 		self.processingSlice = False
 		
 		# Set port if available
-		if sys.platform.startswith("linux") == True :
+		if sys.platform.startswith("linux") :
 			self.port = "/dev/micro_m3d"
 		else :
 			self.port = None
@@ -187,7 +187,7 @@ class M3DFioPlugin(
 		if command == "message" :
 		
 			# Check if parameter is a list of commands
-			if isinstance(data["value"], list) == True :
+			if isinstance(data["value"], list) :
 			
 				# Set waiting response
 				if data["value"][-1] == "M65536;wait\n" :
@@ -200,7 +200,7 @@ class M3DFioPlugin(
 				if data["value"][-1] == "M65536;wait\n" :
 				
 					# Wait until all commands have been sent or interrupted
-					while self.waitingResponse == True :
+					while self.waitingResponse :
 						time.sleep(0.01)
 				
 					# Send response
@@ -210,7 +210,7 @@ class M3DFioPlugin(
 						return flask.jsonify(dict(value = "Ok"))
 			
 			# Otherwise check if parameter is to set fan
-			elif data["value"].startswith("Set Fan:") == True :
+			elif data["value"].startswith("Set Fan:") :
 			
 				# Initialize variables
 				error = False
@@ -260,7 +260,7 @@ class M3DFioPlugin(
 				while index < 4 :
 				
 					# Check if saving fan scale failed
-					if error == False and self.writeToEeprom(connection, 0x2AD + index, chr((fanScale >> 8 * index) & 0xFF)) == False :
+					if not error and not self.writeToEeprom(connection, 0x2AD + index, chr((fanScale >> 8 * index) & 0xFF)) :
 				
 						# Set error
 						error = True
@@ -269,7 +269,7 @@ class M3DFioPlugin(
 					index += 1
 				
 				# Check if saving fan offset or fan type failed
-				if error == False and (self.writeToEeprom(connection, 0x2AC, chr(fanOffset)) == False or self.writeToEeprom(connection, 0x2AB, chr(fanType)) == False) :
+				if not error and (not self.writeToEeprom(connection, 0x2AC, chr(fanOffset)) or not self.writeToEeprom(connection, 0x2AB, chr(fanType))) :
 				
 					# Set error
 					error = True
@@ -284,13 +284,13 @@ class M3DFioPlugin(
 				self._printer.connect(port = currentPort, baudrate = currentBaudrate, profile = currentProfile)
 				
 				# Send response
-				if error == True :
+				if error :
 					return flask.jsonify(dict(value = "Error"))
 				else :
 					return flask.jsonify(dict(value = "Ok"))
 			
 			# Otherwise check if parameter is to set extruder current
-			elif data["value"].startswith("Set Extruder Current:") == True :
+			elif data["value"].startswith("Set Extruder Current:") :
 			
 				# Initialize variables
 				error = False
@@ -314,7 +314,7 @@ class M3DFioPlugin(
 				connection = serial.Serial(currentPort, currentBaudrate)
 				
 				# Check if saving extruder current failed
-				if self.writeToEeprom(connection, 0x2E8, chr(current & 0xFF)) == False or self.writeToEeprom(connection, 0x2E9, chr((current >> 8) & 0xFF)) == False :
+				if not self.writeToEeprom(connection, 0x2E8, chr(current & 0xFF)) or not self.writeToEeprom(connection, 0x2E9, chr((current >> 8) & 0xFF)) :
 				
 					# Set error
 					error = True
@@ -329,13 +329,13 @@ class M3DFioPlugin(
 				self._printer.connect(port = currentPort, baudrate = currentBaudrate, profile = currentProfile)
 				
 				# Send response
-				if error == True :
+				if error :
 					return flask.jsonify(dict(value = "Error"))
 				else :
 					return flask.jsonify(dict(value = "Ok"))
 			
 			# Otherwise check if parameter is to print test border
-			elif data["value"].startswith("Print test border") == True :
+			elif data["value"].startswith("Print test border") :
 			
 				# Set test border file location
 				location = os.path.dirname(os.path.realpath(__file__)) + "/static/files/test border.gcode"
@@ -344,7 +344,7 @@ class M3DFioPlugin(
 				destination = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "test border")
 				
 				# Remove processed test border if it already exists
-				if os.path.isfile(destination) == True :
+				if os.path.isfile(destination) :
 					os.remove(destination)
 					
 				# Copy test border
@@ -401,255 +401,264 @@ class M3DFioPlugin(
 			if self.port != None :
 				currentPort = self.port
 			
-			# Switch into bootloader mode
-			self._printer.commands("M115 S628\n")
-			time.sleep(1)
+			# Check if rom version is valid ROM version
+			if len(data["name"]) >= 10 and data["name"][0 : 10].isdigit() :
 			
-			# Connect to the printer
-			connection = serial.Serial(currentPort, currentBaudrate)
+				# Set ROM version
+				romVersion = int(data["name"][0 : 10])
 			
-			# Get encrypted rom from unicode contents
-			for character in data["contents"] :
-				encryptedRom += chr(ord(character))
+				# Switch into bootloader mode
+				self._printer.commands("M115 S628\n")
+				time.sleep(1)
 			
-			# Set ROM version
-			romVersion = int(data["name"][0 : 10])
+				# Connect to the printer
+				connection = serial.Serial(currentPort, currentBaudrate)
 			
-			# Request current CRC from chip
-			connection.write('C')
-			connection.write('A')
-
-			# Get response
-			response = connection.read(4)
-
-			# Get chip CRC
-			index = 0
-			while index < 4 :
-				oldChipCrc <<= 8
-				oldChipCrc += int(ord(response[index]))
-				index += 1
+				# Get encrypted rom from unicode contents
+				for character in data["contents"] :
+					encryptedRom += chr(ord(character))
 			
-			# Request that chip be erased
-			connection.write('E')
-
-			# Check if chip was erased successfully
-			if connection.read(1) == '\r' :
-			
-				# Send address zero
+				# Request current CRC from chip
+				connection.write('C')
 				connection.write('A')
-				connection.write('\x00')
-				connection.write('\x00')
 
-				# Check if address was acknowledged
+				# Get response
+				response = connection.read(4)
+
+				# Get chip CRC
+				index = 0
+				while index < 4 :
+					oldChipCrc <<= 8
+					oldChipCrc += int(ord(response[index]))
+					index += 1
+			
+				# Request that chip be erased
+				connection.write('E')
+
+				# Check if chip was erased successfully
 				if connection.read(1) == '\r' :
+			
+					# Send address zero
+					connection.write('A')
+					connection.write('\x00')
+					connection.write('\x00')
+
+					# Check if address was acknowledged
+					if connection.read(1) == '\r' :
 				
-					# Set pages to write
-					pagesToWrite = len(encryptedRom) / 2 / self.chipPageSize
-					if len(encryptedRom) / 2 % self.chipPageSize != 0 :
-						pagesToWrite += 1
+						# Set pages to write
+						pagesToWrite = len(encryptedRom) / 2 / self.chipPageSize
+						if len(encryptedRom) / 2 % self.chipPageSize != 0 :
+							pagesToWrite += 1
 
-					#Go through all pages to write
-					index = 0
-					while index < pagesToWrite :
+						#Go through all pages to write
+						index = 0
+						while index < pagesToWrite :
 
-						# Send write to page request
-						connection.write('B')
-						connection.write(chr((self.chipPageSize * 2 >> 8) & 0xFF))
-						connection.write(chr((self.chipPageSize * 2) & 0xFF))
+							# Send write to page request
+							connection.write('B')
+							connection.write(chr((self.chipPageSize * 2 >> 8) & 0xFF))
+							connection.write(chr((self.chipPageSize * 2) & 0xFF))
 
-						# Go through all values for the page
-						pageAddress = 0
-						while pageAddress < self.chipPageSize * 2 :
+							# Go through all values for the page
+							pageAddress = 0
+							while pageAddress < self.chipPageSize * 2 :
 
-							# Check if data to be written exists
-							position = pageAddress + self.chipPageSize * index * 2
-							if position < len(encryptedRom) :
+								# Check if data to be written exists
+								position = pageAddress + self.chipPageSize * index * 2
+								if position < len(encryptedRom) :
 					
-								# Send value
-								if position % 2 == 0 :
-									connection.write(encryptedRom[position + 1])
+									# Send value
+									if position % 2 == 0 :
+										connection.write(encryptedRom[position + 1])
+									else :
+										connection.write(encryptedRom[position - 1])
+	
+								# Otherwise
 								else :
-									connection.write(encryptedRom[position - 1])
 	
-							# Otherwise
-							else :
-	
-								# Send padding
-								connection.write(chr(self.romEncryptionTable[0xFF]))
+									# Send padding
+									connection.write(chr(self.romEncryptionTable[0xFF]))
 					
-							# Increment page address
-							pageAddress += 1
+								# Increment page address
+								pageAddress += 1
 
-						# Check if chip failed to be flashed
-						if connection.read(1) != '\r' :
+							# Check if chip failed to be flashed
+							if connection.read(1) != '\r' :
 						
-							# Set error
-							error = True
-							break
+								# Set error
+								error = True
+								break
 				
-						# Increment index
-						index += 1
+							# Increment index
+							index += 1
 					
-					# Check if chip was successfully flashed
-					if error == False :
+						# Check if chip was successfully flashed
+						if not error :
 					
-						# Send address zero
-						connection.write('A')
-						connection.write('\x00')
-						connection.write('\x00')
-
-						# Check if address was acknowledged
-						if connection.read(1) == '\r' :
-								
-							# Request new CRC from chip
-							connection.write('C')
+							# Send address zero
 							connection.write('A')
+							connection.write('\x00')
+							connection.write('\x00')
 
-							# Get response
-							response = connection.read(4)
-
-							# Get chip CRC
-							index = 0
-							while index < 4 :
-								newChipCrc <<= 8
-								newChipCrc += int(ord(response[index]))
-								index += 1
+							# Check if address was acknowledged
+							if connection.read(1) == '\r' :
 								
-							# Decrypt the ROM
-							index = 0
-							while index < self.chipTotalMemory :
+								# Request new CRC from chip
+								connection.write('C')
+								connection.write('A')
 
-								# Check if data exists in the ROM
-								if index < len(encryptedRom) :
+								# Get response
+								response = connection.read(4)
 
-									# Check if padding is required
-									if index % 2 == 0 and index == len(encryptedRom) - 1 :
+								# Get chip CRC
+								index = 0
+								while index < 4 :
+									newChipCrc <<= 8
+									newChipCrc += int(ord(response[index]))
+									index += 1
+								
+								# Decrypt the ROM
+								index = 0
+								while index < self.chipTotalMemory :
 
-										# Put padding
-										decryptedRom += '\xFF'
+									# Check if data exists in the ROM
+									if index < len(encryptedRom) :
+
+										# Check if padding is required
+										if index % 2 == 0 and index == len(encryptedRom) - 1 :
+
+											# Put padding
+											decryptedRom += '\xFF'
 	
+										# Otherwise
+										else :
+
+											# Decrypt the ROM
+											if index % 2 == 0 :
+												decryptedRom += chr(self.romDecryptionTable[int(ord(encryptedRom[index + 1]))])
+											else :
+												decryptedRom += chr(self.romDecryptionTable[int(ord(encryptedRom[index - 1]))])
+
 									# Otherwise
 									else :
 
-										# Decrypt the ROM
-										if index % 2 == 0 :
-											decryptedRom += chr(self.romDecryptionTable[int(ord(encryptedRom[index + 1]))])
-										else :
-											decryptedRom += chr(self.romDecryptionTable[int(ord(encryptedRom[index - 1]))])
+										# Put padding
+										decryptedRom += '\xFF'
 
-								# Otherwise
-								else :
+									# Increment index
+									index += 1
 
-									# Put padding
-									decryptedRom += '\xFF'
-
-								# Increment index
-								index += 1
-
-							# Get ROM CRC
-							romCrc = binascii.crc32(decryptedRom) & 0xFFFFFFFF
+								# Get ROM CRC
+								romCrc = binascii.crc32(decryptedRom) & 0xFFFFFFFF
 							
-							# Check if firmware update was successful
-							if newChipCrc == struct.unpack("<I", struct.pack(">I", romCrc))[0] :
+								# Check if firmware update was successful
+								if newChipCrc == struct.unpack("<I", struct.pack(">I", romCrc))[0] :
 							
-								# Request EEPROM
-								connection.write('S')
+									# Request EEPROM
+									connection.write('S')
 		
-								# Get response
-								response = connection.read(0x301)
+									# Get response
+									response = connection.read(0x301)
 		
-								# Check if EEPROM was read successfully
-								if response[-1] == '\r' :
+									# Check if EEPROM was read successfully
+									if response[-1] == '\r' :
 							
-									# Get EEPROM CRC
-									index = 0
-									while index < 4 :
-										eepromCrc <<= 8
-										eepromCrc += int(ord(response[index + 4]))
-										index += 1
+										# Get EEPROM CRC
+										index = 0
+										while index < 4 :
+											eepromCrc <<= 8
+											eepromCrc += int(ord(response[index + 4]))
+											index += 1
 								
-									# Check if section needs to be zeroed out or previous firmware was corrupt
-									if response[0x2E6] == '\x00' or oldChipCrc != eepromCrc :
+										# Check if section needs to be zeroed out or previous firmware was corrupt
+										if response[0x2E6] == '\x00' or oldChipCrc != eepromCrc :
+									
+											# Go through bytes of zero sections
+											index = 0
+											while index < 4 :
+
+												# Check if zeroing out section in EEPROM failed
+												if not error and not self.writeToEeprom(connection, 0x08 + index, '\x00') :
+											
+													# Set error
+													error = True
+										
+												# Increment index
+												index += 1
 									
 										# Go through bytes of zero sections
 										index = 0
-										while index < 4 :
-
+										while index < 16 :
+									
 											# Check if zeroing out section in EEPROM failed
-											if error == False and self.writeToEeprom(connection, 0x08 + index, '\x00') == False :
-											
+											if not error and not self.writeToEeprom(connection, 0x2D6 + index, '\x00'):
+										
 												# Set error
 												error = True
 										
 											# Increment index
 											index += 1
-									
-									# Go through bytes of zero sections
-									index = 0
-									while index < 16 :
-									
-										# Check if zeroing out section in EEPROM failed
-										if error == False and self.writeToEeprom(connection, 0x2D6 + index, '\x00') == False :
-										
-											# Set error
-											error = True
-										
-										# Increment index
-										index += 1
 
-									# Go through bytes of firmware version
-									index = 0
-									while index < 4 :
+										# Go through bytes of firmware version
+										index = 0
+										while index < 4 :
 									
-										# Check if updating firmware version in EEPROM failed
-										if error == False and self.writeToEeprom(connection, index, chr((romVersion >> 8 * index) & 0xFF)) == False :
+											# Check if updating firmware version in EEPROM failed
+											if not error and not self.writeToEeprom(connection, index, chr((romVersion >> 8 * index) & 0xFF)) :
 										
-											# Set error
-											error = True
+												# Set error
+												error = True
 										
-										# Increment index
-										index += 1
+											# Increment index
+											index += 1
 
-									# Go through bytes of firmware CRC
-									index = 0
-									while index < 4 :
+										# Go through bytes of firmware CRC
+										index = 0
+										while index < 4 :
 									
-										# Check if updating firmware CRC in EEPROM failed
-										if error == False and self.writeToEeprom(connection, index + 4, chr((romCrc >> 8 * index) & 0xFF)) == False :
+											# Check if updating firmware CRC in EEPROM failed
+											if not error and not self.writeToEeprom(connection, index + 4, chr((romCrc >> 8 * index) & 0xFF)) :
 										
-											# Set error
-											error = True
+												# Set error
+												error = True
 										
-										# Increment index
-										index += 1
+											# Increment index
+											index += 1
 								
+									# Otherwise
+									else :
+									
+										# Set error
+										error = True
+							
 								# Otherwise
 								else :
-									
+								
 									# Set error
 									error = True
-							
+						
 							# Otherwise
 							else :
-								
+						
 								# Set error
 								error = True
-						
-						# Otherwise
-						else :
-						
-							# Set error
-							error = True
 				
+					# Otherwise
+					else :
+				
+						# Set error
+						error = True
+			
 				# Otherwise
 				else :
-				
+			
 					# Set error
 					error = True
 			
 			# Otherwise
 			else :
-			
+		
 				# Set error
 				error = True
 			
@@ -663,7 +672,7 @@ class M3DFioPlugin(
 			self._printer.connect(port = currentPort, baudrate = currentBaudrate, profile = currentProfile)
 			
 			# Send response
-			if error == True :
+			if error :
 				return flask.jsonify(dict(value = "Error"))
 			else :
 				return flask.jsonify(dict(value = "Ok"))
@@ -744,7 +753,7 @@ class M3DFioPlugin(
 		response = self._printer.get_transport().readline()
 		
 		# Check if response was a processed value
-		if response.startswith("ok ") == True and response[3].isdigit() == True :
+		if response.startswith("ok ") and response[3].isdigit() :
 			
 			# Get line number
 			lineNumber = int(response[3:])
@@ -757,7 +766,7 @@ class M3DFioPlugin(
 				self.numberWrapCounter += 1
 		
 		# Otherwise check if response was a skip value
-		elif response.startswith("skip ") == True :
+		elif response.startswith("skip ") :
 		
 			# Get line number
 			lineNumber = int(response[5:])
@@ -770,13 +779,13 @@ class M3DFioPlugin(
 				self.numberWrapCounter += 1
 		
 		# Otherwise check if response was a resend value
-		elif response.startswith("Resend ") == True :
+		elif response.startswith("Resend ") :
 		
 			# Set response to contain correct line number
 			response = "Resend:" + str(int(response[7 :]) + self.numberWrapCounter * 0x10000) + '\n'
 		
 		# Otherwise check if response was an error code
-		elif response.startswith("Error:") == True :
+		elif response.startswith("Error:") :
 		
 			# Set error response
 			if response[6 : 10] == "1000" :
@@ -902,7 +911,7 @@ class M3DFioPlugin(
 				commandList = ["M117", "M114"]
 				
 				# Check if set to automatically collect printer settings
-				if self._settings.get_boolean(["AutomaticSettingsUpdate"]) == True :
+				if self._settings.get_boolean(["AutomaticSettingsUpdate"]) :
 			
 					# Request pre-processor dependant values
 					commandList += ["M619 S0\n", "M619 S1\n", "M619 S7\n", "M619 S8\n", "M619 S16\n", "M619 S17\n", "M619 S18\n", "M619 S19\n", "M619 S22\n", "M619 S32\n"]
@@ -1046,7 +1055,7 @@ class M3DFioPlugin(
 		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar percent", percent = "60"))
 		
 		# Use center model pre-processor if set
-		if self._settings.get_boolean(["UseCenterModelPreprocessor"]) == True :
+		if self._settings.get_boolean(["UseCenterModelPreprocessor"]) :
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Centering model ..."))
 			self.centerModelPreprocessor(temp)
 		
@@ -1055,10 +1064,10 @@ class M3DFioPlugin(
 		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Checking Dimensions ..."))
 		
 		# Check if print is out of bounds
-		if self.getPrintInformation(temp) == False :
+		if not self.getPrintInformation(temp) :
 		
 			# Check if processing a slice
-			if self.processingSlice == True :
+			if self.processingSlice :
 			
 				# Clear processing slice
 				self.processingSlice = False
@@ -1094,7 +1103,7 @@ class M3DFioPlugin(
 		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar percent", percent = "68"))
 		
 		# Use validation pre-processor if set
-		if self._settings.get_boolean(["UseValidationPreprocessor"]) == True :
+		if self._settings.get_boolean(["UseValidationPreprocessor"]) :
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Validation ..."))
 			self.validationPreprocessor(temp)
 		
@@ -1102,7 +1111,7 @@ class M3DFioPlugin(
 		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar percent", percent = "72"))
 		
 		# Use preparation pre-processor if set
-		if self._settings.get_boolean(["UsePreparationPreprocessor"]) == True :
+		if self._settings.get_boolean(["UsePreparationPreprocessor"]) :
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Preparation ..."))
 			self.preparationPreprocessor(temp)
 		
@@ -1110,7 +1119,7 @@ class M3DFioPlugin(
 		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar percent", percent = "76"))
 		
 		# Use wave bonding pre-processor if set
-		if self._settings.get_boolean(["UseWaveBondingPreprocessor"]) == True :
+		if self._settings.get_boolean(["UseWaveBondingPreprocessor"]) :
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Wave Bonding ..."))
 			self.waveBondingPreprocessor(temp)
 		
@@ -1118,7 +1127,7 @@ class M3DFioPlugin(
 		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar percent", percent = "80"))
 		
 		# Use thermal bonding pre-processor if set
-		if self._settings.get_boolean(["UseThermalBondingPreprocessor"]) == True :
+		if self._settings.get_boolean(["UseThermalBondingPreprocessor"]) :
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Thermal Bonding ..."))
 			self.thermalBondingPreprocessor(temp)
 		
@@ -1126,7 +1135,7 @@ class M3DFioPlugin(
 		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar percent", percent = "85"))
 		
 		# Use bed compensation pre-processor if set
-		if self._settings.get_boolean(["UseBedCompensationPreprocessor"]) == True :
+		if self._settings.get_boolean(["UseBedCompensationPreprocessor"]) :
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Bed Compensation ..."))
 			self.bedCompensationPreprocessor(temp)
 		
@@ -1134,7 +1143,7 @@ class M3DFioPlugin(
 		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar percent", percent = "90"))
 		
 		# Use backlash compensation pre-processor if set
-		if self._settings.get_boolean(["UseBacklashCompensationPreprocessor"]) == True :
+		if self._settings.get_boolean(["UseBacklashCompensationPreprocessor"]) :
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Backlash Compensation ..."))
 			self.backlashCompensationPreprocessor(temp)
 		
@@ -1142,7 +1151,7 @@ class M3DFioPlugin(
 		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar percent", percent = "95"))
 		
 		# Use feed rate conversion pre-processor if set
-		if self._settings.get_boolean(["UseFeedRateConversionPreprocessor"]) == True :
+		if self._settings.get_boolean(["UseFeedRateConversionPreprocessor"]) :
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Feed Rate Conversion ..."))
 			self.feedRateConversionPreprocessor(temp)
 		
@@ -1183,13 +1192,13 @@ class M3DFioPlugin(
 		for line in open(file) :
 
 			# Check if line was parsed successfully and it's a G command
-			if gcode.parseLine(line) == True and gcode.hasValue('G') == True :
+			if gcode.parseLine(line) and gcode.hasValue('G') :
 			
 				# Check if command is G0 or G1
 				if gcode.getValue('G') == "0" or gcode.getValue('G') == "1" :
 				
 					# Check if command has an X value
-					if gcode.hasValue('X') == True :
+					if gcode.hasValue('X') :
 					
 						# Get X value of the command
 						commandX = float(gcode.getValue('X'))
@@ -1201,7 +1210,7 @@ class M3DFioPlugin(
 							localX = commandX
 					
 					# Check if command has an Y value
-					if gcode.hasValue('Y') == True :
+					if gcode.hasValue('Y') :
 					
 						# Get Y value of the command
 						commandY = float(gcode.getValue('Y'))
@@ -1213,7 +1222,7 @@ class M3DFioPlugin(
 							localY = commandY
 				
 					# Check if command has an Z value
-					if gcode.hasValue('Z') == True :
+					if gcode.hasValue('Z') :
 					
 						# Get Z value of the command
 						commandZ = float(gcode.getValue('Z'))
@@ -1273,8 +1282,8 @@ class M3DFioPlugin(
 		output = os.open(file, os.O_WRONLY | os.O_CREAT)
 		
 		# Calculate adjustments
-		displacementX = (max(self.bedLowMaxX, max(self.bedMediumMaxX, self.bedHighMaxX)) - max(self.maxXExtruderLow, max(self.maxXExtruderMedium, self.maxXExtruderHigh)) - min(self.minXExtruderLow, min(self.minXExtruderMedium, self.minXExtruderHigh)) + min(self.bedLowMinX, min(self.bedMediumMinX, self.bedHighMinX))) / 2
-		displacementY = (max(self.bedLowMaxY, max(self.bedMediumMaxY, self.bedHighMaxY)) - max(self.maxYExtruderLow, max(self.maxYExtruderMedium, self.maxYExtruderHigh)) - min(self.minYExtruderLow, min(self.minYExtruderMedium, self.minYExtruderHigh)) + min(self.bedLowMinY, min(self.bedMediumMinY, self.bedHighMinY))) / 2
+		displacementX = (self.bedLowMaxX - max(self.maxXExtruderLow, max(self.maxXExtruderMedium, self.maxXExtruderHigh)) - min(self.minXExtruderLow, min(self.minXExtruderMedium, self.minXExtruderHigh)) + self.bedLowMinX) / 2
+		displacementY = (self.bedLowMaxY - max(self.maxYExtruderLow, max(self.maxYExtruderMedium, self.maxYExtruderHigh)) - min(self.minYExtruderLow, min(self.minYExtruderMedium, self.minYExtruderHigh)) + self.bedLowMinY) / 2
 		
 		# Adjust print values
 		self.maxXExtruderLow += displacementX
@@ -1294,16 +1303,16 @@ class M3DFioPlugin(
 		for line in open(temp) :
 		
 			# Check if line was parsed successfully and it's G0 or G1
-			if gcode.parseLine(line) == True and gcode.hasValue('G') == True and (gcode.getValue('G') == "0" or gcode.getValue('G') == "1") :
+			if gcode.parseLine(line) and gcode.hasValue('G') and (gcode.getValue('G') == "0" or gcode.getValue('G') == "1") :
 				
 				# Check if line contains an X value
-				if gcode.hasValue('X') == True :
+				if gcode.hasValue('X') :
 				
 					# Adjust X value
 					gcode.setValue('X', str(float(gcode.getValue('X')) + displacementX))
 				
 				# Check if line contains a Y value
-				if gcode.hasValue('Y') == True :
+				if gcode.hasValue('Y') :
 				
 					# Adjust Y value
 					gcode.setValue('Y', str(float(gcode.getValue('Y')) + displacementY))
@@ -1324,7 +1333,7 @@ class M3DFioPlugin(
 	def getPrintInformation(self, file) :
 	
 		# Check if useing center model pre-processor
-		if self._settings.get_boolean(["UseCenterModelPreprocessor"]) == True :
+		if self._settings.get_boolean(["UseCenterModelPreprocessor"]) :
 		
 			# Check if adjusted print values are out of bounds
 			if self.minZExtruder < self.bedLowMinZ or self.maxZExtruder > self.bedHighMaxZ or self.maxXExtruderLow > self.bedLowMaxX or self.maxXExtruderMedium > self.bedMediumMaxX or self.maxXExtruderHigh > self.bedHighMaxX or self.maxYExtruderLow > self.bedLowMaxY or self.maxYExtruderMedium > self.bedMediumMaxY or self.maxYExtruderHigh > self.bedHighMaxY or self.minXExtruderLow < self.bedLowMinX or self.minXExtruderMedium < self.bedMediumMinX or self.minXExtruderHigh < self.bedHighMinX or self.minYExtruderLow < self.bedLowMinY or self.minYExtruderMedium < self.bedMediumMinY or self.minYExtruderHigh < self.bedHighMinY :
@@ -1347,13 +1356,13 @@ class M3DFioPlugin(
 			for line in open(file) :
 
 				# Check if line was parsed successfully and it's a G command
-				if gcode.parseLine(line) == True and gcode.hasValue('G') == True :
+				if gcode.parseLine(line) and gcode.hasValue('G') :
 			
 					# Check if command is G0 or G1
 					if gcode.getValue('G') == "0" or gcode.getValue('G') == "1" :
 				
 						# Check if command has an X value
-						if gcode.hasValue('X') == True :
+						if gcode.hasValue('X') :
 					
 							# Get X value of the command
 							commandX = float(gcode.getValue('X'))
@@ -1365,7 +1374,7 @@ class M3DFioPlugin(
 								localX = commandX
 					
 						# Check if command has an Y value
-						if gcode.hasValue('Y') == True :
+						if gcode.hasValue('Y') :
 					
 							# Get Y value of the command
 							commandY = float(gcode.getValue('Y'))
@@ -1377,7 +1386,7 @@ class M3DFioPlugin(
 								localY = commandY
 				
 						# Check if command has an Z value
-						if gcode.hasValue('Z') == True :
+						if gcode.hasValue('Z') :
 					
 							# Get Z value of the command
 							commandZ = float(gcode.getValue('Z'))
@@ -1439,23 +1448,23 @@ class M3DFioPlugin(
 	def getDistance(self, firstPoint, secondPoint) :
 
 		# Get first point coordinates
-		if firstPoint.hasValue('X') == True :
+		if firstPoint.hasValue('X') :
 			firstX = float(firstPoint.getValue('X'))
 		else :
 			firstX = 0
 		
-		if firstPoint.hasValue('Y') == True :
+		if firstPoint.hasValue('Y') :
 			firstY = float(firstPoint.getValue('Y'))
 		else :
 			firstY = 0
 		
 		# Get second point coordinates
-		if secondPoint.hasValue('X') == True :
+		if secondPoint.hasValue('X') :
 			secondX = float(secondPoint.getValue('X'))
 		else :
 			secondX = 0
 		
-		if secondPoint.hasValue('Y') == True :
+		if secondPoint.hasValue('Y') :
 			secondY = float(secondPoint.getValue('Y'))
 		else :
 			secondY = 0
@@ -1484,23 +1493,23 @@ class M3DFioPlugin(
 	def isSharpCorner(self, point, refrence) :
 
 		# Get point coordinates
-		if point.hasValue('X') == True :
+		if point.hasValue('X') :
 			currentX = float(point.getValue('X'))
 		else :
 			currentX = 0
 		
-		if point.hasValue('Y') == True :
+		if point.hasValue('Y') :
 			currentY = float(point.getValue('Y'))
 		else :
 			currentY = 0
 		
 		# Get refrence coordinates
-		if refrence.hasValue('X') == True :
+		if refrence.hasValue('X') :
 			previousX = float(refrence.getValue('X'))
 		else :
 			previousX = 0
 		
-		if refrence.hasValue('Y') == True :
+		if refrence.hasValue('Y') :
 			previousY = float(refrence.getValue('Y'))
 		else :
 			previousY = 0
@@ -1558,16 +1567,16 @@ class M3DFioPlugin(
 		for line in open(temp) :
 			
 			# Check if line contains valid G-code
-			if gcode.parseLine(line) == True :
+			if gcode.parseLine(line) :
 			
 				# Check if command isn't valid for the printer
-				if gcode.hasValue('M') == True and (gcode.getValue('M') == "82" or gcode.getValue('M') == "83") :
+				if gcode.hasValue('M') and (gcode.getValue('M') == "82" or gcode.getValue('M') == "83") :
 			
 					# Get next line
 					continue
 			
 				# Check if command contains tool selection
-				if gcode.hasParameter('T') == True :
+				if gcode.hasParameter('T') :
 			
 					# Remove tool selection
 					gcode.removeParameter('T')
@@ -1600,7 +1609,7 @@ class M3DFioPlugin(
 		output = os.open(file, os.O_WRONLY | os.O_CREAT)
 		
 		# Check if leaving excess at corner
-		if cornerExcess == True :
+		if cornerExcess :
 		
 			# Set corner X
 			if self.maxXExtruderLow < self.bedLowMaxX :
@@ -1719,37 +1728,37 @@ class M3DFioPlugin(
 				layerCounter += 1
 			
 			# Check if line was parsed successfully and it's a G command
-			if gcode.parseLine(line) == True and gcode.hasValue('G') == True :
+			if gcode.parseLine(line) and gcode.hasValue('G') :
 			
 				# Check if on first layer
 				if layerCounter == 0 :
 			
 					# Check if command is G0 or G1 and it's in absolute mode
-					if (gcode.getValue('G') == "0" or gcode.getValue('G') == "1") and relativeMode == False :
+					if (gcode.getValue('G') == "0" or gcode.getValue('G') == "1") and not relativeMode :
 				
 						# Check if line contains an X or Y value
-						if gcode.hasValue('X') == True or gcode.hasValue('Y') == True :
+						if gcode.hasValue('X') or gcode.hasValue('Y') :
 				
 							# Set changes plane
 							changesPlane = True
 					
 						# Set delta values
-						if gcode.hasValue('X') == True :
+						if gcode.hasValue('X') :
 							deltaX = float(gcode.getValue('X')) - positionRelativeX
 						else :
 							deltaX = 0
 					
-						if gcode.hasValue('Y') == True :
+						if gcode.hasValue('Y') :
 							deltaY = float(gcode.getValue('Y')) - positionRelativeY
 						else :
 							deltaY = 0
 					
-						if gcode.hasValue('Z') == True :
+						if gcode.hasValue('Z') :
 							deltaZ = float(gcode.getValue('Z')) - positionRelativeZ
 						else :
 							deltaZ = 0
 						
-						if gcode.hasValue('E') == True :
+						if gcode.hasValue('E') :
 							deltaE = float(gcode.getValue('E')) - positionRelativeE
 						else :
 							deltaE = 0
@@ -1791,17 +1800,17 @@ class M3DFioPlugin(
 						if deltaE > 0 :
 				
 							# Check if previous G-code is not empty
-							if previousGcode.isEmpty() == False :
+							if not previousGcode.isEmpty() :
 					
 								# Check if corner count is at most one and sharp corner
-								if cornerCounter <= 1 and self.isSharpCorner(gcode, previousGcode) == True :
+								if cornerCounter <= 1 and self.isSharpCorner(gcode, previousGcode) :
 						
 									# Check if refrence G-codes isn't set
-									if refrenceGcode.isEmpty() == True :
+									if refrenceGcode.isEmpty() :
 							
 										# Check if a tack point was created
 										tackPoint = self.createTackPoint(gcode, previousGcode)
-										if tackPoint.isEmpty() == False :
+										if not tackPoint.isEmpty() :
 								
 											# Send tack point to output
 											os.write(output, tackPoint.getAscii() + '\n')
@@ -1813,11 +1822,11 @@ class M3DFioPlugin(
 									cornerCounter += 1
 						
 								# Otherwise check is corner count is at least one and sharp corner
-								elif cornerCounter >= 1 and self.isSharpCorner(gcode, refrenceGcode) == True :
+								elif cornerCounter >= 1 and self.isSharpCorner(gcode, refrenceGcode) :
 						
 									# Check if a tack point was created
 									tackPoint = self.createTackPoint(gcode, refrenceGcode)
-									if tackPoint.isEmpty() == False :
+									if not tackPoint.isEmpty() :
 							
 										# Send tack point to output
 										os.write(output, tackPoint.getAscii() + '\n')
@@ -1855,25 +1864,25 @@ class M3DFioPlugin(
 									extraGcode.setValue('G', gcode.getValue('G'))
 							
 									# Set extra G-code X value
-									if gcode.hasValue('X') == True :
+									if gcode.hasValue('X') :
 										extraGcode.setValue('X', str(positionRelativeX - deltaX + tempRelativeX - relativeDifferenceX))
 							
 									# Set extra G-cdoe Y value
-									if gcode.hasValue('Y') == True :
+									if gcode.hasValue('Y') :
 										extraGcode.setValue('Y', str(positionRelativeY - deltaY + tempRelativeY - relativeDifferenceY))
 							
 									# Set extra G-code F value if first element
-									if gcode.hasValue('F') == True and index == 1 :
+									if gcode.hasValue('F') and index == 1 :
 										extraGcode.setValue('F', gcode.getValue('F'))
 							
 									# Check if plane changed
-									if changesPlane == True :
+									if changesPlane :
 							
 										# Set extra G-code Z value
 										extraGcode.setValue('Z', str(positionRelativeZ - deltaZ + tempRelativeZ - relativeDifferenceZ + self.getCurrentAdjustmentZ()))
 							
 									# Otherwise check if command has a Z value and changes in Z are noticable
-									elif gcode.hasValue('Z') == True and deltaZ != sys.float_info.epsilon :
+									elif gcode.hasValue('Z') and deltaZ != sys.float_info.epsilon :
 							
 										# Set extra G-code Z value
 										extraGcode.setValue('Z', str(positionRelativeZ - deltaZ + tempRelativeZ - relativeDifferenceZ))
@@ -1885,10 +1894,10 @@ class M3DFioPlugin(
 									os.write(output, extraGcode.getAscii() + '\n')
 						
 								# Otherwise check if plane changed
-								elif changesPlane == True :
+								elif changesPlane :
 						
 									# Check if command has a Z value
-									if gcode.hasValue('Z') == True :
+									if gcode.hasValue('Z') :
 							
 										# Add to command's Z value
 										gcode.setValue('Z', str(float(gcode.getValue('Z')) + self.getCurrentAdjustmentZ()))
@@ -1921,7 +1930,7 @@ class M3DFioPlugin(
 				if gcode.getValue('G') == "92" :
 				
 					# Check if command doesn't have an X, Y, Z, and E value
-					if gcode.hasValue('X') == False and gcode.hasValue('Y')  == False and gcode.hasValue('Z') == False and gcode.hasValue('E') == False :
+					if not gcode.hasValue('X') and not gcode.hasValue('Y') and not gcode.hasValue('Z') and not gcode.hasValue('E') :
 			
 						# Set command values to zero
 						gcode.setValue('X', "0")
@@ -1933,16 +1942,16 @@ class M3DFioPlugin(
 					else :
 			
 						# Set relative positions
-						if gcode.hasValue('X') == True :
+						if gcode.hasValue('X') :
 							positionRelativeX = float(gcode.getValue('X'))
 						
-						if gcode.hasValue('Y') == True :
+						if gcode.hasValue('Y') :
 							positionRelativeY = float(gcode.getValue('Y'))
 						
-						if gcode.hasValue('Z') == True :
+						if gcode.hasValue('Z') :
 							positionRelativeZ = float(gcode.getValue('Z'))
 					
-						if gcode.hasValue('E') == True :
+						if gcode.hasValue('E') :
 							positionRelativeE = float(gcode.getValue('E'))
 				
 				# Set line to adjusted value
@@ -1987,7 +1996,7 @@ class M3DFioPlugin(
 				layerCounter += 1
 			
 				# Check if adding temperature controls
-				if addingTemperatureCommands == True :
+				if addingTemperatureCommands :
 			
 					# Check if on first counted layer
 					if layerCounter == 0 :
@@ -2029,10 +2038,10 @@ class M3DFioPlugin(
 						addingTemperatureCommands = False
 			
 			# Check if line was parsed successfully
-			if gcode.parseLine(line) == True :
+			if gcode.parseLine(line) :
 			
 				# Check if command contains temperature or fan controls past the first layer
-				if layerCounter > 0 and gcode.hasValue('M') == True and (gcode.getValue('M') == "104" or gcode.getValue('M') == "105" or gcode.getValue('M') == "106" or gcode.getValue('M') == "107" or gcode.getValue('M') == "109") :
+				if layerCounter > 0 and gcode.hasValue('M') and (gcode.getValue('M') == "104" or gcode.getValue('M') == "105" or gcode.getValue('M') == "106" or gcode.getValue('M') == "107" or gcode.getValue('M') == "109") :
 			
 					# Get next line
 					continue
@@ -2041,26 +2050,26 @@ class M3DFioPlugin(
 				elif layerCounter <= 1 :
 			
 					# Check if wave bonding isn't being used and line is a G command
-					if self._settings.get_boolean(["UseWaveBondingPreprocessor"]) != True and gcode.hasValue('G') == True:
+					if not self._settings.get_boolean(["UseWaveBondingPreprocessor"]) and gcode.hasValue('G') :
 			
 						# Check if command is G0 or G1 and and it's in absolute
-						if (gcode.getValue('G') == "0" or gcode.getValue('G') == "1") and relativeMode == False :
+						if (gcode.getValue('G') == "0" or gcode.getValue('G') == "1") and not relativeMode :
 				
 							# Check if previous command exists, adding temperature commands, and filament is ABS, HIPS, or PLA
-							if previousGcode.isEmpty() == False and addingTemperatureCommands == True and (self.filamentType == "ABS" or self.filamentType == "HIPS" or self.filamentType == "PLA") :
+							if not previousGcode.isEmpty() and addingTemperatureCommands and (self.filamentType == "ABS" or self.filamentType == "HIPS" or self.filamentType == "PLA") :
 					
 								# Check if both counters are less than or equal to one
 								if cornerCounter <= 1 :
 						
 									# Check if sharp corner
-									if self.isSharpCorner(gcode, previousGcode) == True :
+									if self.isSharpCorner(gcode, previousGcode) :
 							
 										# Check if refrence G-codes isn't set
-										if refrenceGcode.isEmpty() == True :
+										if refrenceGcode.isEmpty() :
 								
 											# Check if a tack point was created
 											tackPoint = self.createTackPoint(gcode, previousGcode)
-											if tackPoint.isEmpty() == False :
+											if not tackPoint.isEmpty() :
 									
 												# Send tack point to output
 												os.write(output, tackPoint.getAscii() + '\n')
@@ -2072,11 +2081,11 @@ class M3DFioPlugin(
 										cornerCounter += 1
 						
 								# Otherwise check if corner counter is greater than one but layer counter isn't and sharp corner
-								elif cornerCounter >= 1 and self.isSharpCorner(gcode, refrenceGcode) == True :
+								elif cornerCounter >= 1 and self.isSharpCorner(gcode, refrenceGcode) :
 						
 									# Check if a tack point was created
 									tackPoint = self.createTackPoint(gcode, refrenceGcode)
-									if tackPoint.isEmpty() == False :
+									if not tackPoint.isEmpty() :
 							
 										# Send tack point to output
 										os.write(output, tackPoint.getAscii() + '\n')
@@ -2139,40 +2148,40 @@ class M3DFioPlugin(
 		for line in open(temp) :
 			
 			# Check if line was parsed successfully and it's a G command
-			if gcode.parseLine(line) == True and gcode.hasValue('G') == True :
+			if gcode.parseLine(line) and gcode.hasValue('G') :
 			
 				# Check if command is G0 or G1 and it's in absolute mode
-				if (gcode.getValue('G') == "0" or gcode.getValue('G') == "1") and relativeMode == False :
+				if (gcode.getValue('G') == "0" or gcode.getValue('G') == "1") and not relativeMode :
 				
 					# Check if command has an X or Y value
-					if gcode.hasValue('X') == True or gcode.hasValue('Y') == True :
+					if gcode.hasValue('X') or gcode.hasValue('Y') :
 			
 						# Set changes plane
 						changesPlane = True
 			
 					# Check if command contains a Z value
-					if gcode.hasValue('Z') == True :
+					if gcode.hasValue('Z') :
 			
 						# Add to command's Z value
 						gcode.setValue('Z', str(float(gcode.getValue('Z')) + self.bedHeightOffset))
 					
 					# Set delta values
-					if gcode.hasValue('X') == True :
+					if gcode.hasValue('X') :
 						deltaX = float(gcode.getValue('X')) - positionRelativeX
 					else :
 						deltaX = 0
 					
-					if gcode.hasValue('Y') == True :
+					if gcode.hasValue('Y') :
 						deltaY = float(gcode.getValue('Y')) - positionRelativeY
 					else :
 						deltaY = 0
 					
-					if gcode.hasValue('Z') == True :
+					if gcode.hasValue('Z') :
 						deltaZ = float(gcode.getValue('Z')) - positionRelativeZ
 					else :
 						deltaZ = 0
 						
-					if gcode.hasValue('E') == True :
+					if gcode.hasValue('E') :
 						deltaE = float(gcode.getValue('E')) - positionRelativeE
 					else :
 						deltaE = 0
@@ -2218,7 +2227,7 @@ class M3DFioPlugin(
 					if deltaE > 0 :
 			
 						# Set add command
-						addCommand = hasExtruded == False
+						addCommand = not hasExtruded
 				
 						# Set has extruded
 						hasExtruded = True
@@ -2277,31 +2286,31 @@ class M3DFioPlugin(
 								extraGcode.setValue('G', gcode.getValue('G'))
 						
 								# Check if command has an X value
-								if gcode.hasValue('X') == True :
+								if gcode.hasValue('X') :
 						
 									# Set extra G-code X value
 									extraGcode.setValue('X', str(positionRelativeX - deltaX + tempRelativeX - relativeDifferenceX))
 							
 								# Check if command has a Y value
-								if gcode.hasValue('Y') == True :
+								if gcode.hasValue('Y') :
 						
 									# Set extra G-code Y value
 									extraGcode.setValue('Y', str(positionRelativeY - deltaY + tempRelativeY - relativeDifferenceY))
 						
 								# Check if command has F value and in first element
-								if gcode.hasValue('F') == True and index == 1 :
+								if gcode.hasValue('F') and index == 1 :
 						
 									# Set extra G-code F value
 									extraGcode.setValue('F', gcode.getValue('F'))
 						
 								# Check if the plane changed
-								if changesPlane == True :
+								if changesPlane :
 						
 									# Set extra G-code Z value
 									extraGcode.setValue('Z', str(positionRelativeZ - deltaZ + tempRelativeZ - relativeDifferenceZ + storedAdjustment))
 						
 								# Otherwise check if command has a Z value and the change in Z in noticable
-								elif gcode.hasValue('Z') == True and deltaZ != sys.float_info.epsilon :
+								elif gcode.hasValue('Z') and deltaZ != sys.float_info.epsilon :
 						
 									# Set extra G-code Z value
 									extraGcode.setValue('Z', str(positionRelativeZ - deltaZ + tempRelativeZ - relativeDifferenceZ))
@@ -2316,10 +2325,10 @@ class M3DFioPlugin(
 							else :
 					
 								# Check if the plane changed
-								if changesPlane == True :
+								if changesPlane :
 						
 									# Check if command has a Z value
-									if gcode.hasValue('Z') == True :
+									if gcode.hasValue('Z') :
 							
 										# Add value to command Z value
 										gcode.setValue('Z', str(float(gcode.getValue('Z')) + storedAdjustment))
@@ -2337,13 +2346,13 @@ class M3DFioPlugin(
 					else :
 			
 						# Check if the plane changed
-						if changesPlane == True :
+						if changesPlane :
 						
 							# Set stored adjustment
 							storedAdjustment = self.getHeightAdjustmentRequired(positionAbsoluteX, positionAbsoluteY)
 					
 							# Check if command has a Z value
-							if gcode.hasValue('Z') == True :
+							if gcode.hasValue('Z') :
 					
 								# Add value to command Z
 								gcode.setValue('Z', str(float(gcode.getValue('Z')) + storedAdjustment))
@@ -2370,7 +2379,7 @@ class M3DFioPlugin(
 				elif gcode.getValue('G') == "92" :
 				
 					# Check if command doesn't have an X, Y, Z, and E value
-					if gcode.hasValue('X') == False and gcode.hasValue('Y')  == False and gcode.hasValue('Z') == False and gcode.hasValue('E') == False :
+					if not gcode.hasValue('X') and not gcode.hasValue('Y') and not gcode.hasValue('Z') and not gcode.hasValue('E') :
 			
 						# Set command values to zero
 						gcode.setValue('X', "0")
@@ -2382,16 +2391,16 @@ class M3DFioPlugin(
 					else :
 			
 						# Set relative positions
-						if gcode.hasValue('X') == True :
+						if gcode.hasValue('X') :
 							positionRelativeX = float(gcode.getValue('X'))
 						
-						if gcode.hasValue('Y') == True :
+						if gcode.hasValue('Y') :
 							positionRelativeY = float(gcode.getValue('Y'))
 						
-						if gcode.hasValue('Z') == True :
+						if gcode.hasValue('Z') :
 							positionRelativeZ = float(gcode.getValue('Z'))
 					
-						if gcode.hasValue('E') == True :
+						if gcode.hasValue('E') :
 							positionRelativeE = float(gcode.getValue('E'))
 				
 				# Set line to adjusted value
@@ -2434,34 +2443,34 @@ class M3DFioPlugin(
 		for line in open(temp) :
 			
 			# Check if line was parsed successfully and it's a G command
-			if gcode.parseLine(line) == True and gcode.hasValue('G') == True :
+			if gcode.parseLine(line) and gcode.hasValue('G') :
 			
 				# Check if command is G0 or G1 and it's in absolute mode
-				if (gcode.getValue('G') == "0" or gcode.getValue('G') == "1") and relativeMode == False :
+				if (gcode.getValue('G') == "0" or gcode.getValue('G') == "1") and not relativeMode :
 				
 					# Check if command has an F value
-					if gcode.hasValue('F') == True :
+					if gcode.hasValue('F') :
 			
 						# Set value F
 						valueF = gcode.getValue('F')
 				
 					# Set delta values
-					if gcode.hasValue('X') == True :
+					if gcode.hasValue('X') :
 						deltaX = float(gcode.getValue('X')) - positionRelativeX
 					else :
 						deltaX = 0
 					
-					if gcode.hasValue('Y') == True :
+					if gcode.hasValue('Y') :
 						deltaY = float(gcode.getValue('Y')) - positionRelativeY
 					else :
 						deltaY = 0
 					
-					if gcode.hasValue('Z') == True :
+					if gcode.hasValue('Z') :
 						deltaZ = float(gcode.getValue('Z')) - positionRelativeZ
 					else :
 						deltaZ = 0
 						
-					if gcode.hasValue('E') == True :
+					if gcode.hasValue('E') :
 						deltaE = float(gcode.getValue('E')) - positionRelativeE
 					else :
 						deltaE = 0
@@ -2530,13 +2539,13 @@ class M3DFioPlugin(
 						gcode.setValue('F', valueF)
 					
 					# Check if command has an X value
-					if gcode.hasValue('X') == True :
+					if gcode.hasValue('X') :
 					
 						# Add to command's X value
 						gcode.setValue('X', str(float(gcode.getValue('X')) + compensationX))
 					
 					# Check if command has a Y value
-					if gcode.hasValue('Y') == True :
+					if gcode.hasValue('Y') :
 			
 						# Add to command's Y value
 						gcode.setValue('Y', str(float(gcode.getValue('Y')) + compensationY))
@@ -2567,7 +2576,7 @@ class M3DFioPlugin(
 				elif gcode.getValue('G') == "92" :
 				
 					# Check if command doesn't have an X, Y, Z, and E value
-					if gcode.hasValue('X') == False and gcode.hasValue('Y') == False and gcode.hasValue('Z') == False and gcode.hasValue('E') == False :
+					if not gcode.hasValue('X') and not gcode.hasValue('Y') and not gcode.hasValue('Z') and not gcode.hasValue('E') :
 			
 						# Set command values to zero
 						gcode.setValue('X', "0")
@@ -2579,16 +2588,16 @@ class M3DFioPlugin(
 					else :
 			
 						# Set relative positions
-						if gcode.hasValue('X') == True :
+						if gcode.hasValue('X') :
 							positionRelativeX = float(gcode.getValue('X'))
 						
-						if gcode.hasValue('Y') == True :
+						if gcode.hasValue('Y') :
 							positionRelativeY = float(gcode.getValue('Y'))
 						
-						if gcode.hasValue('Z') == True :
+						if gcode.hasValue('Z') :
 							positionRelativeZ = float(gcode.getValue('Z'))
 					
-						if gcode.hasValue('E') == True :
+						if gcode.hasValue('E') :
 							positionRelativeE = float(gcode.getValue('E'))
 				
 				# Set line to adjusted value
@@ -2620,7 +2629,7 @@ class M3DFioPlugin(
 		for line in open(temp) :
 			
 			# Check if line was parsed successfully and it contains G and F values
-			if gcode.parseLine(line) == True and gcode.hasValue('G') == True and gcode.hasValue('F') == True :
+			if gcode.parseLine(line) and gcode.hasValue('G') and gcode.hasValue('F') :
 			
 				# Get command's feedrate
 				commandFeedRate = float(gcode.getValue('F')) / 60

@@ -59,7 +59,7 @@ class Gcode(object) :
 		if not line :
 		
 			# Return false
-			return False;
+			return False
 		
 		# Check if line is a host command
 		if line[0] == '@' :
@@ -84,7 +84,6 @@ class Gcode(object) :
 			self.hostCommand = ""
 		
 		# Parse line for parameters
-		stringExists = False
 		for match in re.compile("[" + self.order.replace(' ', '') + ";]-?\d*(\.\d+)?").finditer(line) :
 		
 			# Check if match is a comment
@@ -93,46 +92,34 @@ class Gcode(object) :
 				# Stop parsing line
 				break
 			
-			# Check if match is an M value and a string doesn't exist
-			if match.group()[0] == 'M' and not stringExists :
+			# Set data type
+			self.dataType |= (1 << self.order.find(match.group()[0]))
+			
+			# Store parameter value
+			self.parameterValue[self.order.find(match.group()[0])] = match.group()[1 :]
+			
+			# Check if match is an M value
+			if match.group()[0] == 'M' :
 			
 				# Check if M value contains a string
 				value = match.group()[1 :]
 				if value == "23" or value == "28" or value == "29" or value == "30" or value == "32" or value == "117" :
 				
-					# Set string exists
-					stringExists = True
-			
-			# Check if a strign exists
-			if stringExists :
-			
-				# Set potential offset of string
-				stringOffset = match.start() + len(match.group())
-			
-			# Set data type
-			self.dataType |= (1 << self.order.find(match.group()[0]))
-	
-			# Store parameter value
-			self.parameterValue[self.order.find(match.group()[0])] = match.group()[1 :]
+					# Set string parameter
+					self.parameterValue[15] = line[match.start() + len(match.group()) :].strip()
+					
+					# Check if string parameter contains a comment
+					characterOffset = self.parameterValue[15].find(';')
+					if characterOffset != -1 :
 		
-		# Check if a string exists
-		if stringExists :
-		
-			# Set string parameter
-			self.parameterValue[15] = line[stringOffset :].strip()
-			
-			# Check if string parameter contains a comment
-			characterOffset = self.parameterValue[15].find(';')
-			if characterOffset != -1 :
-		
-				# Remove comment
-				self.parameterValue[15] = self.parameterValue[15][0 : characterOffset]
-			
-			# Check if string exists
-			if len(self.parameterValue[15]) > 0 :
-			
-				# Set data type
-				self.dataType |= (1 << 15)
+						# Remove comment
+						self.parameterValue[15] = self.parameterValue[15][0 : characterOffset]
+					
+					# Set data type
+					self.dataType |= (1 << 15)
+					
+					# Stop parsing line
+					break
 		
 		# Return if data wasn't empty
 		return self.dataType != 0x1080
