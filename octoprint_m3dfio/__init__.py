@@ -364,9 +364,9 @@ class M3DFioPlugin(
 				self.filamentType = str(self._settings.get(["FilamentType"]))
 				
 				# Process file
-				self.getPrintInformation(temp)
-				self.preparationPreprocessor(temp, False)
-				self.thermalBondingPreprocessor(temp)
+				self.getPrintInformation(temp, True)
+				self.preparationPreprocessor(temp, True)
+				self.thermalBondingPreprocessor(temp, True)
 				self.bedCompensationPreprocessor(temp)
 				self.backlashCompensationPreprocessor(temp)
 				self.feedRateConversionPreprocessor(temp)
@@ -1330,10 +1330,10 @@ class M3DFioPlugin(
 		os.remove(temp)
 	
 	# Get print information
-	def getPrintInformation(self, file) :
+	def getPrintInformation(self, file, overrideCenterModelPreprocessor = False) :
 	
 		# Check if useing center model pre-processor
-		if self._settings.get_boolean(["UseCenterModelPreprocessor"]) :
+		if not overrideCenterModelPreprocessor and self._settings.get_boolean(["UseCenterModelPreprocessor"]) :
 		
 			# Check if adjusted print values are out of bounds
 			if self.minZExtruder < self.bedLowMinZ or self.maxZExtruder > self.bedHighMaxZ or self.maxXExtruderLow > self.bedLowMaxX or self.maxXExtruderMedium > self.bedMediumMaxX or self.maxXExtruderHigh > self.bedHighMaxX or self.maxYExtruderLow > self.bedLowMaxY or self.maxYExtruderMedium > self.bedMediumMaxY or self.maxYExtruderHigh > self.bedHighMaxY or self.minXExtruderLow < self.bedLowMinX or self.minXExtruderMedium < self.bedMediumMinX or self.minXExtruderHigh < self.bedHighMinX or self.minYExtruderLow < self.bedLowMinY or self.minYExtruderMedium < self.bedMediumMinY or self.minYExtruderHigh < self.bedHighMinY :
@@ -1351,6 +1351,22 @@ class M3DFioPlugin(
 			relativeMode = False
 			tier = "Low"
 			gcode = Gcode()
+			
+			# Reset all print values
+			self.maxXExtruderLow = 0
+			self.maxXExtruderMedium = 0
+			self.maxXExtruderHigh = 0
+			self.maxYExtruderLow = 0
+			self.maxYExtruderMedium = 0
+			self.maxYExtruderHigh = 0
+			self.maxZExtruder = 0
+			self.minXExtruderLow = sys.float_info.max
+			self.minXExtruderMedium = sys.float_info.max
+			self.minXExtruderHigh = sys.float_info.max
+			self.minYExtruderLow = sys.float_info.max
+			self.minYExtruderMedium = sys.float_info.max
+			self.minYExtruderHigh = sys.float_info.max
+			self.minZExtruder = sys.float_info.max
 		
 			# Read in file
 			for line in open(file) :
@@ -1422,6 +1438,25 @@ class M3DFioPlugin(
 
 						elif tier == "High" and (localX < self.bedHighMinX or localX > self.bedHighMaxX or localY < self.bedHighMinY or localY > self.bedHighMaxY) :
 							return False
+						
+						# Update minimums and maximums dimensions of extruder
+						if tier == "Low" :
+							self.minXExtruderLow = min(self.minXExtruderLow, localX)
+							self.maxXExtruderLow = max(self.maxXExtruderLow, localX)
+							self.minYExtruderLow = min(self.minYExtruderLow, localY)
+							self.maxYExtruderLow = max(self.maxYExtruderLow, localY)
+						elif tier == "Medium" :
+							self.minXExtruderMedium = min(self.minXExtruderMedium, localX)
+							self.maxXExtruderMedium = max(self.maxXExtruderMedium, localX)
+							self.minYExtruderMedium = min(self.minYExtruderMedium, localY)
+							self.maxYExtruderMedium = max(self.maxYExtruderMedium, localY)
+						else :
+							self.minXExtruderHigh = min(self.minXExtruderHigh, localX)
+							self.maxXExtruderHigh = max(self.maxXExtruderHigh, localX)
+							self.minYExtruderHigh = min(self.minYExtruderHigh, localY)
+							self.maxYExtruderHigh = max(self.maxYExtruderHigh, localY)
+						self.minZExtruder = min(self.minZExtruder, localZ)
+						self.maxZExtruder = max(self.maxZExtruder, localZ)
 				
 					# Otherwise check if command is G90
 					elif gcode.getValue('G') == "90" :
@@ -1594,7 +1629,7 @@ class M3DFioPlugin(
 		os.remove(temp)
 	
 	# Preparation pre-processor
-	def preparationPreprocessor(self, file, cornerExcess = True) :
+	def preparationPreprocessor(self, file, overrideCornerExcess = False) :
 	
 		# Initialize variables
 		gcode = Gcode()
@@ -1609,7 +1644,7 @@ class M3DFioPlugin(
 		output = os.open(file, os.O_WRONLY | os.O_CREAT)
 		
 		# Check if leaving excess at corner
-		if cornerExcess :
+		if not overrideCornerExcess :
 		
 			# Set corner X
 			if self.maxXExtruderLow < self.bedLowMaxX :
@@ -1967,7 +2002,7 @@ class M3DFioPlugin(
 		os.remove(temp)
 	
 	# Thermal bonding pre-processor
-	def thermalBondingPreprocessor(self, file) :
+	def thermalBondingPreprocessor(self, file, overrideWaveBondingPreprocessor = False) :
 	
 		# Initialize variables
 		layerCounter = -1
@@ -2050,7 +2085,7 @@ class M3DFioPlugin(
 				elif layerCounter <= 1 :
 			
 					# Check if wave bonding isn't being used and line is a G command
-					if not self._settings.get_boolean(["UseWaveBondingPreprocessor"]) and gcode.hasValue('G') :
+					if not overrideWaveBondingPreprocessor and not self._settings.get_boolean(["UseWaveBondingPreprocessor"]) and gcode.hasValue('G') :
 			
 						# Check if command is G0 or G1 and and it's in absolute
 						if (gcode.getValue('G') == "0" or gcode.getValue('G') == "1") and not relativeMode :
