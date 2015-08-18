@@ -50,6 +50,17 @@ class M3DFioPlugin(
 		self.waitingResponse = None
 		self.processingSlice = False
 		
+		# Set shared library if available
+		if os.uname()[0].startswith("Linux") and os.uname()[4].startswith("x86_64") :
+			self.library = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_x86_64.so")
+		
+		elif os.uname()[0].startswith("Linux") and os.uname()[4].startswith("arm") :
+			self.library = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_arm.so")
+	
+		# Otherwise disable shared library
+		#else :
+		self.library = None
+		
 		# Set port if available
 		if os.uname()[0].startswith("Linux") :
 			self.port = "/dev/micro_m3d"
@@ -846,17 +857,9 @@ class M3DFioPlugin(
 		# Client is connected
 		if event == octoprint.events.Events.CLIENT_OPENED :
 		
-			# Set shared library if available
-			if os.uname()[0].startswith("Linux") and os.uname()[4].startswith("x86_64") :
-				self.library = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_x86_64.so")
-			
-			elif os.uname()[0].startswith("Linux") and os.uname()[4].startswith("arm") :
-				self.library = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_arm.so")
-		
-			# Otherwise disable shared library option
-			#else :
-			self.library = None
-			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Disable shared library"))
+			# Hide shared library option is not available
+			if self.library == None :
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Disable shared library"))
 	
 	# Receive data to log
 	def on_printer_add_log(self, data) :
