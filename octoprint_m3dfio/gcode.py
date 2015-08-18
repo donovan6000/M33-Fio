@@ -26,12 +26,6 @@ class Gcode(object) :
 		if data != None :
 			self.parseLine(data)
 	
-	# Get original command
-	def getOriginalCommand(self) :
-	
-		# Return original command
-		return self.originalCommand
-	
 	# Parse line
 	def parseLine(self, line) :
 	
@@ -42,8 +36,8 @@ class Gcode(object) :
 		for i in xrange(len(self.order)) :
 			self.parameterValue[i] = ""
 		
-		# Remove leading and trailing whitespace
-		line = line.strip()
+		# Clear host command
+		self.hostCommand = ""
 		
 		# Check if line contains a checksum
 		characterOffset = line.find('*')
@@ -52,8 +46,18 @@ class Gcode(object) :
 			# Remove checksum
 			line = line[0 : characterOffset]
 		
+		# Remove leading and trailing whitespace
+		line = line.strip()
+		
 		# Set original command
 		self.originalCommand = line
+		
+		# Check if line contains a comment
+		characterOffset = line.find(';')
+		if characterOffset != -1 :
+	
+			# Remove comment
+			line = line[0 : characterOffset]
 		
 		# Check if line is empty
 		if not line :
@@ -63,13 +67,6 @@ class Gcode(object) :
 		
 		# Check if line is a host command
 		if line[0] == '@' :
-		
-			# Check if line contains a comment
-			characterOffset = line.find(';')
-			if characterOffset != -1 :
-		
-				# Remove comment
-				line = line[0 : characterOffset]
 			
 			# Set host command
 			self.hostCommand = line
@@ -77,20 +74,8 @@ class Gcode(object) :
 			# Return true
 			return True
 		
-		# Otherwise
-		else :
-		
-			# Clear host command
-			self.hostCommand = ""
-		
 		# Parse line for parameters
-		for match in re.compile("[" + self.order.replace(' ', '') + ";]-?\d*(\.\d+)?").finditer(line) :
-		
-			# Check if match is a comment
-			if match.group()[0] == ';' :
-			
-				# Stop parsing line
-				break
+		for match in re.compile("[" + self.order.replace(' ', '') + "]-?\d*(\.\d+)?").finditer(line) :
 			
 			# Set data type
 			self.dataType |= (1 << self.order.find(match.group()[0]))
@@ -106,14 +91,10 @@ class Gcode(object) :
 				if value == "23" or value == "28" or value == "29" or value == "30" or value == "32" or value == "117" :
 				
 					# Set string parameter
-					self.parameterValue[15] = line[match.start() + len(match.group()) :].strip()
+					self.parameterValue[15] = line[match.start() + len(match.group()) :]
 					
-					# Check if string parameter contains a comment
-					characterOffset = self.parameterValue[15].find(';')
-					if characterOffset != -1 :
-		
-						# Remove comment
-						self.parameterValue[15] = self.parameterValue[15][0 : characterOffset]
+					# Remove leading and trailing whitespace
+					self.parameterValue[15] = self.parameterValue[15].strip()
 					
 					# Set data type
 					self.dataType |= (1 << 15)
@@ -123,6 +104,12 @@ class Gcode(object) :
 		
 		# Return if data wasn't empty
 		return self.dataType != 0x1080
+	
+	# Get original command
+	def getOriginalCommand(self) :
+	
+		# Return original command
+		return self.originalCommand
 	
 	# Get binary
 	def getBinary(self) :
@@ -142,8 +129,8 @@ class Gcode(object) :
 		request += chr(int(self.dataType >> 16) & 0xFF)
 		request += chr(int(self.dataType >> 24) & 0xFF)
 		
-		# Check if command contains a string parameter
-		if bool(self.dataType & (1 << 15)) :
+		# Check if command contains a string
+		if self.parameterValue[15] != "" :
 	
 			# Set fifth byte of request to string parameter length
 			request += chr(len(self.parameterValue[15]))
@@ -289,8 +276,8 @@ class Gcode(object) :
 			request += tempNumber[2]
 			request += tempNumber[3]
 		
-		# Check if command contains a string parameter
-		if bool(self.dataType & (1 << 15)) :
+		# Check if command contains a string
+		if self.parameterValue[15] != "" :
 		
 			# Set string parameter value
 			request += self.parameterValue[15]
@@ -326,7 +313,7 @@ class Gcode(object) :
 		for i in xrange(len(self.order)) :
 			
 			# Check if command contains value and value is valid
-			if bool(self.dataType & (1 << i) and bool(0xF0F7F & (1 << i))) :
+			if bool(self.dataType & (1 << i)) and bool(0xF0F7F & (1 << i)) :
 			
 				# Append parameter identifier and value
 				request += self.order[i] + self.parameterValue[i] + ' '
@@ -408,7 +395,7 @@ class Gcode(object) :
 			parameterOffset = self.order.find(parameter)
 			if parameterOffset != -1 :
 		
-				# Return if parameter's value
+				# Return parameter's value
 				return self.parameterValue[parameterOffset]
 		
 		# Return empty

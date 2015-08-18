@@ -1320,6 +1320,12 @@ $(function() {
 				// Hide status
 				$("#control > p.status").removeClass("show");
 			
+			// Otherwise check if data is to disable shared library
+			else if(data.value == "Disable shared library")
+			
+				// Hide shared library option
+				$("#settings_plugin_m3dfio > form > div:nth-child(2) > div.controls").css("display", "none");
+			
 			// Float To Binary
 			function floatToBinary(value) {
 

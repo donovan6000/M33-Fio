@@ -24,6 +24,7 @@ import flask
 import serial
 import binascii
 import shutil
+import ctypes
 from .gcode import Gcode
 
 
@@ -50,7 +51,7 @@ class M3DFioPlugin(
 		self.processingSlice = False
 		
 		# Set port if available
-		if sys.platform.startswith("linux") :
+		if os.uname()[0].startswith("Linux") :
 			self.port = "/dev/micro_m3d"
 		else :
 			self.port = None
@@ -132,7 +133,8 @@ class M3DFioPlugin(
 			UseBacklashCompensationPreprocessor = True,
 			UseFeedRateConversionPreprocessor = True,
 			AutomaticSettingsUpdate = True,
-			UseCenterModelPreprocessor = True
+			UseCenterModelPreprocessor = True,
+			UseSharedLibrary = True
 		)
 	
 	# Template manager
@@ -351,25 +353,30 @@ class M3DFioPlugin(
 				temp = tempfile.mkstemp()[1]
 				shutil.copyfile(location, temp)
 				
-				# Set values
-				self.backlashX = self._settings.get_float(["BacklashX"])
-				self.backlashY = self._settings.get_float(["BacklashY"])
-				self.backlashSpeed = self._settings.get_float(["BacklashSpeed"])
-				self.bedHeightOffset = self._settings.get_float(["BedHeightOffset"])
-				self.backRightOffset = self._settings.get_float(["BackRightOffset"])
-				self.backLeftOffset = self._settings.get_float(["BackLeftOffset"])
-				self.frontLeftOffset = self._settings.get_float(["FrontLeftOffset"])
-				self.frontRightOffset = self._settings.get_float(["FrontRightOffset"])
-				self.filamentTemperature = self._settings.get_int(["FilamentTemperature"])
-				self.filamentType = str(self._settings.get(["FilamentType"]))
+				# Check if using shared library
+				if self._settings.get_boolean(["UseSharedLibrary"]) and self.library :
 				
-				# Process file
-				self.getPrintInformation(temp, True)
-				self.preparationPreprocessor(temp, True)
-				self.thermalBondingPreprocessor(temp, True)
-				self.bedCompensationPreprocessor(temp)
-				self.backlashCompensationPreprocessor(temp)
-				self.feedRateConversionPreprocessor(temp)
+					# Set values
+					self.library.setValues(ctypes.c_double(self._settings.get_float(["BacklashX"])), ctypes.c_double(self._settings.get_float(["BacklashY"])), ctypes.c_double(self._settings.get_float(["BacklashSpeed"])), ctypes.c_double(self._settings.get_float(["BedHeightOffset"])), ctypes.c_double(self._settings.get_float(["BackRightOffset"])), ctypes.c_double(self._settings.get_float(["BackLeftOffset"])), ctypes.c_double(self._settings.get_float(["FrontLeftOffset"])), ctypes.c_double(self._settings.get_float(["FrontRightOffset"])), ctypes.c_ushort(self._settings.get_int(["FilamentTemperature"])), ctypes.c_char_p(str(self._settings.get(["FilamentType"]))), ctypes.c_bool(self._settings.get_boolean(["UseValidationPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UsePreparationPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseWaveBondingPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseThermalBondingPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseBedCompensationPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseBacklashCompensationPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseFeedRateConversionPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseCenterModelPreprocessor"])))
+					
+					# Process file
+					self.library.getPrintInformation(ctypes.c_char_p(temp), ctypes.c_bool(True));
+					self.library.preparationPreprocessor(ctypes.c_char_p(temp), ctypes.c_bool(True))
+					self.library.thermalBondingPreprocessor(ctypes.c_char_p(temp), ctypes.c_bool(True))
+					self.library.bedCompensationPreprocessor(ctypes.c_char_p(temp))
+					self.library.backlashCompensationPreprocessor(ctypes.c_char_p(temp))
+					self.library.feedRateConversionPreprocessor(ctypes.c_char_p(temp))
+				
+				# Otherwise
+				else :
+					
+					# Process file
+					self.getPrintInformation(temp, True)
+					self.preparationPreprocessor(temp, True)
+					self.thermalBondingPreprocessor(temp, True)
+					self.bedCompensationPreprocessor(temp)
+					self.backlashCompensationPreprocessor(temp)
+					self.feedRateConversionPreprocessor(temp)
 			
 				# Send processed file to destination
 				os.rename(temp, destination)
@@ -835,6 +842,21 @@ class M3DFioPlugin(
 			
 			# Send printer status
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Micro 3D Not Connected"))
+		
+		# Client is connected
+		if event == octoprint.events.Events.CLIENT_OPENED :
+		
+			# Set shared library if available
+			if os.uname()[0].startswith("Linux") and os.uname()[4].startswith("x86_64") :
+				self.library = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_x86_64.so")
+			
+			elif os.uname()[0].startswith("Linux") and os.uname()[4].startswith("arm") :
+				self.library = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_arm.so")
+		
+			# Otherwise disable shared library option
+			#else :
+			self.library = None
+			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Disable shared library"))
 	
 	# Receive data to log
 	def on_printer_add_log(self, data) :
@@ -1051,20 +1073,39 @@ class M3DFioPlugin(
 			os.write(fd, line)
 		os.close(fd)
 		
+		# Check if using shared library
+		if self._settings.get_boolean(["UseSharedLibrary"]) and self.library :
+		
+			# Set values
+			self.library.setValues(ctypes.c_double(self._settings.get_float(["BacklashX"])), ctypes.c_double(self._settings.get_float(["BacklashY"])), ctypes.c_double(self._settings.get_float(["BacklashSpeed"])), ctypes.c_double(self._settings.get_float(["BedHeightOffset"])), ctypes.c_double(self._settings.get_float(["BackRightOffset"])), ctypes.c_double(self._settings.get_float(["BackLeftOffset"])), ctypes.c_double(self._settings.get_float(["FrontLeftOffset"])), ctypes.c_double(self._settings.get_float(["FrontRightOffset"])), ctypes.c_ushort(self._settings.get_int(["FilamentTemperature"])), ctypes.c_char_p(str(self._settings.get(["FilamentType"]))), ctypes.c_bool(self._settings.get_boolean(["UseValidationPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UsePreparationPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseWaveBondingPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseThermalBondingPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseBedCompensationPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseBacklashCompensationPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseFeedRateConversionPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseCenterModelPreprocessor"])))
+		
 		# Set progress bar percent
 		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar percent", percent = "60"))
 		
 		# Use center model pre-processor if set
 		if self._settings.get_boolean(["UseCenterModelPreprocessor"]) :
-			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Centering model ..."))
-			self.centerModelPreprocessor(temp)
 		
-		# Set progress bar percent
+			# Set progress bar text
+			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Centering model ..."))
+			
+			# Run center model pre-preprocessor
+			if self._settings.get_boolean(["UseSharedLibrary"]) and self.library :
+				self.library.centerModelPreprocessor(ctypes.c_char_p(temp));
+			else :
+				self.centerModelPreprocessor(temp)
+		
+		# Set progress bar percent and text
 		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar percent", percent = "64"))
 		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Checking Dimensions ..."))
 		
+		# Run get print information
+		if self._settings.get_boolean(["UseSharedLibrary"]) and self.library :
+			valid = self.library.getPrintInformation(ctypes.c_char_p(temp));
+		else :
+			valid = self.getPrintInformation(temp)
+			
 		# Check if print is out of bounds
-		if not self.getPrintInformation(temp) :
+		if not valid :
 		
 			# Check if processing a slice
 			if self.processingSlice :
@@ -1087,73 +1128,110 @@ class M3DFioPlugin(
 			# Return false
 			return False
 		
-		# Set values
-		self.backlashX = self._settings.get_float(["BacklashX"])
-		self.backlashY = self._settings.get_float(["BacklashY"])
-		self.backlashSpeed = self._settings.get_float(["BacklashSpeed"])
-		self.bedHeightOffset = self._settings.get_float(["BedHeightOffset"])
-		self.backRightOffset = self._settings.get_float(["BackRightOffset"])
-		self.backLeftOffset = self._settings.get_float(["BackLeftOffset"])
-		self.frontLeftOffset = self._settings.get_float(["FrontLeftOffset"])
-		self.frontRightOffset = self._settings.get_float(["FrontRightOffset"])
-		self.filamentTemperature = self._settings.get_int(["FilamentTemperature"])
-		self.filamentType = str(self._settings.get(["FilamentType"]))
-		
 		# Set progress bar percent
 		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar percent", percent = "68"))
 		
-		# Use validation pre-processor if set
+		# Check if validation pre-processor if set
 		if self._settings.get_boolean(["UseValidationPreprocessor"]) :
+		
+			# Set progress bar text
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Validation ..."))
-			self.validationPreprocessor(temp)
+			
+			# Run validation pre-preprocessor
+			if self._settings.get_boolean(["UseSharedLibrary"]) and self.library :
+				self.library.validationPreprocessor(ctypes.c_char_p(temp));
+			else :
+				self.validationPreprocessor(temp)
 		
 		# Set progress bar percent
 		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar percent", percent = "72"))
 		
-		# Use preparation pre-processor if set
+		# Check if preparation pre-processor if set
 		if self._settings.get_boolean(["UsePreparationPreprocessor"]) :
+		
+			# Set progress bar text
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Preparation ..."))
-			self.preparationPreprocessor(temp)
+			
+			# Run preparation pre-preprocessor
+			if self._settings.get_boolean(["UseSharedLibrary"]) and self.library :
+				self.library.preparationPreprocessor(ctypes.c_char_p(temp));
+			else :
+				self.preparationPreprocessor(temp)
 		
 		# Set progress bar percent
 		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar percent", percent = "76"))
 		
-		# Use wave bonding pre-processor if set
+		# Check if wave bonding pre-processor if set
 		if self._settings.get_boolean(["UseWaveBondingPreprocessor"]) :
+		
+			# Set progress bar text
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Wave Bonding ..."))
-			self.waveBondingPreprocessor(temp)
+			
+			# Run wave bonding pre-preprocessor
+			if self._settings.get_boolean(["UseSharedLibrary"]) and self.library :
+				self.library.waveBondingPreprocessor(ctypes.c_char_p(temp));
+			else :
+				self.waveBondingPreprocessor(temp)
 		
 		# Set progress bar percent
 		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar percent", percent = "80"))
 		
-		# Use thermal bonding pre-processor if set
+		# Check if thermal bonding pre-processor if set
 		if self._settings.get_boolean(["UseThermalBondingPreprocessor"]) :
+		
+			# Set progress bar text
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Thermal Bonding ..."))
-			self.thermalBondingPreprocessor(temp)
+			
+			# Run thermal bonding pre-preprocessor
+			if self._settings.get_boolean(["UseSharedLibrary"]) and self.library :
+				self.library.thermalBondingPreprocessor(ctypes.c_char_p(temp));
+			else :
+				self.thermalBondingPreprocessor(temp)
 		
 		# Set progress bar percent
 		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar percent", percent = "85"))
 		
-		# Use bed compensation pre-processor if set
+		# Check if bed compensation pre-processor if set
 		if self._settings.get_boolean(["UseBedCompensationPreprocessor"]) :
+		
+			# Set progress bar text
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Bed Compensation ..."))
-			self.bedCompensationPreprocessor(temp)
+			
+			# Run bed compensation pre-preprocessor
+			if self._settings.get_boolean(["UseSharedLibrary"]) and self.library :
+				self.library.bedCompensationPreprocessor(ctypes.c_char_p(temp));
+			else :
+				self.bedCompensationPreprocessor(temp)
 		
 		# Set progress bar percent
 		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar percent", percent = "90"))
 		
-		# Use backlash compensation pre-processor if set
+		# Check if backlash compensation pre-processor if set
 		if self._settings.get_boolean(["UseBacklashCompensationPreprocessor"]) :
+		
+			# Set progress bar text
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Backlash Compensation ..."))
-			self.backlashCompensationPreprocessor(temp)
+			
+			# Run backlash compensation pre-preprocessor
+			if self._settings.get_boolean(["UseSharedLibrary"]) and self.library :
+				self.library.backlashCompensationPreprocessor(ctypes.c_char_p(temp));
+			else :
+				self.backlashCompensationPreprocessor(temp)
 		
 		# Set progress bar percent
 		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar percent", percent = "95"))
 		
-		# Use feed rate conversion pre-processor if set
+		# Check if feed rate conversion pre-processor if set
 		if self._settings.get_boolean(["UseFeedRateConversionPreprocessor"]) :
+		
+			# Set progress bar text
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Feed Rate Conversion ..."))
-			self.feedRateConversionPreprocessor(temp)
+			
+			# Run feed rate conversion pre-preprocessor
+			if self._settings.get_boolean(["UseSharedLibrary"]) and self.library :
+				self.library.feedRateConversionPreprocessor(ctypes.c_char_p(temp));
+			else :
+				self.feedRateConversionPreprocessor(temp)
 		
 		# Set progress bar percent
 		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar percent", percent = "100"))
@@ -1579,11 +1657,11 @@ class M3DFioPlugin(
 	def getHeightAdjustmentRequired(self, valueX, valueY) :
 
 		# Initialize variables
-		left = (self.backLeftOffset - self.frontLeftOffset) / self.levellingMoveY
-		right = (self.backRightOffset - self.frontRightOffset) / self.levellingMoveY
+		left = (self._settings.get_float(["BackLeftOffset"]) - self._settings.get_float(["FrontLeftOffset"])) / self.levellingMoveY
+		right = (self._settings.get_float(["BackRightOffset"]) - self._settings.get_float(["FrontRightOffset"])) / self.levellingMoveY
 	
 		# Return height adjustment
-		return (right * valueY + self.frontRightOffset - (left * valueY + self.frontLeftOffset)) / self.levellingMoveX * valueX + (left * valueY + self.frontLeftOffset)
+		return (right * valueY + self._settings.get_float(["FrontRightOffset"]) - (left * valueY + self._settings.get_float(["FrontLeftOffset"]))) / self.levellingMoveX * valueX + (left * valueY + self._settings.get_float(["FrontLeftOffset"]))
 	
 	# Validation pre-processor
 	def validationPreprocessor(self, file) :
@@ -1659,13 +1737,13 @@ class M3DFioPlugin(
 				cornerY = -(self.bedLowMaxY - self.bedLowMinY - 10) / 2
 		
 		# Add intro to output
-		if self.filamentType == "PLA" :
+		if str(self._settings.get(["FilamentType"])) == "PLA" :
 			os.write(output, "M106 S255\n")
 		else :
 			os.write(output, "M106 S50\n")
 		os.write(output, "M17\n")
 		os.write(output, "G90\n")
-		os.write(output, "M104 S" + str(self.filamentTemperature) + '\n')
+		os.write(output, "M104 S" + str(self._settings.get_int(["FilamentTemperature"])) + '\n')
 		os.write(output, "G0 Z5 F2900\n")
 		os.write(output, "G28\n")
 		
@@ -1674,7 +1752,7 @@ class M3DFioPlugin(
 		
 			# Prepare extruder the standard way
 			os.write(output, "M18\n")
-			os.write(output, "M109 S" + str(self.filamentTemperature) + '\n')
+			os.write(output, "M109 S" + str(self._settings.get_int(["FilamentTemperature"])) + '\n')
 			os.write(output, "G4 S2\n")
 			os.write(output, "M17\n")
 			os.write(output, "G91\n")
@@ -1686,7 +1764,7 @@ class M3DFioPlugin(
 			os.write(output, "G91\n")
 			os.write(output, "G0 X" + str(-cornerX) + " Y" + str(-cornerY) + " F2900\n")
 			os.write(output, "M18\n")
-			os.write(output, "M109 S" + str(self.filamentTemperature) + '\n')
+			os.write(output, "M109 S" + str(self._settings.get_int(["FilamentTemperature"])) + '\n')
 			os.write(output, "M17\n")
 			os.write(output, "G0 Z-4 F2900\n")
 			os.write(output, "G0 E7.5 F2000\n")
@@ -2037,37 +2115,37 @@ class M3DFioPlugin(
 					if layerCounter == 0 :
 				
 						# Check if filament type is PLA
-						if self.filamentType == "PLA" :
+						if str(self._settings.get(["FilamentType"])) == "PLA" :
 				
 							# Send temperature command to output
-							os.write(output, "M109 S" + str(self.getBoundedTemperature(self.filamentTemperature + 10)) + '\n')
+							os.write(output, "M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 10)) + '\n')
 					
 						# Otherwise
 						else :
 					
 							# Send temperature command to output
-							os.write(output, "M109 S" + str(self.getBoundedTemperature(self.filamentTemperature + 15)) + '\n')
+							os.write(output, "M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 15)) + '\n')
 			
 					# Otherwise check if on second counted layer
 					elif layerCounter == 1 :
 			
 						# Check if filament type is PLA
-						if self.filamentType == "PLA" :
+						if str(self._settings.get(["FilamentType"])) == "PLA" :
 				
 							# Send temperature command to output
-							os.write(output, "M109 S" + str(self.getBoundedTemperature(self.filamentTemperature + 5)) + '\n')
+							os.write(output, "M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 5)) + '\n')
 					
 						# Otherwise
 						else :
 					
 							# Send temperature command to output
-							os.write(output, "M109 S" + str(self.getBoundedTemperature(self.filamentTemperature + 10)) + '\n')
+							os.write(output, "M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 10)) + '\n')
 				
 					# Otherwise
 					else :
 				
 						# Send temperature command to output
-						os.write(output, "M109 S" + str(self.filamentTemperature) + '\n')
+						os.write(output, "M109 S" + str(self._settings.get_int(["FilamentTemperature"])) + '\n')
 				
 						# Clear adding temperature commands
 						addingTemperatureCommands = False
@@ -2091,7 +2169,7 @@ class M3DFioPlugin(
 						if (gcode.getValue('G') == "0" or gcode.getValue('G') == "1") and not relativeMode :
 				
 							# Check if previous command exists, adding temperature commands, and filament is ABS, HIPS, or PLA
-							if not previousGcode.isEmpty() and addingTemperatureCommands and (self.filamentType == "ABS" or self.filamentType == "HIPS" or self.filamentType == "PLA") :
+							if not previousGcode.isEmpty() and addingTemperatureCommands and (str(self._settings.get(["FilamentType"])) == "ABS" or str(self._settings.get(["FilamentType"])) == "HIPS" or str(self._settings.get(["FilamentType"])) == "PLA") :
 					
 								# Check if both counters are less than or equal to one
 								if cornerCounter <= 1 :
@@ -2198,7 +2276,7 @@ class M3DFioPlugin(
 					if gcode.hasValue('Z') :
 			
 						# Add to command's Z value
-						gcode.setValue('Z', str(float(gcode.getValue('Z')) + self.bedHeightOffset))
+						gcode.setValue('Z', str(float(gcode.getValue('Z')) + self._settings.get_float(["BedHeightOffset"])))
 					
 					# Set delta values
 					if gcode.hasValue('X') :
@@ -2537,9 +2615,9 @@ class M3DFioPlugin(
 					
 							# Set X compensation
 							if directionX == "Positive" :
-								compensationX += self.backlashX
+								compensationX += self._settings.get_float(["BacklashX"])
 							else :
-								compensationX += -self.backlashX
+								compensationX += -self._settings.get_float(["BacklashX"])
 							
 							# Set extra G-code X value
 							extraGcode.setValue('X', str(positionRelativeX + compensationX))
@@ -2553,9 +2631,9 @@ class M3DFioPlugin(
 					
 							# Set Y compensation
 							if directionY == "Positive" :
-								compensationY += self.backlashY
+								compensationY += self._settings.get_float(["BacklashY"])
 							else :
-								compensationY += -self.backlashY
+								compensationY += -self._settings.get_float(["BacklashY"])
 						
 							# Set extra G-code Y value
 							extraGcode.setValue('Y', str(positionRelativeY + compensationY))
@@ -2565,7 +2643,7 @@ class M3DFioPlugin(
 								extraGcode.setValue('X', str(positionRelativeX + compensationX))
 					
 						# Set extra G-code F value
-						extraGcode.setValue('F', str(self.backlashSpeed))
+						extraGcode.setValue('F', str(self._settings.get_float(["BacklashSpeed"])))
 					
 						# Send extra G-code to output
 						os.write(output, extraGcode.getAscii() + '\n')
