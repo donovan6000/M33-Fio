@@ -52,15 +52,15 @@ class M3DFioPlugin(
 		self.processingSlice = False
 		
 		# Set shared library if available
-		#if os.uname()[0].startswith("Linux") and os.uname()[4].startswith("x86_64") :
-		#	self.library = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_x86_64.so")
+		if os.uname()[0].startswith("Linux") and os.uname()[4].startswith("x86_64") :
+			self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_x86_64.so")
 		
-		#elif os.uname()[0].startswith("Linux") and os.uname()[4].startswith("arm") :
-		#	self.library = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_arm.so")
+		elif os.uname()[0].startswith("Linux") and os.uname()[4].startswith("arm") :
+			self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_arm.so")
 	
 		# Otherwise disable shared library
-		#else :
-		self.library = None
+		else :
+			self.sharedLibrary = None
 		
 		# Set port if available
 		if os.uname()[0].startswith("Linux") :
@@ -146,8 +146,7 @@ class M3DFioPlugin(
 			UseBacklashCompensationPreprocessor = True,
 			UseFeedRateConversionPreprocessor = True,
 			AutomaticSettingsUpdate = True,
-			UseCenterModelPreprocessor = True,
-			UseSharedLibrary = True
+			UseCenterModelPreprocessor = True
 		)
 	
 	# Template manager
@@ -367,24 +366,24 @@ class M3DFioPlugin(
 				shutil.copyfile(location, temp)
 				
 				# Check if using shared library
-				if self._settings.get_boolean(["UseSharedLibrary"]) and self.library :
+				if self.sharedLibrary :
 				
 					# Set values
-					self.library.setValues(ctypes.c_double(self._settings.get_float(["BacklashX"])), ctypes.c_double(self._settings.get_float(["BacklashY"])), ctypes.c_double(self._settings.get_float(["BacklashSpeed"])), ctypes.c_double(self._settings.get_float(["BackRightOrientation"])), ctypes.c_double(self._settings.get_float(["BackLeftOrientation"])), ctypes.c_double(self._settings.get_float(["FrontLeftOrientation"])), ctypes.c_double(self._settings.get_float(["FrontRightOrientation"])), ctypes.c_double(self._settings.get_float(["BedHeightOffset"])), ctypes.c_double(self._settings.get_float(["BackRightOffset"])), ctypes.c_double(self._settings.get_float(["BackLeftOffset"])), ctypes.c_double(self._settings.get_float(["FrontLeftOffset"])), ctypes.c_double(self._settings.get_float(["FrontRightOffset"])), ctypes.c_ushort(self._settings.get_int(["FilamentTemperature"])), ctypes.c_char_p(str(self._settings.get(["FilamentType"]))), ctypes.c_bool(self._settings.get_boolean(["UseValidationPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UsePreparationPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseWaveBondingPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseThermalBondingPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseBedCompensationPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseBacklashCompensationPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseFeedRateConversionPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseCenterModelPreprocessor"])))
+					self.sharedLibrary.setValues(ctypes.c_double(self._settings.get_float(["BacklashX"])), ctypes.c_double(self._settings.get_float(["BacklashY"])), ctypes.c_double(self._settings.get_float(["BacklashSpeed"])), ctypes.c_double(self._settings.get_float(["BackRightOrientation"])), ctypes.c_double(self._settings.get_float(["BackLeftOrientation"])), ctypes.c_double(self._settings.get_float(["FrontLeftOrientation"])), ctypes.c_double(self._settings.get_float(["FrontRightOrientation"])), ctypes.c_double(self._settings.get_float(["BedHeightOffset"])), ctypes.c_double(self._settings.get_float(["BackRightOffset"])), ctypes.c_double(self._settings.get_float(["BackLeftOffset"])), ctypes.c_double(self._settings.get_float(["FrontLeftOffset"])), ctypes.c_double(self._settings.get_float(["FrontRightOffset"])), ctypes.c_ushort(self._settings.get_int(["FilamentTemperature"])), ctypes.c_char_p(str(self._settings.get(["FilamentType"]))), ctypes.c_bool(self._settings.get_boolean(["UseValidationPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UsePreparationPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseWaveBondingPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseThermalBondingPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseBedCompensationPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseBacklashCompensationPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseFeedRateConversionPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseCenterModelPreprocessor"])))
 					
 					# Process file
-					self.library.getPrintInformation(ctypes.c_char_p(temp), ctypes.c_bool(True))
-					self.library.preparationPreprocessor(ctypes.c_char_p(temp), ctypes.c_bool(True))
-					self.library.thermalBondingPreprocessor(ctypes.c_char_p(temp), ctypes.c_bool(True))
-					self.library.bedCompensationPreprocessor(ctypes.c_char_p(temp))
-					self.library.backlashCompensationPreprocessor(ctypes.c_char_p(temp))
-					self.library.feedRateConversionPreprocessor(ctypes.c_char_p(temp))
+					self.sharedLibrary.checkPrintDimensions(ctypes.c_char_p(temp), ctypes.c_bool(True))
+					self.sharedLibrary.preparationPreprocessor(ctypes.c_char_p(temp), ctypes.c_bool(True))
+					self.sharedLibrary.thermalBondingPreprocessor(ctypes.c_char_p(temp), ctypes.c_bool(True))
+					self.sharedLibrary.bedCompensationPreprocessor(ctypes.c_char_p(temp))
+					self.sharedLibrary.backlashCompensationPreprocessor(ctypes.c_char_p(temp))
+					self.sharedLibrary.feedRateConversionPreprocessor(ctypes.c_char_p(temp))
 				
 				# Otherwise
 				else :
 					
 					# Process file
-					self.getPrintInformation(temp, True)
+					self.checkPrintDimensions(temp, True)
 					self.preparationPreprocessor(temp, True)
 					self.thermalBondingPreprocessor(temp, True)
 					self.bedCompensationPreprocessor(temp)
@@ -855,18 +854,6 @@ class M3DFioPlugin(
 			
 			# Send printer status
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Micro 3D Not Connected"))
-		
-		# Client is connected
-		if event == octoprint.events.Events.CLIENT_OPENED :
-		
-			# Disable shared library option is not available
-			if not self.library :
-				self._settings.set_boolean(["UseSharedLibrary"], False)
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Disable shared library"))
-			
-			# Otherwise enable shared library option
-			else :
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Enable shared library"))
 	
 	# Receive data to log
 	def on_printer_add_log(self, data) :
@@ -1111,7 +1098,7 @@ class M3DFioPlugin(
 					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error: Bed orientation is invalid"))
 	
 	# Pre-process G-code
-	def preprocessesGcode(self, path, file_object, links = None, printer_profile = None, allow_overwrite = True, *args, **kwargs) :
+	def preprocessGcode(self, path, file_object, links = None, printer_profile = None, allow_overwrite = True, *args, **kwargs) :
 	
 		# Check if file is not G-code
 		if not octoprint.filemanager.valid_file_type(path, type = "gcode") :
@@ -1132,10 +1119,10 @@ class M3DFioPlugin(
 		os.close(fd)
 		
 		# Check if using shared library
-		if self._settings.get_boolean(["UseSharedLibrary"]) and self.library :
+		if self.sharedLibrary :
 		
 			# Set values
-			self.library.setValues(ctypes.c_double(self._settings.get_float(["BacklashX"])), ctypes.c_double(self._settings.get_float(["BacklashY"])), ctypes.c_double(self._settings.get_float(["BacklashSpeed"])), ctypes.c_double(self._settings.get_float(["BackRightOrientation"])), ctypes.c_double(self._settings.get_float(["BackLeftOrientation"])), ctypes.c_double(self._settings.get_float(["FrontLeftOrientation"])), ctypes.c_double(self._settings.get_float(["FrontRightOrientation"])), ctypes.c_double(self._settings.get_float(["BedHeightOffset"])), ctypes.c_double(self._settings.get_float(["BackRightOffset"])), ctypes.c_double(self._settings.get_float(["BackLeftOffset"])), ctypes.c_double(self._settings.get_float(["FrontLeftOffset"])), ctypes.c_double(self._settings.get_float(["FrontRightOffset"])), ctypes.c_ushort(self._settings.get_int(["FilamentTemperature"])), ctypes.c_char_p(str(self._settings.get(["FilamentType"]))), ctypes.c_bool(self._settings.get_boolean(["UseValidationPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UsePreparationPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseWaveBondingPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseThermalBondingPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseBedCompensationPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseBacklashCompensationPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseFeedRateConversionPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseCenterModelPreprocessor"])))
+			self.sharedLibrary.setValues(ctypes.c_double(self._settings.get_float(["BacklashX"])), ctypes.c_double(self._settings.get_float(["BacklashY"])), ctypes.c_double(self._settings.get_float(["BacklashSpeed"])), ctypes.c_double(self._settings.get_float(["BackRightOrientation"])), ctypes.c_double(self._settings.get_float(["BackLeftOrientation"])), ctypes.c_double(self._settings.get_float(["FrontLeftOrientation"])), ctypes.c_double(self._settings.get_float(["FrontRightOrientation"])), ctypes.c_double(self._settings.get_float(["BedHeightOffset"])), ctypes.c_double(self._settings.get_float(["BackRightOffset"])), ctypes.c_double(self._settings.get_float(["BackLeftOffset"])), ctypes.c_double(self._settings.get_float(["FrontLeftOffset"])), ctypes.c_double(self._settings.get_float(["FrontRightOffset"])), ctypes.c_ushort(self._settings.get_int(["FilamentTemperature"])), ctypes.c_char_p(str(self._settings.get(["FilamentType"]))), ctypes.c_bool(self._settings.get_boolean(["UseValidationPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UsePreparationPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseWaveBondingPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseThermalBondingPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseBedCompensationPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseBacklashCompensationPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseFeedRateConversionPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseCenterModelPreprocessor"])))
 		
 		# Set progress bar percent
 		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar percent", percent = "60"))
@@ -1147,8 +1134,8 @@ class M3DFioPlugin(
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Centering model ..."))
 			
 			# Run center model pre-preprocessor
-			if self._settings.get_boolean(["UseSharedLibrary"]) and self.library :
-				self.library.centerModelPreprocessor(ctypes.c_char_p(temp))
+			if self.sharedLibrary :
+				self.sharedLibrary.centerModelPreprocessor(ctypes.c_char_p(temp))
 			else :
 				self.centerModelPreprocessor(temp)
 		
@@ -1156,11 +1143,11 @@ class M3DFioPlugin(
 		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar percent", percent = "64"))
 		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Checking Dimensions ..."))
 		
-		# Run get print information
-		if self._settings.get_boolean(["UseSharedLibrary"]) and self.library :
-			valid = self.library.getPrintInformation(ctypes.c_char_p(temp))
+		# Run check print dimensions
+		if self.sharedLibrary :
+			valid = self.sharedLibrary.checkPrintDimensions(ctypes.c_char_p(temp), ctypes.c_bool(False))
 		else :
-			valid = self.getPrintInformation(temp)
+			valid = self.checkPrintDimensions(temp)
 			
 		# Check if print is out of bounds
 		if not valid :
@@ -1196,8 +1183,8 @@ class M3DFioPlugin(
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Validation ..."))
 			
 			# Run validation pre-preprocessor
-			if self._settings.get_boolean(["UseSharedLibrary"]) and self.library :
-				self.library.validationPreprocessor(ctypes.c_char_p(temp))
+			if self.sharedLibrary :
+				self.sharedLibrary.validationPreprocessor(ctypes.c_char_p(temp))
 			else :
 				self.validationPreprocessor(temp)
 		
@@ -1211,8 +1198,8 @@ class M3DFioPlugin(
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Preparation ..."))
 			
 			# Run preparation pre-preprocessor
-			if self._settings.get_boolean(["UseSharedLibrary"]) and self.library :
-				self.library.preparationPreprocessor(ctypes.c_char_p(temp))
+			if self.sharedLibrary :
+				self.sharedLibrary.preparationPreprocessor(ctypes.c_char_p(temp), ctypes.c_bool(False))
 			else :
 				self.preparationPreprocessor(temp)
 		
@@ -1226,8 +1213,8 @@ class M3DFioPlugin(
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Wave Bonding ..."))
 			
 			# Run wave bonding pre-preprocessor
-			if self._settings.get_boolean(["UseSharedLibrary"]) and self.library :
-				self.library.waveBondingPreprocessor(ctypes.c_char_p(temp))
+			if self.sharedLibrary :
+				self.sharedLibrary.waveBondingPreprocessor(ctypes.c_char_p(temp))
 			else :
 				self.waveBondingPreprocessor(temp)
 		
@@ -1241,8 +1228,8 @@ class M3DFioPlugin(
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Thermal Bonding ..."))
 			
 			# Run thermal bonding pre-preprocessor
-			if self._settings.get_boolean(["UseSharedLibrary"]) and self.library :
-				self.library.thermalBondingPreprocessor(ctypes.c_char_p(temp))
+			if self.sharedLibrary :
+				self.sharedLibrary.thermalBondingPreprocessor(ctypes.c_char_p(temp), ctypes.c_bool(False))
 			else :
 				self.thermalBondingPreprocessor(temp)
 		
@@ -1256,8 +1243,8 @@ class M3DFioPlugin(
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Bed Compensation ..."))
 			
 			# Run bed compensation pre-preprocessor
-			if self._settings.get_boolean(["UseSharedLibrary"]) and self.library :
-				self.library.bedCompensationPreprocessor(ctypes.c_char_p(temp))
+			if self.sharedLibrary :
+				self.sharedLibrary.bedCompensationPreprocessor(ctypes.c_char_p(temp))
 			else :
 				self.bedCompensationPreprocessor(temp)
 		
@@ -1271,8 +1258,8 @@ class M3DFioPlugin(
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Backlash Compensation ..."))
 			
 			# Run backlash compensation pre-preprocessor
-			if self._settings.get_boolean(["UseSharedLibrary"]) and self.library :
-				self.library.backlashCompensationPreprocessor(ctypes.c_char_p(temp))
+			if self.sharedLibrary :
+				self.sharedLibrary.backlashCompensationPreprocessor(ctypes.c_char_p(temp))
 			else :
 				self.backlashCompensationPreprocessor(temp)
 		
@@ -1286,8 +1273,8 @@ class M3DFioPlugin(
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Feed Rate Conversion ..."))
 			
 			# Run feed rate conversion pre-preprocessor
-			if self._settings.get_boolean(["UseSharedLibrary"]) and self.library :
-				self.library.feedRateConversionPreprocessor(ctypes.c_char_p(temp))
+			if self.sharedLibrary :
+				self.sharedLibrary.feedRateConversionPreprocessor(ctypes.c_char_p(temp))
 			else :
 				self.feedRateConversionPreprocessor(temp)
 		
@@ -1379,7 +1366,7 @@ class M3DFioPlugin(
 						else :
 							tier = "High"
 					
-					# Update minimums and maximums dimensions of extruder
+					# Update minimums and maximums dimensions of the extruder
 					if tier == "Low" :
 						self.minXExtruderLow = min(self.minXExtruderLow, localX)
 						self.maxXExtruderLow = max(self.maxXExtruderLow, localX)
@@ -1465,8 +1452,8 @@ class M3DFioPlugin(
 		# Remove temporary file
 		os.remove(temp)
 	
-	# Get print information
-	def getPrintInformation(self, file, overrideCenterModelPreprocessor = False) :
+	# Check print dimensions
+	def checkPrintDimensions(self, file, overrideCenterModelPreprocessor = False) :
 	
 		# Check if useing center model pre-processor
 		if not overrideCenterModelPreprocessor and self._settings.get_boolean(["UseCenterModelPreprocessor"]) :
@@ -1727,8 +1714,12 @@ class M3DFioPlugin(
 	
 	# Generate plane equation
 	def generatePlaneEquation(self, v1, v2, v3) :
+	
+		# Initialize variables
 		vector = Vector()
 		vector2 = self.calculatePlaneNormalVector(v1, v2, v3)
+		
+		# Return plane equation
 		vector[0] = vector2[0]
 		vector[1] = vector2[1]
 		vector[2] = vector2[2]
@@ -2184,6 +2175,13 @@ class M3DFioPlugin(
 				
 						# Set previous G-code
 						previousGcode = copy.deepcopy(gcode)
+					
+					# Otherwise check if command is G28
+					elif gcode.getValue('G') == "28" :
+				
+						# Set X and Y to home
+						positionRelativeX = 54
+						positionRelativeY = 50
 				
 					# Otherwise check if command is G90
 					elif gcode.getValue('G') == "90" :
@@ -2258,8 +2256,8 @@ class M3DFioPlugin(
 		# Read in input file
 		for line in open(temp) :
 		
-			# Check if line is a layer command and adding temperature controls
-			if ";LAYER:" in line and layerCounter < 2:
+			# Check if not past the second layer and line is a layer command
+			if layerCounter < 2 and ";LAYER:" in line :
 				
 				# Check if on first counted layer
 				if layerCounter == 0 :
@@ -2295,7 +2293,7 @@ class M3DFioPlugin(
 					continue
 				
 				# Otherwise check if on first counted layer
-				elif layerCounter <= 1 :
+				elif layerCounter == 1 :
 			
 					# Check if wave bonding isn't being used and line is a G command
 					if not overrideWaveBondingPreprocessor and not self._settings.get_boolean(["UseWaveBondingPreprocessor"]) and gcode.hasValue('G') :
@@ -2374,7 +2372,6 @@ class M3DFioPlugin(
 		# Initialize variables
 		relativeMode = False
 		changesPlane = False
-		hasExtruded = False
 		positionAbsoluteX = 0
 		positionAbsoluteY = 0
 		positionRelativeX = 0
@@ -2472,9 +2469,6 @@ class M3DFioPlugin(
 			
 					# Check if change in E is greater than zero
 					if deltaE > 0 :
-				
-						# Set has extruded
-						hasExtruded = True
 			
 						# Go through all segments
 						index = 1
@@ -2869,11 +2863,8 @@ class M3DFioPlugin(
 				if commandFeedRate > self.maxFeedRatePerSecond :
                 			commandFeedRate = self.maxFeedRatePerSecond
                 		
-                		# Calculate adjusted feed rate
-                		adjustedFeedRate = 30 + (1 - commandFeedRate / self.maxFeedRatePerSecond) * 800
-                		
 				# Set new feed rate for the command
-				gcode.setValue('F', str(adjustedFeedRate))
+				gcode.setValue('F', str(30 + (1 - commandFeedRate / self.maxFeedRatePerSecond) * 800))
 				
 				# Set line to adjusted value
 				line = gcode.getAscii() + '\n'
@@ -2902,6 +2893,6 @@ def __plugin_load__() :
 
 	# Define hooks
 	__plugin_hooks__ = {
-		"octoprint.filemanager.preprocessor" : __plugin_implementation__.preprocessesGcode,
+		"octoprint.filemanager.preprocessor" : __plugin_implementation__.preprocessGcode,
 		"octoprint.plugin.softwareupdate.check_config" : __plugin_implementation__.getUpdateInformation
 	}

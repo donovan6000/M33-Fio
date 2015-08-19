@@ -3,10 +3,9 @@
 #define PREPROCESSORS_H
 
 
-// C export
-#ifdef __cplusplus
-	extern "C" {
-#endif
+// Header files
+#include "gcode.h"
+#include "vector.h"
 
 
 // Shared library localization
@@ -17,19 +16,97 @@
 #endif
 
 
-// Exported functions
+// C export
+extern "C" {
+
+
+// Private function prototypes
+/*
+Name: Max
+Purpose: Returns the larger of two numbers
+*/
+double max(double first, double second);
+
+/*
+Name: Get bounded temperature
+Purpose: Gets temperature bounded within a range
+*/
+uint16_t getBoundedTemperature(uint16_t temperature);
+
+/*
+Name: Get distance
+Purpose: Returns the distance between two points
+*/
+double getDistance(const Gcode &firstPoint, const Gcode &secondPoint);
+
+/*
+Name: Create tack point
+Purpose: Creates a delay G-code command if necessary
+*/
+Gcode createTackPoint(const Gcode &point, const Gcode &refrence);
+
+/*
+Name: Is sharp corner
+Purpose: Returns if two points make a sharp corner
+*/
+bool isSharpCorner(const Gcode &point, const Gcode &refrence);
+
+/*
+Name: Get current adjustment Z
+Purpose: Returns the current Z adjustment for wave bonding
+*/
+double getCurrentAdjustmentZ();
+
+/*
+Name: Calculate plane normal vector
+Purpose: Calculates the plane normal vector formed between three vectors
+*/
+Vector calculatePlaneNormalVector(const Vector &v1, const Vector &v2, const Vector &v3);
+
+/*
+Name: Generate plane equation
+Purpose: Generates the equation for the plane formed between three vectors
+*/
+Vector generatePlaneEquation(const Vector &v1, const Vector &v2, const Vector &v3);
+
+/*
+Name: Get height adjustment required
+Purpose: Gets the required height adjustment for bed compensation
+*/
+double getHeightAdjustmentRequired(double x, double y);
+
+/*
+Name: Get Z from XY plane
+Purpose: Return the Z value of the plane formed between two vectors
+*/
+double getZFromXYAndPlane(const Vector &point, const Vector &planeABC);
+
+/*
+Name: Is point in triangle
+Purpose: Returns if the point is inside the triangle formed by three vectors
+*/
+bool isPointInTriangle(const Vector &pt, const Vector &v1, const Vector &v2, const Vector &v3);
+
+/*
+Name: Sign
+Purpose: Returns the sign formed by three vectors
+*/
+double sign(const Vector &p1, const Vector &p2, const Vector &p3);
+
+
+// Exported function prototypes
 
 /*
 Name: Set values
 Purpose: Sets values to use in the pre-processors
 */
-EXPORT void setValues(double backlashXSetting, double backlashYSetting, double backlashSpeedSetting, double backRightOrientationSetting, double backLeftOrientationSetting, double frontLeftOrientationSetting, double frontRightOrientationSetting, double bedHeightOffsetSetting, double backRightOffsetSetting, double backLeftOffsetSetting, double frontLeftOffsetSetting, double frontRightOffsetSetting, unsigned short filamentTemperatureSetting, const char *filamentTypeSetting, bool useValidationPreprocessorSetting, bool usePreparationPreprocessorSetting, bool useWaveBondingPreprocessorSetting, bool useThermalBondingPreprocessorSetting, bool useBedCompensationPreprocessorSetting, bool useBacklashCompensationPreprocessorSetting, bool useFeedRateConversionPreprocessorSetting, bool useCenterModelPreprocessorSetting);
+EXPORT void setValues(double backlashXSetting, double backlashYSetting, double backlashSpeedSetting, double backRightOrientationSetting, double backLeftOrientationSetting, double frontLeftOrientationSetting, double frontRightOrientationSetting, double bedHeightOffsetSetting, double backRightOffsetSetting, double backLeftOffsetSetting, double frontLeftOffsetSetting, double frontRightOffsetSetting, uint16_t filamentTemperatureSetting, const char *filamentTypeSetting, bool useValidationPreprocessorSetting, bool usePreparationPreprocessorSetting, bool useWaveBondingPreprocessorSetting, bool useThermalBondingPreprocessorSetting, bool useBedCompensationPreprocessorSetting, bool useBacklashCompensationPreprocessorSetting, bool useFeedRateConversionPreprocessorSetting, bool useCenterModelPreprocessorSetting);
 
 /*
-Name: Get print information
+Name: Check print dimensions
 Purpose: Calculates the minimum and maximum dimensions of the file and returns if the file can successfully be printed
 */
-EXPORT bool getPrintInformation(const char *file, bool overrideCenterModelPreprocessor = false);
+EXPORT bool checkPrintDimensions(const char *file, bool overrideCenterModelPreprocessor = false);
 
 /*
 Name: Center model pre-processor

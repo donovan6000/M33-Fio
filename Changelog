@@ -1,5 +1,9 @@
 Changelog:
 
+V0.11 August 19, 2015
+
+	* Utilizes shared libraries for 64bit Linux and ARM Linux devices to speed up the pre-processors significantly
+
 V0.10 August 18, 2015
 
 	* Added in new changes to the newest official M3D software.
