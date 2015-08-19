@@ -9,7 +9,7 @@
 	</div>
 	<div class="control-group">
 		<div class="controls">
-			<label class="checkbox" title="Uses a pre-compiled shared library to perform the selected pre-processors stages">
+			<label class="checkbox">
 				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.UseSharedLibrary"><span>Use shared library to perform pre-processor stages</span>
 			</label>
 		</div>
@@ -91,33 +91,57 @@
 		</div>
 	</div>
 	<div class="control-group">
+		<label class="control-label">Back Left Orientation</label>
+		<div class="controls">
+			<input type="number" step="0.000001" min="-3" max="3" class="input-block-level" data-bind="value: settings.plugins.m3dfio.BackLeftOrientation">
+		</div>
+	</div>
+	<div class="control-group">
+		<label class="control-label">Back Right Orientation</label>
+		<div class="controls">
+			<input type="number" step="0.000001" min="-3" max="3" class="input-block-level" data-bind="value: settings.plugins.m3dfio.BackRightOrientation">
+		</div>
+	</div>
+	<div class="control-group">
+		<label class="control-label">Front Right Orientation</label>
+		<div class="controls">
+			<input type="number" step="0.000001" min="-3" max="3" class="input-block-level" data-bind="value: settings.plugins.m3dfio.FrontRightOrientation">
+		</div>
+	</div>
+	<div class="control-group">
+		<label class="control-label">Front Left Orientation</label>
+		<div class="controls">
+			<input type="number" step="0.000001" min="-3" max="3" class="input-block-level" data-bind="value: settings.plugins.m3dfio.FrontLeftOrientation">
+		</div>
+	</div>
+	<div class="control-group">
 		<label class="control-label">Bed Height Offset</label>
 		<div class="controls">
-			<input type="number" step="0.0001" min="-3" max="3" class="input-block-level" data-bind="value: settings.plugins.m3dfio.BedHeightOffset">
+			<input type="number" step="0.0001" class="input-block-level" data-bind="value: settings.plugins.m3dfio.BedHeightOffset">
 		</div>
 	</div>
 	<div class="control-group">
 		<label class="control-label">Back Left Offset</label>
 		<div class="controls">
-			<input type="number" step="0.0001" min="-3" max="3" class="input-block-level" data-bind="value: settings.plugins.m3dfio.BackLeftOffset">
+			<input type="number" step="0.0001" class="input-block-level" data-bind="value: settings.plugins.m3dfio.BackLeftOffset">
 		</div>
 	</div>
 	<div class="control-group">
 		<label class="control-label">Back Right Offset</label>
 		<div class="controls">
-			<input type="number" step="0.0001" min="-3" max="3" class="input-block-level" data-bind="value: settings.plugins.m3dfio.BackRightOffset">
+			<input type="number" step="0.0001" class="input-block-level" data-bind="value: settings.plugins.m3dfio.BackRightOffset">
 		</div>
 	</div>
 	<div class="control-group">
 		<label class="control-label">Front Right Offset</label>
 		<div class="controls">
-			<input type="number" step="0.0001" min="-3" max="3" class="input-block-level" data-bind="value: settings.plugins.m3dfio.FrontRightOffset">
+			<input type="number" step="0.0001" class="input-block-level" data-bind="value: settings.plugins.m3dfio.FrontRightOffset">
 		</div>
 	</div>
 	<div class="control-group">
 		<label class="control-label">Front Left Offset</label>
 		<div class="controls">
-			<input type="number" step="0.0001" min="-3" max="3" class="input-block-level" data-bind="value: settings.plugins.m3dfio.FrontLeftOffset">
+			<input type="number" step="0.0001" class="input-block-level" data-bind="value: settings.plugins.m3dfio.FrontLeftOffset">
 		</div>
 	</div>
 	<div class="control-group">

@@ -96,8 +96,11 @@ class Gcode(object) :
 					# Remove leading and trailing whitespace
 					self.parameterValue[15] = self.parameterValue[15].strip()
 					
-					# Set data type
-					self.dataType |= (1 << 15)
+					# Check if string exists
+					if self.parameterValue[15] :
+					
+						# Set data type
+						self.dataType |= (1 << 15)
 					
 					# Stop parsing line
 					break

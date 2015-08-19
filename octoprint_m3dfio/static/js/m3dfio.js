@@ -1321,10 +1321,18 @@ $(function() {
 				$("#control > p.status").removeClass("show");
 			
 			// Otherwise check if data is to disable shared library
-			else if(data.value == "Disable shared library")
+			else if(data.value == "Disable shared library") {
 			
 				// Hide shared library option
-				$("#settings_plugin_m3dfio > form > div:nth-child(2) > div.controls").css("display", "none");
+				$("#settings_plugin_m3dfio > form > div:nth-child(2)").addClass("disabled").find("input").prop("disabled", true);
+			}
+			
+			// Otherwise check if data is to enable shared library
+			else if(data.value == "Enable shared library") {
+			
+				// Hide shared library option
+				$("#settings_plugin_m3dfio > form > div:nth-child(2)").removeClass("disabled").find("input").prop("disabled", false);
+			}
 			
 			// Float To Binary
 			function floatToBinary(value) {

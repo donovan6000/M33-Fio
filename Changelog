@@ -1,5 +1,11 @@
 Changelog:
 
+V0.10 August 18, 2015
+
+	* Added in new changes to the newest official M3D software.
+	* Fixed an issue with using the wrong offset for obtaining the bed height offset.
+	* Implemented invalid bed orientation detection.
+
 V0.9 August 10, 2015
 
 	* Improved G-code class by using regular expressions for parsing the input and by aligning array offsets with the command values. Thanks Fylnn.

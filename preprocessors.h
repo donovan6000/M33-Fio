@@ -23,7 +23,7 @@
 Name: Set values
 Purpose: Sets values to use in the pre-processors
 */
-EXPORT void setValues(double backlashXSetting, double backlashYSetting, double backlashSpeedSetting, double bedHeightOffsetSetting, double backRightOffsetSetting, double backLeftOffsetSetting, double frontLeftOffsetSetting, double frontRightOffsetSetting, unsigned short filamentTemperatureSetting, const char *filamentTypeSetting, bool useValidationPreprocessorSetting, bool usePreparationPreprocessorSetting, bool useWaveBondingPreprocessorSetting, bool useThermalBondingPreprocessorSetting, bool useBedCompensationPreprocessorSetting, bool useBacklashCompensationPreprocessorSetting, bool useFeedRateConversionPreprocessorSetting, bool useCenterModelPreprocessorSetting);
+EXPORT void setValues(double backlashXSetting, double backlashYSetting, double backlashSpeedSetting, double backRightOrientationSetting, double backLeftOrientationSetting, double frontLeftOrientationSetting, double frontRightOrientationSetting, double bedHeightOffsetSetting, double backRightOffsetSetting, double backLeftOffsetSetting, double frontLeftOffsetSetting, double frontRightOffsetSetting, unsigned short filamentTemperatureSetting, const char *filamentTypeSetting, bool useValidationPreprocessorSetting, bool usePreparationPreprocessorSetting, bool useWaveBondingPreprocessorSetting, bool useThermalBondingPreprocessorSetting, bool useBedCompensationPreprocessorSetting, bool useBacklashCompensationPreprocessorSetting, bool useFeedRateConversionPreprocessorSetting, bool useCenterModelPreprocessorSetting);
 
 /*
 Name: Get print information

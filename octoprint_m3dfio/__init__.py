@@ -4,7 +4,7 @@ from __future__ import absolute_import
 
 # Plugin details
 __author__ = "donovan6000 <donovan6000@exploitkings.com>"
-__license__ = 'GNU General Public License http://www.gnu.org/licenses/gpl.txt'
+__license__ = "GNU General Public License http://www.gnu.org/licenses/gpl.txt"
 __copyright__ = "Copyright (C) 2015 Exploit Kings. All rights reserved."
 
 
@@ -26,6 +26,7 @@ import binascii
 import shutil
 import ctypes
 from .gcode import Gcode
+from .vector import Vector
 
 
 # Plugin
@@ -51,11 +52,11 @@ class M3DFioPlugin(
 		self.processingSlice = False
 		
 		# Set shared library if available
-		if os.uname()[0].startswith("Linux") and os.uname()[4].startswith("x86_64") :
-			self.library = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_x86_64.so")
+		#if os.uname()[0].startswith("Linux") and os.uname()[4].startswith("x86_64") :
+		#	self.library = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_x86_64.so")
 		
-		elif os.uname()[0].startswith("Linux") and os.uname()[4].startswith("arm") :
-			self.library = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_arm.so")
+		#elif os.uname()[0].startswith("Linux") and os.uname()[4].startswith("arm") :
+		#	self.library = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_arm.so")
 	
 		# Otherwise disable shared library
 		#else :
@@ -68,23 +69,23 @@ class M3DFioPlugin(
 			self.port = None
 	
 		# Bed dimensions
-		self.bedLowMaxX = 112.95
-		self.bedLowMinX = 0.05
-		self.bedLowMaxY = 106.95
-		self.bedLowMinY = 0.05
+		self.bedLowMaxX = 113.0
+		self.bedLowMinX = 0.0
+		self.bedLowMaxY = 107.0
+		self.bedLowMinY = 0.0
 		self.bedLowMaxZ = 5.0
 		self.bedLowMinZ = 0.0
-		self.bedMediumMaxX = 110.15
-		self.bedMediumMinX = 2.85
-		self.bedMediumMaxY = 106.95
-		self.bedMediumMinY = -6.55
+		self.bedMediumMaxX = 110.2
+		self.bedMediumMinX = 2.8
+		self.bedMediumMaxY = 107.0
+		self.bedMediumMinY = -6.6
 		self.bedMediumMaxZ = 73.5
 		self.bedMediumMinZ = self.bedLowMaxZ
-		self.bedHighMaxX = 81.95
-		self.bedHighMinX = 2.4
-		self.bedHighMaxY = 92.89999
-		self.bedHighMinY = 20.1
-		self.bedHighMaxZ = 111.95
+		self.bedHighMaxX = 82.0
+		self.bedHighMinX = 2.35
+		self.bedHighMaxY = 92.95
+		self.bedHighMinY = 20.05
+		self.bedHighMaxZ = 112.0
 		self.bedHighMinZ = self.bedMediumMaxZ
 		
 		# Chip details
@@ -99,9 +100,6 @@ class M3DFioPlugin(
 		self.wavePeriod = 5.0
 		self.wavePeriodQuarter = self.wavePeriod / 4.0
 		self.waveSize = 0.15
-
-		# Backlash compensation settings
-		self.useLegacyBacklash = False
 	
 		# Bed compensation settings
 		self.levellingMoveX = 104.9
@@ -129,6 +127,10 @@ class M3DFioPlugin(
 		return dict(
 			BacklashX = "0.3",
 			BacklashY = "0.6",
+			BackLeftOrientation = "0",
+			BackRightOrientation = "0",
+			FrontRightOrientation = "0",
+			FrontLeftOrientation = "0",
 			BacklashSpeed = "1500",
 			BackLeftOffset = "0",
 			BackRightOffset = "0",
@@ -368,10 +370,10 @@ class M3DFioPlugin(
 				if self._settings.get_boolean(["UseSharedLibrary"]) and self.library :
 				
 					# Set values
-					self.library.setValues(ctypes.c_double(self._settings.get_float(["BacklashX"])), ctypes.c_double(self._settings.get_float(["BacklashY"])), ctypes.c_double(self._settings.get_float(["BacklashSpeed"])), ctypes.c_double(self._settings.get_float(["BedHeightOffset"])), ctypes.c_double(self._settings.get_float(["BackRightOffset"])), ctypes.c_double(self._settings.get_float(["BackLeftOffset"])), ctypes.c_double(self._settings.get_float(["FrontLeftOffset"])), ctypes.c_double(self._settings.get_float(["FrontRightOffset"])), ctypes.c_ushort(self._settings.get_int(["FilamentTemperature"])), ctypes.c_char_p(str(self._settings.get(["FilamentType"]))), ctypes.c_bool(self._settings.get_boolean(["UseValidationPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UsePreparationPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseWaveBondingPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseThermalBondingPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseBedCompensationPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseBacklashCompensationPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseFeedRateConversionPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseCenterModelPreprocessor"])))
+					self.library.setValues(ctypes.c_double(self._settings.get_float(["BacklashX"])), ctypes.c_double(self._settings.get_float(["BacklashY"])), ctypes.c_double(self._settings.get_float(["BacklashSpeed"])), ctypes.c_double(self._settings.get_float(["BackRightOrientation"])), ctypes.c_double(self._settings.get_float(["BackLeftOrientation"])), ctypes.c_double(self._settings.get_float(["FrontLeftOrientation"])), ctypes.c_double(self._settings.get_float(["FrontRightOrientation"])), ctypes.c_double(self._settings.get_float(["BedHeightOffset"])), ctypes.c_double(self._settings.get_float(["BackRightOffset"])), ctypes.c_double(self._settings.get_float(["BackLeftOffset"])), ctypes.c_double(self._settings.get_float(["FrontLeftOffset"])), ctypes.c_double(self._settings.get_float(["FrontRightOffset"])), ctypes.c_ushort(self._settings.get_int(["FilamentTemperature"])), ctypes.c_char_p(str(self._settings.get(["FilamentType"]))), ctypes.c_bool(self._settings.get_boolean(["UseValidationPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UsePreparationPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseWaveBondingPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseThermalBondingPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseBedCompensationPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseBacklashCompensationPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseFeedRateConversionPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseCenterModelPreprocessor"])))
 					
 					# Process file
-					self.library.getPrintInformation(ctypes.c_char_p(temp), ctypes.c_bool(True));
+					self.library.getPrintInformation(ctypes.c_char_p(temp), ctypes.c_bool(True))
 					self.library.preparationPreprocessor(ctypes.c_char_p(temp), ctypes.c_bool(True))
 					self.library.thermalBondingPreprocessor(ctypes.c_char_p(temp), ctypes.c_bool(True))
 					self.library.bedCompensationPreprocessor(ctypes.c_char_p(temp))
@@ -449,13 +451,13 @@ class M3DFioPlugin(
 					oldChipCrc <<= 8
 					oldChipCrc += int(ord(response[index]))
 					index += 1
-			
+				
 				# Request that chip be erased
 				connection.write('E')
-
+				
 				# Check if chip was erased successfully
-				if connection.read(1) == '\r' :
-			
+				if connection.read() == '\r' :
+				
 					# Send address zero
 					connection.write('A')
 					connection.write('\x00')
@@ -857,9 +859,14 @@ class M3DFioPlugin(
 		# Client is connected
 		if event == octoprint.events.Events.CLIENT_OPENED :
 		
-			# Hide shared library option is not available
-			if self.library == None :
+			# Disable shared library option is not available
+			if not self.library :
+				self._settings.set_boolean(["UseSharedLibrary"], False)
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Disable shared library"))
+			
+			# Otherwise enable shared library option
+			else :
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Enable shared library"))
 	
 	# Receive data to log
 	def on_printer_add_log(self, data) :
@@ -925,21 +932,22 @@ class M3DFioPlugin(
 				self.firmwareVersion = int(data[data.find("FIRMWARE_VERSION:") + 17 : data.find("FIRMWARE_VERSION:") + 27])
 				
 				# Check if firmware is incompatible
-				if self.firmwareVersion < 2015071301 :
+				if self.firmwareVersion < 2015080602 :
 				
 					# Send error
 					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error: Incompatible firmware"))
+					
 					# Return
 					return
 				
-				# Request valid Z
+				# Request valid Z and Z position
 				commandList = ["M117", "M114"]
 				
 				# Check if set to automatically collect printer settings
 				if self._settings.get_boolean(["AutomaticSettingsUpdate"]) :
 			
 					# Request pre-processor dependant values
-					commandList += ["M619 S0\n", "M619 S1\n", "M619 S7\n", "M619 S8\n", "M619 S16\n", "M619 S17\n", "M619 S18\n", "M619 S19\n", "M619 S22\n", "M619 S32\n"]
+					commandList += ["M619 S0\n", "M619 S1\n", "M619 S2\n", "M619 S3\n", "M619 S4\n", "M619 S5\n", "M619 S7\n", "M619 S8\n", "M619 S16\n", "M619 S17\n", "M619 S18\n", "M619 S19\n", "M619 S20\n", "M619 S22\n", "M619 S23\n"]
 				
 				# Send requests
 				self._printer.commands(commandList)
@@ -949,7 +957,7 @@ class M3DFioPlugin(
 		
 			# Send invalid Z
 			if data[data.find("ZV:") + 3] == '0' :
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error: Z is invalid"))
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error: Bed center Z0 is invalid"))
 		
 		# Otherwise check if data contains current Z
 		elif "Z:" in data :
@@ -977,6 +985,46 @@ class M3DFioPlugin(
 				data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
 				bytes = struct.pack('4B', *data)
 				self._settings.set_float(["BacklashY"], round(struct.unpack('f', bytes)[0], 6))
+			
+			# Otherwise check if data is for back right orientation
+			elif "PT:2 " in data :
+			
+				# Convert data to float
+				value = int(data[data.find("DT:") + 3 :])
+				data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
+				bytes = struct.pack('4B', *data)
+				self._settings.set_float(["BackRightOrientation"], round(struct.unpack('f', bytes)[0], 6))
+			
+			# Otherwise check if data is for back left orientation
+			elif "PT:3 " in data :
+			
+				# Convert data to float
+				value = int(data[data.find("DT:") + 3 :])
+				data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
+				bytes = struct.pack('4B', *data)
+				self._settings.set_float(["BackLeftOrientation"], round(struct.unpack('f', bytes)[0], 6))
+			
+			# Otherwise check if data is for front left orientation
+			elif "PT:4 " in data :
+			
+				# Convert data to float
+				value = int(data[data.find("DT:") + 3 :])
+				data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
+				bytes = struct.pack('4B', *data)
+				self._settings.set_float(["FrontLeftOrientation"], round(struct.unpack('f', bytes)[0], 6))
+			
+			# Otherwise check if data is for front right orientation
+			elif "PT:5 " in data :
+			
+				# Convert data to float
+				value = int(data[data.find("DT:") + 3 :])
+				data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
+				bytes = struct.pack('4B', *data)
+				self._settings.set_float(["FrontRightOrientation"], round(struct.unpack('f', bytes)[0], 6))
+				
+				# Send invalid bed orientation
+				if self._settings.get_float(["BackRightOrientation"]) == 0 and self._settings.get_float(["BackLeftOrientation"]) == 0 and self._settings.get_float(["FrontLeftOrientation"]) == 0 and self._settings.get_float(["FrontRightOrientation"]) == 0 :
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error: Bed orientation is invalid"))
 				
 			# Otherwise check if data is for filament type
 			elif "PT:7 " in data :
@@ -1037,6 +1085,15 @@ class M3DFioPlugin(
 				bytes = struct.pack('4B', *data)
 				self._settings.set_float(["FrontLeftOffset"], round(struct.unpack('f', bytes)[0], 6))
 			
+			# Otherwise check if data is for bed height offset
+			elif "PT:20 " in data :
+			
+				# Convert data to float
+				value = int(data[data.find("DT:") + 3 :])
+				data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
+				bytes = struct.pack('4B', *data)
+				self._settings.set_float(["BedHeightOffset"], round(struct.unpack('f', bytes)[0], 6))
+			
 			# Otherwise check if data is for backlash speed
 			elif "PT:22 " in data :
 			
@@ -1046,14 +1103,12 @@ class M3DFioPlugin(
 				bytes = struct.pack('4B', *data)
 				self._settings.set_float(["BacklashSpeed"], round(struct.unpack('f', bytes)[0], 6))
 			
-			# Otherwise check if data is for bed height offset
-			elif "PT:32 " in data :
+			# Otherwise check if data is for G32 version
+			elif "PT:23 " in data :
 			
-				# Convert data to float
-				value = int(data[data.find("DT:") + 3 :])
-				data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
-				bytes = struct.pack('4B', *data)
-				self._settings.set_float(["BedHeightOffset"], round(struct.unpack('f', bytes)[0], 6))
+				# Send invalid bed orientation
+				if data[data.find("DT:") + 3 :] == '0' :
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error: Bed orientation is invalid"))
 	
 	# Pre-process G-code
 	def preprocessesGcode(self, path, file_object, links = None, printer_profile = None, allow_overwrite = True, *args, **kwargs) :
@@ -1080,7 +1135,7 @@ class M3DFioPlugin(
 		if self._settings.get_boolean(["UseSharedLibrary"]) and self.library :
 		
 			# Set values
-			self.library.setValues(ctypes.c_double(self._settings.get_float(["BacklashX"])), ctypes.c_double(self._settings.get_float(["BacklashY"])), ctypes.c_double(self._settings.get_float(["BacklashSpeed"])), ctypes.c_double(self._settings.get_float(["BedHeightOffset"])), ctypes.c_double(self._settings.get_float(["BackRightOffset"])), ctypes.c_double(self._settings.get_float(["BackLeftOffset"])), ctypes.c_double(self._settings.get_float(["FrontLeftOffset"])), ctypes.c_double(self._settings.get_float(["FrontRightOffset"])), ctypes.c_ushort(self._settings.get_int(["FilamentTemperature"])), ctypes.c_char_p(str(self._settings.get(["FilamentType"]))), ctypes.c_bool(self._settings.get_boolean(["UseValidationPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UsePreparationPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseWaveBondingPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseThermalBondingPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseBedCompensationPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseBacklashCompensationPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseFeedRateConversionPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseCenterModelPreprocessor"])))
+			self.library.setValues(ctypes.c_double(self._settings.get_float(["BacklashX"])), ctypes.c_double(self._settings.get_float(["BacklashY"])), ctypes.c_double(self._settings.get_float(["BacklashSpeed"])), ctypes.c_double(self._settings.get_float(["BackRightOrientation"])), ctypes.c_double(self._settings.get_float(["BackLeftOrientation"])), ctypes.c_double(self._settings.get_float(["FrontLeftOrientation"])), ctypes.c_double(self._settings.get_float(["FrontRightOrientation"])), ctypes.c_double(self._settings.get_float(["BedHeightOffset"])), ctypes.c_double(self._settings.get_float(["BackRightOffset"])), ctypes.c_double(self._settings.get_float(["BackLeftOffset"])), ctypes.c_double(self._settings.get_float(["FrontLeftOffset"])), ctypes.c_double(self._settings.get_float(["FrontRightOffset"])), ctypes.c_ushort(self._settings.get_int(["FilamentTemperature"])), ctypes.c_char_p(str(self._settings.get(["FilamentType"]))), ctypes.c_bool(self._settings.get_boolean(["UseValidationPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UsePreparationPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseWaveBondingPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseThermalBondingPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseBedCompensationPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseBacklashCompensationPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseFeedRateConversionPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseCenterModelPreprocessor"])))
 		
 		# Set progress bar percent
 		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar percent", percent = "60"))
@@ -1093,7 +1148,7 @@ class M3DFioPlugin(
 			
 			# Run center model pre-preprocessor
 			if self._settings.get_boolean(["UseSharedLibrary"]) and self.library :
-				self.library.centerModelPreprocessor(ctypes.c_char_p(temp));
+				self.library.centerModelPreprocessor(ctypes.c_char_p(temp))
 			else :
 				self.centerModelPreprocessor(temp)
 		
@@ -1103,7 +1158,7 @@ class M3DFioPlugin(
 		
 		# Run get print information
 		if self._settings.get_boolean(["UseSharedLibrary"]) and self.library :
-			valid = self.library.getPrintInformation(ctypes.c_char_p(temp));
+			valid = self.library.getPrintInformation(ctypes.c_char_p(temp))
 		else :
 			valid = self.getPrintInformation(temp)
 			
@@ -1142,7 +1197,7 @@ class M3DFioPlugin(
 			
 			# Run validation pre-preprocessor
 			if self._settings.get_boolean(["UseSharedLibrary"]) and self.library :
-				self.library.validationPreprocessor(ctypes.c_char_p(temp));
+				self.library.validationPreprocessor(ctypes.c_char_p(temp))
 			else :
 				self.validationPreprocessor(temp)
 		
@@ -1157,7 +1212,7 @@ class M3DFioPlugin(
 			
 			# Run preparation pre-preprocessor
 			if self._settings.get_boolean(["UseSharedLibrary"]) and self.library :
-				self.library.preparationPreprocessor(ctypes.c_char_p(temp));
+				self.library.preparationPreprocessor(ctypes.c_char_p(temp))
 			else :
 				self.preparationPreprocessor(temp)
 		
@@ -1172,7 +1227,7 @@ class M3DFioPlugin(
 			
 			# Run wave bonding pre-preprocessor
 			if self._settings.get_boolean(["UseSharedLibrary"]) and self.library :
-				self.library.waveBondingPreprocessor(ctypes.c_char_p(temp));
+				self.library.waveBondingPreprocessor(ctypes.c_char_p(temp))
 			else :
 				self.waveBondingPreprocessor(temp)
 		
@@ -1187,7 +1242,7 @@ class M3DFioPlugin(
 			
 			# Run thermal bonding pre-preprocessor
 			if self._settings.get_boolean(["UseSharedLibrary"]) and self.library :
-				self.library.thermalBondingPreprocessor(ctypes.c_char_p(temp));
+				self.library.thermalBondingPreprocessor(ctypes.c_char_p(temp))
 			else :
 				self.thermalBondingPreprocessor(temp)
 		
@@ -1202,7 +1257,7 @@ class M3DFioPlugin(
 			
 			# Run bed compensation pre-preprocessor
 			if self._settings.get_boolean(["UseSharedLibrary"]) and self.library :
-				self.library.bedCompensationPreprocessor(ctypes.c_char_p(temp));
+				self.library.bedCompensationPreprocessor(ctypes.c_char_p(temp))
 			else :
 				self.bedCompensationPreprocessor(temp)
 		
@@ -1217,7 +1272,7 @@ class M3DFioPlugin(
 			
 			# Run backlash compensation pre-preprocessor
 			if self._settings.get_boolean(["UseSharedLibrary"]) and self.library :
-				self.library.backlashCompensationPreprocessor(ctypes.c_char_p(temp));
+				self.library.backlashCompensationPreprocessor(ctypes.c_char_p(temp))
 			else :
 				self.backlashCompensationPreprocessor(temp)
 		
@@ -1232,7 +1287,7 @@ class M3DFioPlugin(
 			
 			# Run feed rate conversion pre-preprocessor
 			if self._settings.get_boolean(["UseSharedLibrary"]) and self.library :
-				self.library.feedRateConversionPreprocessor(ctypes.c_char_p(temp));
+				self.library.feedRateConversionPreprocessor(ctypes.c_char_p(temp))
 			else :
 				self.feedRateConversionPreprocessor(temp)
 		
@@ -1247,7 +1302,7 @@ class M3DFioPlugin(
 	
 		# Initialize variables
 		localX = 54
-		localY = 60
+		localY = 50
 		localZ = 0.4
 		relativeMode = False
 		tier = "Low"
@@ -1427,7 +1482,7 @@ class M3DFioPlugin(
 	
 			# Initialize variables
 			localX = 54
-			localY = 60
+			localY = 50
 			localZ = 0.4
 			relativeMode = False
 			tier = "Low"
@@ -1656,15 +1711,115 @@ class M3DFioPlugin(
 		# Return adjustment
 		return adjustment * self.waveSize
 	
-	# Get height adjustment required
-	def getHeightAdjustmentRequired(self, valueX, valueY) :
-
-		# Initialize variables
-		left = (self._settings.get_float(["BackLeftOffset"]) - self._settings.get_float(["FrontLeftOffset"])) / self.levellingMoveY
-		right = (self._settings.get_float(["BackRightOffset"]) - self._settings.get_float(["FrontRightOffset"])) / self.levellingMoveY
+	# Caluclate plane normal
+	def calculatePlaneNormalVector(self, v1, v2, v3) :
 	
+		# Initialize variables
+		vector = v2 - v1
+		vector2 = v3 - v1
+		vector3 = Vector()
+		
+		# Return normal vector
+		vector3[0] = vector[1] * vector2[2] - vector2[1] * vector[2]
+		vector3[1] = vector[2] * vector2[0] - vector2[2] * vector[0]
+		vector3[2] = vector[0] * vector2[1] - vector2[0] * vector[1]
+		return vector3
+	
+	# Generate plane equation
+	def generatePlaneEquation(self, v1, v2, v3) :
+		vector = Vector()
+		vector2 = self.calculatePlaneNormalVector(v1, v2, v3)
+		vector[0] = vector2[0]
+		vector[1] = vector2[1]
+		vector[2] = vector2[2]
+		vector[3] = -(vector[0] * v1[0] + vector[1] * v1[1] + vector[2] * v1[2])
+		return vector
+	
+	# Get height adjustment required
+	def getHeightAdjustmentRequired(self, x, y) :
+
+		# Set corner vectors
+		vector = Vector(99, 95, self._settings.get_float(["BackRightOrientation"]) + self._settings.get_float(["BackRightOffset"]))
+		vector2 = Vector(9, 95, self._settings.get_float(["BackLeftOrientation"]) + self._settings.get_float(["BackLeftOffset"]))
+		vector3 = Vector(9, 5, self._settings.get_float(["FrontLeftOrientation"]) + self._settings.get_float(["FrontLeftOffset"]))
+		vector4 = Vector(99, 5, self._settings.get_float(["FrontRightOrientation"]) + self._settings.get_float(["FrontRightOffset"]))
+		vector5 = Vector(54, 50, 0)
+		
+		# Calculate planes
+		planeABC = self.generatePlaneEquation(vector2, vector, vector5)
+		vector7 = self.generatePlaneEquation(vector2, vector3, vector5)
+		vector8 = self.generatePlaneEquation(vector, vector4, vector5)
+		vector9 = self.generatePlaneEquation(vector3, vector4, vector5)
+		point = Vector(x, y, 0)
+		
 		# Return height adjustment
-		return (right * valueY + self._settings.get_float(["FrontRightOffset"]) - (left * valueY + self._settings.get_float(["FrontLeftOffset"]))) / self.levellingMoveX * valueX + (left * valueY + self._settings.get_float(["FrontLeftOffset"]))
+		if x <= vector3.x and y >= vector.y :
+			return (self.getZFromXYAndPlane(point, planeABC) + self.getZFromXYAndPlane(point, vector7)) / 2
+		
+		elif x <= vector3.x and y <= vector3.y :
+			return (self.getZFromXYAndPlane(point, vector9) + self.getZFromXYAndPlane(point, vector7)) / 2
+		
+		elif x >= vector4.x and y <= vector3.y :
+			return (self.getZFromXYAndPlane(point, vector9) + self.getZFromXYAndPlane(point, vector8)) / 2
+		
+		elif x >= vector4.x and y >= vector.y :
+			return (self.getZFromXYAndPlane(point, planeABC) + self.getZFromXYAndPlane(point, vector8)) / 2
+		
+		elif x <= vector3.x :
+			return self.getZFromXYAndPlane(point, vector7)
+		
+		elif x >= vector4.x :
+			return self.getZFromXYAndPlane(point, vector8)
+		
+		elif y >= vector.y :
+			return self.getZFromXYAndPlane(point, planeABC)
+		
+		elif y <= vector3.y :
+			return self.getZFromXYAndPlane(point, vector9)
+		
+		elif self.isPointInTriangle(point, vector5, vector3, vector2) :
+			return self.getZFromXYAndPlane(point, vector7)
+		
+		elif self.isPointInTriangle(point, vector5, vector4, vector) :
+			return self.getZFromXYAndPlane(point, vector8)
+		
+		elif self.isPointInTriangle(point, vector5, vector2, vector) :
+			return self.getZFromXYAndPlane(point, planeABC)
+		
+		else :
+			return self.getZFromXYAndPlane(point, vector9)
+	
+	# Get Z from X, Y, and plane
+	def getZFromXYAndPlane(self, point, planeABC) :
+	
+		# Return Z
+		return (planeABC[0] * point.x + planeABC[1] * point.y + planeABC[3]) / -planeABC[2]
+	
+	# Is point in triangle
+	def isPointInTriangle(self, pt, v1, v2, v3) :
+	
+		# Initialize variables
+		vector = v1 - v2 + v1 - v3
+		vector.normalize()
+		vector2 = v1 + vector * 0.01
+		vector = v2 - v1 + v2 - v3
+		vector.normalize()
+		vector3 = v2 + vector * 0.01
+		vector = v3 - v1 + v3 - v2
+		vector.normalize()
+		vector4 = v3 + vector * 0.01
+		
+		# Return if inside triangle
+		flag = self.sign(pt, vector2, vector3) < 0
+		flag2 = self.sign(pt, vector3, vector4) < 0
+		flag3 = self.sign(pt, vector4, vector2) < 0
+		return flag == flag2 and flag2 == flag3
+	
+	# Sign
+	def sign(self, p1, p2, p3) :
+	
+		# Return sign
+		return (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y)
 	
 	# Validation pre-processor
 	def validationPreprocessor(self, file) :
@@ -1814,7 +1969,7 @@ class M3DFioPlugin(
 	
 		# Initialize variables
 		relativeMode = False
-		layerCounter = -1
+		layerCounter = 0
 		changesPlane = False
 		cornerCounter = 0
 		positionRelativeX = 0
@@ -1846,8 +2001,8 @@ class M3DFioPlugin(
 			# Check if line was parsed successfully and it's a G command
 			if gcode.parseLine(line) and gcode.hasValue('G') :
 			
-				# Check if on first layer
-				if layerCounter == 0 :
+				# Check if on first counted layer
+				if layerCounter == 1 :
 			
 					# Check if command is G0 or G1 and it's in absolute mode
 					if (gcode.getValue('G') == "0" or gcode.getValue('G') == "1") and not relativeMode :
@@ -2042,33 +2197,33 @@ class M3DFioPlugin(
 						# Set relative mode
 						relativeMode = True
 				
-				# Check if command is G92
-				if gcode.getValue('G') == "92" :
+					# Otherwise check if command is G92
+					elif gcode.getValue('G') == "92" :
 				
-					# Check if command doesn't have an X, Y, Z, and E value
-					if not gcode.hasValue('X') and not gcode.hasValue('Y') and not gcode.hasValue('Z') and not gcode.hasValue('E') :
+						# Check if command doesn't have an X, Y, Z, and E value
+						if not gcode.hasValue('X') and not gcode.hasValue('Y') and not gcode.hasValue('Z') and not gcode.hasValue('E') :
 			
-						# Set command values to zero
-						gcode.setValue('X', "0")
-						gcode.setValue('Y', "0")
-						gcode.setValue('Z', "0")
-						gcode.setValue('E', "0")
+							# Set command values to zero
+							gcode.setValue('X', "0")
+							gcode.setValue('Y', "0")
+							gcode.setValue('Z', "0")
+							gcode.setValue('E', "0")
 			
-					# Otherwise
-					else :
+						# Otherwise
+						else :
 			
-						# Set relative positions
-						if gcode.hasValue('X') :
-							positionRelativeX = float(gcode.getValue('X'))
+							# Set relative positions
+							if gcode.hasValue('X') :
+								positionRelativeX = float(gcode.getValue('X'))
 						
-						if gcode.hasValue('Y') :
-							positionRelativeY = float(gcode.getValue('Y'))
+							if gcode.hasValue('Y') :
+								positionRelativeY = float(gcode.getValue('Y'))
 						
-						if gcode.hasValue('Z') :
-							positionRelativeZ = float(gcode.getValue('Z'))
+							if gcode.hasValue('Z') :
+								positionRelativeZ = float(gcode.getValue('Z'))
 					
-						if gcode.hasValue('E') :
-							positionRelativeE = float(gcode.getValue('E'))
+							if gcode.hasValue('E') :
+								positionRelativeE = float(gcode.getValue('E'))
 				
 				# Set line to adjusted value
 				line = gcode.getAscii() + '\n'
@@ -2086,14 +2241,12 @@ class M3DFioPlugin(
 	def thermalBondingPreprocessor(self, file, overrideWaveBondingPreprocessor = False) :
 	
 		# Initialize variables
-		layerCounter = -1
+		layerCounter = 0
 		cornerCounter = 0
-		addingTemperatureCommands = True
 		relativeMode = False
 		gcode = Gcode()
 		previousGcode = Gcode()
 		refrenceGcode = Gcode()
-		tackPoint = Gcode()
 		
 		# Move the input file to a temporary file
 		temp = tempfile.mkstemp()[1]
@@ -2105,53 +2258,32 @@ class M3DFioPlugin(
 		# Read in input file
 		for line in open(temp) :
 		
-			# Check if line is a layer command
-			if ";LAYER:" in line:
-			
-				# Increment layer counter
-				layerCounter += 1
-			
-				# Check if adding temperature controls
-				if addingTemperatureCommands :
-			
-					# Check if on first counted layer
-					if layerCounter == 0 :
+			# Check if line is a layer command and adding temperature controls
+			if ";LAYER:" in line and layerCounter < 2:
 				
-						# Check if filament type is PLA
-						if str(self._settings.get(["FilamentType"])) == "PLA" :
-				
-							# Send temperature command to output
-							os.write(output, "M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 10)) + '\n')
-					
-						# Otherwise
-						else :
-					
-							# Send temperature command to output
-							os.write(output, "M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 15)) + '\n')
+				# Check if on first counted layer
+				if layerCounter == 0 :
 			
-					# Otherwise check if on second counted layer
-					elif layerCounter == 1 :
+					# Check if filament type is PLA
+					if str(self._settings.get(["FilamentType"])) == "PLA" :
 			
-						# Check if filament type is PLA
-						if str(self._settings.get(["FilamentType"])) == "PLA" :
-				
-							# Send temperature command to output
-							os.write(output, "M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 5)) + '\n')
-					
-						# Otherwise
-						else :
-					
-							# Send temperature command to output
-							os.write(output, "M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 10)) + '\n')
+						# Send temperature command to output
+						os.write(output, "M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 10)) + '\n')
 				
 					# Otherwise
 					else :
 				
 						# Send temperature command to output
-						os.write(output, "M109 S" + str(self._settings.get_int(["FilamentTemperature"])) + '\n')
+						os.write(output, "M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 15)) + '\n')
 				
-						# Clear adding temperature commands
-						addingTemperatureCommands = False
+				# Otherwise
+				else :
+			
+					# Send temperature command to output
+					os.write(output, "M104 S" + str(self._settings.get_int(["FilamentTemperature"])) + '\n')
+				
+				# Increment layer counter
+				layerCounter += 1
 			
 			# Check if line was parsed successfully
 			if gcode.parseLine(line) :
@@ -2162,19 +2294,19 @@ class M3DFioPlugin(
 					# Get next line
 					continue
 				
-				# Otherwise check if layer counter is at most one
+				# Otherwise check if on first counted layer
 				elif layerCounter <= 1 :
 			
 					# Check if wave bonding isn't being used and line is a G command
 					if not overrideWaveBondingPreprocessor and not self._settings.get_boolean(["UseWaveBondingPreprocessor"]) and gcode.hasValue('G') :
 			
-						# Check if command is G0 or G1 and and it's in absolute
+						# Check if command is G0 or G1 and it's in absolute
 						if (gcode.getValue('G') == "0" or gcode.getValue('G') == "1") and not relativeMode :
 				
-							# Check if previous command exists, adding temperature commands, and filament is ABS, HIPS, or PLA
-							if not previousGcode.isEmpty() and addingTemperatureCommands and (str(self._settings.get(["FilamentType"])) == "ABS" or str(self._settings.get(["FilamentType"])) == "HIPS" or str(self._settings.get(["FilamentType"])) == "PLA") :
+							# Check if previous command exists and filament is ABS, HIPS, or PLA
+							if not previousGcode.isEmpty() and (str(self._settings.get(["FilamentType"])) == "ABS" or str(self._settings.get(["FilamentType"])) == "HIPS" or str(self._settings.get(["FilamentType"])) == "PLA") :
 					
-								# Check if both counters are less than or equal to one
+								# Check if corner counter is less than or equal to one
 								if cornerCounter <= 1 :
 						
 									# Check if sharp corner
@@ -2196,7 +2328,7 @@ class M3DFioPlugin(
 										# Increment corner count
 										cornerCounter += 1
 						
-								# Otherwise check if corner counter is greater than one but layer counter isn't and sharp corner
+								# Otherwise check if corner counter is greater than one and sharp corner
 								elif cornerCounter >= 1 and self.isSharpCorner(gcode, refrenceGcode) :
 						
 									# Check if a tack point was created
@@ -2243,7 +2375,6 @@ class M3DFioPlugin(
 		relativeMode = False
 		changesPlane = False
 		hasExtruded = False
-		addCommand = False
 		positionAbsoluteX = 0
 		positionAbsoluteY = 0
 		positionRelativeX = 0
@@ -2339,28 +2470,11 @@ class M3DFioPlugin(
 						deltaRatioZ = 0
 						deltaRatioE = 0
 			
-					# Check if change in E is greater than 0
+					# Check if change in E is greater than zero
 					if deltaE > 0 :
-			
-						# Set add command
-						addCommand = not hasExtruded
 				
 						# Set has extruded
 						hasExtruded = True
-			
-					# Check if add command
-					if addCommand :
-			
-						# Set extra G-code
-						extraGcode.clear()
-						extraGcode.setValue('G', "0")
-						extraGcode.setValue('E', "0")
-				
-						# Send extra G-code to output
-						os.write(output, extraGcode.getAscii() + '\n')
-			
-					# Check if change in E is greater than zero
-					if deltaE > 0 :
 			
 						# Go through all segments
 						index = 1
@@ -2387,12 +2501,9 @@ class M3DFioPlugin(
 								tempRelativeY = relativeDifferenceY + index * self.segmentLength * deltaRatioY
 								tempRelativeZ = relativeDifferenceZ + index * self.segmentLength * deltaRatioZ
 								tempRelativeE = relativeDifferenceE + index * self.segmentLength * deltaRatioE
-					
-							# Set height adjustment
-							heightAdjustment = self.getHeightAdjustmentRequired(tempAbsoluteX, tempAbsoluteY)
 							
-							# Store adjustment
-							storedAdjustment = heightAdjustment
+							# Get height adjustment
+							heightAdjustment = self.getHeightAdjustmentRequired(tempAbsoluteX, tempAbsoluteY)
 					
 							# Check if not at last segment
 							if index != segmentCounter :
@@ -2423,7 +2534,7 @@ class M3DFioPlugin(
 								if changesPlane :
 						
 									# Set extra G-code Z value
-									extraGcode.setValue('Z', str(positionRelativeZ - deltaZ + tempRelativeZ - relativeDifferenceZ + storedAdjustment))
+									extraGcode.setValue('Z', str(positionRelativeZ - deltaZ + tempRelativeZ - relativeDifferenceZ + heightAdjustment))
 						
 								# Otherwise check if command has a Z value and the change in Z in noticable
 								elif gcode.hasValue('Z') and deltaZ != sys.float_info.epsilon :
@@ -2447,13 +2558,13 @@ class M3DFioPlugin(
 									if gcode.hasValue('Z') :
 							
 										# Add value to command Z value
-										gcode.setValue('Z', str(float(gcode.getValue('Z')) + storedAdjustment))
+										gcode.setValue('Z', str(float(gcode.getValue('Z')) + heightAdjustment))
 							
 									# Otherwise
 									else :
 							
 										# Set command Z value
-										gcode.setValue('Z', str(relativeDifferenceZ + deltaZ + storedAdjustment))
+										gcode.setValue('Z', str(relativeDifferenceZ + deltaZ + heightAdjustment))
 							
 							# Increment index
 							index += 1
@@ -2464,20 +2575,27 @@ class M3DFioPlugin(
 						# Check if the plane changed
 						if changesPlane :
 						
-							# Set stored adjustment
-							storedAdjustment = self.getHeightAdjustmentRequired(positionAbsoluteX, positionAbsoluteY)
+							# Set height adjustment
+							heightAdjustment = self.getHeightAdjustmentRequired(positionAbsoluteX, positionAbsoluteY)
 					
 							# Check if command has a Z value
 							if gcode.hasValue('Z') :
 					
 								# Add value to command Z
-								gcode.setValue('Z', str(float(gcode.getValue('Z')) + storedAdjustment))
+								gcode.setValue('Z', str(float(gcode.getValue('Z')) + heightAdjustment))
 					
 							# Otherwise
 							else :
 					
 								# Set command Z
-								gcode.setValue('Z', str(positionRelativeZ + storedAdjustment))
+								gcode.setValue('Z', str(positionRelativeZ + heightAdjustment))
+				
+				# Otherwise check if command is G28
+				elif gcode.getValue('G') == "28" :
+				
+					# Set X and Y to home
+					positionRelativeX = positionAbsoluteX = 54
+					positionRelativeY = positionAbsoluteY = 50
 				
 				# Otherwise check if command is G90
 				elif gcode.getValue('G') == "90" :
@@ -2620,15 +2738,8 @@ class M3DFioPlugin(
 							if directionX == "Positive" :
 								compensationX += self._settings.get_float(["BacklashX"])
 							else :
-								compensationX += -self._settings.get_float(["BacklashX"])
-							
-							# Set extra G-code X value
-							extraGcode.setValue('X', str(positionRelativeX + compensationX))
+								compensationX -= self._settings.get_float(["BacklashX"])
 						
-							# Set extra G-code Y value if using legacy
-							if self.useLegacyBacklash :
-								extraGcode.setValue('Y', str(positionRelativeY + compensationY))
-					
 						# Check if Y direction has changed
 						if directionY != previousDirectionY and previousDirectionY != "Neither" :
 					
@@ -2636,15 +2747,12 @@ class M3DFioPlugin(
 							if directionY == "Positive" :
 								compensationY += self._settings.get_float(["BacklashY"])
 							else :
-								compensationY += -self._settings.get_float(["BacklashY"])
+								compensationY -= self._settings.get_float(["BacklashY"])
 						
-							# Set extra G-code Y value
-							extraGcode.setValue('Y', str(positionRelativeY + compensationY))
+						# Set extra G-code X and Y values
+						extraGcode.setValue('X', str(positionRelativeX + compensationX))
+						extraGcode.setValue('Y', str(positionRelativeY + compensationY))
 						
-							# Set extra G-code X value if using legacy
-							if self.useLegacyBacklash :
-								extraGcode.setValue('X', str(positionRelativeX + compensationX))
-					
 						# Set extra G-code F value
 						extraGcode.setValue('F', str(self._settings.get_float(["BacklashSpeed"])))
 					
@@ -2675,6 +2783,13 @@ class M3DFioPlugin(
 					# Store directions
 					previousDirectionX = directionX
 					previousDirectionY = directionY
+				
+				# Otherwise check if command is G28
+				elif gcode.getValue('G') == "28" :
+				
+					# Set relative values
+					positionRelativeX = 54
+					positionRelativeY = 50
 				
 				# Otherwise check if command is G90
 				elif gcode.getValue('G') == "90" :

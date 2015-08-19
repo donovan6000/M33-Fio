@@ -2,6 +2,11 @@
 	margin-top: -5px;
 }
 
+#settings_plugin_m3dfio div.disabled label {
+	opacity: 0.4;
+	cursor: not-allowed;
+}
+
 #settings_plugin_m3dfio label.checkbox {
 	margin-top: -15px;
 	width: calc(100% - 24px);

@@ -122,9 +122,12 @@ bool Gcode::parseLine(const char *line) {
 				
 				// Set string parameter
 				parameterValue[15] = currentValue;
-		
-				// Set data type
-				dataType |= (1 << 15);
+				
+				// Check if string exists
+				if(!parameterValue[15].empty())
+					
+					// Set data type
+					dataType |= (1 << 15);
 		
 				// Stop parsing line
 				break;

@@ -14,32 +14,29 @@ using namespace std;
 // Definitions
 
 // Printer bed size limits
-#define BED_LOW_MAX_X 112.95
-#define BED_LOW_MIN_X 0.05
-#define BED_LOW_MAX_Y 106.95
-#define BED_LOW_MIN_Y 0.05
+#define BED_LOW_MAX_X 113.0
+#define BED_LOW_MIN_X 0.0
+#define BED_LOW_MAX_Y 107.0
+#define BED_LOW_MIN_Y 0.0
 #define BED_LOW_MAX_Z 5.0
 #define BED_LOW_MIN_Z 0.0
-#define BED_MEDIUM_MAX_X 110.15
-#define BED_MEDIUM_MIN_X 2.85
-#define BED_MEDIUM_MAX_Y 106.95
-#define BED_MEDIUM_MIN_Y -6.55
+#define BED_MEDIUM_MAX_X 110.2
+#define BED_MEDIUM_MIN_X 2.8
+#define BED_MEDIUM_MAX_Y 107.0
+#define BED_MEDIUM_MIN_Y -6.6
 #define BED_MEDIUM_MAX_Z 73.5
 #define BED_MEDIUM_MIN_Z BED_LOW_MAX_Z
-#define BED_HIGH_MAX_X 81.95
-#define BED_HIGH_MIN_X 2.4
-#define BED_HIGH_MAX_Y 92.89999
-#define BED_HIGH_MIN_Y 20.1
-#define BED_HIGH_MAX_Z 111.95
+#define BED_HIGH_MAX_X 82.0
+#define BED_HIGH_MIN_X 2.35
+#define BED_HIGH_MAX_Y 92.95
+#define BED_HIGH_MIN_Y 20.05
+#define BED_HIGH_MAX_Z 112.0
 #define BED_HIGH_MIN_Z BED_MEDIUM_MAX_Z
 
 // Wave bonding settings
 #define WAVE_PERIOD 5.0
 #define WAVE_PERIOD_QUARTER (WAVE_PERIOD / 4.0)
 #define WAVE_SIZE 0.15
-
-// Backlash compensation settings
-#define USE_LEGACY_BACKLASH false
 
 // Bed compensation settings
 #define LEVELLING_MOVE_X 104.9
@@ -66,6 +63,10 @@ enum printTiers {LOW, MEDIUM, HIGH};
 double backlashX;
 double backlashY;
 double backlashSpeed;
+double backRightOrientation;
+double backLeftOrientation;
+double frontLeftOrientation;
+double frontRightOrientation;
 double bedHeightOffset;
 double backRightOffset;
 double backLeftOffset;
@@ -124,7 +125,7 @@ Gcode createTackPoint(const Gcode &point, const Gcode &refrence) {
 
 	// Initialize variables
 	Gcode gcode;
-	uint32_t time = ceil(getDistance(point, refrence));
+	uint16_t time = ceil(getDistance(point, refrence));
 	
 	// Check if time is greater than 5
 	if(time > 5) {
@@ -188,12 +189,16 @@ double getHeightAdjustmentRequired(double valueX, double valueY) {
 
 
 // Exported function implementation
-void setValues(double backlashXSetting, double backlashYSetting, double backlashSpeedSetting, double bedHeightOffsetSetting, double backRightOffsetSetting, double backLeftOffsetSetting, double frontLeftOffsetSetting, double frontRightOffsetSetting, unsigned short filamentTemperatureSetting, const char *filamentTypeSetting, bool useValidationPreprocessorSetting, bool usePreparationPreprocessorSetting, bool useWaveBondingPreprocessorSetting, bool useThermalBondingPreprocessorSetting, bool useBedCompensationPreprocessorSetting, bool useBacklashCompensationPreprocessorSetting, bool useFeedRateConversionPreprocessorSetting, bool useCenterModelPreprocessorSetting) {
+void setValues(double backlashXSetting, double backlashYSetting, double backlashSpeedSetting, double backRightOrientationSetting, double backLeftOrientationSetting, double frontLeftOrientationSetting, double frontRightOrientationSetting, double bedHeightOffsetSetting, double backRightOffsetSetting, double backLeftOffsetSetting, double frontLeftOffsetSetting, double frontRightOffsetSetting, unsigned short filamentTemperatureSetting, const char *filamentTypeSetting, bool useValidationPreprocessorSetting, bool usePreparationPreprocessorSetting, bool useWaveBondingPreprocessorSetting, bool useThermalBondingPreprocessorSetting, bool useBedCompensationPreprocessorSetting, bool useBacklashCompensationPreprocessorSetting, bool useFeedRateConversionPreprocessorSetting, bool useCenterModelPreprocessorSetting) {
 
 	// Set values
 	backlashX = backlashXSetting;
 	backlashY = backlashYSetting;
 	backlashSpeed = backlashSpeedSetting;
+	backRightOrientation = backRightOrientationSetting;
+	backLeftOrientation = backLeftOrientationSetting;
+	frontLeftOrientation = frontLeftOrientationSetting;
+	frontRightOrientation = frontRightOrientationSetting;
 	bedHeightOffset = bedHeightOffsetSetting;
 	backRightOffset = backRightOffsetSetting;
 	backLeftOffset = backLeftOffsetSetting;
