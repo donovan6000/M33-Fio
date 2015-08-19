@@ -173,7 +173,7 @@ class M3DFioPlugin(
 	
 		# Return update information
 		return dict(
-			updateplugindemo = dict(
+			m3dfio = dict(
 			
 				displayName = self._plugin_name,
 				displayVersion = self._plugin_version,
