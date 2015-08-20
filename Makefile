@@ -1,5 +1,5 @@
 LIBRARY_NAME = preprocessors
-TARGET_PLATFORM = ARM
+TARGET_PLATFORM = LINUX
 VER = .1
 
 ifeq ($(TARGET_PLATFORM), LINUX)
@@ -14,7 +14,7 @@ ifeq ($(TARGET_PLATFORM), ARM)
 endif
 
 SRCS = preprocessors.cpp gcode.cpp vector.cpp
-CFLAGS += -Wall -std=c++11 -static-libgcc -static-libstdc++ -nodefaultlibs -Ofast -fvisibility=hidden -shared -fPIC -Wl,-soname,$(PROG)$(VER)
+CFLAGS += -Wall -std=c++11 -static-libgcc -static-libstdc++ -Ofast -fvisibility=hidden -shared -fPIC -Wl,-soname,$(PROG)$(VER)
 
 
 all: $(PROG)
