@@ -95,7 +95,7 @@ bool Gcode::parseLine(const char *line) {
 		if(i == 0 || isupper(command[i]) || command[i] == ' ' || !command[i]) {
 		
 			// Check if valid value has been obtained for the parameter
-			if(i && (parameterOffset = strchr(ORDER, parameterIdentifier))) {
+			if(i && parameterIdentifier != ' ' && (parameterOffset = strchr(ORDER, parameterIdentifier))) {
 			
 				// Set data type
 				dataType |= (1 << (parameterOffset - ORDER));
@@ -271,7 +271,7 @@ vector<uint8_t> Gcode::getBinary() const {
 		if(!parameterValue[8].empty()) {
 			
 			// Set 4 byte float parameter value
-			tempFloat = stof(parameterValue[7]);
+			tempFloat = stof(parameterValue[8]);
 			tempPointer = reinterpret_cast<int32_t *>(&tempFloat);
 			request.push_back(*tempPointer & 0xFF);
 			request.push_back((*tempPointer >> 8) & 0xFF);
@@ -283,7 +283,7 @@ vector<uint8_t> Gcode::getBinary() const {
 		if(!parameterValue[9].empty()) {
 		
 			// Set 1 byte integer parameter value
-			tempNumber = stoi(parameterValue[8]);
+			tempNumber = stoi(parameterValue[9]);
 			request.push_back(tempNumber & 0xFF);
 		}
 		
@@ -291,7 +291,7 @@ vector<uint8_t> Gcode::getBinary() const {
 		if(!parameterValue[10].empty()) {
 			
 			// Set 4 byte integer parameter value
-			tempNumber = static_cast<int>(round(stod(parameterValue[9])));
+			tempNumber = static_cast<int>(round(stod(parameterValue[10])));
 			request.push_back(tempNumber & 0xFF);
 			request.push_back((tempNumber >> 8) & 0xFF);
 			request.push_back((tempNumber >> 16) & 0xFF);
@@ -302,7 +302,7 @@ vector<uint8_t> Gcode::getBinary() const {
 		if(!parameterValue[11].empty()) {
 			
 			// Set 4 byte integer parameter value
-			tempNumber = static_cast<int>(round(stod(parameterValue[10])));
+			tempNumber = static_cast<int>(round(stod(parameterValue[11])));
 			request.push_back(tempNumber & 0xFF);
 			request.push_back((tempNumber >> 8) & 0xFF);
 			request.push_back((tempNumber >> 16) & 0xFF);
@@ -313,7 +313,7 @@ vector<uint8_t> Gcode::getBinary() const {
 		if(!parameterValue[16].empty()) {
 			
 			// Set 4 byte float parameter value
-			tempFloat = stof(parameterValue[11]);
+			tempFloat = stof(parameterValue[16]);
 			tempPointer = reinterpret_cast<int32_t *>(&tempFloat);
 			request.push_back(*tempPointer & 0xFF);
 			request.push_back((*tempPointer >> 8) & 0xFF);
@@ -325,7 +325,7 @@ vector<uint8_t> Gcode::getBinary() const {
 		if(!parameterValue[17].empty()) {
 			
 			// Set 4 byte float parameter value
-			tempFloat = stof(parameterValue[12]);
+			tempFloat = stof(parameterValue[17]);
 			tempPointer = reinterpret_cast<int32_t *>(&tempFloat);
 			request.push_back(*tempPointer & 0xFF);
 			request.push_back((*tempPointer >> 8) & 0xFF);
@@ -337,7 +337,7 @@ vector<uint8_t> Gcode::getBinary() const {
 		if(!parameterValue[18].empty()) {
 			
 			// Set 4 byte float parameter value
-			tempFloat = stof(parameterValue[13]);
+			tempFloat = stof(parameterValue[18]);
 			tempPointer = reinterpret_cast<int32_t *>(&tempFloat);
 			request.push_back(*tempPointer & 0xFF);
 			request.push_back((*tempPointer >> 8) & 0xFF);
@@ -349,7 +349,7 @@ vector<uint8_t> Gcode::getBinary() const {
 		if(!parameterValue[19].empty()) {
 			
 			// Set 4 byte float parameter value
-			tempFloat = stof(parameterValue[14]);
+			tempFloat = stof(parameterValue[19]);
 			tempPointer = reinterpret_cast<int32_t *>(&tempFloat);
 			request.push_back(*tempPointer & 0xFF);
 			request.push_back((*tempPointer >> 8) & 0xFF);
