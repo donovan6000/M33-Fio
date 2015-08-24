@@ -9,7 +9,7 @@ ifeq ($(TARGET_PLATFORM), LINUX)
 endif
 ifeq ($(TARGET_PLATFORM), ARM)
 	PROG = $(LIBRARY_NAME)_arm.so
-	CC = arm-linux-gnueabihf-g++
+	CC = ~/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin/arm-linux-gnueabihf-g++
 	CFLAGS =
 endif
 

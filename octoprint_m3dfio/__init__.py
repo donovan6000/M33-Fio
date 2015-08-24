@@ -55,8 +55,8 @@ class M3DFioPlugin(
 		if os.uname()[0].startswith("Linux") and os.uname()[4].startswith("x86_64") :
 			self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_x86_64.so")
 		
-		#elif os.uname()[0].startswith("Linux") and os.uname()[4].startswith("arm") :
-		#	self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_arm.so")
+		elif os.uname()[0].startswith("Linux") and os.uname()[4].startswith("arm") :
+			self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_arm.so")
 	
 		# Otherwise disable shared library
 		else :
