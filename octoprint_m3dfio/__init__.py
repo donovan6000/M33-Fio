@@ -827,8 +827,10 @@ class M3DFioPlugin(
 				response = "ok System has been inactive for to long, heater and motors have been turned off\n"
 			elif response[6 : 10] == "1009" :
 				response = "ok Target address out of range\n"
-			else :
+			elif response[6 : 10].isdigit() :
 				response = "ok An error has occured\n"
+			else :
+				response = "ok " +  response[6 :]
 			
 			# Send error
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error:" + response[3 :]))
@@ -852,8 +854,9 @@ class M3DFioPlugin(
 			self.originalWrite = None
 			self.originalRead = None
 			
-			# Send printer status
+			# Send printer and Micro Pass status
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Micro 3D Not Connected"))
+			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Micro Pass Not Connected"))
 	
 	# Receive data to log
 	def on_printer_add_log(self, data) :
@@ -914,6 +917,12 @@ class M3DFioPlugin(
 				
 				# Send printer status
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Micro 3D Connected"))
+				
+				# Send Micro Pass status
+				if "MACHINE_TYPE:The_Micro_Pass" in data :
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Micro Pass Connected"))
+				else :
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Micro Pass Not Connected"))
 				
 				# Get firmware version
 				self.firmwareVersion = int(data[data.find("FIRMWARE_VERSION:") + 17 : data.find("FIRMWARE_VERSION:") + 27])

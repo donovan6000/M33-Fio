@@ -35,8 +35,22 @@
 	display: none !important;
 }
 
-#control div.jog-panel > h1 {
+#control div.jog-panel h1 {
 	text-align: center;
+}
+
+#control div.jog-panel h1.microPass {
+	font-size: 14px;
+	width: 80%;
+	height: 30px;
+	margin: -10px auto 0 auto;
+	position: relative;
+	top: -5px;
+}
+
+#control div.jog-panel h1.microPass:nth-of-type(2) {
+	margin-top: -15px;
+	top: -10px;
 }
 
 #control > div.jog-panel > div.jog-panel > div {
@@ -48,7 +62,7 @@
 	left: 8px;
 }
 
-#control > div.jog-panel:nth-of-type(2) > div > div.slider {
+#control > div.jog-panel:nth-of-type(2) > div div.slider {
 	width: 134px !important;
 	position: relative;
 	right: 2px;
@@ -143,4 +157,8 @@
 	pointer-events: none;
 	opacity: 0;
 	transition: opacity 0.2s linear;
+}
+
+#control .microPass {
+	display: none;
 }

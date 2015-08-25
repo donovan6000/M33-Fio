@@ -17,7 +17,7 @@ $(function() {
 		$("#control > div.jog-panel:first-of-type > div.distance > div > button:nth-of-type(3)").click();
 	
 		// Change tool section text
-		$("#control > div.jog-panel:nth-of-type(2) > h1").text("Extruder");
+		$("#control > div.jog-panel:nth-of-type(2) > h1").text("Extruder").after("<h1 class=\"microPass\">Extruder</h1>");
 
 		// Create motor on control
 		$("#control > div.jog-panel:nth-of-type(3) > div").prepend("<button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M17'}) }\">Motors on</button>");
@@ -32,11 +32,11 @@ $(function() {
 		$("#control > div.jog-panel:nth-of-type(4)").after("<div class=\"jog-panel\" style=\"\" data-bind=\"visible: loginState.isUser\"><h1>Calibration</h1><div><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Calibrate bed center Z0</button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Calibrate bed orientation</button><button disabled=\"\" class=\"btn btn-block control-box arrow\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><i class=\"icon-arrow-down\"></i></button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Save Z as front left Z0</button><button disabled=\"\" class=\"btn btn-block control-box arrow\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><i class=\"icon-arrow-down\"></i></button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Save Z as front right Z0</button><button disabled=\"\" class=\"btn btn-block control-box arrow\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><i class=\"icon-arrow-up\"></i></button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Save Z as back right Z0</button><button disabled=\"\" class=\"btn btn-block control-box arrow\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><i class=\"icon-arrow-up\"></i></button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Save Z as back left Z0</button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Save Z as bed center Z0</button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Print test border</button></div></div>");
 	
 		// Add advanced controls
-		$("#control > div.jog-panel:nth-of-type(5)").after("<div class=\"jog-panel\" style=\"\" data-bind=\"visible: loginState.isUser\"><h1>Advanced</h1><div><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><img src=\"/plugin/m3dfio/static/img/HengLiXin.png\">HengLiXin fan</button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><img src=\"/plugin/m3dfio/static/img/Listener.png\">Listener fan</button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><img src=\"/plugin/m3dfio/static/img/Shenzhew.png\">Shenzhew fan</button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">500mA extruder current</button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">660mA extruder current</button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Update firmware</button><input type=\"file\" accept=\".rom, .bin, .hex\"></div></div>")
+		$("#control > div.jog-panel:nth-of-type(5)").after("<div class=\"jog-panel\" style=\"\" data-bind=\"visible: loginState.isUser\"><h1>Advanced</h1><div><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><img src=\"/plugin/m3dfio/static/img/HengLiXin.png\">HengLiXin fan</button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><img src=\"/plugin/m3dfio/static/img/Listener.png\">Listener fan</button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><img src=\"/plugin/m3dfio/static/img/Shenzhew.png\">Shenzhew fan</button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">500mA extruder current</button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">660mA extruder current</button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Update firmware</button><input type=\"file\" accept=\".rom, .bin, .hex\"></div></div>");
 	
 		// Add temperature controls
-		$("#control > div.jog-panel:nth-of-type(2) > div > button:nth-of-type(3)").after("<div style=\"width: 114px;\" class=\"slider slider-horizontal\"><div class=\"slider-track\"><div style=\"left: 0%; width: 0%;\" class=\"slider-selection\"></div><div style=\"left: 0%;\" class=\"slider-handle round\"></div><div style=\"left: 0%;\" class=\"slider-handle round hide\"></div></div><div style=\"top: -24px; left: -19px;\" class=\"tooltip top hide\"><div class=\"tooltip-arrow\"></div><div class=\"tooltip-inner\"></div></div><input style=\"width: 100px;\" data-bind=\"slider: {min: 100, max: 235, step: 1, value: flowRate, tooltip: 'hide'}\" type=\"number\"></div><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && loginState.isUser()\">Temperature:<span data-bind=\"text: flowRate() + 50 + '°C'\"></span></button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M104 S0'}) }\">Heater off</button>");
-	
+		$("#control > div.jog-panel:nth-of-type(2) > div > button:nth-of-type(3)").after("<div style=\"width: 114px;\" class=\"slider slider-horizontal\"><div class=\"slider-track\"><div style=\"left: 0%; width: 0%;\" class=\"slider-selection\"></div><div style=\"left: 0%;\" class=\"slider-handle round\"></div><div style=\"left: 0%;\" class=\"slider-handle round hide\"></div></div><div style=\"top: -24px; left: -19px;\" class=\"tooltip top hide\"><div class=\"tooltip-arrow\"></div><div class=\"tooltip-inner\"></div></div><input style=\"width: 100px;\" data-bind=\"slider: {min: 100, max: 235, step: 1, value: flowRate, tooltip: 'hide'}\" type=\"number\"></div><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && loginState.isUser()\">Temperature:<span data-bind=\"text: flowRate() + 50 + '°C'\"></span></button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M104 S0'}) }\">Heater off</button><div class=\"microPass\"><h1 class=\"microPass\">Heat Bed</h1><div style=\"width: 114px;\" class=\"slider slider-horizontal\"><div class=\"slider-track\"><div style=\"left: 0%; width: 0%;\" class=\"slider-selection\"></div><div style=\"left: 0%;\" class=\"slider-handle round\"></div><div style=\"left: 0%;\" class=\"slider-handle round hide\"></div></div><div style=\"top: -24px; left: -19px;\" class=\"tooltip top hide\"><div class=\"tooltip-arrow\"></div><div class=\"tooltip-inner\"></div></div><input style=\"width: 100px;\" data-bind=\"slider: {min: 100, max: 170, step: 1, value: feedRate, tooltip: 'hide'}\" type=\"number\"></div><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && loginState.isUser()\">Temperature:<span data-bind=\"text: feedRate() -60 + '°C'\"></span></button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M140 S0'}) }\">Heater off</button><div>");
+		
 		// Add printer status
 		$("#control").append("<p class=\"status\">Status</p>");
 	
@@ -260,7 +260,7 @@ $(function() {
 			});
 		});
 	
-		// Set temperature control
+		// Set extruder temperature control
 		$("#control > div.jog-panel:nth-of-type(2) > div > button:nth-of-type(4)").click(function(event) {
 	
 			// Hide status
@@ -274,7 +274,52 @@ $(function() {
 			
 			// Set commands
 			var commands = [
-				"M109 S" + $(this).text().substr(12, 3) + '\n',
+				"M109 S" + parseInt($(this).text().substr(12)) + '\n',
+				"G4 S2\n"
+			];
+			
+			// Add wait command if not printing
+			if(self.printerState.isPrinting() !== true)
+				commands.push("M65536;wait\n");
+		
+			// Send request
+			$.ajax({
+				url: API_BASEURL + "plugin/m3dfio",
+				type: "POST",
+				dataType: "json",
+				data: JSON.stringify({command: "message", value: commands}),
+				contentType: "application/json; charset=UTF-8",
+			
+				// On success
+				success: function(data) {
+			
+					// Hide status
+					$("#control > p.status").removeClass("show");
+		
+					setTimeout(function() {
+				
+						// Set and show status
+						$("#control > p.status").removeClass("fail progress").addClass("succeed show").text("Done setting temperature");
+					}, 400);
+				}
+			});
+		});
+		
+		// Set heat bed temperature control
+		$("#control > div.jog-panel:nth-of-type(2) > div > div.microPass > button:first-of-type").click(function(event) {
+	
+			// Hide status
+			$("#control > p.status").removeClass("show");
+		
+			setTimeout(function() {
+				
+				// Set and show status
+				$("#control > p.status").removeClass("fail succeed").addClass("inProgress show").text("Warming up");
+			}, 400);
+			
+			// Set commands
+			var commands = [
+				"M190 S" + parseInt($(this).text().substr(12)) + '\n',
 				"G4 S2\n"
 			];
 			
@@ -1250,6 +1295,22 @@ $(function() {
 			
 				// Clear printer connected
 				printerConnected = false;
+			
+			// Otherwise check if data is that a Micro Pass is connected
+			else if(data.value == "Micro Pass Connected" && printerConnected) {
+			
+				// Display heat bed controls
+				$("#control .microPass").css("display", "block");
+				$("#control > div.jog-panel:nth-of-type(2) > h1:not(.microPass)").text("Tools");
+			}
+			
+			// Otherwise check if data is that a Micro Pass isn't connected
+			else if(data.value == "Micro Pass Not Connected") {
+			
+				// Hide heat bed controls
+				$("#control .microPass").css("display", "none");
+				$("#control > div.jog-panel:nth-of-type(2) > h1:not(.microPass)").text("Extruder");
+			}
 			
 			// Otherwise check if data is current Z
 			else if(data.value == "Current Z" && printerConnected && typeof data.location !== "undefined")

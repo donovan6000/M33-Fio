@@ -36,6 +36,12 @@ class Gcode {
 		bool parseLine(const string &line);
 		
 		/*
+		Name: Parse binary
+		Purpose: Extracts G-code from the binary parameter
+		*/
+		bool parseBinary(const char *line);
+		
+		/*
 		Name: Get original command
 		Purpose: Returns the orignal G-code command
 		*/

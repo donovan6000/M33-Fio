@@ -154,6 +154,217 @@ bool Gcode::parseLine(const string &line) {
 	return parseLine(line.c_str());
 }
 
+bool Gcode::parseBinary(const char *line) {
+
+	// Initialize variables
+	uint8_t index = 4;
+	int32_t *tempPointer;
+	float tempFloat;
+
+	// Set data type
+	dataType = (line[0] & 0xF0) + (line[0] & 0x0F) + (((line[1] & 0xF0) + (line[1] & 0x0F)) << 8) + (((line[2] & 0xF0) + (line[2] & 0x0F)) << 16) + (((line[3] & 0xF0) + (line[3] & 0x0F)) << 24);
+	
+	// Check if command contains no data
+	if(!dataType || dataType == 0x1080)
+	
+		// Return false
+		return false;
+	
+	// Reset parameter values
+	parameterValue.clear();
+	parameterValue.resize(strlen(ORDER));
+	
+	// Clear host command
+	hostCommand.clear();
+	
+	// Check if command contains a string parameter
+	if(dataType & (1 << 15))
+	
+		// Increment parameter location index
+		index++;
+	
+	// Check if command contains an N value
+	if(dataType & 1) {
+	
+		// Set parameter value
+		parameterValue[0] = to_string((line[index] & 0xF0) + (line[index] & 0x0F) + (((line[index + 1] & 0xF0) + (line[index + 1] & 0x0F)) << 8));
+		
+		// Increment parameter location index
+		index += 2;
+	}
+	
+	// Check if command contains an M value
+	if(dataType & (1 << 1)) {
+	
+		// Set parameter value
+		parameterValue[1] = to_string((line[index] & 0xF0) + (line[index] & 0x0F) + (((line[index + 1] & 0xF0) + (line[index + 1] & 0x0F)) << 8));
+		
+		// Increment parameter location index
+		index += 2;
+	}
+	
+	// Check if command contains an G value
+	if(dataType & (1 << 2)) {
+	
+		// Set parameter value
+		parameterValue[2] = to_string((line[index] & 0xF0) + (line[index] & 0x0F) + (((line[index + 1] & 0xF0) + (line[index + 1] & 0x0F)) << 8));
+		
+		// Increment parameter location index
+		index += 2;
+	}
+	
+	// Check if command contains an X value
+	if(dataType & (1 << 3)) {
+	
+		// Set parameter value
+		tempPointer = reinterpret_cast<int32_t *>(&tempFloat);
+		*tempPointer = (line[index] & 0xF0) + (line[index] & 0x0F) + (((line[index + 1] & 0xF0) + (line[index + 1] & 0x0F)) << 8) + (((line[index + 2] & 0xF0) + (line[index + 2] & 0x0F)) << 16) + (((line[index + 3] & 0xF0) + (line[index + 3] & 0x0F)) << 24);
+		parameterValue[3] = to_string(tempFloat);
+		
+		// Increment parameter location index
+		index += 4;
+	}
+	
+	// Check if command contains a Y value
+	if(dataType & (1 << 4)) {
+	
+		// Set parameter value
+		tempPointer = reinterpret_cast<int32_t *>(&tempFloat);
+		*tempPointer = (line[index] & 0xF0) + (line[index] & 0x0F) + (((line[index + 1] & 0xF0) + (line[index + 1] & 0x0F)) << 8) + (((line[index + 2] & 0xF0) + (line[index + 2] & 0x0F)) << 16) + (((line[index + 3] & 0xF0) + (line[index + 3] & 0x0F)) << 24);
+		parameterValue[4] = to_string(tempFloat);
+		
+		// Increment parameter location index
+		index += 4;
+	}
+	
+	// Check if command contains a Z value
+	if(dataType & (1 << 5)) {
+	
+		// Set parameter value
+		tempPointer = reinterpret_cast<int32_t *>(&tempFloat);
+		*tempPointer = (line[index] & 0xF0) + (line[index] & 0x0F) + (((line[index + 1] & 0xF0) + (line[index + 1] & 0x0F)) << 8) + (((line[index + 2] & 0xF0) + (line[index + 2] & 0x0F)) << 16) + (((line[index + 3] & 0xF0) + (line[index + 3] & 0x0F)) << 24);
+		parameterValue[5] = to_string(tempFloat);
+		
+		// Increment parameter location index
+		index += 4;
+	}
+	
+	// Check if command contains an E value
+	if(dataType & (1 << 6)) {
+	
+		// Set parameter value
+		tempPointer = reinterpret_cast<int32_t *>(&tempFloat);
+		*tempPointer = (line[index] & 0xF0) + (line[index] & 0x0F) + (((line[index + 1] & 0xF0) + (line[index + 1] & 0x0F)) << 8) + (((line[index + 2] & 0xF0) + (line[index + 2] & 0x0F)) << 16) + (((line[index + 3] & 0xF0) + (line[index + 3] & 0x0F)) << 24);
+		parameterValue[6] = to_string(tempFloat);
+		
+		// Increment parameter location index
+		index += 4;
+	}
+	
+	// Check if command contains an F value
+	if(dataType & (1 << 8)) {
+	
+		// Set parameter value
+		tempPointer = reinterpret_cast<int32_t *>(&tempFloat);
+		*tempPointer = (line[index] & 0xF0) + (line[index] & 0x0F) + (((line[index + 1] & 0xF0) + (line[index + 1] & 0x0F)) << 8) + (((line[index + 2] & 0xF0) + (line[index + 2] & 0x0F)) << 16) + (((line[index + 3] & 0xF0) + (line[index + 3] & 0x0F)) << 24);
+		parameterValue[8] = to_string(tempFloat);
+		
+		// Increment parameter location index
+		index += 4;
+	}
+	
+	// Check if command contains a T value
+	if(dataType & (1 << 9)) {
+	
+		// Set parameter value
+		parameterValue[9] = to_string((line[index] & 0xF0) + (line[index] & 0x0F));
+		
+		// Increment parameter location index
+		index++;
+	}
+	
+	// Check if command contains an S value
+	if(dataType & (1 << 10)) {
+	
+		// Set parameter value
+		parameterValue[10] = to_string((line[index] & 0xF0) + (line[index] & 0x0F) + (((line[index + 1] & 0xF0) + (line[index + 1] & 0x0F)) << 8) + (((line[index + 2] & 0xF0) + (line[index + 2] & 0x0F)) << 16) + (((line[index + 3] & 0xF0) + (line[index + 3] & 0x0F)) << 24));
+		
+		// Increment parameter location index
+		index += 4;
+	}
+	
+	// Check if command contains a P value
+	if(dataType & (1 << 11)) {
+	
+		// Set parameter value
+		parameterValue[11] = to_string((line[index] & 0xF0) + (line[index] & 0x0F) + (((line[index + 1] & 0xF0) + (line[index + 1] & 0x0F)) << 8) + (((line[index + 2] & 0xF0) + (line[index + 2] & 0x0F)) << 16) + (((line[index + 3] & 0xF0) + (line[index + 3] & 0x0F)) << 24));
+		
+		// Increment parameter location index
+		index += 4;
+	}
+	
+	// Check if command contains an I value
+	if(dataType & (1 << 16)) {
+	
+		// Set parameter value
+		tempPointer = reinterpret_cast<int32_t *>(&tempFloat);
+		*tempPointer = (line[index] & 0xF0) + (line[index] & 0x0F) + (((line[index + 1] & 0xF0) + (line[index + 1] & 0x0F)) << 8) + (((line[index + 2] & 0xF0) + (line[index + 2] & 0x0F)) << 16) + (((line[index + 3] & 0xF0) + (line[index + 3] & 0x0F)) << 24);
+		parameterValue[16] = to_string(tempFloat);
+		
+		// Increment parameter location index
+		index += 4;
+	}
+	
+	// Check if command contains a J value
+	if(dataType & (1 << 17)) {
+	
+		// Set parameter value
+		tempPointer = reinterpret_cast<int32_t *>(&tempFloat);
+		*tempPointer = (line[index] & 0xF0) + (line[index] & 0x0F) + (((line[index + 1] & 0xF0) + (line[index + 1] & 0x0F)) << 8) + (((line[index + 2] & 0xF0) + (line[index + 2] & 0x0F)) << 16) + (((line[index + 3] & 0xF0) + (line[index + 3] & 0x0F)) << 24);
+		parameterValue[17] = to_string(tempFloat);
+		
+		// Increment parameter location index
+		index += 4;
+	}
+	
+	// Check if command contains an R value
+	if(dataType & (1 << 18)) {
+	
+		// Set parameter value
+		tempPointer = reinterpret_cast<int32_t *>(&tempFloat);
+		*tempPointer = (line[index] & 0xF0) + (line[index] & 0x0F) + (((line[index + 1] & 0xF0) + (line[index + 1] & 0x0F)) << 8) + (((line[index + 2] & 0xF0) + (line[index + 2] & 0x0F)) << 16) + (((line[index + 3] & 0xF0) + (line[index + 3] & 0x0F)) << 24);
+		parameterValue[18] = to_string(tempFloat);
+		
+		// Increment parameter location index
+		index += 4;
+	}
+	
+	// Check if command contains a D value
+	if(dataType & (1 << 19)) {
+	
+		// Set parameter value
+		tempPointer = reinterpret_cast<int32_t *>(&tempFloat);
+		*tempPointer = (line[index] & 0xF0) + (line[index] & 0x0F) + (((line[index + 1] & 0xF0) + (line[index + 1] & 0x0F)) << 8) + (((line[index + 2] & 0xF0) + (line[index + 2] & 0x0F)) << 16) + (((line[index + 3] & 0xF0) + (line[index + 3] & 0x0F)) << 24);
+		parameterValue[19] = to_string(tempFloat);
+		
+		// Increment parameter location index
+		index += 4;
+	}
+	
+	// Check if command contains a string parameter
+	if(dataType & (1 << 15))
+	
+		// Set string parameter value
+		for(uint8_t i = 0; i < (line[4] & 0xF0) + (line[4] & 0x0F); i++)
+			parameterValue[15].push_back(line[index + i]);
+	
+	// Set original command
+	originalCommand = getAscii();
+	
+	// Return true
+	return true;
+}
+
 string Gcode::getOriginalCommand() const {
 
 	// Return original command
