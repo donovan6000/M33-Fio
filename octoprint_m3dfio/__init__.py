@@ -369,7 +369,28 @@ class M3DFioPlugin(
 				if self.sharedLibrary :
 				
 					# Set values
-					self.sharedLibrary.setValues(ctypes.c_double(self._settings.get_float(["BacklashX"])), ctypes.c_double(self._settings.get_float(["BacklashY"])), ctypes.c_double(self._settings.get_float(["BacklashSpeed"])), ctypes.c_double(self._settings.get_float(["BackRightOrientation"])), ctypes.c_double(self._settings.get_float(["BackLeftOrientation"])), ctypes.c_double(self._settings.get_float(["FrontLeftOrientation"])), ctypes.c_double(self._settings.get_float(["FrontRightOrientation"])), ctypes.c_double(self._settings.get_float(["BedHeightOffset"])), ctypes.c_double(self._settings.get_float(["BackRightOffset"])), ctypes.c_double(self._settings.get_float(["BackLeftOffset"])), ctypes.c_double(self._settings.get_float(["FrontLeftOffset"])), ctypes.c_double(self._settings.get_float(["FrontRightOffset"])), ctypes.c_ushort(self._settings.get_int(["FilamentTemperature"])), ctypes.c_char_p(str(self._settings.get(["FilamentType"]))), ctypes.c_bool(self._settings.get_boolean(["UseValidationPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UsePreparationPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseWaveBondingPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseThermalBondingPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseBedCompensationPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseBacklashCompensationPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseFeedRateConversionPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseCenterModelPreprocessor"])))
+					self.sharedLibrary.setBacklashX(ctypes.c_double(self._settings.get_float(["BacklashX"])))
+					self.sharedLibrary.setBacklashY(ctypes.c_double(self._settings.get_float(["BacklashY"])))
+					self.sharedLibrary.setBacklashSpeed(ctypes.c_double(self._settings.get_float(["BacklashSpeed"])))
+					self.sharedLibrary.setBackRightOrientation(ctypes.c_double(self._settings.get_float(["BackRightOrientation"])))
+					self.sharedLibrary.setBackLeftOrientation(ctypes.c_double(self._settings.get_float(["BackLeftOrientation"])))
+					self.sharedLibrary.setFrontLeftOrientation(ctypes.c_double(self._settings.get_float(["FrontLeftOrientation"])))
+					self.sharedLibrary.setFrontRightOrientation(ctypes.c_double(self._settings.get_float(["FrontRightOrientation"])))
+					self.sharedLibrary.setBedHeightOffset(ctypes.c_double(self._settings.get_float(["BedHeightOffset"])))
+					self.sharedLibrary.setBackRightOffset(ctypes.c_double(self._settings.get_float(["BackRightOffset"])))
+					self.sharedLibrary.setBackLeftOffset(ctypes.c_double(self._settings.get_float(["BackLeftOffset"])))
+					self.sharedLibrary.setFrontLeftOffset(ctypes.c_double(self._settings.get_float(["FrontLeftOffset"])))
+					self.sharedLibrary.setFrontRightOffset(ctypes.c_double(self._settings.get_float(["FrontRightOffset"])))
+					self.sharedLibrary.setFilamentTemperature(ctypes.c_ushort(self._settings.get_int(["FilamentTemperature"])))
+					self.sharedLibrary.setFilamentType(ctypes.c_char_p(str(self._settings.get(["FilamentType"]))))
+					self.sharedLibrary.setUseValidationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseValidationPreprocessor"])))
+					self.sharedLibrary.setUsePreparationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UsePreparationPreprocessor"])))
+					self.sharedLibrary.setUseWaveBondingPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseWaveBondingPreprocessor"])))
+					self.sharedLibrary.setUseThermalBondingPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseThermalBondingPreprocessor"])))
+					self.sharedLibrary.setUseBedCompensationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseBedCompensationPreprocessor"])))
+					self.sharedLibrary.setUseBacklashCompensationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseBacklashCompensationPreprocessor"])))
+					self.sharedLibrary.setUseFeedRateConversionPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseFeedRateConversionPreprocessor"])))
+					self.sharedLibrary.setUseCenterModelPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseCenterModelPreprocessor"])))
 					
 					# Process file
 					self.sharedLibrary.checkPrintDimensions(ctypes.c_char_p(temp), ctypes.c_bool(True))
@@ -1131,7 +1152,28 @@ class M3DFioPlugin(
 		if self.sharedLibrary :
 		
 			# Set values
-			self.sharedLibrary.setValues(ctypes.c_double(self._settings.get_float(["BacklashX"])), ctypes.c_double(self._settings.get_float(["BacklashY"])), ctypes.c_double(self._settings.get_float(["BacklashSpeed"])), ctypes.c_double(self._settings.get_float(["BackRightOrientation"])), ctypes.c_double(self._settings.get_float(["BackLeftOrientation"])), ctypes.c_double(self._settings.get_float(["FrontLeftOrientation"])), ctypes.c_double(self._settings.get_float(["FrontRightOrientation"])), ctypes.c_double(self._settings.get_float(["BedHeightOffset"])), ctypes.c_double(self._settings.get_float(["BackRightOffset"])), ctypes.c_double(self._settings.get_float(["BackLeftOffset"])), ctypes.c_double(self._settings.get_float(["FrontLeftOffset"])), ctypes.c_double(self._settings.get_float(["FrontRightOffset"])), ctypes.c_ushort(self._settings.get_int(["FilamentTemperature"])), ctypes.c_char_p(str(self._settings.get(["FilamentType"]))), ctypes.c_bool(self._settings.get_boolean(["UseValidationPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UsePreparationPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseWaveBondingPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseThermalBondingPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseBedCompensationPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseBacklashCompensationPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseFeedRateConversionPreprocessor"])), ctypes.c_bool(self._settings.get_boolean(["UseCenterModelPreprocessor"])))
+			self.sharedLibrary.setBacklashX(ctypes.c_double(self._settings.get_float(["BacklashX"])))
+			self.sharedLibrary.setBacklashY(ctypes.c_double(self._settings.get_float(["BacklashY"])))
+			self.sharedLibrary.setBacklashSpeed(ctypes.c_double(self._settings.get_float(["BacklashSpeed"])))
+			self.sharedLibrary.setBackRightOrientation(ctypes.c_double(self._settings.get_float(["BackRightOrientation"])))
+			self.sharedLibrary.setBackLeftOrientation(ctypes.c_double(self._settings.get_float(["BackLeftOrientation"])))
+			self.sharedLibrary.setFrontLeftOrientation(ctypes.c_double(self._settings.get_float(["FrontLeftOrientation"])))
+			self.sharedLibrary.setFrontRightOrientation(ctypes.c_double(self._settings.get_float(["FrontRightOrientation"])))
+			self.sharedLibrary.setBedHeightOffset(ctypes.c_double(self._settings.get_float(["BedHeightOffset"])))
+			self.sharedLibrary.setBackRightOffset(ctypes.c_double(self._settings.get_float(["BackRightOffset"])))
+			self.sharedLibrary.setBackLeftOffset(ctypes.c_double(self._settings.get_float(["BackLeftOffset"])))
+			self.sharedLibrary.setFrontLeftOffset(ctypes.c_double(self._settings.get_float(["FrontLeftOffset"])))
+			self.sharedLibrary.setFrontRightOffset(ctypes.c_double(self._settings.get_float(["FrontRightOffset"])))
+			self.sharedLibrary.setFilamentTemperature(ctypes.c_ushort(self._settings.get_int(["FilamentTemperature"])))
+			self.sharedLibrary.setFilamentType(ctypes.c_char_p(str(self._settings.get(["FilamentType"]))))
+			self.sharedLibrary.setUseValidationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseValidationPreprocessor"])))
+			self.sharedLibrary.setUsePreparationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UsePreparationPreprocessor"])))
+			self.sharedLibrary.setUseWaveBondingPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseWaveBondingPreprocessor"])))
+			self.sharedLibrary.setUseThermalBondingPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseThermalBondingPreprocessor"])))
+			self.sharedLibrary.setUseBedCompensationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseBedCompensationPreprocessor"])))
+			self.sharedLibrary.setUseBacklashCompensationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseBacklashCompensationPreprocessor"])))
+			self.sharedLibrary.setUseFeedRateConversionPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseFeedRateConversionPreprocessor"])))
+			self.sharedLibrary.setUseCenterModelPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseCenterModelPreprocessor"])))
 		
 		# Set progress bar percent
 		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar percent", percent = "60"))

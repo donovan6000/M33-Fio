@@ -100,9 +100,31 @@ double sign(const Vector &p1, const Vector &p2, const Vector &p3);
 Name: Set values
 Purpose: Sets values to use in the pre-processors
 */
-EXPORT void setValues(double backlashXSetting, double backlashYSetting, double backlashSpeedSetting, double backRightOrientationSetting, double backLeftOrientationSetting, double frontLeftOrientationSetting, double frontRightOrientationSetting, double bedHeightOffsetSetting, double backRightOffsetSetting, double backLeftOffsetSetting, double frontLeftOffsetSetting, double frontRightOffsetSetting, uint16_t filamentTemperatureSetting, const char *filamentTypeSetting, bool useValidationPreprocessorSetting, bool usePreparationPreprocessorSetting, bool useWaveBondingPreprocessorSetting, bool useThermalBondingPreprocessorSetting, bool useBedCompensationPreprocessorSetting, bool useBacklashCompensationPreprocessorSetting, bool useFeedRateConversionPreprocessorSetting, bool useCenterModelPreprocessorSetting);
+EXPORT void setBacklashX(double value);
+EXPORT void setBacklashY(double value);
+EXPORT void setBacklashSpeed(double value);
+EXPORT void setBackRightOrientation(double value);
+EXPORT void setBackLeftOrientation(double value);
+EXPORT void setFrontLeftOrientation(double value);
+EXPORT void setFrontRightOrientation(double value);
+EXPORT void setBedHeightOffset(double value);
+EXPORT void setBackRightOffset(double value);
+EXPORT void setBackLeftOffset(double value);
+EXPORT void setFrontLeftOffset(double value);
+EXPORT void setFrontRightOffset(double value);
+EXPORT void setFilamentTemperature(unsigned short value);
+EXPORT void setFilamentType(const char *value);
+EXPORT void setUseValidationPreprocessor(bool value);
+EXPORT void setUsePreparationPreprocessor(bool value);
+EXPORT void setUseWaveBondingPreprocessor(bool value);
+EXPORT void setUseThermalBondingPreprocessor(bool value);
+EXPORT void setUseBedCompensationPreprocessor(bool value);
+EXPORT void setUseBacklashCompensationPreprocessor(bool value);
+EXPORT void setUseFeedRateConversionPreprocessor(bool value);
+EXPORT void setUseCenterModelPreprocessor(bool value);
 
 /*
+EXPORT void setBacklashX(double value);
 Name: Check print dimensions
 Purpose: Calculates the minimum and maximum dimensions of the file and returns if the file can successfully be printed
 */

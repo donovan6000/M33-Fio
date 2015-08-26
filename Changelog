@@ -1,5 +1,9 @@
 Changelog:
 
+V0.12 August 25, 2015
+
+	* Fixed ARM shared library to work on Raspberry Pi
+
 V0.11 August 19, 2015
 
 	* Utilizes shared libraries for 64bit Linux and ARM Linux devices to speed up the pre-processors significantly

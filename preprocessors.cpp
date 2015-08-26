@@ -299,38 +299,143 @@ double sign(const Vector &p1, const Vector &p2, const Vector &p3) {
 }
 
 // Exported function implementation
-void setValues(double backlashXSetting, double backlashYSetting, double backlashSpeedSetting, double backRightOrientationSetting, double backLeftOrientationSetting, double frontLeftOrientationSetting, double frontRightOrientationSetting, double bedHeightOffsetSetting, double backRightOffsetSetting, double backLeftOffsetSetting, double frontLeftOffsetSetting, double frontRightOffsetSetting, uint16_t filamentTemperatureSetting, const char *filamentTypeSetting, bool useValidationPreprocessorSetting, bool usePreparationPreprocessorSetting, bool useWaveBondingPreprocessorSetting, bool useThermalBondingPreprocessorSetting, bool useBedCompensationPreprocessorSetting, bool useBacklashCompensationPreprocessorSetting, bool useFeedRateConversionPreprocessorSetting, bool useCenterModelPreprocessorSetting) {
+EXPORT void setBacklashX(double value) {
 
-	// Set values
-	backlashX = backlashXSetting;
-	backlashY = backlashYSetting;
-	backlashSpeed = backlashSpeedSetting;
-	backRightOrientation = backRightOrientationSetting;
-	backLeftOrientation = backLeftOrientationSetting;
-	frontLeftOrientation = frontLeftOrientationSetting;
-	frontRightOrientation = frontRightOrientationSetting;
-	bedHeightOffset = bedHeightOffsetSetting;
-	backRightOffset = backRightOffsetSetting;
-	backLeftOffset = backLeftOffsetSetting;
-	frontLeftOffset = frontLeftOffsetSetting;
-	frontRightOffset = frontRightOffsetSetting;
-	filamentTemperature = filamentTemperatureSetting;
-	if(!strcmp(filamentTypeSetting, "ABS"))
+	// Set backlash X
+	backlashX = value;
+}
+
+EXPORT void setBacklashY(double value) {
+
+	// Set backlash Y
+	backlashY = value;
+}
+
+EXPORT void setBacklashSpeed(double value) {
+
+	// Set backlash speed
+	backlashSpeed = value;
+}
+
+EXPORT void setBackRightOrientation(double value) {
+
+	// Set back right orientation
+	backRightOrientation = value;
+}
+
+EXPORT void setBackLeftOrientation(double value) {
+
+	// Set back left orientation
+	backLeftOrientation = value;
+}
+
+EXPORT void setFrontLeftOrientation(double value) {
+
+	// Set front left orientation
+	frontLeftOrientation = value;
+}
+
+EXPORT void setFrontRightOrientation(double value) {
+
+	// Set front right orientation
+	frontRightOrientation = value;
+}
+
+EXPORT void setBedHeightOffset(double value) {
+
+	// Set bed height offset
+	bedHeightOffset = value;
+}
+
+EXPORT void setBackRightOffset(double value) {
+
+	// Set back right offset
+	backRightOffset = value;
+}
+
+EXPORT void setBackLeftOffset(double value) {
+
+	// Set back left offset
+	backLeftOffset = value;
+}
+
+EXPORT void setFrontLeftOffset(double value) {
+
+	// Set front left offset
+	frontLeftOffset = value;
+}
+
+EXPORT void setFrontRightOffset(double value) {
+
+	// Set front right offset
+	frontRightOffset = value;
+}
+
+EXPORT void setFilamentTemperature(unsigned short value) {
+
+	// Set filament temperature
+	filamentTemperature = value;
+}
+
+EXPORT void setFilamentType(const char *value) {
+
+	// Set filament type
+	if(!strcmp(value, "ABS"))
 		filamentType = ABS;
-	else if(!strcmp(filamentTypeSetting, "PLA"))
+	else if(!strcmp(value, "PLA"))
 		filamentType = PLA;
-	else if(!strcmp(filamentTypeSetting, "HIPS"))
+	else if(!strcmp(value, "HIPS"))
 		filamentType = HIPS;
 	else
 		filamentType = OTHER;
-	useValidationPreprocessor = useValidationPreprocessorSetting;
-	usePreparationPreprocessor = usePreparationPreprocessorSetting;
-	useWaveBondingPreprocessor = useWaveBondingPreprocessorSetting;
-	useThermalBondingPreprocessor = useThermalBondingPreprocessorSetting;
-	useBedCompensationPreprocessor = useBedCompensationPreprocessorSetting;
-	useBacklashCompensationPreprocessor = useBacklashCompensationPreprocessorSetting;
-	useFeedRateConversionPreprocessor = useFeedRateConversionPreprocessorSetting;
-	useCenterModelPreprocessor = useCenterModelPreprocessorSetting;
+}
+
+EXPORT void setUseValidationPreprocessor(bool value) {
+
+	// Set use validation pre-processor
+	useValidationPreprocessor = value;
+}
+
+EXPORT void setUsePreparationPreprocessor(bool value) {
+
+	// Set use preparation pre-processor
+	usePreparationPreprocessor = value;
+}
+
+EXPORT void setUseWaveBondingPreprocessor(bool value) {
+
+	// Set use wave bonding pre-processor
+	useWaveBondingPreprocessor = value;
+}
+
+EXPORT void setUseThermalBondingPreprocessor(bool value) {
+
+	// Set use thermal bonding pre-processor
+	useThermalBondingPreprocessor = value;
+}
+
+EXPORT void setUseBedCompensationPreprocessor(bool value) {
+
+	// Set use bed compensation pre-processor
+	useBedCompensationPreprocessor = value;
+}
+
+EXPORT void setUseBacklashCompensationPreprocessor(bool value) {
+
+	// Set use backlash compensation pre-processor
+	useBacklashCompensationPreprocessor = value;
+}
+
+EXPORT void setUseFeedRateConversionPreprocessor(bool value) {
+
+	// Set use feed rate conversion pre-processor
+	useFeedRateConversionPreprocessor = value;
+}
+
+EXPORT void setUseCenterModelPreprocessor(bool value) {
+
+	// Set use center model pre-processor
+	useCenterModelPreprocessor = value;
 }
 
 bool checkPrintDimensions(const char *file, bool overrideCenterModelPreprocessor) {
