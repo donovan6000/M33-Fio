@@ -371,6 +371,12 @@ class Gcode(object) :
 			
 				# Clear parameter value
 				self.parameterValue[parameterOffset] = ""
+				
+				# Check if command is now empty
+				if self.dataType == 0x1080 :
+		
+					# Clear original command
+					self.originalCommand = ""
 	
 	# Has value
 	def hasValue(self, parameter) :

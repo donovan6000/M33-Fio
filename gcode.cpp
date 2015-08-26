@@ -661,9 +661,15 @@ void Gcode::removeParameter(char parameter) {
 		
 			// Clear data type
 			dataType &= ~(1 << (parameterOffset - ORDER));
-		
+			
 			// Clear parameter value
 			parameterValue[parameterOffset - ORDER].clear();
+		
+			// Check if command is now empty
+			if(dataType == 0x1080)
+		
+				// Clear original command
+				originalCommand = "";
 		}
 	}
 }
