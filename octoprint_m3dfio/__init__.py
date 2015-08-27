@@ -25,6 +25,7 @@ import serial
 import binascii
 import shutil
 import ctypes
+import timeit
 from .gcode import Gcode
 from .vector import Vector
 
@@ -51,12 +52,17 @@ class M3DFioPlugin(
 		self.waitingResponse = None
 		self.processingSlice = False
 		
-		# Set shared library if available
+		# Set shared library for linux x86-64
 		if os.uname()[0].startswith("Linux") and os.uname()[4].startswith("x86_64") :
-			self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_x86_64.so")
+			self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_x86-64.so")
 		
-		elif os.uname()[0].startswith("Linux") and os.uname()[4].startswith("arm") :
-			self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_arm.so")
+		# Set shared library for Raspberry Pi
+		elif os.uname()[0].startswith("Linux") and os.uname()[4].startswith("armv6l") :
+			self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_arm1176jzf-s.so")
+		
+		# Set shared library for Raspberry Pi 2
+		elif os.uname()[0].startswith("Linux") and os.uname()[4].startswith("armv7l") :
+			self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_arm_cortex-a7.so")
 	
 		# Otherwise disable shared library
 		else :
@@ -1185,20 +1191,24 @@ class M3DFioPlugin(
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Centering model ..."))
 			
 			# Run center model pre-preprocessor
+			timer = timeit.default_timer()
 			if self.sharedLibrary :
 				self.sharedLibrary.centerModelPreprocessor(ctypes.c_char_p(temp))
 			else :
 				self.centerModelPreprocessor(temp)
+			self._logger.info("Center model: %fs" % (timeit.default_timer() - timer))
 		
 		# Set progress bar percent and text
 		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar percent", percent = "64"))
 		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Checking Dimensions ..."))
 		
 		# Run check print dimensions
+		timer = timeit.default_timer()
 		if self.sharedLibrary :
 			valid = self.sharedLibrary.checkPrintDimensions(ctypes.c_char_p(temp), ctypes.c_bool(False))
 		else :
 			valid = self.checkPrintDimensions(temp)
+		self._logger.info("Check dimensions: %fs" % (timeit.default_timer() - timer))
 			
 		# Check if print is out of bounds
 		if not valid :
@@ -1234,10 +1244,12 @@ class M3DFioPlugin(
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Validation ..."))
 			
 			# Run validation pre-preprocessor
+			timer = timeit.default_timer()
 			if self.sharedLibrary :
 				self.sharedLibrary.validationPreprocessor(ctypes.c_char_p(temp))
 			else :
 				self.validationPreprocessor(temp)
+			self._logger.info("Validation: %fs" % (timeit.default_timer() - timer))
 		
 		# Set progress bar percent
 		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar percent", percent = "72"))
@@ -1249,10 +1261,12 @@ class M3DFioPlugin(
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Preparation ..."))
 			
 			# Run preparation pre-preprocessor
+			timer = timeit.default_timer()
 			if self.sharedLibrary :
 				self.sharedLibrary.preparationPreprocessor(ctypes.c_char_p(temp), ctypes.c_bool(False))
 			else :
 				self.preparationPreprocessor(temp)
+			self._logger.info("Preparation: %fs" % (timeit.default_timer() - timer))
 		
 		# Set progress bar percent
 		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar percent", percent = "76"))
@@ -1264,10 +1278,12 @@ class M3DFioPlugin(
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Wave Bonding ..."))
 			
 			# Run wave bonding pre-preprocessor
+			timer = timeit.default_timer()
 			if self.sharedLibrary :
 				self.sharedLibrary.waveBondingPreprocessor(ctypes.c_char_p(temp))
 			else :
 				self.waveBondingPreprocessor(temp)
+			self._logger.info("Wave bonding: %fs" % (timeit.default_timer() - timer))
 		
 		# Set progress bar percent
 		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar percent", percent = "80"))
@@ -1279,10 +1295,12 @@ class M3DFioPlugin(
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Thermal Bonding ..."))
 			
 			# Run thermal bonding pre-preprocessor
+			timer = timeit.default_timer()
 			if self.sharedLibrary :
 				self.sharedLibrary.thermalBondingPreprocessor(ctypes.c_char_p(temp), ctypes.c_bool(False))
 			else :
 				self.thermalBondingPreprocessor(temp)
+			self._logger.info("Thermal bonding: %fs" % (timeit.default_timer() - timer))
 		
 		# Set progress bar percent
 		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar percent", percent = "85"))
@@ -1294,10 +1312,12 @@ class M3DFioPlugin(
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Bed Compensation ..."))
 			
 			# Run bed compensation pre-preprocessor
+			timer = timeit.default_timer()
 			if self.sharedLibrary :
 				self.sharedLibrary.bedCompensationPreprocessor(ctypes.c_char_p(temp))
 			else :
 				self.bedCompensationPreprocessor(temp)
+			self._logger.info("Bed compensation: %fs" % (timeit.default_timer() - timer))
 		
 		# Set progress bar percent
 		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar percent", percent = "90"))
@@ -1309,10 +1329,12 @@ class M3DFioPlugin(
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Backlash Compensation ..."))
 			
 			# Run backlash compensation pre-preprocessor
+			timer = timeit.default_timer()
 			if self.sharedLibrary :
 				self.sharedLibrary.backlashCompensationPreprocessor(ctypes.c_char_p(temp))
 			else :
 				self.backlashCompensationPreprocessor(temp)
+			self._logger.info("Backlash compensation: %fs" % (timeit.default_timer() - timer))
 		
 		# Set progress bar percent
 		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar percent", percent = "95"))
@@ -1324,10 +1346,12 @@ class M3DFioPlugin(
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Feed Rate Conversion ..."))
 			
 			# Run feed rate conversion pre-preprocessor
+			timer = timeit.default_timer()
 			if self.sharedLibrary :
 				self.sharedLibrary.feedRateConversionPreprocessor(ctypes.c_char_p(temp))
 			else :
 				self.feedRateConversionPreprocessor(temp)
+			self._logger.info("Feed rate conversion: %fs" % (timeit.default_timer() - timer))
 		
 		# Set progress bar percent
 		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar percent", percent = "100"))
@@ -1483,13 +1507,13 @@ class M3DFioPlugin(
 				if gcode.hasValue('X') :
 				
 					# Adjust X value
-					gcode.setValue('X', str(float(gcode.getValue('X')) + displacementX))
+					gcode.setValue('X', "%f" % (float(gcode.getValue('X')) + displacementX))
 				
 				# Check if line contains a Y value
 				if gcode.hasValue('Y') :
 				
 					# Adjust Y value
-					gcode.setValue('Y', str(float(gcode.getValue('Y')) + displacementY))
+					gcode.setValue('Y', "%f" % (float(gcode.getValue('Y')) + displacementY))
 				
 				# Set line to adjusted value
 				line = gcode.getAscii() + '\n'
@@ -1962,15 +1986,15 @@ class M3DFioPlugin(
 		
 			# Prepare extruder by leaving excess at corner
 			os.write(output, "G91\n")
-			os.write(output, "G0 X" + str(-cornerX) + " Y" + str(-cornerY) + " F2900\n")
+			os.write(output, "G0 X%f Y%f F2900\n" % (-cornerX, -cornerY))
 			os.write(output, "M18\n")
 			os.write(output, "M109 S" + str(self._settings.get_int(["FilamentTemperature"])) + '\n')
 			os.write(output, "M17\n")
 			os.write(output, "G0 Z-4 F2900\n")
 			os.write(output, "G0 E7.5 F2000\n")
 			os.write(output, "G4 S3\n")
-			os.write(output, "G0 X" + str(cornerX * 0.1) + " Y" + str(cornerY * 0.1) + " Z-0.999 F2900\n")
-			os.write(output, "G0 X" + str(cornerX * 0.9) + " Y" + str(cornerY * 0.9) + " F1000\n")
+			os.write(output, "G0 X%f  Y%f Z-0.999 F2900\n" % ((cornerX * 0.1), (cornerY * 0.1)))
+			os.write(output, "G0 X%f Y%f F1000\n" % ((cornerX * 0.9), (cornerY * 0.9)))
 		
 		os.write(output, "G92 E0\n")
 		os.write(output, "G90\n")
@@ -2178,11 +2202,11 @@ class M3DFioPlugin(
 							
 									# Set extra G-code X value
 									if gcode.hasValue('X') :
-										extraGcode.setValue('X', str(positionRelativeX - deltaX + tempRelativeX - relativeDifferenceX))
+										extraGcode.setValue('X', "%f" % (positionRelativeX - deltaX + tempRelativeX - relativeDifferenceX))
 							
 									# Set extra G-cdoe Y value
 									if gcode.hasValue('Y') :
-										extraGcode.setValue('Y', str(positionRelativeY - deltaY + tempRelativeY - relativeDifferenceY))
+										extraGcode.setValue('Y', "%f" % (positionRelativeY - deltaY + tempRelativeY - relativeDifferenceY))
 							
 									# Set extra G-code F value if first element
 									if gcode.hasValue('F') and index == 1 :
@@ -2192,16 +2216,16 @@ class M3DFioPlugin(
 									if changesPlane :
 							
 										# Set extra G-code Z value
-										extraGcode.setValue('Z', str(positionRelativeZ - deltaZ + tempRelativeZ - relativeDifferenceZ + self.getCurrentAdjustmentZ()))
+										extraGcode.setValue('Z', "%f" % (positionRelativeZ - deltaZ + tempRelativeZ - relativeDifferenceZ + self.getCurrentAdjustmentZ()))
 							
 									# Otherwise check if command has a Z value and changes in Z are noticable
 									elif gcode.hasValue('Z') and deltaZ != sys.float_info.epsilon :
 							
 										# Set extra G-code Z value
-										extraGcode.setValue('Z', str(positionRelativeZ - deltaZ + tempRelativeZ - relativeDifferenceZ))
+										extraGcode.setValue('Z', "%f" % (positionRelativeZ - deltaZ + tempRelativeZ - relativeDifferenceZ))
 								
 									# Set extra G-code E value
-									extraGcode.setValue('E', str(positionRelativeE - deltaE + tempRelativeE - relativeDifferenceE))
+									extraGcode.setValue('E', "%f" % (positionRelativeE - deltaE + tempRelativeE - relativeDifferenceE))
 								
 									# Send extra G-code to output
 									os.write(output, extraGcode.getAscii() + '\n')
@@ -2213,13 +2237,13 @@ class M3DFioPlugin(
 									if gcode.hasValue('Z') :
 							
 										# Add to command's Z value
-										gcode.setValue('Z', str(float(gcode.getValue('Z')) + self.getCurrentAdjustmentZ()))
+										gcode.setValue('Z', "%f" % (float(gcode.getValue('Z')) + self.getCurrentAdjustmentZ()))
 							
 									# Otherwise
 									else :
 							
 										# Set command's Z value
-										gcode.setValue('Z', str(relativeDifferenceZ + deltaZ + self.getCurrentAdjustmentZ()))
+										gcode.setValue('Z', "%f" % (relativeDifferenceZ + deltaZ + self.getCurrentAdjustmentZ()))
 							
 								# Increment index
 								index += 1
@@ -2458,7 +2482,7 @@ class M3DFioPlugin(
 					if gcode.hasValue('Z') :
 			
 						# Add to command's Z value
-						gcode.setValue('Z', str(float(gcode.getValue('Z')) + self._settings.get_float(["BedHeightOffset"])))
+						gcode.setValue('Z', "%f" % (float(gcode.getValue('Z')) + self._settings.get_float(["BedHeightOffset"])))
 					
 					# Set delta values
 					if gcode.hasValue('X') :
@@ -2561,13 +2585,13 @@ class M3DFioPlugin(
 								if gcode.hasValue('X') :
 						
 									# Set extra G-code X value
-									extraGcode.setValue('X', str(positionRelativeX - deltaX + tempRelativeX - relativeDifferenceX))
+									extraGcode.setValue('X', "%f" % (positionRelativeX - deltaX + tempRelativeX - relativeDifferenceX))
 							
 								# Check if command has a Y value
 								if gcode.hasValue('Y') :
 						
 									# Set extra G-code Y value
-									extraGcode.setValue('Y', str(positionRelativeY - deltaY + tempRelativeY - relativeDifferenceY))
+									extraGcode.setValue('Y', "%f" % (positionRelativeY - deltaY + tempRelativeY - relativeDifferenceY))
 						
 								# Check if command has F value and in first element
 								if gcode.hasValue('F') and index == 1 :
@@ -2579,16 +2603,16 @@ class M3DFioPlugin(
 								if changesPlane :
 						
 									# Set extra G-code Z value
-									extraGcode.setValue('Z', str(positionRelativeZ - deltaZ + tempRelativeZ - relativeDifferenceZ + heightAdjustment))
+									extraGcode.setValue('Z', "%f" % (positionRelativeZ - deltaZ + tempRelativeZ - relativeDifferenceZ + heightAdjustment))
 						
 								# Otherwise check if command has a Z value and the change in Z in noticable
 								elif gcode.hasValue('Z') and deltaZ != sys.float_info.epsilon :
 						
 									# Set extra G-code Z value
-									extraGcode.setValue('Z', str(positionRelativeZ - deltaZ + tempRelativeZ - relativeDifferenceZ))
+									extraGcode.setValue('Z', "%f" % (positionRelativeZ - deltaZ + tempRelativeZ - relativeDifferenceZ))
 						
 								# Set extra G-gode E value
-								extraGcode.setValue('E', str(positionRelativeE - deltaE + tempRelativeE - relativeDifferenceE))
+								extraGcode.setValue('E', "%f" % (positionRelativeE - deltaE + tempRelativeE - relativeDifferenceE))
 								
 								# Send extra G-code to output
 								os.write(output, extraGcode.getAscii() + '\n')
@@ -2603,13 +2627,13 @@ class M3DFioPlugin(
 									if gcode.hasValue('Z') :
 							
 										# Add value to command Z value
-										gcode.setValue('Z', str(float(gcode.getValue('Z')) + heightAdjustment))
+										gcode.setValue('Z', "%f" % (float(gcode.getValue('Z')) + heightAdjustment))
 							
 									# Otherwise
 									else :
 							
 										# Set command Z value
-										gcode.setValue('Z', str(relativeDifferenceZ + deltaZ + heightAdjustment))
+										gcode.setValue('Z', "%f" % (relativeDifferenceZ + deltaZ + heightAdjustment))
 							
 							# Increment index
 							index += 1
@@ -2627,13 +2651,13 @@ class M3DFioPlugin(
 							if gcode.hasValue('Z') :
 					
 								# Add value to command Z
-								gcode.setValue('Z', str(float(gcode.getValue('Z')) + heightAdjustment))
+								gcode.setValue('Z', "%f" % (float(gcode.getValue('Z')) + heightAdjustment))
 					
 							# Otherwise
 							else :
 					
 								# Set command Z
-								gcode.setValue('Z', str(positionRelativeZ + heightAdjustment))
+								gcode.setValue('Z', "%f" % (positionRelativeZ + heightAdjustment))
 				
 				# Otherwise check if command is G28
 				elif gcode.getValue('G') == "28" :
@@ -2795,11 +2819,11 @@ class M3DFioPlugin(
 								compensationY -= self._settings.get_float(["BacklashY"])
 						
 						# Set extra G-code X and Y values
-						extraGcode.setValue('X', str(positionRelativeX + compensationX))
-						extraGcode.setValue('Y', str(positionRelativeY + compensationY))
+						extraGcode.setValue('X', "%f" % (positionRelativeX + compensationX))
+						extraGcode.setValue('Y', "%f" % (positionRelativeY + compensationY))
 						
 						# Set extra G-code F value
-						extraGcode.setValue('F', str(self._settings.get_float(["BacklashSpeed"])))
+						extraGcode.setValue('F', "%f" % (self._settings.get_float(["BacklashSpeed"])))
 					
 						# Send extra G-code to output
 						os.write(output, extraGcode.getAscii() + '\n')
@@ -2811,13 +2835,13 @@ class M3DFioPlugin(
 					if gcode.hasValue('X') :
 					
 						# Add to command's X value
-						gcode.setValue('X', str(float(gcode.getValue('X')) + compensationX))
+						gcode.setValue('X', "%f" % (float(gcode.getValue('X')) + compensationX))
 					
 					# Check if command has a Y value
 					if gcode.hasValue('Y') :
 			
 						# Add to command's Y value
-						gcode.setValue('Y', str(float(gcode.getValue('Y')) + compensationY))
+						gcode.setValue('Y', "%f" % (float(gcode.getValue('Y')) + compensationY))
 			
 					# Set relative values
 					positionRelativeX += deltaX
@@ -2915,7 +2939,7 @@ class M3DFioPlugin(
                 			commandFeedRate = self.maxFeedRatePerSecond
                 		
 				# Set new feed rate for the command
-				gcode.setValue('F', str(30 + (1 - commandFeedRate / self.maxFeedRatePerSecond) * 800))
+				gcode.setValue('F', "%f" % (30 + (1 - commandFeedRate / self.maxFeedRatePerSecond) * 800))
 				
 				# Set line to adjusted value
 				line = gcode.getAscii() + '\n'

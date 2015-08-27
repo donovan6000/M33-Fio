@@ -1,16 +1,22 @@
 LIBRARY_NAME = preprocessors
-TARGET_PLATFORM = LINUX
+TARGET_PLATFORM = PC
 VER = .1
 
-ifeq ($(TARGET_PLATFORM), LINUX)
-	PROG = $(LIBRARY_NAME)_x86_64.so
+ifeq ($(TARGET_PLATFORM), PC)
+	PROG = $(LIBRARY_NAME)_x86-64.so
 	CC = g++
 	CFLAGS = -m64
 endif
-ifeq ($(TARGET_PLATFORM), ARM)
-	PROG = $(LIBRARY_NAME)_arm.so
+ifeq ($(TARGET_PLATFORM), PI)
+	PROG = $(LIBRARY_NAME)_arm1176jzf-s.so
 	CC = ~/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin/arm-linux-gnueabihf-g++
-	CFLAGS =
+	CFLAGS = -mcpu=arm1176jzf-s -mfpu=vfp -mfloat-abi=hard
+endif
+
+ifeq ($(TARGET_PLATFORM), PI2)
+	PROG = $(LIBRARY_NAME)_arm_cortex-a7.so
+	CC = ~/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin/arm-linux-gnueabihf-g++
+	CFLAGS = -mcpu=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard -funsafe-math-optimizations
 endif
 
 SRCS = preprocessors.cpp gcode.cpp vector.cpp
