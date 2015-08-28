@@ -26,6 +26,8 @@ import binascii
 import shutil
 import ctypes
 import timeit
+import platform
+import re
 from .gcode import Gcode
 from .vector import Vector
 
@@ -52,16 +54,24 @@ class M3DFioPlugin(
 		self.waitingResponse = None
 		self.processingSlice = False
 		
-		# Set shared library for linux x86-64
-		if os.uname()[0].startswith("Linux") and os.uname()[4].startswith("x86_64") :
+		# Set shared library for Linux x86-64
+		if platform.uname()[0].startswith("Linux") and platform.uname()[4].endswith("64") :
 			self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_x86-64.so")
+			
+		# Set shared library for Windows x86-64
+		elif platform.uname()[0].startswith("Windows") and platform.uname()[4].endswith("64") :
+			self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_x86-64.dll")
+		
+		# Set shared library for OS X x86-64
+		#elif platform.uname()[0].startswith("Darwin") and platform.uname()[4].endswith("64") :
+		#	self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_x86-64.dylib")
 		
 		# Set shared library for Raspberry Pi
-		elif os.uname()[0].startswith("Linux") and os.uname()[4].startswith("armv6l") :
+		elif platform.uname()[0].startswith("Linux") and platform.uname()[4].startswith("armv6l") :
 			self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_arm1176jzf-s.so")
 		
 		# Set shared library for Raspberry Pi 2
-		elif os.uname()[0].startswith("Linux") and os.uname()[4].startswith("armv7l") :
+		elif platform.uname()[0].startswith("Linux") and platform.uname()[4].startswith("armv7l") :
 			self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_arm_cortex-a7.so")
 	
 		# Otherwise disable shared library
@@ -69,7 +79,7 @@ class M3DFioPlugin(
 			self.sharedLibrary = None
 		
 		# Set port if available
-		if os.uname()[0].startswith("Linux") :
+		if platform.uname()[0].startswith("Linux") :
 			self.port = "/dev/micro_m3d"
 		else :
 			self.port = None
@@ -125,6 +135,78 @@ class M3DFioPlugin(
 		
 		# Enable printer callbacks
 		self._printer.register_callback(self)
+		
+		# Set Cura profile location and destination
+		profileLocation = os.path.dirname(os.path.realpath(__file__)) + "/static/profiles/"
+		profileDestination = os.path.dirname(os.path.dirname(self.get_plugin_data_folder())) + "/slicingProfiles/cura/"
+		
+		# Go through all Cura profiles
+		for profile in os.listdir(profileLocation) :
+			
+			# Get profile version
+			version = re.search(" V(\d+)\.+\S*$", profile)
+			
+			# Check if version number exists
+			if version :
+				
+				# Set profile version, identifier, and name
+				profileVersion = version.group(1)
+				profileIdentifier = profile[0 : version.start()]
+				profileName = profileIdentifier.replace(' ', '_').lower() + ".profile"
+				
+				# Set to create or replace file
+				replace = True
+			
+				# Check if profile already exists
+				if os.path.isfile(profileDestination + profileName) :
+				
+					# Get existing profile description line
+					for line in open(profileDestination + profileName) :
+					
+						# Check if profile description exists
+						if line.startswith("_description:") :
+					
+							# Get current version
+							version = re.search(" V(\d+)$", line)
+						
+							# Check if newer version is available
+							if version and int(version.group(1)) < int(profileVersion) :
+						
+								# Remove current profile
+								os.remove(profileDestination + profileName)
+							
+							# Otherwise
+							else :
+							
+								# Clear replace
+								replace = False
+							
+							# Stop searching file
+							break
+				
+				# Check if profile is being created or replaced
+				if replace :
+				
+					# Create output
+					output = os.open(profileDestination + profileName, os.O_WRONLY | os.O_CREAT)
+					
+					# Write description and display name to output
+					os.write(output, "_description: " + profileIdentifier + " V" + profileVersion + '\n')
+					os.write(output, "_display_name: " + profileIdentifier + '\n')
+					
+					# Go through all lines in the profile
+					for line in open(profileLocation + profile) :
+					
+						# Skip section lines
+						if line[0] == '[' :
+							continue
+						
+						# Adjust print temperature and filament diameter lines
+						if line.startswith("print_temperature =") or line.startswith("filament_diameter =") :
+							line = line.split()[0] + ":\n - " + line.split()[2] + '\n'
+						
+						# Write converted line to output
+						os.write(output, line.replace(" =", ':').lower())
 	
 	# Get default settings
 	def get_settings_defaults(self) :

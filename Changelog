@@ -1,5 +1,11 @@
 Changelog:
 
+V0.13 August 27, 2015
+
+	* Added shared library for Windows
+	* Optimized shared libraries for Raspberry Pi 1 and 2
+	* Automatically installs and updates Cura profiles
+
 V0.12 August 25, 2015
 
 	* Fixed ARM shared library to work on Raspberry Pi
