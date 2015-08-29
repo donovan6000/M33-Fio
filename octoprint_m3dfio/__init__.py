@@ -194,19 +194,56 @@ class M3DFioPlugin(
 					os.write(output, "_description: " + profileIdentifier + " V" + profileVersion + '\n')
 					os.write(output, "_display_name: " + profileIdentifier + '\n')
 					
+					# Clear search G-code
+					searchGcode = False
+					
 					# Go through all lines in the profile
 					for line in open(profileLocation + profile) :
+					
+						# Check if searching G-code
+						if searchGcode :
+						
+							# Check if end searhcing G-code
+							if line[0] != '\t' :
+							
+								# Write ending quote to output
+								os.write(output, "'\n")
+								
+								# Clear search G-code
+								searchGcode = False
+							
+							# Otherwise
+							else :
+							
+								# Write G-code to output
+								os.write(output, "  " + line[1 :] + '\n')
+								
+								# Get next line
+								continue
 					
 						# Skip section lines
 						if line[0] == '[' :
 							continue
-						
+					
 						# Adjust print temperature and filament diameter lines
 						if line.startswith("print_temperature =") or line.startswith("filament_diameter =") :
-							line = line.split()[0] + ":\n - " + line.split()[2] + '\n'
+							line = line.split()[0] + ":\n- " + line.split()[2] + '\n'
+					
+						# Check if line is start or end G-code
+						if line.startswith("start.gcode =") or line.startswith("end.gcode =") :
 						
-						# Write converted line to output
-						os.write(output, line.replace(" =", ':').lower())
+							# Write adjusted line to output
+							line = line[0 : line.find('.')] + "_gcode:\n- '\n  " + line[len(line.split()[0]) + 3 :] + '\n'
+							os.write(output, line);
+							
+							# Set search G-code
+							searchGcode = True
+						
+						# Otherwise
+						else :
+					
+							# Write converted line to output
+							os.write(output, line.replace(" =", ':').lower())
 	
 	# Get default settings
 	def get_settings_defaults(self) :
