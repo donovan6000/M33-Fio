@@ -192,7 +192,7 @@ class M3DFioPlugin(
 					
 					# Write description and display name to output
 					os.write(output, "_description: " + profileIdentifier + " V" + profileVersion + '\n')
-					os.write(output, "_display_name: " + profileIdentifier + '\n')
+					os.write(output, "_display_name: " + profileIdentifier + " V" + profileVersion + '\n')
 					
 					# Clear search G-code
 					searchGcode = False
