@@ -140,6 +140,10 @@ class M3DFioPlugin(
 		profileLocation = os.path.dirname(os.path.realpath(__file__)) + "/static/profiles/"
 		profileDestination = os.path.dirname(os.path.dirname(self.get_plugin_data_folder())) + "/slicingProfiles/cura/"
 		
+		# Create profile destination folder if it doesn't exist
+		if not os.path.exists(profileDestination) :
+    			os.makedirs(profileDestination)
+		
 		# Go through all Cura profiles
 		for profile in os.listdir(profileLocation) :
 			
