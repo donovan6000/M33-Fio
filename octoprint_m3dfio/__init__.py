@@ -1064,7 +1064,7 @@ class M3DFioPlugin(
 			
 			# Otherwise
 			else :
-				
+			
 				# Send printer status
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Micro 3D Connected"))
 				
@@ -1085,18 +1085,24 @@ class M3DFioPlugin(
 					
 					# Return
 					return
-				
+		
+		# Otherwise check if printer's data is requested
+		elif "Send: M21" in data :
+		
+			# Check if a Micro M3D is connected
+			if self.originalWrite != None and self._printer.get_transport().write != self.originalWrite :
+		
 				# Request valid Z and Z position
-				commandList = ["M117", "M114"]
+				commandList = ["M117\n", "M114\n"]
 				
 				# Check if set to automatically collect printer settings
 				if self._settings.get_boolean(["AutomaticSettingsUpdate"]) :
 			
 					# Request pre-processor dependant values
 					commandList += ["M619 S0\n", "M619 S1\n", "M619 S2\n", "M619 S3\n", "M619 S4\n", "M619 S5\n", "M619 S7\n", "M619 S8\n", "M619 S16\n", "M619 S17\n", "M619 S18\n", "M619 S19\n", "M619 S20\n", "M619 S22\n", "M619 S23\n"]
-				
+					
 				# Send requests
-				self._printer.commands(commandList)
+				self._printer.commands(commandList);
 		
 		# Otherwise check if data contains valid Z information
 		elif "ZV:" in data :

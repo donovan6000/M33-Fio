@@ -1,5 +1,9 @@
 Changelog:
 
+V0.14 September 11, 2015
+
+	* Fixed issue with compatibility with the newest OctoPrint
+
 V0.13 August 27, 2015
 
 	* Added shared library for Windows
