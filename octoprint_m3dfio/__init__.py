@@ -539,9 +539,9 @@ class M3DFioPlugin(
 					self.bedCompensationPreprocessor(temp)
 					self.backlashCompensationPreprocessor(temp)
 					self.feedRateConversionPreprocessor(temp)
-			
+
 				# Send processed file to destination
-				os.rename(temp, destination)
+				shutil.move(temp, destination)
 				
 				# Clear message
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Clear message"))
@@ -1012,7 +1012,7 @@ class M3DFioPlugin(
 	def on_printer_add_log(self, data) :
 	
 		# Check if connection was just established
-		if data == "Send: M110" and self._printer.get_state_string() == "Connecting" :
+		if data.startswith("Send: ") and "M110" in data and self._printer.get_state_string() == "Connecting" :
 		
 			# Get current printer connection state
 			currentState, currentPort, currentBaudrate, currentProfile = self._printer.get_current_connection()
