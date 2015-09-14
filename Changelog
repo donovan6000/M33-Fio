@@ -1,5 +1,12 @@
 Changelog:
 
+V0.15 September 13, 2015
+
+	* Added support for Synology. Thanks mrkb_.
+	* Fixed issue where printing test border would stop. Thanks again mrkb_.
+	* Added Linux 32-bit shared library
+	* Added option to ignore printer's dimension limitations
+
 V0.14 September 11, 2015
 
 	* Fixed issue with compatibility with the newest OctoPrint

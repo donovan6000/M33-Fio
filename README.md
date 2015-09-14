@@ -8,8 +8,8 @@ You can install it with OctoPrint's built in plugin manager. The URL for that is
 <br>
 <br>
 <br>
-If you are using Linux, the 90-m3d-local.rules needs to applied in order to avoid issues. You can apply it like this:
+If you are using Linux, the 90-m3d-local.rules needs to applied in order to avoid issues. You can apply it with the following commands:
 <br>
-mv ./90-m3d-local.rules /etc/udev/rules.d/
+wget -O /etc/udev/rules.d/90-m3d-local.rules https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/90-m3d-local.rules
 <br>
 sudo /etc/init.d/udev restart
