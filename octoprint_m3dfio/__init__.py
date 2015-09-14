@@ -54,15 +54,19 @@ class M3DFioPlugin(
 		self.waitingResponse = None
 		self.processingSlice = False
 		
-		# Set shared library for Linux x86-64
+		# Set shared library for Linux 64-bit
 		if platform.uname()[0].startswith("Linux") and platform.uname()[4].endswith("64") :
 			self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_x86-64.so")
 			
-		# Set shared library for Windows x86-64
+		# Set shared library for Linux 32-bit
+		elif platform.uname()[0].startswith("Linux") and platform.uname()[4].endswith("86") :
+			self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_i386.so")
+			
+		# Set shared library for Windows 64-bit
 		elif platform.uname()[0].startswith("Windows") and platform.uname()[4].endswith("64") :
 			self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_x86-64.dll")
 		
-		# Set shared library for OS X x86-64
+		# Set shared library for OS X 64-bit
 		#elif platform.uname()[0].startswith("Darwin") and platform.uname()[4].endswith("64") :
 		#	self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_x86-64.dylib")
 		
@@ -271,11 +275,13 @@ class M3DFioPlugin(
 			UseValidationPreprocessor = True,
 			UsePreparationPreprocessor = True,
 			UseThermalBondingPreprocessor = True,
+			UseWaveBondingPreprocessor = False,
 			UseBedCompensationPreprocessor = True,
 			UseBacklashCompensationPreprocessor = True,
 			UseFeedRateConversionPreprocessor = True,
 			AutomaticSettingsUpdate = True,
-			UseCenterModelPreprocessor = True
+			UseCenterModelPreprocessor = True,
+			IgnorePrintDimensionLimitations = False
 		)
 	
 	# Template manager
@@ -520,6 +526,7 @@ class M3DFioPlugin(
 					self.sharedLibrary.setUseBacklashCompensationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseBacklashCompensationPreprocessor"])))
 					self.sharedLibrary.setUseFeedRateConversionPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseFeedRateConversionPreprocessor"])))
 					self.sharedLibrary.setUseCenterModelPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseCenterModelPreprocessor"])))
+					self.sharedLibrary.setIgnorePrintDimensionLimitations(ctypes.c_bool(self._settings.get_boolean(["IgnorePrintDimensionLimitations"])))
 					
 					# Process file
 					self.sharedLibrary.checkPrintDimensions(ctypes.c_char_p(temp), ctypes.c_bool(True))
@@ -541,7 +548,7 @@ class M3DFioPlugin(
 					self.feedRateConversionPreprocessor(temp)
 			
 				# Send processed file to destination
-				os.rename(temp, destination)
+				shutil.move(temp, destination)
 				
 				# Clear message
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Clear message"))
@@ -1012,7 +1019,7 @@ class M3DFioPlugin(
 	def on_printer_add_log(self, data) :
 	
 		# Check if connection was just established
-		if data == "Send: M110" and self._printer.get_state_string() == "Connecting" :
+		if data.startswith("Send: ") and "M110" in data and self._printer.get_state_string() == "Connecting" :
 		
 			# Get current printer connection state
 			currentState, currentPort, currentBaudrate, currentProfile = self._printer.get_current_connection()
@@ -1309,6 +1316,7 @@ class M3DFioPlugin(
 			self.sharedLibrary.setUseBacklashCompensationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseBacklashCompensationPreprocessor"])))
 			self.sharedLibrary.setUseFeedRateConversionPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseFeedRateConversionPreprocessor"])))
 			self.sharedLibrary.setUseCenterModelPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseCenterModelPreprocessor"])))
+			self.sharedLibrary.setIgnorePrintDimensionLimitations(ctypes.c_bool(self._settings.get_boolean(["IgnorePrintDimensionLimitations"])))
 		
 		# Set progress bar percent
 		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar percent", percent = "60"))
@@ -1329,18 +1337,24 @@ class M3DFioPlugin(
 		
 		# Set progress bar percent and text
 		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar percent", percent = "64"))
-		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Checking Dimensions ..."))
+		if self._settings.get_boolean(["IgnorePrintDimensionLimitations"]) :
+			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Calculating Dimensions ..."))
+		else :
+			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Checking Dimensions ..."))
 		
-		# Run check print dimensions
+		# Run check or calculate print dimensions
 		timer = timeit.default_timer()
 		if self.sharedLibrary :
 			valid = self.sharedLibrary.checkPrintDimensions(ctypes.c_char_p(temp), ctypes.c_bool(False))
 		else :
 			valid = self.checkPrintDimensions(temp)
-		self._logger.info("Check dimensions: %fs" % (timeit.default_timer() - timer))
+		if self._settings.get_boolean(["IgnorePrintDimensionLimitations"]) :
+			self._logger.info("Calculate dimensions: %fs" % (timeit.default_timer() - timer))
+		else :
+			self._logger.info("Check dimensions: %fs" % (timeit.default_timer() - timer))
 			
-		# Check if print is out of bounds
-		if not valid :
+		# Check if not ignoring print dimension limitations and print is out of bounds
+		if not self._settings.get_boolean(["IgnorePrintDimensionLimitations"]) and not valid :
 		
 			# Check if processing a slice
 			if self.processingSlice :
@@ -1740,8 +1754,8 @@ class M3DFioPlugin(
 							else :
 								localZ = commandZ
 					
-							# Check if Z is out of bounds
-							if localZ < self.bedLowMinZ or localZ > self.bedHighMaxZ :
+							# Check if not ignoring print dimension limitations and Z is out of bounds
+							if not self._settings.get_boolean(["IgnorePrintDimensionLimitations"]) and (localZ < self.bedLowMinZ or localZ > self.bedHighMaxZ) :
 						
 								# Return false
 								return False
@@ -1755,16 +1769,19 @@ class M3DFioPlugin(
 						
 							else :
 								tier = "High"
+						
+						# Check if not ignoring print dimension limitations
+						if not self._settings.get_boolean(["IgnorePrintDimensionLimitations"]) :
 					
-						# Return false if X or Y are out of bounds				
-						if tier == "Low" and (localX < self.bedLowMinX or localX > self.bedLowMaxX or localY < self.bedLowMinY or localY > self.bedLowMaxY) :
-							return False
+							# Return false if X or Y are out of bounds				
+							if tier == "Low" and (localX < self.bedLowMinX or localX > self.bedLowMaxX or localY < self.bedLowMinY or localY > self.bedLowMaxY) :
+								return False
 					
-						elif tier == "Medium" and (localX < self.bedMediumMinX or localX > self.bedMediumMaxX or localY < self.bedMediumMinY or localY > self.bedMediumMaxY) :
-							return False
+							elif tier == "Medium" and (localX < self.bedMediumMinX or localX > self.bedMediumMaxX or localY < self.bedMediumMinY or localY > self.bedMediumMaxY) :
+								return False
 
-						elif tier == "High" and (localX < self.bedHighMinX or localX > self.bedHighMaxX or localY < self.bedHighMinY or localY > self.bedHighMaxY) :
-							return False
+							elif tier == "High" and (localX < self.bedHighMinX or localX > self.bedHighMaxX or localY < self.bedHighMinY or localY > self.bedHighMaxY) :
+								return False
 						
 						# Update minimums and maximums dimensions of extruder
 						if tier == "Low" :

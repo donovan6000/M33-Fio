@@ -2,6 +2,10 @@
 	margin-top: -5px;
 }
 
+#settings_plugin_m3dfio .warning {
+	color: rgba(255, 0, 0, 1);
+}
+
 #settings_plugin_m3dfio label.checkbox {
 	margin-top: -15px;
 	width: calc(100% - 24px);

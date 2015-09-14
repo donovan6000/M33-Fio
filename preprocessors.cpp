@@ -81,6 +81,7 @@ bool useBedCompensationPreprocessor;
 bool useBacklashCompensationPreprocessor;
 bool useFeedRateConversionPreprocessor;
 bool useCenterModelPreprocessor;
+bool ignorePrintDimensionLimitations;
 
 // Print dimensions
 double maxXExtruderLow;
@@ -438,6 +439,12 @@ EXPORT void setUseCenterModelPreprocessor(bool value) {
 	useCenterModelPreprocessor = value;
 }
 
+EXPORT void setIgnorePrintDimensionLimitations(bool value) {
+
+	// Set ignore print dimension limitations
+	ignorePrintDimensionLimitations = value;
+}
+
 bool checkPrintDimensions(const char *file, bool overrideCenterModelPreprocessor) {
 
 	// Check if using center model pre-processor
@@ -521,8 +528,8 @@ bool checkPrintDimensions(const char *file, bool overrideCenterModelPreprocessor
 							// Set local Z
 							localZ = relativeMode ? localZ + commandZ : commandZ;
 							
-							// Check if Z is out of bounds
-							if(localZ < BED_LOW_MIN_Z || localZ > BED_HIGH_MAX_Z)
+							// Check if not ignoring print dimension limitations and Z is out of bounds
+							if(!ignorePrintDimensionLimitations && (localZ < BED_LOW_MIN_Z || localZ > BED_HIGH_MAX_Z))
 					
 								// Return false
 								return false;
@@ -543,44 +550,44 @@ bool checkPrintDimensions(const char *file, bool overrideCenterModelPreprocessor
 					
 							case LOW:
 							
-								// Check if X or Y is out of bounds
-								if(localX < BED_LOW_MIN_X || localX > BED_LOW_MAX_X || localY < BED_LOW_MIN_Y || localY > BED_LOW_MAX_Y)
+								// Check if not ignoring print dimension limitations and X or Y is out of bounds
+								if(!ignorePrintDimensionLimitations && (localX < BED_LOW_MIN_X || localX > BED_LOW_MAX_X || localY < BED_LOW_MIN_Y || localY > BED_LOW_MAX_Y))
 								
 									// Return false
 									return false;
 						
-								minXExtruderLow = minXExtruderLow  < localX ? minXExtruderLow  : localX;
-								maxXExtruderLow  = maxXExtruderLow  > localX ? maxXExtruderLow  : localX;
-								minYExtruderLow  = minYExtruderLow  < localY ? minYExtruderLow  : localY;
-								maxYExtruderLow  = maxYExtruderLow  > localY ? maxYExtruderLow  : localY;
+								minXExtruderLow = minXExtruderLow < localX ? minXExtruderLow : localX;
+								maxXExtruderLow = maxXExtruderLow > localX ? maxXExtruderLow : localX;
+								minYExtruderLow = minYExtruderLow < localY ? minYExtruderLow : localY;
+								maxYExtruderLow = maxYExtruderLow > localY ? maxYExtruderLow : localY;
 							break;
 						
 							case MEDIUM:
 							
-								// Check if X or Y is out of bounds
-								if(localX < BED_MEDIUM_MIN_X || localX > BED_MEDIUM_MAX_X || localY < BED_MEDIUM_MIN_Y || localY > BED_MEDIUM_MAX_Y)
+								// Check if not ignoring print dimension limitations and X or Y is out of bounds
+								if(!ignorePrintDimensionLimitations && (localX < BED_MEDIUM_MIN_X || localX > BED_MEDIUM_MAX_X || localY < BED_MEDIUM_MIN_Y || localY > BED_MEDIUM_MAX_Y))
 								
 									// Return false
 									return false;
 						
-								minXExtruderMedium = minXExtruderMedium  < localX ? minXExtruderMedium  : localX;
-								maxXExtruderMedium  = maxXExtruderMedium  > localX ? maxXExtruderMedium  : localX;
-								minYExtruderMedium  = minYExtruderMedium  < localY ? minYExtruderMedium  : localY;
-								maxYExtruderMedium  = maxYExtruderMedium  > localY ? maxYExtruderMedium  : localY;
+								minXExtruderMedium = minXExtruderMedium < localX ? minXExtruderMedium : localX;
+								maxXExtruderMedium = maxXExtruderMedium > localX ? maxXExtruderMedium : localX;
+								minYExtruderMedium = minYExtruderMedium < localY ? minYExtruderMedium : localY;
+								maxYExtruderMedium = maxYExtruderMedium > localY ? maxYExtruderMedium : localY;
 							break;
 
 							case HIGH:
 							
-								// Check if X or Y is out of bounds
-								if(localX < BED_HIGH_MIN_X || localX > BED_HIGH_MAX_X || localY < BED_HIGH_MIN_Y || localY > BED_HIGH_MAX_Y)
+								// Check if not ignoring print dimension limitations and X or Y is out of bounds
+								if(!ignorePrintDimensionLimitations && (localX < BED_HIGH_MIN_X || localX > BED_HIGH_MAX_X || localY < BED_HIGH_MIN_Y || localY > BED_HIGH_MAX_Y))
 								
 									// Return false
 									return false;
 						
-								minXExtruderHigh = minXExtruderHigh  < localX ? minXExtruderHigh  : localX;
-								maxXExtruderHigh  = maxXExtruderHigh  > localX ? maxXExtruderHigh  : localX;
-								minYExtruderHigh  = minYExtruderHigh  < localY ? minYExtruderHigh  : localY;
-								maxYExtruderHigh  = maxYExtruderHigh  > localY ? maxYExtruderHigh  : localY;
+								minXExtruderHigh = minXExtruderHigh < localX ? minXExtruderHigh : localX;
+								maxXExtruderHigh = maxXExtruderHigh > localX ? maxXExtruderHigh : localX;
+								minYExtruderHigh = minYExtruderHigh < localY ? minYExtruderHigh : localY;
+								maxYExtruderHigh = maxYExtruderHigh > localY ? maxYExtruderHigh : localY;
 							break;
 						}
 						

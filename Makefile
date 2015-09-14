@@ -9,6 +9,12 @@ ifeq ($(TARGET_PLATFORM), LINUX64)
 	CFLAGS = -fPIC -m64
 endif
 
+ifeq ($(TARGET_PLATFORM), LINUX32)
+	PROG = $(LIBRARY_NAME)_i386.so
+	CC = g++
+	CFLAGS = -fPIC -m32
+endif
+
 ifeq ($(TARGET_PLATFORM), WINDOWS64)
 	PROG = $(LIBRARY_NAME)_x86-64.dll
 	CC = x86_64-w64-mingw32-g++
