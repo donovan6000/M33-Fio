@@ -1381,6 +1381,18 @@ $(function() {
 				// Hide status
 				$("#control > p.status").removeClass("show");
 			
+			// Otherwise check if data is to enable shared library options
+			else if(data.value == "Enable Shared Library")
+			
+				// Enable shared library options
+				$("#settings_plugin_m3dfio label.sharedLibrary").removeClass("disabled").children("input").prop("disabled", false);
+			
+			// Otherwise check if data is to disable shared library options
+			else if(data.value == "Disable Shared Library")
+			
+				// Disable shared library options
+				$("#settings_plugin_m3dfio label.sharedLibrary").addClass("disabled").children("input").prop("disabled", true);
+			
 			// Float To Binary
 			function floatToBinary(value) {
 

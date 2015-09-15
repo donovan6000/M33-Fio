@@ -57,11 +57,11 @@ class M3DFioPlugin(
 		# Set shared library for Linux 64-bit
 		if platform.uname()[0].startswith("Linux") and platform.uname()[4].endswith("64") :
 			self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_x86-64.so")
-			
+		
 		# Set shared library for Linux 32-bit
 		elif platform.uname()[0].startswith("Linux") and platform.uname()[4].endswith("86") :
 			self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_i386.so")
-			
+		
 		# Set shared library for Windows 64-bit
 		elif platform.uname()[0].startswith("Windows") and platform.uname()[4].endswith("64") :
 			self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_x86-64.dll")
@@ -71,23 +71,27 @@ class M3DFioPlugin(
 		#	self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_x86-64.dylib")
 		
 		# Set shared library for Raspberry Pi
-		elif platform.uname()[0].startswith("Linux") and platform.uname()[4].startswith("armv6l") :
+		elif platform.uname()[0].startswith("Linux") and platform.uname()[4].startswith("armv6l") and self.getCpuHardware() == "BCM2708" :
 			self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_arm1176jzf-s.so")
 		
 		# Set shared library for Raspberry Pi 2
-		elif platform.uname()[0].startswith("Linux") and platform.uname()[4].startswith("armv7l") :
+		elif platform.uname()[0].startswith("Linux") and platform.uname()[4].startswith("armv7l") and self.getCpuHardware() == "BCM2709" :
 			self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_arm_cortex-a7.so")
-	
+		
+		# Set shared library for ARM7
+		elif platform.uname()[0].startswith("Linux") and platform.uname()[4].startswith("armv7") :
+			self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_arm7.so")
+		
 		# Otherwise disable shared library
 		else :
 			self.sharedLibrary = None
 		
 		# Set port if available
-		if platform.uname()[0].startswith("Linux") :
+		if platform.uname()[0].startswith("Linux") and os.path.isfile("/etc/udev/rules.d/90-m3d-local.rules") :
 			self.port = "/dev/micro_m3d"
 		else :
 			self.port = None
-	
+		
 		# Bed dimensions
 		self.bedLowMaxX = 113.0
 		self.bedLowMinX = 0.0
@@ -134,9 +138,27 @@ class M3DFioPlugin(
 
 		self.romEncryptionTable = [0xAC, 0x9C, 0xA4, 0x1A, 0x78, 0xFA, 0xB8, 0x2E, 0x54, 0xC8, 0x46, 0x50, 0xD4, 0x06, 0xFC, 0x28, 0xD2, 0x16, 0xAA, 0x40, 0x0C, 0xAE, 0x2C, 0x68, 0xDC, 0xF2, 0x70, 0x80, 0x66, 0x32, 0xE8, 0x0E, 0x4A, 0x6C, 0x64, 0xD6, 0xFE, 0x22, 0x00, 0x04, 0xCE, 0x0A, 0x60, 0xE0, 0xBC, 0xC0, 0xCC, 0x3C, 0x5C, 0xA2, 0x8A, 0x8E, 0x7C, 0xC2, 0x74, 0x44, 0xA8, 0x30, 0xE6, 0x7A, 0x42, 0xC4, 0x5A, 0xF6, 0x24, 0xD0, 0x18, 0xBE, 0x26, 0xB4, 0x9A, 0x12, 0x8C, 0xD8, 0x82, 0xE2, 0xEA, 0x20, 0x88, 0xE4, 0xEC, 0x86, 0xEE, 0x98, 0x84, 0x7E, 0xDE, 0x36, 0x72, 0xB6, 0x34, 0x90, 0x58, 0xBA, 0x38, 0x10, 0x14, 0xF8, 0x92, 0x02, 0x52, 0x3E, 0xA6, 0x2A, 0x62, 0x76, 0xB0, 0x3A, 0x96, 0x1C, 0x1E, 0x94, 0x6E, 0xB2, 0xF4, 0x4C, 0xC6, 0xA0, 0xF0, 0x48, 0x6A, 0x08, 0x9E, 0x4E, 0xCA, 0x56, 0xDA, 0x5E, 0x2F, 0xF7, 0xBB, 0x3D, 0x21, 0xF5, 0x9F, 0x0B, 0x8B, 0xFB, 0x3F, 0xAF, 0x5B, 0xDB, 0x1B, 0x53, 0x2B, 0xF3, 0xB3, 0xAD, 0x07, 0x0D, 0xDD, 0xA5, 0x95, 0x6F, 0x83, 0x29, 0x59, 0x1D, 0x6D, 0xCF, 0x87, 0xB5, 0x63, 0x55, 0x8D, 0x8F, 0x81, 0xED, 0xB9, 0x37, 0xF9, 0x09, 0x03, 0xE1, 0x0F, 0xD3, 0x5D, 0x75, 0xC5, 0xC7, 0x2D, 0xFD, 0x3B, 0xAB, 0xCD, 0x91, 0xD1, 0x4F, 0x15, 0xE9, 0x5F, 0xCB, 0x25, 0xE3, 0x67, 0x17, 0xBD, 0xB1, 0xC9, 0x6B, 0xE5, 0x77, 0x35, 0x99, 0xBF, 0x69, 0x13, 0x89, 0x61, 0xDF, 0xA3, 0x45, 0x93, 0xC1, 0x7B, 0xC3, 0xF1, 0xD7, 0xEB, 0x4D, 0x43, 0x9B, 0x05, 0xA1, 0xFF, 0x97, 0x01, 0x19, 0xA7, 0x9D, 0x85, 0x7F, 0x4B, 0xEF, 0x73, 0x57, 0xA9, 0x11, 0x79, 0x39, 0xB7, 0xE7, 0x1F, 0x49, 0x47, 0x41, 0xD9, 0x65, 0x71, 0x33, 0x51, 0x31, 0xD5, 0x27, 0x7D, 0x23]
 	
+	# Get cpu hardware
+	def getCpuHardware(self) :
+	
+		# Check if CPU info exists
+		if os.path.isfile("/proc/cpuinfo") :
+	
+			# Read in CPU info
+			for line in open("/proc/cpuinfo") :
+		
+				# Check if line contains hardware information
+				if line.startswith("Hardware") and ':' in line :
+			
+					# Return CPU hardware
+					return line[line.index(':') + 2 : -1]
+		
+		# Return empty string
+		return ''
+	
 	# On start
 	def on_after_startup(self) :
-		
+		self._logger.info(self.port)
 		# Enable printer callbacks
 		self._printer.register_callback(self)
 		
@@ -242,7 +264,7 @@ class M3DFioPlugin(
 						
 							# Write adjusted line to output
 							line = line[0 : line.find('.')] + "_gcode:\n- '\n  " + line[len(line.split()[0]) + 3 :] + '\n'
-							os.write(output, line);
+							os.write(output, line)
 							
 							# Set search G-code
 							searchGcode = True
@@ -281,7 +303,8 @@ class M3DFioPlugin(
 			UseFeedRateConversionPreprocessor = True,
 			AutomaticSettingsUpdate = True,
 			UseCenterModelPreprocessor = True,
-			IgnorePrintDimensionLimitations = False
+			IgnorePrintDimensionLimitations = False,
+			DisableSharedLibrary = False
 		)
 	
 	# Template manager
@@ -501,7 +524,7 @@ class M3DFioPlugin(
 				shutil.copyfile(location, temp)
 				
 				# Check if using shared library
-				if self.sharedLibrary :
+				if self.sharedLibrary and not self._settings.get_boolean(["DisableSharedLibrary"]) :
 				
 					# Set values
 					self.sharedLibrary.setBacklashX(ctypes.c_double(self._settings.get_float(["BacklashX"])))
@@ -1014,6 +1037,21 @@ class M3DFioPlugin(
 			# Send printer and Micro Pass status
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Micro 3D Not Connected"))
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Micro Pass Not Connected"))
+		
+		# Otherwise check if client connects
+		elif event == octoprint.events.Events.CLIENT_OPENED :
+		
+			# Check if shared library exists
+			if self.sharedLibrary :
+		
+				# Enable shared library options
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Enable Shared Library"))
+		
+			# Otherwise
+			else :
+		
+				# Disable shared library options
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Disable Shared Library"))
 	
 	# Receive data to log
 	def on_printer_add_log(self, data) :
@@ -1109,7 +1147,7 @@ class M3DFioPlugin(
 					commandList += ["M619 S0\n", "M619 S1\n", "M619 S2\n", "M619 S3\n", "M619 S4\n", "M619 S5\n", "M619 S7\n", "M619 S8\n", "M619 S16\n", "M619 S17\n", "M619 S18\n", "M619 S19\n", "M619 S20\n", "M619 S22\n", "M619 S23\n"]
 					
 				# Send requests
-				self._printer.commands(commandList);
+				self._printer.commands(commandList)
 		
 		# Otherwise check if data contains valid Z information
 		elif "ZV:" in data :
@@ -1291,7 +1329,7 @@ class M3DFioPlugin(
 		os.close(fd)
 		
 		# Check if using shared library
-		if self.sharedLibrary :
+		if self.sharedLibrary and not self._settings.get_boolean(["DisableSharedLibrary"]) :
 		
 			# Set values
 			self.sharedLibrary.setBacklashX(ctypes.c_double(self._settings.get_float(["BacklashX"])))
@@ -1329,7 +1367,7 @@ class M3DFioPlugin(
 			
 			# Run center model pre-preprocessor
 			timer = timeit.default_timer()
-			if self.sharedLibrary :
+			if self.sharedLibrary and not self._settings.get_boolean(["DisableSharedLibrary"]) :
 				self.sharedLibrary.centerModelPreprocessor(ctypes.c_char_p(temp))
 			else :
 				self.centerModelPreprocessor(temp)
@@ -1344,7 +1382,7 @@ class M3DFioPlugin(
 		
 		# Run check or calculate print dimensions
 		timer = timeit.default_timer()
-		if self.sharedLibrary :
+		if self.sharedLibrary and not self._settings.get_boolean(["DisableSharedLibrary"]) :
 			valid = self.sharedLibrary.checkPrintDimensions(ctypes.c_char_p(temp), ctypes.c_bool(False))
 		else :
 			valid = self.checkPrintDimensions(temp)
@@ -1388,7 +1426,7 @@ class M3DFioPlugin(
 			
 			# Run validation pre-preprocessor
 			timer = timeit.default_timer()
-			if self.sharedLibrary :
+			if self.sharedLibrary and not self._settings.get_boolean(["DisableSharedLibrary"]) :
 				self.sharedLibrary.validationPreprocessor(ctypes.c_char_p(temp))
 			else :
 				self.validationPreprocessor(temp)
@@ -1405,7 +1443,7 @@ class M3DFioPlugin(
 			
 			# Run preparation pre-preprocessor
 			timer = timeit.default_timer()
-			if self.sharedLibrary :
+			if self.sharedLibrary and not self._settings.get_boolean(["DisableSharedLibrary"]) :
 				self.sharedLibrary.preparationPreprocessor(ctypes.c_char_p(temp), ctypes.c_bool(False))
 			else :
 				self.preparationPreprocessor(temp)
@@ -1422,7 +1460,7 @@ class M3DFioPlugin(
 			
 			# Run wave bonding pre-preprocessor
 			timer = timeit.default_timer()
-			if self.sharedLibrary :
+			if self.sharedLibrary and not self._settings.get_boolean(["DisableSharedLibrary"]) :
 				self.sharedLibrary.waveBondingPreprocessor(ctypes.c_char_p(temp))
 			else :
 				self.waveBondingPreprocessor(temp)
@@ -1439,7 +1477,7 @@ class M3DFioPlugin(
 			
 			# Run thermal bonding pre-preprocessor
 			timer = timeit.default_timer()
-			if self.sharedLibrary :
+			if self.sharedLibrary and not self._settings.get_boolean(["DisableSharedLibrary"]) :
 				self.sharedLibrary.thermalBondingPreprocessor(ctypes.c_char_p(temp), ctypes.c_bool(False))
 			else :
 				self.thermalBondingPreprocessor(temp)
@@ -1456,7 +1494,7 @@ class M3DFioPlugin(
 			
 			# Run bed compensation pre-preprocessor
 			timer = timeit.default_timer()
-			if self.sharedLibrary :
+			if self.sharedLibrary and not self._settings.get_boolean(["DisableSharedLibrary"]) :
 				self.sharedLibrary.bedCompensationPreprocessor(ctypes.c_char_p(temp))
 			else :
 				self.bedCompensationPreprocessor(temp)
@@ -1473,7 +1511,7 @@ class M3DFioPlugin(
 			
 			# Run backlash compensation pre-preprocessor
 			timer = timeit.default_timer()
-			if self.sharedLibrary :
+			if self.sharedLibrary and not self._settings.get_boolean(["DisableSharedLibrary"]) :
 				self.sharedLibrary.backlashCompensationPreprocessor(ctypes.c_char_p(temp))
 			else :
 				self.backlashCompensationPreprocessor(temp)
@@ -1490,7 +1528,7 @@ class M3DFioPlugin(
 			
 			# Run feed rate conversion pre-preprocessor
 			timer = timeit.default_timer()
-			if self.sharedLibrary :
+			if self.sharedLibrary and not self._settings.get_boolean(["DisableSharedLibrary"]) :
 				self.sharedLibrary.feedRateConversionPreprocessor(ctypes.c_char_p(temp))
 			else :
 				self.feedRateConversionPreprocessor(temp)

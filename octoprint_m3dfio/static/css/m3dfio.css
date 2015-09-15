@@ -6,6 +6,11 @@
 	color: rgba(255, 0, 0, 1);
 }
 
+#settings_plugin_m3dfio label.disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
 #settings_plugin_m3dfio label.checkbox {
 	margin-top: -15px;
 	width: calc(100% - 24px);

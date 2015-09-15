@@ -1,5 +1,6 @@
+# Target platform options: LINUX64, LINUX32, WINDOWS64, PI, PI2, ARM7
 LIBRARY_NAME = preprocessors
-TARGET_PLATFORM = LINUX64
+TARGET_PLATFORM = ARM7
 VER = .1
 
 
@@ -31,6 +32,12 @@ ifeq ($(TARGET_PLATFORM), PI2)
 	PROG = $(LIBRARY_NAME)_arm_cortex-a7.so
 	CC = ~/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin/arm-linux-gnueabihf-g++
 	CFLAGS = -fPIC -mcpu=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard -funsafe-math-optimizations
+endif
+
+ifeq ($(TARGET_PLATFORM), ARM7)
+	PROG = $(LIBRARY_NAME)_arm7.so
+	CC = ~/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin/arm-linux-gnueabihf-g++
+	CFLAGS = -fPIC -mcpu=generic-armv7-a -mfpu=vfp -mfloat-abi=hard
 endif
 
 SRCS = preprocessors.cpp gcode.cpp vector.cpp
