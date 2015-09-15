@@ -158,7 +158,7 @@ class M3DFioPlugin(
 	
 	# On start
 	def on_after_startup(self) :
-		self._logger.info(self.port)
+	
 		# Enable printer callbacks
 		self._printer.register_callback(self)
 		
