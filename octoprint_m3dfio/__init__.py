@@ -402,7 +402,7 @@ class M3DFioPlugin(
 				time.sleep(1)
 				
 				# Connect to the printer
-				connection = serial.Serial(currentPort, currentBaudrate)
+				connection = serial.Serial(currentPort, currentBaudrate, timeout = 20)
 				
 				# Set fan type, offset, and scale
 				if data["value"][9 :] == "HengLiXin" :
@@ -483,7 +483,7 @@ class M3DFioPlugin(
 				time.sleep(1)
 				
 				# Connect to the printer
-				connection = serial.Serial(currentPort, currentBaudrate)
+				connection = serial.Serial(currentPort, currentBaudrate, timeout = 20)
 				
 				# Check if saving extruder current failed
 				if not self.writeToEeprom(connection, 0x2E8, chr(current & 0xFF)) or not self.writeToEeprom(connection, 0x2E9, chr((current >> 8) & 0xFF)) :
@@ -611,7 +611,7 @@ class M3DFioPlugin(
 				time.sleep(1)
 			
 				# Connect to the printer
-				connection = serial.Serial(currentPort, currentBaudrate)
+				connection = serial.Serial(currentPort, currentBaudrate, timeout = 20)
 			
 				# Get encrypted rom from unicode contents
 				for character in data["contents"] :
@@ -1089,6 +1089,9 @@ class M3DFioPlugin(
 			
 			# Clear invalid printer
 			self.invalidPrinter = False
+			
+			# Inrease serial timeout
+			self._printer.get_transport().timeout = 20
 			
 			# Request printer information
 			self._printer.get_transport().write("M115\n")
