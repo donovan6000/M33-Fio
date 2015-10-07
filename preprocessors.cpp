@@ -851,10 +851,18 @@ bool validationPreprocessor(const char *file) {
 				if(gcode.parseLine(line)) {
 				
 					// Check if command isn't valid for the printer
+					
+					// Extruder absolute and relative mode (M82 and M83)
 					if(gcode.hasValue('M') && (gcode.getValue('M') == "82" || gcode.getValue('M') == "83"))
+						continue; 	// Get next line
+					
+					// Wait for bed temperature to reach target temp (M190)
+					if(gcode.hasValue('M') && gcode.getValue('M') == "190")
+						continue;	// Get next line
 			
-						// Get next line
-						continue;
+					// Unit to millimeters (G21)
+					if(gcode.hasValue('G') && gcode.getValue('G') == "21")
+						continue;	// Get next line
 			
 					// Check if command contains tool selection
 					if(gcode.hasParameter('T'))
