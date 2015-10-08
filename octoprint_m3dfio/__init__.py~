@@ -634,7 +634,7 @@ class M3DFioPlugin(
 							# Encrypt the ROM
 							if i % 2 :
 								temp += chr(self.romEncryptionTable[int(ord(encryptedRom[index - 1]))])
-							else :
+							else
 							
 								temp += chr(self.romEncryptionTable[int(ord(encryptedRom[index + 1]))])
 					
