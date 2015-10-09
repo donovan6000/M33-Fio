@@ -1326,8 +1326,8 @@ bool thermalBondingPreprocessor(const char *file, bool overrideWaveBondingPrepro
 				// Check if line was parsed successfully
 				if(gcode.parseLine(line)) {
 				
-					// Check if command contains temperature or fan controls past the first layer
-					if(layerCounter > 0 && gcode.hasValue('M') && (gcode.getValue('M') == "104" || gcode.getValue('M') == "105" || gcode.getValue('M') == "106" || gcode.getValue('M') == "107" || gcode.getValue('M') == "109"))
+					// Check if command contains temperature or fan controls past the first layer that doesn't turn them off
+					if(layerCounter > 0 && gcode.hasValue('M') && gcode.hasValue('S') && gcode.getValue('S') != "0" && (gcode.getValue('M') == "104" || gcode.getValue('M') == "105" || gcode.getValue('M') == "106" || gcode.getValue('M') == "107" || gcode.getValue('M') == "109"))
 			
 						// Get next line
 						continue;

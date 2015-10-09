@@ -2600,8 +2600,8 @@ class M3DFioPlugin(
 			# Check if line was parsed successfully
 			if gcode.parseLine(line) :
 			
-				# Check if command contains temperature or fan controls past the first layer
-				if layerCounter > 0 and gcode.hasValue('M') and (gcode.getValue('M') == "104" or gcode.getValue('M') == "105" or gcode.getValue('M') == "106" or gcode.getValue('M') == "107" or gcode.getValue('M') == "109") :
+				# Check if command contains temperature or fan controls past the first layer that doesn't turn them off
+				if layerCounter > 0 and gcode.hasValue('M') and gcode.hasValue('S') and gcode.getValue('S') != "0" and (gcode.getValue('M') == "104" or gcode.getValue('M') == "105" or gcode.getValue('M') == "106" or gcode.getValue('M') == "107" or gcode.getValue('M') == "109") :
 			
 					# Get next line
 					continue
