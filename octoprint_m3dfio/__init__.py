@@ -53,6 +53,7 @@ class M3DFioPlugin(
 		self.numberWrapCounter = 0
 		self.waitingResponse = None
 		self.processingSlice = False
+		self.usingMicroPass = False
 		
 		# Set shared library for Linux 64-bit
 		if platform.uname()[0].startswith("Linux") and platform.uname()[4].endswith("64") :
@@ -552,6 +553,7 @@ class M3DFioPlugin(
 					self.sharedLibrary.setUseFeedRateConversionPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseFeedRateConversionPreprocessor"])))
 					self.sharedLibrary.setUseCenterModelPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseCenterModelPreprocessor"])))
 					self.sharedLibrary.setIgnorePrintDimensionLimitations(ctypes.c_bool(self._settings.get_boolean(["IgnorePrintDimensionLimitations"])))
+					self.sharedLibrary.setUsingMicroPass(ctypes.c_bool(self.usingMicroPass))
 					
 					# Process file
 					self.sharedLibrary.checkPrintDimensions(ctypes.c_char_p(temp), ctypes.c_bool(True))
@@ -641,241 +643,250 @@ class M3DFioPlugin(
 					# Set encrypted ROM
 					encryptedRom = temp;
 				
-				# Request current CRC from chip
-				connection.write('C')
-				connection.write('A')
-
-				# Get response
-				response = connection.read(4)
-
-				# Get chip CRC
-				index = 0
-				while index < 4 :
-					oldChipCrc <<= 8
-					oldChipCrc += int(ord(response[index]))
-					index += 1
+				# Check if rom isn't too big
+				if len(encryptedRom) <= self.chipTotalMemory :
 				
-				# Request that chip be erased
-				connection.write('E')
-				
-				# Check if chip was erased successfully
-				if connection.read() == '\r' :
-				
-					# Send address zero
+					# Request current CRC from chip
+					connection.write('C')
 					connection.write('A')
-					connection.write('\x00')
-					connection.write('\x00')
 
-					# Check if address was acknowledged
-					if connection.read(1) == '\r' :
+					# Get response
+					response = connection.read(4)
+
+					# Get chip CRC
+					index = 0
+					while index < 4 :
+						oldChipCrc <<= 8
+						oldChipCrc += int(ord(response[index]))
+						index += 1
 				
-						# Set pages to write
-						pagesToWrite = len(encryptedRom) / 2 / self.chipPageSize
-						if len(encryptedRom) / 2 % self.chipPageSize != 0 :
-							pagesToWrite += 1
+					# Request that chip be erased
+					connection.write('E')
+				
+					# Check if chip was erased successfully
+					if connection.read() == '\r' :
+				
+						# Send address zero
+						connection.write('A')
+						connection.write('\x00')
+						connection.write('\x00')
 
-						#Go through all pages to write
-						index = 0
-						while index < pagesToWrite :
+						# Check if address was acknowledged
+						if connection.read(1) == '\r' :
+				
+							# Set pages to write
+							pagesToWrite = len(encryptedRom) / 2 / self.chipPageSize
+							if len(encryptedRom) / 2 % self.chipPageSize != 0 :
+								pagesToWrite += 1
 
-							# Send write to page request
-							connection.write('B')
-							connection.write(chr((self.chipPageSize * 2 >> 8) & 0xFF))
-							connection.write(chr((self.chipPageSize * 2) & 0xFF))
+							#Go through all pages to write
+							index = 0
+							while index < pagesToWrite :
 
-							# Go through all values for the page
-							pageAddress = 0
-							while pageAddress < self.chipPageSize * 2 :
+								# Send write to page request
+								connection.write('B')
+								connection.write(chr((self.chipPageSize * 2 >> 8) & 0xFF))
+								connection.write(chr((self.chipPageSize * 2) & 0xFF))
 
-								# Check if data to be written exists
-								position = pageAddress + self.chipPageSize * index * 2
-								if position < len(encryptedRom) :
+								# Go through all values for the page
+								pageAddress = 0
+								while pageAddress < self.chipPageSize * 2 :
+
+									# Check if data to be written exists
+									position = pageAddress + self.chipPageSize * index * 2
+									if position < len(encryptedRom) :
 					
-									# Send value
-									if position % 2 == 0 :
-										connection.write(encryptedRom[position + 1])
+										# Send value
+										if position % 2 == 0 :
+											connection.write(encryptedRom[position + 1])
+										else :
+											connection.write(encryptedRom[position - 1])
+	
+									# Otherwise
 									else :
-										connection.write(encryptedRom[position - 1])
 	
-								# Otherwise
-								else :
-	
-									# Send padding
-									connection.write(chr(self.romEncryptionTable[0xFF]))
+										# Send padding
+										connection.write(chr(self.romEncryptionTable[0xFF]))
 					
-								# Increment page address
-								pageAddress += 1
+									# Increment page address
+									pageAddress += 1
 
-							# Check if chip failed to be flashed
-							if connection.read(1) != '\r' :
+								# Check if chip failed to be flashed
+								if connection.read(1) != '\r' :
 						
-								# Set error
-								error = True
-								break
+									# Set error
+									error = True
+									break
 				
-							# Increment index
-							index += 1
+								# Increment index
+								index += 1
 					
-						# Check if chip was successfully flashed
-						if not error :
+							# Check if chip was successfully flashed
+							if not error :
 					
-							# Send address zero
-							connection.write('A')
-							connection.write('\x00')
-							connection.write('\x00')
-
-							# Check if address was acknowledged
-							if connection.read(1) == '\r' :
-								
-								# Request new CRC from chip
-								connection.write('C')
+								# Send address zero
 								connection.write('A')
+								connection.write('\x00')
+								connection.write('\x00')
 
-								# Get response
-								response = connection.read(4)
-
-								# Get chip CRC
-								index = 0
-								while index < 4 :
-									newChipCrc <<= 8
-									newChipCrc += int(ord(response[index]))
-									index += 1
+								# Check if address was acknowledged
+								if connection.read(1) == '\r' :
 								
-								# Decrypt the ROM
-								index = 0
-								while index < self.chipTotalMemory :
+									# Request new CRC from chip
+									connection.write('C')
+									connection.write('A')
 
-									# Check if data exists in the ROM
-									if index < len(encryptedRom) :
+									# Get response
+									response = connection.read(4)
 
-										# Check if padding is required
-										if index % 2 == 0 and index == len(encryptedRom) - 1 :
+									# Get chip CRC
+									index = 0
+									while index < 4 :
+										newChipCrc <<= 8
+										newChipCrc += int(ord(response[index]))
+										index += 1
+								
+									# Decrypt the ROM
+									index = 0
+									while index < self.chipTotalMemory :
 
-											# Put padding
-											decryptedRom += '\xFF'
+										# Check if data exists in the ROM
+										if index < len(encryptedRom) :
+
+											# Check if padding is required
+											if index % 2 == 0 and index == len(encryptedRom) - 1 :
+
+												# Put padding
+												decryptedRom += '\xFF'
 	
+											# Otherwise
+											else :
+
+												# Decrypt the ROM
+												if index % 2 == 0 :
+													decryptedRom += chr(self.romDecryptionTable[int(ord(encryptedRom[index + 1]))])
+												else :
+													decryptedRom += chr(self.romDecryptionTable[int(ord(encryptedRom[index - 1]))])
+
 										# Otherwise
 										else :
 
-											# Decrypt the ROM
-											if index % 2 == 0 :
-												decryptedRom += chr(self.romDecryptionTable[int(ord(encryptedRom[index + 1]))])
-											else :
-												decryptedRom += chr(self.romDecryptionTable[int(ord(encryptedRom[index - 1]))])
+											# Put padding
+											decryptedRom += '\xFF'
 
-									# Otherwise
-									else :
+										# Increment index
+										index += 1
 
-										# Put padding
-										decryptedRom += '\xFF'
-
-									# Increment index
-									index += 1
-
-								# Get ROM CRC
-								romCrc = binascii.crc32(decryptedRom) & 0xFFFFFFFF
+									# Get ROM CRC
+									romCrc = binascii.crc32(decryptedRom) & 0xFFFFFFFF
 							
-								# Check if firmware update was successful
-								if newChipCrc == struct.unpack("<I", struct.pack(">I", romCrc))[0] :
+									# Check if firmware update was successful
+									if newChipCrc == struct.unpack("<I", struct.pack(">I", romCrc))[0] :
 							
-									# Request EEPROM
-									connection.write('S')
+										# Request EEPROM
+										connection.write('S')
 		
-									# Get response
-									response = connection.read(0x301)
+										# Get response
+										response = connection.read(0x301)
 		
-									# Check if EEPROM was read successfully
-									if response[-1] == '\r' :
+										# Check if EEPROM was read successfully
+										if response[-1] == '\r' :
 							
-										# Get EEPROM CRC
-										index = 0
-										while index < 4 :
-											eepromCrc <<= 8
-											eepromCrc += int(ord(response[index + 4]))
-											index += 1
+											# Get EEPROM CRC
+											index = 0
+											while index < 4 :
+												eepromCrc <<= 8
+												eepromCrc += int(ord(response[index + 4]))
+												index += 1
 								
-										# Check if section needs to be zeroed out or previous firmware was corrupt
-										if response[0x2E6] == '\x00' or oldChipCrc != eepromCrc :
+											# Check if section needs to be zeroed out or previous firmware was corrupt
+											if response[0x2E6] == '\x00' or oldChipCrc != eepromCrc :
+									
+												# Go through bytes of zero sections
+												index = 0
+												while index < 4 :
+
+													# Check if zeroing out section in EEPROM failed
+													if not error and not self.writeToEeprom(connection, 0x08 + index, '\x00') :
+											
+														# Set error
+														error = True
+										
+													# Increment index
+													index += 1
 									
 											# Go through bytes of zero sections
 											index = 0
-											while index < 4 :
-
+											while index < 16 :
+									
 												# Check if zeroing out section in EEPROM failed
-												if not error and not self.writeToEeprom(connection, 0x08 + index, '\x00') :
-											
+												if not error and not self.writeToEeprom(connection, 0x2D6 + index, '\x00'):
+										
 													# Set error
 													error = True
 										
 												# Increment index
 												index += 1
-									
-										# Go through bytes of zero sections
-										index = 0
-										while index < 16 :
-									
-											# Check if zeroing out section in EEPROM failed
-											if not error and not self.writeToEeprom(connection, 0x2D6 + index, '\x00'):
-										
-												# Set error
-												error = True
-										
-											# Increment index
-											index += 1
 
-										# Go through bytes of firmware version
-										index = 0
-										while index < 4 :
+											# Go through bytes of firmware version
+											index = 0
+											while index < 4 :
 									
-											# Check if updating firmware version in EEPROM failed
-											if not error and not self.writeToEeprom(connection, index, chr((romVersion >> 8 * index) & 0xFF)) :
+												# Check if updating firmware version in EEPROM failed
+												if not error and not self.writeToEeprom(connection, index, chr((romVersion >> 8 * index) & 0xFF)) :
 										
-												# Set error
-												error = True
+													# Set error
+													error = True
 										
-											# Increment index
-											index += 1
+												# Increment index
+												index += 1
 
-										# Go through bytes of firmware CRC
-										index = 0
-										while index < 4 :
+											# Go through bytes of firmware CRC
+											index = 0
+											while index < 4 :
 									
-											# Check if updating firmware CRC in EEPROM failed
-											if not error and not self.writeToEeprom(connection, index + 4, chr((romCrc >> 8 * index) & 0xFF)) :
+												# Check if updating firmware CRC in EEPROM failed
+												if not error and not self.writeToEeprom(connection, index + 4, chr((romCrc >> 8 * index) & 0xFF)) :
 										
-												# Set error
-												error = True
+													# Set error
+													error = True
 										
-											# Increment index
-											index += 1
+												# Increment index
+												index += 1
 								
+										# Otherwise
+										else :
+									
+											# Set error
+											error = True
+							
 									# Otherwise
 									else :
-									
+								
 										# Set error
 										error = True
-							
+						
 								# Otherwise
 								else :
-								
+						
 									# Set error
 									error = True
-						
-							# Otherwise
-							else :
-						
-								# Set error
-								error = True
 				
+						# Otherwise
+						else :
+				
+							# Set error
+							error = True
+			
 					# Otherwise
 					else :
-				
+			
 						# Set error
 						error = True
-			
+				
 				# Otherwise
 				else :
-			
+		
 					# Set error
 					error = True
 			
@@ -1061,6 +1072,7 @@ class M3DFioPlugin(
 			# Send printer and Micro Pass status
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Micro 3D Not Connected"))
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Micro Pass Not Connected"))
+			self.usingMicroPass = False
 		
 		# Otherwise check if client connects
 		elif event == octoprint.events.Events.CLIENT_OPENED :
@@ -1144,8 +1156,10 @@ class M3DFioPlugin(
 				# Send Micro Pass status
 				if "MACHINE_TYPE:The_Micro_Pass" in data :
 					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Micro Pass Connected"))
+					self.usingMicroPass = True
 				else :
 					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Micro Pass Not Connected"))
+					self.usingMicroPass = False
 				
 				# Get firmware version
 				self.firmwareVersion = int(data[data.find("FIRMWARE_VERSION:") + 17 : data.find("FIRMWARE_VERSION:") + 27])
@@ -1383,6 +1397,7 @@ class M3DFioPlugin(
 			self.sharedLibrary.setUseFeedRateConversionPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseFeedRateConversionPreprocessor"])))
 			self.sharedLibrary.setUseCenterModelPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseCenterModelPreprocessor"])))
 			self.sharedLibrary.setIgnorePrintDimensionLimitations(ctypes.c_bool(self._settings.get_boolean(["IgnorePrintDimensionLimitations"])))
+			self.sharedLibrary.setUsingMicroPass(ctypes.c_bool(self.usingMicroPass))
 		
 		# Set progress bar percent
 		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar percent", percent = "60"))
@@ -2117,12 +2132,24 @@ class M3DFioPlugin(
 			
 			# Check if line contains valid G-code
 			if gcode.parseLine(line) :
-			
-				# Check if command isn't valid for the printer
+				
+				# Check if extruder absolute and relative mode command
 				if gcode.hasValue('M') and (gcode.getValue('M') == "82" or gcode.getValue('M') == "83") :
-			
+				
 					# Get next line
-					continue
+					continue;
+				
+				# Check if not using Micro Pass and it's a bed temperature commands
+				if not self.usingMicroPass and gcode.hasValue('M') and (gcode.getValue('M') == "140" or gcode.getValue('M') == "190") :
+				
+					# Get next line
+					continue;
+		
+				# Check if unit to millimeters command
+				if gcode.hasValue('G') and gcode.getValue('G') == "21" :
+				
+					# Get next line
+					continue;
 			
 				# Check if command contains tool selection
 				if gcode.hasParameter('T') :

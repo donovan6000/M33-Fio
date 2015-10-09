@@ -123,6 +123,8 @@ EXPORT void setUseBacklashCompensationPreprocessor(bool value);
 EXPORT void setUseFeedRateConversionPreprocessor(bool value);
 EXPORT void setUseCenterModelPreprocessor(bool value);
 EXPORT void setIgnorePrintDimensionLimitations(bool value);
+EXPORT void setIgnorePrintDimensionLimitations(bool value);
+EXPORT void setUsingMicroPass(bool value);
 
 /*
 EXPORT void setBacklashX(double value);

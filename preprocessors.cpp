@@ -82,6 +82,7 @@ bool useBacklashCompensationPreprocessor;
 bool useFeedRateConversionPreprocessor;
 bool useCenterModelPreprocessor;
 bool ignorePrintDimensionLimitations;
+bool usingMicroPass;
 
 // Print dimensions
 double maxXExtruderLow;
@@ -443,6 +444,12 @@ EXPORT void setIgnorePrintDimensionLimitations(bool value) {
 
 	// Set ignore print dimension limitations
 	ignorePrintDimensionLimitations = value;
+}
+
+EXPORT void setUsingMicroPass(bool value) {
+
+	// Set using Micro Pass
+	usingMicroPass = value;
 }
 
 bool checkPrintDimensions(const char *file, bool overrideCenterModelPreprocessor) {
@@ -850,19 +857,23 @@ bool validationPreprocessor(const char *file) {
 				// Check if line contains valid G-code
 				if(gcode.parseLine(line)) {
 				
-					// Check if command isn't valid for the printer
-					
-					// Extruder absolute and relative mode (M82 and M83)
+					// Check if extruder absolute and relative mode command
 					if(gcode.hasValue('M') && (gcode.getValue('M') == "82" || gcode.getValue('M') == "83"))
-						continue; 	// Get next line
 					
-					// Wait for bed temperature to reach target temp (M190)
-					if(gcode.hasValue('M') && gcode.getValue('M') == "190")
-						continue;	// Get next line
+						// Get next line
+						continue;
+					
+					// Check if not using Micro Pass and it's a bed temperature commands
+					if(!usingMicroPass && gcode.hasValue('M') && (gcode.getValue('M') == "140" || gcode.getValue('M') == "190"))
+					
+						// Get next line
+						continue;
 			
-					// Unit to millimeters (G21)
+					// Check if unit to millimeters command
 					if(gcode.hasValue('G') && gcode.getValue('G') == "21")
-						continue;	// Get next line
+					
+						// Get next line
+						continue;
 			
 					// Check if command contains tool selection
 					if(gcode.hasParameter('T'))
