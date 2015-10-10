@@ -868,7 +868,13 @@ bool validationPreprocessor(const char *file) {
 					
 						// Get next line
 						continue;
-			
+					
+					// Check if Stop idle hold command
+					if(gcode.hasValue('M') && gcode.getValue('M') == "84")
+						
+						// Get next line
+						continue;
+						
 					// Check if unit to millimeters command
 					if(gcode.hasValue('G') && gcode.getValue('G') == "21")
 					
