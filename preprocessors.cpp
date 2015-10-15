@@ -869,7 +869,7 @@ bool validationPreprocessor(const char *file) {
 						// Get next line
 						continue;
 					
-					// Check if Stop idle hold command
+					// Check if stop idle hold command
 					if(gcode.hasValue('M') && gcode.getValue('M') == "84")
 						
 						// Get next line

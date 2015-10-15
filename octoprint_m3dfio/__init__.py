@@ -641,7 +641,7 @@ class M3DFioPlugin(
 								temp += chr(self.romEncryptionTable[int(ord(encryptedRom[index + 1]))])
 					
 					# Set encrypted ROM
-					encryptedRom = temp;
+					encryptedRom = temp
 				
 				# Check if rom isn't too big
 				if len(encryptedRom) <= self.chipTotalMemory :
@@ -2137,19 +2137,25 @@ class M3DFioPlugin(
 				if gcode.hasValue('M') and (gcode.getValue('M') == "82" or gcode.getValue('M') == "83") :
 				
 					# Get next line
-					continue;
+					continue
 				
 				# Check if not using Micro Pass and it's a bed temperature commands
 				if not self.usingMicroPass and gcode.hasValue('M') and (gcode.getValue('M') == "140" or gcode.getValue('M') == "190") :
 				
 					# Get next line
-					continue;
+					continue
 		
 				# Check if unit to millimeters command
 				if gcode.hasValue('G') and gcode.getValue('G') == "21" :
 				
 					# Get next line
-					continue;
+					continue
+				
+				# Check if stop idle hold command
+				if gcode.hasValue('M') and gcode.getValue('M') == "84" :
+					
+					# Get next line
+					continue
 			
 				# Check if command contains tool selection
 				if gcode.hasParameter('T') :
