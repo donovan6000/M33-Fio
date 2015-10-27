@@ -420,7 +420,12 @@ class M3DFioPlugin(
 				elif data["value"][9 :] == "Shenzhew" :
 					fanType = 3
 					fanOffset = 82
-					fanScale = 0.3843137
+					fanScale = 0.4284314
+				
+				elif data["value"][9 :] == "Xinyujie" :
+					fanType = 4
+					fanOffset = 200
+					fanScale = 0.2165354
 				
 				else :
 					error = True
@@ -2255,7 +2260,7 @@ class M3DFioPlugin(
 		os.write(output, "G91\n")
 		os.write(output, "G0 E-1 F2000\n")
 		os.write(output, "G0 X5 Y5 F2000\n")
-		os.write(output, "G0 E-8 F2000\n")
+		os.write(output, "G0 E-18 F2000\n")
 		os.write(output, "M104 S0\n")
 		if self.maxZExtruder > 60 :
 			if self.maxZExtruder < 110 :
