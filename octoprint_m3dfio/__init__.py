@@ -1354,16 +1354,27 @@ class M3DFioPlugin(
 				if data[data.find("DT:") + 3 :] == '0' :
 					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error: Bed orientation is invalid"))
 	
+	# On event
+	def on_event(self, event, payload) :
+	
+		# Check if event is slicing started
+		if event == octoprint.events.Events.SLICING_STARTED :
+		
+			# Set processing slice
+			self.processingSlice = True
+		
+		# Otherwise check if event is slicing done
+		elif event == octoprint.events.Events.SLICING_DONE :
+		
+			# Clear processing slice
+			self.processingSlice = False
+	
 	# Pre-process G-code
 	def preprocessGcode(self, path, file_object, links = None, printer_profile = None, allow_overwrite = True, *args, **kwargs) :
 	
 		# Check if file is not G-code
 		if not octoprint.filemanager.valid_file_type(path, type = "gcode") :
 		
-			# Set processing slice
-			if octoprint.filemanager.valid_file_type(path, type = "stl") :
-				self.processingSlice = True
-
 			# Return unmodified file
 			return file_object
 		
@@ -1438,7 +1449,7 @@ class M3DFioPlugin(
 			self._logger.info("Calculate dimensions: %fs" % (timeit.default_timer() - timer))
 		else :
 			self._logger.info("Check dimensions: %fs" % (timeit.default_timer() - timer))
-			
+		
 		# Check if not ignoring print dimension limitations and print is out of bounds
 		if not self._settings.get_boolean(["IgnorePrintDimensionLimitations"]) and not valid :
 		
