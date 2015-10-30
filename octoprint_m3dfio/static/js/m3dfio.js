@@ -1392,75 +1392,6 @@ $(function() {
 			
 				// Disable shared library options
 				$("#settings_plugin_m3dfio label.sharedLibrary").addClass("disabled").children("input").prop("disabled", true);
-			
-			// Float To Binary
-			function floatToBinary(value) {
-
-				// Initialize variables
-				var bytes = 0;
-	
-				// Check value cases
-				switch(value) {
-	
-					// Positive infinity case
-					case Number.POSITIVE_INFINITY:
-						bytes = 0x7F800000;
-					break;
-		
-					// Negative infinity case
-					case Number.NEGATIVE_INFINITY:
-						bytes = 0xFF800000;
-					break;
-		
-					// Positive zero case
-					case +0.0:
-						bytes = 0x40000000;
-					break;
-		
-					// Negative zero case
-					case -0.0:
-						bytes = 0xC0000000;
-					break;
-		
-					// Default case
-					default:
-		
-						// Not a number case
-						if(Number.isNaN(value)) {
-							bytes = 0x7FC00000;
-							break;
-						}
-			
-						// Negative number case
-						if(value <= -0.0) {
-							bytes = 0x80000000;
-							value = -value;
-						}
-			
-						// Set exponent
-						var exponent = Math.floor(Math.log(value) / Math.log(2));
-			
-						// Set mantissa
-						var mantissa = (value / Math.pow(2, exponent)) * 0x00800000;
-			
-						// Set exponent
-						exponent += 127;
-						if(exponent >= 0xFF) {
-							exponent = 0xFF;
-							mantissa = 0;
-						}
-						else if(exponent < 0)
-							exponent = 0;
-			
-						// Set bytes
-						bytes |= exponent << 23;
-						bytes |= mantissa & ~(-1 << 23);
-					break;
-				}
-	
-				// Return bytes
-				return bytes;
-			};
 		}
 	}
 
@@ -1472,3 +1403,72 @@ $(function() {
 		["printerStateViewModel"]
 	]);
 });
+
+// Float To Binary
+function floatToBinary(value) {
+
+	// Initialize variables
+	var bytes = 0;
+
+	// Check value cases
+	switch(value) {
+
+		// Positive infinity case
+		case Number.POSITIVE_INFINITY:
+			bytes = 0x7F800000;
+		break;
+
+		// Negative infinity case
+		case Number.NEGATIVE_INFINITY:
+			bytes = 0xFF800000;
+		break;
+
+		// Positive zero case
+		case +0.0:
+			bytes = 0x40000000;
+		break;
+
+		// Negative zero case
+		case -0.0:
+			bytes = 0xC0000000;
+		break;
+
+		// Default case
+		default:
+
+			// Not a number case
+			if(Number.isNaN(value)) {
+				bytes = 0x7FC00000;
+				break;
+			}
+
+			// Negative number case
+			if(value <= -0.0) {
+				bytes = 0x80000000;
+				value = -value;
+			}
+
+			// Set exponent
+			var exponent = Math.floor(Math.log(value) / Math.log(2));
+
+			// Set mantissa
+			var mantissa = (value / Math.pow(2, exponent)) * 0x00800000;
+
+			// Set exponent
+			exponent += 127;
+			if(exponent >= 0xFF) {
+				exponent = 0xFF;
+				mantissa = 0;
+			}
+			else if(exponent < 0)
+				exponent = 0;
+
+			// Set bytes
+			bytes |= exponent << 23;
+			bytes |= mantissa & ~(-1 << 23);
+		break;
+	}
+
+	// Return bytes
+	return bytes;
+}
