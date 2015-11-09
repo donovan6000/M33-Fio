@@ -22,6 +22,7 @@ import math
 import copy
 import flask
 import serial
+import serial.tools.list_ports
 import binascii
 import shutil
 import ctypes
@@ -54,44 +55,73 @@ class M3DFioPlugin(
 		self.waitingResponse = None
 		self.processingSlice = False
 		self.usingMicroPass = False
+		self.sharedLibrary = None
 		
-		# Set shared library for Linux 64-bit
-		if platform.uname()[0].startswith("Linux") and platform.uname()[4].endswith("64") :
-			self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_x86-64.so")
+		# Check if running on Linux
+		if platform.uname()[0].startswith("Linux") :
 		
-		# Set shared library for Linux 32-bit
-		elif platform.uname()[0].startswith("Linux") and platform.uname()[4].endswith("86") :
-			self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_i386.so")
+			# Check if running on a Raspberry Pi
+			if platform.uname()[4].startswith("armv6l") and self.getCpuHardware() == "BCM2708" :
+			
+				# Set shared library
+				self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_arm1176jzf-s.so")
+			
+			# Otherwise check if running on a Raspberry Pi 2
+			elif platform.uname()[4].startswith("armv7l") and self.getCpuHardware() == "BCM2709" :
+			
+				# Set shared library
+				self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_arm_cortex-a7.so")
+			
+			# Otherwise check if running on an ARM7 device
+			elif platform.uname()[4].startswith("armv7") :
+			
+				# Set shared library
+				self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_arm7.so")
+			
+			# Otherwise check if using an i386 or x86-64 device
+			elif platform.uname()[4].endswith("86") or platform.uname()[4].endswith("64") :
 		
-		# Set shared library for Windows 64-bit
-		elif platform.uname()[0].startswith("Windows") and platform.uname()[4].endswith("64") :
-			self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_x86-64.dll")
+				# Check if Python is running as 32-bit
+				if platform.architecture()[0].startswith("32") :
+				
+					# Set shared library
+					self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_i386.so")
+			
+				# Otherwise check if Python is running as 64-bit
+				elif platform.architecture()[0].startswith("64") :
+				
+					# Set shared library
+					self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_x86-64.so")
 		
-		# Set shared library for OS X 64-bit
-		#elif platform.uname()[0].startswith("Darwin") and platform.uname()[4].endswith("64") :
-		#	self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_x86-64.dylib")
+		# Otherwise check if running on Windows and using an i386 or x86-64 device
+		elif platform.uname()[0].startswith("Windows") and (platform.uname()[4].endswith("86") or platform.uname()[4].endswith("64")) :
 		
-		# Set shared library for Raspberry Pi
-		elif platform.uname()[0].startswith("Linux") and platform.uname()[4].startswith("armv6l") and self.getCpuHardware() == "BCM2708" :
-			self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_arm1176jzf-s.so")
+			# Check if Python is running as 32-bit
+			if platform.architecture()[0].startswith("32") :
+			
+				# Set shared library
+				self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_i386.dll")
 		
-		# Set shared library for Raspberry Pi 2
-		elif platform.uname()[0].startswith("Linux") and platform.uname()[4].startswith("armv7l") and self.getCpuHardware() == "BCM2709" :
-			self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_arm_cortex-a7.so")
+			# Otherwise check if Python is running as 64-bit
+			elif platform.architecture()[0].startswith("64") :
+			
+				# Set shared library
+				self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_x86-64.dll")
 		
-		# Set shared library for ARM7
-		elif platform.uname()[0].startswith("Linux") and platform.uname()[4].startswith("armv7") :
-			self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_arm7.so")
+		# Otherwise check if running on OS X and using an i386 or x86-64 device
+		elif platform.uname()[0].startswith("Darwin") and (platform.uname()[4].endswith("86") or platform.uname()[4].endswith("64")) :
 		
-		# Otherwise disable shared library
-		else :
-			self.sharedLibrary = None
+			# Check if Python is running as 32-bit
+			if platform.architecture()[0].startswith("32") :
+			
+				# Set shared library
+				self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_i386.dylib")
 		
-		# Set port if available
-		if platform.uname()[0].startswith("Linux") and os.path.isfile("/etc/udev/rules.d/90-m3d-local.rules") :
-			self.port = "/dev/micro_m3d"
-		else :
-			self.port = None
+			# Otherwise check if Python is running as 64-bit
+			elif platform.architecture()[0].startswith("64") :
+			
+				# Set shared library
+				self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_x86-64.dylib")
 		
 		# Bed dimensions
 		self.bedLowMaxX = 113.0
@@ -156,6 +186,18 @@ class M3DFioPlugin(
 		
 		# Return empty string
 		return ''
+	
+	# Get port
+	def getPort(self) :
+
+		# Go through all connected serial ports
+		for port in list(serial.tools.list_ports.comports()) :
+		
+			# Check if port contains the correct VID and PID
+			if port[2].upper().startswith("USB VID:PID=03EB:2404") :
+			
+				# Return port
+				return port[0]
 	
 	# On start
 	def on_after_startup(self) :
@@ -394,13 +436,12 @@ class M3DFioPlugin(
 				# Get current printer connection state
 				currentState, currentPort, currentBaudrate, currentProfile = self._printer.get_current_connection()
 				
-				# Set current port
-				if self.port != None :
-					currentPort = self.port
-				
 				# Switch into bootloader mode
 				self._printer.commands("M115 S628\n")
 				time.sleep(1)
+				
+				# Set updated port
+				currentPort = self.getPort()
 				
 				# Connect to the printer
 				connection = serial.Serial(currentPort, currentBaudrate, timeout = 20)
@@ -481,13 +522,12 @@ class M3DFioPlugin(
 				# Get current printer connection state
 				currentState, currentPort, currentBaudrate, currentProfile = self._printer.get_current_connection()
 				
-				# Set current port
-				if self.port != None :
-					currentPort = self.port
-				
 				# Switch into bootloader mode
 				self._printer.commands("M115 S628\n")
 				time.sleep(1)
+				
+				# Set updated port
+				currentPort = self.getPort()
 				
 				# Connect to the printer
 				connection = serial.Serial(currentPort, currentBaudrate, timeout = 20)
@@ -606,10 +646,6 @@ class M3DFioPlugin(
 			# Get current printer connection state
 			currentState, currentPort, currentBaudrate, currentProfile = self._printer.get_current_connection()
 			
-			# Set current port
-			if self.port != None :
-				currentPort = self.port
-			
 			# Check if rom version is valid ROM version
 			if len(data["name"]) >= 10 and data["name"][0 : 10].isdigit() :
 			
@@ -619,6 +655,9 @@ class M3DFioPlugin(
 				# Switch into bootloader mode
 				self._printer.commands("M115 S628\n")
 				time.sleep(1)
+				
+				# Set updated port
+				currentPort = self.getPort()
 			
 				# Connect to the printer
 				connection = serial.Serial(currentPort, currentBaudrate, timeout = 20)
@@ -1103,13 +1142,12 @@ class M3DFioPlugin(
 			# Get current printer connection state
 			currentState, currentPort, currentBaudrate, currentProfile = self._printer.get_current_connection()
 			
-			# Set current port
-			if self.port != None :
-				currentPort = self.port
-			
 			# Attempt to put printer into G-code processing mode
 			self._printer.get_transport().write("Q")
 			time.sleep(1)
+			
+			# Set updated port
+			currentPort = self.getPort()
 			
 			# Check if printer switched to G-code processing mode
 			if self._printer.is_closed_or_error() :

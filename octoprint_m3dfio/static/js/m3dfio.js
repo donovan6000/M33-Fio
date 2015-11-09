@@ -618,7 +618,7 @@ $(function() {
 				"G90\n",
 				"G0 Z3 F100\n",
 				"G28\n",
-				"G0 X1 Y9.5 Z3 F100\n"
+				"G0 X9 Y5 Z3 F100\n"
 			];
 		
 			// Send request
@@ -641,7 +641,7 @@ $(function() {
 				"G90\n",
 				"G0 Z3 F100\n",
 				"G28\n",
-				"G0 X102.9 Y9.5 Z3 F100\n"
+				"G0 X99 Y5 Z3 F100\n"
 			];
 		
 			// Send request
@@ -664,7 +664,7 @@ $(function() {
 				"G90\n",
 				"G0 Z3 F100\n",
 				"G28\n",
-				"G0 X102.9 Y99 Z3 F100\n"
+				"G0 X99 Y95 Z3 F100\n"
 			];
 		
 			// Send request
@@ -687,7 +687,7 @@ $(function() {
 				"G90\n",
 				"G0 Z3 F100\n",
 				"G28\n",
-				"G0 X1 Y99 Z3 F100\n"
+				"G0 X9 Y95 Z3 F100\n"
 			];
 		
 			// Send request

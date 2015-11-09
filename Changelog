@@ -1,5 +1,11 @@
 Changelog:
 
+V0.18 November 8, 2015
+
+	* Added shared library for 32-bit Windows
+	* Fixed using correct shared library when Python is being run as a different architecture that the device
+	* Improved detecting port that printer is connected to
+
 V0.17 October 27, 2015
 
 	* Updated to match latest official firmware
