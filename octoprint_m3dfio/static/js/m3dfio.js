@@ -13,29 +13,29 @@ $(function() {
 		self.printerState = parameters[0];
 	
 		// Add 0.01 movement control
-		$("#control > div.jog-panel:first-of-type > div.distance > div").prepend("<button type=\"button\" id=\"control-distance001\" class=\"btn distance\" data-distance=\"0.01\" data-bind=\"enable: loginState.isUser()\">0.01</button>");
-		$("#control > div.jog-panel:first-of-type > div.distance > div > button:nth-of-type(3)").click();
+		$("#control > div.jog-panel").eq(0).addClass("controls").find("div.distance > div").prepend("<button type=\"button\" id=\"control-distance001\" class=\"btn distance\" data-distance=\"0.01\" data-bind=\"enable: loginState.isUser()\">0.01</button>");
+		$("#control > div.jog-panel").eq(0).find("div.distance > div > button:nth-of-type(3)").click();
 	
 		// Change tool section text
-		$("#control > div.jog-panel:nth-of-type(2) > h1").text("Extruder").after("<h1 class=\"microPass\">Extruder</h1>");
+		$("#control > div.jog-panel").eq(1).addClass("extruder").find("h1").text("Extruder").after("<h1 class=\"microPass\">Extruder</h1>");
 
 		// Create motor on control
-		$("#control > div.jog-panel:nth-of-type(3) > div").prepend("<button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M17'}) }\">Motors on</button>");
+		$("#control > div.jog-panel").eq(2).addClass("general").find("div").prepend("<button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M17'}) }\">Motors on</button>");
 	
 		// Create absolute and relative controls
-		$("#control > div.jog-panel:nth-of-type(3) > div").append("<button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'G90'}) }\">Absolute mode</button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'G91'}) }\">Relative mode</button>");
+		$("#control > div.jog-panel").eq(2).find("div").append("<button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'G90'}) }\">Absolute mode</button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'G91'}) }\">Relative mode</button>");
 	
 		// Add filament controls
-		$("#control > div.jog-panel:nth-of-type(3)").after("<div class=\"jog-panel\" style=\"\" data-bind=\"visible: loginState.isUser\"><h1>Filament</h1><div><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Unload</button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Load</button></div></div>");
+		$("#control > div.jog-panel").eq(2).after("<div class=\"jog-panel filament\" style=\"\" data-bind=\"visible: loginState.isUser\"><h1>Filament</h1><div><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Unload</button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Load</button></div></div>");
 	
 		// Add calibration controls
-		$("#control > div.jog-panel:nth-of-type(4)").after("<div class=\"jog-panel\" style=\"\" data-bind=\"visible: loginState.isUser\"><h1>Calibration</h1><div><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Calibrate bed center Z0</button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Calibrate bed orientation</button><button disabled=\"\" class=\"btn btn-block control-box arrow\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><i class=\"icon-arrow-down\"></i></button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Save Z as front left Z0</button><button disabled=\"\" class=\"btn btn-block control-box arrow\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><i class=\"icon-arrow-down\"></i></button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Save Z as front right Z0</button><button disabled=\"\" class=\"btn btn-block control-box arrow\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><i class=\"icon-arrow-up\"></i></button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Save Z as back right Z0</button><button disabled=\"\" class=\"btn btn-block control-box arrow\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><i class=\"icon-arrow-up\"></i></button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Save Z as back left Z0</button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Save Z as bed center Z0</button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Print test border</button></div></div>");
+		$("#control > div.jog-panel").eq(3).after("<div class=\"jog-panel calibration\" style=\"\" data-bind=\"visible: loginState.isUser\"><h1>Calibration</h1><div><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Calibrate bed center Z0</button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Calibrate bed orientation</button><button disabled=\"\" class=\"btn btn-block control-box arrow\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><i class=\"icon-arrow-down\"></i></button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Save Z as front left Z0</button><button disabled=\"\" class=\"btn btn-block control-box arrow\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><i class=\"icon-arrow-down\"></i></button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Save Z as front right Z0</button><button disabled=\"\" class=\"btn btn-block control-box arrow\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><i class=\"icon-arrow-up\"></i></button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Save Z as back right Z0</button><button disabled=\"\" class=\"btn btn-block control-box arrow\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><i class=\"icon-arrow-up\"></i></button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Save Z as back left Z0</button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Save Z as bed center Z0</button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Print test border</button></div></div>");
 	
 		// Add advanced controls
-		$("#control > div.jog-panel:nth-of-type(5)").after("<div class=\"jog-panel\" style=\"\" data-bind=\"visible: loginState.isUser\"><h1>Advanced</h1><div><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><img src=\"/plugin/m3dfio/static/img/HengLiXin.png\">HengLiXin fan</button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><img src=\"/plugin/m3dfio/static/img/Listener.png\">Listener fan</button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><img src=\"/plugin/m3dfio/static/img/Shenzhew.png\">Shenzhew fan</button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">500mA extruder current</button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">660mA extruder current</button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Update firmware</button><input type=\"file\" accept=\".rom, .bin, .hex\"></div></div>");
+		$("#control > div.jog-panel").eq(4).after("<div class=\"jog-panel advanced\" style=\"\" data-bind=\"visible: loginState.isUser\"><h1>Advanced</h1><div><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><img src=\"/plugin/m3dfio/static/img/HengLiXin.png\">HengLiXin fan</button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><img src=\"/plugin/m3dfio/static/img/Listener.png\">Listener fan</button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><img src=\"/plugin/m3dfio/static/img/Shenzhew.png\">Shenzhew fan</button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">500mA extruder current</button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">660mA extruder current</button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Update firmware</button><input type=\"file\" accept=\".rom, .bin, .hex\"></div></div>");
 	
 		// Add temperature controls
-		$("#control > div.jog-panel:nth-of-type(2) > div > button:nth-of-type(3)").after("<div style=\"width: 114px;\" class=\"slider slider-horizontal\"><div class=\"slider-track\"><div style=\"left: 0%; width: 0%;\" class=\"slider-selection\"></div><div style=\"left: 0%;\" class=\"slider-handle round\"></div><div style=\"left: 0%;\" class=\"slider-handle round hide\"></div></div><div style=\"top: -24px; left: -19px;\" class=\"tooltip top hide\"><div class=\"tooltip-arrow\"></div><div class=\"tooltip-inner\"></div></div><input style=\"width: 100px;\" data-bind=\"slider: {min: 100, max: 235, step: 1, value: flowRate, tooltip: 'hide'}\" type=\"number\"></div><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && loginState.isUser()\">Temperature:<span data-bind=\"text: flowRate() + 50 + '°C'\"></span></button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M104 S0'}) }\">Heater off</button><div class=\"microPass\"><h1 class=\"microPass\">Heat Bed</h1><div style=\"width: 114px;\" class=\"slider slider-horizontal\"><div class=\"slider-track\"><div style=\"left: 0%; width: 0%;\" class=\"slider-selection\"></div><div style=\"left: 0%;\" class=\"slider-handle round\"></div><div style=\"left: 0%;\" class=\"slider-handle round hide\"></div></div><div style=\"top: -24px; left: -19px;\" class=\"tooltip top hide\"><div class=\"tooltip-arrow\"></div><div class=\"tooltip-inner\"></div></div><input style=\"width: 100px;\" data-bind=\"slider: {min: 100, max: 170, step: 1, value: feedRate, tooltip: 'hide'}\" type=\"number\"></div><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && loginState.isUser()\">Temperature:<span data-bind=\"text: feedRate() -60 + '°C'\"></span></button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M140 S0'}) }\">Heater off</button><div>");
+		$("#control > div.jog-panel").eq(1).find("div > button:nth-of-type(3)").after("<div style=\"width: 114px;\" class=\"slider slider-horizontal\"><div class=\"slider-track\"><div style=\"left: 0%; width: 0%;\" class=\"slider-selection\"></div><div style=\"left: 0%;\" class=\"slider-handle round\"></div><div style=\"left: 0%;\" class=\"slider-handle round hide\"></div></div><div style=\"top: -24px; left: -19px;\" class=\"tooltip top hide\"><div class=\"tooltip-arrow\"></div><div class=\"tooltip-inner\"></div></div><input style=\"width: 100px;\" data-bind=\"slider: {min: 100, max: 235, step: 1, value: flowRate, tooltip: 'hide'}\" type=\"number\"></div><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && loginState.isUser()\">Temperature:<span data-bind=\"text: flowRate() + 50 + '°C'\"></span></button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M104 S0'}) }\">Heater off</button><div class=\"microPass\"><h1 class=\"microPass\">Heat Bed</h1><div style=\"width: 114px;\" class=\"slider slider-horizontal\"><div class=\"slider-track\"><div style=\"left: 0%; width: 0%;\" class=\"slider-selection\"></div><div style=\"left: 0%;\" class=\"slider-handle round\"></div><div style=\"left: 0%;\" class=\"slider-handle round hide\"></div></div><div style=\"top: -24px; left: -19px;\" class=\"tooltip top hide\"><div class=\"tooltip-arrow\"></div><div class=\"tooltip-inner\"></div></div><input style=\"width: 100px;\" data-bind=\"slider: {min: 100, max: 170, step: 1, value: feedRate, tooltip: 'hide'}\" type=\"number\"></div><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && loginState.isUser()\">Temperature:<span data-bind=\"text: feedRate() -60 + '°C'\"></span></button><button disabled=\"\" class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M140 S0'}) }\">Heater off</button><div>");
 		
 		// Add printer status
 		$("#control").append("<p class=\"status\">Status</p>");
@@ -217,7 +217,7 @@ $(function() {
 		});
 	
 		// Override extrude control
-		$("#control > div.jog-panel:nth-of-type(2) > div > button:first-of-type").click(function(event) {
+		$("#control > div.jog-panel").eq(1).find("div > button:first-of-type").click(function(event) {
 	
 			// Stop default behavior
 			event.stopImmediatePropagation();
@@ -225,7 +225,7 @@ $(function() {
 			// Set commands
 			var commands = [
 				"G91\n",
-				"G0 E" + ($("#control > div.jog-panel:nth-of-type(2) > div > div:nth-of-type(2) >input").val().length ? $("#control > div.jog-panel:nth-of-type(2) > div > div:nth-of-type(2) >input").val() : '5' ) + " F450\n"
+				"G0 E" + ($("#control > div.jog-panel").eq(1).find("div > div:nth-of-type(2) >input").val().length ? $("#control > div.jog-panel").eq(1).find("div > div:nth-of-type(2) >input").val() : '5' ) + " F450\n"
 			];
 		
 			// Send request
@@ -239,7 +239,7 @@ $(function() {
 		});
 	
 		// Override retract control
-		$("#control > div.jog-panel:nth-of-type(2) > div > button:nth-of-type(2)").click(function(event) {
+		$("#control > div.jog-panel").eq(1).find("div > button:nth-of-type(2)").click(function(event) {
 	
 			// Stop default behavior
 			event.stopImmediatePropagation();
@@ -247,7 +247,7 @@ $(function() {
 			// Set commands
 			var commands = [
 				"G91\n",
-				"G0 E-" + ($("#control > div.jog-panel:nth-of-type(2) > div > div:nth-of-type(2) >input").val().length ? $("#control > div.jog-panel:nth-of-type(2) > div > div:nth-of-type(2) >input").val() : '5' ) + " F450\n"
+				"G0 E-" + ($("#control > div.jog-panel").eq(1).find("div > div:nth-of-type(2) >input").val().length ? $("#control > div.jog-panel").eq(1).find("div > div:nth-of-type(2) >input").val() : '5' ) + " F450\n"
 			];
 		
 			// Send request
@@ -261,7 +261,7 @@ $(function() {
 		});
 	
 		// Set extruder temperature control
-		$("#control > div.jog-panel:nth-of-type(2) > div > button:nth-of-type(4)").click(function(event) {
+		$("#control > div.jog-panel").eq(1).find("div > button:nth-of-type(4)").click(function(event) {
 	
 			// Hide status
 			$("#control > p.status").removeClass("show");
@@ -306,7 +306,7 @@ $(function() {
 		});
 		
 		// Set heat bed temperature control
-		$("#control > div.jog-panel:nth-of-type(2) > div > div.microPass > button:first-of-type").click(function(event) {
+		$("#control > div.jog-panel").eq(1).find("div > div.microPass > button:first-of-type").click(function(event) {
 	
 			// Hide status
 			$("#control > p.status").removeClass("show");
@@ -351,7 +351,7 @@ $(function() {
 		});
 	
 		// Set unload filament control
-		$("#control > div.jog-panel:nth-of-type(4) > div > button:nth-of-type(1)").click(function(event) {
+		$("#control > div.jog-panel").eq(3).find("div > button:nth-of-type(1)").click(function(event) {
 	
 			// Hide status
 			$("#control > p.status").removeClass("show");
@@ -430,7 +430,7 @@ $(function() {
 		});
 	
 		// Set load filament control
-		$("#control > div.jog-panel:nth-of-type(4) > div > button:nth-of-type(2)").click(function(event) {
+		$("#control > div.jog-panel").eq(3).find("div > button:nth-of-type(2)").click(function(event) {
 	
 			// Hide status
 			$("#control > p.status").removeClass("show");
@@ -509,7 +509,7 @@ $(function() {
 		});
 	
 		// Set calibrate bed center Z0 control
-		$("#control > div.jog-panel:nth-of-type(5) > div > button:nth-of-type(1)").click(function(event) {
+		$("#control > div.jog-panel").eq(4).find("div > button:nth-of-type(1)").click(function(event) {
 	
 			// Hide status
 			$("#control > p.status").removeClass("show");
@@ -559,7 +559,7 @@ $(function() {
 		});
 	
 		// Set calibrate bed orientation control
-		$("#control > div.jog-panel:nth-of-type(5) > div > button:nth-of-type(2)").click(function(event) {
+		$("#control > div.jog-panel").eq(4).find("div > button:nth-of-type(2)").click(function(event) {
 	
 			// Hide status
 			$("#control > p.status").removeClass("show");
@@ -609,7 +609,7 @@ $(function() {
 		});
 	
 		// Set go to front left
-		$("#control > div.jog-panel:nth-of-type(5) > div > button:nth-of-type(3)").click(function(event) {
+		$("#control > div.jog-panel").eq(4).find("div > button:nth-of-type(3)").click(function(event) {
 		
 			// Set commands
 			var commands = [
@@ -632,7 +632,7 @@ $(function() {
 		});
 	
 		// Set go to front right
-		$("#control > div.jog-panel:nth-of-type(5) > div > button:nth-of-type(5)").click(function(event) {
+		$("#control > div.jog-panel").eq(4).find("div > button:nth-of-type(5)").click(function(event) {
 		
 			// Set commands
 			var commands = [
@@ -655,7 +655,7 @@ $(function() {
 		});
 	
 		// Set go to back right
-		$("#control > div.jog-panel:nth-of-type(5) > div > button:nth-of-type(7)").click(function(event) {
+		$("#control > div.jog-panel").eq(4).find("div > button:nth-of-type(7)").click(function(event) {
 		
 			// Set commands
 			var commands = [
@@ -678,7 +678,7 @@ $(function() {
 		});
 	
 		// Set go to back left
-		$("#control > div.jog-panel:nth-of-type(5) > div > button:nth-of-type(9)").click(function(event) {
+		$("#control > div.jog-panel").eq(4).find("div > button:nth-of-type(9)").click(function(event) {
 		
 			// Set commands
 			var commands = [
@@ -701,7 +701,7 @@ $(function() {
 		});
 	
 		// Set save Z as front left Z0 control
-		$("#control > div.jog-panel:nth-of-type(5) > div > button:nth-of-type(4)").click(function(event) {
+		$("#control > div.jog-panel").eq(4).find("div > button:nth-of-type(4)").click(function(event) {
 		
 			// Set commands
 			var commands = [
@@ -748,7 +748,7 @@ $(function() {
 		});
 	
 		// Set save Z as front right Z0 control
-		$("#control > div.jog-panel:nth-of-type(5) > div > button:nth-of-type(6)").click(function(event) {
+		$("#control > div.jog-panel").eq(4).find("div > button:nth-of-type(6)").click(function(event) {
 		
 			// Set commands
 			var commands = [
@@ -795,7 +795,7 @@ $(function() {
 		});
 	
 		// Set save Z as back right Z0 control
-		$("#control > div.jog-panel:nth-of-type(5) > div > button:nth-of-type(8)").click(function(event) {
+		$("#control > div.jog-panel").eq(4).find("div > button:nth-of-type(8)").click(function(event) {
 		
 			// Set commands
 			var commands = [
@@ -842,7 +842,7 @@ $(function() {
 		});
 	
 		// Set save Z as back left Z0 control
-		$("#control > div.jog-panel:nth-of-type(5) > div > button:nth-of-type(10)").click(function(event) {
+		$("#control > div.jog-panel").eq(4).find("div > button:nth-of-type(10)").click(function(event) {
 		
 			// Set commands
 			var commands = [
@@ -889,7 +889,7 @@ $(function() {
 		});
 		
 		// Set save Z as bed center Z0 control
-		$("#control > div.jog-panel:nth-of-type(5) > div > button:nth-of-type(11)").click(function(event) {
+		$("#control > div.jog-panel").eq(4).find("div > button:nth-of-type(11)").click(function(event) {
 		
 			// Hide status
 			$("#control > p.status").removeClass("show");
@@ -920,7 +920,7 @@ $(function() {
 		});
 		
 		// Set print test border control
-		$("#control > div.jog-panel:nth-of-type(5) > div > button:nth-of-type(12)").click(function(event) {
+		$("#control > div.jog-panel").eq(4).find("div > button:nth-of-type(12)").click(function(event) {
 		
 			// Hide status
 			$("#control > p.status").removeClass("show");
@@ -945,7 +945,7 @@ $(function() {
 		});
 	
 		// Set HengLiXin fan control
-		$("#control > div.jog-panel:nth-of-type(6) > div > button:nth-of-type(1)").click(function(event) {
+		$("#control > div.jog-panel").eq(5).find("div > button:nth-of-type(1)").click(function(event) {
 	
 			// Hide status
 			$("#control > p.status").removeClass("show");
@@ -983,7 +983,7 @@ $(function() {
 		});
 	
 		// Set Listener fan control
-		$("#control > div.jog-panel:nth-of-type(6) > div > button:nth-of-type(2)").click(function(event) {
+		$("#control > div.jog-panel").eq(5).find("div > button:nth-of-type(2)").click(function(event) {
 	
 			// Hide status
 			$("#control > p.status").removeClass("show");
@@ -1021,7 +1021,7 @@ $(function() {
 		});
 	
 		// Set Shenzhew fan control
-		$("#control > div.jog-panel:nth-of-type(6) > div > button:nth-of-type(3)").click(function(event) {
+		$("#control > div.jog-panel").eq(5).find("div > button:nth-of-type(3)").click(function(event) {
 	
 			// Hide status
 			$("#control > p.status").removeClass("show");
@@ -1059,7 +1059,7 @@ $(function() {
 		});
 	
 		// Set 500mA extruder current control
-		$("#control > div.jog-panel:nth-of-type(6) > div > button:nth-of-type(4)").click(function(event) {
+		$("#control > div.jog-panel").eq(5).find("div > button:nth-of-type(4)").click(function(event) {
 	
 			// Hide status
 			$("#control > p.status").removeClass("show");
@@ -1097,7 +1097,7 @@ $(function() {
 		});
 	
 		// Set 660mA extruder current control
-		$("#control > div.jog-panel:nth-of-type(6) > div > button:nth-of-type(5)").click(function(event) {
+		$("#control > div.jog-panel").eq(5).find("div > button:nth-of-type(5)").click(function(event) {
 	
 			// Hide status
 			$("#control > p.status").removeClass("show");
@@ -1135,14 +1135,14 @@ $(function() {
 		});
 	
 		// Set update firmware control
-		$("#control > div.jog-panel:nth-of-type(6) > div > button:nth-of-type(6)").click(function(event) {
+		$("#control > div.jog-panel").eq(5).find("div > button:nth-of-type(6)").click(function(event) {
 	
 			// Open file input dialog
-			$("#control > div.jog-panel:nth-of-type(6) > div > input").click();
+			$("#control > div.jog-panel").eq(5).find("div > input").click();
 		});
 		
 		// On update firmware input change
-		$("#control > div.jog-panel:nth-of-type(6) > div > input").change(function(event) {
+		$("#control > div.jog-panel").eq(5).find("div > input").change(function(event) {
 	
 			// Initialize variables
 			var file = this.files[0];
@@ -1301,7 +1301,7 @@ $(function() {
 			
 				// Display heat bed controls
 				$("#control .microPass").css("display", "block");
-				$("#control > div.jog-panel:nth-of-type(2) > h1:not(.microPass)").text("Tools");
+				$("#control > div.jog-panel").eq(1).find("h1:not(.microPass)").text("Tools");
 			}
 			
 			// Otherwise check if data is that a Micro Pass isn't connected
@@ -1309,7 +1309,7 @@ $(function() {
 			
 				// Hide heat bed controls
 				$("#control .microPass").css("display", "none");
-				$("#control > div.jog-panel:nth-of-type(2) > h1:not(.microPass)").text("Extruder");
+				$("#control > div.jog-panel").eq(1).find("h1:not(.microPass)").text("Extruder");
 			}
 			
 			// Otherwise check if data is current Z
