@@ -1102,7 +1102,7 @@ class M3DFioPlugin(
 	
 	# Event monitor
 	def on_event(self, event, payload):
-		
+	
 		# Check if printer is disconnected
 		if event == octoprint.events.Events.DISCONNECTED :
 		
@@ -1132,6 +1132,18 @@ class M3DFioPlugin(
 		
 				# Disable shared library options
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Disable Shared Library"))
+	
+		# Otherwise check if event is slicing started
+		elif event == octoprint.events.Events.SLICING_STARTED :
+		
+			# Set processing slice
+			self.processingSlice = True
+		
+		# Otherwise check if event is slicing done
+		elif event == octoprint.events.Events.SLICING_DONE :
+		
+			# Clear processing slice
+			self.processingSlice = False
 	
 	# Receive data to log
 	def on_printer_add_log(self, data) :
@@ -1391,21 +1403,6 @@ class M3DFioPlugin(
 				# Send invalid bed orientation
 				if data[data.find("DT:") + 3 :] == '0' :
 					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error: Bed orientation is invalid"))
-	
-	# On event
-	def on_event(self, event, payload) :
-	
-		# Check if event is slicing started
-		if event == octoprint.events.Events.SLICING_STARTED :
-		
-			# Set processing slice
-			self.processingSlice = True
-		
-		# Otherwise check if event is slicing done
-		elif event == octoprint.events.Events.SLICING_DONE :
-		
-			# Clear processing slice
-			self.processingSlice = False
 	
 	# Pre-process G-code
 	def preprocessGcode(self, path, file_object, links = None, printer_profile = None, allow_overwrite = True, *args, **kwargs) :

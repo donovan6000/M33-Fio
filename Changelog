@@ -1,5 +1,9 @@
 Changelog:
 
+V0.19 November 22, 2015
+
+	* Fixed a problem where the printer couldn't reconnect after disconnecting
+
 V0.18 November 8, 2015
 
 	* Added shared library for 32-bit Windows
