@@ -109,19 +109,19 @@ class M3DFioPlugin(
 				self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_x86-64.dll")
 		
 		# Otherwise check if running on OS X and using an i386 or x86-64 device
-		elif platform.uname()[0].startswith("Darwin") and (platform.uname()[4].endswith("86") or platform.uname()[4].endswith("64")) :
+		#elif platform.uname()[0].startswith("Darwin") and (platform.uname()[4].endswith("86") or platform.uname()[4].endswith("64")) :
 		
 			# Check if Python is running as 32-bit
-			if platform.architecture()[0].startswith("32") :
+		#	if platform.architecture()[0].startswith("32") :
 			
 				# Set shared library
-				self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_i386.dylib")
+		#		self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_i386.dylib")
 		
 			# Otherwise check if Python is running as 64-bit
-			elif platform.architecture()[0].startswith("64") :
+		#	elif platform.architecture()[0].startswith("64") :
 			
 				# Set shared library
-				self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_x86-64.dylib")
+		#		self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_x86-64.dylib")
 		
 		# Bed dimensions
 		self.bedLowMaxX = 113.0
@@ -347,7 +347,8 @@ class M3DFioPlugin(
 			AutomaticSettingsUpdate = True,
 			UseCenterModelPreprocessor = True,
 			IgnorePrintDimensionLimitations = False,
-			DisableSharedLibrary = False
+			DisableSharedLibrary = False,
+			PreprocessOnTheFly = False
 		)
 	
 	# Template manager
@@ -1006,6 +1007,12 @@ class M3DFioPlugin(
 			gcode = Gcode()
 			if gcode.parseLine(data) :
 			
+				# Check if pre-processing on the fly
+				if self._settings.get_boolean(["PreprocessOnTheFly"]) :
+			
+					# Pre-process command on the fly
+					self.preprocessOnTheFly(gcode);
+			
 				# Get the command's binary representation
 				data = gcode.getBinary()
 		
@@ -1633,6 +1640,12 @@ class M3DFioPlugin(
 		
 		# Return processed G-code
 		return octoprint.filemanager.util.DiskFileWrapper(os.path.basename(temp), temp)
+	
+	# Pre-process on the fly
+	def preprocessOnTheFly(self, gcode) :
+	
+		# Output value
+		self._logger.info(gcode.getAscii());
 	
 	# Center model pre-processor
 	def centerModelPreprocessor(self, file) :
