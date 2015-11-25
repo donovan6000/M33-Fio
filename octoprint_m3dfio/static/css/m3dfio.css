@@ -142,32 +142,175 @@
 	display: none;
 }
 
-#control .fail {
-	color: rgba(255, 0, 0, 1);
+#control div.jog-panel.advanced button:nth-of-type(7) {
+	height: auto;
 }
 
-#control .inProgress {
-	color: rgba(195, 195, 0, 1)
+#control div.jog-panel.advanced button > span {
+	display: inline-block;
+	font-size: 12px;
+	line-height: 0;
 }
 
-#control .succeed {
-	color: rgba(0, 220, 0, 1)
+#control div.jog-panel.eeprom {
+	text-align: center;
+	width: 100%;
+	clear: both;
 }
 
-#control .show {
+#control div.jog-panel.eeprom button {
+	width: 150px;
+	margin: 7px 5px 10px 5px;
+	display: inline-block;
+}
+
+#control div.jog-panel.eeprom table {
+	margin: 0 auto;
+	font: normal 10px monospace;
+}
+
+#control div.jog-panel.eeprom tr, td {
+	padding: 0;
+	margin: 0;
+}
+
+#control div.jog-panel.eeprom tbody > tr:first-child td {
+	padding-bottom: 2px;
+	cursor: default;
+}
+
+#control div.jog-panel.eeprom tr > td:first-child {
+	position: relative;
+	top: 1px;
+	cursor: default;
+	padding-right: 4px;
+	text-align: right;
+}
+
+#control div.jog-panel.eeprom input {
+	width: 19px;
+	height: 19px;
+	padding: 3px 2px 1px 2px;
+	margin: 2px;
+	font: normal 10px monospace;
+	text-align: center;
+}
+
+#control div.jog-panel.eeprom input:disabled {
+	cursor: default;
+	background-color: #EEE !important;
+	pointer-events: none;
+}
+
+#control div.jog-panel.eeprom input[type="radio"] {
+	position: relative;
+	top: 1px;
+	width: 13px;
+	height: 13px;
+}
+
+#control div.jog-panel.eeprom input[type="radio"] + label {
+	padding-right: 10px;
+	display: inline;
+	position: relative;
+	top: 2px;
+	cursor: default;
+}
+
+.show {
 	visibility: visible !important;
 	opacity: 1 !important;
 }
 
-#control p.status {
-	text-align: center;
-	position: relative;
-	top: 7px;
-	pointer-events: none;
-	opacity: 0;
-	transition: opacity 0.2s linear;
-}
-
 #control .microPass {
 	display: none;
+}
+
+#control button.current:not(:disabled) {
+	border-color: rgba(82, 168, 236, 0.8);
+	box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
+}
+
+body > div.page-container > div.message {
+	position: fixed;
+	height: 100%;
+	width: 100%;
+	background-color: rgba(0, 0, 0, 0.3);
+	visibility: hidden;
+	opacity: 0;
+	top: 0;
+	left: 0;
+	z-index: 99;
+	transition: visibility 0.3s linear, opacity 0.3s linear;
+	-moz-user-select: none;
+	user-select: none;
+}
+
+body > div.page-container > div.message > div {
+	margin: auto auto;
+	display: inline-block;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	margin: 0;
+	font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+	font-size: 14px;
+	color: #333;
+	background-color: #fff;
+	border: 1px solid #e5e5e5;
+	border-radius: 4px;
+}
+
+body > div.page-container > div.message > div > h4 {
+	border: 1px solid #e5e5e5;
+	color: #08c;
+	border-radius: 4px 4px 0 0;
+	line-height: 20px;
+	font-weight: normal;
+	border-bottom: none;
+	margin: 1px 1px 0 1px;
+	padding: 8px 40px 8px 12px;
+	line-height: 20px;
+	min-height: 20px;
+}
+
+body > div.page-container > div.message > div > img {
+	width: 30px;
+	height: 30px;
+	position: absolute;
+	right: 5px;
+	top: 5px;
+	visibility: hidden;
+}
+
+body > div.page-container > div.message > div > div {
+	border: 1px solid #e5e5e5;
+	border-radius: 0 0 4px 4px;
+	margin: 0 1px 1px 1px;
+	padding: 8px 12px 0 12px;
+	min-width: 200px;
+	max-width: 400px;
+}
+
+body > div.page-container > div.message > div > div > div {
+	position: relative;
+	left: calc(100% - 135px);
+	padding-bottom: 2px;
+}
+
+body > div.page-container > div.message > div > div > div:not(.show) {
+	height: 0;
+}
+
+body > div.page-container > div.message > div > div > div > button {
+	display: inline;
+	width: 70px;
+	visibility: hidden;
+}
+
+body > div.page-container > div.message > div > div > div > button:first-of-type {
+	position: relative;
+	top: 3px;
+	margin-right: 5px;
 }

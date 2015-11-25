@@ -9,6 +9,13 @@
 	</div>
 	<div class="control-group">
 		<div class="controls">
+			<label class="checkbox" title="Obtains settings from the printer and overwrites existing settings">
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.AutomaticallyObtainSettings"><span>Obtain printer settings automatically when a Micro 3D printer connects</span>
+			</label>
+		</div>
+	</div>
+	<div class="control-group">
+		<div class="controls">
 			<label class="checkbox sharedLibrary" title="Forces all pre-processor stages to use the Python functions instead of the shared library functions">
 				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.DisableSharedLibrary"><span>Disable shared library</span>
 			</label>
@@ -73,13 +80,6 @@
 	</div>
 	<div class="control-group">
 		<h4>Printer Settings</h4>
-		<div class="controls">
-			<label class="checkbox">
-				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.AutomaticSettingsUpdate"><span>Update printer settings automatically when a Micro 3D printer connects</span>
-			</label>
-		</div>
-	</div>
-	<div class="control-group">
 		<label class="control-label">Backlash X</label>
 		<div class="controls">
 			<input type="number" step="0.0001" min="0" max="2" class="input-block-level" data-bind="value: settings.plugins.m3dfio.BacklashX">

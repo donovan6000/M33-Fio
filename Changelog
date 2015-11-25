@@ -1,5 +1,11 @@
 Changelog:
 
+V0.20 November 25, 2015
+
+	* Added EEPROM management
+	* Changed way that messages are shown so that they look more native to OctoPrint
+	* Implemented the 'first run' stuff from the official software, so now M3D Fio is a complete replacement for the official software
+
 V0.19 November 22, 2015
 
 	* Fixed a problem where the printer couldn't reconnect after disconnecting

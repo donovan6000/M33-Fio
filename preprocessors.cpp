@@ -1889,6 +1889,11 @@ bool backlashCompensationPreprocessor(const char *file) {
 						// Set relative values
 						positionRelativeX = 54;
 						positionRelativeY = 50;
+						
+						// Reset values
+						valueF = "1000";
+						previousDirectionX = previousDirectionY = NEITHER;
+						compensationX = compensationY = 0;
 					}
 			
 		      			// Otherwise check if command is G90
