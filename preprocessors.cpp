@@ -929,21 +929,9 @@ bool validationPreprocessor(const char *file) {
 				// Check if line contains valid G-code
 				if(gcode.parseLine(line)) {
 				
-					// Check if extruder absolute and relative mode command
-					if(gcode.hasValue('M') && (gcode.getValue('M') == "82" || gcode.getValue('M') == "83"))
+					// Check if extruder absolute mode, extruder relative mode, or stop idle hold command
+					if(gcode.hasValue('M') && (gcode.getValue('M') == "82" || gcode.getValue('M') == "83" || gcode.getValue('M') == "84"))
 					
-						// Get next line
-						continue;
-					
-					// Check if not using Micro Pass and it's a bed temperature commands
-					if(!usingMicroPass && gcode.hasValue('M') && (gcode.getValue('M') == "140" || gcode.getValue('M') == "190"))
-					
-						// Get next line
-						continue;
-					
-					// Check if stop idle hold command
-					if(gcode.hasValue('M') && gcode.getValue('M') == "84")
-						
 						// Get next line
 						continue;
 						
@@ -1010,12 +998,17 @@ bool preparationPreprocessor(const char *file, bool overrideCornerExcess) {
 			}
 			
 			// Add intro to output
+			output << ";Start intro" << endl;
 			output << "M106 S" << (filamentType == PLA ? "255" : "50") << endl;
 			output << "M17" << endl;
 			output << "G90" << endl;
 			output << "M104 S" << to_string(filamentTemperature) << endl;
 			output << "G0 Z5 F2900" << endl;
 			output << "G28" << endl;
+			
+			// Add heat bed command if using Micro Pass
+			if(usingMicroPass)
+				output << "M190 S" << (filamentType == PLA ? "70" : "80") << endl;
 		
 			// Check if one of the corners wasn't set
 			if(cornerX == 0 || cornerY == 0) {
@@ -1047,16 +1040,22 @@ bool preparationPreprocessor(const char *file, bool overrideCornerExcess) {
 			output << "G92 E0" << endl;
 			output << "G90" << endl;
 			output << "G0 Z0.4 F2400" << endl;
+			output << ";End intro" << endl;
 			
 			// Send input to output
 			output << input.rdbuf();
 			
 			// Add outro to output
+			output << ";Start outro" << endl;
 			output << "G91" << endl;
 			output << "G0 E-1 F2000" << endl;
 			output << "G0 X5 Y5 F2000" << endl;
 			output << "G0 E-18 F2000" << endl;
 			output << "M104 S0" << endl;
+			
+			if(usingMicroPass)
+				output << "M140 S0" << endl;
+			
 			if(maxZExtruder > 60) {
 				if(maxZExtruder < 110)
 					output << "G0 Z3 F2900" << endl;
@@ -1068,8 +1067,10 @@ bool preparationPreprocessor(const char *file, bool overrideCornerExcess) {
 				output << "G90" << endl;
 				output << "G0 X95 Y95" << endl;
 			}
+			
 			output << "M18" << endl;
 			output << "M107" << endl;
+			output << ";End outro" << endl;
 		
 			// Return if input file was successfully removed
 			return !unlink(tempName.c_str());
@@ -1375,7 +1376,7 @@ bool thermalBondingPreprocessor(const char *file, bool overrideWaveBondingPrepro
 			string line;
 			Gcode gcode, previousGcode, refrenceGcode, tackPoint;
 			uint32_t layerCounter = 0, cornerCounter = 0;
-			bool relativeMode = false;
+			bool relativeMode = false, inIntro = true, inOutro = false;
 	
 			// Go through input file
 			while(input.peek() != EOF) {
@@ -1383,8 +1384,16 @@ bool thermalBondingPreprocessor(const char *file, bool overrideWaveBondingPrepro
 				// Read in a line
 				getline(input, line);
 				
-				// Check if line is a layer command
-				if(layerCounter < 2 && line.find(";LAYER:") != string::npos) {
+				// Detect end of intro
+				if(line.find(";End intro") != string::npos)
+					inIntro = false;
+			
+				// Otherwise detect start of outro
+				else if(line.find(";Start outro") != string::npos)
+					inOutro = true;
+				
+				// Otherwise check if line is a layer command
+				else if(layerCounter < 2 && line.find(";LAYER:") != string::npos) {
 			
 					// Check if on first counted layer
 					if(layerCounter == 0)
@@ -1404,8 +1413,8 @@ bool thermalBondingPreprocessor(const char *file, bool overrideWaveBondingPrepro
 				// Check if line was parsed successfully
 				if(gcode.parseLine(line)) {
 				
-					// Check if command contains temperature or fan controls past the first layer that doesn't turn them off
-					if(layerCounter > 0 && gcode.hasValue('M') && gcode.hasValue('S') && gcode.getValue('S') != "0" && (gcode.getValue('M') == "104" || gcode.getValue('M') == "105" || gcode.getValue('M') == "106" || gcode.getValue('M') == "107" || gcode.getValue('M') == "109"))
+					// Check if using preparation pre-processor and command contains temperature or fan controls outside of the intro and outro
+					if(usePreparationPreprocessor && !inIntro && !inOutro && gcode.hasValue('M') && (gcode.getValue('M') == "104" || gcode.getValue('M') == "105" || gcode.getValue('M') == "106" || gcode.getValue('M') == "107" || gcode.getValue('M') == "109" || gcode.getValue('M') == "140" || gcode.getValue('M') == "190"))
 			
 						// Get next line
 						continue;

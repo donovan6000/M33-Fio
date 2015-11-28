@@ -130,7 +130,7 @@ class M3DFioPlugin(
 			if file.endswith(".hex") :
 				
 				# Set provided firmware
-				self.providedFirmware = file[0 : 10];
+				self.providedFirmware = file[0 : 10]
 				break
 		
 		# Bed dimensions
@@ -913,13 +913,9 @@ class M3DFioPlugin(
 	# Update to provided firmware
 	def updateToProvidedFirmware(self, connection) :
 	
-		# Find provided firmware
-		for file in os.listdir(os.path.dirname(os.path.realpath(__file__)) + "/static/files/"):
-			if file.endswith(".hex") :
-				
-				# Return if firmware was updated successfully
-				encryptedRom = open(os.path.dirname(os.path.realpath(__file__)) + "/static/files/" + file, "rb")
-				return self.updateFirmware(connection, encryptedRom.read(), int(file[0 : 10]))
+		# Return if firmware was updated successfully
+		encryptedRom = open(os.path.dirname(os.path.realpath(__file__)) + "/static/files/" + str(self.providedFirmware) + ".hex", "rb")
+		return self.updateFirmware(connection, encryptedRom.read(), int(file[0 : 10]))
 	
 	# Update firmware
 	def updateFirmware(self, connection, encryptedRom, romVersion) :
@@ -1289,7 +1285,7 @@ class M3DFioPlugin(
 			self._printer.fake_ack()
 		
 		# Otherwise check if request is invalid
-		elif data == "M110\n" or data == "M21\n" :
+		elif data == "M110\n" or data == "M21\n" or data == "M84\n" :
 		
 			# Send fake acknowledgment
 			self._printer.fake_ack()
@@ -1305,7 +1301,7 @@ class M3DFioPlugin(
 				if self._settings.get_boolean(["PreprocessOnTheFly"]) :
 			
 					# Pre-process command on the fly
-					self.preprocessOnTheFly(gcode);
+					self.preprocessOnTheFly(gcode)
 			
 				# Get the command's binary representation
 				data = gcode.getBinary()
@@ -1486,7 +1482,7 @@ class M3DFioPlugin(
 				
 				# Check if not in bootloader mode
 				connection.write("M115")
-				firstByte = connection.read();
+				firstByte = connection.read()
 				connection.read(connection.inWaiting())
 				if firstByte != 'B' :
 				
@@ -1532,7 +1528,7 @@ class M3DFioPlugin(
 					index = 3
 					firmwareVersion = 0
 					while index >= 0 :
-						firmwareVersion <<= 8;
+						firmwareVersion <<= 8
 						firmwareVersion += int(ord(self.eeprom[index]))
 						index -= 1
 					
@@ -2221,7 +2217,7 @@ class M3DFioPlugin(
 		if self.printerFilamentType != softwareFilamentType :
 
 			# Add new value to list
-			newValue = 0x80;
+			newValue = 0x80
 			if softwareFilamentType == "ABS" :
 				newValue |= 0x01
 			elif softwareFilamentType == "PLA" :
@@ -2509,7 +2505,7 @@ class M3DFioPlugin(
 	def preprocessOnTheFly(self, gcode) :
 	
 		# Output value
-		self._logger.info(gcode.getAscii());
+		self._logger.info(gcode.getAscii())
 	
 	# Center model pre-processor
 	def centerModelPreprocessor(self, file) :
@@ -3061,14 +3057,8 @@ class M3DFioPlugin(
 			# Check if line contains valid G-code
 			if gcode.parseLine(line) :
 				
-				# Check if extruder absolute and relative mode command
-				if gcode.hasValue('M') and (gcode.getValue('M') == "82" or gcode.getValue('M') == "83") :
-				
-					# Get next line
-					continue
-				
-				# Check if not using Micro Pass and it's a bed temperature commands
-				if not self.usingMicroPass and gcode.hasValue('M') and (gcode.getValue('M') == "140" or gcode.getValue('M') == "190") :
+				# Check if extruder absolute mode, extruder relative mode, or stop idle hold command
+				if gcode.hasValue('M') and (gcode.getValue('M') == "82" or gcode.getValue('M') == "83" or gcode.getValue('M') == "84") :
 				
 					# Get next line
 					continue
@@ -3076,12 +3066,6 @@ class M3DFioPlugin(
 				# Check if unit to millimeters command
 				if gcode.hasValue('G') and gcode.getValue('G') == "21" :
 				
-					# Get next line
-					continue
-				
-				# Check if stop idle hold command
-				if gcode.hasValue('M') and gcode.getValue('M') == "84" :
-					
 					# Get next line
 					continue
 			
@@ -3134,6 +3118,7 @@ class M3DFioPlugin(
 				cornerY = -(self.bedLowMaxY - self.bedLowMinY - 10) / 2
 		
 		# Add intro to output
+		os.write(output, ";Start intro\n")
 		if str(self._settings.get(["FilamentType"])) == "PLA" :
 			os.write(output, "M106 S255\n")
 		else :
@@ -3143,6 +3128,13 @@ class M3DFioPlugin(
 		os.write(output, "M104 S" + str(self._settings.get_int(["FilamentTemperature"])) + '\n')
 		os.write(output, "G0 Z5 F2900\n")
 		os.write(output, "G28\n")
+		
+		# Add heat bed command if using Micro Pass
+		if self.usingMicroPass :
+			if str(self._settings.get(["FilamentType"])) == "PLA" :
+				os.write(output, "M190 S70\n")
+			else :
+				os.write(output, "M190 S80\n")
 		
 		# Check if one of the corners wasn't set
 		if cornerX == 0 or cornerY == 0 :
@@ -3172,6 +3164,7 @@ class M3DFioPlugin(
 		os.write(output, "G92 E0\n")
 		os.write(output, "G90\n")
 		os.write(output, "G0 Z0.4 F2400\n")
+		os.write(output, ";End intro\n")
 		
 		# Read in input file
 		for line in open(temp) :
@@ -3180,11 +3173,16 @@ class M3DFioPlugin(
 			os.write(output, line)
 		
 		# Add outro to output
+		os.write(output, ";Start outro\n")
 		os.write(output, "G91\n")
 		os.write(output, "G0 E-1 F2000\n")
 		os.write(output, "G0 X5 Y5 F2000\n")
 		os.write(output, "G0 E-18 F2000\n")
 		os.write(output, "M104 S0\n")
+		
+		if self.usingMicroPass :
+			os.write(output, "M140 S0\n")
+		
 		if self.maxZExtruder > 60 :
 			if self.maxZExtruder < 110 :
 				os.write(output, "G0 Z3 F2900\n")
@@ -3194,8 +3192,10 @@ class M3DFioPlugin(
 			os.write(output, "G0 Z3 F2900\n")
 			os.write(output, "G90\n")
 			os.write(output, "G0 X95 Y95\n")
+		
 		os.write(output, "M18\n")
 		os.write(output, "M107\n")
+		os.write(output, ";End outro\n")
 		
 		# Close output file
 		os.close(output)
@@ -3487,6 +3487,8 @@ class M3DFioPlugin(
 	def thermalBondingPreprocessor(self, file, overrideWaveBondingPreprocessor = False) :
 	
 		# Initialize variables
+		inIntro = True
+		inOutro = False
 		layerCounter = 0
 		cornerCounter = 0
 		relativeMode = False
@@ -3504,8 +3506,16 @@ class M3DFioPlugin(
 		# Read in input file
 		for line in open(temp) :
 		
-			# Check if not past the second layer and line is a layer command
-			if layerCounter < 2 and ";LAYER:" in line :
+			# Detect end of intro
+			if ";End intro" in line :
+				inIntro = False
+			
+			# Otherwise detect start of outro
+			elif ";Start outro" in line :
+				inOutro = True
+		
+			# Otherwise check if not past the second layer and line is a layer command
+			elif layerCounter < 2 and ";LAYER:" in line :
 				
 				# Check if on first counted layer
 				if layerCounter == 0 :
@@ -3534,8 +3544,8 @@ class M3DFioPlugin(
 			# Check if line was parsed successfully
 			if gcode.parseLine(line) :
 			
-				# Check if command contains temperature or fan controls past the first layer that doesn't turn them off
-				if layerCounter > 0 and gcode.hasValue('M') and gcode.hasValue('S') and gcode.getValue('S') != "0" and (gcode.getValue('M') == "104" or gcode.getValue('M') == "105" or gcode.getValue('M') == "106" or gcode.getValue('M') == "107" or gcode.getValue('M') == "109") :
+				# Check if using preparation pre-processor and command contains temperature or fan controls outside of the intro and outro
+				if self._settings.get_boolean(["UsePreparationPreprocessor"]) and not inIntro and not inOutro and gcode.hasValue('M') and (gcode.getValue('M') == "104" or gcode.getValue('M') == "105" or gcode.getValue('M') == "106" or gcode.getValue('M') == "107" or gcode.getValue('M') == "109" or gcode.getValue('M') == "140" or gcode.getValue('M') == "190") :
 			
 					# Get next line
 					continue
