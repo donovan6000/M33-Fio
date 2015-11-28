@@ -1,5 +1,9 @@
 Changelog:
 
+V0.21 November 28, 2015
+
+	* Fixed a problem that would cause the fan to get turned off right before printing that could result in the extruder having difficulties in extruding hot filament.
+
 V0.20 November 25, 2015
 
 	* Added EEPROM management
