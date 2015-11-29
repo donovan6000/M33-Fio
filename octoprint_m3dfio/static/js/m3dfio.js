@@ -296,7 +296,7 @@ $(function() {
 			message.find("p").text(text);
 	
 			// Set first button if specified
-			var buttons = message.find("button");
+			var buttons = message.find("button.confirm");
 			if(typeof firstButton === "undefined")
 				buttons.eq(0).removeClass("show");
 			else
@@ -316,12 +316,17 @@ $(function() {
 	
 			// Otherwise show button area and hide loading
 			else {
-				$("body > div.page-container > div.message > div > div > div").addClass("show");
+				$("body > div.page-container > div.message > div > div > div:not(.calibrate)").addClass("show");
 				$("body > div.page-container > div.message > div > img").removeClass("show");
+				
+				// Check if preforming a complete calibration
+				if(secondButton == "Done") {
+					$("body > div.page-container > div.message > div > div > div.calibrate").addClass("show");
+				}
 			}
 	
 			// Show message
-			message.addClass("show");
+			message.addClass("show").css("z-index", "99");
 		}
 
 		// Hide message
@@ -329,6 +334,10 @@ $(function() {
 
 			// Hide message
 			$("body > div.page-container > div.message").removeClass("show");
+			
+			setTimeout(function() {
+				$("body > div.page-container > div.message").css("z-index", "-1");
+			}, 300);
 		}
 
 		// Update EEPROM table
@@ -514,30 +523,27 @@ $(function() {
 			}, 1000);
 		}
 		
-		// Add message
-		$("body > div.page-container").append("<div class=\"message\"><div><h4></h4><img src=\"/plugin/m3dfio/static/img/loading.gif\"><div><p></p><div><button class=\"btn btn-block\"></button><button class=\"btn btn-block\"></button></div></div></div></div>");
-		
 		// Add 0.01 movement control
 		$("#control > div.jog-panel").eq(0).addClass("controls").find("div.distance > div").prepend("<button type=\"button\" id=\"control-distance001\" class=\"btn distance\" data-distance=\"0.01\" data-bind=\"enable: loginState.isUser()\">0.01</button>");
-		$("#control > div.jog-panel").eq(0).find("div.distance > div > button:nth-of-type(3)").click();
+		$("#control > div.jog-panel.controls").find("div.distance > div > button:nth-of-type(3)").click();
 	
 		// Change tool section text
 		$("#control > div.jog-panel").eq(1).addClass("extruder").find("h1").text("Extruder").after("<h1 class=\"microPass\">Extruder</h1>");
 
 		// Create motor on control
-		$("#control > div.jog-panel").eq(2).addClass("general").find("div").prepend("<button  class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M17'}) }\">Motors on</button>");
+		$("#control > div.jog-panel").eq(2).addClass("general").find("div").prepend("<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M17'}) }\">Motors on</button>");
 	
 		// Create absolute and relative controls
-		$("#control > div.jog-panel").eq(2).find("div").append("<button  class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'G90'}) }\">Absolute mode</button><button  class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'G91'}) }\">Relative mode</button>");
+		$("#control > div.jog-panel.general").find("div").append("<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'G90'}) }\">Absolute mode</button><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'G91'}) }\">Relative mode</button>");
 	
 		// Add filament controls
-		$("#control > div.jog-panel").eq(2).after("<div class=\"jog-panel filament\" style=\"\" data-bind=\"visible: loginState.isUser\"><h1>Filament</h1><div><button  class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Unload</button><button  class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Load</button></div></div>");
+		$("#control > div.jog-panel.general").after("<div class=\"jog-panel filament\" data-bind=\"visible: loginState.isUser\"><h1>Filament</h1><div><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Unload</button><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Load</button></div></div>");
 	
 		// Add calibration controls
-		$("#control > div.jog-panel").eq(3).after("<div class=\"jog-panel calibration\" style=\"\" data-bind=\"visible: loginState.isUser\"><h1>Calibration</h1><div><button  class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Calibrate bed center Z0</button><button  class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Calibrate bed orientation</button><button  class=\"btn btn-block control-box arrow\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><i class=\"icon-arrow-down\"></i></button><button  class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Save Z as front left Z0</button><button  class=\"btn btn-block control-box arrow\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><i class=\"icon-arrow-down\"></i></button><button  class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Save Z as front right Z0</button><button  class=\"btn btn-block control-box arrow\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><i class=\"icon-arrow-up\"></i></button><button  class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Save Z as back right Z0</button><button  class=\"btn btn-block control-box arrow\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><i class=\"icon-arrow-up\"></i></button><button  class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Save Z as back left Z0</button><button  class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Save Z as bed center Z0</button><button  class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Print test border</button></div></div>");
+		$("#control > div.jog-panel.filament").after("<div class=\"jog-panel calibration\" data-bind=\"visible: loginState.isUser\"><h1>Calibration</h1><div><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Calibrate bed center Z0</button><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Calibrate bed orientation</button><button class=\"btn btn-block control-box arrow\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><i class=\"icon-arrow-down\"></i></button><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Save Z as front left Z0</button><button class=\"btn btn-block control-box arrow\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><i class=\"icon-arrow-down\"></i></button><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Save Z as front right Z0</button><button class=\"btn btn-block control-box arrow\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><i class=\"icon-arrow-up\"></i></button><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Save Z as back right Z0</button><button class=\"btn btn-block control-box arrow\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><i class=\"icon-arrow-up\"></i></button><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Save Z as back left Z0</button><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Save Z as bed center Z0</button><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Print test border</button><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Complete bed calibration</button></div></div>");
 	
 		// Add advanced controls
-		$("#control > div.jog-panel").eq(4).after("<div class=\"jog-panel advanced\" style=\"\" data-bind=\"visible: loginState.isUser\"><h1>Advanced</h1><div><button  class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><img src=\"/plugin/m3dfio/static/img/HengLiXin.png\">HengLiXin fan</button><button  class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><img src=\"/plugin/m3dfio/static/img/Listener.png\">Listener fan</button><button  class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><img src=\"/plugin/m3dfio/static/img/Shenzhew.png\">Shenzhew fan</button><button  class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><img src=\"/plugin/m3dfio/static/img/Xinyujie.png\">Xinyujie fan</button><button  class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">500mA extruder current</button><button  class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">660mA extruder current</button><button  class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Update firmware</button><input type=\"file\" accept=\".rom, .bin, .hex\"></div></div>");
+		$("#control > div.jog-panel.calibration").after("<div class=\"jog-panel advanced\" data-bind=\"visible: loginState.isUser\"><h1>Advanced</h1><div><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><img src=\"/plugin/m3dfio/static/img/HengLiXin.png\">HengLiXin fan</button><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><img src=\"/plugin/m3dfio/static/img/Listener.png\">Listener fan</button><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><img src=\"/plugin/m3dfio/static/img/Shenzhew.png\">Shenzhew fan</button><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><img src=\"/plugin/m3dfio/static/img/Xinyujie.png\">Xinyujie fan</button><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">500mA extruder current</button><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">660mA extruder current</button><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Update firmware</button><input type=\"file\" accept=\".rom, .bin, .hex\"></div></div>");
 		
 		
 		// Create EEPROM table
@@ -568,10 +574,46 @@ $(function() {
 		table += "</tr>";
 		
 		// Add EEPROM controls
-		$("#control > div.jog-panel").eq(5).after("<div class=\"jog-panel eeprom\" style=\"\" data-bind=\"visible: loginState.isUser\"><h1>EEPROM</h1><div><table><tbody>" + table + "</tbody></table><input data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\" type=\"radio\" name=\"display\" value=\"hexadecimal\" checked><label>Hexadecimal</label><input data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\" type=\"radio\" name=\"display\" value=\"decimal\"><label>Decimal</label><input data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\" type=\"radio\" name=\"display\" value=\"ascii\"><label>ASCII</label><br><button  class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Read EEPROM</button><button  class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Write EEPROM</button></div></div>");
+		$("#control > div.jog-panel.advanced").after("<div class=\"jog-panel eeprom\" data-bind=\"visible: loginState.isUser\"><h1>EEPROM</h1><div><table><tbody>" + table + "</tbody></table><input data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\" type=\"radio\" name=\"display\" value=\"hexadecimal\" checked><label>Hexadecimal</label><input data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\" type=\"radio\" name=\"display\" value=\"decimal\"><label>Decimal</label><input data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\" type=\"radio\" name=\"display\" value=\"ascii\"><label>ASCII</label><br><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Read EEPROM</button><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Write EEPROM</button></div></div>");
 	
 		// Add temperature controls
-		$("#control > div.jog-panel").eq(1).find("div > button:nth-of-type(3)").after("<div style=\"width: 114px;\" class=\"slider slider-horizontal\"><div class=\"slider-track\"><div style=\"left: 0%; width: 0%;\" class=\"slider-selection\"></div><div style=\"left: 0%;\" class=\"slider-handle round\"></div><div style=\"left: 0%;\" class=\"slider-handle round hide\"></div></div><div style=\"top: -24px; left: -19px;\" class=\"tooltip top hide\"><div class=\"tooltip-arrow\"></div><div class=\"tooltip-inner\"></div></div><input style=\"width: 100px;\" data-bind=\"slider: {min: 100, max: 235, step: 1, value: flowRate, tooltip: 'hide'}\" type=\"number\"></div><button  class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && loginState.isUser()\">Temperature:<span data-bind=\"text: flowRate() + 50 + '°C'\"></span></button><button  class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M104 S0'}) }\">Heater off</button><div class=\"microPass\"><h1 class=\"microPass\">Heat Bed</h1><div style=\"width: 114px;\" class=\"slider slider-horizontal\"><div class=\"slider-track\"><div style=\"left: 0%; width: 0%;\" class=\"slider-selection\"></div><div style=\"left: 0%;\" class=\"slider-handle round\"></div><div style=\"left: 0%;\" class=\"slider-handle round hide\"></div></div><div style=\"top: -24px; left: -19px;\" class=\"tooltip top hide\"><div class=\"tooltip-arrow\"></div><div class=\"tooltip-inner\"></div></div><input style=\"width: 100px;\" data-bind=\"slider: {min: 100, max: 170, step: 1, value: feedRate, tooltip: 'hide'}\" type=\"number\"></div><button  class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && loginState.isUser()\">Temperature:<span data-bind=\"text: feedRate() -60 + '°C'\"></span></button><button  class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M140 S0'}) }\">Heater off</button><div>");
+		$("#control > div.jog-panel.extruder").find("div > button:nth-of-type(3)").after("<div style=\"width: 114px;\" class=\"slider slider-horizontal\"><div class=\"slider-track\"><div style=\"left: 0%; width: 0%;\" class=\"slider-selection\"></div><div style=\"left: 0%;\" class=\"slider-handle round\"></div><div style=\"left: 0%;\" class=\"slider-handle round hide\"></div></div><div style=\"top: -24px; left: -19px;\" class=\"tooltip top hide\"><div class=\"tooltip-arrow\"></div><div class=\"tooltip-inner\"></div></div><input style=\"width: 100px;\" data-bind=\"slider: {min: 100, max: 235, step: 1, value: flowRate, tooltip: 'hide'}\" type=\"number\"></div><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && loginState.isUser()\">Temperature:<span data-bind=\"text: flowRate() + 50 + '°C'\"></span></button><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M104 S0'}) }\">Heater off</button><div class=\"microPass\"><h1 class=\"microPass\">Heat Bed</h1><div style=\"width: 114px;\" class=\"slider slider-horizontal\"><div class=\"slider-track\"><div style=\"left: 0%; width: 0%;\" class=\"slider-selection\"></div><div style=\"left: 0%;\" class=\"slider-handle round\"></div><div style=\"left: 0%;\" class=\"slider-handle round hide\"></div></div><div style=\"top: -24px; left: -19px;\" class=\"tooltip top hide\"><div class=\"tooltip-arrow\"></div><div class=\"tooltip-inner\"></div></div><input style=\"width: 100px;\" data-bind=\"slider: {min: 100, max: 170, step: 1, value: feedRate, tooltip: 'hide'}\" type=\"number\"></div><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && loginState.isUser()\">Temperature:<span data-bind=\"text: feedRate() -60 + '°C'\"></span></button><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M140 S0'}) }\">Heater off</button><div>");
+		
+		// Add message
+		$("body > div.page-container").append("<div class=\"message\"><div><h4></h4><img src=\"/plugin/m3dfio/static/img/loading.gif\"><div><p></p><div class=\"calibrate\"><div class=\"arrows\"><button class=\"btn btn-block control-box arrow up\"><i class=\"icon-arrow-up\"></i></button><button class=\"btn btn-block control-box arrow down\"><i class=\"icon-arrow-down\"></i></button></div><div class=\"distance\"><button type=\"button\" class=\"btn distance\">0.01</button><button type=\"button\" class=\"btn distance active\">0.1</button><button type=\"button\" class=\"btn distance\">1</button></div></div><div><button class=\"btn btn-block confirm\"></button><button class=\"btn btn-block confirm\"></button></div></div></div>");
+		
+		// Message distance buttons click event
+		$("body > div.page-container > div.message").find("button.distance").click(function() {
+		
+			// Blur self
+			$(this).blur();
+		
+			// Set active button
+			$(this).siblings().removeClass("active");
+			$(this).addClass("active");
+		});
+		
+		// Message arrow buttons click event
+		$("body > div.page-container > div.message").find("button.arrow").click(function() {
+		
+			// Blur self
+			$(this).blur();
+		
+			// Set commands
+			var commands = [
+				"G91\n",
+				"G0 Z" + ($(this).hasClass("down") ? '-' : '') + $("body > div.page-container > div.message").find("button.distance.active").text() + " F100\n"
+			];
+			
+			// Send request
+			$.ajax({
+				url: API_BASEURL + "plugin/m3dfio",
+				type: "POST",
+				dataType: "json",
+				data: JSON.stringify({command: "message", value: commands}),
+				contentType: "application/json; charset=UTF-8"
+			});
+		});
 		
 		// Save settings button event
 		$("#settings_dialog > div.modal-footer > button.btn-primary").click(function() {
@@ -757,7 +799,7 @@ $(function() {
 		});
 	
 		// Override extrude control
-		$("#control > div.jog-panel").eq(1).find("div > button:first-of-type").click(function(event) {
+		$("#control > div.jog-panel.extruder").find("div > button:first-of-type").click(function(event) {
 	
 			// Stop default behavior
 			event.stopImmediatePropagation();
@@ -765,7 +807,7 @@ $(function() {
 			// Set commands
 			var commands = [
 				"G91\n",
-				"G0 E" + ($("#control > div.jog-panel").eq(1).find("div > div:nth-of-type(2) >input").val().length ? $("#control > div.jog-panel").eq(1).find("div > div:nth-of-type(2) >input").val() : '5' ) + " F450\n"
+				"G0 E" + ($("#control > div.jog-panel.extruder").find("div > div:nth-of-type(2) >input").val().length ? $("#control > div.jog-panel.extruder").find("div > div:nth-of-type(2) >input").val() : '5' ) + " F450\n"
 			];
 		
 			// Send request
@@ -779,7 +821,7 @@ $(function() {
 		});
 	
 		// Override retract control
-		$("#control > div.jog-panel").eq(1).find("div > button:nth-of-type(2)").click(function(event) {
+		$("#control > div.jog-panel.extruder").find("div > button:nth-of-type(2)").click(function(event) {
 	
 			// Stop default behavior
 			event.stopImmediatePropagation();
@@ -787,7 +829,7 @@ $(function() {
 			// Set commands
 			var commands = [
 				"G91\n",
-				"G0 E-" + ($("#control > div.jog-panel").eq(1).find("div > div:nth-of-type(2) >input").val().length ? $("#control > div.jog-panel").eq(1).find("div > div:nth-of-type(2) >input").val() : '5' ) + " F450\n"
+				"G0 E-" + ($("#control > div.jog-panel.extruder").find("div > div:nth-of-type(2) >input").val().length ? $("#control > div.jog-panel.extruder").find("div > div:nth-of-type(2) >input").val() : '5' ) + " F450\n"
 			];
 		
 			// Send request
@@ -801,7 +843,7 @@ $(function() {
 		});
 	
 		// Set extruder temperature control
-		$("#control > div.jog-panel").eq(1).find("div > button:nth-of-type(4)").click(function(event) {
+		$("#control > div.jog-panel.extruder").find("div > button:nth-of-type(4)").click(function(event) {
 			
 			// Show message
 			showMessage("Temperature Status", "Warming up");
@@ -838,7 +880,7 @@ $(function() {
 					clearInterval(updateTemperature);
 					
 					// Ok click event
-					$("body > div.page-container > div.message").find("button").eq(1).one("click", function() {
+					$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
 					
 						// Hide message
 						hideMessage();
@@ -851,7 +893,7 @@ $(function() {
 		});
 		
 		// Set heat bed temperature control
-		$("#control > div.jog-panel").eq(1).find("div > div.microPass > button:first-of-type").click(function(event) {
+		$("#control > div.jog-panel.extruder").find("div > div.microPass > button:first-of-type").click(function(event) {
 			
 			// Show message
 			showMessage("Temperature Status", "Warming up");
@@ -888,7 +930,7 @@ $(function() {
 					clearInterval(updateTemperature);
 					
 					// Ok click event
-					$("body > div.page-container > div.message").find("button").eq(1).one("click", function() {
+					$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
 					
 						// Hide message
 						hideMessage();
@@ -901,7 +943,7 @@ $(function() {
 		});
 	
 		// Set unload filament control
-		$("#control > div.jog-panel").eq(3).find("div > button:nth-of-type(1)").click(function(event) {
+		$("#control > div.jog-panel.filament").find("div > button:nth-of-type(1)").click(function(event) {
 			
 			// Show message
 			showMessage("Filament Status", "Warming up");
@@ -963,18 +1005,18 @@ $(function() {
 						success: function(data) {
 							
 							// No click event
-							$("body > div.page-container > div.message").find("button").eq(0).one("click", function() {
+							$("body > div.page-container > div.message").find("button.confirm").eq(0).one("click", function() {
 							
 								// Unload filament again
-								$("body > div.page-container > div.message").find("button").off("click");
-								$("#control > div.jog-panel").eq(3).find("div > button:nth-of-type(1)").click();
+								$("body > div.page-container > div.message").find("button.confirm").off("click");
+								$("#control > div.jog-panel.filament").find("div > button:nth-of-type(1)").click();
 							});
 				
 							// Yes click event
-							$("body > div.page-container > div.message").find("button").eq(1).one("click", function() {
+							$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
 				
 								// Hide message
-								$("body > div.page-container > div.message").find("button").off("click");
+								$("body > div.page-container > div.message").find("button.confirm").off("click");
 								hideMessage();
 							});
 						
@@ -987,7 +1029,7 @@ $(function() {
 		});
 	
 		// Set load filament control
-		$("#control > div.jog-panel").eq(3).find("div > button:nth-of-type(2)").click(function(event) {
+		$("#control > div.jog-panel.filament").find("div > button:nth-of-type(2)").click(function(event) {
 			
 			// Show message
 			showMessage("Filament Status", "Warming up");
@@ -1049,18 +1091,18 @@ $(function() {
 						success: function(data) {
 					
 							// No click event
-							$("body > div.page-container > div.message").find("button").eq(0).one("click", function() {
+							$("body > div.page-container > div.message").find("button.confirm").eq(0).one("click", function() {
 							
 								// Load filament again
-								$("body > div.page-container > div.message").find("button").off("click");
-								$("#control > div.jog-panel").eq(3).find("div > button:nth-of-type(2)").click();
+								$("body > div.page-container > div.message").find("button.confirm").off("click");
+								$("#control > div.jog-panel.filament").find("div > button:nth-of-type(2)").click();
 							});
 				
 							// Yes click event
-							$("body > div.page-container > div.message").find("button").eq(1).one("click", function() {
+							$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
 				
 								// Hide message
-								$("body > div.page-container > div.message").find("button").off("click");
+								$("body > div.page-container > div.message").find("button.confirm").off("click");
 								hideMessage();
 							});
 						
@@ -1073,7 +1115,7 @@ $(function() {
 		});
 	
 		// Set calibrate bed center Z0 control
-		$("#control > div.jog-panel").eq(4).find("div > button:nth-of-type(1)").click(function(event) {
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(1)").click(function(event) {
 			
 			// Show message
 			showMessage("Calibration Status", "Calibrating bed center Z0");
@@ -1105,7 +1147,7 @@ $(function() {
 				success: function(data) {
 			
 					// Ok click event
-					$("body > div.page-container > div.message").find("button").eq(1).one("click", function() {
+					$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
 					
 						// Hide message
 						hideMessage();
@@ -1118,7 +1160,7 @@ $(function() {
 		});
 	
 		// Set calibrate bed orientation control
-		$("#control > div.jog-panel").eq(4).find("div > button:nth-of-type(2)").click(function(event) {
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(2)").click(function(event) {
 			
 			// Show message
 			showMessage("Calibration Status", "Calibrating bed orientation");
@@ -1149,7 +1191,7 @@ $(function() {
 				success: function(data) {
 			
 					// Ok click event
-					$("body > div.page-container > div.message").find("button").eq(1).one("click", function() {
+					$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
 					
 						// Hide message
 						hideMessage();
@@ -1162,7 +1204,7 @@ $(function() {
 		});
 	
 		// Set go to front left
-		$("#control > div.jog-panel").eq(4).find("div > button:nth-of-type(3)").click(function(event) {
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(3)").click(function(event) {
 		
 			// Set commands
 			var commands = [
@@ -1185,7 +1227,7 @@ $(function() {
 		});
 	
 		// Set go to front right
-		$("#control > div.jog-panel").eq(4).find("div > button:nth-of-type(5)").click(function(event) {
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(5)").click(function(event) {
 		
 			// Set commands
 			var commands = [
@@ -1208,7 +1250,7 @@ $(function() {
 		});
 	
 		// Set go to back right
-		$("#control > div.jog-panel").eq(4).find("div > button:nth-of-type(7)").click(function(event) {
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(7)").click(function(event) {
 		
 			// Set commands
 			var commands = [
@@ -1231,7 +1273,7 @@ $(function() {
 		});
 	
 		// Set go to back left
-		$("#control > div.jog-panel").eq(4).find("div > button:nth-of-type(9)").click(function(event) {
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(9)").click(function(event) {
 		
 			// Set commands
 			var commands = [
@@ -1254,7 +1296,7 @@ $(function() {
 		});
 	
 		// Set save Z as front left Z0 control
-		$("#control > div.jog-panel").eq(4).find("div > button:nth-of-type(4)").click(function(event) {
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(4)").click(function(event) {
 			
 			// Show message
 			showMessage("Saving Status", "Saving Z as front left Z0");
@@ -1298,7 +1340,7 @@ $(function() {
 							saveSoftwareSettings();
 			
 							// Ok click event
-							$("body > div.page-container > div.message").find("button").eq(1).one("click", function() {
+							$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
 					
 								// Hide message
 								hideMessage();
@@ -1313,7 +1355,7 @@ $(function() {
 		});
 	
 		// Set save Z as front right Z0 control
-		$("#control > div.jog-panel").eq(4).find("div > button:nth-of-type(6)").click(function(event) {
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(6)").click(function(event) {
 			
 			// Show message
 			showMessage("Saving Status", "Saving Z as front right Z0");
@@ -1357,7 +1399,7 @@ $(function() {
 							saveSoftwareSettings();
 			
 							// Ok click event
-							$("body > div.page-container > div.message").find("button").eq(1).one("click", function() {
+							$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
 					
 								// Hide message
 								hideMessage();
@@ -1372,7 +1414,7 @@ $(function() {
 		});
 	
 		// Set save Z as back right Z0 control
-		$("#control > div.jog-panel").eq(4).find("div > button:nth-of-type(8)").click(function(event) {
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(8)").click(function(event) {
 			
 			// Show message
 			showMessage("Saving Status", "Saving Z as back right Z0");
@@ -1416,7 +1458,7 @@ $(function() {
 							saveSoftwareSettings();
 			
 							// Ok click event
-							$("body > div.page-container > div.message").find("button").eq(1).one("click", function() {
+							$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
 					
 								// Hide message
 								hideMessage();
@@ -1431,7 +1473,7 @@ $(function() {
 		});
 	
 		// Set save Z as back left Z0 control
-		$("#control > div.jog-panel").eq(4).find("div > button:nth-of-type(10)").click(function(event) {
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(10)").click(function(event) {
 			
 			// Show message
 			showMessage("Saving Status", "Saving Z as back left Z0");
@@ -1475,7 +1517,7 @@ $(function() {
 							saveSoftwareSettings();
 			
 							// Ok click event
-							$("body > div.page-container > div.message").find("button").eq(1).one("click", function() {
+							$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
 					
 								// Hide message
 								hideMessage();
@@ -1490,7 +1532,7 @@ $(function() {
 		});
 		
 		// Set save Z as bed center Z0 control
-		$("#control > div.jog-panel").eq(4).find("div > button:nth-of-type(11)").click(function(event) {
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(11)").click(function(event) {
 			
 			// Show message
 			showMessage("Saving Status", "Saving Z as bed center Z0");
@@ -1516,7 +1558,7 @@ $(function() {
 				success: function(data) {
 	
 					// Ok click event
-					$("body > div.page-container > div.message").find("button").eq(1).one("click", function() {
+					$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
 			
 						// Hide message
 						hideMessage();
@@ -1529,7 +1571,7 @@ $(function() {
 		});
 		
 		// Set print test border control
-		$("#control > div.jog-panel").eq(4).find("div > button:nth-of-type(12)").click(function(event) {
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(12)").click(function(event) {
 			
 			// Show message
 			showMessage("Printing Status", "Preparing test border");
@@ -1553,9 +1595,420 @@ $(function() {
 				});
 			}, 1000);
 		});
-	
+		
+		// Complete bed calibration control
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(13)").click(function(event) {
+			
+			// No click event
+			$("body > div.page-container > div.message").find("button.confirm").eq(0).one("click", function() {
+			
+				// Hide message
+				$("body > div.page-container > div.message").find("button.confirm").off("click");
+				hideMessage();
+			});
+
+			// Yes click event
+			$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+
+				// Disable clicking
+				$("body > div.page-container > div.message").find("button.confirm").off("click");
+				
+				// Show message
+				showMessage("Calibration Status", "Calibrating bed center Z0");
+		
+				// Set commands
+				var commands = [
+					"G4 P100\n",
+					"M65537;stop\n",
+					"M104 S0\n",
+					"G91\n",
+					"G0 Y20 Z2 F150\n",
+					"M109 S150\n",
+					"M104 S0\n",
+					"M107\n",
+					"G30\n",
+					"M117\n",
+					"M65536;wait\n"
+				];
+		
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m3dfio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({command: "message", value: commands}),
+					contentType: "application/json; charset=UTF-8",
+			
+					// On success
+					success: function(data) {
+			
+						// Show message
+						showMessage("Calibration Status", "Calibrating bed orientation");
+		
+						// Set commands
+						var commands = [
+							"G4 P100\n",
+							"M65537;stop\n",
+							"M104 S0\n",
+							"G91\n",
+							"G0 Y20 Z2 F150\n",
+							"M109 S150\n",
+							"M104 S0\n",
+							"M107\n",
+							"G32\n",
+							"M65536;wait\n"
+						];
+		
+						// Send request
+						$.ajax({
+							url: API_BASEURL + "plugin/m3dfio",
+							type: "POST",
+							dataType: "json",
+							data: JSON.stringify({command: "message", value: commands}),
+							contentType: "application/json; charset=UTF-8",
+			
+							// On success
+							success: function(data) {
+							
+								// Show message
+								showMessage("Calibration Status", "Calibrating front left offset");
+			
+								// Set commands
+								var commands = [
+									"G4 P100\n",
+									"M65537;stop\n",
+									"G90\n",
+									"G0 Z3 F100\n",
+									"G28\n",
+									"G0 X9 Y5 Z3 F100\n",
+									"M65536;wait\n"
+								];
+		
+								// Send request
+								$.ajax({
+									url: API_BASEURL + "plugin/m3dfio",
+									type: "POST",
+									dataType: "json",
+									data: JSON.stringify({command: "message", value: commands}),
+									contentType: "application/json; charset=UTF-8",
+			
+									// On success
+									success: function(data) {
+									
+										// Done click event
+										$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+		
+											// Set commands
+											var commands = [
+												"M114\n",
+												"M65536;wait\n"
+											];
+		
+											// Send request
+											$.ajax({
+												url: API_BASEURL + "plugin/m3dfio",
+												type: "POST",
+												dataType: "json",
+												data: JSON.stringify({command: "message", value: commands}),
+												contentType: "application/json; charset=UTF-8",
+			
+												// On success
+												success: function(data) {
+			
+													// Set commands
+													commands = [
+														"M618 S19 P" + floatToBinary(currentZ) + '\n',
+														"M619 S19\n",
+														"M65536;wait\n"
+													];
+				
+													// Send request
+													$.ajax({
+														url: API_BASEURL + "plugin/m3dfio",
+														type: "POST",
+														dataType: "json",
+														data: JSON.stringify({command: "message", value: commands}),
+														contentType: "application/json; charset=UTF-8",
+						
+														// On success
+														success: function(data) {
+			
+															// Show message
+															showMessage("Calibration Status", "Calibrating front right offset");
+			
+															// Set commands
+															var commands = [
+																"G4 P100\n",
+																"M65537;stop\n",
+																"G90\n",
+																"G0 Z3 F100\n",
+																"G28\n",
+																"G0 X99 Y5 Z3 F100\n",
+																"M65536;wait\n"
+															];
+		
+															// Send request
+															$.ajax({
+																url: API_BASEURL + "plugin/m3dfio",
+																type: "POST",
+																dataType: "json",
+																data: JSON.stringify({command: "message", value: commands}),
+																contentType: "application/json; charset=UTF-8",
+			
+																// On success
+																success: function(data) {
+									
+																	// Done click event
+																	$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+		
+																		// Set commands
+																		var commands = [
+																			"M114\n",
+																			"M65536;wait\n"
+																		];
+		
+																		// Send request
+																		$.ajax({
+																			url: API_BASEURL + "plugin/m3dfio",
+																			type: "POST",
+																			dataType: "json",
+																			data: JSON.stringify({command: "message", value: commands}),
+																			contentType: "application/json; charset=UTF-8",
+			
+																			// On success
+																			success: function(data) {
+			
+																				// Set commands
+																				commands = [
+																					"M618 S18 P" + floatToBinary(currentZ) + '\n',
+																					"M619 S18\n",
+																					"M65536;wait\n"
+																				];
+				
+																				// Send request
+																				$.ajax({
+																					url: API_BASEURL + "plugin/m3dfio",
+																					type: "POST",
+																					dataType: "json",
+																					data: JSON.stringify({command: "message", value: commands}),
+																					contentType: "application/json; charset=UTF-8",
+						
+																					// On success
+																					success: function(data) {
+			
+																						// Show message
+																						showMessage("Calibration Status", "Calibrating back right offset");
+			
+																						// Set commands
+																						var commands = [
+																							"G4 P100\n",
+																							"M65537;stop\n",
+																							"G90\n",
+																							"G0 Z3 F100\n",
+																							"G28\n",
+																							"G0 X99 Y95 Z3 F100\n",
+																							"M65536;wait\n"
+																						];
+		
+																						// Send request
+																						$.ajax({
+																							url: API_BASEURL + "plugin/m3dfio",
+																							type: "POST",
+																							dataType: "json",
+																							data: JSON.stringify({command: "message", value: commands}),
+																							contentType: "application/json; charset=UTF-8",
+			
+																							// On success
+																							success: function(data) {
+									
+																								// Done click event
+																								$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+		
+																									// Set commands
+																									var commands = [
+																										"M114\n",
+																										"M65536;wait\n"
+																									];
+		
+																									// Send request
+																									$.ajax({
+																										url: API_BASEURL + "plugin/m3dfio",
+																										type: "POST",
+																										dataType: "json",
+																										data: JSON.stringify({command: "message", value: commands}),
+																										contentType: "application/json; charset=UTF-8",
+			
+																										// On success
+																										success: function(data) {
+			
+																											// Set commands
+																											commands = [
+																												"M618 S17 P" + floatToBinary(currentZ) + '\n',
+																												"M619 S17\n",
+																												"M65536;wait\n"
+																											];
+				
+																											// Send request
+																											$.ajax({
+																												url: API_BASEURL + "plugin/m3dfio",
+																												type: "POST",
+																												dataType: "json",
+																												data: JSON.stringify({command: "message", value: commands}),
+																												contentType: "application/json; charset=UTF-8",
+						
+																												// On success
+																												success: function(data) {
+			
+																													// Show message
+																													showMessage("Calibration Status", "Calibrating back left offset");
+			
+																													// Set commands
+																													var commands = [
+																														"G4 P100\n",
+																														"M65537;stop\n",
+																														"G90\n",
+																														"G0 Z3 F100\n",
+																														"G28\n",
+																														"G0 X9 Y95 Z3 F100\n",
+																														"M65536;wait\n"
+																													];
+		
+																													// Send request
+																													$.ajax({
+																														url: API_BASEURL + "plugin/m3dfio",
+																														type: "POST",
+																														dataType: "json",
+																														data: JSON.stringify({command: "message", value: commands}),
+																														contentType: "application/json; charset=UTF-8",
+			
+																														// On success
+																														success: function(data) {
+									
+																															// Done click event
+																															$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+		
+																																// Set commands
+																																var commands = [
+																																	"M114\n",
+																																	"M65536;wait\n"
+																																];
+		
+																																// Send request
+																																$.ajax({
+																																	url: API_BASEURL + "plugin/m3dfio",
+																																	type: "POST",
+																																	dataType: "json",
+																																	data: JSON.stringify({command: "message", value: commands}),
+																																	contentType: "application/json; charset=UTF-8",
+			
+																																	// On success
+																																	success: function(data) {
+			
+																																		// Set commands
+																																		commands = [
+																																			"M618 S16 P" + floatToBinary(currentZ) + '\n',
+																																			"M619 S16\n",
+																																			"M65536;wait\n"
+																																		];
+				
+																																		// Send request
+																																		$.ajax({
+																																			url: API_BASEURL + "plugin/m3dfio",
+																																			type: "POST",
+																																			dataType: "json",
+																																			data: JSON.stringify({command: "message", value: commands}),
+																																			contentType: "application/json; charset=UTF-8",
+						
+																																			// On success
+																																			success: function(data) {
+			
+																																				// Set commands
+																																				commands = [
+																																					"G4 P100\n",
+																																					"M65537;stop\n",
+																																					"G90\n",
+																																					"G28\n",
+																																					"M18\n",
+																																					"M65536;wait\n"
+																																				];
+				
+																																				// Send request
+																																				$.ajax({
+																																					url: API_BASEURL + "plugin/m3dfio",
+																																					type: "POST",
+																																					dataType: "json",
+																																					data: JSON.stringify({command: "message", value: commands}),
+																																					contentType: "application/json; charset=UTF-8",
+						
+																																					// On success
+																																					success: function(data) {
+																																					
+																																						// Save software settings
+																																						saveSoftwareSettings();
+			
+																																						// Ok click event
+																																						$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+					
+																																							// Hide message
+																																							hideMessage();
+																																						});
+				
+																																						// Show message
+																																						showMessage("Calibration Status", "Done", "Ok");
+																																					}
+																																				});
+																																			}
+																																		});
+																																	}
+																																});
+																															});
+		
+																															// Show message
+																															showMessage("Calibration Status", "Lower the print head until it barely touches the bed. One way to get to that point is to place a single sheet of paper on the bed under the print head, and lower the print head until the paper can no longer be moved.", "Done");
+																														}
+																													});
+																												}
+																											});
+																										}
+																									});
+																								});
+		
+																								// Show message
+																								showMessage("Calibration Status", "Lower the print head until it barely touches the bed. One way to get to that point is to place a single sheet of paper on the bed under the print head, and lower the print head until the paper can no longer be moved.", "Done");
+																							}
+																						});
+																					}
+																				});
+																			}
+																		});
+																	});
+		
+																	// Show message
+																	showMessage("Calibration Status", "Lower the print head until it barely touches the bed. One way to get to that point is to place a single sheet of paper on the bed under the print head, and lower the print head until the paper can no longer be moved.", "Done");
+																}
+															});
+														}
+													});
+												}
+											});
+										});
+		
+										// Show message
+										showMessage("Calibration Status", "Lower the print head until it barely touches the bed. One way to get to that point is to place a single sheet of paper on the bed under the print head, and lower the print head until the paper can no longer be moved.", "Done");
+									}
+								});
+							}
+						});
+					}
+				});
+			});
+		
+			// Show message
+			showMessage("Calibration Status", "This process can take a while to complete and will require your input during some steps. Proceed?", "Yes", "No");
+		});
+		
 		// Set HengLiXin fan control
-		$("#control > div.jog-panel").eq(5).find("div > button:nth-of-type(1)").click(function(event) {
+		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(1)").click(function(event) {
 			
 			// Show message
 			showMessage("Fan Status", "Setting fan to HengLiXin");
@@ -1572,7 +2025,7 @@ $(function() {
 				success: function(data) {
 			
 					// Ok click event
-					$("body > div.page-container > div.message").find("button").eq(1).one("click", function() {
+					$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
 			
 						// Hide message
 						hideMessage();
@@ -1585,7 +2038,7 @@ $(function() {
 		});
 	
 		// Set Listener fan control
-		$("#control > div.jog-panel").eq(5).find("div > button:nth-of-type(2)").click(function(event) {
+		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(2)").click(function(event) {
 			
 			// Show message
 			showMessage("Fan Status", "Setting fan to Listener");
@@ -1602,7 +2055,7 @@ $(function() {
 				success: function(data) {
 				
 					// Ok click event
-					$("body > div.page-container > div.message").find("button").eq(1).one("click", function() {
+					$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
 			
 						// Hide message
 						hideMessage();
@@ -1615,7 +2068,7 @@ $(function() {
 		});
 	
 		// Set Shenzhew fan control
-		$("#control > div.jog-panel").eq(5).find("div > button:nth-of-type(3)").click(function(event) {
+		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(3)").click(function(event) {
 			
 			// Show message
 			showMessage("Fan Status", "Setting fan to Shenzhew");
@@ -1633,7 +2086,7 @@ $(function() {
 				success: function(data) {
 			
 					// Ok click event
-					$("body > div.page-container > div.message").find("button").eq(1).one("click", function() {
+					$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
 			
 						// Hide message
 						hideMessage();
@@ -1646,7 +2099,7 @@ $(function() {
 		});
 		
 		// Set Xinyujie fan control
-		$("#control > div.jog-panel").eq(5).find("div > button:nth-of-type(4)").click(function(event) {
+		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(4)").click(function(event) {
 			
 			// Show message
 			showMessage("Fan Status", "Setting fan to Xinyujie");
@@ -1663,7 +2116,7 @@ $(function() {
 				success: function(data) {
 			
 					// Ok click event
-					$("body > div.page-container > div.message").find("button").eq(1).one("click", function() {
+					$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
 			
 						// Hide message
 						hideMessage();
@@ -1676,7 +2129,7 @@ $(function() {
 		});
 	
 		// Set 500mA extruder current control
-		$("#control > div.jog-panel").eq(5).find("div > button:nth-of-type(5)").click(function(event) {
+		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(5)").click(function(event) {
 			
 			// Show message
 			showMessage("Extruder Status", "Setting extruder current to 500mA");
@@ -1693,7 +2146,7 @@ $(function() {
 				success: function(data) {
 			
 					// Ok click event
-					$("body > div.page-container > div.message").find("button").eq(1).one("click", function() {
+					$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
 			
 						// Hide message
 						hideMessage();
@@ -1706,7 +2159,7 @@ $(function() {
 		});
 	
 		// Set 660mA extruder current control
-		$("#control > div.jog-panel").eq(5).find("div > button:nth-of-type(6)").click(function(event) {
+		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(6)").click(function(event) {
 			
 			// Show message
 			showMessage("Extruder Status", "Setting extruder current to 660mA");
@@ -1723,7 +2176,7 @@ $(function() {
 				success: function(data) {
 			
 					// Ok click event
-					$("body > div.page-container > div.message").find("button").eq(1).one("click", function() {
+					$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
 			
 						// Hide message
 						hideMessage();
@@ -1736,14 +2189,14 @@ $(function() {
 		});
 	
 		// Set update firmware control
-		$("#control > div.jog-panel").eq(5).find("div > button:nth-of-type(7)").click(function(event) {
+		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(7)").click(function(event) {
 	
 			// Open file input dialog
-			$("#control > div.jog-panel").eq(5).find("div > input").click();
+			$("#control > div.jog-panel.advanced").find("div > input").click();
 		});
 		
 		// On update firmware input change
-		$("#control > div.jog-panel").eq(5).find("div > input").change(function(event) {
+		$("#control > div.jog-panel.advanced").find("div > input").change(function(event) {
 	
 			// Initialize variables
 			var file = this.files[0];
@@ -1755,7 +2208,7 @@ $(function() {
 			if(!file.name.length) {
 		
 				// Ok click event
-				$("body > div.page-container > div.message").find("button").eq(1).one("click", function() {
+				$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
 		
 					// Hide message
 					hideMessage();
@@ -1776,7 +2229,7 @@ $(function() {
 						break;
 					
 					// Ok click event
-					$("body > div.page-container > div.message").find("button").eq(1).one("click", function() {
+					$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
 		
 						// Hide message
 						hideMessage();
@@ -1793,7 +2246,7 @@ $(function() {
 				if(file.name[index] < '0' || file.name[index] > '9' || (index == file.name.length - 1 && index < 9)) {
 			
 					// Ok click event
-					$("body > div.page-container > div.message").find("button").eq(1).one("click", function() {
+					$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
 		
 						// Hide message
 						hideMessage();
@@ -1811,7 +2264,7 @@ $(function() {
 			if(file.size > 32768) {
 
 				// Ok click event
-				$("body > div.page-container > div.message").find("button").eq(1).one("click", function() {
+				$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
 		
 					// Hide message
 					hideMessage();
@@ -1846,7 +2299,7 @@ $(function() {
 						success: function(data) {
 			
 							// Ok click event
-							$("body > div.page-container > div.message").find("button").eq(1).one("click", function() {
+							$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
 			
 								// Hide message
 								hideMessage();
@@ -1861,7 +2314,7 @@ $(function() {
 		});
 		
 		// Change EEPROM display control
-		$("#control > div.jog-panel").eq(6).find("input[type=\"radio\"]").click(function() {
+		$("#control > div.jog-panel.eeprom").find("input[type=\"radio\"]").click(function() {
 		
 			// Update EEPROM table
 			updateEepromTable();
@@ -1871,7 +2324,7 @@ $(function() {
 		});
 		
 		// Read EEPROM control
-		$("#control > div.jog-panel").eq(6).find("div > button:nth-of-type(1)").click(function(event) {
+		$("#control > div.jog-panel.eeprom").find("div > button:nth-of-type(1)").click(function(event) {
 			
 			// Show message
 			showMessage("EEPROM Status", "Reading EEPROM");
@@ -1888,7 +2341,7 @@ $(function() {
 				success: function(data) {
 			
 					// Ok click event
-					$("body > div.page-container > div.message").find("button").eq(1).one("click", function() {
+					$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
 	
 						// Hide message
 						hideMessage();
@@ -1901,7 +2354,7 @@ $(function() {
 		});
 		
 		// Write EEPROM control
-		$("#control > div.jog-panel").eq(6).find("div > button:nth-of-type(2)").click(function(event) {
+		$("#control > div.jog-panel.eeprom").find("div > button:nth-of-type(2)").click(function(event) {
 			
 			// Initialzie EEPROM
 			var eeprom = "";
@@ -1941,7 +2394,7 @@ $(function() {
 			if(!eeprom.length) {
 			
 				// Ok click event
-				$("body > div.page-container > div.message").find("button").eq(1).one("click", function() {
+				$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
 	
 					// Hide message
 					hideMessage();
@@ -1969,7 +2422,7 @@ $(function() {
 					success: function(data) {
 			
 						// Ok click event
-						$("body > div.page-container > div.message").find("button").eq(1).one("click", function() {
+						$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
 	
 							// Hide message
 							hideMessage();
@@ -2027,8 +2480,8 @@ $(function() {
 			
 				// Clear printer connected
 				printerConnected = false;
-				$("#control > div.jog-panel").eq(5).find("div > button").removeClass("current");
-				$("#control > div.jog-panel").eq(5).find("div > button:nth-of-type(7)").text("Update firmware");
+				$("#control > div.jog-panel.advanced").find("div > button").removeClass("current");
+				$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(7)").text("Update firmware");
 				$("#control > div.jog-panel.eeprom table input").val(eepromDisplayType == "ascii" ? "?" : (eepromDisplayType == "decimal" ? "???" : "??"));
 			}
 			
@@ -2037,7 +2490,7 @@ $(function() {
 			
 				// Display heat bed controls
 				$("#control .microPass").css("display", "block");
-				$("#control > div.jog-panel").eq(1).find("h1:not(.microPass)").text("Tools");
+				$("#control > div.jog-panel.extruder").find("h1:not(.microPass)").text("Tools");
 			}
 			
 			// Otherwise check if data is that a Micro Pass isn't connected
@@ -2045,7 +2498,7 @@ $(function() {
 			
 				// Hide heat bed controls
 				$("#control .microPass").css("display", "none");
-				$("#control > div.jog-panel").eq(1).find("h1:not(.microPass)").text("Extruder");
+				$("#control > div.jog-panel.extruder").find("h1:not(.microPass)").text("Extruder");
 			}
 			
 			// Otherwise check if data is current Z
@@ -2092,7 +2545,7 @@ $(function() {
 				// Display error message
 				new PNotify({
 				    title: data.title,
-				    text: "<p>" + data.text + "</p><div class=\"pnotify_additional_info\"><div class=\"pnotify_more\"><a href=\"#\" onclick=\"$(this).children().toggleClass('icon-caret-right icon-caret-down').parent().parent().next().slideToggle('fast')\">More <i class=\"icon-caret-right\"></i></a></div><div class=\"pnotify_more_container hide\"><pre><!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2 Final//EN\"><title>500 Internal Server Error</title><h1>Internal Server Error</h1><p>The server encountered an internal error and was unable to complete your request.  Either the server is overloaded or there is an error in the application.</p></pre></div></div>",
+				    text: "<p>" + data.text + "</p><div class=\"pnotify_additional_info\"><div class=\"pnotify_more\"><a href=\"#\" onclick=\"$(this).children().toggleClass('icon-caret-right icon-caret-down').parent().parent().next().slideToggle('fast')\">More <i class=\"icon-caret-right\"></i></a></div><div class=\"pnotify_more_container hide\"><pre><!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2 Final//EN\"><title>500 Internal Server Error</title><h1>Internal Server Error</h1><p>The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.</p></pre></div></div>",
 				    type: "error",
 				    hide: false
 				});
@@ -2117,23 +2570,218 @@ $(function() {
 				updateEepromTable(data.eeprom);
 				
 				// Remove current indicators from buttons
-				$("#control > div.jog-panel").eq(5).find("div > button").removeClass("current");
+				$("#control > div.jog-panel.advanced").find("div > button").removeClass("current");
 				
 				// Indicate current fan type
 				var fanType = (parseInt(data.eeprom[0x2AB * 2], 16) << 4) | parseInt(data.eeprom[0x2AB * 2 + 1], 16);
 				if(fanType >= 1 && fanType <= 4)
-					$("#control > div.jog-panel").eq(5).find("div > button:nth-of-type(" + fanType + ")").addClass("current");
+					$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(" + fanType + ")").addClass("current");
 					
 				// Indicate current extruder current
 				var extruderCurrent = ((parseInt(data.eeprom[0x2E8 * 2], 16) << 4) | parseInt(data.eeprom[0x2E8 * 2 + 1], 16)) | (((parseInt(data.eeprom[0x2E9 * 2], 16) << 4) | parseInt(data.eeprom[0x2E9 * 2 + 1], 16)) << 8)
 				if(extruderCurrent == 500)
-					$("#control > div.jog-panel").eq(5).find("div > button:nth-of-type(5)").addClass("current");
+					$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(5)").addClass("current");
 				else if(extruderCurrent == 660)
-					$("#control > div.jog-panel").eq(5).find("div > button:nth-of-type(6)").addClass("current");
+					$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(6)").addClass("current");
 				
 				var firmwareVersion = ((parseInt(data.eeprom[0], 16) << 4) | parseInt(data.eeprom[1], 16)) | (((parseInt(data.eeprom[2], 16) << 4) | parseInt(data.eeprom[3], 16)) << 8) | (((parseInt(data.eeprom[4], 16) << 4) | parseInt(data.eeprom[5], 16)) << 16) | (((parseInt(data.eeprom[6], 16) << 4) | parseInt(data.eeprom[7], 16)) << 24);
 				
-				$("#control > div.jog-panel").eq(5).find("div > button:nth-of-type(7)").html("Update firmware<span>Currently Using: " + firmwareVersion + "</span>");
+				$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(7)").html("Update firmware<span>Currently Using: " + firmwareVersion + "</span>");
+			}
+			
+			// Otherwise check if data is invalid values
+			else if(data.value == "Invalid" && typeof data.bedCenter !== "undefined" && typeof data.bedOrientation !== "undefined") {
+			
+				// Check if bed center is invalid
+				if(data.bedCenter) {
+				
+					// No click event
+					$("body > div.page-container > div.message").find("button.confirm").eq(0).one("click", function() {
+					
+						// Hide message
+						$("body > div.page-container > div.message").find("button.confirm").off("click");
+						hideMessage();
+					});
+		
+					// Yes click event
+					$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+		
+						// Disable clicking
+						$("body > div.page-container > div.message").find("button.confirm").off("click");
+						
+						// Show message
+						showMessage("Error Status", "Calibrating bed center Z0");
+		
+						// Set commands
+						var commands = [
+							"G4 P100\n",
+							"M65537;stop\n",
+							"M104 S0\n",
+							"G91\n",
+							"G0 Y20 Z2 F150\n",
+							"M109 S150\n",
+							"M104 S0\n",
+							"M107\n",
+							"G30\n",
+							"M117\n",
+							"M65536;wait\n"
+						];
+		
+						// Send request
+						$.ajax({
+							url: API_BASEURL + "plugin/m3dfio",
+							type: "POST",
+							dataType: "json",
+							data: JSON.stringify({command: "message", value: commands}),
+							contentType: "application/json; charset=UTF-8",
+			
+							// On success
+							success: function(data) {
+							
+								// Check if bed orientation is invalid
+								if(data.bedOrientation) {
+				
+									// No click event
+									$("body > div.page-container > div.message").find("button.confirm").eq(0).one("click", function() {
+					
+										// Hide message
+										$("body > div.page-container > div.message").find("button.confirm").off("click");
+										hideMessage();
+									});
+		
+									// Yes click event
+									$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+		
+										// Disable clicking
+										$("body > div.page-container > div.message").find("button.confirm").off("click");
+						
+										// Show message
+										showMessage("Error Status", "Calibrating bed orientation");
+		
+										// Set commands
+										var commands = [
+											"G4 P100\n",
+											"M65537;stop\n",
+											"M104 S0\n",
+											"G91\n",
+											"G0 Y20 Z2 F150\n",
+											"M109 S150\n",
+											"M104 S0\n",
+											"M107\n",
+											"G32\n",
+											"M65536;wait\n"
+										];
+		
+										// Send request
+										$.ajax({
+											url: API_BASEURL + "plugin/m3dfio",
+											type: "POST",
+											dataType: "json",
+											data: JSON.stringify({command: "message", value: commands}),
+											contentType: "application/json; charset=UTF-8",
+			
+											// On success
+											success: function(data) {
+			
+												// Ok click event
+												$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+					
+													// Hide message
+													hideMessage();
+												});
+				
+												// Show message
+												showMessage("Error Status", "Done", "Ok");
+											}
+										});
+									});
+					
+									// Display message
+									showMessage("Error Status", "Invalid bed orientation. Calibrate?", "Yes", "No");
+								}
+								
+								// Otherwise
+								else {
+			
+									// Ok click event
+									$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+					
+										// Hide message
+										hideMessage();
+									});
+				
+									// Show message
+									showMessage("Error Status", "Done", "Ok");
+								}
+							}
+						});
+					});
+					
+					// Display message
+					showMessage("Error Status", "Invalid bed center Z0. Calibrate?", "Yes", "No");
+				}
+				
+				// Otherwise check if bed orientation is invalid
+				else if(data.bedOrientation) {
+				
+					// No click event
+					$("body > div.page-container > div.message").find("button.confirm").eq(0).one("click", function() {
+					
+						// Hide message
+						$("body > div.page-container > div.message").find("button.confirm").off("click");
+						hideMessage();
+					});
+					
+					// Yes click event
+					$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+		
+						// Disable clicking
+						$("body > div.page-container > div.message").find("button.confirm").off("click");
+						
+						// Show message
+						showMessage("Error Status", "Calibrating bed orientation");
+		
+						// Set commands
+						var commands = [
+							"G4 P100\n",
+							"M65537;stop\n",
+							"M104 S0\n",
+							"G91\n",
+							"G0 Y20 Z2 F150\n",
+							"M109 S150\n",
+							"M104 S0\n",
+							"M107\n",
+							"G32\n",
+							"M65536;wait\n"
+						];
+		
+						// Send request
+						$.ajax({
+							url: API_BASEURL + "plugin/m3dfio",
+							type: "POST",
+							dataType: "json",
+							data: JSON.stringify({command: "message", value: commands}),
+							contentType: "application/json; charset=UTF-8",
+			
+							// On success
+							success: function(data) {
+			
+								// Ok click event
+								$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+					
+									// Hide message
+									hideMessage();
+								});
+				
+								// Show message
+								showMessage("Error Status", "Done", "Ok");
+							}
+						});
+					});
+					
+					// Display message
+					showMessage("Error Status", "Invalid bed orientation. Calibrate?", "Yes", "No");
+				}
 			}
 			
 			// Otherwise check if data is a status error message
@@ -2143,10 +2791,10 @@ $(function() {
 				if(typeof data.response !== "undefined") {
 				
 					// Yes or no click event
-					$("body > div.page-container > div.message").find("button").one("click", function() {
+					$("body > div.page-container > div.message").find("button.confirm").one("click", function() {
 		
 						// Disable clicking
-						$("body > div.page-container > div.message").find("button").off("click");
+						$("body > div.page-container > div.message").find("button.confirm").off("click");
 						
 						// Hide message is no was clicked
 						if($(this).text() == "No")
@@ -2170,7 +2818,7 @@ $(function() {
 				else if(typeof data.confirm !== "undefined") {
 				
 					// Ok click event
-					$("body > div.page-container > div.message").find("button").eq(1).one("click", function() {
+					$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
 
 						// Hide message
 						hideMessage();

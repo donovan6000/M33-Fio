@@ -58,6 +58,8 @@ class M3DFioPlugin(
 		self.sharedLibrary = None
 		self.eeprom = None
 		self.messageResponse = None
+		self.invalidBedCenter = False
+		self.invalidBedOrientation = False
 		
 		# Check if running on Linux
 		if platform.uname()[0].startswith("Linux") :
@@ -1844,6 +1846,10 @@ class M3DFioPlugin(
 			# Check if a Micro M3D is connected
 			if not self.invalidPrinter :
 			
+				# Clear invalid values
+				self.invalidBedCenter = None
+				self.invalidBedOrientation = None
+			
 				# Request printer settings
 				self._printer.commands([
 					"M117\n",
@@ -1870,7 +1876,9 @@ class M3DFioPlugin(
 		
 			# Send invalid Z
 			if data[data.find("ZV:") + 3] == '0' :
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Bed center Z0 is invalid", confirm = True))
+			
+				# Set invalid bed center
+				self.invalidBedCenter = True
 		
 		# Otherwise check if data contains current Z
 		elif "Z:" in data :
@@ -1961,7 +1969,9 @@ class M3DFioPlugin(
 				
 					# Send invalid bed orientation
 					if self.printerBackRightOrientation == 0 and self.printerBackLeftOrientation == 0 and self.printerFrontLeftOrientation == 0 and self.printerFrontRightOrientation == 0 :
-						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Bed orientation is invalid", confirm = True))
+					
+						# Set invalid bed orientation
+						self.invalidBedOrientation = True
 				
 			# Otherwise check if data is for filament type
 			elif "PT:7 " in data :
@@ -2075,9 +2085,11 @@ class M3DFioPlugin(
 			# Otherwise check if data is for G32 version
 			elif "PT:23 " in data :
 			
-				# Send invalid bed orientation
-				if data[data.find("DT:") + 3 :] == '0' :
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Bed orientation is invalid", confirm = True))
+				# Send invalid bed orientation and calibration question hasn't already been asked
+				if data[data.find("DT:") + 3 :] == '0' and self.calibrateBedOrientation != None :
+				
+					# Set invalid bed orientation
+					self.invalidBedOrientation = True
 				
 				# Check if not automatically collecting settings from printer
 				if not self._settings.get_boolean(["AutomaticallyObtainSettings"]) :
@@ -2090,7 +2102,10 @@ class M3DFioPlugin(
 				
 					# Save software settings
 					self.saveSoftwareSettings()
-	
+				
+				# Send invalid values
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Invalid", bedCenter = self.invalidBedCenter, bedOrientation = self.invalidBedOrientation))
+					
 	# Get save commands
 	def getSaveCommands(self) :
 	
