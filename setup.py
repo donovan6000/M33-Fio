@@ -6,8 +6,8 @@ import setuptools
 plugin_identifier = "m3dfio"
 plugin_package = "octoprint_%s" % plugin_identifier
 plugin_name = "OctoPrint-M3DFio"
-plugin_version = "0.21"
-plugin_description = "Allows communication with the Micro 3D printer and processes all uploaded/sliced G-code through a pre-processor"
+plugin_version = "0.22"
+plugin_description = "Allows the Micro 3D printer to work with OctoPrint"
 plugin_author = "donovan6000"
 plugin_author_email = "donovan6000@exploitkings.com"
 plugin_url = "http://www.exploitkings.com"

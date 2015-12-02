@@ -532,7 +532,12 @@ $(function() {
 
 		// Create motor on control
 		$("#control > div.jog-panel").eq(2).addClass("general").find("div").prepend("<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M17'}) }\">Motors on</button>");
-	
+		
+		// Change fan controls
+		$("#control > div.jog-panel.general").find("button:nth-of-type(2)").after("<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M106 S255 *'}) }\">Fan on</button><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M107 *'}) }\">Fan off</button>")
+		$("#control > div.jog-panel.general").find("button:nth-of-type(5)").remove();
+		$("#control > div.jog-panel.general").find("button:nth-of-type(5)").remove();
+		
 		// Create absolute and relative controls
 		$("#control > div.jog-panel.general").find("div").append("<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'G90'}) }\">Absolute mode</button><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'G91'}) }\">Relative mode</button>");
 	
@@ -845,25 +850,36 @@ $(function() {
 		// Set extruder temperature control
 		$("#control > div.jog-panel.extruder").find("div > button:nth-of-type(4)").click(function(event) {
 			
-			// Show message
-			showMessage("Temperature Status", "Warming up");
+			// Check if not printing
+			if(self.printerState.isPrinting() !== true) {
 			
-			// Set commands
-			var commands = [
-				"M109 S" + parseInt($(this).text().substr(12)) + '\n',
-				"G4 S2\n"
-			];
-			
-			// Add wait command if not printing
-			if(self.printerState.isPrinting() !== true)
-				commands.push("M65536;wait\n");
-			
-			// Display temperature
-			var updateTemperature = setInterval(function() {
+				// Set commands
+				var commands = [
+					"M109 S" + parseInt($(this).text().substr(12)) + ' *\n',
+					"G4 S2\n"
+				];
 			
 				// Show message
-				showMessage("Temperature Status", "Warming up: " + self.temperature.temperatures.tool0.actual[self.temperature.temperatures.tool0.actual.length - 1][1] + "°C");
-			}, 1000);
+				showMessage("Temperature Status", "Warming up");
+			
+				// Add wait command
+				commands.push("M65536;wait\n");
+			
+				// Display temperature
+				var updateTemperature = setInterval(function() {
+			
+					// Show message
+					showMessage("Temperature Status", "Warming up: " + self.temperature.temperatures.tool0.actual[self.temperature.temperatures.tool0.actual.length - 1][1] + "°C");
+				}, 1000);
+			}
+			
+			// Otherwise
+			else
+			
+				// Set commands
+				var commands = [
+					"M104 S" + parseInt($(this).text().substr(12)) + ' *\n'
+				];
 		
 			// Send request
 			$.ajax({
@@ -876,18 +892,22 @@ $(function() {
 				// On success
 				success: function(data) {
 				
-					// Stop displaying temperature
-					clearInterval(updateTemperature);
-					
-					// Ok click event
-					$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
-					
-						// Hide message
-						hideMessage();
-					});
+					// Check if not printing
+					if(self.printerState.isPrinting() !== true) {
 				
-					// Show message
-					showMessage("Temperature Status", "Done", "Ok");
+						// Stop displaying temperature
+						clearInterval(updateTemperature);
+					
+						// Ok click event
+						$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+					
+							// Hide message
+							hideMessage();
+						});
+				
+						// Show message
+						showMessage("Temperature Status", "Done", "Ok");
+					}
 				}
 			});
 		});
@@ -895,25 +915,36 @@ $(function() {
 		// Set heat bed temperature control
 		$("#control > div.jog-panel.extruder").find("div > div.microPass > button:first-of-type").click(function(event) {
 			
-			// Show message
-			showMessage("Temperature Status", "Warming up");
+			// Check if not printing
+			if(self.printerState.isPrinting() !== true) {
 			
-			// Set commands
-			var commands = [
-				"M190 S" + parseInt($(this).text().substr(12)) + '\n',
-				"G4 S2\n"
-			];
-			
-			// Add wait command if not printing
-			if(self.printerState.isPrinting() !== true)
-				commands.push("M65536;wait\n");
-			
-			// Display temperature
-			var updateTemperature = setInterval(function() {
+				// Set commands
+				var commands = [
+					"M190 S" + parseInt($(this).text().substr(12)) + ' *\n',
+					"G4 S2\n"
+				];
 			
 				// Show message
-				showMessage("Temperature Status", "Warming up: " + self.temperature.temperatures.bed.actual[self.temperature.temperatures.bed.actual.length - 1][1] + "°C");
-			}, 1000);
+				showMessage("Temperature Status", "Warming up");
+			
+				// Add wait command
+				commands.push("M65536;wait\n");
+			
+				// Display temperature
+				var updateTemperature = setInterval(function() {
+			
+					// Show message
+					showMessage("Temperature Status", "Warming up: " + self.temperature.temperatures.bed.actual[self.temperature.temperatures.bed.actual.length - 1][1] + "°C");
+				}, 1000);
+			}
+			
+			// Otherwise
+			else
+			
+				// Set commands
+				var commands = [
+					"M140 S" + parseInt($(this).text().substr(12)) + ' *\n'
+				];
 		
 			// Send request
 			$.ajax({
@@ -925,19 +956,23 @@ $(function() {
 			
 				// On success
 				success: function(data) {
-			
-					// Stop displaying temperature
-					clearInterval(updateTemperature);
-					
-					// Ok click event
-					$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
-					
-						// Hide message
-						hideMessage();
-					});
 				
-					// Show message
-					showMessage("Temperature Status", "Done", "Ok");
+					// Check if not printing
+					if(self.printerState.isPrinting() !== true) {
+			
+						// Stop displaying temperature
+						clearInterval(updateTemperature);
+					
+						// Ok click event
+						$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+					
+							// Hide message
+							hideMessage();
+						});
+				
+						// Show message
+						showMessage("Temperature Status", "Done", "Ok");
+					}
 				}
 			});
 		});
@@ -1572,28 +1607,15 @@ $(function() {
 		
 		// Set print test border control
 		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(12)").click(function(event) {
-			
-			// Show message
-			showMessage("Printing Status", "Preparing test border");
 		
-			setTimeout(function() {
-			
-				// Send request
-				$.ajax({
-					url: API_BASEURL + "plugin/m3dfio",
-					type: "POST",
-					dataType: "json",
-					data: JSON.stringify({command: "message", value: "Print test border"}),
-					contentType: "application/json; charset=UTF-8",
-						
-					// On success
-					success: function(data) {
-	
-						// Hide message
-						hideMessage();
-					}
-				});
-			}, 1000);
+			// Send request
+			$.ajax({
+				url: API_BASEURL + "plugin/m3dfio",
+				type: "POST",
+				dataType: "json",
+				data: JSON.stringify({command: "message", value: "Print test border"}),
+				contentType: "application/json; charset=UTF-8",
+			});
 		});
 		
 		// Complete bed calibration control
@@ -2434,31 +2456,6 @@ $(function() {
 				});
 			}
 		});
-	
-		// Cancel print button click
-		$("#job_cancel").click(function() {
-	
-			// Set commands
-			var commands = [
-				"G4 P100\n",
-				"M65537;stop\n",
-				"M107\n",
-				"M104 S0\n",
-				"M18\n",
-			];
-		
-			setTimeout(function() {
-		
-				// Send request
-				$.ajax({
-					url: API_BASEURL + "plugin/m3dfio",
-					type: "POST",
-					dataType: "json",
-					data: JSON.stringify({command: "message", value: commands}),
-					contentType: "application/json; charset=UTF-8"
-				});
-			}, 1000);
-		});
 		
 		// On data update message
 		self.onDataUpdaterPluginMessage = function(plugin, data) {
@@ -2550,18 +2547,6 @@ $(function() {
 				    hide: false
 				});
 			}
-			
-			// Otherwise check if data is to enable shared library options
-			else if(data.value == "Enable Shared Library")
-			
-				// Enable shared library options
-				$("#settings_plugin_m3dfio label.sharedLibrary").removeClass("disabled").children("input").prop("disabled", false);
-			
-			// Otherwise check if data is to disable shared library options
-			else if(data.value == "Disable Shared Library")
-			
-				// Disable shared library options
-				$("#settings_plugin_m3dfio label.sharedLibrary").addClass("disabled").children("input").prop("disabled", true);
 			
 			// Otherwise check if data is EEPROM
 			else if(data.value == "EEPROM" && typeof data.eeprom !== "undefined") {
@@ -2783,6 +2768,18 @@ $(function() {
 					showMessage("Error Status", "Invalid bed orientation. Calibrate?", "Yes", "No");
 				}
 			}
+			
+			// Otherwise check if data is to show message
+			else if(data.value == "Show Message" && typeof data.message !== "undefined")
+			
+				// Display message
+				showMessage("Printing Status", data.message);
+			
+			// Otherwise check if data is to hide message
+			else if(data.value == "Hide Message")
+			
+				// Hide message
+				hideMessage();
 			
 			// Otherwise check if data is a status error message
 			else if(data.value == "Error" && typeof data.message !== "undefined") {

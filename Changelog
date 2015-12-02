@@ -1,5 +1,12 @@
 Changelog:
 
+V0.22 December 1, 2015
+
+	* Added a 'Complete bed compensation' button to make it simplier to calibrate the bed
+	* Implemented on the fly G-code pre-processing which takes affect while printing. This removes the need to pre-process the G-code when uploaded/sliced, and OctoPrint's G-code viewer works when using this
+	* Removed shared libraries in favor of on the fly G-code pre-processing
+	* Made it so both the fan and temperature settings can be changed while printing
+
 V0.21 November 28, 2015
 
 	* Fixed a problem that would cause the fan to get turned off right before printing that could result in the extruder having difficulties in extruding hot filament.

@@ -24,16 +24,24 @@ import flask
 import serial
 import serial.tools.list_ports
 import binascii
-import shutil
-import ctypes
-import timeit
-import platform
 import re
+import collections
 from .gcode import Gcode
 from .vector import Vector
 
 
-# Plugin
+# Command class
+class Command(object) :
+
+	# Constructor
+	def __init__(self, line, origin, skip) :
+	
+		# Set
+		self.line = line
+		self.origin = origin
+		self.skip = skip
+
+# Plugin class
 class M3DFioPlugin(
 		octoprint.plugin.StartupPlugin,
 		octoprint.plugin.EventHandlerPlugin,
@@ -55,85 +63,23 @@ class M3DFioPlugin(
 		self.waiting = None
 		self.processingSlice = False
 		self.usingMicroPass = False
-		self.sharedLibrary = None
 		self.eeprom = None
 		self.messageResponse = None
 		self.invalidBedCenter = False
 		self.invalidBedOrientation = False
 		
-		# Check if running on Linux
-		if platform.uname()[0].startswith("Linux") :
-		
-			# Check if running on a Raspberry Pi
-			if platform.uname()[4].startswith("armv6l") and self.getCpuHardware() == "BCM2708" :
-			
-				# Set shared library
-				self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_arm1176jzf-s.so")
-			
-			# Otherwise check if running on a Raspberry Pi 2
-			elif platform.uname()[4].startswith("armv7l") and self.getCpuHardware() == "BCM2709" :
-			
-				# Set shared library
-				self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_arm_cortex-a7.so")
-			
-			# Otherwise check if running on an ARM7 device
-			elif platform.uname()[4].startswith("armv7") :
-			
-				# Set shared library
-				self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_arm7.so")
-			
-			# Otherwise check if using an i386 or x86-64 device
-			elif platform.uname()[4].endswith("86") or platform.uname()[4].endswith("64") :
-		
-				# Check if Python is running as 32-bit
-				if platform.architecture()[0].startswith("32") :
-				
-					# Set shared library
-					self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_i386.so")
-			
-				# Otherwise check if Python is running as 64-bit
-				elif platform.architecture()[0].startswith("64") :
-				
-					# Set shared library
-					self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_x86-64.so")
-		
-		# Otherwise check if running on Windows and using an i386 or x86-64 device
-		elif platform.uname()[0].startswith("Windows") and (platform.uname()[4].endswith("86") or platform.uname()[4].endswith("64")) :
-		
-			# Check if Python is running as 32-bit
-			if platform.architecture()[0].startswith("32") :
-			
-				# Set shared library
-				self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_i386.dll")
-		
-			# Otherwise check if Python is running as 64-bit
-			elif platform.architecture()[0].startswith("64") :
-			
-				# Set shared library
-				self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_x86-64.dll")
-		
-		# Otherwise check if running on OS X and using an i386 or x86-64 device
-		#elif platform.uname()[0].startswith("Darwin") and (platform.uname()[4].endswith("86") or platform.uname()[4].endswith("64")) :
-		
-			# Check if Python is running as 32-bit
-		#	if platform.architecture()[0].startswith("32") :
-			
-				# Set shared library
-		#		self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_i386.dylib")
-		
-			# Otherwise check if Python is running as 64-bit
-		#	elif platform.architecture()[0].startswith("64") :
-			
-				# Set shared library
-		#		self.sharedLibrary = ctypes.cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + "/static/libraries/preprocessors_x86-64.dylib")
-		
 		# Find provided firmware
-		for file in os.listdir(os.path.dirname(os.path.realpath(__file__)) + "/static/files/"):
+		for file in os.listdir(os.path.dirname(os.path.realpath(__file__)) + "/static/files/") :
 			if file.endswith(".hex") :
 				
 				# Set provided firmware
 				self.providedFirmware = file[0 : 10]
 				break
+		
+		# Rom decryption and encryption tables
+		self.romDecryptionTable = [0x26, 0xE2, 0x63, 0xAC, 0x27, 0xDE, 0x0D, 0x94, 0x79, 0xAB, 0x29, 0x87, 0x14, 0x95, 0x1F, 0xAE, 0x5F, 0xED, 0x47, 0xCE, 0x60, 0xBC, 0x11, 0xC3, 0x42, 0xE3, 0x03, 0x8E, 0x6D, 0x9D, 0x6E, 0xF2, 0x4D, 0x84, 0x25, 0xFF, 0x40, 0xC0, 0x44, 0xFD, 0x0F, 0x9B, 0x67, 0x90, 0x16, 0xB4, 0x07, 0x80, 0x39, 0xFB, 0x1D, 0xF9, 0x5A, 0xCA, 0x57, 0xA9, 0x5E, 0xEF, 0x6B, 0xB6, 0x2F, 0x83, 0x65, 0x8A, 0x13, 0xF5, 0x3C, 0xDC, 0x37, 0xD3, 0x0A, 0xF4, 0x77, 0xF3, 0x20, 0xE8, 0x73, 0xDB, 0x7B, 0xBB, 0x0B, 0xFA, 0x64, 0x8F, 0x08, 0xA3, 0x7D, 0xEB, 0x5C, 0x9C, 0x3E, 0x8C, 0x30, 0xB0, 0x7F, 0xBE, 0x2A, 0xD0, 0x68, 0xA2, 0x22, 0xF7, 0x1C, 0xC2, 0x17, 0xCD, 0x78, 0xC7, 0x21, 0x9E, 0x70, 0x99, 0x1A, 0xF8, 0x58, 0xEA, 0x36, 0xB1, 0x69, 0xC9, 0x04, 0xEE, 0x3B, 0xD6, 0x34, 0xFE, 0x55, 0xE7, 0x1B, 0xA6, 0x4A, 0x9A, 0x54, 0xE6, 0x51, 0xA0, 0x4E, 0xCF, 0x32, 0x88, 0x48, 0xA4, 0x33, 0xA5, 0x5B, 0xB9, 0x62, 0xD4, 0x6F, 0x98, 0x6C, 0xE1, 0x53, 0xCB, 0x46, 0xDD, 0x01, 0xE5, 0x7A, 0x86, 0x75, 0xDF, 0x31, 0xD2, 0x02, 0x97, 0x66, 0xE4, 0x38, 0xEC, 0x12, 0xB7, 0x00, 0x93, 0x15, 0x8B, 0x6A, 0xC5, 0x71, 0x92, 0x45, 0xA1, 0x59, 0xF0, 0x06, 0xA8, 0x5D, 0x82, 0x2C, 0xC4, 0x43, 0xCC, 0x2D, 0xD5, 0x35, 0xD7, 0x3D, 0xB2, 0x74, 0xB3, 0x09, 0xC6, 0x7C, 0xBF, 0x2E, 0xB8, 0x28, 0x9F, 0x41, 0xBA, 0x10, 0xAF, 0x0C, 0xFC, 0x23, 0xD9, 0x49, 0xF6, 0x7E, 0x8D, 0x18, 0x96, 0x56, 0xD1, 0x2B, 0xAD, 0x4B, 0xC1, 0x4F, 0xC8, 0x3A, 0xF1, 0x1E, 0xBD, 0x4C, 0xDA, 0x50, 0xA7, 0x52, 0xE9, 0x76, 0xD8, 0x19, 0x91, 0x72, 0x85, 0x3F, 0x81, 0x61, 0xAA, 0x05, 0x89, 0x0E, 0xB5, 0x24, 0xE0]
+
+		self.romEncryptionTable = [0xAC, 0x9C, 0xA4, 0x1A, 0x78, 0xFA, 0xB8, 0x2E, 0x54, 0xC8, 0x46, 0x50, 0xD4, 0x06, 0xFC, 0x28, 0xD2, 0x16, 0xAA, 0x40, 0x0C, 0xAE, 0x2C, 0x68, 0xDC, 0xF2, 0x70, 0x80, 0x66, 0x32, 0xE8, 0x0E, 0x4A, 0x6C, 0x64, 0xD6, 0xFE, 0x22, 0x00, 0x04, 0xCE, 0x0A, 0x60, 0xE0, 0xBC, 0xC0, 0xCC, 0x3C, 0x5C, 0xA2, 0x8A, 0x8E, 0x7C, 0xC2, 0x74, 0x44, 0xA8, 0x30, 0xE6, 0x7A, 0x42, 0xC4, 0x5A, 0xF6, 0x24, 0xD0, 0x18, 0xBE, 0x26, 0xB4, 0x9A, 0x12, 0x8C, 0xD8, 0x82, 0xE2, 0xEA, 0x20, 0x88, 0xE4, 0xEC, 0x86, 0xEE, 0x98, 0x84, 0x7E, 0xDE, 0x36, 0x72, 0xB6, 0x34, 0x90, 0x58, 0xBA, 0x38, 0x10, 0x14, 0xF8, 0x92, 0x02, 0x52, 0x3E, 0xA6, 0x2A, 0x62, 0x76, 0xB0, 0x3A, 0x96, 0x1C, 0x1E, 0x94, 0x6E, 0xB2, 0xF4, 0x4C, 0xC6, 0xA0, 0xF0, 0x48, 0x6A, 0x08, 0x9E, 0x4E, 0xCA, 0x56, 0xDA, 0x5E, 0x2F, 0xF7, 0xBB, 0x3D, 0x21, 0xF5, 0x9F, 0x0B, 0x8B, 0xFB, 0x3F, 0xAF, 0x5B, 0xDB, 0x1B, 0x53, 0x2B, 0xF3, 0xB3, 0xAD, 0x07, 0x0D, 0xDD, 0xA5, 0x95, 0x6F, 0x83, 0x29, 0x59, 0x1D, 0x6D, 0xCF, 0x87, 0xB5, 0x63, 0x55, 0x8D, 0x8F, 0x81, 0xED, 0xB9, 0x37, 0xF9, 0x09, 0x03, 0xE1, 0x0F, 0xD3, 0x5D, 0x75, 0xC5, 0xC7, 0x2D, 0xFD, 0x3B, 0xAB, 0xCD, 0x91, 0xD1, 0x4F, 0x15, 0xE9, 0x5F, 0xCB, 0x25, 0xE3, 0x67, 0x17, 0xBD, 0xB1, 0xC9, 0x6B, 0xE5, 0x77, 0x35, 0x99, 0xBF, 0x69, 0x13, 0x89, 0x61, 0xDF, 0xA3, 0x45, 0x93, 0xC1, 0x7B, 0xC3, 0xF1, 0xD7, 0xEB, 0x4D, 0x43, 0x9B, 0x05, 0xA1, 0xFF, 0x97, 0x01, 0x19, 0xA7, 0x9D, 0x85, 0x7F, 0x4B, 0xEF, 0x73, 0x57, 0xA9, 0x11, 0x79, 0x39, 0xB7, 0xE7, 0x1F, 0x49, 0x47, 0x41, 0xD9, 0x65, 0x71, 0x33, 0x51, 0x31, 0xD5, 0x27, 0x7D, 0x23]
 		
 		# Bed dimensions
 		self.bedLowMaxX = 113.0
@@ -161,43 +107,85 @@ class M3DFioPlugin(
 		self.chipNrwwSize = 0x20
 		self.chipNumberOfPages = 0x80
 		self.chipTotalMemory = self.chipNumberOfPages * self.chipPageSize * 2
-	
-		# Wave bonding settings
-		self.waveStep = 0
+		
+		# Wave bonding pre-processor settings
 		self.wavePeriod = 5.0
 		self.wavePeriodQuarter = self.wavePeriod / 4.0
 		self.waveSize = 0.15
-	
-		# Bed compensation settings
+		
+		# Bed compensation pre-processor settings
 		self.levellingMoveX = 104.9
 		self.levellingMoveY = 103.0
 		self.segmentLength = 2.0
-	
-		# Feed rate conversion settings
+
+		# Feed rate conversion pre-processor settings
 		self.maxFeedRatePerSecond = 60.0001
 		
-		# Rom decryption and encryption tables
-		self.romDecryptionTable = [0x26, 0xE2, 0x63, 0xAC, 0x27, 0xDE, 0x0D, 0x94, 0x79, 0xAB, 0x29, 0x87, 0x14, 0x95, 0x1F, 0xAE, 0x5F, 0xED, 0x47, 0xCE, 0x60, 0xBC, 0x11, 0xC3, 0x42, 0xE3, 0x03, 0x8E, 0x6D, 0x9D, 0x6E, 0xF2, 0x4D, 0x84, 0x25, 0xFF, 0x40, 0xC0, 0x44, 0xFD, 0x0F, 0x9B, 0x67, 0x90, 0x16, 0xB4, 0x07, 0x80, 0x39, 0xFB, 0x1D, 0xF9, 0x5A, 0xCA, 0x57, 0xA9, 0x5E, 0xEF, 0x6B, 0xB6, 0x2F, 0x83, 0x65, 0x8A, 0x13, 0xF5, 0x3C, 0xDC, 0x37, 0xD3, 0x0A, 0xF4, 0x77, 0xF3, 0x20, 0xE8, 0x73, 0xDB, 0x7B, 0xBB, 0x0B, 0xFA, 0x64, 0x8F, 0x08, 0xA3, 0x7D, 0xEB, 0x5C, 0x9C, 0x3E, 0x8C, 0x30, 0xB0, 0x7F, 0xBE, 0x2A, 0xD0, 0x68, 0xA2, 0x22, 0xF7, 0x1C, 0xC2, 0x17, 0xCD, 0x78, 0xC7, 0x21, 0x9E, 0x70, 0x99, 0x1A, 0xF8, 0x58, 0xEA, 0x36, 0xB1, 0x69, 0xC9, 0x04, 0xEE, 0x3B, 0xD6, 0x34, 0xFE, 0x55, 0xE7, 0x1B, 0xA6, 0x4A, 0x9A, 0x54, 0xE6, 0x51, 0xA0, 0x4E, 0xCF, 0x32, 0x88, 0x48, 0xA4, 0x33, 0xA5, 0x5B, 0xB9, 0x62, 0xD4, 0x6F, 0x98, 0x6C, 0xE1, 0x53, 0xCB, 0x46, 0xDD, 0x01, 0xE5, 0x7A, 0x86, 0x75, 0xDF, 0x31, 0xD2, 0x02, 0x97, 0x66, 0xE4, 0x38, 0xEC, 0x12, 0xB7, 0x00, 0x93, 0x15, 0x8B, 0x6A, 0xC5, 0x71, 0x92, 0x45, 0xA1, 0x59, 0xF0, 0x06, 0xA8, 0x5D, 0x82, 0x2C, 0xC4, 0x43, 0xCC, 0x2D, 0xD5, 0x35, 0xD7, 0x3D, 0xB2, 0x74, 0xB3, 0x09, 0xC6, 0x7C, 0xBF, 0x2E, 0xB8, 0x28, 0x9F, 0x41, 0xBA, 0x10, 0xAF, 0x0C, 0xFC, 0x23, 0xD9, 0x49, 0xF6, 0x7E, 0x8D, 0x18, 0x96, 0x56, 0xD1, 0x2B, 0xAD, 0x4B, 0xC1, 0x4F, 0xC8, 0x3A, 0xF1, 0x1E, 0xBD, 0x4C, 0xDA, 0x50, 0xA7, 0x52, 0xE9, 0x76, 0xD8, 0x19, 0x91, 0x72, 0x85, 0x3F, 0x81, 0x61, 0xAA, 0x05, 0x89, 0x0E, 0xB5, 0x24, 0xE0]
+		# Reset pre-processor settings
+		self.resetPreprocessorSettings()
+	
+	# Reset pre-processor settings
+	def resetPreprocessorSettings(self) :
+	
+		# General settings
+		self.preprocessOnTheFlyReady = False
+		self.printingTestBorder = False
+		self.changedCommands = []
+		
+		# Center model
+		self.displacementX = 0
+		self.displacementY = 0
+	
+		# Preparation pre-processor settings
+		self.addedIntro = False
+		self.addedOutro = False
 
-		self.romEncryptionTable = [0xAC, 0x9C, 0xA4, 0x1A, 0x78, 0xFA, 0xB8, 0x2E, 0x54, 0xC8, 0x46, 0x50, 0xD4, 0x06, 0xFC, 0x28, 0xD2, 0x16, 0xAA, 0x40, 0x0C, 0xAE, 0x2C, 0x68, 0xDC, 0xF2, 0x70, 0x80, 0x66, 0x32, 0xE8, 0x0E, 0x4A, 0x6C, 0x64, 0xD6, 0xFE, 0x22, 0x00, 0x04, 0xCE, 0x0A, 0x60, 0xE0, 0xBC, 0xC0, 0xCC, 0x3C, 0x5C, 0xA2, 0x8A, 0x8E, 0x7C, 0xC2, 0x74, 0x44, 0xA8, 0x30, 0xE6, 0x7A, 0x42, 0xC4, 0x5A, 0xF6, 0x24, 0xD0, 0x18, 0xBE, 0x26, 0xB4, 0x9A, 0x12, 0x8C, 0xD8, 0x82, 0xE2, 0xEA, 0x20, 0x88, 0xE4, 0xEC, 0x86, 0xEE, 0x98, 0x84, 0x7E, 0xDE, 0x36, 0x72, 0xB6, 0x34, 0x90, 0x58, 0xBA, 0x38, 0x10, 0x14, 0xF8, 0x92, 0x02, 0x52, 0x3E, 0xA6, 0x2A, 0x62, 0x76, 0xB0, 0x3A, 0x96, 0x1C, 0x1E, 0x94, 0x6E, 0xB2, 0xF4, 0x4C, 0xC6, 0xA0, 0xF0, 0x48, 0x6A, 0x08, 0x9E, 0x4E, 0xCA, 0x56, 0xDA, 0x5E, 0x2F, 0xF7, 0xBB, 0x3D, 0x21, 0xF5, 0x9F, 0x0B, 0x8B, 0xFB, 0x3F, 0xAF, 0x5B, 0xDB, 0x1B, 0x53, 0x2B, 0xF3, 0xB3, 0xAD, 0x07, 0x0D, 0xDD, 0xA5, 0x95, 0x6F, 0x83, 0x29, 0x59, 0x1D, 0x6D, 0xCF, 0x87, 0xB5, 0x63, 0x55, 0x8D, 0x8F, 0x81, 0xED, 0xB9, 0x37, 0xF9, 0x09, 0x03, 0xE1, 0x0F, 0xD3, 0x5D, 0x75, 0xC5, 0xC7, 0x2D, 0xFD, 0x3B, 0xAB, 0xCD, 0x91, 0xD1, 0x4F, 0x15, 0xE9, 0x5F, 0xCB, 0x25, 0xE3, 0x67, 0x17, 0xBD, 0xB1, 0xC9, 0x6B, 0xE5, 0x77, 0x35, 0x99, 0xBF, 0x69, 0x13, 0x89, 0x61, 0xDF, 0xA3, 0x45, 0x93, 0xC1, 0x7B, 0xC3, 0xF1, 0xD7, 0xEB, 0x4D, 0x43, 0x9B, 0x05, 0xA1, 0xFF, 0x97, 0x01, 0x19, 0xA7, 0x9D, 0x85, 0x7F, 0x4B, 0xEF, 0x73, 0x57, 0xA9, 0x11, 0x79, 0x39, 0xB7, 0xE7, 0x1F, 0x49, 0x47, 0x41, 0xD9, 0x65, 0x71, 0x33, 0x51, 0x31, 0xD5, 0x27, 0x7D, 0x23]
-	
-	# Get cpu hardware
-	def getCpuHardware(self) :
-	
-		# Check if CPU info exists
-		if os.path.isfile("/proc/cpuinfo") :
-	
-			# Read in CPU info
-			for line in open("/proc/cpuinfo") :
-		
-				# Check if line contains hardware information
-				if line.startswith("Hardware") and ':' in line :
-			
-					# Return CPU hardware
-					return line[line.index(':') + 2 : -1]
-		
-		# Return empty string
-		return ''
+		# Wave bonding pre-processor settings
+		self.waveStep = 0
+		self.waveBondingRelativeMode = False
+		self.waveBondingLayerCounter = 0
+		self.waveBondingChangesPlane = False
+		self.waveBondingCornerCounter = 0
+		self.waveBondingPositionRelativeX = 0
+		self.waveBondingPositionRelativeY = 0
+		self.waveBondingPositionRelativeZ = 0
+		self.waveBondingPositionRelativeE = 0
+		self.waveBondingPreviousGcode = Gcode()
+		self.waveBondingRefrenceGcode = Gcode()
+		self.waveBondingTackPoint = Gcode()
+		self.waveBondingExtraGcode = Gcode()
+
+		# Thermal bonding pre-processor settings
+		self.thermalBondingRelativeMode = False
+		self.thermalBondingLayerCounter = 0
+		self.thermalBondingCornerCounter = 0
+		self.thermalBondingPreviousGcode = Gcode()
+		self.thermalBondingRefrenceGcode = Gcode()
+		self.thermalBondingTackPoint = Gcode()
+
+		# Bed compensation pre-processor settings
+		self.bedCompensationRelativeMode = False
+		self.bedCompensationChangesPlane = False
+		self.bedCompensationPositionAbsoluteX = 0
+		self.bedCompensationPositionAbsoluteY = 0
+		self.bedCompensationPositionRelativeX = 0
+		self.bedCompensationPositionRelativeY = 0
+		self.bedCompensationPositionRelativeZ = 0
+		self.bedCompensationPositionRelativeE = 0
+		self.bedCompensationExtraGcode = Gcode()
+
+		# Backlash compensation pre-processor settings
+		self.backlashCompensationRelativeMode = False
+		self.valueF = "1000"
+		self.previousDirectionX = "Neither"
+		self.previousDirectionY = "Neither"
+		self.compensationX = 0
+		self.compensationY = 0
+		self.backlashPositionRelativeX = 0
+		self.backlashPositionRelativeY = 0
+		self.backlashPositionRelativeZ = 0
+		self.backlashPositionRelativeE = 0
+		self.backlashCompensationExtraGcode = Gcode()
 	
 	# Get port
 	def getPort(self) :
@@ -359,8 +347,7 @@ class M3DFioPlugin(
 			AutomaticallyObtainSettings = True,
 			UseCenterModelPreprocessor = True,
 			IgnorePrintDimensionLimitations = False,
-			DisableSharedLibrary = False,
-			PreprocessOnTheFly = False
+			PreprocessOnTheFly = True
 		)
 	
 	# Template manager
@@ -410,7 +397,7 @@ class M3DFioPlugin(
 		)
 	
 	# On command
-	def on_api_command(self, command, data):
+	def on_api_command(self, command, data) :
 	
 		# Check if command is a message
 		if command == "message" :
@@ -461,7 +448,7 @@ class M3DFioPlugin(
 				connection = serial.Serial(currentPort, currentBaudrate, timeout = 20)
 				connection.writeTimeout = 20
 				
-				# Check if getting EEPROM was successful
+				# Check if getting EEPROM failed
 				if not self.getEeprom(connection) :
 				
 					# Set error
@@ -520,7 +507,7 @@ class M3DFioPlugin(
 				connection = serial.Serial(currentPort, currentBaudrate, timeout = 20)
 				connection.writeTimeout = 20
 				
-				# Check if getting EEPROM was successful
+				# Check if getting EEPROM failed
 				if not self.getEeprom(connection) :
 				
 					# Set error
@@ -568,65 +555,34 @@ class M3DFioPlugin(
 				# Remove processed test border if it already exists
 				if os.path.isfile(destination) :
 					os.remove(destination)
-					
-				# Copy test border
-				temp = tempfile.mkstemp()[1]
-				shutil.copyfile(location, temp)
 				
 				# Check if not pre-processing on the fly
 				if not self._settings.get_boolean(["PreprocessOnTheFly"]) :
-				
-					# Check if using shared library
-					if self.sharedLibrary and not self._settings.get_boolean(["DisableSharedLibrary"]) :
-				
-						# Set values
-						self.sharedLibrary.setBacklashX(ctypes.c_double(self._settings.get_float(["BacklashX"])))
-						self.sharedLibrary.setBacklashY(ctypes.c_double(self._settings.get_float(["BacklashY"])))
-						self.sharedLibrary.setBacklashSpeed(ctypes.c_double(self._settings.get_float(["BacklashSpeed"])))
-						self.sharedLibrary.setBackRightOrientation(ctypes.c_double(self._settings.get_float(["BackRightOrientation"])))
-						self.sharedLibrary.setBackLeftOrientation(ctypes.c_double(self._settings.get_float(["BackLeftOrientation"])))
-						self.sharedLibrary.setFrontLeftOrientation(ctypes.c_double(self._settings.get_float(["FrontLeftOrientation"])))
-						self.sharedLibrary.setFrontRightOrientation(ctypes.c_double(self._settings.get_float(["FrontRightOrientation"])))
-						self.sharedLibrary.setBedHeightOffset(ctypes.c_double(self._settings.get_float(["BedHeightOffset"])))
-						self.sharedLibrary.setBackRightOffset(ctypes.c_double(self._settings.get_float(["BackRightOffset"])))
-						self.sharedLibrary.setBackLeftOffset(ctypes.c_double(self._settings.get_float(["BackLeftOffset"])))
-						self.sharedLibrary.setFrontLeftOffset(ctypes.c_double(self._settings.get_float(["FrontLeftOffset"])))
-						self.sharedLibrary.setFrontRightOffset(ctypes.c_double(self._settings.get_float(["FrontRightOffset"])))
-						self.sharedLibrary.setFilamentTemperature(ctypes.c_ushort(self._settings.get_int(["FilamentTemperature"])))
-						self.sharedLibrary.setFilamentType(ctypes.c_char_p(str(self._settings.get(["FilamentType"]))))
-						self.sharedLibrary.setUseValidationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseValidationPreprocessor"])))
-						self.sharedLibrary.setUsePreparationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UsePreparationPreprocessor"])))
-						self.sharedLibrary.setUseWaveBondingPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseWaveBondingPreprocessor"])))
-						self.sharedLibrary.setUseThermalBondingPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseThermalBondingPreprocessor"])))
-						self.sharedLibrary.setUseBedCompensationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseBedCompensationPreprocessor"])))
-						self.sharedLibrary.setUseBacklashCompensationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseBacklashCompensationPreprocessor"])))
-						self.sharedLibrary.setUseFeedRateConversionPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseFeedRateConversionPreprocessor"])))
-						self.sharedLibrary.setUseCenterModelPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseCenterModelPreprocessor"])))
-						self.sharedLibrary.setIgnorePrintDimensionLimitations(ctypes.c_bool(self._settings.get_boolean(["IgnorePrintDimensionLimitations"])))
-						self.sharedLibrary.setUsingMicroPass(ctypes.c_bool(self.usingMicroPass))
 					
-						# Process file
-						self.sharedLibrary.checkPrintDimensions(ctypes.c_char_p(temp), ctypes.c_bool(True))
-						self.sharedLibrary.preparationPreprocessor(ctypes.c_char_p(temp), ctypes.c_bool(True))
-						self.sharedLibrary.thermalBondingPreprocessor(ctypes.c_char_p(temp), ctypes.c_bool(True))
-						self.sharedLibrary.bedCompensationPreprocessor(ctypes.c_char_p(temp))
-						self.sharedLibrary.backlashCompensationPreprocessor(ctypes.c_char_p(temp))
-						self.sharedLibrary.feedRateConversionPreprocessor(ctypes.c_char_p(temp))
+					# Reset pre-procesor settings
+					self.resetPreprocessorSettings()
 				
-					# Otherwise
-					else :
+					# Set printing test border
+					self.printingTestBorder = True
 					
-						# Process file
-						self.checkPrintDimensions(temp, True)
-						self.preparationPreprocessor(temp, True)
-						self.thermalBondingPreprocessor(temp, True)
-						self.bedCompensationPreprocessor(temp)
-						self.backlashCompensationPreprocessor(temp)
-						self.feedRateConversionPreprocessor(temp)
-
-				# Send processed file to destination
-				shutil.move(temp, destination)
-		
+					# Display message
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Preparing test border"))
+					
+					# Collect print information
+					self.collectPrintInformation(location)
+			
+					# Pre-process file and moved to destination
+					self.preprocess(location, destination)
+					
+					# Hide message
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Hide Message"))
+				
+				# Otherwise
+				else :
+				
+					# Copy file to destination
+					shutil.copyfile(location, destination)
+				
 				# Print test border
 				self._printer.select_file(destination, False, True)
 			
@@ -703,7 +659,7 @@ class M3DFioPlugin(
 					connection = serial.Serial(currentPort, currentBaudrate, timeout = 20)
 					connection.writeTimeout = 20
 					
-					# Check if getting EEPROM was successful
+					# Check if getting EEPROM failed
 					if not self.getEeprom(connection) :
 				
 						# Set error
@@ -825,7 +781,7 @@ class M3DFioPlugin(
 					# Set encrypted ROM
 					encryptedRom = temp
 				
-				# Check if getting EEPROM was successful
+				# Check if getting EEPROM failed
 				if not self.getEeprom(connection) :
 			
 					# Set error
@@ -1097,7 +1053,7 @@ class M3DFioPlugin(
 								while index < 16 :
 						
 									# Check if zeroing out steps per MM in EEPROM failed
-									if not error and not self.writeToEeprom(connection, 0x2D6 + index, '\x00'):
+									if not error and not self.writeToEeprom(connection, 0x2D6 + index, '\x00') :
 							
 										# Set error
 										error = True
@@ -1268,6 +1224,13 @@ class M3DFioPlugin(
 	# Process write
 	def processWrite(self, data) :
 	
+		# Check if printing and using on the fly pre-processing
+		if self._printer.is_printing() and self._settings.get_boolean(["PreprocessOnTheFly"]) :
+		
+			# Wait until pre-processing on the fly is ready
+			while not self.preprocessOnTheFlyReady :
+				time.sleep(0.01)
+	
 		# Set write function back to original
 		self._printer.get_transport().write = self.originalWrite
 		
@@ -1292,31 +1255,45 @@ class M3DFioPlugin(
 			# Send fake acknowledgment
 			self._printer.fake_ack()
 		
-		# Send request
+		# Otherwise
 		else :
+		
+			# Initialize variables
+			gcode = Gcode()
+		
+			# Check if pre-processing on the fly and command is not a starting line number and wasn't added on the fly
+			if self._printer.is_printing() and self._settings.get_boolean(["PreprocessOnTheFly"]) and not data.startswith("N0 M110 ") and " **" not in data:
+			
+				# Get line number
+				lineNumber = int(re.findall("^N(\d+)", data)[0])
+				
+				# Check if command isn't a changed command being resent
+				if lineNumber not in self.changedCommands :
+				
+					# Send pre-processed commands to the printer
+					self._printer.commands(self.preprocess(data))
+					
+					# Store changed command
+					self.changedCommands += [lineNumber]
+				
+				# Change command
+				data = 'N' + str(lineNumber) + " G4"
 			
 			# Check if command contains valid G-code
-			gcode = Gcode()
 			if gcode.parseLine(data) :
-			
-				# Check if pre-processing on the fly
-				if self._settings.get_boolean(["PreprocessOnTheFly"]) :
-			
-					# Pre-process command on the fly
-					self.preprocessOnTheFly(gcode)
-			
-				# Get the command's binary representation
-				data = gcode.getBinary()
-		
+	
 				# Check if data contains a starting line number
 				if gcode.getValue('N') == "0" and gcode.getValue('M') == "110" :
-				
+			
 					# Reset number wrap counter
 					self.numberWrapCounter = 0
-			
+				
+				# Get the command's binary representation
+				data = gcode.getBinary()
+				
 			# Send command to printer
 			self._printer.get_transport().write(data)
-		
+			
 		# Set write function back to process write
 		self._printer.get_transport().write = self.processWrite
 	
@@ -1325,45 +1302,53 @@ class M3DFioPlugin(
 	
 		# Set read function back to original
 		self._printer.get_transport().readline = self.originalRead
-		
+	
 		# Get response
 		response = self._printer.get_transport().readline()
-		
+	
 		# Check if response was a processed value
 		if response.startswith("ok ") and response[3].isdigit() :
-			
+		
 			# Get line number
 			lineNumber = int(response[3 :])
-		
+			
+			# Removed stored value if command was changed
+			if lineNumber in self.changedCommands :
+				self.changedCommands.remove(lineNumber)
+	
 			# Set response to contain correct line number
 			response = "ok " + str(lineNumber + self.numberWrapCounter * 0x10000) + '\n'
-			
+		
 			# Increment number wrap counter if applicable
 			if lineNumber == 0xFFFF :
 				self.numberWrapCounter += 1
-		
+	
 		# Otherwise check if response was a skip value
 		elif response.startswith("skip ") :
-		
+	
 			# Get line number
 			lineNumber = int(response[5 :])
-		
+			
+			# Removed stored value if command was changed
+			if lineNumber in self.changedCommands :
+				self.changedCommands.remove(lineNumber)
+	
 			# Set response to contain correct line number
 			response = "ok " + str(lineNumber + self.numberWrapCounter * 0x10000) + '\n'
-			
+		
 			# Increment number wrap counter if applicable
 			if lineNumber == 0xFFFF :
 				self.numberWrapCounter += 1
-		
+	
 		# Otherwise check if response was a resend value
 		elif response.startswith("Resend ") :
-		
+	
 			# Set response to contain correct line number
 			response = "Resend:" + str(int(response[7 :]) + self.numberWrapCounter * 0x10000) + '\n'
-		
+	
 		# Otherwise check if response was an error code
 		elif response.startswith("Error:") :
-		
+	
 			# Set error response
 			if response[6 : 10] == "1000" :
 				response = "ok M110 without line number\n"
@@ -1389,7 +1374,7 @@ class M3DFioPlugin(
 				response = "ok An error has occured\n"
 			else :
 				response = "ok " +  response[6 :]
-		
+	
 		# Set read function back to process read
 		self._printer.get_transport().readline = self.processRead
 		
@@ -1397,7 +1382,7 @@ class M3DFioPlugin(
 		return response
 	
 	# Event monitor
-	def on_event(self, event, payload):
+	def on_event(self, event, payload) :
 	
 		# Check if printer is disconnected
 		if event == octoprint.events.Events.DISCONNECTED :
@@ -1422,18 +1407,6 @@ class M3DFioPlugin(
 		
 		# Otherwise check if client connects
 		elif event == octoprint.events.Events.CLIENT_OPENED :
-		
-			# Check if shared library exists
-			if self.sharedLibrary :
-		
-				# Enable shared library options
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Enable Shared Library"))
-		
-			# Otherwise
-			else :
-		
-				# Disable shared library options
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Disable Shared Library"))
 			
 			# Check if EEPROM was read
 			if self.eeprom :
@@ -1452,6 +1425,74 @@ class M3DFioPlugin(
 		
 			# Clear processing slice
 			self.processingSlice = False
+		
+		# Otherwise check if a print is starting
+		elif event == octoprint.events.Events.PRINT_STARTED :
+		
+			# Reset pre-procesor settings
+			self.resetPreprocessorSettings()
+		
+			# Check if pre-processing on the fly
+			if self._settings.get_boolean(["PreprocessOnTheFly"]) :
+				
+				# Check if printing test border
+				if payload.get("filename") == "test_border" :
+				
+					# Set printing test border
+					self.printingTestBorder = True
+				
+				# Display message
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Collecting print information"))
+		
+				# Check if print is out of bounds
+				if not self.collectPrintInformation(payload.get("file")) :
+		
+					# Create error message
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create error message", title = "Print failed", text = "Could not print the file. The dimensions of the model go outside the bounds of the printer."))
+					
+					# Stop printing
+					self._printer.cancel_print()
+					
+					# Hide message
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Hide Message"))
+					
+					# Return
+					return
+				
+				# Set pre-process on the fly ready
+				self.preprocessOnTheFlyReady = True
+				
+				# Hide message
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Hide Message"))
+		
+		# Otherwise check if a print is done
+		elif event == octoprint.events.Events.PRINT_DONE :
+		
+			# Check if pre-processing on the fly
+			if self._settings.get_boolean(["PreprocessOnTheFly"]) :
+			
+				# Send last commands to printer
+				time.sleep(1)
+				self._printer.commands(self.preprocess("G4", None, True))
+		
+		# Otherwise check if a print is cancelled
+		elif event == octoprint.events.Events.PRINT_CANCELLED :
+		
+			# Set commands
+			commands = [
+				"G4 P100\n",
+				"M65537;stop\n",
+				"M107\n",
+				"M104 S0\n",
+				"M18\n",
+			]
+			
+			if self.usingMicroPass :
+				commands += ["M140 S0\n"]
+		
+			# Send cancel commands
+			time.sleep(1)
+			self._printer.commands(commands)
 	
 	# Receive data to log
 	def on_printer_add_log(self, data) :
@@ -2266,7 +2307,6 @@ class M3DFioPlugin(
 			u"BacklashSpeed" : self._settings.get_float(["BacklashSpeed"]),
 			u"FilamentType" : u'' +  str(self._settings.get(["FilamentType"])),
 			u"BackLeftOrientation" : self._settings.get_float(["BackLeftOrientation"]),
-			u"DisableSharedLibrary" : self._settings.get_boolean(["DisableSharedLibrary"]),
 			u"FrontLeftOrientation" : self._settings.get_float(["FrontLeftOrientation"]),
 			u"UseValidationPreprocessor" : self._settings.get_boolean(["UseValidationPreprocessor"]),
 			u"FrontLeftOffset" : self._settings.get_float(["FrontLeftOffset"]),
@@ -2292,10 +2332,10 @@ class M3DFioPlugin(
 			# Return unmodified file
 			return file_object
 		
-		# Create temporary file
-		fd, temp = tempfile.mkstemp()
+		# Create input file
+		fd, input = tempfile.mkstemp()
 		
-		# Copy file to temporary file
+		# Copy file to input file
 		for line in file_object.stream() :
 			os.write(fd, line)
 		os.close(fd)
@@ -2303,72 +2343,14 @@ class M3DFioPlugin(
 		# Check if not pre-processing on the fly
 		if not self._settings.get_boolean(["PreprocessOnTheFly"]) :
 		
-			# Check if using shared library
-			if self.sharedLibrary and not self._settings.get_boolean(["DisableSharedLibrary"]) :
-		
-				# Set values
-				self.sharedLibrary.setBacklashX(ctypes.c_double(self._settings.get_float(["BacklashX"])))
-				self.sharedLibrary.setBacklashY(ctypes.c_double(self._settings.get_float(["BacklashY"])))
-				self.sharedLibrary.setBacklashSpeed(ctypes.c_double(self._settings.get_float(["BacklashSpeed"])))
-				self.sharedLibrary.setBackRightOrientation(ctypes.c_double(self._settings.get_float(["BackRightOrientation"])))
-				self.sharedLibrary.setBackLeftOrientation(ctypes.c_double(self._settings.get_float(["BackLeftOrientation"])))
-				self.sharedLibrary.setFrontLeftOrientation(ctypes.c_double(self._settings.get_float(["FrontLeftOrientation"])))
-				self.sharedLibrary.setFrontRightOrientation(ctypes.c_double(self._settings.get_float(["FrontRightOrientation"])))
-				self.sharedLibrary.setBedHeightOffset(ctypes.c_double(self._settings.get_float(["BedHeightOffset"])))
-				self.sharedLibrary.setBackRightOffset(ctypes.c_double(self._settings.get_float(["BackRightOffset"])))
-				self.sharedLibrary.setBackLeftOffset(ctypes.c_double(self._settings.get_float(["BackLeftOffset"])))
-				self.sharedLibrary.setFrontLeftOffset(ctypes.c_double(self._settings.get_float(["FrontLeftOffset"])))
-				self.sharedLibrary.setFrontRightOffset(ctypes.c_double(self._settings.get_float(["FrontRightOffset"])))
-				self.sharedLibrary.setFilamentTemperature(ctypes.c_ushort(self._settings.get_int(["FilamentTemperature"])))
-				self.sharedLibrary.setFilamentType(ctypes.c_char_p(str(self._settings.get(["FilamentType"]))))
-				self.sharedLibrary.setUseValidationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseValidationPreprocessor"])))
-				self.sharedLibrary.setUsePreparationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UsePreparationPreprocessor"])))
-				self.sharedLibrary.setUseWaveBondingPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseWaveBondingPreprocessor"])))
-				self.sharedLibrary.setUseThermalBondingPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseThermalBondingPreprocessor"])))
-				self.sharedLibrary.setUseBedCompensationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseBedCompensationPreprocessor"])))
-				self.sharedLibrary.setUseBacklashCompensationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseBacklashCompensationPreprocessor"])))
-				self.sharedLibrary.setUseFeedRateConversionPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseFeedRateConversionPreprocessor"])))
-				self.sharedLibrary.setUseCenterModelPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseCenterModelPreprocessor"])))
-				self.sharedLibrary.setIgnorePrintDimensionLimitations(ctypes.c_bool(self._settings.get_boolean(["IgnorePrintDimensionLimitations"])))
-				self.sharedLibrary.setUsingMicroPass(ctypes.c_bool(self.usingMicroPass))
-		
-			# Set progress bar percent
-			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar percent", percent = "60"))
-		
-			# Check if center model pre-processor is set
-			if self._settings.get_boolean(["UseCenterModelPreprocessor"]) :
-		
-				# Set progress bar text
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Centering model …"))
-			
-				# Run center model pre-preprocessor
-				timer = timeit.default_timer()
-				if self.sharedLibrary and not self._settings.get_boolean(["DisableSharedLibrary"]) :
-					self.sharedLibrary.centerModelPreprocessor(ctypes.c_char_p(temp))
-				else :
-					self.centerModelPreprocessor(temp)
-				self._logger.info("Center model: %fs" % (timeit.default_timer() - timer))
+			# Reset pre-procesor settings
+			self.resetPreprocessorSettings()
 		
 			# Set progress bar percent and text
-			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar percent", percent = "64"))
-			if self._settings.get_boolean(["IgnorePrintDimensionLimitations"]) :
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Calculating Dimensions …"))
-			else :
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Checking Dimensions …"))
+			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Collecting Print Information …"))
 		
-			# Run check or calculate print dimensions
-			timer = timeit.default_timer()
-			if self.sharedLibrary and not self._settings.get_boolean(["DisableSharedLibrary"]) :
-				valid = self.sharedLibrary.checkPrintDimensions(ctypes.c_char_p(temp), ctypes.c_bool(False))
-			else :
-				valid = self.checkPrintDimensions(temp)
-			if self._settings.get_boolean(["IgnorePrintDimensionLimitations"]) :
-				self._logger.info("Calculate dimensions: %fs" % (timeit.default_timer() - timer))
-			else :
-				self._logger.info("Check dimensions: %fs" % (timeit.default_timer() - timer))
-		
-			# Check if not ignoring print dimension limitations and print is out of bounds
-			if not self._settings.get_boolean(["IgnorePrintDimensionLimitations"]) and not valid :
+			# Check if print is out of bounds
+			if not self.collectPrintInformation(input) :
 		
 				# Check if processing a slice
 				if self.processingSlice :
@@ -2376,7 +2358,7 @@ class M3DFioPlugin(
 					# Clear processing slice
 					self.processingSlice = False
 			
-					# Set progress bar percent and text
+					# Set progress bar percent
 					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar percent", percent = "0"))
 				
 					# Create error message
@@ -2390,140 +2372,22 @@ class M3DFioPlugin(
 			
 				# Return false
 				return False
-		
-			# Set progress bar percent
-			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar percent", percent = "68"))
-		
-			# Check if validation pre-processor is set
-			if self._settings.get_boolean(["UseValidationPreprocessor"]) :
-		
-				# Set progress bar text
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Validation …"))
 			
-				# Run validation pre-preprocessor
-				timer = timeit.default_timer()
-				if self.sharedLibrary and not self._settings.get_boolean(["DisableSharedLibrary"]) :
-					self.sharedLibrary.validationPreprocessor(ctypes.c_char_p(temp))
-				else :
-					self.validationPreprocessor(temp)
-				self._logger.info("Validation: %fs" % (timeit.default_timer() - timer))
-		
-			# Set progress bar percent
-			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar percent", percent = "72"))
-		
-			# Check if preparation pre-processor is set
-			if self._settings.get_boolean(["UsePreparationPreprocessor"]) :
-		
-				# Set progress bar text
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Preparation …"))
+			# Move the input file to a temporary file
+			temp = tempfile.mkstemp()[1]
+			os.rename(input, temp)
 			
-				# Run preparation pre-preprocessor
-				timer = timeit.default_timer()
-				if self.sharedLibrary and not self._settings.get_boolean(["DisableSharedLibrary"]) :
-					self.sharedLibrary.preparationPreprocessor(ctypes.c_char_p(temp), ctypes.c_bool(False))
-				else :
-					self.preparationPreprocessor(temp)
-				self._logger.info("Preparation: %fs" % (timeit.default_timer() - timer))
-		
-			# Set progress bar percent
-			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar percent", percent = "76"))
-		
-			# Check if wave bonding pre-processor is set
-			if self._settings.get_boolean(["UseWaveBondingPreprocessor"]) :
-		
-				# Set progress bar text
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Wave Bonding …"))
+			# Pre-process file
+			self.preprocess(temp, input)
 			
-				# Run wave bonding pre-preprocessor
-				timer = timeit.default_timer()
-				if self.sharedLibrary and not self._settings.get_boolean(["DisableSharedLibrary"]) :
-					self.sharedLibrary.waveBondingPreprocessor(ctypes.c_char_p(temp))
-				else :
-					self.waveBondingPreprocessor(temp)
-				self._logger.info("Wave bonding: %fs" % (timeit.default_timer() - timer))
-		
-			# Set progress bar percent
-			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar percent", percent = "80"))
-		
-			# Check if thermal bonding pre-processor is set
-			if self._settings.get_boolean(["UseThermalBondingPreprocessor"]) :
-		
-				# Set progress bar text
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Thermal Bonding …"))
-			
-				# Run thermal bonding pre-preprocessor
-				timer = timeit.default_timer()
-				if self.sharedLibrary and not self._settings.get_boolean(["DisableSharedLibrary"]) :
-					self.sharedLibrary.thermalBondingPreprocessor(ctypes.c_char_p(temp), ctypes.c_bool(False))
-				else :
-					self.thermalBondingPreprocessor(temp)
-				self._logger.info("Thermal bonding: %fs" % (timeit.default_timer() - timer))
-		
-			# Set progress bar percent
-			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar percent", percent = "85"))
-		
-			# Check if bed compensation pre-processor is set
-			if self._settings.get_boolean(["UseBedCompensationPreprocessor"]) :
-		
-				# Set progress bar text
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Bed Compensation …"))
-			
-				# Run bed compensation pre-preprocessor
-				timer = timeit.default_timer()
-				if self.sharedLibrary and not self._settings.get_boolean(["DisableSharedLibrary"]) :
-					self.sharedLibrary.bedCompensationPreprocessor(ctypes.c_char_p(temp))
-				else :
-					self.bedCompensationPreprocessor(temp)
-				self._logger.info("Bed compensation: %fs" % (timeit.default_timer() - timer))
-		
-			# Set progress bar percent
-			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar percent", percent = "90"))
-		
-			# Check if backlash compensation pre-processor is set
-			if self._settings.get_boolean(["UseBacklashCompensationPreprocessor"]) :
-		
-				# Set progress bar text
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Backlash Compensation …"))
-			
-				# Run backlash compensation pre-preprocessor
-				timer = timeit.default_timer()
-				if self.sharedLibrary and not self._settings.get_boolean(["DisableSharedLibrary"]) :
-					self.sharedLibrary.backlashCompensationPreprocessor(ctypes.c_char_p(temp))
-				else :
-					self.backlashCompensationPreprocessor(temp)
-				self._logger.info("Backlash compensation: %fs" % (timeit.default_timer() - timer))
-		
-			# Set progress bar percent
-			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar percent", percent = "95"))
-		
-			# Check if feed rate conversion pre-processor is set
-			if self._settings.get_boolean(["UseFeedRateConversionPreprocessor"]) :
-		
-				# Set progress bar text
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Feed Rate Conversion …"))
-			
-				# Run feed rate conversion pre-preprocessor
-				timer = timeit.default_timer()
-				if self.sharedLibrary and not self._settings.get_boolean(["DisableSharedLibrary"]) :
-					self.sharedLibrary.feedRateConversionPreprocessor(ctypes.c_char_p(temp))
-				else :
-					self.feedRateConversionPreprocessor(temp)
-				self._logger.info("Feed rate conversion: %fs" % (timeit.default_timer() - timer))
-		
-			# Set progress bar percent
-			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar percent", percent = "100"))
+			# Remove temporary file
+			os.remove(temp)
 		
 		# Return processed G-code
-		return octoprint.filemanager.util.DiskFileWrapper(os.path.basename(temp), temp)
+		return octoprint.filemanager.util.DiskFileWrapper(os.path.basename(input), input)
 	
-	# Pre-process on the fly
-	def preprocessOnTheFly(self, gcode) :
-	
-		# Output value
-		self._logger.info(gcode.getAscii())
-	
-	# Center model pre-processor
-	def centerModelPreprocessor(self, file) :
+	# Collect print information
+	def collectPrintInformation(self, file) :
 	
 		# Initialize variables
 		localX = 54
@@ -2548,261 +2412,84 @@ class M3DFioPlugin(
 		self.minYExtruderMedium = sys.float_info.max
 		self.minYExtruderHigh = sys.float_info.max
 		self.minZExtruder = sys.float_info.max
-		
+	
 		# Read in file
 		for line in open(file) :
 
-			# Check if line was parsed successfully and it's a G command
-			if gcode.parseLine(line) and gcode.hasValue('G') :
-			
-				# Check if command is G0 or G1
-				if gcode.getValue('G') == "0" or gcode.getValue('G') == "1" :
+			# Check if line was parsed successfully
+			if gcode.parseLine(line) :
 				
-					# Check if command has an X value
-					if gcode.hasValue('X') :
-					
-						# Get X value of the command
-						commandX = float(gcode.getValue('X'))
-					
-						# Set local X
-						if relativeMode :
-							localX += commandX
-						else :
-							localX = commandX
-					
-					# Check if command has an Y value
-					if gcode.hasValue('Y') :
-					
-						# Get Y value of the command
-						commandY = float(gcode.getValue('Y'))
-					
-						# Set local Y
-						if relativeMode :
-							localY += commandY
-						else :
-							localY = commandY
-				
-					# Check if command has an Z value
-					if gcode.hasValue('Z') :
-					
-						# Get Z value of the command
-						commandZ = float(gcode.getValue('Z'))
-					
-						# Set local Z
-						if relativeMode :
-							localZ += commandZ
-						else :
-							localZ = commandZ
-					
-						# Set print tier
-						if localZ < self.bedLowMaxZ :
-							tier = "Low"
-						
-						elif localZ < self.bedMediumMaxZ :
-							tier = "Medium"
-						
-						else :
-							tier = "High"
-					
-					# Update minimums and maximums dimensions of the extruder
-					if tier == "Low" :
-						self.minXExtruderLow = min(self.minXExtruderLow, localX)
-						self.maxXExtruderLow = max(self.maxXExtruderLow, localX)
-						self.minYExtruderLow = min(self.minYExtruderLow, localY)
-						self.maxYExtruderLow = max(self.maxYExtruderLow, localY)
-					elif tier == "Medium" :
-						self.minXExtruderMedium = min(self.minXExtruderMedium, localX)
-						self.maxXExtruderMedium = max(self.maxXExtruderMedium, localX)
-						self.minYExtruderMedium = min(self.minYExtruderMedium, localY)
-						self.maxYExtruderMedium = max(self.maxYExtruderMedium, localY)
-					else :
-						self.minXExtruderHigh = min(self.minXExtruderHigh, localX)
-						self.maxXExtruderHigh = max(self.maxXExtruderHigh, localX)
-						self.minYExtruderHigh = min(self.minYExtruderHigh, localY)
-						self.maxYExtruderHigh = max(self.maxYExtruderHigh, localY)
-					self.minZExtruder = min(self.minZExtruder, localZ)
-					self.maxZExtruder = max(self.maxZExtruder, localZ)
-				
-				# Otherwise check if command is G90
-				elif gcode.getValue('G') == "90" :
-				
-					# Clear relative mode
-					relativeMode = False
-				
-				# Otherwise check if command is G91
-				elif gcode.getValue('G') == "91" :
-				
-					# Set relative mode
-					relativeMode = True
-	
-		# Move the input file to a temporary file
-		temp = tempfile.mkstemp()[1]
-		os.rename(file, temp)
+				# Check if line is a G command
+				if gcode.hasValue('G') :
 		
-		# Create ouput file in place of the input file
-		output = os.open(file, os.O_WRONLY | os.O_CREAT)
-		
-		# Calculate adjustments
-		displacementX = (self.bedLowMaxX - max(self.maxXExtruderLow, max(self.maxXExtruderMedium, self.maxXExtruderHigh)) - min(self.minXExtruderLow, min(self.minXExtruderMedium, self.minXExtruderHigh)) + self.bedLowMinX) / 2
-		displacementY = (self.bedLowMaxY - max(self.maxYExtruderLow, max(self.maxYExtruderMedium, self.maxYExtruderHigh)) - min(self.minYExtruderLow, min(self.minYExtruderMedium, self.minYExtruderHigh)) + self.bedLowMinY) / 2
-		
-		# Adjust print values
-		self.maxXExtruderLow += displacementX
-		self.maxXExtruderMedium += displacementX
-		self.maxXExtruderHigh += displacementX
-		self.maxYExtruderLow += displacementY
-		self.maxYExtruderMedium += displacementY
-		self.maxYExtruderHigh += displacementY
-		self.minXExtruderLow += displacementX
-		self.minXExtruderMedium += displacementX
-		self.minXExtruderHigh += displacementX
-		self.minYExtruderLow += displacementY
-		self.minYExtruderMedium += displacementY
-		self.minYExtruderHigh += displacementY
-		
-		# Read in input file
-		for line in open(temp) :
-		
-			# Check if line was parsed successfully and it's G0 or G1
-			if gcode.parseLine(line) and gcode.hasValue('G') and (gcode.getValue('G') == "0" or gcode.getValue('G') == "1") :
-				
-				# Check if line contains an X value
-				if gcode.hasValue('X') :
-				
-					# Adjust X value
-					gcode.setValue('X', "%f" % (float(gcode.getValue('X')) + displacementX))
-				
-				# Check if line contains a Y value
-				if gcode.hasValue('Y') :
-				
-					# Adjust Y value
-					gcode.setValue('Y', "%f" % (float(gcode.getValue('Y')) + displacementY))
-				
-				# Set line to adjusted value
-				line = gcode.getAscii() + '\n'
-			
-			# Send line to output
-			os.write(output, line)
-		
-		# Close output file
-		os.close(output)
-		
-		# Remove temporary file
-		os.remove(temp)
-	
-	# Check print dimensions
-	def checkPrintDimensions(self, file, overrideCenterModelPreprocessor = False) :
-	
-		# Check if useing center model pre-processor
-		if not overrideCenterModelPreprocessor and self._settings.get_boolean(["UseCenterModelPreprocessor"]) :
-		
-			# Check if adjusted print values are out of bounds
-			if self.minZExtruder < self.bedLowMinZ or self.maxZExtruder > self.bedHighMaxZ or self.maxXExtruderLow > self.bedLowMaxX or self.maxXExtruderMedium > self.bedMediumMaxX or self.maxXExtruderHigh > self.bedHighMaxX or self.maxYExtruderLow > self.bedLowMaxY or self.maxYExtruderMedium > self.bedMediumMaxY or self.maxYExtruderHigh > self.bedHighMaxY or self.minXExtruderLow < self.bedLowMinX or self.minXExtruderMedium < self.bedMediumMinX or self.minXExtruderHigh < self.bedHighMinX or self.minYExtruderLow < self.bedLowMinY or self.minYExtruderMedium < self.bedMediumMinY or self.minYExtruderHigh < self.bedHighMinY :
-			
-				# Return false
-				return False
-		
-		# Otherwise
-		else :
-	
-			# Initialize variables
-			localX = 54
-			localY = 50
-			localZ = 0.4
-			relativeMode = False
-			tier = "Low"
-			gcode = Gcode()
-			
-			# Reset all print values
-			self.maxXExtruderLow = 0
-			self.maxXExtruderMedium = 0
-			self.maxXExtruderHigh = 0
-			self.maxYExtruderLow = 0
-			self.maxYExtruderMedium = 0
-			self.maxYExtruderHigh = 0
-			self.maxZExtruder = 0
-			self.minXExtruderLow = sys.float_info.max
-			self.minXExtruderMedium = sys.float_info.max
-			self.minXExtruderHigh = sys.float_info.max
-			self.minYExtruderLow = sys.float_info.max
-			self.minYExtruderMedium = sys.float_info.max
-			self.minYExtruderHigh = sys.float_info.max
-			self.minZExtruder = sys.float_info.max
-		
-			# Read in file
-			for line in open(file) :
-
-				# Check if line was parsed successfully and it's a G command
-				if gcode.parseLine(line) and gcode.hasValue('G') :
-			
 					# Check if command is G0 or G1
 					if gcode.getValue('G') == "0" or gcode.getValue('G') == "1" :
-				
+			
 						# Check if command has an X value
 						if gcode.hasValue('X') :
-					
+				
 							# Get X value of the command
 							commandX = float(gcode.getValue('X'))
-					
+				
 							# Set local X
 							if relativeMode :
 								localX += commandX
 							else :
 								localX = commandX
-					
+				
 						# Check if command has an Y value
 						if gcode.hasValue('Y') :
-					
+				
 							# Get Y value of the command
 							commandY = float(gcode.getValue('Y'))
-					
+				
 							# Set local Y
 							if relativeMode :
 								localY += commandY
 							else :
 								localY = commandY
-				
+			
 						# Check if command has an Z value
 						if gcode.hasValue('Z') :
-					
+				
 							# Get Z value of the command
 							commandZ = float(gcode.getValue('Z'))
-					
+				
 							# Set local Z
 							if relativeMode :
 								localZ += commandZ
 							else :
 								localZ = commandZ
+				
+							# Check if not ignoring print dimension limitations, not printing a test border, and Z is out of bounds
+							if not self._settings.get_boolean(["IgnorePrintDimensionLimitations"]) and not self.printingTestBorder and (localZ < self.bedLowMinZ or localZ > self.bedHighMaxZ) :
 					
-							# Check if not ignoring print dimension limitations and Z is out of bounds
-							if not self._settings.get_boolean(["IgnorePrintDimensionLimitations"]) and (localZ < self.bedLowMinZ or localZ > self.bedHighMaxZ) :
-						
 								# Return false
 								return False
-					
+				
 							# Set print tier
 							if localZ < self.bedLowMaxZ :
 								tier = "Low"
-						
+					
 							elif localZ < self.bedMediumMaxZ :
 								tier = "Medium"
-						
+					
 							else :
 								tier = "High"
-						
-						# Check if not ignoring print dimension limitations
-						if not self._settings.get_boolean(["IgnorePrintDimensionLimitations"]) :
 					
+						# Check if not ignoring print dimension limitations, not printing a test border, and centering model pre-processor isn't used
+						if not self._settings.get_boolean(["IgnorePrintDimensionLimitations"]) and not self.printingTestBorder and not self._settings.get_boolean(["UseCenterModelPreprocessor"]) :
+				
 							# Return false if X or Y are out of bounds				
 							if tier == "Low" and (localX < self.bedLowMinX or localX > self.bedLowMaxX or localY < self.bedLowMinY or localY > self.bedLowMaxY) :
 								return False
-					
+				
 							elif tier == "Medium" and (localX < self.bedMediumMinX or localX > self.bedMediumMaxX or localY < self.bedMediumMinY or localY > self.bedMediumMaxY) :
 								return False
 
 							elif tier == "High" and (localX < self.bedHighMinX or localX > self.bedHighMaxX or localY < self.bedHighMinY or localY > self.bedHighMaxY) :
 								return False
-						
+					
 						# Update minimums and maximums dimensions of extruder
 						if tier == "Low" :
 							self.minXExtruderLow = min(self.minXExtruderLow, localX)
@@ -2821,18 +2508,48 @@ class M3DFioPlugin(
 							self.maxYExtruderHigh = max(self.maxYExtruderHigh, localY)
 						self.minZExtruder = min(self.minZExtruder, localZ)
 						self.maxZExtruder = max(self.maxZExtruder, localZ)
-				
+			
 					# Otherwise check if command is G90
 					elif gcode.getValue('G') == "90" :
-				
+			
 						# Clear relative mode
 						relativeMode = False
-				
+			
 					# Otherwise check if command is G91
 					elif gcode.getValue('G') == "91" :
-				
+			
 						# Set relative mode
 						relativeMode = True
+	
+		# Check if center model pre-processor is set and not printing a test border
+		if self._settings.get_boolean(["UseCenterModelPreprocessor"]) and not self.printingTestBorder :
+	
+			# Calculate adjustments
+			self.displacementX = (self.bedLowMaxX - max(self.maxXExtruderLow, max(self.maxXExtruderMedium, self.maxXExtruderHigh)) - min(self.minXExtruderLow, min(self.minXExtruderMedium, self.minXExtruderHigh)) + self.bedLowMinX) / 2
+			self.displacementY = (self.bedLowMaxY - max(self.maxYExtruderLow, max(self.maxYExtruderMedium, self.maxYExtruderHigh)) - min(self.minYExtruderLow, min(self.minYExtruderMedium, self.minYExtruderHigh)) + self.bedLowMinY) / 2
+	
+			# Adjust print values
+			self.maxXExtruderLow += self.displacementX
+			self.maxXExtruderMedium += self.displacementX
+			self.maxXExtruderHigh += self.displacementX
+			self.maxYExtruderLow += self.displacementY
+			self.maxYExtruderMedium += self.displacementY
+			self.maxYExtruderHigh += self.displacementY
+			self.minXExtruderLow += self.displacementX
+			self.minXExtruderMedium += self.displacementX
+			self.minXExtruderHigh += self.displacementX
+			self.minYExtruderLow += self.displacementY
+			self.minYExtruderMedium += self.displacementY
+			self.minYExtruderHigh += self.displacementY
+			
+			# Check if not ignoring print dimension limitations 
+			if not self._settings.get_boolean(["IgnorePrintDimensionLimitations"]) :
+		
+				# Check if adjusted print values are out of bounds
+				if self.minZExtruder < self.bedLowMinZ or self.maxZExtruder > self.bedHighMaxZ or self.maxXExtruderLow > self.bedLowMaxX or self.maxXExtruderMedium > self.bedMediumMaxX or self.maxXExtruderHigh > self.bedHighMaxX or self.maxYExtruderLow > self.bedLowMaxY or self.maxYExtruderMedium > self.bedMediumMaxY or self.maxYExtruderHigh > self.bedHighMaxY or self.minXExtruderLow < self.bedLowMinX or self.minXExtruderMedium < self.bedMediumMinX or self.minXExtruderHigh < self.bedHighMinX or self.minYExtruderLow < self.bedLowMinY or self.minYExtruderMedium < self.bedMediumMinY or self.minYExtruderHigh < self.bedHighMinY :
+		
+					# Return false
+					return False
 		
 		# Return true
 		return True
@@ -3053,1110 +2770,1135 @@ class M3DFioPlugin(
 		# Return sign
 		return (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y)
 	
-	# Validation pre-processor
-	def validationPreprocessor(self, file) :
+	# Pre-process
+	def preprocess(self, input, output = None, lastCommand = False) :
 	
 		# Initialize variables
-		gcode = Gcode()
-	
-		# Move the input file to a temporary file
-		temp = tempfile.mkstemp()[1]
-		os.rename(file, temp)
+		commands = collections.deque()
 		
-		# Create ouput file in place of the input file
-		output = os.open(file, os.O_WRONLY | os.O_CREAT)
-		
-		# Read in input file
-		for line in open(temp) :
-			
-			# Check if line contains valid G-code
-			if gcode.parseLine(line) :
-				
-				# Check if extruder absolute mode, extruder relative mode, or stop idle hold command
-				if gcode.hasValue('M') and (gcode.getValue('M') == "82" or gcode.getValue('M') == "83" or gcode.getValue('M') == "84") :
-				
-					# Get next line
-					continue
-		
-				# Check if unit to millimeters command
-				if gcode.hasValue('G') and gcode.getValue('G') == "21" :
-				
-					# Get next line
-					continue
-			
-				# Check if command contains tool selection
-				if gcode.hasParameter('T') :
-			
-					# Remove tool selection
-					gcode.removeParameter('T')
-				
-				# Set line to adjusted value
-				line = gcode.getAscii() + '\n'
-			
-			# Send line to output
-			os.write(output, line)
-		
-		# Close output file
-		os.close(output)
-		
-		# Remove temporary file
-		os.remove(temp)
-	
-	# Preparation pre-processor
-	def preparationPreprocessor(self, file, overrideCornerExcess = False) :
-	
-		# Initialize variables
-		gcode = Gcode()
-		cornerX = 0
-		cornerY = 0
-	
-		# Move the input file to a temporary file
-		temp = tempfile.mkstemp()[1]
-		os.rename(file, temp)
-		
-		# Create ouput file in place of the input file
-		output = os.open(file, os.O_WRONLY | os.O_CREAT)
-		
-		# Check if leaving excess at corner
-		if not overrideCornerExcess :
-		
-			# Set corner X
-			if self.maxXExtruderLow < self.bedLowMaxX :
-				cornerX = (self.bedLowMaxX - self.bedLowMinX) / 2
-			elif self.minXExtruderLow > self.bedLowMinX :
-				cornerX = -(self.bedLowMaxX - self.bedLowMinX) / 2
-		
-			# Set corner Y
-			if self.maxYExtruderLow < self.bedLowMaxY :
-				cornerY = (self.bedLowMaxY - self.bedLowMinY - 10) / 2
-			elif self.minYExtruderLow > self.bedLowMinY :
-				cornerY = -(self.bedLowMaxY - self.bedLowMinY - 10) / 2
-		
-		# Add intro to output
-		os.write(output, ";Start intro\n")
-		if str(self._settings.get(["FilamentType"])) == "PLA" :
-			os.write(output, "M106 S255\n")
-		else :
-			os.write(output, "M106 S50\n")
-		os.write(output, "M17\n")
-		os.write(output, "G90\n")
-		os.write(output, "M104 S" + str(self._settings.get_int(["FilamentTemperature"])) + '\n')
-		os.write(output, "G0 Z5 F2900\n")
-		os.write(output, "G28\n")
-		
-		# Add heat bed command if using Micro Pass
-		if self.usingMicroPass :
-			if str(self._settings.get(["FilamentType"])) == "PLA" :
-				os.write(output, "M190 S70\n")
-			else :
-				os.write(output, "M190 S80\n")
-		
-		# Check if one of the corners wasn't set
-		if cornerX == 0 or cornerY == 0 :
-		
-			# Prepare extruder the standard way
-			os.write(output, "M18\n")
-			os.write(output, "M109 S" + str(self._settings.get_int(["FilamentTemperature"])) + '\n')
-			os.write(output, "G4 S2\n")
-			os.write(output, "M17\n")
-			os.write(output, "G91\n")
+		# Check if outputting to a file
+		if output != None :
+
+			# Open input and output
+			input = open(input, 'r')
+			output = open(output, "ab")
 		
 		# Otherwise
 		else :
 		
-			# Prepare extruder by leaving excess at corner
-			os.write(output, "G91\n")
-			os.write(output, "G0 X%f Y%f F2900\n" % (-cornerX, -cornerY))
-			os.write(output, "M18\n")
-			os.write(output, "M109 S" + str(self._settings.get_int(["FilamentTemperature"])) + '\n')
-			os.write(output, "M17\n")
-			os.write(output, "G0 Z-4 F2900\n")
-			os.write(output, "G0 E7.5 F2000\n")
-			os.write(output, "G4 S3\n")
-			os.write(output, "G0 X%f  Y%f Z-0.999 F2900\n" % ((cornerX * 0.1), (cornerY * 0.1)))
-			os.write(output, "G0 X%f Y%f F1000\n" % ((cornerX * 0.9), (cornerY * 0.9)))
+			# Initialize variables
+			processedCommand = False
+			value = []
 		
-		os.write(output, "G92 E0\n")
-		os.write(output, "G90\n")
-		os.write(output, "G0 Z0.4 F2400\n")
-		os.write(output, ";End intro\n")
+		# Loop forever
+		while True:
 		
-		# Read in input file
-		for line in open(temp) :
-			
-			# Send line to output
-			os.write(output, line)
-		
-		# Add outro to output
-		os.write(output, ";Start outro\n")
-		os.write(output, "G91\n")
-		os.write(output, "G0 E-1 F2000\n")
-		os.write(output, "G0 X5 Y5 F2000\n")
-		os.write(output, "G0 E-18 F2000\n")
-		os.write(output, "M104 S0\n")
-		
-		if self.usingMicroPass :
-			os.write(output, "M140 S0\n")
-		
-		if self.maxZExtruder > 60 :
-			if self.maxZExtruder < 110 :
-				os.write(output, "G0 Z3 F2900\n")
-			os.write(output, "G90\n")
-			os.write(output, "G0 X90 Y84\n")
-		else :
-			os.write(output, "G0 Z3 F2900\n")
-			os.write(output, "G90\n")
-			os.write(output, "G0 X95 Y95\n")
-		
-		os.write(output, "M18\n")
-		os.write(output, "M107\n")
-		os.write(output, ";End outro\n")
-		
-		# Close output file
-		os.close(output)
-		
-		# Remove temporary file
-		os.remove(temp)
+			# Check if outputting to a file
+			if output != None :
+
+				# Check if no more commands
+				if len(commands) == 0 :
 	
-	# Wave bonding pre-processor
-	def waveBondingPreprocessor(self, file) :
+					# Check if not at end of file
+					if input.tell() != os.fstat(input.fileno()).st_size :
+
+						# Append line to commands
+						line = input.readline()
+						commands.appendleft(Command(line, "INPUT", ''))
+		
+					# Otherwise check if at end of file 
+					elif input.tell() == os.fstat(input.fileno()).st_size :
 	
-		# Initialize variables
-		relativeMode = False
-		layerCounter = 0
-		changesPlane = False
-		cornerCounter = 0
-		positionRelativeX = 0
-		positionRelativeY = 0
-		positionRelativeZ = 0
-		positionRelativeE = 0
-		gcode = Gcode()
-		previousGcode = Gcode()
-		refrenceGcode = Gcode()
-		tackPoint = Gcode()
-		extraGcode = Gcode()
-	
-		# Move the input file to a temporary file
-		temp = tempfile.mkstemp()[1]
-		os.rename(file, temp)
-		
-		# Create ouput file in place of the input file
-		output = os.open(file, os.O_WRONLY | os.O_CREAT)
-		
-		# Read in input file
-		for line in open(temp) :
-		
-			# Check if line is a layer command
-			if ";LAYER:" in line :
-			
-				# Increment layer counter
-				layerCounter += 1
-			
-			# Check if line was parsed successfully and it's a G command
-			if gcode.parseLine(line) and gcode.hasValue('G') :
-			
-				# Check if on first counted layer
-				if layerCounter == 1 :
-			
-					# Check if command is G0 or G1 and it's in absolute mode
-					if (gcode.getValue('G') == "0" or gcode.getValue('G') == "1") and not relativeMode :
+						# Break
+						break
 				
-						# Check if line contains an X or Y value
-						if gcode.hasValue('X') or gcode.hasValue('Y') :
+				# Check if not printing test border
+				if not self.printingTestBorder :
 				
-							# Set changes plane
-							changesPlane = True
+					# Set progress bar text
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Pre-processing … (" + str(input.tell() * 100 / os.fstat(input.fileno()).st_size) + "%)"))
+			
+			# Otherwise
+			else :
+			
+				# Check if no more commands
+				if len(commands) == 0 :
+				
+					# Check if command hasn't been processed
+					if not processedCommand :
+			
+						# Append input to commands
+						commands.appendleft(Command(input, "INPUT", ''))
+						
+						# Set processed command
+						processedCommand = True
 					
-						# Set delta values
+					# Otherwise
+					else :
+					
+						# Break
+						break
+
+			# Parse next line in commands
+			gcode = Gcode()
+			command = commands.pop()
+			gcode.parseLine(command.line)
+			
+			# Check if command contains valid G-code
+			if not gcode.isEmpty() :
+			
+				# Remove line number
+				gcode.removeParameter('N')
+	
+			# Check if printing test border and using center model pre-processor
+			if not self.printingTestBorder and self._settings.get_boolean(["UseCenterModelPreprocessor"]) and "CENTER" not in command.skip :
+
+				# Check if command contains valid G-code
+				if not gcode.isEmpty() :
+
+					# Check if command is G0 or G1
+					if gcode.hasValue('G') and (gcode.getValue('G') == "0" or gcode.getValue('G') == "1") :
+
+						# Check if line contains an X value
 						if gcode.hasValue('X') :
-							deltaX = float(gcode.getValue('X')) - positionRelativeX
-						else :
-							deltaX = 0
-					
+
+							# Adjust X value
+							gcode.setValue('X', "%f" % (float(gcode.getValue('X')) + self.displacementX))
+
+						# Check if line contains a Y value
 						if gcode.hasValue('Y') :
-							deltaY = float(gcode.getValue('Y')) - positionRelativeY
-						else :
-							deltaY = 0
+
+							# Adjust Y value
+							gcode.setValue('Y', "%f" % (float(gcode.getValue('Y')) + self.displacementY))
+
+			# Check if not printing test border and using validation pre-processor
+			if not self.printingTestBorder and self._settings.get_boolean(["UseValidationPreprocessor"]) and "VALIDATION" not in command.skip :
+
+				# Check if command contains valid G-code
+				if not gcode.isEmpty() :
+
+					# Check if extruder absolute mode, extruder relative mode, or stop idle hold command
+					if gcode.hasValue('M') and (gcode.getValue('M') == "82" or gcode.getValue('M') == "83" or gcode.getValue('M') == "84") :
+
+						# Get next line
+						continue
+
+					# Check if unit to millimeters command
+					if gcode.hasValue('G') and gcode.getValue('G') == "21" :
+
+						# Get next line
+						continue
+
+					# Check if command contains tool selection
+					if gcode.hasParameter('T') :
+
+						# Remove tool selection
+						gcode.removeParameter('T')
+
+						# Get next line if empty
+						if gcode.isEmpty() :
+							continue
+
+			# Check if printing test border or using preparation pre-processor
+			if (self.printingTestBorder or self._settings.get_boolean(["UsePreparationPreprocessor"])) and "PREPARATION" not in command.skip :
+
+				# Check if intro hasn't been added yet
+				if not self.addedIntro :
+
+					# Set added intro
+					self.addedIntro = True
+			
+					# Initialize new commands
+					newCommands = []
+			
+					# Check if not printing test border
+					cornerX = CornerY = 0
+					if not self.printingTestBorder :
+
+						# Set corner X
+						if self.maxXExtruderLow < self.bedLowMaxX :
+							cornerX = (self.bedLowMaxX - self.bedLowMinX) / 2
+						elif self.minXExtruderLow > self.bedLowMinX :
+							cornerX = -(self.bedLowMaxX - self.bedLowMinX) / 2
+
+						# Set corner Y
+						if self.maxYExtruderLow < self.bedLowMaxY :
+							cornerY = (self.bedLowMaxY - self.bedLowMinY - 10) / 2
+						elif self.minYExtruderLow > self.bedLowMinY :
+							cornerY = -(self.bedLowMaxY - self.bedLowMinY - 10) / 2
 					
-						if gcode.hasValue('Z') :
-							deltaZ = float(gcode.getValue('Z')) - positionRelativeZ
+					# Add intro to output
+					if str(self._settings.get(["FilamentType"])) == "PLA" :
+						newCommands.append(Command("M106 S255\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					else :
+						newCommands.append(Command("M106 S50\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("M17\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G90\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("M104 S" + str(self._settings.get_int(["FilamentTemperature"])) + '\n', "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G0 Z5 F2900\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G28\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+
+					# Add heat bed command if using Micro Pass
+					if self.usingMicroPass :
+						if str(self._settings.get(["FilamentType"])) == "PLA" :
+							newCommands.append(Command("M190 S70\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 						else :
-							deltaZ = 0
-						
-						if gcode.hasValue('E') :
-							deltaE = float(gcode.getValue('E')) - positionRelativeE
-						else :
-							deltaE = 0
+							newCommands.append(Command("M190 S80\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+
+					# Check if one of the corners wasn't set
+					if cornerX == 0 or cornerY == 0 :
+
+						# Prepare extruder the standard way
+						newCommands.append(Command("M18\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M109 S" + str(self._settings.get_int(["FilamentTemperature"])) + '\n', "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G4 S2\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M17\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G91\n","PREPARATION",  "CENTER VALIDATION PREPARATION"))
+
+					# Otherwise
+					else :
+
+						# Prepare extruder by leaving excess at corner
+						newCommands.append(Command("G91\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G0 X%f Y%f F2900\n" % (-cornerX, -cornerY), "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M18\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M109 S" + str(self._settings.get_int(["FilamentTemperature"])) + '\n', "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M17\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G0 Z-4 F2900\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G0 E7.5 F2000\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G4 S3\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G0 X%f Y%f Z-0.999 F2900\n" % ((cornerX * 0.1), (cornerY * 0.1)), "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G0 X%f Y%f F1000\n" % ((cornerX * 0.9), (cornerY * 0.9)), "PREPARATION", "CENTER VALIDATION PREPARATION"))
+
+					newCommands.append(Command("G92 E0\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G90\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G0 Z0.4 F2400\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+			
+					# Finish processing command later
+					if not gcode.isEmpty() :
+						commands.append(Command(gcode.getAscii() + '\n', command.origin, "CENTER VALIDATION PREPARATION"))
+					else :
+						commands.append(Command(command.line, command.origin, "CENTER VALIDATION PREPARATION"))
+		
+					# Append new commands to commands
+					while len(newCommands) :
+						commands.append(newCommands.pop())
+		
+					# Process next command
+					continue
+
+				# Check if outro hasn't been added, no more commands, and at end of file
+				if not self.addedOutro and len(commands) == 0 and ((output != None and input.tell() == os.fstat(input.fileno()).st_size) or lastCommand) :
+
+					# Set added outro
+					self.addedOutro = True
+			
+					# Initialize new commands
+					newCommands = []
+
+					# Add outro to output
+					newCommands.append(Command("G91\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G0 E-1 F2000\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G0 X5 Y5 F2000\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G0 E-18 F2000\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("M104 S0\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+
+					if self.usingMicroPass :
+						newCommands.append(Command("M140 S0\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+
+					if self.maxZExtruder > 60 :
+						if self.maxZExtruder < 110 :
+							newCommands.append(Command("G0 Z3 F2900\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G90\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G0 X90 Y84\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					else :
+						newCommands.append(Command("G0 Z3 F2900\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G90\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G0 X95 Y95\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+
+					newCommands.append(Command("M18\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("M107\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+			
+					# Append new commands to commands
+					while len(newCommands) :
+						commands.append(newCommands.pop())
+
+			# Check if not printing test border and using wave bonding pre-processor
+			if not self.printingTestBorder and self._settings.get_boolean(["UseWaveBondingPreprocessor"]) and "WAVE" not in command.skip :
+	
+				# Initialize new commands
+				newCommands = []
+
+				# Check if command contains valid G-code
+				if not gcode.isEmpty() :
+
+					# Check if command is a G command
+					if gcode.hasValue('G') :
+					
+						# Check if at a new layer
+						if command.origin != "PREPARATION" and gcode.hasValue('Z') :
+			
+							# Increment layer counter
+							self.waveBondingLayerCounter += 1
+
+						# Check if on first counted layer
+						if self.waveBondingLayerCounter == 1 :
+
+							# Check if command is G0 or G1 and it's in absolute mode
+							if (gcode.getValue('G') == "0" or gcode.getValue('G') == "1") and not self.waveBondingRelativeMode :
+
+								# Check if line contains an X or Y value
+								if gcode.hasValue('X') or gcode.hasValue('Y') :
+
+									# Set changes plane
+									self.waveBondingChangesPlane = True
+	
+								# Set delta values
+								if gcode.hasValue('X') :
+									deltaX = float(gcode.getValue('X')) - self.waveBondingPositionRelativeX
+								else :
+									deltaX = 0
+	
+								if gcode.hasValue('Y') :
+									deltaY = float(gcode.getValue('Y')) - self.waveBondingPositionRelativeY
+								else :
+									deltaY = 0
+	
+								if gcode.hasValue('Z') :
+									deltaZ = float(gcode.getValue('Z')) - self.waveBondingPositionRelativeZ
+								else :
+									deltaZ = 0
+		
+								if gcode.hasValue('E') :
+									deltaE = float(gcode.getValue('E')) - self.waveBondingPositionRelativeE
+								else :
+									deltaE = 0
+
+								# Adjust relative values for the changes
+								self.waveBondingPositionRelativeX += deltaX
+								self.waveBondingPositionRelativeY += deltaY
+								self.waveBondingPositionRelativeZ += deltaZ
+								self.waveBondingPositionRelativeE += deltaE
+
+								# Calculate distance of change
+								distance = math.sqrt(deltaX * deltaX + deltaY * deltaY)
+	
+								# Set wave ratio
+								if distance > self.wavePeriodQuarter :
+									waveRatio = int(distance / self.wavePeriodQuarter)
+								else :
+									waveRatio = 1
+	
+								# Set relative differences
+								relativeDifferenceX = self.waveBondingPositionRelativeX - deltaX
+								relativeDifferenceY = self.waveBondingPositionRelativeY - deltaY
+								relativeDifferenceZ = self.waveBondingPositionRelativeZ - deltaZ
+								relativeDifferenceE = self.waveBondingPositionRelativeE - deltaE
+
+								# Set delta ratios
+								if distance != 0 :
+									deltaRatioX = deltaX / distance
+									deltaRatioY = deltaY / distance
+									deltaRatioZ = deltaZ / distance
+									deltaRatioE = deltaE / distance
+								else :
+									deltaRatioX = 0
+									deltaRatioY = 0
+									deltaRatioZ = 0
+									deltaRatioE = 0
+	
+								# Check if delta E is greater than zero 
+								if deltaE > 0 :
+
+									# Check if previous G-code is not empty
+									if not self.waveBondingPreviousGcode.isEmpty() :
+	
+										# Check if corner count is at most one and sharp corner
+										if self.waveBondingCornerCounter <= 1 and self.isSharpCorner(gcode, self.waveBondingPreviousGcode) :
+		
+											# Check if refrence G-codes isn't set
+											if self.waveBondingRefrenceGcode.isEmpty() :
+			
+												# Check if a tack point was created
+												self.waveBondingTackPoint = self.createTackPoint(gcode, self.waveBondingPreviousGcode)
+												if not self.waveBondingTackPoint.isEmpty() :
+										
+													# Add tack point to output
+													newCommands.append(Command(self.waveBondingTackPoint.getAscii() + '\n', "WAVE", "CENTER VALIDATION PREPARATION WAVE"))
+			
+											# Set refrence G-code
+											self.waveBondingRefrenceGcode = copy.deepcopy(gcode)
+			
+											# Increment corner counter
+											self.waveBondingCornerCounter += 1
+		
+										# Otherwise check is corner count is at least one and sharp corner
+										elif self.waveBondingCornerCounter >= 1 and self.isSharpCorner(gcode, self.waveBondingRefrenceGcode) :
+		
+											# Check if a tack point was created
+											self.waveBondingTackPoint = self.createTackPoint(gcode, self.waveBondingRefrenceGcode)
+											if not self.waveBondingTackPoint.isEmpty() :
+									
+												# Add tack point to output
+												newCommands.append(Command(self.waveBondingTackPoint.getAscii() + '\n', "WAVE", "CENTER VALIDATION PREPARATION WAVE"))
+			
+											# Set refrence G-code
+											self.waveBondingRefrenceGcode = copy.deepcopy(gcode)
+	
+									# Go through all of the wave
+									index = 1
+									while index <= waveRatio :
+	
+										# Check if at last component
+										if index == waveRatio :
+		
+											# Set temp relative values
+											tempRelativeX = self.waveBondingPositionRelativeX
+											tempRelativeY = self.waveBondingPositionRelativeY
+											tempRelativeZ = self.waveBondingPositionRelativeZ
+											tempRelativeE = self.waveBondingPositionRelativeE
+		
+										# Otherwise
+										else :
+		
+											# Set temp relative values
+											tempRelativeX = relativeDifferenceX + index * self.wavePeriodQuarter * deltaRatioX
+											tempRelativeY = relativeDifferenceY + index * self.wavePeriodQuarter * deltaRatioY
+											tempRelativeZ = relativeDifferenceZ + index * self.wavePeriodQuarter * deltaRatioZ
+											tempRelativeE = relativeDifferenceE + index * self.wavePeriodQuarter * deltaRatioE
+		
+										# Check if not at least component
+										if index != waveRatio :
+		
+											# Set extra G-code G value
+											self.waveBondingExtraGcode.clear()
+											self.waveBondingExtraGcode.setValue('G', gcode.getValue('G'))
+			
+											# Set extra G-code X value
+											if gcode.hasValue('X') :
+												self.waveBondingExtraGcode.setValue('X', "%f" % (self.waveBondingPositionRelativeX - deltaX + tempRelativeX - relativeDifferenceX))
+			
+											# Set extra G-cdoe Y value
+											if gcode.hasValue('Y') :
+												self.waveBondingExtraGcode.setValue('Y', "%f" % (self.waveBondingPositionRelativeY - deltaY + tempRelativeY - relativeDifferenceY))
+			
+											# Set extra G-code F value if first element
+											if gcode.hasValue('F') and index == 1 :
+												self.waveBondingExtraGcode.setValue('F', gcode.getValue('F'))
+			
+											# Check if plane changed
+											if self.waveBondingChangesPlane :
+			
+												# Set extra G-code Z value
+												self.waveBondingExtraGcode.setValue('Z', "%f" % (self.waveBondingPositionRelativeZ - deltaZ + tempRelativeZ - relativeDifferenceZ + self.getCurrentAdjustmentZ()))
+			
+											# Otherwise check if command has a Z value and changes in Z are noticable
+											elif gcode.hasValue('Z') and deltaZ != sys.float_info.epsilon :
+			
+												# Set extra G-code Z value
+												self.waveBondingExtraGcode.setValue('Z', "%f" % (self.waveBondingPositionRelativeZ - deltaZ + tempRelativeZ - relativeDifferenceZ))
 				
-						# Adjust relative values for the changes
-						positionRelativeX += deltaX
-						positionRelativeY += deltaY
-						positionRelativeZ += deltaZ
-						positionRelativeE += deltaE
-				
-						# Calculate distance of change
-						distance = math.sqrt(deltaX * deltaX + deltaY * deltaY)
-					
-						# Set wave ratio
-						if distance > self.wavePeriodQuarter :
-							waveRatio = int(distance / self.wavePeriodQuarter)
-						else :
-							waveRatio = 1
-					
-						# Set relative differences
-						relativeDifferenceX = positionRelativeX - deltaX
-						relativeDifferenceY = positionRelativeY - deltaY
-						relativeDifferenceZ = positionRelativeZ - deltaZ
-						relativeDifferenceE = positionRelativeE - deltaE
-				
-						# Set delta ratios
-						if distance != 0 :
-							deltaRatioX = deltaX / distance
-							deltaRatioY = deltaY / distance
-							deltaRatioZ = deltaZ / distance
-							deltaRatioE = deltaE / distance
-						else :
-							deltaRatioX = 0
-							deltaRatioY = 0
-							deltaRatioZ = 0
-							deltaRatioE = 0
-					
-						# Check if delta E is greater than zero 
-						if deltaE > 0 :
-				
-							# Check if previous G-code is not empty
-							if not previousGcode.isEmpty() :
-					
-								# Check if corner count is at most one and sharp corner
-								if cornerCounter <= 1 and self.isSharpCorner(gcode, previousGcode) :
-						
-									# Check if refrence G-codes isn't set
-									if refrenceGcode.isEmpty() :
-							
-										# Check if a tack point was created
-										tackPoint = self.createTackPoint(gcode, previousGcode)
-										if not tackPoint.isEmpty() :
-								
-											# Send tack point to output
-											os.write(output, tackPoint.getAscii() + '\n')
-							
-									# Set refrence G-code
-									refrenceGcode = copy.deepcopy(gcode)
-							
-									# Increment corner counter
-									cornerCounter += 1
-						
-								# Otherwise check is corner count is at least one and sharp corner
-								elif cornerCounter >= 1 and self.isSharpCorner(gcode, refrenceGcode) :
-						
-									# Check if a tack point was created
-									tackPoint = self.createTackPoint(gcode, refrenceGcode)
-									if not tackPoint.isEmpty() :
-							
-										# Send tack point to output
-										os.write(output, tackPoint.getAscii() + '\n')
-							
-									# Set refrence G-code
-									refrenceGcode = copy.deepcopy(gcode)
-					
-							# Go through all of the wave
-							index = 1
-							while index <= waveRatio :
-					
-								# Check if at last component
-								if index == waveRatio :
-						
-									# Set temp relative values
-									tempRelativeX = positionRelativeX
-									tempRelativeY = positionRelativeY
-									tempRelativeZ = positionRelativeZ
-									tempRelativeE = positionRelativeE
-						
+											# Set extra G-code E value
+											self.waveBondingExtraGcode.setValue('E', "%f" % (self.waveBondingPositionRelativeE - deltaE + tempRelativeE - relativeDifferenceE))
+									
+											# Add extra G-code to output
+											newCommands.append(Command(self.waveBondingExtraGcode.getAscii() + '\n', "WAVE", "CENTER VALIDATION PREPARATION WAVE"))
+		
+										# Otherwise check if plane changed
+										elif self.waveBondingChangesPlane :
+		
+											# Check if command has a Z value
+											if gcode.hasValue('Z') :
+			
+												# Add to command's Z value
+												gcode.setValue('Z', "%f" % (float(gcode.getValue('Z')) + self.getCurrentAdjustmentZ()))
+			
+											# Otherwise
+											else :
+			
+												# Set command's Z value
+												gcode.setValue('Z', "%f" % (relativeDifferenceZ + deltaZ + self.getCurrentAdjustmentZ()))
+			
+										# Increment index
+										index += 1
+
+								# Set previous G-code
+								self.waveBondingPreviousGcode = copy.deepcopy(gcode)
+	
+							# Otherwise check if command is G28
+							elif gcode.getValue('G') == "28" :
+
+								# Set X and Y to home
+								self.waveBondingPositionRelativeX = 54
+								self.waveBondingPositionRelativeY = 50
+
+							# Otherwise check if command is G90
+							elif gcode.getValue('G') == "90" :
+
+								# Clear relative mode
+								self.waveBondingRelativeMode = False
+
+							# Otherwise check if command is G91
+							elif gcode.getValue('G') == "91" :
+
+								# Set relative mode
+								self.waveBondingRelativeMode = True
+
+							# Otherwise check if command is G92
+							elif gcode.getValue('G') == "92" :
+
+								# Check if command doesn't have an X, Y, Z, and E value
+								if not gcode.hasValue('X') and not gcode.hasValue('Y') and not gcode.hasValue('Z') and not gcode.hasValue('E') :
+
+									# Set command values to zero
+									gcode.setValue('X', "0")
+									gcode.setValue('Y', "0")
+									gcode.setValue('Z', "0")
+									gcode.setValue('E', "0")
+
 								# Otherwise
 								else :
-						
-									# Set temp relative values
-									tempRelativeX = relativeDifferenceX + index * self.wavePeriodQuarter * deltaRatioX
-									tempRelativeY = relativeDifferenceY + index * self.wavePeriodQuarter * deltaRatioY
-									tempRelativeZ = relativeDifferenceZ + index * self.wavePeriodQuarter * deltaRatioZ
-									tempRelativeE = relativeDifferenceE + index * self.wavePeriodQuarter * deltaRatioE
-						
-								# Check if not at least component
-								if index != waveRatio :
-						
-									# Set extra G-code G value
-									extraGcode.clear()
-									extraGcode.setValue('G', gcode.getValue('G'))
-							
-									# Set extra G-code X value
+
+									# Set relative positions
 									if gcode.hasValue('X') :
-										extraGcode.setValue('X', "%f" % (positionRelativeX - deltaX + tempRelativeX - relativeDifferenceX))
-							
-									# Set extra G-cdoe Y value
+										self.waveBondingPositionRelativeX = float(gcode.getValue('X'))
+		
 									if gcode.hasValue('Y') :
-										extraGcode.setValue('Y', "%f" % (positionRelativeY - deltaY + tempRelativeY - relativeDifferenceY))
-							
-									# Set extra G-code F value if first element
-									if gcode.hasValue('F') and index == 1 :
-										extraGcode.setValue('F', gcode.getValue('F'))
-							
-									# Check if plane changed
-									if changesPlane :
-							
-										# Set extra G-code Z value
-										extraGcode.setValue('Z', "%f" % (positionRelativeZ - deltaZ + tempRelativeZ - relativeDifferenceZ + self.getCurrentAdjustmentZ()))
-							
-									# Otherwise check if command has a Z value and changes in Z are noticable
-									elif gcode.hasValue('Z') and deltaZ != sys.float_info.epsilon :
-							
-										# Set extra G-code Z value
-										extraGcode.setValue('Z', "%f" % (positionRelativeZ - deltaZ + tempRelativeZ - relativeDifferenceZ))
-								
-									# Set extra G-code E value
-									extraGcode.setValue('E', "%f" % (positionRelativeE - deltaE + tempRelativeE - relativeDifferenceE))
-								
-									# Send extra G-code to output
-									os.write(output, extraGcode.getAscii() + '\n')
-						
-								# Otherwise check if plane changed
-								elif changesPlane :
-						
-									# Check if command has a Z value
+										self.waveBondingPositionRelativeY = float(gcode.getValue('Y'))
+		
 									if gcode.hasValue('Z') :
-							
-										# Add to command's Z value
-										gcode.setValue('Z', "%f" % (float(gcode.getValue('Z')) + self.getCurrentAdjustmentZ()))
-							
-									# Otherwise
-									else :
-							
-										# Set command's Z value
-										gcode.setValue('Z', "%f" % (relativeDifferenceZ + deltaZ + self.getCurrentAdjustmentZ()))
-							
-								# Increment index
-								index += 1
-				
-						# Set previous G-code
-						previousGcode = copy.deepcopy(gcode)
-					
-					# Otherwise check if command is G28
-					elif gcode.getValue('G') == "28" :
-				
-						# Set X and Y to home
-						positionRelativeX = 54
-						positionRelativeY = 50
-				
-					# Otherwise check if command is G90
-					elif gcode.getValue('G') == "90" :
-				
-						# Clear relative mode
-						relativeMode = False
-				
-					# Otherwise check if command is G91
-					elif gcode.getValue('G') == "91" :
-				
-						# Set relative mode
-						relativeMode = True
-				
-					# Otherwise check if command is G92
-					elif gcode.getValue('G') == "92" :
-				
-						# Check if command doesn't have an X, Y, Z, and E value
-						if not gcode.hasValue('X') and not gcode.hasValue('Y') and not gcode.hasValue('Z') and not gcode.hasValue('E') :
+										self.waveBondingPositionRelativeZ = float(gcode.getValue('Z'))
+	
+									if gcode.hasValue('E') :
+										self.waveBondingPositionRelativeE = float(gcode.getValue('E'))
+										
+				# Check if new commands exist
+				if len(newCommands) :
+		
+					# Finish processing command later
+					if not gcode.isEmpty() :
+						commands.append(Command(gcode.getAscii() + '\n', command.origin, "CENTER VALIDATION PREPARATION WAVE"))
+					else :
+						commands.append(Command(command.line, command.origin, "CENTER VALIDATION PREPARATION WAVE"))
+		
+					# Append new commands to commands
+					while len(newCommands) :
+						commands.append(newCommands.pop())
 			
-							# Set command values to zero
-							gcode.setValue('X', "0")
-							gcode.setValue('Y', "0")
-							gcode.setValue('Z', "0")
-							gcode.setValue('E', "0")
+					# Get next command
+					continue
+
+			# Check if printing test border or using thermal bonding pre-processor
+			if (self.printingTestBorder or self._settings.get_boolean(["UseThermalBondingPreprocessor"])) and "THERMAL" not in command.skip :
+	
+				# Initialize new commands
+				newCommands = []
+
+				# Check if command contains valid G-code
+				if not gcode.isEmpty() :
+				
+					# Otherwise check if not past the second layer and at a new layer
+					if self.thermalBondingLayerCounter < 2 and command.origin != "PREPARATION" and gcode.hasValue('Z') :
 			
+						# Check if on first counted layer
+						if self.thermalBondingLayerCounter == 0 :
+			
+							# Check if filament type is PLA
+							if str(self._settings.get(["FilamentType"])) == "PLA" :
+			
+								# Add temperature to output
+								newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 10)) + '\n', "THERMAL", "CENTER VALIDATION PREPARATION WAVE THERMAL"))
+				
+							# Otherwise
+							else :
+				
+								# Add temperature to output
+								newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 15)) + '\n', "THERMAL", "CENTER VALIDATION PREPARATION WAVE THERMAL"))
+				
 						# Otherwise
 						else :
 			
-							# Set relative positions
-							if gcode.hasValue('X') :
-								positionRelativeX = float(gcode.getValue('X'))
-						
-							if gcode.hasValue('Y') :
-								positionRelativeY = float(gcode.getValue('Y'))
-						
-							if gcode.hasValue('Z') :
-								positionRelativeZ = float(gcode.getValue('Z'))
-					
-							if gcode.hasValue('E') :
-								positionRelativeE = float(gcode.getValue('E'))
+							# Add temperature to output
+							newCommands.append(Command("M104 S" + str(self._settings.get_int(["FilamentTemperature"])) + '\n', "THERMAL", "CENTER VALIDATION PREPARATION WAVE THERMAL"))
 				
-				# Set line to adjusted value
-				line = gcode.getAscii() + '\n'
-			
-			# Send line to output
-			os.write(output, line)
-		
-		# Close output file
-		os.close(output)
-		
-		# Remove temporary file
-		os.remove(temp)
+						# Increment layer counter
+						self.thermalBondingLayerCounter += 1
+
+					# Check if command contains temperature or fan controls outside of the intro and outro
+					if command.origin != "PREPARATION" and gcode.hasValue('M') and (gcode.getValue('M') == "104" or gcode.getValue('M') == "106" or gcode.getValue('M') == "107" or gcode.getValue('M') == "109" or gcode.getValue('M') == "140" or gcode.getValue('M') == "190") :
+
+						# Get next line
+						continue
+
+					# Otherwise check if on first counted layer
+					elif self.thermalBondingLayerCounter == 1 :
+
+						# Check if printing test border or wave bonding isn't being used, and line is a G command
+						if (self.printingTestBorder or not self._settings.get_boolean(["UseWaveBondingPreprocessor"])) and gcode.hasValue('G') :
+
+							# Check if command is G0 or G1 and it's in absolute
+							if (gcode.getValue('G') == "0" or gcode.getValue('G') == "1") and not self.thermalBondingRelativeMode :
+
+								# Check if previous command exists and filament is ABS, HIPS, or PLA
+								if not self.thermalBondingPreviousGcode.isEmpty() and (str(self._settings.get(["FilamentType"])) == "ABS" or str(self._settings.get(["FilamentType"])) == "HIPS" or str(self._settings.get(["FilamentType"])) == "PLA") :
 	
-	# Thermal bonding pre-processor
-	def thermalBondingPreprocessor(self, file, overrideWaveBondingPreprocessor = False) :
-	
-		# Initialize variables
-		inIntro = True
-		inOutro = False
-		layerCounter = 0
-		cornerCounter = 0
-		relativeMode = False
-		gcode = Gcode()
-		previousGcode = Gcode()
-		refrenceGcode = Gcode()
+									# Check if corner counter is less than or equal to one
+									if self.thermalBondingCornerCounter <= 1 :
 		
-		# Move the input file to a temporary file
-		temp = tempfile.mkstemp()[1]
-		os.rename(file, temp)
-		
-		# Create ouput file in place of the input file
-		output = os.open(file, os.O_WRONLY | os.O_CREAT)
-		
-		# Read in input file
-		for line in open(temp) :
-		
-			# Detect end of intro
-			if ";End intro" in line :
-				inIntro = False
+										# Check if sharp corner
+										if self.isSharpCorner(gcode, self.thermalBondingPreviousGcode) :
 			
-			# Otherwise detect start of outro
-			elif ";Start outro" in line :
-				inOutro = True
-		
-			# Otherwise check if not past the second layer and line is a layer command
-			elif layerCounter < 2 and ";LAYER:" in line :
+											# Check if refrence G-codes isn't set
+											if self.thermalBondingRefrenceGcode.isEmpty() :
 				
-				# Check if on first counted layer
-				if layerCounter == 0 :
-			
-					# Check if filament type is PLA
-					if str(self._settings.get(["FilamentType"])) == "PLA" :
-			
-						# Send temperature command to output
-						os.write(output, "M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 10)) + '\n')
+												# Check if a tack point was created
+												self.thermalBondingTackPoint = self.createTackPoint(gcode, self.thermalBondingPreviousGcode)
+												if not self.thermalBondingTackPoint.isEmpty() :
+										
+													# Add tack point to output
+													newCommands.append(Command(self.thermalBondingTackPoint.getAscii() + '\n', "THERMAL", "CENTER VALIDATION PREPARATION WAVE THERMAL"))
+											
+											# Set refrence G-code
+											self.thermalBondingRefrenceGcode = copy.deepcopy(gcode)
 				
-					# Otherwise
+											# Increment corner count
+											self.thermalBondingCornerCounter += 1
+		
+									# Otherwise check if corner counter is greater than one and sharp corner
+									elif self.thermalBondingCornerCounter >= 1 and self.isSharpCorner(gcode, self.thermalBondingRefrenceGcode) :
+		
+										# Check if a tack point was created
+										self.thermalBondingTackPoint = self.createTackPoint(gcode, self.thermalBondingRefrenceGcode)
+										if not self.thermalBondingTackPoint.isEmpty() :
+								
+											# Add tack point to output
+											newCommands.append(Command(self.thermalBondingTackPoint.getAscii() + '\n', "THERMAL", "CENTER VALIDATION PREPARATION WAVE THERMAL"))
+									
+										# Set refrence G-code
+										self.thermalBondingRefrenceGcode = copy.deepcopy(gcode)
+
+							# Otherwise check if command is G90
+							elif gcode.getValue('G') == "90" :
+
+								# Clear relative mode
+								self.thermalBondingRelativeMode = False
+
+							# Otherwise check if command is G91
+							elif gcode.getValue('G') == "91" :
+
+								# Set relative mode
+								self.thermalBondingRelativeMode = True
+
+						# Set previous G-code
+						self.thermalBondingPreviousGcode = copy.deepcopy(gcode)
+		
+				# Check if new commands exist
+				if len(newCommands) :
+		
+					# Finish processing command later
+					if not gcode.isEmpty() :
+						commands.append(Command(gcode.getAscii() + '\n', command.origin, "CENTER VALIDATION PREPARATION WAVE THERMAL"))
 					else :
+						commands.append(Command(command.line, command.origin, "CENTER VALIDATION PREPARATION WAVE THERMAL"))
+		
+					# Append new commands to commands
+					while len(newCommands) :
+						commands.append(newCommands.pop())
+			
+					# Get next command
+					continue
+
+			# Check if printing test border or using bed compensation pre-processor
+			if (self.printingTestBorder or self._settings.get_boolean(["UseBedCompensationPreprocessor"])) and "BED" not in command.skip :
+	
+				# Initialize new commands
+				newCommands = []
+
+				# Check if command contains valid G-code
+				if not gcode.isEmpty() :
+
+					# Check if command is a G command
+					if gcode.hasValue('G') :
+
+						# Check if command is G0 or G1 and it's in absolute mode
+						if (gcode.getValue('G') == "0" or gcode.getValue('G') == "1") and not self.bedCompensationRelativeMode :
+
+							# Check if command has an X or Y value
+							if gcode.hasValue('X') or gcode.hasValue('Y') :
+
+								# Set changes plane
+								self.bedCompensationChangesPlane = True
+
+							# Check if command contains a Z value
+							if gcode.hasValue('Z') :
+
+								# Add to command's Z value
+								gcode.setValue('Z', "%f" % (float(gcode.getValue('Z')) + self._settings.get_float(["BedHeightOffset"])))
+	
+							# Set delta values
+							if gcode.hasValue('X') :
+								deltaX = float(gcode.getValue('X')) - self.bedCompensationPositionRelativeX
+							else :
+								deltaX = 0
+	
+							if gcode.hasValue('Y') :
+								deltaY = float(gcode.getValue('Y')) - self.bedCompensationPositionRelativeY
+							else :
+								deltaY = 0
+	
+							if gcode.hasValue('Z') :
+								deltaZ = float(gcode.getValue('Z')) - self.bedCompensationPositionRelativeZ
+							else :
+								deltaZ = 0
+		
+							if gcode.hasValue('E') :
+								deltaE = float(gcode.getValue('E')) - self.bedCompensationPositionRelativeE
+							else :
+								deltaE = 0
+	
+							# Adjust position absolute and relative values for the changes
+							self.bedCompensationPositionAbsoluteX += deltaX
+							self.bedCompensationPositionAbsoluteY += deltaY
+							self.bedCompensationPositionRelativeX += deltaX
+							self.bedCompensationPositionRelativeY += deltaY
+							self.bedCompensationPositionRelativeZ += deltaZ
+							self.bedCompensationPositionRelativeE += deltaE
+	
+							# Calculate distance
+							distance = math.sqrt(deltaX * deltaX + deltaY * deltaY)
+
+							# Set segment counter
+							if distance > self.segmentLength :
+								segmentCounter = int(distance / self.segmentLength)
+							else :
+								segmentCounter = 1
+	
+							# Set absolute and relative differences
+							absoluteDifferenceX = self.bedCompensationPositionAbsoluteX - deltaX
+							absoluteDifferenceY = self.bedCompensationPositionAbsoluteY - deltaY
+							relativeDifferenceX = self.bedCompensationPositionRelativeX - deltaX
+							relativeDifferenceY = self.bedCompensationPositionRelativeY - deltaY
+							relativeDifferenceZ = self.bedCompensationPositionRelativeZ - deltaZ
+							relativeDifferenceE = self.bedCompensationPositionRelativeE - deltaE
+
+							# Set delta ratios
+							if distance != 0 :
+								deltaRatioX = deltaX / distance
+								deltaRatioY = deltaY / distance
+								deltaRatioZ = deltaZ / distance
+								deltaRatioE = deltaE / distance
+							else :
+								deltaRatioX = 0
+								deltaRatioY = 0
+								deltaRatioZ = 0
+								deltaRatioE = 0
+
+							# Check if change in E is greater than zero
+							if deltaE > 0 :
+
+								# Go through all segments
+								index = 1
+								while index <= segmentCounter :
+						
+									# Check if at last segment
+									if index == segmentCounter :
+
+										# Set temp values
+										tempAbsoluteX = self.bedCompensationPositionAbsoluteX
+										tempAbsoluteY = self.bedCompensationPositionAbsoluteY
+										tempRelativeX = self.bedCompensationPositionRelativeX
+										tempRelativeY = self.bedCompensationPositionRelativeY
+										tempRelativeZ = self.bedCompensationPositionRelativeZ
+										tempRelativeE = self.bedCompensationPositionRelativeE
+			
+									# Otherwise
+									else :
+
+										# Set temp values
+										tempAbsoluteX = absoluteDifferenceX + index * self.segmentLength * deltaRatioX
+										tempAbsoluteY = absoluteDifferenceY + index * self.segmentLength * deltaRatioY
+										tempRelativeX = relativeDifferenceX + index * self.segmentLength * deltaRatioX
+										tempRelativeY = relativeDifferenceY + index * self.segmentLength * deltaRatioY
+										tempRelativeZ = relativeDifferenceZ + index * self.segmentLength * deltaRatioZ
+										tempRelativeE = relativeDifferenceE + index * self.segmentLength * deltaRatioE
+			
+									# Get height adjustment
+									heightAdjustment = self.getHeightAdjustmentRequired(tempAbsoluteX, tempAbsoluteY)
+	
+									# Check if not at last segment
+									if index != segmentCounter :
+	
+										# Set extra G-code
+										self.bedCompensationExtraGcode.clear()
+										self.bedCompensationExtraGcode.setValue('G', gcode.getValue('G'))
+		
+										# Check if command has an X value
+										if gcode.hasValue('X') :
+		
+											# Set extra G-code X value
+											self.bedCompensationExtraGcode.setValue('X', "%f" % (self.bedCompensationPositionRelativeX - deltaX + tempRelativeX - relativeDifferenceX))
+			
+										# Check if command has a Y value
+										if gcode.hasValue('Y') :
+		
+											# Set extra G-code Y value
+											self.bedCompensationExtraGcode.setValue('Y', "%f" % (self.bedCompensationPositionRelativeY - deltaY + tempRelativeY - relativeDifferenceY))
+		
+										# Check if command has F value and in first element
+										if gcode.hasValue('F') and index == 1 :
+		
+											# Set extra G-code F value
+											self.bedCompensationExtraGcode.setValue('F', gcode.getValue('F'))
+		
+										# Check if the plane changed
+										if self.bedCompensationChangesPlane :
+		
+											# Set extra G-code Z value
+											self.bedCompensationExtraGcode.setValue('Z', "%f" % (self.bedCompensationPositionRelativeZ - deltaZ + tempRelativeZ - relativeDifferenceZ + heightAdjustment))
+		
+										# Otherwise check if command has a Z value and the change in Z in noticable
+										elif gcode.hasValue('Z') and deltaZ != sys.float_info.epsilon :
+		
+											# Set extra G-code Z value
+											self.bedCompensationExtraGcode.setValue('Z', "%f" % (self.bedCompensationPositionRelativeZ - deltaZ + tempRelativeZ - relativeDifferenceZ))
+		
+										# Set extra G-gode E value
+										self.bedCompensationExtraGcode.setValue('E', "%f" % (self.bedCompensationPositionRelativeE - deltaE + tempRelativeE - relativeDifferenceE))
+								
+										# Add extra G-code to output
+										newCommands.append(Command(self.bedCompensationExtraGcode.getAscii() + '\n', "BED", "CENTER VALIDATION PREPARATION WAVE THERMAL BED"))
+	
+									# Otherwise
+									else :
+	
+										# Check if the plane changed
+										if self.bedCompensationChangesPlane :
+		
+											# Check if command has a Z value
+											if gcode.hasValue('Z') :
+			
+												# Add value to command Z value
+												gcode.setValue('Z', "%f" % (float(gcode.getValue('Z')) + heightAdjustment))
+			
+											# Otherwise
+											else :
+			
+												# Set command Z value
+												gcode.setValue('Z', "%f" % (relativeDifferenceZ + deltaZ + heightAdjustment))
+			
+									# Increment index
+									index += 1
+							
+							# Otherwise
+							else :
+
+								# Check if the plane changed
+								if self.bedCompensationChangesPlane :
+		
+									# Set height adjustment
+									heightAdjustment = self.getHeightAdjustmentRequired(self.bedCompensationPositionAbsoluteX, self.bedCompensationPositionAbsoluteY)
+	
+									# Check if command has a Z value
+									if gcode.hasValue('Z') :
+	
+										# Add value to command Z
+										gcode.setValue('Z', "%f" % (float(gcode.getValue('Z')) + heightAdjustment))
+	
+									# Otherwise
+									else :
+	
+										# Set command Z
+										gcode.setValue('Z', "%f" % (self.bedCompensationPositionRelativeZ + heightAdjustment))
+
+						# Otherwise check if command is G28
+						elif gcode.getValue('G') == "28" :
+
+							# Set X and Y to home
+							self.bedCompensationPositionRelativeX = self.bedCompensationPositionAbsoluteX = 54
+							self.bedCompensationPositionRelativeY = self.bedCompensationPositionAbsoluteY = 50
+
+						# Otherwise check if command is G90
+						elif gcode.getValue('G') == "90" :
+
+							# Clear relative mode
+							self.bedCompensationRelativeMode = False
+
+						# Otherwise check if command is G91
+						elif gcode.getValue('G') == "91" :
+
+							# Set relative mode
+							self.bedCompensationRelativeMode = True
+
+						# Otherwise check if command is G92
+						elif gcode.getValue('G') == "92" :
+
+							# Check if command doesn't have an X, Y, Z, and E value
+							if not gcode.hasValue('X') and not gcode.hasValue('Y') and not gcode.hasValue('Z') and not gcode.hasValue('E') :
+
+								# Set command values to zero
+								gcode.setValue('X', "0")
+								gcode.setValue('Y', "0")
+								gcode.setValue('Z', "0")
+								gcode.setValue('E', "0")
+
+							# Otherwise
+							else :
+
+								# Set relative positions
+								if gcode.hasValue('X') :
+									self.bedCompensationPositionRelativeX = float(gcode.getValue('X'))
+		
+								if gcode.hasValue('Y') :
+									self.bedCompensationPositionRelativeY = float(gcode.getValue('Y'))
+		
+								if gcode.hasValue('Z') :
+									self.bedCompensationPositionRelativeZ = float(gcode.getValue('Z'))
+	
+								if gcode.hasValue('E') :
+									self.bedCompensationPositionRelativeE = float(gcode.getValue('E'))
+		
+				# Check if new commands exist
+				if len(newCommands) :
+		
+					# Finish processing command later
+					if not gcode.isEmpty() :
+						commands.append(Command(gcode.getAscii() + '\n', command.origin, "CENTER VALIDATION PREPARATION WAVE THERMAL BED"))
+					else :
+						commands.append(Command(command.line, command.origin, "CENTER VALIDATION PREPARATION WAVE THERMAL BED"))
+		
+					# Append new commands to commands
+					while len(newCommands) :
+						commands.append(newCommands.pop())
+			
+					# Get next command
+					continue
+
+			# Check if printing test border or using backlash compentation pre-processor
+			if (self.printingTestBorder or self._settings.get_boolean(["UseBacklashCompensationPreprocessor"])) and "BACKLASH" not in command.skip :
+	
+				# Initialize new commands
+				newCommands = []
+
+				# Check if command contains valid G-code
+				if not gcode.isEmpty() :
+
+					# Check if command is a G command
+					if gcode.hasValue('G') :
+
+						# Check if command is G0 or G1 and it's in absolute mode
+						if (gcode.getValue('G') == "0" or gcode.getValue('G') == "1") and not self.backlashCompensationRelativeMode :
+	
+							# Check if command has an F value
+							if gcode.hasValue('F') :
+
+								# Set value F
+								self.valueF = gcode.getValue('F')
+	
+							# Set delta values
+							if gcode.hasValue('X') :
+								deltaX = float(gcode.getValue('X')) - self.backlashPositionRelativeX
+							else :
+								deltaX = 0
+		
+							if gcode.hasValue('Y') :
+								deltaY = float(gcode.getValue('Y')) - self.backlashPositionRelativeY
+							else :
+								deltaY = 0
+		
+							if gcode.hasValue('Z') :
+								deltaZ = float(gcode.getValue('Z')) - self.backlashPositionRelativeZ
+							else :
+								deltaZ = 0
+			
+							if gcode.hasValue('E') :
+								deltaE = float(gcode.getValue('E')) - self.backlashPositionRelativeE
+							else :
+								deltaE = 0
+	
+							# Set directions
+							if deltaX > sys.float_info.epsilon :
+								directionX = "Positive"
+							elif deltaX < -sys.float_info.epsilon :
+								directionX = "Negative"
+							else :
+								directionX = self.previousDirectionX
+		
+							if deltaY > sys.float_info.epsilon :
+								directionY = "Positive"
+							elif deltaY < -sys.float_info.epsilon :
+								directionY = "Negative"
+							else :
+								directionY = self.previousDirectionY
+	
+							# Check if direction has changed
+							if (directionX != self.previousDirectionX and self.previousDirectionX != "Neither") or (directionY != self.previousDirectionY and self.previousDirectionY != "Neither") :
+	
+								# Set extra G-code G value
+								self.backlashCompensationExtraGcode.clear()
+								self.backlashCompensationExtraGcode.setValue('G', gcode.getValue('G'))
+		
+								# Check if X direction has changed
+								if directionX != self.previousDirectionX and self.previousDirectionX != "Neither" :
+		
+									# Set X compensation
+									if directionX == "Positive" :
+										self.compensationX += self._settings.get_float(["BacklashX"])
+									else :
+										self.compensationX -= self._settings.get_float(["BacklashX"])
+			
+								# Check if Y direction has changed
+								if directionY != self.previousDirectionY and self.previousDirectionY != "Neither" :
+		
+									# Set Y compensation
+									if directionY == "Positive" :
+										self.compensationY += self._settings.get_float(["BacklashY"])
+									else :
+										self.compensationY -= self._settings.get_float(["BacklashY"])
+			
+								# Set extra G-code X and Y values
+								self.backlashCompensationExtraGcode.setValue('X', "%f" % (self.backlashPositionRelativeX + self.compensationX))
+								self.backlashCompensationExtraGcode.setValue('Y', "%f" % (self.backlashPositionRelativeY + self.compensationY))
+			
+								# Set extra G-code F value
+								self.backlashCompensationExtraGcode.setValue('F', "%f" % (self._settings.get_float(["BacklashSpeed"])))
+						
+								# Add extra G-code to output
+								newCommands.append(Command(self.backlashCompensationExtraGcode.getAscii() + '\n', "BACKLASH", "CENTER VALIDATION PREPARATION WAVE THERMAL BED BACKLASH"))
+						
+								# Set command's F value
+								gcode.setValue('F', self.valueF)
+		
+							# Check if command has an X value
+							if gcode.hasValue('X') :
+		
+								# Add to command's X value
+								gcode.setValue('X', "%f" % (float(gcode.getValue('X')) + self.compensationX))
+		
+							# Check if command has a Y value
+							if gcode.hasValue('Y') :
+
+								# Add to command's Y value
+								gcode.setValue('Y', "%f" % (float(gcode.getValue('Y')) + self.compensationY))
+
+							# Set relative values
+							self.backlashPositionRelativeX += deltaX
+							self.backlashPositionRelativeY += deltaY
+							self.backlashPositionRelativeZ += deltaZ
+							self.backlashPositionRelativeE += deltaE
+	
+							# Store directions
+							self.previousDirectionX = directionX
+							self.previousDirectionY = directionY
+	
+						# Otherwise check if command is G28
+						elif gcode.getValue('G') == "28" :
+	
+							# Set relative values
+							self.backlashPositionRelativeX = 54
+							self.backlashPositionRelativeY = 50
+		
+							# Reset values
+							self.valueF = "1000"
+							self.previousDirectionX = "Neither"
+							self.previousDirectionY = "Neither"
+							self.compensationX = 0
+							self.compensationY = 0
+	
+						# Otherwise check if command is G90
+						elif gcode.getValue('G') == "90" :
+	
+							# Clear relative mode
+							self.backlashCompensationRelativeMode = False
+	
+						# Otherwise check if command is G91
+						elif gcode.getValue('G') == "91" :
+	
+							# Set relative mode
+							self.backlashCompensationRelativeMode = True
+	
+						# Otherwise check if command is G92
+						elif gcode.getValue('G') == "92" :
+	
+							# Check if command doesn't have an X, Y, Z, and E value
+							if not gcode.hasValue('X') and not gcode.hasValue('Y') and not gcode.hasValue('Z') and not gcode.hasValue('E') :
+
+								# Set command values to zero
+								gcode.setValue('X', "0")
+								gcode.setValue('Y', "0")
+								gcode.setValue('Z', "0")
+								gcode.setValue('E', "0")
+
+							# Otherwise
+							else :
+
+								# Set relative positions
+								if gcode.hasValue('X') :
+									self.backlashPositionRelativeX = float(gcode.getValue('X'))
+			
+								if gcode.hasValue('Y') :
+									self.backlashPositionRelativeY = float(gcode.getValue('Y'))
+			
+								if gcode.hasValue('Z') :
+									self.backlashPositionRelativeZ = float(gcode.getValue('Z'))
+		
+								if gcode.hasValue('E') :
+									self.backlashPositionRelativeE = float(gcode.getValue('E'))
+		
+				# Check if new commands exist
+				if len(newCommands) :
+		
+					# Finish processing command later
+					if not gcode.isEmpty() :
+						commands.append(Command(gcode.getAscii() + '\n', command.origin, "CENTER VALIDATION PREPARATION WAVE THERMAL BED BACKLASH"))
+					else :
+						commands.append(Command(command.line, command.origin, "CENTER VALIDATION PREPARATION WAVE THERMAL BED BACKLASH"))
+		
+					# Append new commands to commands
+					while len(newCommands) :
+						commands.append(newCommands.pop())
+			
+					# Get next command
+					continue
+
+			# Check if printing test border or using feed rate conversion pre-processor
+			if (self.printingTestBorder or self._settings.get_boolean(["UseFeedRateConversionPreprocessor"])) and "FEED" not in command.skip :
+
+				# Check if command contains valid G-code
+				if not gcode.isEmpty() :
+
+					# Check if command contains G and F values
+					if gcode.hasValue('G') and gcode.hasValue('F') :
+
+						# Get command's feedrate
+						commandFeedRate = float(gcode.getValue('F')) / 60
+
+						# Force feed rate to adhere to limitations
+						if commandFeedRate > self.maxFeedRatePerSecond :
+							commandFeedRate = self.maxFeedRatePerSecond
+
+						# Set new feed rate for the command
+						gcode.setValue('F', "%f" % (30 + (1 - commandFeedRate / self.maxFeedRatePerSecond) * 800))
+	
+			# Check if command contains valid G-code
+			if not gcode.isEmpty() :
+	
+				# Check if outputting to a file
+				if output != None :
 				
-						# Send temperature command to output
-						os.write(output, "M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 15)) + '\n')
+					# Get ascii representation of the command
+					output.write(gcode.getAscii() + '\n')
 				
 				# Otherwise
 				else :
-			
-					# Send temperature command to output
-					os.write(output, "M104 S" + str(self._settings.get_int(["FilamentTemperature"])) + '\n')
 				
-				# Increment layer counter
-				layerCounter += 1
-			
-			# Check if line was parsed successfully
-			if gcode.parseLine(line) :
-			
-				# Check if using preparation pre-processor and command contains temperature or fan controls outside of the intro and outro
-				if self._settings.get_boolean(["UsePreparationPreprocessor"]) and not inIntro and not inOutro and gcode.hasValue('M') and (gcode.getValue('M') == "104" or gcode.getValue('M') == "105" or gcode.getValue('M') == "106" or gcode.getValue('M') == "107" or gcode.getValue('M') == "109" or gcode.getValue('M') == "140" or gcode.getValue('M') == "190") :
-			
-					# Get next line
-					continue
-				
-				# Otherwise check if on first counted layer
-				elif layerCounter == 1 :
-			
-					# Check if wave bonding isn't being used and line is a G command
-					if not overrideWaveBondingPreprocessor and not self._settings.get_boolean(["UseWaveBondingPreprocessor"]) and gcode.hasValue('G') :
-			
-						# Check if command is G0 or G1 and it's in absolute
-						if (gcode.getValue('G') == "0" or gcode.getValue('G') == "1") and not relativeMode :
-				
-							# Check if previous command exists and filament is ABS, HIPS, or PLA
-							if not previousGcode.isEmpty() and (str(self._settings.get(["FilamentType"])) == "ABS" or str(self._settings.get(["FilamentType"])) == "HIPS" or str(self._settings.get(["FilamentType"])) == "PLA") :
-					
-								# Check if corner counter is less than or equal to one
-								if cornerCounter <= 1 :
-						
-									# Check if sharp corner
-									if self.isSharpCorner(gcode, previousGcode) :
-							
-										# Check if refrence G-codes isn't set
-										if refrenceGcode.isEmpty() :
-								
-											# Check if a tack point was created
-											tackPoint = self.createTackPoint(gcode, previousGcode)
-											if not tackPoint.isEmpty() :
-									
-												# Send tack point to output
-												os.write(output, tackPoint.getAscii() + '\n')
-								
-										# Set refrence G-code
-										refrenceGcode = copy.deepcopy(gcode)
-								
-										# Increment corner count
-										cornerCounter += 1
-						
-								# Otherwise check if corner counter is greater than one and sharp corner
-								elif cornerCounter >= 1 and self.isSharpCorner(gcode, refrenceGcode) :
-						
-									# Check if a tack point was created
-									tackPoint = self.createTackPoint(gcode, refrenceGcode)
-									if not tackPoint.isEmpty() :
-							
-										# Send tack point to output
-										os.write(output, tackPoint.getAscii() + '\n')
-							
-									# Set refrence G-code
-									refrenceGcode = copy.deepcopy(gcode)
-				
-						# Otherwise check if command is G90
-						elif gcode.getValue('G') == "90" :
-				
-							# Clear relative mode
-							relativeMode = False
-				
-						# Otherwise check if command is G91
-						elif gcode.getValue('G') == "91" :
-				
-							# Set relative mode
-							relativeMode = True
-				
-						# Set line to adjusted value
-						line = gcode.getAscii() + '\n'
-			
-					# Set previous G-code
-					previousGcode = copy.deepcopy(gcode)
-			
-			# Send line to output
-			os.write(output, line)
+					# Get ascii representation of the command to list
+					value += [gcode.getAscii() + " *\n"]
 		
-		# Close output file
-		os.close(output)
+		# Check if not outputting to a file
+		if output == None :
 		
-		# Remove temporary file
-		os.remove(temp)
-	
-	# Bed compensation pre-processor
-	def bedCompensationPreprocessor(self, file) :
-	
-		# Initialize variables
-		relativeMode = False
-		changesPlane = False
-		positionAbsoluteX = 0
-		positionAbsoluteY = 0
-		positionRelativeX = 0
-		positionRelativeY = 0
-		positionRelativeZ = 0
-		positionRelativeE = 0
-		gcode = Gcode()
-		extraGcode = Gcode()
-	
-		# Move the input file to a temporary file
-		temp = tempfile.mkstemp()[1]
-		os.rename(file, temp)
-		
-		# Create ouput file in place of the input file
-		output = os.open(file, os.O_WRONLY | os.O_CREAT)
-		
-		# Read in input file
-		for line in open(temp) :
-			
-			# Check if line was parsed successfully and it's a G command
-			if gcode.parseLine(line) and gcode.hasValue('G') :
-			
-				# Check if command is G0 or G1 and it's in absolute mode
-				if (gcode.getValue('G') == "0" or gcode.getValue('G') == "1") and not relativeMode :
-				
-					# Check if command has an X or Y value
-					if gcode.hasValue('X') or gcode.hasValue('Y') :
-			
-						# Set changes plane
-						changesPlane = True
-			
-					# Check if command contains a Z value
-					if gcode.hasValue('Z') :
-			
-						# Add to command's Z value
-						gcode.setValue('Z', "%f" % (float(gcode.getValue('Z')) + self._settings.get_float(["BedHeightOffset"])))
-					
-					# Set delta values
-					if gcode.hasValue('X') :
-						deltaX = float(gcode.getValue('X')) - positionRelativeX
-					else :
-						deltaX = 0
-					
-					if gcode.hasValue('Y') :
-						deltaY = float(gcode.getValue('Y')) - positionRelativeY
-					else :
-						deltaY = 0
-					
-					if gcode.hasValue('Z') :
-						deltaZ = float(gcode.getValue('Z')) - positionRelativeZ
-					else :
-						deltaZ = 0
-						
-					if gcode.hasValue('E') :
-						deltaE = float(gcode.getValue('E')) - positionRelativeE
-					else :
-						deltaE = 0
-					
-					# Adjust position absolute and relative values for the changes
-					positionAbsoluteX += deltaX
-					positionAbsoluteY += deltaY
-					positionRelativeX += deltaX
-					positionRelativeY += deltaY
-					positionRelativeZ += deltaZ
-					positionRelativeE += deltaE
-					
-					# Calculate distance
-					distance = math.sqrt(deltaX * deltaX + deltaY * deltaY)
-			
-					# Set segment counter
-					if distance > self.segmentLength :
-						segmentCounter = int(distance / self.segmentLength)
-					else :
-						segmentCounter = 1
-					
-					# Set absolute and relative differences
-					absoluteDifferenceX = positionAbsoluteX - deltaX
-					absoluteDifferenceY = positionAbsoluteY - deltaY
-					relativeDifferenceX = positionRelativeX - deltaX
-					relativeDifferenceY = positionRelativeY - deltaY
-					relativeDifferenceZ = positionRelativeZ - deltaZ
-					relativeDifferenceE = positionRelativeE - deltaE
-			
-					# Set delta ratios
-					if distance != 0 :
-						deltaRatioX = deltaX / distance
-						deltaRatioY = deltaY / distance
-						deltaRatioZ = deltaZ / distance
-						deltaRatioE = deltaE / distance
-					else :
-						deltaRatioX = 0
-						deltaRatioY = 0
-						deltaRatioZ = 0
-						deltaRatioE = 0
-			
-					# Check if change in E is greater than zero
-					if deltaE > 0 :
-			
-						# Go through all segments
-						index = 1
-						while index <= segmentCounter :
-			
-							# Check if at last segment
-							if index == segmentCounter :
-				
-								# Set temp values
-								tempAbsoluteX = positionAbsoluteX
-								tempAbsoluteY = positionAbsoluteY
-								tempRelativeX = positionRelativeX
-								tempRelativeY = positionRelativeY
-								tempRelativeZ = positionRelativeZ
-								tempRelativeE = positionRelativeE
-							
-							# Otherwise
-							else :
-				
-								# Set temp values
-								tempAbsoluteX = absoluteDifferenceX + index * self.segmentLength * deltaRatioX
-								tempAbsoluteY = absoluteDifferenceY + index * self.segmentLength * deltaRatioY
-								tempRelativeX = relativeDifferenceX + index * self.segmentLength * deltaRatioX
-								tempRelativeY = relativeDifferenceY + index * self.segmentLength * deltaRatioY
-								tempRelativeZ = relativeDifferenceZ + index * self.segmentLength * deltaRatioZ
-								tempRelativeE = relativeDifferenceE + index * self.segmentLength * deltaRatioE
-							
-							# Get height adjustment
-							heightAdjustment = self.getHeightAdjustmentRequired(tempAbsoluteX, tempAbsoluteY)
-					
-							# Check if not at last segment
-							if index != segmentCounter :
-					
-								# Set extra G-code
-								extraGcode.clear()
-								extraGcode.setValue('G', gcode.getValue('G'))
-						
-								# Check if command has an X value
-								if gcode.hasValue('X') :
-						
-									# Set extra G-code X value
-									extraGcode.setValue('X', "%f" % (positionRelativeX - deltaX + tempRelativeX - relativeDifferenceX))
-							
-								# Check if command has a Y value
-								if gcode.hasValue('Y') :
-						
-									# Set extra G-code Y value
-									extraGcode.setValue('Y', "%f" % (positionRelativeY - deltaY + tempRelativeY - relativeDifferenceY))
-						
-								# Check if command has F value and in first element
-								if gcode.hasValue('F') and index == 1 :
-						
-									# Set extra G-code F value
-									extraGcode.setValue('F', gcode.getValue('F'))
-						
-								# Check if the plane changed
-								if changesPlane :
-						
-									# Set extra G-code Z value
-									extraGcode.setValue('Z', "%f" % (positionRelativeZ - deltaZ + tempRelativeZ - relativeDifferenceZ + heightAdjustment))
-						
-								# Otherwise check if command has a Z value and the change in Z in noticable
-								elif gcode.hasValue('Z') and deltaZ != sys.float_info.epsilon :
-						
-									# Set extra G-code Z value
-									extraGcode.setValue('Z', "%f" % (positionRelativeZ - deltaZ + tempRelativeZ - relativeDifferenceZ))
-						
-								# Set extra G-gode E value
-								extraGcode.setValue('E', "%f" % (positionRelativeE - deltaE + tempRelativeE - relativeDifferenceE))
-								
-								# Send extra G-code to output
-								os.write(output, extraGcode.getAscii() + '\n')
-					
-							# Otherwise
-							else :
-					
-								# Check if the plane changed
-								if changesPlane :
-						
-									# Check if command has a Z value
-									if gcode.hasValue('Z') :
-							
-										# Add value to command Z value
-										gcode.setValue('Z', "%f" % (float(gcode.getValue('Z')) + heightAdjustment))
-							
-									# Otherwise
-									else :
-							
-										# Set command Z value
-										gcode.setValue('Z', "%f" % (relativeDifferenceZ + deltaZ + heightAdjustment))
-							
-							# Increment index
-							index += 1
-			
-					# Otherwise
-					else :
-			
-						# Check if the plane changed
-						if changesPlane :
-						
-							# Set height adjustment
-							heightAdjustment = self.getHeightAdjustmentRequired(positionAbsoluteX, positionAbsoluteY)
-					
-							# Check if command has a Z value
-							if gcode.hasValue('Z') :
-					
-								# Add value to command Z
-								gcode.setValue('Z', "%f" % (float(gcode.getValue('Z')) + heightAdjustment))
-					
-							# Otherwise
-							else :
-					
-								# Set command Z
-								gcode.setValue('Z', "%f" % (positionRelativeZ + heightAdjustment))
-				
-				# Otherwise check if command is G28
-				elif gcode.getValue('G') == "28" :
-				
-					# Set X and Y to home
-					positionRelativeX = positionAbsoluteX = 54
-					positionRelativeY = positionAbsoluteY = 50
-				
-				# Otherwise check if command is G90
-				elif gcode.getValue('G') == "90" :
-				
-					# Clear relative mode
-					relativeMode = False
-				
-				# Otherwise check if command is G91
-				elif gcode.getValue('G') == "91" :
-				
-					# Set relative mode
-					relativeMode = True
-				
-				# Otherwise check if command is G92
-				elif gcode.getValue('G') == "92" :
-				
-					# Check if command doesn't have an X, Y, Z, and E value
-					if not gcode.hasValue('X') and not gcode.hasValue('Y') and not gcode.hasValue('Z') and not gcode.hasValue('E') :
-			
-						# Set command values to zero
-						gcode.setValue('X', "0")
-						gcode.setValue('Y', "0")
-						gcode.setValue('Z', "0")
-						gcode.setValue('E', "0")
-			
-					# Otherwise
-					else :
-			
-						# Set relative positions
-						if gcode.hasValue('X') :
-							positionRelativeX = float(gcode.getValue('X'))
-						
-						if gcode.hasValue('Y') :
-							positionRelativeY = float(gcode.getValue('Y'))
-						
-						if gcode.hasValue('Z') :
-							positionRelativeZ = float(gcode.getValue('Z'))
-					
-						if gcode.hasValue('E') :
-							positionRelativeE = float(gcode.getValue('E'))
-				
-				# Set line to adjusted value
-				line = gcode.getAscii() + '\n'
-			
-			# Send line to output
-			os.write(output, line)
-		
-		# Close output file
-		os.close(output)
-		
-		# Remove temporary file
-		os.remove(temp)
-	
-	# Backlash compensation pre-processor
-	def backlashCompensationPreprocessor(self, file) :
-	
-		# Initialize variables
-		relativeMode = False
-		valueF = "1000"
-		previousDirectionX = "Neither"
-		previousDirectionY = "Neither"
-		compensationX = 0
-		compensationY = 0
-		positionRelativeX = 0
-		positionRelativeY = 0
-		positionRelativeZ = 0
-		positionRelativeE = 0
-		gcode = Gcode()
-		extraGcode = Gcode()
-	
-		# Move the input file to a temporary file
-		temp = tempfile.mkstemp()[1]
-		os.rename(file, temp)
-		
-		# Create ouput file in place of the input file
-		output = os.open(file, os.O_WRONLY | os.O_CREAT)
-		
-		# Read in input file
-		for line in open(temp) :
-			
-			# Check if line was parsed successfully and it's a G command
-			if gcode.parseLine(line) and gcode.hasValue('G') :
-			
-				# Check if command is G0 or G1 and it's in absolute mode
-				if (gcode.getValue('G') == "0" or gcode.getValue('G') == "1") and not relativeMode :
-				
-					# Check if command has an F value
-					if gcode.hasValue('F') :
-			
-						# Set value F
-						valueF = gcode.getValue('F')
-				
-					# Set delta values
-					if gcode.hasValue('X') :
-						deltaX = float(gcode.getValue('X')) - positionRelativeX
-					else :
-						deltaX = 0
-					
-					if gcode.hasValue('Y') :
-						deltaY = float(gcode.getValue('Y')) - positionRelativeY
-					else :
-						deltaY = 0
-					
-					if gcode.hasValue('Z') :
-						deltaZ = float(gcode.getValue('Z')) - positionRelativeZ
-					else :
-						deltaZ = 0
-						
-					if gcode.hasValue('E') :
-						deltaE = float(gcode.getValue('E')) - positionRelativeE
-					else :
-						deltaE = 0
-				
-					# Set directions
-					if deltaX > sys.float_info.epsilon :
-						directionX = "Positive"
-					elif deltaX < -sys.float_info.epsilon :
-						directionX = "Negative"
-					else :
-						directionX = previousDirectionX
-					
-					if deltaY > sys.float_info.epsilon :
-						directionY = "Positive"
-					elif deltaY < -sys.float_info.epsilon :
-						directionY = "Negative"
-					else :
-						directionY = previousDirectionY
-				
-					# Check if direction has changed
-					if (directionX != previousDirectionX and previousDirectionX != "Neither") or (directionY != previousDirectionY and previousDirectionY != "Neither") :
-				
-						# Set extra G-code G value
-						extraGcode.clear()
-						extraGcode.setValue('G', gcode.getValue('G'))
-					
-						# Check if X direction has changed
-						if directionX != previousDirectionX and previousDirectionX != "Neither" :
-					
-							# Set X compensation
-							if directionX == "Positive" :
-								compensationX += self._settings.get_float(["BacklashX"])
-							else :
-								compensationX -= self._settings.get_float(["BacklashX"])
-						
-						# Check if Y direction has changed
-						if directionY != previousDirectionY and previousDirectionY != "Neither" :
-					
-							# Set Y compensation
-							if directionY == "Positive" :
-								compensationY += self._settings.get_float(["BacklashY"])
-							else :
-								compensationY -= self._settings.get_float(["BacklashY"])
-						
-						# Set extra G-code X and Y values
-						extraGcode.setValue('X', "%f" % (positionRelativeX + compensationX))
-						extraGcode.setValue('Y', "%f" % (positionRelativeY + compensationY))
-						
-						# Set extra G-code F value
-						extraGcode.setValue('F', "%f" % (self._settings.get_float(["BacklashSpeed"])))
-					
-						# Send extra G-code to output
-						os.write(output, extraGcode.getAscii() + '\n')
-					
-						# Set command's F value
-						gcode.setValue('F', valueF)
-					
-					# Check if command has an X value
-					if gcode.hasValue('X') :
-					
-						# Add to command's X value
-						gcode.setValue('X', "%f" % (float(gcode.getValue('X')) + compensationX))
-					
-					# Check if command has a Y value
-					if gcode.hasValue('Y') :
-			
-						# Add to command's Y value
-						gcode.setValue('Y', "%f" % (float(gcode.getValue('Y')) + compensationY))
-			
-					# Set relative values
-					positionRelativeX += deltaX
-					positionRelativeY += deltaY
-					positionRelativeZ += deltaZ
-					positionRelativeE += deltaE
-				
-					# Store directions
-					previousDirectionX = directionX
-					previousDirectionY = directionY
-				
-				# Otherwise check if command is G28
-				elif gcode.getValue('G') == "28" :
-				
-					# Set relative values
-					positionRelativeX = 54
-					positionRelativeY = 50
-					
-					# Reset values
-					valueF = "1000"
-					previousDirectionX = "Neither"
-					previousDirectionY = "Neither"
-					compensationX = 0
-					compensationY = 0
-				
-				# Otherwise check if command is G90
-				elif gcode.getValue('G') == "90" :
-				
-					# Clear relative mode
-					relativeMode = False
-				
-				# Otherwise check if command is G91
-				elif gcode.getValue('G') == "91" :
-				
-					# Set relative mode
-					relativeMode = True
-				
-				# Otherwise check if command is G92
-				elif gcode.getValue('G') == "92" :
-				
-					# Check if command doesn't have an X, Y, Z, and E value
-					if not gcode.hasValue('X') and not gcode.hasValue('Y') and not gcode.hasValue('Z') and not gcode.hasValue('E') :
-			
-						# Set command values to zero
-						gcode.setValue('X', "0")
-						gcode.setValue('Y', "0")
-						gcode.setValue('Z', "0")
-						gcode.setValue('E', "0")
-			
-					# Otherwise
-					else :
-			
-						# Set relative positions
-						if gcode.hasValue('X') :
-							positionRelativeX = float(gcode.getValue('X'))
-						
-						if gcode.hasValue('Y') :
-							positionRelativeY = float(gcode.getValue('Y'))
-						
-						if gcode.hasValue('Z') :
-							positionRelativeZ = float(gcode.getValue('Z'))
-					
-						if gcode.hasValue('E') :
-							positionRelativeE = float(gcode.getValue('E'))
-				
-				# Set line to adjusted value
-				line = gcode.getAscii() + '\n'
-			
-			# Send line to output
-			os.write(output, line)
-		
-		# Close output file
-		os.close(output)
-		
-		# Remove temporary file
-		os.remove(temp)
-	
-	# Feed rate conversion pre-processor
-	def feedRateConversionPreprocessor(self, file) :
-	
-		# Initialize variables
-		gcode = Gcode()
-	
-		# Move the input file to a temporary file
-		temp = tempfile.mkstemp()[1]
-		os.rename(file, temp)
-		
-		# Create ouput file in place of the input file
-		output = os.open(file, os.O_WRONLY | os.O_CREAT)
-		
-		# Read in input file
-		for line in open(temp) :
-			
-			# Check if line was parsed successfully and it contains G and F values
-			if gcode.parseLine(line) and gcode.hasValue('G') and gcode.hasValue('F') :
-			
-				# Get command's feedrate
-				commandFeedRate = float(gcode.getValue('F')) / 60
-				
-				# Force feed rate to adhere to limitations
-				if commandFeedRate > self.maxFeedRatePerSecond :
-                			commandFeedRate = self.maxFeedRatePerSecond
-                		
-				# Set new feed rate for the command
-				gcode.setValue('F', "%f" % (30 + (1 - commandFeedRate / self.maxFeedRatePerSecond) * 800))
-				
-				# Set line to adjusted value
-				line = gcode.getAscii() + '\n'
-			
-			# Send line to output
-			os.write(output, line)
-		
-		# Close output file
-		os.close(output)
-		
-		# Remove temporary file
-		os.remove(temp)
+			# Return list of commands
+			return value
 
 # Plugin info
 __plugin_name__ = "M3D Fio"
