@@ -873,7 +873,7 @@ class M3DFioPlugin(
 	
 		# Return if firmware was updated successfully
 		encryptedRom = open(os.path.dirname(os.path.realpath(__file__)) + "/static/files/" + str(self.providedFirmware) + ".hex", "rb")
-		return self.updateFirmware(connection, encryptedRom.read(), int(file[0 : 10]))
+		return self.updateFirmware(connection, encryptedRom.read(), int(self.providedFirmware))
 	
 	# Update firmware
 	def updateFirmware(self, connection, encryptedRom, romVersion) :
