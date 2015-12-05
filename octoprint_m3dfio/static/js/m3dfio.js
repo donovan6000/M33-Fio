@@ -7,7 +7,14 @@ $(function() {
 		// Initialize variables
 		var printerConnected = false;
 		var eepromDisplayType = "hexadecimal";
+		var slicerOpen = false;
+		var slicerMenu = "Select Profile";
+		var modelName;
+		var slicerName;
+		var profileName;
+		var profileText;
 		var currentZ;
+		var viewport = null;
 		var self = this;
 		
 		// Get state views
@@ -313,7 +320,7 @@ $(function() {
 				$("body > div.page-container > div.message > div > div > div").removeClass("show");
 				$("body > div.page-container > div.message > div > img").addClass("show");
 			}
-	
+			
 			// Otherwise show button area and hide loading
 			else {
 				$("body > div.page-container > div.message > div > div > div:not(.calibrate)").addClass("show");
@@ -326,7 +333,7 @@ $(function() {
 			}
 	
 			// Show message
-			message.addClass("show").css("z-index", "99");
+			message.addClass("show").css("z-index", "9999");
 		}
 
 		// Hide message
@@ -336,7 +343,7 @@ $(function() {
 			$("body > div.page-container > div.message").removeClass("show");
 			
 			setTimeout(function() {
-				$("body > div.page-container > div.message").css("z-index", "-1");
+				$("body > div.page-container > div.message").css("z-index", '');
 			}, 300);
 		}
 
@@ -523,6 +530,285 @@ $(function() {
 			}, 1000);
 		}
 		
+		// Load model
+		function loadModel(file) {
+		
+			// View port
+			viewport = {
+
+				// Data members
+				scene: null,
+				camera: null,
+				renderer: null,
+				orbitControls: null,
+				transformControls: null,
+				model: null,
+				loaded: false,
+				animationFrame: null,
+	
+				// Initialize
+				init: function() {
+				
+					// Create scene
+					this.scene = new THREE.Scene();
+
+					// Create camera
+					var SCREEN_WIDTH = $("#slicing_configuration_dialog").width(), SCREEN_HEIGHT = $(window).height() - 200;
+					var VIEW_ANGLE = 45, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 1, FAR = 1000;
+					this.camera = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
+					this.scene.add(this.camera);
+					this.camera.position.set(0, 0, -300);
+					this.camera.lookAt(new THREE.Vector3(0, 0, 0));
+
+					// Create renderer
+					this.renderer = new THREE.WebGLRenderer({
+						antialias: true
+					});
+					this.renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+					this.renderer.setClearColor(0xFFFFFF);
+
+					// Create controls
+					this.orbitControls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
+					this.orbitControls.target.set(0, 62, 0);
+					this.orbitControls.minDistance = 200;
+					this.orbitControls.maxDistance = 500;
+					this.orbitControls.minPolarAngle = 0;
+					this.orbitControls.maxPolarAngle = Math.PI / 2;
+					this.orbitControls.enablePan = false;
+					
+					this.transformControls = new THREE.TransformControls(this.camera, this.renderer.domElement );
+					this.transformControls.space = "world";
+					this.scene.add(this.transformControls);
+
+					// Create lights
+					this.scene.add(new THREE.AmbientLight(0x444444));
+					var dirLight = new THREE.DirectionalLight(0xFFFFFF);
+					dirLight.position.set(200, 200, 1000).normalize();
+					this.camera.add(dirLight);
+					this.camera.add(dirLight.target);
+					
+					// Load models
+					this.loadModels();
+					
+					// Enable events
+					this.transformControls.addEventListener("mouseUp", this.fixModelY);
+					$(window).on("resize.viewport", this.resizeEvent);
+					$(window).on("keydown.viewport", this.keyDownEvent);
+				},
+				
+				// Load models
+				loadModels: function() {
+		
+					// Load printer model
+					var printer = new THREE.STLLoader();
+					printer.load("/plugin/m3dfio/static/files/printer.stl", function(geometry) {
+		
+						// Create printer's mesh
+						var mesh = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({
+							color: 0xFF4444,
+							side: THREE.DoubleSide
+						}));
+						
+						// Set printer's orientation
+						mesh.rotation.set(3 * Math.PI / 2, 0, Math.PI);
+						mesh.position.set(0, 61, 0);
+						mesh.scale.set(1, 1, 1);
+						
+						// Add printer to scene
+						viewport.scene.add(mesh);
+						
+						// Load model
+						var model = new THREE.STLLoader();
+						model.load(file, function(geometry) {
+						
+							// Center model
+							geometry.center();
+		
+							// Create model's mesh
+							var mesh = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({
+								color: 0xFF4444,
+								side: THREE.DoubleSide
+							}));
+							
+							// Rotate model, but keep initial orientation
+							mesh.rotation.set(3 * Math.PI / 2, 0, Math.PI);
+							mesh.updateMatrix();
+							mesh.geometry.applyMatrix(mesh.matrix);
+							mesh.position.set(0, 0, 0);
+							mesh.rotation.set(0, 0, 0);
+							mesh.scale.set(1, 1, 1);
+							
+							// Add model to scene
+							viewport.scene.add(mesh);
+							
+							// Attach model to transform controls
+							viewport.model = mesh
+							viewport.transformControls.attach(mesh);
+							
+							// Fix model's Y
+							viewport.fixModelY();
+						
+							// Set loaded
+							viewport.loaded = true;
+						});
+					});
+				},
+				
+				// Key down event
+				keyDownEvent: function(event) {
+				
+					// Check what key was pressed
+					switch(event.keyCode) {
+					
+						// Check if W was pressed
+						case 87:
+						
+							// Set control mode to translate
+							viewport.transformControls.setMode("translate");
+							viewport.transformControls.space = "world";
+							viewport.transformControls.update();
+						break;
+						
+						// Check if E was pressed
+						case 69:
+						
+							// Set control mode to rotate
+							viewport.transformControls.setMode("rotate");
+							viewport.transformControls.space = "local";
+							viewport.transformControls.update();
+						break;
+						
+						// Check if R was pressed
+						case 82:
+						
+							// Set control mode to scale
+							viewport.transformControls.setMode("scale");
+							viewport.transformControls.space = "local";
+							viewport.transformControls.update();
+						break;
+					}
+				},
+				
+				// Resize event
+				resizeEvent: function() {
+				
+					// Update camera
+					viewport.camera.aspect = $("#slicing_configuration_dialog").width() / ($(window).height() - 200);
+					viewport.camera.updateProjectionMatrix();
+					viewport.renderer.setSize($("#slicing_configuration_dialog").width(), $(window).height() - 200);
+				},
+				
+				// Get model
+				getModel: function() {
+				
+					// Get model's mesh
+					var mesh = viewport.model;
+					
+					// Save mesh's current matrix
+					mesh.updateMatrix();
+					var matrix = mesh.matrix;
+					
+					// Undo initial rotation
+					mesh.geometry.applyMatrix(mesh.matrix);
+					mesh.position.set(0, 0, 0);
+					mesh.rotation.set(3 * Math.PI / 2, 0, Math.PI);
+					mesh.scale.set(1, 1, 1);
+					render();
+					
+					// Get mesh as an STL
+					var exporter = new THREE.STLBinaryExporter();
+					var stl = new Blob([exporter.parse(mesh)], {type: "text/plain"});
+					
+					// Apply mesh's previous matrix
+					mesh.applyMatrix(matrix);
+					mesh.updateMatrix();
+					render();
+					
+					// Stop rendering
+					cancelAnimationFrame(viewport.animationFrame);
+					
+					// Return STL
+					return stl;
+				},
+				
+				// Destroy
+				destroy: function() {
+				
+					// Stop rendering
+					cancelAnimationFrame(viewport.animationFrame);
+					
+					// Disable events
+					$(window).off("resize.viewport");
+					$(window).off("keydown.viewport");
+					
+					// Reset values
+					scene = null;
+					camera = null;
+					renderer = null;
+					orbitControls = null;
+					transformControls = null;
+					model = null;
+					loaded = false;
+					animationFrame = null;
+					viewport = null;
+				},
+				
+				// Fix model Y
+				fixModelY: function() {
+					
+					// Check if model exists
+					if(viewport.model) {
+				
+						// Get model's boundary box
+						var boundaryBox = new THREE.Box3().setFromObject(viewport.model);
+						boundaryBox.min.sub(viewport.model.position);
+						boundaryBox.max.sub(viewport.model.position);
+						
+						// Set model's lowest Y value to be at 0
+						viewport.model.position.y -= viewport.model.position.y + boundaryBox.min.y;
+					}
+				
+				}
+			};
+
+			// Animate scene
+			function animate() {
+			
+				// Animate frame
+				viewport.animationFrame = requestAnimationFrame(animate);
+				
+				// Render scene
+				render();
+				
+				// Update
+				update();
+			}
+
+			// Update
+			function update() {
+			
+				// Update transform controls if set
+				if(viewport.transformControls)
+					viewport.transformControls.update();
+			
+				// Update orbit controls if set
+				if(viewport.orbitControls)
+					viewport.orbitControls.update();
+			}
+
+			// Render
+			function render() {
+			
+				// Render scene if set
+				if(viewport.renderer)
+					viewport.renderer.render(viewport.scene, viewport.camera);
+			}
+			
+			// Create viewport
+			viewport.init();
+			animate();
+		}
+		
 		// Add 0.01 movement control
 		$("#control > div.jog-panel").eq(0).addClass("controls").find("div.distance > div").prepend("<button type=\"button\" id=\"control-distance001\" class=\"btn distance\" data-distance=\"0.01\" data-bind=\"enable: loginState.isUser()\">0.01</button>");
 		$("#control > div.jog-panel.controls").find("div.distance > div > button:nth-of-type(3)").click();
@@ -586,6 +872,339 @@ $(function() {
 		
 		// Add message
 		$("body > div.page-container").append("<div class=\"message\"><div><h4></h4><img src=\"/plugin/m3dfio/static/img/loading.gif\"><div><p></p><div class=\"calibrate\"><div class=\"arrows\"><button class=\"btn btn-block control-box arrow up\"><i class=\"icon-arrow-up\"></i></button><button class=\"btn btn-block control-box arrow down\"><i class=\"icon-arrow-down\"></i></button></div><div class=\"distance\"><button type=\"button\" class=\"btn distance\">0.01</button><button type=\"button\" class=\"btn distance active\">0.1</button><button type=\"button\" class=\"btn distance\">1</button></div></div><div><button class=\"btn btn-block confirm\"></button><button class=\"btn btn-block confirm\"></button></div></div></div>");
+		
+		// Add cover to slicer
+		$("#slicing_configuration_dialog").append("<div class=\"modal-cover\"><img src=\"/plugin/m3dfio/static/img/loading.gif\"><p></p></div>");
+		
+		// Change slicer text
+		$("#slicing_configuration_dialog").find("h3").before("<p class=\"currentMenu\">Select Profile</p>");
+		$("#slicing_configuration_dialog").find(".control-group:nth-of-type(2) > label").text("Base Slicing Profile");
+		
+		// Manage if slicer is opened or closed
+		setInterval(function() {
+		
+			// Check if slicer is open
+			if($("#slicing_configuration_dialog").css("display") == "block") {
+			
+				// Set slicer open is not already set
+				if(!slicerOpen)
+					slicerOpen = true;
+			}
+			
+			// Otherwise
+			else {
+			
+				// Check is slicer was open
+				if(slicerOpen) {
+				
+					// Clear slicer open
+					slicerOpen = false;
+					
+					// Send request
+					$.ajax({
+						url: API_BASEURL + "plugin/m3dfio",
+						type: "POST",
+						dataType: "json",
+						data: JSON.stringify({command: "message", value: "Remove temp"}),
+						contentType: "application/json; charset=UTF-8"
+					});
+					
+					setTimeout(function() {
+		
+						// Reset slicer menu
+						slicerMenu = "Select Profile";
+	
+						// Set text back to next
+						$("#slicing_configuration_dialog > div.modal-footer > .btn-primary").text("Next");
+						
+						// Destroy viewport
+						if(viewport)
+							viewport.destroy();
+		
+						// Restore slicer
+						$("#slicing_configuration_dialog").removeClass("profile model");
+						$("#slicing_configuration_dialog p.currentMenu").text("Select Profile");
+						$("#slicing_configuration_dialog .modal-extra").remove();
+						$("#slicing_configuration_dialog .modal-body").css("display", '');
+						$("#slicing_configuration_dialog .modal-cover").removeClass("show").css("z-index", '');
+					}, 300);
+				}
+			}
+		}, 300);
+		
+		// Slicer next button click event
+		$("#slicing_configuration_dialog > div.modal-footer > .btn-primary").text("Next").click(function(event) {
+		
+			// Initialize variables
+			var button = $(this);
+		
+			// Check if button isn't disabled
+			if(!button.hasClass("disabled")) {
+			
+				// Check if on slicer menu is not done
+				if(slicerMenu != "Done") {
+			
+					// Stop default behavior
+					event.stopImmediatePropagation();
+				
+					// Disable button
+					button.addClass("disabled");
+					
+					// Get slicer, profile, model name
+					slicerName = $("#slicing_configuration_dialog").find(".control-group:nth-of-type(1) select").val();
+					profileName = $("#slicing_configuration_dialog").find(".control-group:nth-of-type(2) select").val();
+					modelName = $("#slicing_configuration_dialog").find("h3").text().substr(8);
+					
+					// Check if slicer menu is select profile
+					if(slicerMenu == "Select Profile") {
+					
+						// Display cover
+						$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").text("Loading profile…");
+						
+						setTimeout(function() {
+			
+							// Send request
+							$.ajax({
+								url: API_BASEURL + "plugin/m3dfio",
+								type: "POST",
+								dataType: "json",
+								data: JSON.stringify({command: "message", value: "View profile: " + JSON.stringify({slicer: slicerName, profile: profileName})}),
+								contentType: "application/json; charset=UTF-8",
+
+								// On success
+								success: function(data) {
+								
+									// Get file
+									$.get(data.path, function(data) {
+								
+										// Hide cover
+										$("#slicing_configuration_dialog .modal-cover").addClass("noTransition").removeClass("show");
+										setTimeout(function() {
+											$("#slicing_configuration_dialog .modal-cover").css("z-index", '').removeClass("noTransition");
+										}, 300);
+										
+										// Display profile
+										$("#slicing_configuration_dialog").addClass("profile");
+										$("#slicing_configuration_dialog p.currentMenu").text("Modify Profile");
+										$("#slicing_configuration_dialog .modal-body").css("display", "none");
+										$("#slicing_configuration_dialog .modal-body").after("<div class=\"modal-extra\"><div><aside></aside><textarea spellcheck=\"false\"></textarea></div></div");
+										$("#slicing_configuration_dialog .modal-extra textarea").val(data);
+									
+							
+										// Set slicer menu
+										slicerMenu = "Modify Profile";
+							
+										// Set button
+										button.removeClass("disabled");
+										
+										// Update line numbers
+										var previousLineCount = 0;
+										function updateLineNumbers() {
+										
+											// Check if text area exists
+											var textArea = $("#slicing_configuration_dialog .modal-extra textarea");
+			
+											if(textArea.length) {
+			
+												// Get number of lines
+												var numberOfLines = textArea.val().match(/\n/g);
+												
+												// Fix line count if no newlines were found
+												if(numberOfLines === null)
+													numberOfLines = 1;
+												else
+													numberOfLines = numberOfLines.length + 1;
+												
+												// Get line number area
+												var lineNumberArea = textArea.siblings("aside");
+												
+												// Check if number of lines has changes
+												if(previousLineCount != numberOfLines) {
+												
+													// Clear existing line numbers
+													lineNumberArea.empty();
+												
+													// Create new line numbers
+													for(var i = 1; i <= numberOfLines + 100; i++)
+														lineNumberArea.append(i + "<br>");
+													lineNumberArea.append("<br>");
+													
+													// Update previous line count
+													previousLineCount = numberOfLines;
+												}
+												
+												// Update line numbers again
+												setTimeout(updateLineNumbers, 500);
+											}
+										}
+										updateLineNumbers();
+										
+										// Text area scroll event
+										$("#slicing_configuration_dialog .modal-extra textarea").scroll(function() {
+										
+											// Scroll line numbers to match text area
+											$(this).siblings("aside").scrollTop($(this).scrollTop());
+										});
+							
+										// Resize window
+										$(window).resize();
+									});
+								}
+							});
+						}, 300);
+					}
+					
+					// Otherwise check if slicer menu is modify profile
+					else if(slicerMenu == "Modify Profile") {
+					
+						// Get profile text
+						profileText = $("#slicing_configuration_dialog .modal-extra textarea").val();
+					
+						// Display cover
+						$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").text("Loading model…");
+						
+						setTimeout(function() {
+			
+							// Send request
+							$.ajax({
+								url: API_BASEURL + "plugin/m3dfio",
+								type: "POST",
+								dataType: "json",
+								data: JSON.stringify({command: "message", value: "View model: " + modelName}),
+								contentType: "application/json; charset=UTF-8",
+
+								// On success
+								success: function(data) {
+								
+									// Load model
+									loadModel(data.path);
+									
+									// Wait until model is loaded
+									function isModelLoaded() {
+									
+										// Check if model is loaded
+										if(viewport.loaded) {
+								
+											// Hide cover
+											$("#slicing_configuration_dialog .modal-cover").addClass("noTransition").removeClass("show");
+											setTimeout(function() {
+												$("#slicing_configuration_dialog .modal-cover").css("z-index", '').removeClass("noTransition");
+											}, 300);
+											
+											// Display model
+											$("#slicing_configuration_dialog").addClass("noTransition").removeClass("profile");
+											setTimeout(function() {
+												$("#slicing_configuration_dialog").removeClass("noTransition").addClass("model");
+												$("#slicing_configuration_dialog p.currentMenu").text("Modify Model");
+												$("#slicing_configuration_dialog .modal-extra").empty().append(viewport.renderer.domElement);
+								
+												// Set slicer menu
+												slicerMenu = "Modify Model";
+								
+												// Set button
+												button.text("Slice").removeClass("disabled");
+						
+												// Resize viewport and window
+												viewport.resizeEvent();
+												$(window).resize();
+											}, 10);
+										}
+										
+										// Otherwise
+										else
+										
+											// Check if model is loaded again
+											setTimeout(isModelLoaded, 100);
+									}
+									setTimeout(isModelLoaded, 100);
+								}
+							});
+						}, 300);
+					}
+					
+					// Otherwise check if on modify model menu
+					else if(slicerMenu == "Modify Model") {
+						
+						// Display cover
+						$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").text("Applying changes…");
+						
+						setTimeout(function() {
+			
+							// Read in file
+							var reader = new FileReader();
+							reader.readAsBinaryString(viewport.getModel());
+
+							// On file load
+							reader.onload = function(event) {
+			
+								// Set parameter
+								var parameter = [
+									{
+										name: "Slicer Name",
+										value: slicerName
+									},
+									{
+										name: "Profile Name",
+										value: profileName
+									},
+									{
+										name: "Profile Contents",
+										value: profileText
+									},
+									{
+										name: "Model Name",
+										value: modelName
+									},
+									{
+										name: "Model Contents",
+										value: event.target.result
+									}
+								];
+		
+								// Send request
+								$.ajax({
+									url: "/plugin/m3dfio/upload",
+									type: "POST",
+									data: $.param(parameter),
+									dataType: "json",
+									contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+
+									// On success
+									success: function(data) {
+							
+										// Set slicer menu to done
+										slicerMenu = "Done";
+
+										// Slice
+										button.removeClass("disabled").click();
+									}
+								});
+							};
+						}, 300);
+					}
+				}
+			}
+			
+			// Otherwise
+			else
+			
+				// Stop default behavior
+				event.stopImmediatePropagation();
+		});
+		
+		// Key down when editing profile event
+		$(document).on("keydown", "#slicing_configuration_dialog .modal-extra textarea", function(event) {
+		
+			// Check if tab is pressed
+			if(event.keyCode == 9) {
+	
+				// Prevent default action
+				event.preventDefault();
+		
+				// Insert tab
+				document.execCommand("insertText", false, "\t");
+			}
+		});
 		
 		// Message distance buttons click event
 		$("body > div.page-container > div.message").find("button.distance").click(function() {
