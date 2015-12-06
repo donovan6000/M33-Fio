@@ -4153,7 +4153,8 @@ class M3DFioPlugin(
 		profileTemp = tempfile.mkstemp()[1]
 		os.rename(profileLocation, profileTemp)
 		modelTemp = tempfile.mkstemp()[1]
-		os.rename(modelLocation, modelTemp)
+		#os.rename(modelLocation, modelTemp)
+		shutil.copyfile(modelLocation, modelTemp)
 		
 		# Save profile to file's location
 		temp = tempfile.mkstemp()[1]
@@ -4169,9 +4170,9 @@ class M3DFioPlugin(
 			os.rename(temp, profileLocation)
 
 		# Save model to file's location
-		output = open(modelLocation, "wb")
-		for character in flask.request.values["Model Contents"] :
-			output.write(chr(ord(character)))
+		#output = open(modelLocation, "wb")
+		#for character in flask.request.values["Model Contents"] :
+		#	output.write(chr(ord(character)))
 		
 		# Save slicer changes
 		self.slicerChanges = {
