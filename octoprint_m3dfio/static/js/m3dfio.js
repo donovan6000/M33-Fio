@@ -605,10 +605,14 @@ $(function() {
 					// Load printer model
 					var printer = new THREE.STLLoader();
 					printer.load("/plugin/m3dfio/static/files/printer.stl", function(geometry) {
-		
+					
 						// Create printer's mesh
-						var mesh = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({
-							color: 0xFF4444,
+						var mesh = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({
+							color: 0xB9B9B9, // Silver
+							color: 0x7AE050, // Green
+							color: 0x2EBADD, // Blue
+							specular: 0x050505,
+							shininess: 80,
 							side: THREE.DoubleSide
 						}));
 						
@@ -629,7 +633,7 @@ $(function() {
 		
 							// Create model's mesh
 							var mesh = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({
-								color: 0xFF4444,
+								color: 0xEC9F3B,
 								side: THREE.DoubleSide
 							}));
 							
@@ -1212,8 +1216,9 @@ $(function() {
 							// On file load
 							reader.onload = function(event) {
 							
-								// Append model's center to slicer profile
-								slicerProfileContent += "\nobject_center_x = " + modelCenter[0] + "\nobject_center_y = " + modelCenter[1] + '\n';
+								// Append model's center to slicer profile if slicer is Cura
+								if(slicerName == "cura") 
+									slicerProfileContent += "\nobject_center_x = " + modelCenter[0] + "\nobject_center_y = " + modelCenter[1] + '\n';
 			
 								// Set parameter
 								var parameter = [

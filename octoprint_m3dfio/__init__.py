@@ -201,38 +201,35 @@ class M3DFioPlugin(
 	# On start
 	def on_after_startup(self) :
 	
-		# Check if Micro 3D printer profile doesn't exist
-		if not self._printer_profile_manager.exists("micro_3d") :
-		
-			# Create Micro 3D printer profile
-			printerProfile = dict(
-				id = "micro_3d",
-				name = "Micro 3D",
-				model = "Micro 3D",
-				color = "default",
-				volume=dict(
-					width = 109,
-					depth = 113,
-					height = 116,
-					formFactor = "rectangular",
-					origin = "lowerleft"
-				),
-				heatedBed = False,
-				extruder=dict(
-					count = 1,
-					offsets = [
-						(0, 0)
-					],
-					nozzleDiameter = 0.35
-				),
-				axes=dict(
-					x = dict(speed = 32.43679 * 60, inverted=False),
-					y = dict(speed = 34.77458 * 60, inverted=False),
-					z = dict(speed = 1.537894 * 60, inverted=False),
-					e = dict(speed = 5.752428 * 60, inverted=False)
-				)
+		# Create and overwrite Micro 3D printer profile
+		printerProfile = dict(
+			id = "micro_3d",
+			name = "Micro 3D",
+			model = "Micro 3D",
+			color = "default",
+			volume=dict(
+				width = 109,
+				depth = 113,
+				height = 116,
+				formFactor = "rectangular",
+				origin = "lowerleft"
+			),
+			heatedBed = False,
+			extruder=dict(
+				count = 1,
+				offsets = [
+					(0, 0)
+				],
+				nozzleDiameter = 0.35
+			),
+			axes=dict(
+				x = dict(speed = 32.43679 * 60, inverted=False),
+				y = dict(speed = 34.77458 * 60, inverted=False),
+				z = dict(speed = 1.537894 * 60, inverted=False),
+				e = dict(speed = 5.752428 * 60, inverted=False)
 			)
-			self._printer_profile_manager.save(printerProfile, True)
+		)
+		self._printer_profile_manager.save(printerProfile, True)
 		
 		# Select Micro 3D printer profile
 		self._printer_profile_manager.select("micro_3d")
@@ -494,9 +491,9 @@ class M3DFioPlugin(
 		
 			# Move original files back
 			os.remove(self.slicerChanges.get("Slicer Profile Location"))
-			os.rename(self.slicerChanges.get("Slicer Profile Temporary"), self.slicerChanges.get("Slicer Profile Location"))
+			shutil.move(self.slicerChanges.get("Slicer Profile Temporary"), self.slicerChanges.get("Slicer Profile Location"))
 			os.remove(self.slicerChanges.get("Model Location"))
-			os.rename(self.slicerChanges.get("Model Temporary"), self.slicerChanges.get("Model Location"))
+			shutil.move(self.slicerChanges.get("Model Temporary"), self.slicerChanges.get("Model Location"))
 			
 			# Restore printer profile
 			self._printer_profile_manager.save(self.slicerChanges.get("Printer Profile Content"), True)
@@ -944,7 +941,7 @@ class M3DFioPlugin(
 				if values["slicerName"] == "cura" :
 					self.convertProfileToCura(temp, fileDestination, values["printerProfileName"])
 				else :
-					os.rename(temp, fileDestination)
+					shutil.move(temp, fileDestination)
 				
 				# Return location
 				return flask.jsonify(dict(value = "Ok", path = "/plugin/m3dfio/download/" + destinationName))
@@ -1688,9 +1685,9 @@ class M3DFioPlugin(
 			
 				# Move original files back
 				os.remove(self.slicerChanges.get("Slicer Profile Location"))
-				os.rename(self.slicerChanges.get("Slicer Profile Temporary"), self.slicerChanges.get("Slicer Profile Location"))
+				shutil.move(self.slicerChanges.get("Slicer Profile Temporary"), self.slicerChanges.get("Slicer Profile Location"))
 				os.remove(self.slicerChanges.get("Model Location"))
-				os.rename(self.slicerChanges.get("Model Temporary"), self.slicerChanges.get("Model Location"))
+				shutil.move(self.slicerChanges.get("Model Temporary"), self.slicerChanges.get("Model Location"))
 			
 				# Restore printer profile
 				self._printer_profile_manager.save(self.slicerChanges.get("Printer Profile Content"), True)
@@ -2646,7 +2643,7 @@ class M3DFioPlugin(
 			
 			# Move the input file to a temporary file
 			temp = tempfile.mkstemp()[1]
-			os.rename(input, temp)
+			shutil.move(input, temp)
 			
 			# Pre-process file
 			self.preprocess(temp, input)
@@ -4239,9 +4236,9 @@ class M3DFioPlugin(
 		
 			# Move original slicer profile and model to temporary locations
 			profileTemp = tempfile.mkstemp()[1]
-			os.rename(profileLocation, profileTemp)
+			shutil.move(profileLocation, profileTemp)
 			modelTemp = tempfile.mkstemp()[1]
-			os.rename(modelLocation, modelTemp)
+			shutil.move(modelLocation, modelTemp)
 		
 			# Save slicer profile to original slicer profile's location
 			temp = tempfile.mkstemp()[1]
@@ -4254,7 +4251,7 @@ class M3DFioPlugin(
 			if flask.request.values["Slicer Name"] == "cura" :
 				self.convertCuraToProfile(temp, profileLocation, '', '', '')
 			else :
-				os.rename(temp, profileLocation)
+				shutil.move(temp, profileLocation)
 
 			# Save model to original model's location
 			output = open(modelLocation, "wb")
@@ -4273,81 +4270,84 @@ class M3DFioPlugin(
 				u"Printer Profile Content" : copy.deepcopy(printerProfile)
 			}
 			
-			# Change printer profile
-			search = re.findall("extruder_amount\s*?=\s*?(\d+)", flask.request.values["Slicer Profile Content"])
-			if len(search) :
-				printerProfile["extruder"]["count"] = int(search[0])
+			# Check if slicer is Cura
+			if flask.request.values["Slicer Name"] == "cura" :
 			
-			search = re.findall("has_heated_bed\s*?=\s*?(\S+)", flask.request.values["Slicer Profile Content"])
-			if len(search) :
-				if str(search[0]).lower() == "true" :
-					printerProfile["heatedBed"] = True
+				# Change printer profile
+				search = re.findall("extruder_amount\s*?=\s*?(\d+)", flask.request.values["Slicer Profile Content"])
+				if len(search) :
+					printerProfile["extruder"]["count"] = int(search[0])
+			
+				search = re.findall("has_heated_bed\s*?=\s*?(\S+)", flask.request.values["Slicer Profile Content"])
+				if len(search) :
+					if str(search[0]).lower() == "true" :
+						printerProfile["heatedBed"] = True
+					else :
+						printerProfile["heatedBed"] = False
+			
+				search = re.findall("machine_width\s*?=\s*?(\d+.\d+)", flask.request.values["Slicer Profile Content"])
+				if len(search) :
+					printerProfile["volume"]["width"] = float(search[0])
+			
+				search = re.findall("machine_height\s*?=\s*?(\d+.\d+)", flask.request.values["Slicer Profile Content"])
+				if len(search) :
+					printerProfile["volume"]["height"] = float(search[0])
+			
+				search = re.findall("machine_depth\s*?=\s*?(\d+.\d+)", flask.request.values["Slicer Profile Content"])
+				if len(search) :
+					printerProfile["volume"]["depth"] = float(search[0])
+			
+				search = re.findall("machine_shape\s*?=\s*?(\S+)", flask.request.values["Slicer Profile Content"])
+				if len(search) :
+					if str(search[0]).lower() == "circular" :
+						printerProfile["volume"]["formFactor"] = "circular"
+					else :
+						printerProfile["volume"]["formFactor"] = "rectangular"
+			
+				search = re.findall("nozzle_size\s*?=\s*?(\d+.\d+)", flask.request.values["Slicer Profile Content"])
+				if len(search) :
+					printerProfile["extruder"]["nozzleDiameter"] = float(search[0])
+			
+				search = re.findall("machine_center_is_zero\s*?=\s*?(\S+)", flask.request.values["Slicer Profile Content"])
+				if len(search) :
+					if str(search[0]).lower() == "true" :
+						printerProfile["volume"]["formFactor"] = "circular"
+						printerProfile["volume"]["origin"] = "center"
+					else :
+						printerProfile["volume"]["formFactor"] = "rectangular"
+						printerProfile["volume"]["origin"] = "lowerleft"
+			
+				search = re.findall("extruder_offset_(x|y)(\d)\s*?=\s*?(-?\d+.\d+)", flask.request.values["Slicer Profile Content"])
+				vectors = [Vector(0, 0)] * printerProfile["extruder"]["count"]
+			
+				for offset in search :
+					if offset[0] == 'x' :
+						vectors[int(offset[1]) - 1].x = float(offset[2])
+					else :
+						vectors[int(offset[1]) - 1].y = float(offset[2])
+			
+				index = 0
+				while index < len(vectors) :
+					value = (vectors[index].x, vectors[index].y)
+					printerProfile["extruder"]["offsets"][index] = value
+					index += 1
+			
+				# Get model's center X and Y
+				search = re.findall("object_center_x\s*?=\s*?(-?\d+.\d+)", flask.request.values["Slicer Profile Content"])
+				if len(search) :
+					centerX = float(search[0])
 				else :
-					printerProfile["heatedBed"] = False
+					centerX = 0;
 			
-			search = re.findall("machine_width\s*?=\s*?(\d+.\d+)", flask.request.values["Slicer Profile Content"])
-			if len(search) :
-				printerProfile["volume"]["width"] = float(search[0])
-			
-			search = re.findall("machine_height\s*?=\s*?(\d+.\d+)", flask.request.values["Slicer Profile Content"])
-			if len(search) :
-				printerProfile["volume"]["height"] = float(search[0])
-			
-			search = re.findall("machine_depth\s*?=\s*?(\d+.\d+)", flask.request.values["Slicer Profile Content"])
-			if len(search) :
-				printerProfile["volume"]["depth"] = float(search[0])
-			
-			search = re.findall("machine_shape\s*?=\s*?(\S+)", flask.request.values["Slicer Profile Content"])
-			if len(search) :
-				if str(search[0]).lower() == "circular" :
-					printerProfile["volume"]["formFactor"] = "circular"
+				search = re.findall("object_center_y\s*?=\s*?(-?\d+.\d+)", flask.request.values["Slicer Profile Content"])
+				if len(search) :
+					centerY = float(search[0])
 				else :
-					printerProfile["volume"]["formFactor"] = "rectangular"
+					centerY = 0;
 			
-			search = re.findall("nozzle_size\s*?=\s*?(\d+.\d+)", flask.request.values["Slicer Profile Content"])
-			if len(search) :
-				printerProfile["extruder"]["nozzleDiameter"] = float(search[0])
-			
-			search = re.findall("machine_center_is_zero\s*?=\s*?(\S+)", flask.request.values["Slicer Profile Content"])
-			if len(search) :
-				if str(search[0]).lower() == "true" :
-					printerProfile["volume"]["formFactor"] = "circular"
-					printerProfile["volume"]["origin"] = "center"
-				else :
-					printerProfile["volume"]["formFactor"] = "rectangular"
-					printerProfile["volume"]["origin"] = "lowerleft"
-			
-			search = re.findall("extruder_offset_(x|y)(\d)\s*?=\s*?(-?\d+.\d+)", flask.request.values["Slicer Profile Content"])
-			vectors = [Vector(0, 0)] * printerProfile["extruder"]["count"]
-			
-			for offset in search :
-				if offset[0] == 'x' :
-					vectors[int(offset[1]) - 1].x = float(offset[2])
-				else :
-					vectors[int(offset[1]) - 1].y = float(offset[2])
-			
-			index = 0
-			while index < len(vectors) :
-				value = (vectors[index].x, vectors[index].y)
-				printerProfile["extruder"]["offsets"][index] = value
-				index += 1
-			
-			# Get model's center X and Y
-			search = re.findall("object_center_x\s*?=\s*?(-?\d+.\d+)", flask.request.values["Slicer Profile Content"])
-			if len(search) :
-				centerX = float(search[0])
-			else :
-				centerX = 0;
-			
-			search = re.findall("object_center_y\s*?=\s*?(-?\d+.\d+)", flask.request.values["Slicer Profile Content"])
-			if len(search) :
-				centerY = float(search[0])
-			else :
-				centerY = 0;
-			
-			# Adjust printer profile so that its center is equal to the model's center
-			printerProfile["volume"]["width"] += centerX * 2
-			printerProfile["volume"]["depth"] += centerY * 2
+				# Adjust printer profile so that its center is equal to the model's center
+				printerProfile["volume"]["width"] += centerX * 2
+				printerProfile["volume"]["depth"] += centerY * 2
 			
 			# Apply printer profile changes
 			self._printer_profile_manager.save(printerProfile, True)
