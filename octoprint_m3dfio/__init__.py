@@ -1544,7 +1544,7 @@ class M3DFioPlugin(
 				
 				# Get the command's binary representation
 				data = gcode.getBinary()
-				
+				self._logger.info(gcode.getAscii())
 			# Send command to printer
 			self._printer.get_transport().write(data)
 			
