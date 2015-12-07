@@ -2436,7 +2436,7 @@ class M3DFioPlugin(
 	
 		# Check if backlash Xs differ
 		commandList = []
-		if self.printerBacklashX != softwareBacklashX :
+		if hasattr(self, "printerBacklashX") and self.printerBacklashX != softwareBacklashX :
 
 			# Add new value to list
 			packed = struct.pack('f', softwareBacklashX)
@@ -2444,7 +2444,7 @@ class M3DFioPlugin(
 			commandList += ["M618 S0 P" + str(newValue) + "\n", "M619 S0\n"]
 
 		# Check if backlash Ys differ
-		if self.printerBacklashY != softwareBacklashY :
+		if hasattr(self, "printerBacklashY") and self.printerBacklashY != softwareBacklashY :
 
 			# Add new value to list
 			packed = struct.pack('f', softwareBacklashY)
@@ -2452,7 +2452,7 @@ class M3DFioPlugin(
 			commandList += ["M618 S1 P" + str(newValue) + "\n", "M619 S1\n"]
 
 		# Check if back right orientations differ
-		if self.printerBackRightOrientation != softwareBackRightOrientation :
+		if hasattr(self, "printerBackRightOrientation") and self.printerBackRightOrientation != softwareBackRightOrientation :
 
 			# Add new value to list
 			packed = struct.pack('f', softwareBackRightOrientation)
@@ -2460,7 +2460,7 @@ class M3DFioPlugin(
 			commandList += ["M618 S2 P" + str(newValue) + "\n", "M619 S2\n"]
 
 		# Check if back left orientations differ
-		if self.printerBackLeftOrientation != softwareBackLeftOrientation :
+		if hasattr(self, "printerBackLeftOrientation") and self.printerBackLeftOrientation != softwareBackLeftOrientation :
 
 			# Add new value to list
 			packed = struct.pack('f', softwareBackLeftOrientation)
@@ -2468,7 +2468,7 @@ class M3DFioPlugin(
 			commandList += ["M618 S3 P" + str(newValue) + "\n", "M619 S3\n"]
 
 		# Check if front left orientations differ
-		if self.printerFrontLeftOrientation != softwareFrontLeftOrientation :
+		if hasattr(self, "printerFrontLeftOrientation") and self.printerFrontLeftOrientation != softwareFrontLeftOrientation :
 
 			# Add new value to list
 			packed = struct.pack('f', softwareFrontLeftOrientation)
@@ -2476,7 +2476,7 @@ class M3DFioPlugin(
 			commandList += ["M618 S4 P" + str(newValue) + "\n", "M619 S4\n"]
 
 		# Check if front right orientations differ
-		if self.printerFrontRightOrientation != softwareFrontRightOrientation :
+		if hasattr(self, "printerFrontRightOrientation") and self.printerFrontRightOrientation != softwareFrontRightOrientation :
 
 			# Add new value to list
 			packed = struct.pack('f', softwareFrontRightOrientation)
@@ -2484,7 +2484,7 @@ class M3DFioPlugin(
 			commandList += ["M618 S5 P" + str(newValue) + "\n", "M619 S5\n"]
 
 		# Check if backlash speeds differ
-		if self.printerBacklashSpeed != softwareBacklashSpeed :
+		if hasattr(self, "printerBacklashSpeed") and self.printerBacklashSpeed != softwareBacklashSpeed :
 
 			# Add new value to list
 			packed = struct.pack('f', softwareBacklashSpeed)
@@ -2492,7 +2492,7 @@ class M3DFioPlugin(
 			commandList += ["M618 S22 P" + str(newValue) + "\n", "M619 S22\n"]
 
 		# Check if back left offsets differ
-		if self.printerBackLeftOffset != softwareBackLeftOffset :
+		if hasattr(self, "printerBackLeftOffset") and self.printerBackLeftOffset != softwareBackLeftOffset :
 
 			# Add new value to list
 			packed = struct.pack('f', softwareBackLeftOffset)
@@ -2500,7 +2500,7 @@ class M3DFioPlugin(
 			commandList += ["M618 S16 P" + str(newValue) + "\n", "M619 S16\n"]
 
 		# Check if back right offsets differ
-		if self.printerBackRightOffset != softwareBackRightOffset :
+		if hasattr(self, "printerBackRightOffset") and self.printerBackRightOffset != softwareBackRightOffset :
 
 			# Add new value to list
 			packed = struct.pack('f', softwareBackRightOffset)
@@ -2508,7 +2508,7 @@ class M3DFioPlugin(
 			commandList += ["M618 S17 P" + str(newValue) + "\n", "M619 S17\n"]
 
 		# Check if front right offsets differ
-		if self.printerFrontRightOffset != softwareFrontRightOffset :
+		if hasattr(self, "printerFrontRightOffset") and self.printerFrontRightOffset != softwareFrontRightOffset :
 
 			# Add new value to list
 			packed = struct.pack('f', softwareFrontRightOrientation)
@@ -2516,7 +2516,7 @@ class M3DFioPlugin(
 			commandList += ["M618 S18 P" + str(newValue) + "\n", "M619 S18\n"]
 
 		# Check if front left offsets differ
-		if self.printerFrontLeftOffset != softwareFrontLeftOffset :
+		if hasattr(self, "printerFrontLeftOffset") and self.printerFrontLeftOffset != softwareFrontLeftOffset :
 
 			# Add new value to list
 			packed = struct.pack('f', softwareFrontLeftOffset)
@@ -2524,7 +2524,7 @@ class M3DFioPlugin(
 			commandList += ["M618 S19 P" + str(newValue) + "\n", "M619 S19\n"]
 
 		# Check if bed height offsets differ
-		if self.printerBedHeightOffset != softwareBedHeightOffset :
+		if hasattr(self, "printerBedHeightOffset") and self.printerBedHeightOffset != softwareBedHeightOffset :
 
 			# Add new value to list
 			packed = struct.pack('f', softwareBedHeightOffset)
@@ -2532,13 +2532,13 @@ class M3DFioPlugin(
 			commandList += ["M618 S20 P" + str(newValue) + "\n", "M619 S20\n"]
 
 		# Check if filament temperatures differ
-		if self.printerFilamentTemperature != softwareFilamentTemperature :
+		if hasattr(self, "printerFilamentTemperature") and self.printerFilamentTemperature != softwareFilamentTemperature :
 
 			# Add new value to list
 			commandList += ["M618 S8 P" + str(softwareFilamentTemperature - 100) + "\n", "M619 S8\n"]
 
 		# Check if filament types differ
-		if self.printerFilamentType != softwareFilamentType :
+		if hasattr(self, "printerFilamentType") and self.printerFilamentType != softwareFilamentType :
 
 			# Add new value to list
 			newValue = 0x80
