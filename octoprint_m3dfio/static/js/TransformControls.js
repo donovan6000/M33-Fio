@@ -1,5 +1,6 @@
 /**
  * @author arodic / https://github.com/arodic
+ * @author donovan6000 / http://exploitkings.com
  */
  /*jshint sub:true*/
 
@@ -131,17 +132,20 @@
 				for ( var name in gizmoMap ) {
 
 					for ( i = gizmoMap[ name ].length; i --; ) {
+					
+						if( scope.mode !== "translate" || ( scope.mode === "translate" && ( name == "XYZ" || scope.allowedTranslation.search( name ) !== - 1 ) ) ) {
 
-						var object = gizmoMap[ name ][ i ][ 0 ];
-						var position = gizmoMap[ name ][ i ][ 1 ];
-						var rotation = gizmoMap[ name ][ i ][ 2 ];
+							var object = gizmoMap[ name ][ i ][ 0 ];
+							var position = gizmoMap[ name ][ i ][ 1 ];
+							var rotation = gizmoMap[ name ][ i ][ 2 ];
 
-						object.name = name;
+							object.name = name;
 
-						if ( position ) object.position.set( position[ 0 ], position[ 1 ], position[ 2 ] );
-						if ( rotation ) object.rotation.set( rotation[ 0 ], rotation[ 1 ], rotation[ 2 ] );
+							if ( position ) object.position.set( position[ 0 ], position[ 1 ], position[ 2 ] );
+							if ( rotation ) object.rotation.set( rotation[ 0 ], rotation[ 1 ], rotation[ 2 ] );
 
-						parent.add( object );
+							parent.add( object );
+						}
 
 					}
 
@@ -223,8 +227,10 @@
 
 	};
 
-	THREE.TransformGizmoTranslate = function () {
+	THREE.TransformGizmoTranslate = function ( allowedTranslation ) {
 
+		this.mode = "translate";
+		this.allowedTranslation = allowedTranslation;
 		THREE.TransformGizmo.call( this );
 
 		var arrowGeometry = new THREE.Geometry();
@@ -357,7 +363,8 @@
 	THREE.TransformGizmoTranslate.prototype.constructor = THREE.TransformGizmoTranslate;
 
 	THREE.TransformGizmoRotate = function () {
-
+	
+		this.mode = "rotate";
 		THREE.TransformGizmo.call( this );
 
 		var CircleGeometry = function ( radius, facing, arc ) {
@@ -507,7 +514,8 @@
 	THREE.TransformGizmoRotate.prototype.constructor = THREE.TransformGizmoRotate;
 
 	THREE.TransformGizmoScale = function () {
-
+	
+		this.mode = "scale";
 		THREE.TransformGizmo.call( this );
 
 		var arrowGeometry = new THREE.Geometry();
@@ -620,6 +628,7 @@
 		this.translationSnap = null;
 		this.rotationSnap = null;
 		this.space = "world";
+		this.allowedTranslation = "XYZXZ";
 		this.size = 1;
 		this.axis = null;
 
@@ -630,7 +639,7 @@
 		var _plane = "XY";
 		var _gizmo = {
 
-			"translate": new THREE.TransformGizmoTranslate(),
+			"translate": new THREE.TransformGizmoTranslate( this.allowedTranslation ),
 			"rotate": new THREE.TransformGizmoRotate(),
 			"scale": new THREE.TransformGizmoScale()
 		};
@@ -778,6 +787,24 @@
 			scope.dispatchEvent( changeEvent );
 
 		};
+		
+		this.setAllowedTranslation = function ( allowedTranslation ) {
+		
+			if ( allowedTranslation === "XYZ" )
+				allowedTranslation = "XYZXZ";
+
+			scope.allowedTranslation = allowedTranslation;
+			
+			scope.remove( _gizmo["translate"] );
+			_gizmo["translate"] = new THREE.TransformGizmoTranslate( this.allowedTranslation );
+			_gizmo["translate"].visible = ( "translate" === _mode );
+			scope.add( _gizmo["translate"] );
+			
+			this.update();
+			scope.dispatchEvent( changeEvent );
+
+		};
+
 
 		this.update = function () {
 
@@ -913,9 +940,9 @@
 
 					point.applyMatrix4( tempMatrix.getInverse( worldRotationMatrix ) );
 
-					if ( scope.axis.search( "X" ) === - 1 ) point.x = 0;
-					if ( scope.axis.search( "Y" ) === - 1 ) point.y = 0;
-					if ( scope.axis.search( "Z" ) === - 1 ) point.z = 0;
+					if ( scope.axis.search( "X" ) === - 1 || scope.allowedTranslation.search( "X" ) === - 1 ) point.x = 0;
+					if ( scope.axis.search( "Y" ) === - 1 || scope.allowedTranslation.search( "Y" ) === - 1 ) point.y = 0;
+					if ( scope.axis.search( "Z" ) === - 1 || scope.allowedTranslation.search( "Z" ) === - 1 ) point.z = 0;
 
 					point.applyMatrix4( oldRotationMatrix );
 
@@ -926,10 +953,9 @@
 
 				if ( scope.space === "world" || scope.axis.search( "XYZ" ) !== - 1 ) {
 
-					if ( scope.axis.search( "X" ) === - 1 ) point.x = 0;
-					//if ( scope.axis.search( "Y" ) === - 1 ) point.y = 0;
-					point.y = 0;
-					if ( scope.axis.search( "Z" ) === - 1 ) point.z = 0;
+					if ( scope.axis.search( "X" ) === - 1 || scope.allowedTranslation.search( "X" ) === - 1 ) point.x = 0;
+					if ( scope.axis.search( "Y" ) === - 1 || scope.allowedTranslation.search( "Y" ) === - 1 ) point.y = 0;
+					if ( scope.axis.search( "Z" ) === - 1 || scope.allowedTranslation.search( "Z" ) === - 1 ) point.z = 0;
 
 					point.applyMatrix4( tempMatrix.getInverse( parentRotationMatrix ) );
 
@@ -946,9 +972,9 @@
 
 					}
 
-					if ( scope.axis.search( "X" ) !== - 1 ) scope.object.position.x = Math.round( scope.object.position.x / scope.translationSnap ) * scope.translationSnap;
-					if ( scope.axis.search( "Y" ) !== - 1 ) scope.object.position.y = Math.round( scope.object.position.y / scope.translationSnap ) * scope.translationSnap;
-					if ( scope.axis.search( "Z" ) !== - 1 ) scope.object.position.z = Math.round( scope.object.position.z / scope.translationSnap ) * scope.translationSnap;
+					if ( scope.axis.search( "X" ) !== - 1 && scope.allowedTranslation.search( "X" ) !== - 1 ) scope.object.position.x = Math.round( scope.object.position.x / scope.translationSnap ) * scope.translationSnap;
+					if ( scope.axis.search( "Y" ) !== - 1 && scope.allowedTranslation.search( "Y" ) !== - 1 ) scope.object.position.y = Math.round( scope.object.position.y / scope.translationSnap ) * scope.translationSnap;
+					if ( scope.axis.search( "Z" ) !== - 1 && scope.allowedTranslation.search( "Z" ) !== - 1 ) scope.object.position.z = Math.round( scope.object.position.z / scope.translationSnap ) * scope.translationSnap;
 
 					if ( scope.space === "local" ) {
 

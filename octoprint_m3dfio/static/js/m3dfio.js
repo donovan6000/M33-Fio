@@ -11,8 +11,10 @@ $(function() {
 		var slicerMenu = "Select Profile";
 		var modelName;
 		var slicerName;
-		var profileName;
-		var profileText;
+		var slicerProfileName;
+		var slicerProfileContent;
+		var printerProfileName;
+		var modelCenter = [0, 0];
 		var currentZ;
 		var viewport = null;
 		var self = this;
@@ -578,6 +580,7 @@ $(function() {
 					
 					this.transformControls = new THREE.TransformControls(this.camera, this.renderer.domElement );
 					this.transformControls.space = "world";
+					this.transformControls.setAllowedTranslation("XZ");
 					this.scene.add(this.transformControls);
 
 					// Create lights
@@ -703,6 +706,9 @@ $(function() {
 				
 					// Get model's mesh
 					var mesh = viewport.model;
+					
+					// Save model's center
+					modelCenter = [-mesh.position.x, mesh.position.z];
 					
 					// Save mesh's current matrix
 					mesh.updateMatrix();
@@ -950,9 +956,10 @@ $(function() {
 					// Disable button
 					button.addClass("disabled");
 					
-					// Get slicer, profile, model name
+					// Get slicer, slicer profile, printer profile, and model name
 					slicerName = $("#slicing_configuration_dialog").find(".control-group:nth-of-type(1) select").val();
-					profileName = $("#slicing_configuration_dialog").find(".control-group:nth-of-type(2) select").val();
+					slicerProfileName = $("#slicing_configuration_dialog").find(".control-group:nth-of-type(2) select").val();
+					printerProfileName = $("#slicing_configuration_dialog").find(".control-group:nth-of-type(3) select").val();
 					modelName = $("#slicing_configuration_dialog").find("h3").text().substr(8);
 					
 					// Check if slicer menu is select profile
@@ -968,7 +975,14 @@ $(function() {
 								url: API_BASEURL + "plugin/m3dfio",
 								type: "POST",
 								dataType: "json",
-								data: JSON.stringify({command: "message", value: "View profile: " + JSON.stringify({slicer: slicerName, profile: profileName})}),
+								data: JSON.stringify({
+									command: "message",
+									value: "View profile: " + JSON.stringify({
+										slicerName: slicerName,
+										slicerProfileName: slicerProfileName,
+										printerProfileName: printerProfileName
+									})
+								}),
 								contentType: "application/json; charset=UTF-8",
 
 								// On success
@@ -1057,69 +1071,130 @@ $(function() {
 					// Otherwise check if slicer menu is modify profile
 					else if(slicerMenu == "Modify Profile") {
 					
-						// Get profile text
-						profileText = $("#slicing_configuration_dialog .modal-extra textarea").val();
+						// Get slicer profile content
+						slicerProfileContent = $("#slicing_configuration_dialog .modal-extra textarea").val();
 					
-						// Display cover
-						$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").text("Loading model…");
-						
-						setTimeout(function() {
-			
-							// Send request
-							$.ajax({
-								url: API_BASEURL + "plugin/m3dfio",
-								type: "POST",
-								dataType: "json",
-								data: JSON.stringify({command: "message", value: "View model: " + modelName}),
-								contentType: "application/json; charset=UTF-8",
+						// Set parameter
+						var parameter = [
+							{
+								name: "Slicer Name",
+								value: slicerName
+							},
+							{
+								name: "Slicer Profile Content",
+								value: slicerProfileContent
+							},
+						];
 
-								// On success
-								success: function(data) {
+						// Send request
+						$.ajax({
+							url: "/plugin/m3dfio/upload",
+							type: "POST",
+							data: $.param(parameter),
+							dataType: "json",
+							contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+
+							// On success
+							success: function(data) {
+							
+								// Check if modified profile is valid
+								if(data.value == "Ok") {
 								
-									// Load model
-									loadModel(data.path);
-									
-									// Wait until model is loaded
-									function isModelLoaded() {
-									
-										// Check if model is loaded
-										if(viewport.loaded) {
-								
-											// Hide cover
-											$("#slicing_configuration_dialog .modal-cover").addClass("noTransition").removeClass("show");
-											setTimeout(function() {
-												$("#slicing_configuration_dialog .modal-cover").css("z-index", '').removeClass("noTransition");
-											}, 300);
-											
-											// Display model
-											$("#slicing_configuration_dialog").addClass("noTransition").removeClass("profile");
-											setTimeout(function() {
-												$("#slicing_configuration_dialog").removeClass("noTransition").addClass("model");
-												$("#slicing_configuration_dialog p.currentMenu").text("Modify Model");
-												$("#slicing_configuration_dialog .modal-extra").empty().append(viewport.renderer.domElement);
-								
-												// Set slicer menu
-												slicerMenu = "Modify Model";
-								
-												// Set button
-												button.text("Slice").removeClass("disabled");
+									// Display cover
+									$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").text("Loading model…");
 						
-												// Resize viewport and window
-												viewport.resizeEvent();
-												$(window).resize();
-											}, 10);
-										}
+									setTimeout(function() {
+			
+										// Send request
+										$.ajax({
+											url: API_BASEURL + "plugin/m3dfio",
+											type: "POST",
+											dataType: "json",
+											data: JSON.stringify({command: "message", value: "View model: " + modelName}),
+											contentType: "application/json; charset=UTF-8",
+
+											// On success
+											success: function(data) {
+											
+												// Download model
+												var xhr = new XMLHttpRequest();
+												xhr.onreadystatechange = function() {
+												
+													// Check if model has loaded
+													if(this.readyState == 4 && this.status == 200) {
+													
+														// Load model from blob
+														loadModel(URL.createObjectURL(this.response));
+									
+														// Wait until model is loaded
+														function isModelLoaded() {
+									
+															// Check if model is loaded
+															if(viewport.loaded) {
+								
+																// Hide cover
+																$("#slicing_configuration_dialog .modal-cover").addClass("noTransition").removeClass("show");
+																setTimeout(function() {
+																	$("#slicing_configuration_dialog .modal-cover").css("z-index", '').removeClass("noTransition");
+																}, 300);
+											
+																// Display model
+																$("#slicing_configuration_dialog").addClass("noTransition").removeClass("profile");
+																setTimeout(function() {
+																	$("#slicing_configuration_dialog").removeClass("noTransition").addClass("model");
+																	$("#slicing_configuration_dialog p.currentMenu").text("Modify Model");
+																	$("#slicing_configuration_dialog .modal-extra").empty().append(viewport.renderer.domElement);
+								
+																	// Set slicer menu
+																	slicerMenu = "Modify Model";
+								
+																	// Set button
+																	button.text("Slice").removeClass("disabled");
+						
+																	// Resize viewport and window
+																	viewport.resizeEvent();
+																	$(window).resize();
+																}, 10);
+															}
 										
-										// Otherwise
-										else
+															// Otherwise
+															else
 										
-											// Check if model is loaded again
-											setTimeout(isModelLoaded, 100);
-									}
-									setTimeout(isModelLoaded, 100);
+																// Check if model is loaded again
+																setTimeout(isModelLoaded, 100);
+														}
+														setTimeout(isModelLoaded, 100);
+													}
+												}
+												
+												xhr.open('GET', data.path);
+												xhr.responseType = "blob";
+												xhr.setRequestHeader("X-Api-Key", $.ajaxSettings.headers["X-Api-Key"])
+												xhr.send();
+											}
+										});
+									}, 300);
+								
 								}
-							});
-						}, 300);
+								
+								// Otherwise
+								else {
+								
+									// Ok click event
+									$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+									
+										// Enable button
+										button.removeClass("disabled");
+					
+										// Hide message
+										hideMessage();
+									});
+				
+									// Show message
+									showMessage("Slicer Status", "Invalid profile", "Ok");
+								}
+							}
+						});
 					}
 					
 					// Otherwise check if on modify model menu
@@ -1136,6 +1211,9 @@ $(function() {
 
 							// On file load
 							reader.onload = function(event) {
+							
+								// Append model's center to slicer profile
+								slicerProfileContent += "\nobject_center_x = " + modelCenter[0] + "\nobject_center_y = " + modelCenter[1] + '\n';
 			
 								// Set parameter
 								var parameter = [
@@ -1144,20 +1222,24 @@ $(function() {
 										value: slicerName
 									},
 									{
-										name: "Profile Name",
-										value: profileName
+										name: "Slicer Profile Name",
+										value: slicerProfileName
 									},
 									{
-										name: "Profile Contents",
-										value: profileText
+										name: "Slicer Profile Content",
+										value: slicerProfileContent
 									},
 									{
 										name: "Model Name",
 										value: modelName
 									},
 									{
-										name: "Model Contents",
+										name: "Model Content",
 										value: event.target.result
+									},
+									{
+										name: "Printer Profile Name",
+										value: printerProfileName
 									}
 								];
 		
@@ -1174,7 +1256,7 @@ $(function() {
 							
 										// Set slicer menu to done
 										slicerMenu = "Done";
-
+										
 										// Slice
 										button.removeClass("disabled").click();
 									}
@@ -2933,7 +3015,7 @@ $(function() {
 						url: API_BASEURL + "plugin/m3dfio",
 						type: "POST",
 						dataType: "json",
-						data: JSON.stringify({command: "file", name: file.name, contents: event.target.result}),
+						data: JSON.stringify({command: "file", name: file.name, content: event.target.result}),
 						contentType: "application/json; charset=UTF-8",
 			
 						// On success

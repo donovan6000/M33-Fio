@@ -28,6 +28,8 @@ import re
 import collections
 import json
 import random
+import imp
+import glob
 from .gcode import Gcode
 from .vector import Vector
 
@@ -72,14 +74,6 @@ class M3DFioPlugin(
 		self.invalidBedCenter = False
 		self.invalidBedOrientation = False
 		self.slicerChanges = None
-		
-		# Find provided firmware
-		for file in os.listdir(os.path.dirname(os.path.realpath(__file__)) + "/static/files/") :
-			if file.endswith(".hex") :
-				
-				# Set provided firmware
-				self.providedFirmware = file[0 : 10]
-				break
 		
 		# Rom decryption and encryption tables
 		self.romDecryptionTable = [0x26, 0xE2, 0x63, 0xAC, 0x27, 0xDE, 0x0D, 0x94, 0x79, 0xAB, 0x29, 0x87, 0x14, 0x95, 0x1F, 0xAE, 0x5F, 0xED, 0x47, 0xCE, 0x60, 0xBC, 0x11, 0xC3, 0x42, 0xE3, 0x03, 0x8E, 0x6D, 0x9D, 0x6E, 0xF2, 0x4D, 0x84, 0x25, 0xFF, 0x40, 0xC0, 0x44, 0xFD, 0x0F, 0x9B, 0x67, 0x90, 0x16, 0xB4, 0x07, 0x80, 0x39, 0xFB, 0x1D, 0xF9, 0x5A, 0xCA, 0x57, 0xA9, 0x5E, 0xEF, 0x6B, 0xB6, 0x2F, 0x83, 0x65, 0x8A, 0x13, 0xF5, 0x3C, 0xDC, 0x37, 0xD3, 0x0A, 0xF4, 0x77, 0xF3, 0x20, 0xE8, 0x73, 0xDB, 0x7B, 0xBB, 0x0B, 0xFA, 0x64, 0x8F, 0x08, 0xA3, 0x7D, 0xEB, 0x5C, 0x9C, 0x3E, 0x8C, 0x30, 0xB0, 0x7F, 0xBE, 0x2A, 0xD0, 0x68, 0xA2, 0x22, 0xF7, 0x1C, 0xC2, 0x17, 0xCD, 0x78, 0xC7, 0x21, 0x9E, 0x70, 0x99, 0x1A, 0xF8, 0x58, 0xEA, 0x36, 0xB1, 0x69, 0xC9, 0x04, 0xEE, 0x3B, 0xD6, 0x34, 0xFE, 0x55, 0xE7, 0x1B, 0xA6, 0x4A, 0x9A, 0x54, 0xE6, 0x51, 0xA0, 0x4E, 0xCF, 0x32, 0x88, 0x48, 0xA4, 0x33, 0xA5, 0x5B, 0xB9, 0x62, 0xD4, 0x6F, 0x98, 0x6C, 0xE1, 0x53, 0xCB, 0x46, 0xDD, 0x01, 0xE5, 0x7A, 0x86, 0x75, 0xDF, 0x31, 0xD2, 0x02, 0x97, 0x66, 0xE4, 0x38, 0xEC, 0x12, 0xB7, 0x00, 0x93, 0x15, 0x8B, 0x6A, 0xC5, 0x71, 0x92, 0x45, 0xA1, 0x59, 0xF0, 0x06, 0xA8, 0x5D, 0x82, 0x2C, 0xC4, 0x43, 0xCC, 0x2D, 0xD5, 0x35, 0xD7, 0x3D, 0xB2, 0x74, 0xB3, 0x09, 0xC6, 0x7C, 0xBF, 0x2E, 0xB8, 0x28, 0x9F, 0x41, 0xBA, 0x10, 0xAF, 0x0C, 0xFC, 0x23, 0xD9, 0x49, 0xF6, 0x7E, 0x8D, 0x18, 0x96, 0x56, 0xD1, 0x2B, 0xAD, 0x4B, 0xC1, 0x4F, 0xC8, 0x3A, 0xF1, 0x1E, 0xBD, 0x4C, 0xDA, 0x50, 0xA7, 0x52, 0xE9, 0x76, 0xD8, 0x19, 0x91, 0x72, 0x85, 0x3F, 0x81, 0x61, 0xAA, 0x05, 0x89, 0x0E, 0xB5, 0x24, 0xE0]
@@ -207,24 +201,82 @@ class M3DFioPlugin(
 	# On start
 	def on_after_startup(self) :
 	
-		# Enable printer callbacks
-		self._printer.register_callback(self)
+		# Check if Micro 3D printer profile doesn't exist
+		if not self._printer_profile_manager.exists("micro_3d") :
 		
-		# Create temp folder if it doesn't exist
-		tempPath = os.path.dirname(os.path.realpath(__file__)) + "/static/temp/"
-		if not os.path.exists(tempPath) :
-	    		os.makedirs(tempPath)
+			# Create Micro 3D printer profile
+			printerProfile = dict(
+				id = "micro_3d",
+				name = "Micro 3D",
+				model = "Micro 3D",
+				color = "default",
+				volume=dict(
+					width = 109,
+					depth = 113,
+					height = 116,
+					formFactor = "rectangular",
+					origin = "lowerleft"
+				),
+				heatedBed = False,
+				extruder=dict(
+					count = 1,
+					offsets = [
+						(0, 0)
+					],
+					nozzleDiameter = 0.35
+				),
+				axes=dict(
+					x = dict(speed = 32.43679 * 60, inverted=False),
+					y = dict(speed = 34.77458 * 60, inverted=False),
+					z = dict(speed = 1.537894 * 60, inverted=False),
+					e = dict(speed = 5.752428 * 60, inverted=False)
+				)
+			)
+			self._printer_profile_manager.save(printerProfile, True)
+		
+		# Select Micro 3D printer profile
+		self._printer_profile_manager.select("micro_3d")
+	
+		# Find provided firmware
+		for file in os.listdir(self._basefolder + "/static/files/") :
+			if file.endswith(".hex") :
+				
+				# Set provided firmware
+				self.providedFirmware = file[0 : 10]
+				break
+	    	
+	    	# Enable printer callbacks
+		self._printer.register_callback(self)
 		
 		# Check if Cura is a registered slicer
 		if "cura" in self._slicing_manager.registered_slicers :
 		
-			# Set Cura profile location and destination
-			profileLocation = os.path.dirname(os.path.realpath(__file__)) + "/static/profiles/"
-			profileDestination = self._slicing_manager.get_slicer_profile_path("cura") + '/'
+			# Check if Cura is not configured
+			if not "cura" in self._slicing_manager.configured_slicers :
+			
+				# Go through all Cura Engine location
+				curaEngineLocations = [
+					"C:/Program Files*/Cura_*/CuraEngine.exe",
+					"C:/Program Files*/M3D*/*/Resources/CuraEngine",
+					"/usr/share/cura/CuraEngine",
+					"/usr/local/bin/CuraEngine",
+					"/usr/bin/CuraEngine",
+					"/usr/local/bin/cura_engine"
+				
+				]
+				for locations in curaEngineLocations :
+					for location in glob.glob(locations) :
+				
+						# Check if location is a file
+						if os.path.isfile(location) :
+						
+							# Set Cura Engine location
+							self._slicing_manager.get_slicer("cura", False)._settings.set(["cura_engine"], location)
+							break
 		
-			# Create profile destination folder if it doesn't exist
-			if not os.path.exists(profileDestination) :
-	    			os.makedirs(profileDestination)
+			# Set Cura profile location and destination
+			profileLocation = self._basefolder + "/static/profiles/"
+			profileDestination = self._slicing_manager.get_slicer_profile_path("cura") + '/'
 		
 			# Go through all Cura profiles
 			for profile in os.listdir(profileLocation) :
@@ -238,7 +290,7 @@ class M3DFioPlugin(
 					# Set profile version, identifier, and name
 					profileVersion = version.group(1)
 					profileIdentifier = profile[0 : version.start()]
-					profileName = self._slicing_manager.get_profile_path("cura", profileIdentifier)[len(profileDestination) :]
+					profileName = self._slicing_manager.get_profile_path("cura", profileIdentifier)[len(profileDestination) :].lower()
 				
 					# Set to create or replace file
 					replace = True
@@ -249,12 +301,12 @@ class M3DFioPlugin(
 						# Get existing profile description line
 						for line in open(profileDestination + profileName) :
 					
-							# Check if profile description exists
-							if line.startswith("_description:") :
+							# Check if profile display name exists
+							if line.startswith("_display_name:") :
 					
 								# Get current version
 								version = re.search(" V(\d+)$", line)
-						
+								
 								# Check if newer version is available
 								if version and int(version.group(1)) < int(profileVersion) :
 						
@@ -272,178 +324,167 @@ class M3DFioPlugin(
 				
 					# Check if profile is being created or replaced
 					if replace :
-				
-						# Convert Cura profiles
-						self.convertCuraToProfile(profileLocation + profile, profileDestination + profileName, profileIdentifier + " V" + profileVersion, profileIdentifier + " V" + profileVersion);
+					
+						# Save Cura profile as OctoPrint profile
+						self.convertCuraToProfile(profileLocation + profile, profileDestination + profileName, profileName, profileIdentifier + " V" + profileVersion, "Imported by M3D Fio on " + time.strftime("%Y-%m-%d %H:%M"))
 	
 	# Covert Cura to profile
-	def convertCuraToProfile(self, input, output, description = None, displayName = None) :
-				
+	def convertCuraToProfile(self, input, output, name, displayName, description) :
+			
+		# Import profile manager
+		profileManager = imp.load_source("Profile", self._slicing_manager.get_slicer("cura")._basefolder + "/profile.py")
+		
+		# Create profile
+		profile = octoprint.slicing.SlicingProfile("cura", name, profileManager.Profile.from_cura_ini(input), displayName, description)
+		
+		# Save profile	
+		self._slicing_manager.get_slicer("cura").save_slicer_profile(output, profile)
+	
+	# Covert Profile to Cura
+	def convertProfileToCura(self, input, output, printerProfile) :
+	
+		# Cura plugin needs to be updated to include 'solidarea_speed', 'perimeter_before_infill', 'raft_airgap_all', 'raft_surface_thickness', and 'raft_surface_linewidth'
+		
+		# Initialize variables
+		machine = {}
+		settings = {}
+		alterations = {}
+		
+		# Get printer profile
+		printerProfile = self._printer_profile_manager.get(printerProfile)
+		
+		# Set machine values
+		machine["extruder_amount"] = printerProfile["extruder"]["count"]
+		machine["has_heated_bed"] = printerProfile["heatedBed"]
+		machine["machine_center_is_zero"] = printerProfile["volume"]["formFactor"] == "circular" or printerProfile["volume"]["origin"] == "center"
+		machine["machine_width"] = printerProfile["volume"]["width"]
+		machine["machine_height"] = printerProfile["volume"]["height"]
+		machine["machine_depth"] = printerProfile["volume"]["depth"]
+		machine["machine_shape"] = str(printerProfile["volume"]["formFactor"]).capitalize()
+		
+		index = 0
+		while index < printerProfile["extruder"]["count"] :
+			machine["extruder_offset_x" + str(index + 1)] = printerProfile["extruder"]["offsets"][index][0]
+			machine["extruder_offset_y" + str(index + 1)] = printerProfile["extruder"]["offsets"][index][1]
+			index += 1
+		
+		# Set settings
+		settings["nozzle_size"] = printerProfile["extruder"]["nozzleDiameter"];
+		
+		# Set alterations
+		alterations["start.gcode"] = ['']
+		alterations["end.gcode"] = ['']
+		alterations["support_start.gcode"] = ['']
+		alterations["support_end.gcode"] = ['']
+		alterations["cool_start.gcode"] = ['']
+		alterations["cool_end.gcode"] = ['']
+		alterations["replace.csv"] = ['']
+		alterations["preswitchextruder.gcode"] = ['']
+		alterations["postswitchextruder.gcode"] = ['']
+	
 		# Create output
-		output = os.open(output, os.O_WRONLY | os.O_CREAT)
+		output = open(output, "wb");
 		
-		# Write description and display name to output
-		if description != None :
-			os.write(output, "_description: " + description + '\n')
-		else :
-			os.write(output, "_description: none\n")
-		if displayName != None :
-			os.write(output, "_display_name: " + displayName + '\n')
-		else :
-			os.write(output, "_display_name: none\n")
+		# Import profile manager
+		profileManager = imp.load_source("Profile", self._slicing_manager.get_slicer("cura")._basefolder + "/profile.py")
 		
-		# Clear search G-code
-		searchGcode = False
+		# Create profile
+		profile = profileManager.Profile(self._slicing_manager.get_slicer("cura")._load_profile(input), printerProfile, None, None)
 		
-		# Go through all lines in input
-		for line in open(input) :
+		# Go through all profile values
+		values = profile.profile()
+		for key in values.keys() :
 		
-			# Check if searching G-code
-			if searchGcode :
+			# Get current value
+			currentValue = str(key)
 			
-				# Check if end searhcing G-code
-				if line[0] != '\t' :
-				
-					# Write ending quote to output
-					os.write(output, "'\n")
-					
-					# Clear search G-code
-					searchGcode = False
-				
-				# Otherwise
+			# Fix value
+			if currentValue.endswith("_gcode") :
+				currentValue = currentValue[: -6] + ".gcode"
+			
+			elif currentValue == "first_layer_width_factor" :
+				currentValue = "layer0_width_factor"
+			
+			elif currentValue == "outer_shell_speed" :
+				currentValue = "inset0_speed"
+			
+			elif currentValue == "inner_shell_speed" :
+				currentValue = "insetx_speed"
+			
+			elif currentValue == "follow_surface" :
+				currentValue = "simple_mode"
+			
+			# Append values to alterations or settings
+			if currentValue.endswith("gcode") :
+				alterations[currentValue] = values[key]
+			
+			else :
+			
+				if isinstance(values[key], list) :
+					settings[currentValue] = values[key]
 				else :
-				
-					# Write G-code to output
-					os.write(output, "  " + line[1 :] + '\n')
-					
-					# Get next line
-					continue
+					settings[currentValue] = str(values[key]).capitalize()
 		
-			# Skip section lines
-			if line[0] == '[' :
-				continue
+		# Write machine
+		output.write("[machine]\n");
 		
-			# Adjust print temperature and filament diameter lines
-			if line.startswith("print_temperature =") or line.startswith("filament_diameter =") :
-				line = line.split()[0] + ":\n- " + line.split()[2] + '\n'
+		# Go through all machine values
+		for key in machine.keys() :
 		
-			# Check if line is start or end G-code
-			if line.startswith("start.gcode =") or line.startswith("end.gcode =") :
+			# Write setting to output
+			output.write(str(key) + " = " + str(machine[key]) + '\n')
+		
+		# Write profile
+		output.write("\n[profile]\n");
+		
+		# Go through all settings
+		for key in settings.keys() :
+		
+			# Check if settings is a list
+			if isinstance(settings[key], list) :
 			
-				# Write adjusted line to output
-				line = line[0 : line.find('.')] + "_gcode:\n- '\n  " + line[len(line.split()[0]) + 3 :] + '\n'
-				os.write(output, line)
+				# Check if setting is print temperature or filament diameter
+				if key == "print_temperature" or key == "filament_diameter" :
 				
-				# Set search G-code
-				searchGcode = True
+					# Go through all setting's parts
+					index = 0
+					while index < len(settings[key]) :
+					
+						# Write setting part to output
+						if index == 0 :
+							output.write(str(key) + " = " + str(float(settings[key][index])) + '\n')
+						else :
+							output.write(str(key) + str(index + 1) + " = " + str(float(settings[key][index])) + '\n')
+						index += 1
 			
 			# Otherwise
 			else :
-		
-				# Write converted line to output
-				os.write(output, line.replace(" =", ':').lower())
-	
-	# Covert Profile to Cura
-	def convertProfileToCura(self, input, output) :
-	
-		# Create output
-		output = os.open(output, os.O_WRONLY | os.O_CREAT)
-		
-		# Clear search G-code
-		searchGcode = False
-		firstGcode = False
-		
-		# Output starting profile
-		os.write(output, "[profile]")
-		
-		# Go through all lines in input
-		for line in open(input) :
-		
-			# Check if line doesn't contain anything
-			if not len(line) or line == '\n':
 			
-				# Get next line
-				continue
+				# Write setting to output
+				output.write(str(key) + " = " + str(settings[key]) + '\n')
+		
+		# Write alterations
+		output.write("\n[alterations]\n");
+		
+		# Go through all alterations
+		for key in alterations.keys() :
 			
-			# Check if line is the starts of G-code list
-			if line.startswith("- '") :
+			# Go through all alteration's parts
+			index = 0
+			while index < len(alterations[key]) :
 			
-				# Set search G-code and first G-code
-				searchGcode = True
-				firstGcode = True
-				
-				# Get next line
-				continue
-			
-			# Check if searching for G-code
-			if searchGcode :
-			
-				# Check if line is G-code
-				if line.startswith("  ") :
-				
-					# Check if first G-code
-					if firstGcode :
-					
-						# Clear first G-code
-						firstGcode = False
-						
-						# Send line to output
-						os.write(output, line[2 : -1] + '\n')
-					
-					# Otherwise
-					else :
-					
-						# Send line to output
-						os.write(output, '\t' + line[2 : -1] + '\n')
-					
-					# Get next line
-					continue
-					
-				# Otherwise
+				# Write alteration part to output
+				if index == 0 :
+					output.write(str(key) + " = " + str(alterations[key][index]).replace("\n\n", '\n').replace('\n', "\n\t").rstrip() + '\n')
 				else :
-				
-					# Clear search G-code
-					searchGcode = False
-		
-			# Check if line contains parts
-			parts = re.findall("^(.*?)\s?:\s?(.*)$", line)
-			if len(parts) and len(parts[0]) == 2 :
-				
-				# Set name and value
-				name = str(parts[0][0])
-				value = str(parts[0][1])
-			
-				# Check if added parts
-				if name == "_description" or name == "_display_name" :
-				
-					# Get next line
-					continue
-				
-				# Check if G-code part
-				if name.endswith("gcode") :
-				
-					# Add alterations if start G-code
-					if name == "start_gcode" :
-						os.write(output, "\n\n[alterations]")
-					
-					# Fix names for start and end G-code
-					if name == "start_gcode" or name == "end_gcode" :
-						name = name.replace('_', '.')
-				
-				# Write line to output
-				os.write(output, '\n' + name + " = " + value[: 1].upper() + value[1 :])
-			
-			# Otherwise check if line is a value
-			elif line[0] == '-' :
-			
-				# Write line to output
-				os.write(output, line[2 : -1])
+					output.write(str(key) + str(index + 1) + " = " + str(alterations[key][index]).replace("\n\n", '\n').replace('\n', "\n\t").rstrip() + '\n')
+				index += 1
 	
 	# On shutdown
 	def on_shutdown(self) :
 	
 		# Delete all temporary files
-		path = os.path.dirname(os.path.realpath(__file__)) + "/static/temp/"
+		path = self.get_plugin_data_folder() + '/'
 		for file in os.listdir(path) :
 		
 			os.remove(path + file)
@@ -452,10 +493,14 @@ class M3DFioPlugin(
 		if self.slicerChanges != None :
 		
 			# Move original files back
-			os.remove(self.slicerChanges.get("Profile Location"))
-			os.rename(self.slicerChanges.get("Profile Temporary"), self.slicerChanges.get("Profile Location"))
+			os.remove(self.slicerChanges.get("Slicer Profile Location"))
+			os.rename(self.slicerChanges.get("Slicer Profile Temporary"), self.slicerChanges.get("Slicer Profile Location"))
 			os.remove(self.slicerChanges.get("Model Location"))
 			os.rename(self.slicerChanges.get("Model Temporary"), self.slicerChanges.get("Model Location"))
+			
+			# Restore printer profile
+			self._printer_profile_manager.save(self.slicerChanges.get("Printer Profile Content"), True)
+			
 			self.slicerChanges = None
 	
 	# Get default settings
@@ -533,7 +578,7 @@ class M3DFioPlugin(
 		# Return command types
 		return dict(
 			message = ["value"],
-			file = ["name", "contents"]
+			file = ["name", "content"]
 		)
 	
 	# On command
@@ -687,7 +732,7 @@ class M3DFioPlugin(
 			elif data["value"].startswith("Print test border") :
 			
 				# Set test border file location
-				location = os.path.dirname(os.path.realpath(__file__)) + "/static/files/test border.gcode"
+				location = self._basefolder + "/static/files/test border.gcode"
 				
 				# Set test border file destination
 				destination = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "test border")
@@ -875,20 +920,20 @@ class M3DFioPlugin(
 				# Get values
 				values = json.loads(data["value"][14 :])
 			
-				# Get file's name and location
-				fileLocation = self._slicing_manager.get_profile_path(values["slicer"], values["profile"])
+				# Get slicer profile's location
+				fileLocation = self._slicing_manager.get_profile_path(values["slicerName"], values["slicerProfileName"])
 				
-				# Check if file name contains path traversal or file doesn't exist
-				if "../" in values["profile"] or not os.path.isfile(fileLocation) :
+				# Check if slicer profile's name contains path traversal, slicer profile doesn't exist, or printer profile doesn't exist
+				if "../" in values["slicerProfileName"] or not os.path.isfile(fileLocation) or not self._printer_profile_manager.exists(values["printerProfileName"]) :
 				
 					# Return error
 					return flask.jsonify(dict(value = "Error"))
 				
 				# Set file's destination
-				destinationName = "profile_" + str(random.randint(0, 1000000)) +  values["profile"]
-				fileDestination = os.path.dirname(os.path.realpath(__file__)) + "/static/temp/" + destinationName
+				destinationName = "profile_" + str(random.randint(0, 1000000)) +  values["slicerProfileName"]
+				fileDestination = self.get_plugin_data_folder() + '/' + destinationName
 				
-				# Remove destination if it already exists
+				# Remove file in destination if it already exists
 				if os.path.isfile(fileDestination) :
 					os.remove(fileDestination)
 			
@@ -896,13 +941,13 @@ class M3DFioPlugin(
 				temp = tempfile.mkstemp()[1]
 				shutil.copyfile(fileLocation, temp)
 				
-				if values["slicer"] == "cura" :
-					self.convertProfileToCura(temp, fileDestination)
+				if values["slicerName"] == "cura" :
+					self.convertProfileToCura(temp, fileDestination, values["printerProfileName"])
 				else :
 					os.rename(temp, fileDestination)
 				
 				# Return location
-				return flask.jsonify(dict(value = "Ok", path = "/plugin/m3dfio/static/temp/" + destinationName))
+				return flask.jsonify(dict(value = "Ok", path = "/plugin/m3dfio/download/" + destinationName))
 			
 			# Otherwise check if parameter is to view a model
 			elif data["value"].startswith("View model:") :
@@ -920,9 +965,9 @@ class M3DFioPlugin(
 				# Set file's destination
 				destinationName = fileLocation[len(self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, '')) :]
 				destinationName = "model_" + str(random.randint(0, 1000000)) +  destinationName
-				fileDestination = os.path.dirname(os.path.realpath(__file__)) + "/static/temp/" + destinationName
+				fileDestination = self.get_plugin_data_folder() + '/' + destinationName
 				
-				# Remove destination if it already exists
+				# Remove file in destination if it already exists
 				if os.path.isfile(fileDestination) :
 					os.remove(fileDestination)
 			
@@ -930,13 +975,13 @@ class M3DFioPlugin(
 				shutil.copyfile(fileLocation, fileDestination)
 				
 				# Return location
-				return flask.jsonify(dict(value = "Ok", path = "/plugin/m3dfio/static/temp/" + destinationName))
+				return flask.jsonify(dict(value = "Ok", path = "/plugin/m3dfio/download/" + destinationName))
 			
 			# Otherwise check if parameter is to remove temporary files
 			elif data["value"] == "Remove temp" :
 			
 				# Delete all temporary files
-				path = os.path.dirname(os.path.realpath(__file__)) + "/static/temp/"
+				path = self.get_plugin_data_folder() + '/'
 				for file in os.listdir(path) :
 		
 					os.remove(path + file)
@@ -969,8 +1014,8 @@ class M3DFioPlugin(
 				connection = serial.Serial(currentPort, currentBaudrate, timeout = 20)
 				connection.writeTimeout = 20
 			
-				# Get encrypted rom from unicode contents
-				for character in data["contents"] :
+				# Get encrypted rom from unicode content
+				for character in data["content"] :
 					encryptedRom += chr(ord(character))
 				
 				# Check if rom isn't encrypted
@@ -1084,7 +1129,7 @@ class M3DFioPlugin(
 	def updateToProvidedFirmware(self, connection) :
 	
 		# Return if firmware was updated successfully
-		encryptedRom = open(os.path.dirname(os.path.realpath(__file__)) + "/static/files/" + self.providedFirmware + ".hex", "rb")
+		encryptedRom = open(self._basefolder + "/static/files/" + self.providedFirmware + ".hex", "rb")
 		return self.updateFirmware(connection, encryptedRom.read(), int(self.providedFirmware))
 	
 	# Update firmware
@@ -1642,10 +1687,14 @@ class M3DFioPlugin(
 			if self.slicerChanges != None :
 			
 				# Move original files back
-				os.remove(self.slicerChanges.get("Profile Location"))
-				os.rename(self.slicerChanges.get("Profile Temporary"), self.slicerChanges.get("Profile Location"))
+				os.remove(self.slicerChanges.get("Slicer Profile Location"))
+				os.rename(self.slicerChanges.get("Slicer Profile Temporary"), self.slicerChanges.get("Slicer Profile Location"))
 				os.remove(self.slicerChanges.get("Model Location"))
 				os.rename(self.slicerChanges.get("Model Temporary"), self.slicerChanges.get("Model Location"))
+			
+				# Restore printer profile
+				self._printer_profile_manager.save(self.slicerChanges.get("Printer Profile Content"), True)
+				
 				self.slicerChanges = None
 		
 		# Otherwise check if a print is starting
@@ -4132,58 +4181,195 @@ class M3DFioPlugin(
 	@octoprint.plugin.BlueprintPlugin.route("/upload", methods=["POST"])
 	def upload(self):
 	
-		# Check if either files contains path traversal
-		if "../" in flask.request.values["Profile Name"] or "../" in flask.request.values["Model Name"] :
+		# Check if verifying profile
+		if "Model Name" not in flask.request.values and "Slicer Profile Content" in flask.request.values and "Slicer Name" in flask.request.values :
 		
-			# Return error
-			return flask.jsonify(dict(value = "Error"))
+			# Check if slicer is Cura
+			if flask.request.values["Slicer Name"] == "cura" :
+			
+				# Import profile manager
+				profileManager = imp.load_source("Profile", self._slicing_manager.get_slicer("cura")._basefolder + "/profile.py")
+					
+				# Save profile to temporary file
+				temp = tempfile.mkstemp()[1]
+				
+				output = open(temp, "wb")
+				for character in flask.request.values["Slicer Profile Content"] :
+					output.write(chr(ord(character)))
+				output.close();
+				
+				try:
+				
+					# Attempt to convert profile
+					profile = profileManager.Profile.from_cura_ini(temp)
+				
+				except Exception as e:
+				
+					# Return error if conversion failed
+					return flask.jsonify(dict(value = "Error"))
+				
+				# Check if profile is invalid
+				if profile == None :
+				
+					# Return error
+					return flask.jsonify(dict(value = "Error"))
+			
+			# Return ok
+			return flask.jsonify(dict(value = "Ok"))
+		
+		# Otherwise check if uploading everything
+		elif "Model Name" in flask.request.values and "Slicer Profile Name" in flask.request.values and "Slicer Name" in flask.request.values and "Model Content" in flask.request.values and "Printer Profile Name" in flask.request.values and "Slicer Profile Content" in flask.request.values :
 	
-		# Get file locations
-		profileLocation = self._slicing_manager.get_profile_path(flask.request.values["Slicer Name"], flask.request.values["Profile Name"])
-		modelLocation = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, flask.request.values["Model Name"])
+			# Check if slicer profile or model name contain path traversal
+			if "../" in flask.request.values["Slicer Profile Name"] or "../" in flask.request.values["Model Name"] :
+		
+				# Return error
+				return flask.jsonify(dict(value = "Error"))
+	
+			# Get file locations
+			profileLocation = self._slicing_manager.get_profile_path(flask.request.values["Slicer Name"], flask.request.values["Slicer Profile Name"])
+			modelLocation = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, flask.request.values["Model Name"])
 		
 		
-		# Check if profile or model doesn't exist
-		if not os.path.isfile(profileLocation) or not os.path.isfile(modelLocation) :
+			# Check if slicer profile, model, or printer profile doesn't exist
+			if not os.path.isfile(profileLocation) or not os.path.isfile(modelLocation) or not self._printer_profile_manager.exists(flask.request.values["Printer Profile Name"]) :
 		
-			# Return error
-			return flask.jsonify(dict(value = "Error"))
+				# Return error
+				return flask.jsonify(dict(value = "Error"))
 		
-		# Move files temporary locations
-		profileTemp = tempfile.mkstemp()[1]
-		os.rename(profileLocation, profileTemp)
-		modelTemp = tempfile.mkstemp()[1]
-		#os.rename(modelLocation, modelTemp)
-		shutil.copyfile(modelLocation, modelTemp)
+			# Move original slicer profile and model to temporary locations
+			profileTemp = tempfile.mkstemp()[1]
+			os.rename(profileLocation, profileTemp)
+			modelTemp = tempfile.mkstemp()[1]
+			os.rename(modelLocation, modelTemp)
 		
-		# Save profile to file's location
-		temp = tempfile.mkstemp()[1]
+			# Save slicer profile to original slicer profile's location
+			temp = tempfile.mkstemp()[1]
 		
-		output = open(temp, "wb")
-		for character in flask.request.values["Profile Contents"] :
-			output.write(chr(ord(character)))
-		output.close();
+			output = open(temp, "wb")
+			for character in flask.request.values["Slicer Profile Content"] :
+				output.write(chr(ord(character)))
+			output.close();
 		
-		if flask.request.values["Slicer Name"] == "cura" :
-			self.convertCuraToProfile(temp, profileLocation)
-		else :
-			os.rename(temp, profileLocation)
+			if flask.request.values["Slicer Name"] == "cura" :
+				self.convertCuraToProfile(temp, profileLocation, '', '', '')
+			else :
+				os.rename(temp, profileLocation)
 
-		# Save model to file's location
-		#output = open(modelLocation, "wb")
-		#for character in flask.request.values["Model Contents"] :
-		#	output.write(chr(ord(character)))
+			# Save model to original model's location
+			output = open(modelLocation, "wb")
+			for character in flask.request.values["Model Content"] :
+				output.write(chr(ord(character)))
+			
+			# Get printer profile
+			printerProfile = self._printer_profile_manager.get(flask.request.values["Printer Profile Name"])
 		
-		# Save slicer changes
-		self.slicerChanges = {
-			u"Profile Location" : profileLocation,
-			u"Profile Temporary" : profileTemp,
-			u"Model Location" : modelLocation,
-			u"Model Temporary" : modelTemp
-		}
+			# Save slicer changes
+			self.slicerChanges = {
+				u"Slicer Profile Location" : profileLocation,
+				u"Slicer Profile Temporary" : profileTemp,
+				u"Model Location" : modelLocation,
+				u"Model Temporary" : modelTemp,
+				u"Printer Profile Content" : copy.deepcopy(printerProfile)
+			}
+			
+			# Change printer profile
+			search = re.findall("extruder_amount\s*?=\s*?(\d+)", flask.request.values["Slicer Profile Content"])
+			if len(search) :
+				printerProfile["extruder"]["count"] = int(search[0])
+			
+			search = re.findall("has_heated_bed\s*?=\s*?(\S+)", flask.request.values["Slicer Profile Content"])
+			if len(search) :
+				if str(search[0]).lower() == "true" :
+					printerProfile["heatedBed"] = True
+				else :
+					printerProfile["heatedBed"] = False
+			
+			search = re.findall("machine_width\s*?=\s*?(\d+.\d+)", flask.request.values["Slicer Profile Content"])
+			if len(search) :
+				printerProfile["volume"]["width"] = float(search[0])
+			
+			search = re.findall("machine_height\s*?=\s*?(\d+.\d+)", flask.request.values["Slicer Profile Content"])
+			if len(search) :
+				printerProfile["volume"]["height"] = float(search[0])
+			
+			search = re.findall("machine_depth\s*?=\s*?(\d+.\d+)", flask.request.values["Slicer Profile Content"])
+			if len(search) :
+				printerProfile["volume"]["depth"] = float(search[0])
+			
+			search = re.findall("machine_shape\s*?=\s*?(\S+)", flask.request.values["Slicer Profile Content"])
+			if len(search) :
+				if str(search[0]).lower() == "circular" :
+					printerProfile["volume"]["formFactor"] = "circular"
+				else :
+					printerProfile["volume"]["formFactor"] = "rectangular"
+			
+			search = re.findall("nozzle_size\s*?=\s*?(\d+.\d+)", flask.request.values["Slicer Profile Content"])
+			if len(search) :
+				printerProfile["extruder"]["nozzleDiameter"] = float(search[0])
+			
+			search = re.findall("machine_center_is_zero\s*?=\s*?(\S+)", flask.request.values["Slicer Profile Content"])
+			if len(search) :
+				if str(search[0]).lower() == "true" :
+					printerProfile["volume"]["formFactor"] = "circular"
+					printerProfile["volume"]["origin"] = "center"
+				else :
+					printerProfile["volume"]["formFactor"] = "rectangular"
+					printerProfile["volume"]["origin"] = "lowerleft"
+			
+			search = re.findall("extruder_offset_(x|y)(\d)\s*?=\s*?(-?\d+.\d+)", flask.request.values["Slicer Profile Content"])
+			vectors = [Vector(0, 0)] * printerProfile["extruder"]["count"]
+			
+			for offset in search :
+				if offset[0] == 'x' :
+					vectors[int(offset[1]) - 1].x = float(offset[2])
+				else :
+					vectors[int(offset[1]) - 1].y = float(offset[2])
+			
+			index = 0
+			while index < len(vectors) :
+				value = (vectors[index].x, vectors[index].y)
+				printerProfile["extruder"]["offsets"][index] = value
+				index += 1
+			
+			# Get model's center X and Y
+			search = re.findall("object_center_x\s*?=\s*?(-?\d+.\d+)", flask.request.values["Slicer Profile Content"])
+			if len(search) :
+				centerX = float(search[0])
+			else :
+				centerX = 0;
+			
+			search = re.findall("object_center_y\s*?=\s*?(-?\d+.\d+)", flask.request.values["Slicer Profile Content"])
+			if len(search) :
+				centerY = float(search[0])
+			else :
+				centerY = 0;
+			
+			# Adjust printer profile so that its center is equal to the model's center
+			printerProfile["volume"]["width"] += centerX * 2
+			printerProfile["volume"]["depth"] += centerY * 2
+			
+			# Apply printer profile changes
+			self._printer_profile_manager.save(printerProfile, True)
 		
-		# Return ok
-		return flask.jsonify(dict(value = "Ok"))
+			# Return ok
+			return flask.jsonify(dict(value = "Ok"))
+		
+		# Return error
+		return flask.jsonify(dict(value = "Error"))
+	
+	# Download event
+	@octoprint.plugin.BlueprintPlugin.route("/download/<path:file>", methods=["GET"])
+	def download(self, file):
+	
+		# Check if file contains path traversal or file doesn't exist
+		if "../" in file or not os.path.isfile(self.get_plugin_data_folder() + '/' + file) :
+		
+			# Return file not found
+			return flask.make_response(404)
+	
+		# Return file
+		return flask.send_from_directory(self.get_plugin_data_folder(), file)
 
 # Plugin info
 __plugin_name__ = "M3D Fio"
