@@ -22,6 +22,69 @@ $(function() {
 		// Get state views
 		self.printerState = parameters[0];
 		self.temperature = parameters[1];
+		self.settings = parameters[2];
+		
+		// Set printer materials
+		var printerMaterials = {
+		
+			Black: new THREE.MeshPhongMaterial({
+				color: 0x000000,
+				specular: 0x050505,
+				shininess: 80,
+				side: THREE.DoubleSide
+			}),
+			
+			White: new THREE.MeshPhongMaterial({
+				color: 0xFFFFFF,
+				specular: 0x050505,
+				shininess: 80,
+				side: THREE.DoubleSide
+			}),
+			
+			Blue: new THREE.MeshPhongMaterial({
+				color: 0x2EBADD,
+				specular: 0x050505,
+				shininess: 80,
+				side: THREE.DoubleSide
+			}),
+			
+			Green: new THREE.MeshPhongMaterial({
+				color: 0x7AE050,
+				specular: 0x050505,
+				shininess: 80,
+				side: THREE.DoubleSide
+			}),
+			
+			Orange: new THREE.MeshPhongMaterial({
+				color: 0x000000,
+				specular: 0x050505,
+				shininess: 80,
+				side: THREE.DoubleSide
+			}),
+			
+			Clear: new THREE.MeshPhongMaterial({
+				color: 0x000000,
+				specular: 0x050505,
+				shininess: 80,
+				side: THREE.DoubleSide
+			}),
+			
+			Silver: new THREE.MeshPhongMaterial({
+				color: 0xB9B9B9,
+				specular: 0x050505,
+				shininess: 80,
+				side: THREE.DoubleSide
+			})
+		};
+		
+		// Set filament materials
+		var filamentMaterials = {
+		
+			Orange: new THREE.MeshLambertMaterial({
+				color: 0xEC9F3B,
+				side: THREE.DoubleSide
+			})
+		};
 		
 		// Set EEPROM offsets
 		var eepromOffsets = [
@@ -607,14 +670,7 @@ $(function() {
 					printer.load("/plugin/m3dfio/static/files/printer.stl", function(geometry) {
 					
 						// Create printer's mesh
-						var mesh = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({
-							color: 0xB9B9B9, // Silver
-							color: 0x7AE050, // Green
-							color: 0x2EBADD, // Blue
-							specular: 0x050505,
-							shininess: 80,
-							side: THREE.DoubleSide
-						}));
+						var mesh = new THREE.Mesh(geometry, printerMaterials[self.settings.settings.plugins.m3dfio.PrinterColor()]);
 						
 						// Set printer's orientation
 						mesh.rotation.set(3 * Math.PI / 2, 0, Math.PI);
@@ -632,10 +688,7 @@ $(function() {
 							geometry.center();
 		
 							// Create model's mesh
-							var mesh = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({
-								color: 0xEC9F3B,
-								side: THREE.DoubleSide
-							}));
+							var mesh = new THREE.Mesh(geometry, filamentMaterials[self.settings.settings.plugins.m3dfio.FilamentColor()]);
 							
 							// Rotate model, but keep initial orientation
 							mesh.rotation.set(3 * Math.PI / 2, 0, Math.PI);
@@ -937,6 +990,9 @@ $(function() {
 						$("#slicing_configuration_dialog .modal-extra").remove();
 						$("#slicing_configuration_dialog .modal-body").css("display", '');
 						$("#slicing_configuration_dialog .modal-cover").removeClass("show").css("z-index", '');
+						
+						// Save software settings
+						saveSoftwareSettings()
 					}, 300);
 				}
 			}
@@ -3254,6 +3310,18 @@ $(function() {
 				});
 			}
 			
+			// Otherwise check if data is to enable shared library options
+			else if(data.value == "Enable Shared Library")
+			
+				// Enable shared library options
+				$("#settings_plugin_m3dfio label.sharedLibrary").removeClass("disabled").children("input").prop("disabled", false);
+			
+			// Otherwise check if data is to disable shared library options
+			else if(data.value == "Disable Shared Library")
+			
+				// Disable shared library options
+				$("#settings_plugin_m3dfio label.sharedLibrary").addClass("disabled").children("input").prop("disabled", true);
+			
 			// Otherwise check if data is EEPROM
 			else if(data.value == "EEPROM" && typeof data.eeprom !== "undefined") {
 			
@@ -3554,6 +3622,6 @@ $(function() {
 	
 		// Constructor
 		M3DFioViewModel,
-		["printerStateViewModel", "temperatureViewModel"]
+		["printerStateViewModel", "temperatureViewModel", "settingsViewModel"]
 	]);
 });
