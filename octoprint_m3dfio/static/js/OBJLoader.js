@@ -59,9 +59,10 @@ THREE.OBJLoader.prototype.load = function ( url, callback ) {
 
 THREE.OBJLoader.prototype.parse = function ( data ) {
 
-	var geometry, vertices, triangles, lines, references, vertexReferences, coordinates, vertex;
+	var geometry, vertices, triangles, expression, lines, references, vertexReferences, coordinates, vertex;
 	vertices = [];
 	triangles = [];
+	expression = /\S+/g;
 	geometry = new THREE.Geometry();
 	lines = data.split('\n');
 	
@@ -69,7 +70,7 @@ THREE.OBJLoader.prototype.parse = function ( data ) {
 					
 		if ( lines[ i ][ 0 ] == 'f' ) {
 		
-			references = lines[i].substr( 2 ).split( ' ' );
+			references = lines[ i ].substr( 1 ).match( expression );
 			
 			vertexReferences = [];
 			
@@ -84,7 +85,7 @@ THREE.OBJLoader.prototype.parse = function ( data ) {
 		
 		else if ( lines[ i ].substr( 0, 2 ) == "v " ) {
 		
-			coordinates = lines[ i ].substr( 2 ).split( ' ' );
+			coordinates = lines[ i ].substr( 1 ).match( expression );
 			
 			vertices.push( [ coordinates[ 0 ], coordinates[ 1 ], coordinates[ 2 ] ] );
 			
