@@ -108,8 +108,6 @@ THREE.STLLoader.prototype.parseBinary = function ( data ) {
 
 	offset = 4;
 	for ( var i = 0; i < triangles; i++ ) {
-	
-		normal = new THREE.Vector3( reader.getFloat32( offset, true ), reader.getFloat32( offset + 4, true ), reader.getFloat32( offset + 8, true ) );
 		
 		offset += 12;
 		
@@ -121,7 +119,7 @@ THREE.STLLoader.prototype.parseBinary = function ( data ) {
 		
 		offset += 2;
 		   
-		geometry.faces.push( new THREE.Face3( i * 3, i * 3 + 1, i * 3 + 2, normal ) );
+		geometry.faces.push( new THREE.Face3( i * 3, i * 3 + 1, i * 3 + 2 ) );
 	
 	}
 	

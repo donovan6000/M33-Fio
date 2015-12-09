@@ -229,9 +229,9 @@ class M3DFioPlugin(
 			model = "Micro 3D",
 			color = "default",
 			volume=dict(
-				width = 109,
-				depth = 113,
-				height = 116,
+				width = self.bedLowMaxX - self.bedLowMinX,
+				depth = self.bedLowMaxY - self.bedLowMinY,
+				height = self.bedHighMaxZ - self.bedLowMinZ,
 				formFactor = "rectangular",
 				origin = "lowerleft"
 			),
@@ -645,7 +645,7 @@ class M3DFioPlugin(
 	
 		# Return asset
 		return dict(
-			js = ["js/m3dfio.js", "js/three.min.js", "js/OrbitControls.js", "js/STLLoader.js", "js/STLBinaryExporter.js", "js/TransformControls.js"],
+			js = ["js/m3dfio.js", "js/three.min.js", "js/OrbitControls.js", "js/STLLoader.js", "js/OBJLoader.js", "js/STLBinaryExporter.js", "js/TransformControls.js"],
 			css = ["css/m3dfio.css"]
 		)
 	
@@ -4452,45 +4452,9 @@ class M3DFioPlugin(
 	# Upload event
 	@octoprint.plugin.BlueprintPlugin.route("/upload", methods=["POST"])
 	def upload(self):
-	
-		# Check if verifying profile
-		if "Model Name" not in flask.request.values and "Slicer Profile Content" in flask.request.values and "Slicer Name" in flask.request.values :
 		
-			# Check if slicer is Cura
-			if flask.request.values["Slicer Name"] == "cura" :
-			
-				# Import profile manager
-				profileManager = imp.load_source("Profile", self._slicing_manager.get_slicer("cura")._basefolder + "/profile.py")
-					
-				# Save profile to temporary file
-				temp = tempfile.mkstemp()[1]
-				
-				output = open(temp, "wb")
-				for character in flask.request.values["Slicer Profile Content"] :
-					output.write(chr(ord(character)))
-				output.close()
-				
-				try:
-				
-					# Attempt to convert profile
-					profile = profileManager.Profile.from_cura_ini(temp)
-				
-				except Exception as e:
-				
-					# Return error if conversion failed
-					return flask.jsonify(dict(value = "Error"))
-				
-				# Check if profile is invalid
-				if profile == None :
-				
-					# Return error
-					return flask.jsonify(dict(value = "Error"))
-			
-			# Return ok
-			return flask.jsonify(dict(value = "Ok"))
-		
-		# Otherwise check if uploading everything
-		elif "Model Name" in flask.request.values and "Slicer Profile Name" in flask.request.values and "Slicer Name" in flask.request.values and "Model Content" in flask.request.values and "Printer Profile Name" in flask.request.values and "Slicer Profile Content" in flask.request.values :
+		# Check if uploading everything
+		if "Model Name" in flask.request.values and "Slicer Profile Name" in flask.request.values and "Slicer Name" in flask.request.values and "Model Content" in flask.request.values and "Printer Profile Name" in flask.request.values and "Slicer Profile Content" in flask.request.values :
 	
 			# Check if slicer profile or model name contain path traversal
 			if "../" in flask.request.values["Slicer Profile Name"] or "../" in flask.request.values["Model Name"] :
@@ -4626,6 +4590,65 @@ class M3DFioPlugin(
 			
 			# Apply printer profile changes
 			self._printer_profile_manager.save(printerProfile, True)
+		
+			# Return ok
+			return flask.jsonify(dict(value = "Ok"))
+		
+		# Otherwise check if verifying profile
+		elif "Slicer Profile Content" in flask.request.values and "Slicer Name" in flask.request.values :
+		
+			# Check if slicer is Cura
+			if flask.request.values["Slicer Name"] == "cura" :
+			
+				# Import profile manager
+				profileManager = imp.load_source("Profile", self._slicing_manager.get_slicer("cura")._basefolder + "/profile.py")
+					
+				# Save profile to temporary file
+				temp = tempfile.mkstemp()[1]
+				
+				output = open(temp, "wb")
+				for character in flask.request.values["Slicer Profile Content"] :
+					output.write(chr(ord(character)))
+				output.close()
+				
+				try:
+				
+					# Attempt to convert profile
+					profile = profileManager.Profile.from_cura_ini(temp)
+				
+				except Exception as e:
+				
+					# Return error if conversion failed
+					return flask.jsonify(dict(value = "Error"))
+				
+				# Check if profile is invalid
+				if profile == None :
+				
+					# Return error
+					return flask.jsonify(dict(value = "Error"))
+			
+			# Return ok
+			return flask.jsonify(dict(value = "Ok"))
+		
+		# Otherwise check if uploading a converted model
+		elif "Model Content" in flask.request.values and "Model Name" in flask.request.values and "Model Location" in flask.request.values :
+		
+			# Check if model name contain path traversal
+			if "../" in flask.request.values["Model Name"] :
+		
+				# Return error
+				return flask.jsonify(dict(value = "Error"))
+		
+			# Set destination
+			if flask.request.values["Model Location"] == "local" :
+				destination = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, flask.request.values["Model Name"])
+			else :
+				destination = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.SDCARD, flask.request.values["Model Name"])
+			
+			# Write model to destination
+			output = open(destination, "wb")
+			for character in flask.request.values["Model Content"] :
+				output.write(chr(ord(character)))
 		
 			# Return ok
 			return flask.jsonify(dict(value = "Ok"))

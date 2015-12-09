@@ -17,12 +17,15 @@ $(function() {
 		var modelCenter = [0, 0];
 		var currentZ;
 		var viewport = null;
+		var convertedModel = null;
 		var self = this;
 		
 		// Get state views
 		self.printerState = parameters[0];
 		self.temperature = parameters[1];
 		self.settings = parameters[2];
+		self.files = parameters[3];
+		self.slicing = parameters[4];
 		
 		// Set printer materials
 		var printerMaterials = {
@@ -872,6 +875,39 @@ $(function() {
 			animate();
 		}
 		
+		// Convert to STL
+		function convertToStl(file, type) {
+		
+			// Set loader
+			if(type == "obj")
+				var loader = new THREE.OBJLoader();
+			else
+				var loader = new THREE.STLLoader();
+			
+			// Load model
+			return loader.load(file, function(geometry) {
+			
+				// Create model's mesh
+				var mesh = new THREE.Mesh(geometry);
+				
+				// Set model's rotation
+				if(type == "obj")
+					mesh.rotation.set(Math.PI / 2, Math.PI, 0);
+				else
+					mesh.rotation.set(0, 0, 0);
+				
+				// Set model's orientation
+				mesh.position.set(0, 0, 0);
+				mesh.scale.set(1, 1, 1);
+				mesh.updateMatrix();
+				mesh.geometry.applyMatrix(mesh.matrix);
+				
+				// Get mesh as an STL
+				var exporter = new THREE.STLBinaryExporter();
+				convertedModel = new Blob([exporter.parse(mesh)], {type: "text/plain"});
+			});
+		}
+		
 		// Add 0.01 movement control
 		$("#control > div.jog-panel").eq(0).addClass("controls").find("div.distance > div").prepend("<button type=\"button\" id=\"control-distance001\" class=\"btn distance\" data-distance=\"0.01\" data-bind=\"enable: loginState.isUser()\">0.01</button>");
 		$("#control > div.jog-panel.controls").find("div.distance > div > button:nth-of-type(3)").click();
@@ -942,6 +978,91 @@ $(function() {
 		// Change slicer text
 		$("#slicing_configuration_dialog").find("h3").before("<p class=\"currentMenu\">Select Profile</p>");
 		$("#slicing_configuration_dialog").find(".control-group:nth-of-type(2) > label").text("Base Slicing Profile");
+		
+		// Upload file event
+		$("#gcode_upload, #gcode_upload_sd").change(function(event) {
+		
+			// Initialize variables
+			var file = this.files[0];
+			
+			// Check if uploading a Wavefront OBJ
+			var extension = file.name.lastIndexOf('.');
+			if(extension != -1 && file.name.substr(extension + 1) == "obj") {
+			
+				// Stop default behavior
+				event.stopImmediatePropagation();
+				
+				// Set new file name and location
+				var newFileName = file.name.substr(0, extension) + ".stl";
+				var location = $(this).attr("id") == "gcode_upload" ? "local" : "sdcard";
+				
+				// Display message
+				showMessage("Conversion Status", "Converting " + file.name + " to " + newFileName);
+				
+				// Convert file to STL
+				convertedModel = null;
+				convertToStl(URL.createObjectURL(file), file.name.substr(extension + 1));
+				
+				function conversionDone() {
+				
+					// Check if conversion is done
+					if(convertedModel !== null) {
+					
+						// Read in file
+						var reader = new FileReader();
+						reader.readAsBinaryString(convertedModel);
+
+						// On file load
+						reader.onload = function(event) {
+				
+							// Set parameter
+							var parameter = [
+								{
+									name: "Model Name",
+									value: newFileName
+								},
+								{
+									name: "Model Content",
+									value: event.target.result
+								},
+								{
+									name: "Model Location",
+									value: location
+								}
+							];
+
+							// Send request
+							$.ajax({
+								url: "/plugin/m3dfio/upload",
+								type: "POST",
+								data: $.param(parameter),
+								dataType: "json",
+								contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+
+								// On success
+								success: function(data) {
+					
+									// Hide message
+									hideMessage();
+							
+									// Show slicing dialog
+									self.files.requestData(newFileName, location);
+									self.slicing.show(location, newFileName);
+								}
+							});
+						}
+					}
+					
+					// Otherwise
+					else
+					
+						// Check if conversion is done again
+						setTimeout(conversionDone, 300);
+				
+				}
+				setTimeout(conversionDone, 300);
+			}
+		});
 		
 		// Manage if slicer is opened or closed
 		setInterval(function() {
@@ -3622,6 +3743,6 @@ $(function() {
 	
 		// Constructor
 		M3DFioViewModel,
-		["printerStateViewModel", "temperatureViewModel", "settingsViewModel"]
+		["printerStateViewModel", "temperatureViewModel", "settingsViewModel", "gcodeFilesViewModel", "slicingViewModel"]
 	]);
 });
