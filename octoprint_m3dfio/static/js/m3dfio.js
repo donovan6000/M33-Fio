@@ -1142,7 +1142,7 @@ $(function() {
 					slicerProfileName = $("#slicing_configuration_dialog").find(".control-group:nth-of-type(2) select").val();
 					printerProfileName = $("#slicing_configuration_dialog").find(".control-group:nth-of-type(3) select").val();
 					modelName = $("#slicing_configuration_dialog").find("h3").text();
-					modelName = modelName.substr(modelName.indexOf(' ' + 1));
+					modelName = modelName.substr(modelName.indexOf(' ') + 1);
 					
 					// Check if slicer menu is select profile
 					if(slicerMenu == "Select Profile") {
