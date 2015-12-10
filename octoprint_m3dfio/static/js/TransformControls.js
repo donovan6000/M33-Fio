@@ -133,7 +133,7 @@
 
 					for ( i = gizmoMap[ name ].length; i --; ) {
 					
-						if( scope.mode !== "translate" || ( scope.mode === "translate" && ( name == "XYZ" || scope.allowedTranslation.search( name ) !== - 1 ) ) ) {
+						if( scope.mode !== "translate" || ( ( ( name === "XYZ" || scope.allowedTranslation.search( name ) !== - 1 ) && ( scope.allowedTranslation === "XYZXZ" || name.length != 2 ) ) ) ) {
 
 							var object = gizmoMap[ name ][ i ][ 0 ];
 							var position = gizmoMap[ name ][ i ][ 1 ];
@@ -703,11 +703,10 @@
 		domElement.addEventListener( "mousemove", onPointerHover, false );
 		domElement.addEventListener( "touchmove", onPointerHover, false );
 
-		domElement.addEventListener( "mousemove", onPointerMove, false );
+		document.addEventListener( "mousemove", onPointerMove, false );
 		domElement.addEventListener( "touchmove", onPointerMove, false );
 
-		domElement.addEventListener( "mouseup", onPointerUp, false );
-		domElement.addEventListener( "mouseout", onPointerUp, false );
+		document.addEventListener( "mouseup", onPointerUp, false );
 		domElement.addEventListener( "touchend", onPointerUp, false );
 		domElement.addEventListener( "touchcancel", onPointerUp, false );
 		domElement.addEventListener( "touchleave", onPointerUp, false );
@@ -720,11 +719,11 @@
 			domElement.removeEventListener( "mousemove", onPointerHover );
 			domElement.removeEventListener( "touchmove", onPointerHover );
 
-			domElement.removeEventListener( "mousemove", onPointerMove );
+			document.removeEventListener( "mousemove", onPointerMove );
 			domElement.removeEventListener( "touchmove", onPointerMove );
 
-			domElement.removeEventListener( "mouseup", onPointerUp );
-			domElement.removeEventListener( "mouseout", onPointerUp );
+			document.removeEventListener( "mouseup", onPointerUp );
+
 			domElement.removeEventListener( "touchend", onPointerUp );
 			domElement.removeEventListener( "touchcancel", onPointerUp );
 			domElement.removeEventListener( "touchleave", onPointerUp );
@@ -745,6 +744,11 @@
 			this.visible = false;
 			this.axis = null;
 
+		};
+		
+		this.getMode = function() {
+		
+			return _mode;
 		};
 
 		this.setMode = function ( mode ) {

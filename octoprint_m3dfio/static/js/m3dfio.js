@@ -83,11 +83,40 @@ $(function() {
 		// Set filament materials
 		var filamentMaterials = {
 		
+			Blue: new THREE.MeshLambertMaterial({
+				color: 0x2EBADD,
+				side: THREE.DoubleSide
+			}),
+		
 			Orange: new THREE.MeshLambertMaterial({
 				color: 0xEC9F3B,
 				side: THREE.DoubleSide
 			})
 		};
+		
+		// Set vertex and fragment shader
+		var vertexShader = `
+			uniform vec3 viewVector;
+			uniform float c;
+			uniform float p;
+			varying float intensity;
+			void main() {
+				vec3 vNormal = normalize(normalMatrix * normal);
+				vec3 vNormel = normalize(normalMatrix * viewVector);
+				intensity = pow(c - dot(vNormal, vNormel), p);
+
+				gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+			}
+		`;
+	
+		var fragmentShader = `
+			uniform vec3 glowColor;
+			varying float intensity;
+			void main() {
+				vec3 glow = glowColor * intensity;
+				gl_FragColor = vec4(glow, 1.0);
+			}
+		`;
 		
 		// Set EEPROM offsets
 		var eepromOffsets = [
@@ -598,34 +627,145 @@ $(function() {
 			}, 1000);
 		}
 		
+		// Update values
+		function updateValues() {
+
+			// Set currently active buttons
+			$("#slicing_configuration_dialog .modal-extra button.translate, #slicing_configuration_dialog .modal-extra button.rotate, #slicing_configuration_dialog .modal-extra button.scale").removeClass("disabled");
+			$("#slicing_configuration_dialog .modal-extra div.values").removeClass("translate rotate scale").addClass(viewport.transformControls.getMode());
+			$("#slicing_configuration_dialog .modal-extra button." + viewport.transformControls.getMode()).addClass("disabled");
+
+			// Check if a model is currently selected
+			var model = viewport.transformControls.object;
+			if(model) {
+
+				// Enable delete, clone, and reset
+				$("#slicing_configuration_dialog .modal-extra button.delete, #slicing_configuration_dialog .modal-extra button.clone, #slicing_configuration_dialog .modal-extra button.reset").removeClass("disabled");
+
+				// Show values
+				$("#slicing_configuration_dialog .modal-extra div.values p").addClass("show");
+				if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("translate"))
+					$("#slicing_configuration_dialog .modal-extra div.values input[name=\"y\"").parent().removeClass("show");
+
+				// Check if an input is not focused
+				if(!$("#slicing_configuration_dialog .modal-extra input:focus").length) {
+
+					// Check if in translate mode
+					if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("translate")) {
+
+						// Display position values
+						$("#slicing_configuration_dialog .modal-extra div.values input[name=\"x\"").val((model.position.x.toFixed(3) == 0 ? 0 : -model.position.x).toFixed(3));
+						$("#slicing_configuration_dialog .modal-extra div.values input[name=\"z\"").val(model.position.z.toFixed(3));
+					}
+
+					// Otherwise check if in rotate mode
+					else if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("rotate")) {
+
+						// Display rotation values
+						$("#slicing_configuration_dialog .modal-extra div.values input[name=\"x\"").val((model.rotation.x * 180 / Math.PI).toFixed(3));
+						$("#slicing_configuration_dialog .modal-extra div.values input[name=\"y\"").val((model.rotation.y * 180 / Math.PI).toFixed(3));
+						$("#slicing_configuration_dialog .modal-extra div.values input[name=\"z\"").val((model.rotation.z * 180 / Math.PI).toFixed(3));
+					}
+
+					// Otherwise check if in scale mode
+					else if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("scale")) {
+
+						// Display scale values
+						$("#slicing_configuration_dialog .modal-extra div.values input[name=\"x\"").val(model.scale.x.toFixed(3));
+						$("#slicing_configuration_dialog .modal-extra div.values input[name=\"y\"").val(model.scale.y.toFixed(3));
+						$("#slicing_configuration_dialog .modal-extra div.values input[name=\"z\"").val(model.scale.z.toFixed(3));
+					}
+				}
+			}
+
+			// Otherwise
+			else {
+
+				// Disable delete, clone, and reset
+				$("#slicing_configuration_dialog .modal-extra button.delete, #slicing_configuration_dialog .modal-extra button.clone, #slicing_configuration_dialog .modal-extra button.reset").addClass("disabled");
+
+				// Hide values
+				$("#slicing_configuration_dialog .modal-extra div.values p").removeClass("show");
+
+				// Blur input
+				$("#slicing_configuration_dialog .modal-extra div.values input").blur();
+			}
+		}
+		
+		// Apply changes
+		function applyChanges(name, value) {
+
+			// Get currently selected model
+			var model = viewport.transformControls.object;
+
+			// Check if in translate mode
+			if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("translate")) {
+
+				// Set model's position
+				if(name == 'x')
+					model.position.x = -parseFloat(value);
+				else if(name == 'z')
+					model.position.z = parseFloat(value);
+			}
+
+			// Otherwise check if in rotate mode
+			else if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("rotate")) {
+
+				// Set model's rotation
+				if(name == 'x')
+					model.rotation.x = THREE.Math.degToRad(parseFloat(value));
+				else if(name == 'y')
+					model.rotation.y = THREE.Math.degToRad(parseFloat(value));
+				else if(name == 'z')
+					model.rotation.z = THREE.Math.degToRad(parseFloat(value));
+			}
+
+			// Otherwise check if in scale mode
+			else if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("scale")) {
+
+				// Set model's scale
+				if(name == 'x')
+					model.scale.x = parseFloat(value);
+				else if(name == 'y')
+					model.scale.y = parseFloat(value);
+				else if(name == 'z')
+					model.scale.z = parseFloat(value);
+			}
+
+			// Fix model's Y
+			viewport.fixModelY();
+		}
+		
 		// Load model
 		function loadModel(file) {
-		
+
 			// View port
 			viewport = {
 
 				// Data members
-				scene: null,
+				scene: [],
 				camera: null,
 				renderer: null,
 				orbitControls: null,
 				transformControls: null,
-				model: null,
-				loaded: false,
-				animationFrame: null,
-	
+				models: [],
+				glow: null,
+				boundaries: [],
+				modelLoaded: false,
+
 				// Initialize
 				init: function() {
-				
+	
 					// Create scene
-					this.scene = new THREE.Scene();
+					for(var i = 0; i < 2; i++)
+						this.scene[i] = new THREE.Scene();
 
 					// Create camera
 					var SCREEN_WIDTH = $("#slicing_configuration_dialog").width(), SCREEN_HEIGHT = $(window).height() - 200;
-					var VIEW_ANGLE = 45, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 1, FAR = 1000;
+					var VIEW_ANGLE = 45, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 0.1, FAR = 20000;
 					this.camera = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
-					this.scene.add(this.camera);
-					this.camera.position.set(0, 0, -300);
+					this.scene[0].add(this.camera);
+					this.camera.position.set(0, 0, -340);
 					this.camera.lookAt(new THREE.Vector3(0, 0, 0));
 
 					// Create renderer
@@ -633,7 +773,7 @@ $(function() {
 						antialias: true
 					});
 					this.renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
-					this.renderer.setClearColor(0xFFFFFF);
+					this.renderer.autoClear = false;
 
 					// Create controls
 					this.orbitControls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
@@ -643,236 +783,641 @@ $(function() {
 					this.orbitControls.minPolarAngle = 0;
 					this.orbitControls.maxPolarAngle = Math.PI / 2;
 					this.orbitControls.enablePan = false;
-					
-					this.transformControls = new THREE.TransformControls(this.camera, this.renderer.domElement );
+			
+					this.transformControls = new THREE.TransformControls(this.camera, this.renderer.domElement);
 					this.transformControls.space = "world";
 					this.transformControls.setAllowedTranslation("XZ");
-					this.scene.add(this.transformControls);
+					this.scene[0].add(this.transformControls);
 
 					// Create lights
-					this.scene.add(new THREE.AmbientLight(0x444444));
+					this.scene[0].add(new THREE.AmbientLight(0x444444));
 					var dirLight = new THREE.DirectionalLight(0xFFFFFF);
 					dirLight.position.set(200, 200, 1000).normalize();
 					this.camera.add(dirLight);
 					this.camera.add(dirLight.target);
-					
-					// Load models
-					this.loadModels();
-					
-					// Enable events
-					this.transformControls.addEventListener("mouseUp", this.fixModelY);
-					$(window).on("resize.viewport", this.resizeEvent);
-					$(window).on("keydown.viewport", this.keyDownEvent);
-				},
 				
-				// Load models
-				loadModels: function() {
+					// Create sky box
+					var skyBoxGeometry = new THREE.CubeGeometry(10000, 10000, 10000);
+					var skyBoxMaterial = new THREE.MeshBasicMaterial({
+						color: 0xD0E0E6,
+						side: THREE.BackSide
+					});
+					var skyBox = new THREE.Mesh(skyBoxGeometry, skyBoxMaterial);
+					this.scene[0].add(skyBox);
 		
 					// Load printer model
 					var printer = new THREE.STLLoader();
 					printer.load("/plugin/m3dfio/static/files/printer.stl", function(geometry) {
-					
+		
 						// Create printer's mesh
 						var mesh = new THREE.Mesh(geometry, printerMaterials[self.settings.settings.plugins.m3dfio.PrinterColor()]);
-						
+			
 						// Set printer's orientation
 						mesh.rotation.set(3 * Math.PI / 2, 0, Math.PI);
 						mesh.position.set(0, 61, 0);
 						mesh.scale.set(1, 1, 1);
-						
+				
+						// Append model to list
+						viewport.models.push({mesh: mesh, type: "stl"});
+			
 						// Add printer to scene
-						viewport.scene.add(mesh);
+						viewport.scene[0].add(mesh);
+					
+						// Render
+						viewport.render();
 						
-						// Load model
-						var model = new THREE.STLLoader();
-						model.load(file, function(geometry) {
-						
-							// Center model
-							geometry.center();
+						// Import model
+						viewport.importModel(file, "stl");
+					});
+				
+					// Create boundaries
+					for(var i = 0; i < 5; i++) {
+						this.boundaries[i] = new THREE.Mesh(new THREE.PlaneGeometry(134, 134, 1, 1), new THREE.MeshLambertMaterial({
+							color: 0xFF0000,
+							transparent: true,
+							opacity: 0.5,
+							side: THREE.DoubleSide
+						}));
+						this.boundaries[i].receiveShadow = true;
+						this.boundaries[i].visible = false;
+						this.scene[0].add(this.boundaries[i]);
+					}
+				
+					this.boundaries[0].position.set(0, 153.4, 0);
+					this.boundaries[0].rotation.set(Math.PI / 2, 0, 0);
+					this.boundaries[1].position.set(0, 60, -92.3);
+					this.boundaries[2].position.set(0, 60, 92.3);
+					this.boundaries[3].rotation.set(0, Math.PI / 2, 0);
+					this.boundaries[3].position.set(92.3, 60, 0);
+					this.boundaries[4].rotation.set(0, Math.PI / 2, 0);
+					this.boundaries[4].position.set(-92.3, 60, 0);
+				
+					// Render
+					viewport.render();
+				
+					// Enable events
+					this.transformControls.addEventListener("mouseDown", this.startTransform);
+					this.transformControls.addEventListener("mouseUp", this.endTransform);
+					this.transformControls.addEventListener("mouseUp", this.fixModelY);
+					this.transformControls.addEventListener("change", this.render);
+					this.orbitControls.addEventListener("change", this.render);
+					$(document).on("mousedown.viewport", this.mouseDownEvent);
+					$(window).on("resize.viewport", this.resizeEvent);
+					$(window).on("keydown.viewport", this.keyDownEvent);
+					$(window).on("keyup.viewport", this.keyUpEvent);
+				},
+			
+				// Start transform
+				startTransform: function() {
+			
+					// Blur input
+					$("#slicing_configuration_dialog .modal-extra div.values input").blur();
+			
+					// Disable orbit controls
+					viewport.orbitControls.enabled = false;
+				},
+			
+				// End transform
+				endTransform: function() {
+			
+					// Enable orbit controls
+					viewport.orbitControls.enabled = true;
+				},
 		
-							// Create model's mesh
-							var mesh = new THREE.Mesh(geometry, filamentMaterials[self.settings.settings.plugins.m3dfio.FilamentColor()]);
-							
-							// Rotate model, but keep initial orientation
+				// Import model
+				importModel: function(file, type) {
+		
+					// Clear model loaded
+					viewport.modelLoaded = false;
+			
+					// Set loader
+					if(type == "stl")
+						var loader = new THREE.STLLoader();
+					else if(type == "obj")
+						var loader = new THREE.OBJLoader();
+					else {
+						viewport.modelLoaded = true;
+						return;
+					}
+		
+					// Load model
+					loader.load(file, function(geometry) {
+	
+						// Center model
+						geometry.center();
+
+						// Create model's mesh
+						var mesh = new THREE.Mesh(geometry, filamentMaterials[self.settings.settings.plugins.m3dfio.FilamentColor()]);
+		
+						// Set model's orientation
+						if(type == "stl")
 							mesh.rotation.set(3 * Math.PI / 2, 0, Math.PI);
-							mesh.updateMatrix();
-							mesh.geometry.applyMatrix(mesh.matrix);
-							mesh.position.set(0, 0, 0);
+						else if(type == "obj")
 							mesh.rotation.set(0, 0, 0);
-							mesh.scale.set(1, 1, 1);
-							
-							// Add model to scene
-							viewport.scene.add(mesh);
-							
-							// Attach model to transform controls
-							viewport.model = mesh
-							viewport.transformControls.attach(mesh);
-							
-							// Fix model's Y
-							viewport.fixModelY();
-						
-							// Set loaded
-							viewport.loaded = true;
-						});
+						mesh.updateMatrix();
+						mesh.geometry.applyMatrix(mesh.matrix);
+						mesh.position.set(0, 0, 0);
+						mesh.rotation.set(0, 0, 0);
+						mesh.scale.set(1, 1, 1);
+		
+						// Add model to scene
+						viewport.scene[0].add(mesh);
+				
+						// Append model to list
+						viewport.models.push({mesh: mesh, type: type});
+		
+						// Select model
+						viewport.selectModel(mesh);
+		
+						// Fix model's Y
+						viewport.fixModelY();
+					
+						// Set modelLoaded
+						viewport.modelLoaded = true;
 					});
 				},
-				
+	
 				// Key down event
 				keyDownEvent: function(event) {
+			
+					// Check if an input is not focused
+					if(!$("#slicing_configuration_dialog .modal-extra input:focus").length) {
+	
+						// Check what key was pressed
+						switch(event.keyCode) {
+			
+							// Check if tab was pressed
+							case 9 :
 				
+								// Prevent default action
+								event.preventDefault();
+			
+								// Check if an object is selected
+								if(viewport.transformControls.object) {
+				
+									// Go through all models
+									for(var i = 1; i < viewport.models.length; i++)
+					
+										// Check if model is currently selected
+										if(viewport.models[i].mesh == viewport.transformControls.object) {
+						
+											// Check if model is the last one
+											if(i == viewport.models.length - 1)
+							
+												// Remove selection
+												viewport.removeSelection();
+							
+											// Otherwise
+											else
+							
+												// Select next model
+												viewport.selectModel(viewport.models[i + 1].mesh);
+							
+											// Break
+											break;
+										}
+								}
+						
+								// Otherwise check if a model exists
+								else if(viewport.models.length > 1)
+					
+									// Select first model
+									viewport.selectModel(viewport.models[1].mesh);
+						
+								// Render
+								viewport.render();
+							break;
+			
+							// Check if delete was pressed
+							case 46 :
+				
+								// Check if an object is selected
+								if(viewport.transformControls.object)
+					
+									// Delete model
+									viewport.deleteModel();
+							break;
+					
+				
+							// Check if ctrl was pressed
+							case 17 :
+				
+								// Enable grid and rotation snap
+								viewport.enableSnap();
+							break;
+		
+							// Check if W was pressed
+							case 87 :
+			
+								// Set selection mode to translate
+								viewport.setMode("translate");
+							break;
+			
+							// Check if E was pressed
+							case 69 :
+			
+								// Set selection mode to rotate
+								viewport.setMode("rotate");
+							break;
+			
+							// Check if R was pressed
+							case 82 :
+			
+								// Set selection mode to scale
+								viewport.setMode("scale");
+							break;
+						}
+					}
+				},
+		
+				// Key up event
+				keyUpEvent: function(event) {
+	
 					// Check what key was pressed
 					switch(event.keyCode) {
-					
-						// Check if W was pressed
-						case 87:
-						
-							// Set control mode to translate
-							viewport.transformControls.setMode("translate");
-							viewport.transformControls.space = "world";
-							viewport.transformControls.update();
-						break;
-						
-						// Check if E was pressed
-						case 69:
-						
-							// Set control mode to rotate
-							viewport.transformControls.setMode("rotate");
-							viewport.transformControls.space = "local";
-							viewport.transformControls.update();
-						break;
-						
-						// Check if R was pressed
-						case 82:
-						
-							// Set control mode to scale
-							viewport.transformControls.setMode("scale");
-							viewport.transformControls.space = "local";
-							viewport.transformControls.update();
+				
+						// Check if ctrl was released
+						case 17 :
+				
+							// Disable grid and rotation snap
+							viewport.disableSnap();
 						break;
 					}
 				},
+		
+				// Mouse down event
+				mouseDownEvent: function(event) {
+		
+					// Check if not clicking on a button or input
+					if(!$(event.target).is("button, input")) {
+		
+						// Initialize variables
+						var raycaster = new THREE.Raycaster();
+						var mouse = new THREE.Vector2();
+						var offset = $(viewport.renderer.domElement).offset();
+			
+						// Set mouse coordinates
+						mouse.x = ((event.clientX - offset.left) / viewport.renderer.domElement.clientWidth) * 2 - 1;
+						mouse.y = - ((event.clientY - offset.top) / viewport.renderer.domElement.clientHeight) * 2 + 1;
+			
+						// Set ray caster's perspective
+						raycaster.setFromCamera(mouse, viewport.camera);
+			
+						// Get models' meshes
+						var modelMeshes = []
+						for(var i = 0; i < viewport.models.length; i++)
+							modelMeshes.push(viewport.models[i].mesh);
+			
+						// Get objects that intersect ray caster
+						var intersects = raycaster.intersectObjects(modelMeshes); 
+			
+						// Check if an object intersects and it's not the printer
+						if(intersects.length > 0 && intersects[0].object != modelMeshes[0])
+			
+							// Select object
+							viewport.selectModel(intersects[0].object);
+			
+						// Otherwise
+						else
+			
+							// Remove selection
+							viewport.removeSelection();
+					
+						// Render
+						viewport.render();
+					}
+				},
+			
+				// Enable snap
+				enableSnap: function() {
+			
+					// Enable grid and rotation snap
+					viewport.transformControls.setTranslationSnap(5);
+					viewport.transformControls.setRotationSnap(THREE.Math.degToRad(15));
+					$("#slicing_configuration_dialog .modal-extra button.snap").addClass("disabled");
+				},
+			
+				// Disable snap
+				disableSnap: function() {
+			
+					// Disable grid and rotation snap
+					viewport.transformControls.setTranslationSnap(null);
+					viewport.transformControls.setRotationSnap(null);
+					$("#slicing_configuration_dialog .modal-extra button.snap").removeClass("disabled");
+				},
+			
+				// Set mode
+				setMode: function(mode) {
+			
+					switch(mode) {
 				
+						// Check if translate mode
+						case "translate" :
+					
+							// Set selection mode to translate
+							viewport.transformControls.setMode("translate");
+							viewport.transformControls.space = "world";
+						break;
+					
+						// Check if rotate mode
+						case "rotate" :
+					
+							// Set selection mode to rotate
+							viewport.transformControls.setMode("rotate");
+							viewport.transformControls.space = "local";
+						break;
+					
+						// Check if scale mode
+						case "scale" :
+					
+							// Set selection mode to scale
+							viewport.transformControls.setMode("scale");
+							viewport.transformControls.space = "local";
+						break;
+					}
+				
+					// Render
+					viewport.render();
+				},
+	
 				// Resize event
 				resizeEvent: function() {
-				
+	
 					// Update camera
 					viewport.camera.aspect = $("#slicing_configuration_dialog").width() / ($(window).height() - 200);
 					viewport.camera.updateProjectionMatrix();
 					viewport.renderer.setSize($("#slicing_configuration_dialog").width(), $(window).height() - 200);
+				
+					// Render
+					viewport.render();
 				},
+	
+				// Export scene
+				exportScene: function() {
+		
+					// Initialize variables
+					var centerX = 0;
+					var centerZ = 0;
+					var mergedGeometry = new THREE.Geometry();
 				
-				// Get model
-				getModel: function() {
-				
-					// Get model's mesh
-					var mesh = viewport.model;
-					
-					// Save model's center
-					modelCenter = [-mesh.position.x, mesh.position.z];
-					
-					// Save mesh's current matrix
-					mesh.updateMatrix();
-					var matrix = mesh.matrix;
-					
-					// Undo initial rotation
-					mesh.geometry.applyMatrix(mesh.matrix);
-					mesh.position.set(0, 0, 0);
-					mesh.rotation.set(3 * Math.PI / 2, 0, Math.PI);
-					mesh.scale.set(1, 1, 1);
-					render();
-					
-					// Get mesh as an STL
-					var exporter = new THREE.STLBinaryExporter();
-					var stl = new Blob([exporter.parse(mesh)], {type: "text/plain"});
-					
-					// Apply mesh's previous matrix
-					mesh.applyMatrix(matrix);
-					mesh.updateMatrix();
-					render();
-					
-					// Stop rendering
-					cancelAnimationFrame(viewport.animationFrame);
-					
-					// Return STL
-					return stl;
-				},
-				
-				// Destroy
-				destroy: function() {
-				
-					// Stop rendering
-					cancelAnimationFrame(viewport.animationFrame);
-					
-					// Disable events
-					$(window).off("resize.viewport");
-					$(window).off("keydown.viewport");
-					
-					// Reset values
-					scene = null;
-					camera = null;
-					renderer = null;
-					orbitControls = null;
-					transformControls = null;
-					model = null;
-					loaded = false;
-					animationFrame = null;
-					viewport = null;
-				},
-				
-				// Fix model Y
-				fixModelY: function() {
-					
-					// Check if model exists
-					if(viewport.model) {
-				
-						// Get model's boundary box
-						var boundaryBox = new THREE.Box3().setFromObject(viewport.model);
-						boundaryBox.min.sub(viewport.model.position);
-						boundaryBox.max.sub(viewport.model.position);
-						
-						// Set model's lowest Y value to be at 0
-						viewport.model.position.y -= viewport.model.position.y + boundaryBox.min.y;
+					// Remove selection if an object is selected
+					if(viewport.transformControls.object)
+						viewport.removeSelection();
+			
+					// Go through all models
+					for(var i = 1; i < viewport.models.length; i++) {
+			
+						// Get current model
+						var model = viewport.models[i];
+		
+						// Sum model's center together
+						centerX += model.mesh.position.x;
+						centerZ += model.mesh.position.z;
+		
+						// Save model's current matrix
+						model.mesh.updateMatrix();
+						var matrix = model.mesh.matrix;
+		
+						// Set model's orientation
+						model.mesh.geometry.applyMatrix(model.mesh.matrix);
+						model.mesh.position.set(0, 0, 0);
+						if(model.type == "stl")
+							model.mesh.rotation.set(3 * Math.PI / 2, 0, Math.PI);
+						else if(model.type == "obj")
+							model.mesh.rotation.set(Math.PI / 2, Math.PI, 0);
+						model.mesh.scale.set(1, 1, 1);
+						viewport.render();
+			
+						// Merge model's geometry together
+						mergedGeometry.merge(model.mesh.geometry, model.mesh.matrix);
+		
+						// Apply model's previous matrix
+						model.mesh.applyMatrix(matrix);
+						model.mesh.updateMatrix();
+						viewport.render();
 					}
 				
+					// Get average center for models
+					centerX /= -(viewport.models.length - 1);
+					centerZ /= (viewport.models.length - 1);
+					
+					// Save model's center
+					modelCenter = [centerX, centerZ];
+			
+					// Create merged mesh from merged geometry
+					var mergedMesh = new THREE.Mesh(mergedGeometry);
+			
+					// Return merged mesh as an STL
+					var exporter = new THREE.STLBinaryExporter();
+					return new Blob([exporter.parse(mergedMesh)], {type: "text/plain"});
+				},
+	
+				// Destroy
+				destroy: function() {
+		
+					// Disable events
+					$(document).off("mousedown.viewport");
+					$(window).off("resize.viewport");
+					$(window).off("keydown.viewport");
+					$(window).off("keyup.viewport");
+		
+					// Clear viewport
+					viewport = null;
+				},
+	
+				// Fix model Y
+				fixModelY: function() {
+		
+					// Get currently selected model
+					var model = viewport.transformControls.object;
+	
+					// Get model's boundary box
+					var boundaryBox = new THREE.Box3().setFromObject(model);
+					boundaryBox.min.sub(model.position);
+					boundaryBox.max.sub(model.position);
+		
+					// Set model's lowest Y value to be at 0
+					model.position.y -= model.position.y + boundaryBox.min.y;
+				
+					// Render
+					viewport.render();
+				},
+			
+				// Clone model
+				cloneModel: function() {
+			
+					// Get currently selected model
+					var model = viewport.transformControls.object;
+		
+					// Clone model
+					var clonedModel = new THREE.Mesh(model.geometry.clone(), model.material.clone());
+				
+					// Copy original orientation, except center cloned model
+					clonedModel.applyMatrix(model.matrix);
+					clonedModel.position.set(0, 0, 0);
+				
+					// Add cloned model to scene
+					viewport.scene[0].add(clonedModel);
+				
+					for(var i = 0; i < viewport.models.length; i++)
+						if(viewport.models[i].mesh == model) {
+						
+							// Append model to list
+							viewport.models.push({mesh: clonedModel, type: viewport.models[i].type});
+							break;
+						}
+				
+					// Select model
+					viewport.selectModel(clonedModel);
+
+					// Fix model's Y
+					viewport.fixModelY();
+				},
+			
+				// Reset model
+				resetModel: function() {
+			
+					// Get currently selected model
+					var model = viewport.transformControls.object;
+				
+					// Reset model's orientation
+					model.position.set(0, 0, 0);
+					model.rotation.set(0, 0, 0);
+					model.scale.set(1, 1, 1);
+				
+					// Fix model's Y
+					viewport.fixModelY();
+				},
+			
+				// Delete model
+				deleteModel: function() {
+			
+					// Remove object
+					for(var i = 0; i < viewport.models.length; i++)
+						if(viewport.models[i].mesh == viewport.transformControls.object) {
+							viewport.models.splice(i, 1);
+							break;
+						}
+					viewport.scene[0].remove(viewport.transformControls.object);
+			
+					// Remove selection
+					viewport.removeSelection();
+				
+					// Render
+					viewport.render();
+				},
+			
+				// Remove selection
+				removeSelection: function() {
+			
+					// Check if an object is selected
+					if(viewport.transformControls.object) {
+			
+						// Set model's material
+						viewport.transformControls.object.material = filamentMaterials[$("#slicing_configuration_dialog .modal-extra div.filament button.disabled").data("color")];
+				
+						// Remove selection
+						viewport.transformControls.detach();
+				
+						// Remove glow
+						viewport.scene[1].remove(viewport.glow);
+						viewport.glow = null;
+					}
+				},
+			
+				// Select model
+				selectModel: function(model) {
+			
+					// Select model
+					viewport.transformControls.attach(model);
+				
+					// Set model's material
+					model.material = new THREE.MeshLambertMaterial({
+						color: 0xEC9F3B,
+						side: THREE.DoubleSide
+					});
+				
+					// Create glow material
+					var glowMaterial = new THREE.ShaderMaterial({
+						uniforms: { 
+							"c": {
+								type: 'f',
+								value: 1.0
+							},
+		
+							"p":   {
+								type: 'f',
+								value: 1.4
+							},
+		
+							glowColor: {
+								type: 'c',
+								value: new THREE.Color(0xffff00)
+							},
+		
+							viewVector: {
+								type: "v3",
+								value: viewport.camera.position
+							}
+						},
+						vertexShader: vertexShader,
+						fragmentShader: fragmentShader,
+						side: THREE.FrontSide,
+						blending: THREE.AdditiveBlending,
+						transparent: true
+					});
+				
+					// Remove previous glow
+					if(viewport.glow)
+						viewport.scene[1].remove(viewport.glow);
+				
+					// Create glow
+					model.updateMatrix();
+					viewport.glow = new THREE.Mesh(model.geometry.clone(), glowMaterial);
+				    	viewport.glow.applyMatrix(model.matrix);
+				    	
+				    	// Add glow to scene
+					viewport.scene[1].add(viewport.glow);
+				
+					// Update values
+					updateValues();
+				},
+
+				// Render
+				render: function() {
+		
+					// Update controls
+					viewport.transformControls.update();
+					viewport.orbitControls.update();
+			
+					// Check if glow exists
+					if(viewport.glow) {
+			
+						// Get currently selected model
+						var model = viewport.transformControls.object;
+			
+						// Update glow's orientation
+						viewport.glow.position.copy(model.position);
+						viewport.glow.rotation.copy(model.rotation);
+						viewport.glow.scale.copy(model.scale);
+				
+						// Update glow's view vector
+						viewport.glow.material.uniforms.viewVector.value = new THREE.Vector3().subVectors(viewport.camera.position, viewport.glow.position);
+					}
+
+					// Render scene
+					viewport.renderer.clear();
+					viewport.renderer.render(viewport.scene[0], viewport.camera);
+					viewport.renderer.clearDepth();
+					viewport.renderer.render(viewport.scene[1], viewport.camera);
+				
+					// Update values
+					updateValues();
 				}
 			};
 
-			// Animate scene
-			function animate() {
-			
-				// Animate frame
-				viewport.animationFrame = requestAnimationFrame(animate);
-				
-				// Render scene
-				render();
-				
-				// Update
-				update();
-			}
-
-			// Update
-			function update() {
-			
-				// Update transform controls if set
-				if(viewport.transformControls)
-					viewport.transformControls.update();
-			
-				// Update orbit controls if set
-				if(viewport.orbitControls)
-					viewport.orbitControls.update();
-			}
-
-			// Render
-			function render() {
-			
-				// Render scene if set
-				if(viewport.renderer)
-					viewport.renderer.render(viewport.scene, viewport.camera);
-			}
-			
 			// Create viewport
 			viewport.init();
-			animate();
 		}
 		
 		// Convert to STL
@@ -909,31 +1454,84 @@ $(function() {
 		}
 		
 		// Add 0.01 movement control
-		$("#control > div.jog-panel").eq(0).addClass("controls").find("div.distance > div").prepend("<button type=\"button\" id=\"control-distance001\" class=\"btn distance\" data-distance=\"0.01\" data-bind=\"enable: loginState.isUser()\">0.01</button>");
+		$("#control > div.jog-panel").eq(0).addClass("controls").find("div.distance > div").prepend(`
+			<button type="button" id="control-distance001" class="btn distance" data-distance="0.01" data-bind="enable: loginState.isUser()">0.01</button>
+		`);
 		$("#control > div.jog-panel.controls").find("div.distance > div > button:nth-of-type(3)").click();
 	
 		// Change tool section text
-		$("#control > div.jog-panel").eq(1).addClass("extruder").find("h1").text("Extruder").after("<h1 class=\"microPass\">Extruder</h1>");
+		$("#control > div.jog-panel").eq(1).addClass("extruder").find("h1").text("Extruder").after(`
+			<h1 class="microPass">Extruder</h1>
+		`);
 
 		// Create motor on control
-		$("#control > div.jog-panel").eq(2).addClass("general").find("div").prepend("<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M17'}) }\">Motors on</button>");
+		$("#control > div.jog-panel").eq(2).addClass("general").find("div").prepend(`
+			<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M17'}) }">Motors on</button>
+		`);
 		
 		// Change fan controls
-		$("#control > div.jog-panel.general").find("button:nth-of-type(2)").after("<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M106 S255 *'}) }\">Fan on</button><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M107 *'}) }\">Fan off</button>")
+		$("#control > div.jog-panel.general").find("button:nth-of-type(2)").after(`
+			<button class="btn btn-block control-box" data-bind="enable: isOperational() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M106 S255 *'}) }">Fan on</button>
+			<button class="btn btn-block control-box" data-bind="enable: isOperational() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M107 *'}) }">Fan off</button>
+		`)
 		$("#control > div.jog-panel.general").find("button:nth-of-type(5)").remove();
 		$("#control > div.jog-panel.general").find("button:nth-of-type(5)").remove();
 		
 		// Create absolute and relative controls
-		$("#control > div.jog-panel.general").find("div").append("<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'G90'}) }\">Absolute mode</button><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'G91'}) }\">Relative mode</button>");
+		$("#control > div.jog-panel.general").find("div").append(`
+			<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'G90'}) }">Absolute mode</button>
+			<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'G91'}) }">Relative mode</button>
+		`);
 	
 		// Add filament controls
-		$("#control > div.jog-panel.general").after("<div class=\"jog-panel filament\" data-bind=\"visible: loginState.isUser\"><h1>Filament</h1><div><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Unload</button><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Load</button></div></div>");
+		$("#control > div.jog-panel.general").after(`
+			<div class="jog-panel filament" data-bind="visible: loginState.isUser">
+				<h1>Filament</h1>
+				<div>
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Unload</button>
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Load</button>
+				</div>
+			</div>
+		`);
 	
 		// Add calibration controls
-		$("#control > div.jog-panel.filament").after("<div class=\"jog-panel calibration\" data-bind=\"visible: loginState.isUser\"><h1>Calibration</h1><div><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Calibrate bed center Z0</button><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Calibrate bed orientation</button><button class=\"btn btn-block control-box arrow\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><i class=\"icon-arrow-down\"></i></button><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Save Z as front left Z0</button><button class=\"btn btn-block control-box arrow\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><i class=\"icon-arrow-down\"></i></button><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Save Z as front right Z0</button><button class=\"btn btn-block control-box arrow\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><i class=\"icon-arrow-up\"></i></button><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Save Z as back right Z0</button><button class=\"btn btn-block control-box arrow\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><i class=\"icon-arrow-up\"></i></button><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Save Z as back left Z0</button><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Save Z as bed center Z0</button><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Print test border</button><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Run complete bed calibration</button></div></div>");
+		$("#control > div.jog-panel.filament").after(`
+			<div class="jog-panel calibration" data-bind="visible: loginState.isUser">
+				<h1>Calibration</h1>
+				<div>
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Calibrate bed center Z0</button>
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Calibrate bed orientation</button>
+					<button class="btn btn-block control-box arrow" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><i class="icon-arrow-down"></i></button>
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Save Z as front left Z0</button>
+					<button class="btn btn-block control-box arrow" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><i class="icon-arrow-down"></i></button>
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Save Z as front right Z0</button>
+					<button class="btn btn-block control-box arrow" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><i class="icon-arrow-up"></i></button>
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Save Z as back right Z0</button>
+					<button class="btn btn-block control-box arrow" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><i class="icon-arrow-up"></i></button>
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Save Z as back left Z0</button>
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Save Z as bed center Z0</button>
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Print test border</button>
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Run complete bed calibration</button>
+				</div>
+			</div>
+		`);
 	
 		// Add advanced controls
-		$("#control > div.jog-panel.calibration").after("<div class=\"jog-panel advanced\" data-bind=\"visible: loginState.isUser\"><h1>Advanced</h1><div><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><img src=\"/plugin/m3dfio/static/img/HengLiXin.png\">HengLiXin fan</button><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><img src=\"/plugin/m3dfio/static/img/Listener.png\">Listener fan</button><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><img src=\"/plugin/m3dfio/static/img/Shenzhew.png\">Shenzhew fan</button><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><img src=\"/plugin/m3dfio/static/img/Xinyujie.png\">Xinyujie fan</button><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">500mA extruder current</button><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">660mA extruder current</button><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Update firmware</button><input type=\"file\" accept=\".rom, .bin, .hex\"></div></div>");
+		$("#control > div.jog-panel.calibration").after(`
+			<div class="jog-panel advanced" data-bind="visible: loginState.isUser">
+				<h1>Advanced</h1>
+				<div>
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="/plugin/m3dfio/static/img/HengLiXin.png">HengLiXin fan</button>
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="/plugin/m3dfio/static/img/Listener.png">Listener fan</button>
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="/plugin/m3dfio/static/img/Shenzhew.png">Shenzhew fan</button>
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="/plugin/m3dfio/static/img/Xinyujie.png">Xinyujie fan</button>
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">500mA extruder current</button>
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">660mA extruder current</button>
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Update firmware</button>
+					<input type="file" accept=".rom, .bin, .hex">
+				</div>
+			</div>
+		`);
 		
 		
 		// Create EEPROM table
@@ -964,19 +1562,94 @@ $(function() {
 		table += "</tr>";
 		
 		// Add EEPROM controls
-		$("#control > div.jog-panel.advanced").after("<div class=\"jog-panel eeprom\" data-bind=\"visible: loginState.isUser\"><h1>EEPROM</h1><div><table><tbody>" + table + "</tbody></table><input data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\" type=\"radio\" name=\"display\" value=\"hexadecimal\" checked><label>Hexadecimal</label><input data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\" type=\"radio\" name=\"display\" value=\"decimal\"><label>Decimal</label><input data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\" type=\"radio\" name=\"display\" value=\"ascii\"><label>ASCII</label><br><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Read EEPROM</button><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">Write EEPROM</button></div></div>");
+		$("#control > div.jog-panel.advanced").after(`
+			<div class="jog-panel eeprom" data-bind="visible: loginState.isUser">
+				<h1>EEPROM</h1>
+				<div>
+					<table><tbody>` + table + `</tbody></table>
+					<input data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()" type="radio" name="display" value="hexadecimal" checked><label>Hexadecimal</label>
+					<input data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()" type="radio" name="display" value="decimal"><label>Decimal</label>
+					<input data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()" type="radio" name="display" value="ascii"><label>ASCII</label><br>
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Read EEPROM</button>
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Write EEPROM</button>
+				</div>
+			</div>
+		`);
 	
 		// Add temperature controls
-		$("#control > div.jog-panel.extruder").find("div > button:nth-of-type(3)").after("<div style=\"width: 114px;\" class=\"slider slider-horizontal\"><div class=\"slider-track\"><div style=\"left: 0%; width: 0%;\" class=\"slider-selection\"></div><div style=\"left: 0%;\" class=\"slider-handle round\"></div><div style=\"left: 0%;\" class=\"slider-handle round hide\"></div></div><div style=\"top: -24px; left: -19px;\" class=\"tooltip top hide\"><div class=\"tooltip-arrow\"></div><div class=\"tooltip-inner\"></div></div><input style=\"width: 100px;\" data-bind=\"slider: {min: 100, max: 235, step: 1, value: flowRate, tooltip: 'hide'}\" type=\"number\"></div><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && loginState.isUser()\">Temperature:<span data-bind=\"text: flowRate() + 50 + '°C'\"></span></button><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M104 S0'}) }\">Heater off</button><div class=\"microPass\"><h1 class=\"microPass\">Heat Bed</h1><div style=\"width: 114px;\" class=\"slider slider-horizontal\"><div class=\"slider-track\"><div style=\"left: 0%; width: 0%;\" class=\"slider-selection\"></div><div style=\"left: 0%;\" class=\"slider-handle round\"></div><div style=\"left: 0%;\" class=\"slider-handle round hide\"></div></div><div style=\"top: -24px; left: -19px;\" class=\"tooltip top hide\"><div class=\"tooltip-arrow\"></div><div class=\"tooltip-inner\"></div></div><input style=\"width: 100px;\" data-bind=\"slider: {min: 100, max: 170, step: 1, value: feedRate, tooltip: 'hide'}\" type=\"number\"></div><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && loginState.isUser()\">Temperature:<span data-bind=\"text: feedRate() -60 + '°C'\"></span></button><button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M140 S0'}) }\">Heater off</button><div>");
+		$("#control > div.jog-panel.extruder").find("div > button:nth-of-type(3)").after(`
+			<div style="width: 114px;" class="slider slider-horizontal">
+				<div class="slider-track">
+					<div style="left: 0%; width: 0%;" class="slider-selection"></div>
+					<div style="left: 0%;" class="slider-handle round"></div>
+					<div style="left: 0%;" class="slider-handle round hide"></div>
+				</div>
+				<div style="top: -24px; left: -19px;" class="tooltip top hide">
+					<div class="tooltip-arrow"></div>
+					<div class="tooltip-inner"></div>
+				</div>
+				<input style="width: 100px;" data-bind="slider: {min: 100, max: 235, step: 1, value: flowRate, tooltip: 'hide'}" type="number">
+			</div>
+			<button class="btn btn-block control-box" data-bind="enable: isOperational() && loginState.isUser()">Temperature:<span data-bind="text: flowRate() + 50 + '°C'"></span></button>
+			<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M104 S0'}) }">Heater off</button>
+			<div class="microPass">
+				<h1 class="microPass">Heat Bed</h1>
+				<div style="width: 114px;" class="slider slider-horizontal">
+					<div class="slider-track">
+						<div style="left: 0%; width: 0%;" class="slider-selection"></div>
+						<div style="left: 0%;" class="slider-handle round"></div>
+						<div style="left: 0%;" class="slider-handle round hide"></div>
+					</div>
+					<div style="top: -24px; left: -19px;" class="tooltip top hide">
+						<div class="tooltip-arrow"></div>
+						<div class="tooltip-inner"></div>
+					</div>
+					<input style="width: 100px;" data-bind="slider: {min: 100, max: 170, step: 1, value: feedRate, tooltip: 'hide'}" type="number">
+				</div>
+				<button class="btn btn-block control-box" data-bind="enable: isOperational() && loginState.isUser()">Temperature:<span data-bind="text: feedRate() -60 + '°C'"></span></button>
+				<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M140 S0'}) }">Heater off</button>
+			<div>
+		`);
 		
 		// Add message
-		$("body > div.page-container").append("<div class=\"message\"><div><h4></h4><img src=\"/plugin/m3dfio/static/img/loading.gif\"><div><p></p><div class=\"calibrate\"><div class=\"arrows\"><button class=\"btn btn-block control-box arrow up\"><i class=\"icon-arrow-up\"></i></button><button class=\"btn btn-block control-box arrow down\"><i class=\"icon-arrow-down\"></i></button></div><div class=\"distance\"><button type=\"button\" class=\"btn distance\">0.01</button><button type=\"button\" class=\"btn distance active\">0.1</button><button type=\"button\" class=\"btn distance\">1</button></div></div><div><button class=\"btn btn-block confirm\"></button><button class=\"btn btn-block confirm\"></button></div></div></div>");
+		$("body > div.page-container").append(`
+			<div class="message">
+				<div>
+				<h4></h4>
+				<img src="/plugin/m3dfio/static/img/loading.gif">
+				<div>
+					<p></p>
+					<div class="calibrate">
+						<div class="arrows">
+							<button class="btn btn-block control-box arrow up"><i class="icon-arrow-up"></i></button>
+							<button class="btn btn-block control-box arrow down"><i class="icon-arrow-down"></i></button>
+						</div>
+						<div class="distance">
+							<button type="button" class="btn distance">0.01</button>
+							<button type="button" class="btn distance active">0.1</button>
+							<button type="button" class="btn distance">1</button>
+						</div>
+					</div>
+					<div>
+						<button class="btn btn-block confirm"></button>
+						<button class="btn btn-block confirm"></button>
+					</div>
+				</div>
+			</div>
+		`);
 		
 		// Add cover to slicer
-		$("#slicing_configuration_dialog").append("<div class=\"modal-cover\"><img src=\"/plugin/m3dfio/static/img/loading.gif\"><p></p></div>");
+		$("#slicing_configuration_dialog").append(`
+			<div class="modal-cover">
+				<img src="/plugin/m3dfio/static/img/loading.gif">
+				<p></p>
+			</div>
+		`);
 		
 		// Change slicer text
-		$("#slicing_configuration_dialog").find("h3").before("<p class=\"currentMenu\">Select Profile</p>");
+		$("#slicing_configuration_dialog").find("h3").before(`
+			<p class="currentMenu">Select Profile</p>
+		`);
 		$("#slicing_configuration_dialog").find(".control-group:nth-of-type(2) > label").text("Base Slicing Profile");
 		
 		// Upload file event
@@ -1183,7 +1856,14 @@ $(function() {
 										$("#slicing_configuration_dialog").addClass("profile");
 										$("#slicing_configuration_dialog p.currentMenu").text("Modify Profile");
 										$("#slicing_configuration_dialog .modal-body").css("display", "none");
-										$("#slicing_configuration_dialog .modal-body").after("<div class=\"modal-extra\"><div><aside></aside><textarea spellcheck=\"false\"></textarea></div></div");
+										$("#slicing_configuration_dialog .modal-body").after(`
+											<div class="modal-extra">
+											<div>
+												<aside></aside>
+												<textarea spellcheck="false"></textarea>
+												</div>
+											</div
+										`);
 										$("#slicing_configuration_dialog .modal-extra textarea").val(data);
 									
 							
@@ -1312,7 +1992,7 @@ $(function() {
 														function isModelLoaded() {
 									
 															// Check if model is loaded
-															if(viewport.loaded) {
+															if(viewport.modelLoaded) {
 								
 																// Hide cover
 																$("#slicing_configuration_dialog .modal-cover").addClass("noTransition").removeClass("show");
@@ -1325,7 +2005,179 @@ $(function() {
 																setTimeout(function() {
 																	$("#slicing_configuration_dialog").removeClass("noTransition").addClass("model");
 																	$("#slicing_configuration_dialog p.currentMenu").text("Modify Model");
-																	$("#slicing_configuration_dialog .modal-extra").empty().append(viewport.renderer.domElement);
+																	
+																	$("#slicing_configuration_dialog .modal-extra").empty().append(`
+																		<div class="printer">
+																			<button data-color="Black"><img src="black.png"></button>
+																			<button data-color="White"><img src="white.png"></button>
+																			<button data-color="Blue" class="disabled"><img src="blue.png"></button>
+																			<button data-color="Green"><img src="green.png"></button>
+																			<button data-color="Orange"><img src="orange.png"></button>
+																			<button data-color="Clear"><img src="clear.png"></button>
+																			<button data-color="Silver"><img src="silver.png"></button>
+																		</div>
+																		<div class="filament">
+																			<button data-color="Blue"><img style="background-color: #00EEEE;" src="filament.png"></button>
+																			<button data-color="Orange" class="disabled"><img style="background-color: #FE9800;" src="filament.png"></button>
+																		</div>
+																		<div class="model">
+																			<input type="file" accept=".stl, .obj">
+																			<button class="import">Import</button>
+																			<button class="translate disabled">Translate</button>
+																			<button class="rotate">Rotate</button>
+																			<button class="scale">Scale</button>
+																			<button class="snap">Snap</button>
+																			<button class="delete disabled">Delete</button>
+																			<button class="clone disabled">Clone</button>
+																			<button class="reset disabled">Reset</button>
+																		</div>
+																		<div class="values translate">
+																			<p>X<input type="number" step="any" name="x"></p>
+																			<p>Y<input type="number" step="any" name="y"></p>
+																			<p>Z<input type="number" step="any" name="z"></p>
+																		</div>
+																	`);
+																	$("#slicing_configuration_dialog .modal-extra").append(viewport.renderer.domElement);
+																	
+																	// Input change event
+																	$("#slicing_configuration_dialog .modal-extra input[type=\"file\"]").change(function(event) {
+
+																		// Set file type
+																		var extension = this.files[0].name.lastIndexOf('.');
+																		var type = extension != -1 ? this.files[0].name.substr(extension + 1) : "stl";
+	
+																		// Import model
+																		viewport.importModel(URL.createObjectURL(this.files[0]), type);
+																	});
+	
+																	// Button click event
+																	$("#slicing_configuration_dialog .modal-extra button").click(function() {
+	
+																		// Blur self
+																		$(this).blur();
+																	});
+	
+																	// Import model button click event
+																	$("#slicing_configuration_dialog .modal-extra button.import").click(function() {
+	
+																		// Show file dialog box
+																		$("#slicing_configuration_dialog .modal-extra input[type=\"file\"]").click();
+																	});
+	
+																	// Translate button click event
+																	$("#slicing_configuration_dialog .modal-extra button.translate").click(function(event) {
+	
+																		// Set selection mode to translate
+																		viewport.setMode("translate");
+																	});
+	
+																	// Rotate button click event
+																	$("#slicing_configuration_dialog .modal-extra button.rotate").click(function() {
+	
+																		// Set selection mode to rotate
+																		viewport.setMode("rotate");
+																	});
+	
+																	// Scale button click event
+																	$("#slicing_configuration_dialog .modal-extra button.scale").click(function() {
+	
+																		// Set selection mode to scale
+																		viewport.setMode("scale");
+																	});
+	
+																	// Snap button click event
+																	$("#slicing_configuration_dialog .modal-extra button.snap").click(function() {
+	
+																		// Check if snap controls are currently enabled
+																		if(viewport.transformControls.translationSnap)
+		
+																			// Disable grid and rotation snap
+																			viewport.disableSnap();
+		
+																		// Otherwise
+																		else
+	
+																			// Enable grid and rotation snap
+																			viewport.enableSnap();
+																	});
+	
+																	// Delete button click event
+																	$("#slicing_configuration_dialog .modal-extra button.delete").click(function() {
+
+																		// Delete model
+																		viewport.deleteModel();
+																	});
+	
+																	// Clone button click event
+																	$("#slicing_configuration_dialog .modal-extra button.clone").click(function() {
+	
+																		// Clone model
+																		viewport.cloneModel();
+																	});
+	
+																	// Reset button click event
+																	$("#slicing_configuration_dialog .modal-extra button.reset").click(function() {
+	
+																		// Reset model
+																		viewport.resetModel();
+																	});
+	
+																	// Printer color button click event
+																	$("#slicing_configuration_dialog .modal-extra div.printer button").click(function() {
+	
+																		// Set printer color
+																		viewport.models[0].mesh.material = printerMaterials[$(this).data("color")];
+																		$(this).addClass("disabled").siblings(".disabled").removeClass("disabled");
+		
+																		// Render
+																		viewport.render();
+																	});
+	
+																	// Filament color button click event
+																	$("#slicing_configuration_dialog .modal-extra div.filament button").click(function() {
+	
+																		// Set models' color
+																		for(var i = 1; i < viewport.models.length; i++)
+																			if(viewport.models[i].mesh !== viewport.transformControls.object)
+																				viewport.models[i].mesh.material = filamentMaterials[$(this).data("color")];
+																		$(this).addClass("disabled").siblings(".disabled").removeClass("disabled");
+		
+																		// Render
+																		viewport.render();
+																	});
+		
+																	// Value change event
+																	$("#slicing_configuration_dialog .modal-extra div.values input").change(function() {
+	
+																		// Blur self
+																		$(this).blur();
+	
+																		// Check if value is a number
+																		if(!isNaN(parseFloat($(this).val()))) {
+		
+																			// Fix value
+																			$(this).val(parseFloat($(this).val()).toFixed(3));
+			
+																			// Apply changes
+																			applyChanges($(this).attr("name"), $(this).val());
+																		}
+		
+																		// Otherwise
+																		else
+		
+																			// Update values
+																			updateValues();
+																	});
+	
+																	// Value change event
+																	$("#slicing_configuration_dialog .modal-extra div.values input").keyup(function() {
+	
+																		// Check if value is a number
+																		if(!isNaN(parseFloat($(this).val())))
+		
+																			// Apply changes
+																			applyChanges($(this).attr("name"), $(this).val());
+																	});
 								
 																	// Set slicer menu
 																	slicerMenu = "Modify Model";
@@ -1387,9 +2239,9 @@ $(function() {
 						
 						setTimeout(function() {
 			
-							// Read in file
+							// Read in exported scene
 							var reader = new FileReader();
-							reader.readAsBinaryString(viewport.getModel());
+							reader.readAsBinaryString(viewport.exportScene());
 
 							// On file load
 							reader.onload = function(event) {

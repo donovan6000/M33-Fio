@@ -471,6 +471,123 @@ body > div.page-container > div.message > div > div > div.calibrate > div.distan
 	display: block;
 }
 
+#slicing_configuration_dialog.model .modal-extra input[type="file"] {
+	display: none;
+}
+
+#slicing_configuration_dialog.model .modal-extra > div {
+	position: absolute;
+	top: 0;
+	left: 50%;
+	transform: translateX(-50%);
+	display: inline-flex;
+	flex-direction: row;
+	margin: 0;
+	padding: 0;
+}
+
+#slicing_configuration_dialog.model .modal-extra > div.filament {
+	left: auto;
+	right: 0;
+	top: 50%;
+	transform: translateY(-50%);
+	flex-direction:  column;
+}
+
+#slicing_configuration_dialog.model .modal-extra > div.model {
+	left: 0;
+	top: 50%;
+	transform: translateY(-50%);
+	flex-direction:  column;
+}
+
+#slicing_configuration_dialog.model .modal-extra > div.values {
+	left: 60px;
+	top: 50%;
+	transform: translateY(-50%);
+	flex-direction:  column;
+}
+
+#slicing_configuration_dialog.model .modal-extra > div.values.translate {
+	top: calc(50% - 135px);
+}
+
+#slicing_configuration_dialog.model .modal-extra > div.values.rotate {
+	top: calc(50% - 81px);
+}
+
+#slicing_configuration_dialog.model .modal-extra > div.values.scale {
+	top: calc(50% - 27px);
+}
+
+#slicing_configuration_dialog.model .modal-extra > div.values > p {
+	font: normal 14px "Helvetica";
+	padding: 0;
+	margin: 0;
+	display: none;
+}
+
+#slicing_configuration_dialog.model .modal-extra > div.values > p.show {
+	display: inline-block;
+}
+
+#slicing_configuration_dialog.model .modal-extra > div.values > p > input {
+	width: 75px;
+	height: 16px;
+	margin-left: 3px;
+}
+
+#slicing_configuration_dialog.model .modal-extra > div > button {
+	display: block;
+	cursor: pointer;
+	width: 50px;
+	height: 50px;
+	margin: 2px 4px;
+	position: relative;
+	padding: 0;
+	background-color: white;
+	border-radius: 5px;
+	border: 1px solid black;
+	outline: none;
+}
+
+#slicing_configuration_dialog.model .modal-extra > div > button::-moz-focus-inner {
+	border: 0 !important;
+}
+
+#slicing_configuration_dialog.model .modal-extra > div > button img {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	width:  100%;
+	height: auto;
+}
+
+#slicing_configuration_dialog.model .modal-extra > div.printer > button {
+	margin: 4px 2px;
+}
+
+#slicing_configuration_dialog.model .modal-extra > div.filament > button > img {
+	top: 50%;
+	left: 50%;
+	height: calc(100% - 2px);
+	width: auto;
+}
+
+#slicing_configuration_dialog.model .modal-extra > div > button.disabled {
+	opacity: 0.5;
+	pointer-events: none;
+}
+
+#slicing_configuration_dialog.model .modal-extra > div > button.disabled.snap {
+	pointer-events: auto;
+}
+
+#slicing_configuration_dialog.model .modal-extra > div > button.nothing {
+	pointer-events: none;
+}
+
 .noTransition {
 	transition: none !important;
 }
