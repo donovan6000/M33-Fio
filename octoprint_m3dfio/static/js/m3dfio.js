@@ -27,6 +27,26 @@ $(function() {
 		self.files = parameters[3];
 		self.slicing = parameters[4];
 		
+		// Bed dimensions
+		var bedLowMaxX = 113.0;
+		var bedLowMinX = 0.0;
+		var bedLowMaxY = 107.0;
+		var bedLowMinY = 0.0;
+		var bedLowMaxZ = 5.0;
+		var bedLowMinZ = 0.0;
+		var bedMediumMaxX = 110.2;
+		var bedMediumMinX = 2.8;
+		var bedMediumMaxY = 107.0;
+		var bedMediumMinY = -6.6;
+		var bedMediumMaxZ = 73.5;
+		var bedMediumMinZ = bedLowMaxZ;
+		var bedHighMaxX = 82.0;
+		var bedHighMinX = 2.35;
+		var bedHighMaxY = 92.95;
+		var bedHighMinY = 20.05;
+		var bedHighMaxZ = 112.0;
+		var bedHighMinZ = bedMediumMaxZ
+		
 		// Set printer materials
 		var printerMaterials = {
 		
@@ -752,6 +772,7 @@ $(function() {
 				glow: null,
 				boundaries: [],
 				modelLoaded: false,
+				showBoundaries: false,
 
 				// Initialize
 				init: function() {
@@ -830,27 +851,179 @@ $(function() {
 						viewport.importModel(file, "stl");
 					});
 				
-					// Create boundaries
-					for(var i = 0; i < 5; i++) {
-						this.boundaries[i] = new THREE.Mesh(new THREE.PlaneGeometry(134, 134, 1, 1), new THREE.MeshLambertMaterial({
-							color: 0xFF0000,
-							transparent: true,
-							opacity: 0.5,
-							side: THREE.DoubleSide
-						}));
-						this.boundaries[i].receiveShadow = true;
+					// Create boundary material
+					var boundaryMaterial = new THREE.MeshLambertMaterial({
+						color: 0x00FF00,
+						transparent: true,
+						opacity: 0.2,
+						side: THREE.DoubleSide
+					});
+				
+					// Low bottom boundary
+					this.boundaries[0] = new THREE.Mesh(new THREE.PlaneGeometry(0, 0), boundaryMaterial.clone());
+					this.boundaries[0].geometry.vertices[0].set(-bedLowMinX, bedLowMinZ, bedLowMinY);
+					this.boundaries[0].geometry.vertices[1].set(-bedLowMaxX, bedLowMinZ, bedLowMinY);
+					this.boundaries[0].geometry.vertices[2].set(-bedLowMinX, bedLowMinZ, bedLowMaxY);
+					this.boundaries[0].geometry.vertices[3].set(-bedLowMaxX, bedLowMinZ, bedLowMaxY);
+				
+					// Low front boundary
+					this.boundaries[1] = new THREE.Mesh(new THREE.PlaneGeometry(0, 0), boundaryMaterial.clone());
+					this.boundaries[1].geometry.vertices[0].set(-bedLowMinX, bedLowMinZ, bedLowMinY);
+					this.boundaries[1].geometry.vertices[1].set(-bedLowMaxX, bedLowMinZ, bedLowMinY);
+					this.boundaries[1].geometry.vertices[2].set(-bedLowMinX, bedLowMaxZ, bedLowMinY);
+					this.boundaries[1].geometry.vertices[3].set(-bedLowMaxX, bedLowMaxZ, bedLowMinY);
+				
+					// Low back boundary
+					this.boundaries[2] = new THREE.Mesh(new THREE.PlaneGeometry(0, 0), boundaryMaterial.clone());
+					this.boundaries[2].geometry.vertices[0].set(-bedLowMinX, bedLowMinZ, bedLowMaxY);
+					this.boundaries[2].geometry.vertices[1].set(-bedLowMaxX, bedLowMinZ, bedLowMaxY);
+					this.boundaries[2].geometry.vertices[2].set(-bedLowMinX, bedLowMaxZ, bedLowMaxY);
+					this.boundaries[2].geometry.vertices[3].set(-bedLowMaxX, bedLowMaxZ, bedLowMaxY);
+				
+					// Low right boundary
+					this.boundaries[3] = new THREE.Mesh(new THREE.PlaneGeometry(0, 0), boundaryMaterial.clone());
+					this.boundaries[3].geometry.vertices[0].set(-bedLowMaxX, bedLowMinZ, bedLowMinY);
+					this.boundaries[3].geometry.vertices[1].set(-bedLowMaxX, bedLowMinZ, bedLowMaxY);
+					this.boundaries[3].geometry.vertices[2].set(-bedLowMaxX, bedLowMaxZ, bedLowMinY);
+					this.boundaries[3].geometry.vertices[3].set(-bedLowMaxX, bedLowMaxZ, bedLowMaxY);
+				
+					// Low left boundary
+					this.boundaries[4] = new THREE.Mesh(new THREE.PlaneGeometry(0, 0), boundaryMaterial.clone());
+					this.boundaries[4].geometry.vertices[0].set(-bedLowMinX, bedLowMinZ, bedLowMinY);
+					this.boundaries[4].geometry.vertices[1].set(-bedLowMinX, bedLowMinZ, bedLowMaxY);
+					this.boundaries[4].geometry.vertices[2].set(-bedLowMinX, bedLowMaxZ, bedLowMinY);
+					this.boundaries[4].geometry.vertices[3].set(-bedLowMinX, bedLowMaxZ, bedLowMaxY);
+				
+					// Medium front boundary
+					this.boundaries[5] = new THREE.Mesh(new THREE.PlaneGeometry(0, 0), boundaryMaterial.clone());
+					this.boundaries[5].geometry.vertices[0].set(-bedMediumMinX, bedMediumMinZ, bedMediumMinY);
+					this.boundaries[5].geometry.vertices[1].set(-bedMediumMaxX, bedMediumMinZ, bedMediumMinY);
+					this.boundaries[5].geometry.vertices[2].set(-bedMediumMinX, bedMediumMaxZ, bedMediumMinY);
+					this.boundaries[5].geometry.vertices[3].set(-bedMediumMaxX, bedMediumMaxZ, bedMediumMinY);
+				
+					// Medium back boundary
+					this.boundaries[6] = new THREE.Mesh(new THREE.PlaneGeometry(0, 0), boundaryMaterial.clone());
+					this.boundaries[6].geometry.vertices[0].set(-bedMediumMinX, bedMediumMinZ, bedMediumMaxY);
+					this.boundaries[6].geometry.vertices[1].set(-bedMediumMaxX, bedMediumMinZ, bedMediumMaxY);
+					this.boundaries[6].geometry.vertices[2].set(-bedMediumMinX, bedMediumMaxZ, bedMediumMaxY);
+					this.boundaries[6].geometry.vertices[3].set(-bedMediumMaxX, bedMediumMaxZ, bedMediumMaxY);
+				
+					// Medium right boundary
+					this.boundaries[7] = new THREE.Mesh(new THREE.PlaneGeometry(0, 0), boundaryMaterial.clone());
+					this.boundaries[7].geometry.vertices[0].set(-bedMediumMaxX, bedMediumMinZ, bedMediumMinY);
+					this.boundaries[7].geometry.vertices[1].set(-bedMediumMaxX, bedMediumMinZ, bedMediumMaxY);
+					this.boundaries[7].geometry.vertices[2].set(-bedMediumMaxX, bedMediumMaxZ, bedMediumMinY);
+					this.boundaries[7].geometry.vertices[3].set(-bedMediumMaxX, bedMediumMaxZ, bedMediumMaxY);
+				
+					// Medium left boundary
+					this.boundaries[8] = new THREE.Mesh(new THREE.PlaneGeometry(0, 0), boundaryMaterial.clone());
+					this.boundaries[8].geometry.vertices[0].set(-bedMediumMinX, bedMediumMinZ, bedMediumMinY);
+					this.boundaries[8].geometry.vertices[1].set(-bedMediumMinX, bedMediumMinZ, bedMediumMaxY);
+					this.boundaries[8].geometry.vertices[2].set(-bedMediumMinX, bedMediumMaxZ, bedMediumMinY);
+					this.boundaries[8].geometry.vertices[3].set(-bedMediumMinX, bedMediumMaxZ, bedMediumMaxY);
+				
+					// High front boundary
+					this.boundaries[9] = new THREE.Mesh(new THREE.PlaneGeometry(0, 0), boundaryMaterial.clone());
+					this.boundaries[9].geometry.vertices[0].set(-bedHighMinX, bedHighMinZ, bedHighMinY);
+					this.boundaries[9].geometry.vertices[1].set(-bedHighMaxX, bedHighMinZ, bedHighMinY);
+					this.boundaries[9].geometry.vertices[2].set(-bedHighMinX, bedHighMaxZ, bedHighMinY);
+					this.boundaries[9].geometry.vertices[3].set(-bedHighMaxX, bedHighMaxZ, bedHighMinY);
+				
+					// High back boundary
+					this.boundaries[10] = new THREE.Mesh(new THREE.PlaneGeometry(0, 0), boundaryMaterial.clone());
+					this.boundaries[10].geometry.vertices[0].set(-bedHighMinX, bedHighMinZ, bedHighMaxY);
+					this.boundaries[10].geometry.vertices[1].set(-bedHighMaxX, bedHighMinZ, bedHighMaxY);
+					this.boundaries[10].geometry.vertices[2].set(-bedHighMinX, bedHighMaxZ, bedHighMaxY);
+					this.boundaries[10].geometry.vertices[3].set(-bedHighMaxX, bedHighMaxZ, bedHighMaxY);
+				
+					// High right boundary
+					this.boundaries[11] = new THREE.Mesh(new THREE.PlaneGeometry(0, 0), boundaryMaterial.clone());
+					this.boundaries[11].geometry.vertices[0].set(-bedHighMaxX, bedHighMinZ, bedHighMinY);
+					this.boundaries[11].geometry.vertices[1].set(-bedHighMaxX, bedHighMinZ, bedHighMaxY);
+					this.boundaries[11].geometry.vertices[2].set(-bedHighMaxX, bedHighMaxZ, bedHighMinY);
+					this.boundaries[11].geometry.vertices[3].set(-bedHighMaxX, bedHighMaxZ, bedHighMaxY);
+				
+					// High left boundary
+					this.boundaries[12] = new THREE.Mesh(new THREE.PlaneGeometry(0, 0), boundaryMaterial.clone());
+					this.boundaries[12].geometry.vertices[0].set(-bedHighMinX, bedHighMinZ, bedHighMinY);
+					this.boundaries[12].geometry.vertices[1].set(-bedHighMinX, bedHighMinZ, bedHighMaxY);
+					this.boundaries[12].geometry.vertices[2].set(-bedHighMinX, bedHighMaxZ, bedHighMinY);
+					this.boundaries[12].geometry.vertices[3].set(-bedHighMinX, bedHighMaxZ, bedHighMaxY);
+				
+					// High top boundary
+					this.boundaries[13] = new THREE.Mesh(new THREE.PlaneGeometry(0, 0), boundaryMaterial.clone());
+					this.boundaries[13].geometry.vertices[0].set(-bedHighMinX, bedHighMaxZ, bedHighMinY);
+					this.boundaries[13].geometry.vertices[1].set(-bedHighMaxX, bedHighMaxZ, bedHighMinY);
+					this.boundaries[13].geometry.vertices[2].set(-bedHighMinX, bedHighMaxZ, bedHighMaxY);
+					this.boundaries[13].geometry.vertices[3].set(-bedHighMaxX, bedHighMaxZ, bedHighMaxY);
+				
+					// Low front to medium front connector boundary
+					this.boundaries[14] = new THREE.Mesh(new THREE.PlaneGeometry(0, 0), boundaryMaterial.clone());
+					this.boundaries[14].geometry.vertices[0].set(-bedLowMinX, bedLowMaxZ, bedLowMinY);
+					this.boundaries[14].geometry.vertices[1].set(-bedLowMaxX, bedLowMaxZ, bedLowMinY);
+					this.boundaries[14].geometry.vertices[2].set(-bedMediumMinX, bedMediumMinZ, bedMediumMinY);
+					this.boundaries[14].geometry.vertices[3].set(-bedMediumMaxX, bedMediumMinZ, bedMediumMinY);
+				
+					// Low back to medium back connector boundary
+					this.boundaries[15] = new THREE.Mesh(new THREE.PlaneGeometry(0, 0), boundaryMaterial.clone());
+					this.boundaries[15].geometry.vertices[0].set(-bedLowMinX, bedLowMaxZ, bedLowMaxY);
+					this.boundaries[15].geometry.vertices[1].set(-bedLowMaxX, bedLowMaxZ, bedLowMaxY);
+					this.boundaries[15].geometry.vertices[2].set(-bedMediumMinX, bedMediumMinZ, bedMediumMaxY);
+					this.boundaries[15].geometry.vertices[3].set(-bedMediumMaxX, bedMediumMinZ, bedMediumMaxY);
+				
+					// Low right to medium right connector boundary
+					this.boundaries[16] = new THREE.Mesh(new THREE.PlaneGeometry(0, 0), boundaryMaterial.clone());
+					this.boundaries[16].geometry.vertices[0].set(-bedLowMaxX, bedLowMaxZ, bedLowMinY);
+					this.boundaries[16].geometry.vertices[1].set(-bedLowMaxX, bedLowMaxZ, bedLowMaxY);
+					this.boundaries[16].geometry.vertices[2].set(-bedMediumMaxX, bedMediumMinZ, bedMediumMinY);
+					this.boundaries[16].geometry.vertices[3].set(-bedMediumMaxX, bedMediumMinZ, bedMediumMaxY);
+				
+					// Low left to medium left connector boundary
+					this.boundaries[17] = new THREE.Mesh(new THREE.PlaneGeometry(0, 0), boundaryMaterial.clone());
+					this.boundaries[17].geometry.vertices[0].set(-bedLowMinX, bedLowMaxZ, bedLowMinY);
+					this.boundaries[17].geometry.vertices[1].set(-bedLowMinX, bedLowMaxZ, bedLowMaxY);
+					this.boundaries[17].geometry.vertices[2].set(-bedMediumMinX, bedMediumMinZ, bedMediumMinY);
+					this.boundaries[17].geometry.vertices[3].set(-bedMediumMinX, bedMediumMinZ, bedMediumMaxY);
+				
+					// Medium front to high front connector boundary
+					this.boundaries[18] = new THREE.Mesh(new THREE.PlaneGeometry(0, 0), boundaryMaterial.clone());
+					this.boundaries[18].geometry.vertices[0].set(-bedMediumMinX, bedMediumMaxZ, bedMediumMinY);
+					this.boundaries[18].geometry.vertices[1].set(-bedMediumMaxX, bedMediumMaxZ, bedMediumMinY);
+					this.boundaries[18].geometry.vertices[2].set(-bedHighMinX, bedHighMinZ, bedHighMinY);
+					this.boundaries[18].geometry.vertices[3].set(-bedHighMaxX, bedHighMinZ, bedHighMinY);
+				
+					// Medium back to high back connector boundary
+					this.boundaries[19] = new THREE.Mesh(new THREE.PlaneGeometry(0, 0), boundaryMaterial.clone());
+					this.boundaries[19].geometry.vertices[0].set(-bedMediumMinX, bedMediumMaxZ, bedMediumMaxY);
+					this.boundaries[19].geometry.vertices[1].set(-bedMediumMaxX, bedMediumMaxZ, bedMediumMaxY);
+					this.boundaries[19].geometry.vertices[2].set(-bedHighMinX, bedHighMinZ, bedHighMaxY);
+					this.boundaries[19].geometry.vertices[3].set(-bedHighMaxX, bedHighMinZ, bedHighMaxY);
+				
+					// Medium right to high right connector boundary
+					this.boundaries[20] = new THREE.Mesh(new THREE.PlaneGeometry(0, 0), boundaryMaterial.clone());
+					this.boundaries[20].geometry.vertices[0].set(-bedMediumMaxX, bedMediumMaxZ, bedMediumMinY);
+					this.boundaries[20].geometry.vertices[1].set(-bedMediumMaxX, bedMediumMaxZ, bedMediumMaxY);
+					this.boundaries[20].geometry.vertices[2].set(-bedHighMaxX, bedHighMinZ, bedHighMinY);
+					this.boundaries[20].geometry.vertices[3].set(-bedHighMaxX, bedHighMinZ, bedHighMaxY);
+				
+					// Medium left to high left connector boundary
+					this.boundaries[21] = new THREE.Mesh(new THREE.PlaneGeometry(0, 0), boundaryMaterial.clone());
+					this.boundaries[21].geometry.vertices[0].set(-bedMediumMinX, bedMediumMaxZ, bedMediumMinY);
+					this.boundaries[21].geometry.vertices[1].set(-bedMediumMinX, bedMediumMaxZ, bedMediumMaxY);
+					this.boundaries[21].geometry.vertices[2].set(-bedHighMinX, bedHighMinZ, bedHighMinY);
+					this.boundaries[21].geometry.vertices[3].set(-bedHighMinX, bedHighMinZ, bedHighMaxY);
+				
+					// Go through all boundaries
+					for(var i = 0; i < this.boundaries.length; i++) {
+				
+						// Add boundaries to scene
+						this.boundaries[i].geometry.computeFaceNormals();
+						this.boundaries[i].geometry.computeVertexNormals();
+						this.boundaries[i].position.x -= -(bedLowMaxX + bedLowMinX) / 2;
+						this.boundaries[i].position.z -= (bedLowMaxY + bedLowMinY) / 2;
 						this.boundaries[i].visible = false;
 						this.scene[0].add(this.boundaries[i]);
 					}
-				
-					this.boundaries[0].position.set(0, 153.4, 0);
-					this.boundaries[0].rotation.set(Math.PI / 2, 0, 0);
-					this.boundaries[1].position.set(0, 60, -92.3);
-					this.boundaries[2].position.set(0, 60, 92.3);
-					this.boundaries[3].rotation.set(0, Math.PI / 2, 0);
-					this.boundaries[3].position.set(92.3, 60, 0);
-					this.boundaries[4].rotation.set(0, Math.PI / 2, 0);
-					this.boundaries[4].position.set(-92.3, 60, 0);
 				
 					// Render
 					viewport.render();
@@ -1238,7 +1411,10 @@ $(function() {
 		
 					// Set model's lowest Y value to be at 0
 					model.position.y -= model.position.y + boundaryBox.min.y;
-				
+					
+					// Update boundaries
+					viewport.updateBoundaries();
+					
 					// Render
 					viewport.render();
 				},
@@ -1302,7 +1478,10 @@ $(function() {
 			
 					// Remove selection
 					viewport.removeSelection();
-				
+					
+					// Update boundaries
+					viewport.updateBoundaries();
+					
 					// Render
 					viewport.render();
 				},
@@ -1381,6 +1560,406 @@ $(function() {
 				
 					// Update values
 					updateValues();
+				},
+				
+				// Clear bondaries
+				clearBoundaries: function() {
+			
+					// Go through all boundaries
+					for(var i = 0; i < viewport.boundaries.length; i++) {
+				
+						// Reset boundary
+						viewport.boundaries[i].material.color.setHex(0x00FF00);
+						viewport.boundaries[i].material.opacity = 0.2;
+						viewport.boundaries[i].visible = viewport.showBoundaries;
+						viewport.boundaries[i].renderOrder = 1;
+					}
+				},
+				
+				// Update boundaries
+				updateBoundaries: function() {
+			
+					// Create maximums and minimums for bed tiers
+					var maximums = [];
+					var minimums = [];
+					for(var i = 0; i < 3; i++) {
+						maximums[i] = new THREE.Vector3(Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY);
+						minimums[i] = new THREE.Vector3(Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY);
+					}
+			
+					// Go through all models
+					for(var i = 1; i < viewport.models.length; i++) {
+			
+						// Get current model
+						var model = viewport.models[i].mesh;
+				
+						// Update model's matrix
+						model.updateMatrixWorld();
+				
+						// Go through all model's vertices
+						for(var j = 0; j < model.geometry.vertices.length; j++) {
+				
+							// Get absolute position of vertex
+							var vector = model.geometry.vertices[j].clone();
+							vector.applyMatrix4(model.matrixWorld);
+							vector.x *= -1;
+					
+							// Get maximum and minimum for each bed tier
+							if(vector.y < bedLowMaxZ) {
+								maximums[0].max(vector);
+								minimums[0].min(vector);
+							}
+			
+							else if(vector.y < bedMediumMaxZ) {
+								maximums[1].max(vector);
+								minimums[1].min(vector);
+							}
+			
+							else {
+								maximums[2].max(vector);
+								minimums[2].min(vector);
+							}
+						}
+					}
+				
+					// Clear boundaries
+					viewport.clearBoundaries();
+				
+					// Check if models goes out of bounds on low front
+					if(minimums[0].z < bedLowMinY - (bedLowMaxY + bedLowMinY) / 2) {
+				
+						// Set boundary
+						viewport.boundaries[1].material.color.setHex(0xFF0000);
+						viewport.boundaries[1].material.opacity = 0.7;
+						viewport.boundaries[1].visible = true;
+						viewport.boundaries[1].renderOrder = 0;
+					}
+				
+					// Otherwise
+					else
+				
+						// Set boundary's visibility
+						viewport.boundaries[1].visible = viewport.showBoundaries;
+				
+					// Check if models goes out of bounds on low back
+					if(maximums[0].z > bedLowMaxY - (bedLowMaxY + bedLowMinY) / 2) {
+				
+						// Set boundary
+						viewport.boundaries[2].material.color.setHex(0xFF0000);
+						viewport.boundaries[2].material.opacity = 0.7;
+						viewport.boundaries[2].visible = true;
+						viewport.boundaries[2].renderOrder = 0;
+					}
+				
+					// Otherwise
+					else
+				
+						// Set boundary's visibility
+						viewport.boundaries[2].visible = viewport.showBoundaries;
+				
+					// Check if models goes out of bounds on low right
+					if(maximums[0].x > bedLowMaxX - (bedLowMaxX + bedLowMinX) / 2) {
+				
+						// Set boundary
+						viewport.boundaries[3].material.color.setHex(0xFF0000);
+						viewport.boundaries[3].material.opacity = 0.7;
+						viewport.boundaries[3].visible = true;
+						viewport.boundaries[3].renderOrder = 0;
+					}
+				
+					// Otherwise
+					else
+				
+						// Set boundary's visibility
+						viewport.boundaries[3].visible = viewport.showBoundaries;
+				
+					// Check if models goes out of bounds on low left
+					if(minimums[0].x < bedLowMinX - (bedLowMaxX + bedLowMinX) / 2) {
+				
+						// Set boundary
+						viewport.boundaries[4].material.color.setHex(0xFF0000);
+						viewport.boundaries[4].material.opacity = 0.7;
+						viewport.boundaries[4].visible = true;
+						viewport.boundaries[4].renderOrder = 0;
+					}
+				
+					// Otherwise
+					else
+				
+						// Set boundary's visibility
+						viewport.boundaries[4].visible = viewport.showBoundaries;
+				
+					// Check if models goes out of bounds on medium front
+					if(minimums[1].z < bedMediumMinY - (bedLowMaxY + bedLowMinY) / 2) {
+				
+						// Set boundary
+						viewport.boundaries[5].material.color.setHex(0xFF0000);
+						viewport.boundaries[5].material.opacity = 0.7;
+						viewport.boundaries[5].visible = true;
+						viewport.boundaries[5].renderOrder = 0;
+					}
+				
+					// Otherwise
+					else
+				
+						// Set boundary's visibility
+						viewport.boundaries[5].visible = viewport.showBoundaries;
+				
+					// Check if models goes out of bounds on medium back
+					if(maximums[1].z > bedMediumMaxY - (bedLowMaxY + bedLowMinY) / 2) {
+				
+						// Set boundary
+						viewport.boundaries[6].material.color.setHex(0xFF0000);
+						viewport.boundaries[6].material.opacity = 0.7;
+						viewport.boundaries[6].visible = true;
+						viewport.boundaries[6].renderOrder = 0;
+					}
+				
+					// Otherwise
+					else
+				
+						// Set boundary's visibility
+						viewport.boundaries[6].visible = viewport.showBoundaries;
+				
+					// Check if models goes out of bounds on medium right
+					if(maximums[1].x > bedMediumMaxX - (bedLowMaxX + bedLowMinX) / 2) {
+				
+						// Set boundary
+						viewport.boundaries[7].material.color.setHex(0xFF0000);
+						viewport.boundaries[7].material.opacity = 0.7;
+						viewport.boundaries[7].visible = true;
+						viewport.boundaries[7].renderOrder = 0;
+					}
+				
+					// Otherwise
+					else
+				
+						// Set boundary's visibility
+						viewport.boundaries[7].visible = viewport.showBoundaries;
+				
+					// Check if models goes out of bounds on medium left
+					if(minimums[1].x < bedMediumMinX - (bedLowMaxX + bedLowMinX) / 2) {
+				
+						// Set boundary
+						viewport.boundaries[8].material.color.setHex(0xFF0000);
+						viewport.boundaries[8].material.opacity = 0.7;
+						viewport.boundaries[8].visible = true;
+						viewport.boundaries[8].renderOrder = 0;
+					}
+				
+					// Otherwise
+					else
+				
+						// Set boundary's visibility
+						viewport.boundaries[8].visible = viewport.showBoundaries;
+				
+					// Check if models goes out of bounds on high front
+					if(minimums[2].z < bedHighMinY - (bedLowMaxY + bedLowMinY) / 2) {
+				
+						// Set boundary
+						viewport.boundaries[9].material.color.setHex(0xFF0000);
+						viewport.boundaries[9].material.opacity = 0.7;
+						viewport.boundaries[9].visible = true;
+						viewport.boundaries[9].renderOrder = 0;
+					}
+				
+					// Otherwise
+					else
+				
+						// Set boundary's visibility
+						viewport.boundaries[9].visible = viewport.showBoundaries;
+				
+					// Check if models goes out of bounds on high back
+					if(maximums[2].z > bedHighMaxY - (bedLowMaxY + bedLowMinY) / 2) {
+				
+						// Set boundary
+						viewport.boundaries[10].material.color.setHex(0xFF0000);
+						viewport.boundaries[10].material.opacity = 0.7;
+						viewport.boundaries[10].visible = true;
+						viewport.boundaries[10].renderOrder = 0;
+					}
+				
+					// Otherwise
+					else
+				
+						// Set boundary's visibility
+						viewport.boundaries[10].visible = viewport.showBoundaries;
+				
+					// Check if models goes out of bounds on high right
+					if(maximums[2].x > bedHighMaxX - (bedLowMaxX + bedLowMinX) / 2) {
+				
+						// Set boundary
+						viewport.boundaries[11].material.color.setHex(0xFF0000);
+						viewport.boundaries[11].material.opacity = 0.7;
+						viewport.boundaries[11].visible = true;
+						viewport.boundaries[11].renderOrder = 0;
+					}
+				
+					// Otherwise
+					else
+				
+						// Set boundary's visibility
+						viewport.boundaries[11].visible = viewport.showBoundaries;
+				
+					// Check if models goes out of bounds on high left
+					if(minimums[2].x < bedHighMinX - (bedLowMaxX + bedLowMinX) / 2) {
+				
+						// Set boundary
+						viewport.boundaries[12].material.color.setHex(0xFF0000);
+						viewport.boundaries[12].material.opacity = 0.7;
+						viewport.boundaries[12].visible = true;
+						viewport.boundaries[12].renderOrder = 0;
+					}
+				
+					// Otherwise
+					else
+				
+						// Set boundary's visibility
+						viewport.boundaries[12].visible = viewport.showBoundaries;
+				
+					// Check if models goes out of bounds on high top
+					if(maximums[2].y > bedHighMaxZ) {
+				
+						// Set boundary
+						viewport.boundaries[13].material.color.setHex(0xFF0000);
+						viewport.boundaries[13].material.opacity = 0.7;
+						viewport.boundaries[13].visible = true;
+						viewport.boundaries[13].renderOrder = 0;
+					}
+				
+					// Otherwise
+					else
+				
+						// Set boundary's visibility
+						viewport.boundaries[13].visible = viewport.showBoundaries;
+				
+					// Check if models goes out of bounds on connector between low and medium front
+					if((bedMediumMinY < bedLowMinY && viewport.boundaries[1].material.color.getHex() == 0xFF0000) || viewport.boundaries[5].material.color.getHex() == 0xFF0000) {
+				
+						// Set boundary
+						viewport.boundaries[14].material.color.setHex(0xFF0000);
+						viewport.boundaries[14].material.opacity = 0.7;
+						viewport.boundaries[14].visible = true;
+						viewport.boundaries[14].renderOrder = 0;
+					}
+				
+					// Otherwise
+					else
+				
+						// Set boundary's visibility
+						viewport.boundaries[14].visible = viewport.showBoundaries;
+				
+					// Check if models goes out of bounds on connector between low and medium back
+					if((bedMediumMaxY > bedLowMaxY && viewport.boundaries[2].material.color.getHex() == 0xFF0000) || viewport.boundaries[6].material.color.getHex() == 0xFF0000) {
+				
+						// Set boundary
+						viewport.boundaries[15].material.color.setHex(0xFF0000);
+						viewport.boundaries[15].material.opacity = 0.7;
+						viewport.boundaries[15].visible = true;
+						viewport.boundaries[15].renderOrder = 0;
+					}
+				
+					// Otherwise
+					else
+				
+						// Set boundary's visibility
+						viewport.boundaries[15].visible = viewport.showBoundaries;
+				
+					// Check if models goes out of bounds on connector between low and medium right
+					if((bedMediumMaxX > bedLowMaxX && viewport.boundaries[3].material.color.getHex() == 0xFF0000) || viewport.boundaries[7].material.color.getHex() == 0xFF0000) {
+				
+						// Set boundary
+						viewport.boundaries[16].material.color.setHex(0xFF0000);
+						viewport.boundaries[16].material.opacity = 0.7;
+						viewport.boundaries[16].visible = true;
+						viewport.boundaries[16].renderOrder = 0;
+					}
+				
+					// Otherwise
+					else
+				
+						// Set boundary's visibility
+						viewport.boundaries[16].visible = viewport.showBoundaries;
+				
+					// Check if models goes out of bounds on connector between low and medium left
+					if((bedMediumMinX < bedLowMinX && viewport.boundaries[4].material.color.getHex() == 0xFF0000) || viewport.boundaries[8].material.color.getHex() == 0xFF0000) {
+				
+						// Set boundary
+						viewport.boundaries[17].material.color.setHex(0xFF0000);
+						viewport.boundaries[17].material.opacity = 0.7;
+						viewport.boundaries[17].visible = true;
+						viewport.boundaries[17].renderOrder = 0;
+					}
+				
+					// Otherwise
+					else
+				
+						// Set boundary's visibility
+						viewport.boundaries[17].visible = viewport.showBoundaries;
+				
+					// Check if models goes out of bounds on connector between medium and high front
+					if((bedHighMinY < bedMediumMinY && viewport.boundaries[5].material.color.getHex() == 0xFF0000) || viewport.boundaries[9].material.color.getHex() == 0xFF0000) {
+				
+						// Set boundary
+						viewport.boundaries[18].material.color.setHex(0xFF0000);
+						viewport.boundaries[18].material.opacity = 0.7;
+						viewport.boundaries[18].visible = true;
+						viewport.boundaries[18].renderOrder = 0;
+					}
+				
+					// Otherwise
+					else
+				
+						// Set boundary's visibility
+						viewport.boundaries[18].visible = viewport.showBoundaries;
+				
+					// Check if models goes out of bounds on connector between medium and high back
+					if((bedHighMaxY > bedMediumMaxY && viewport.boundaries[6].material.color.getHex() == 0xFF0000) || viewport.boundaries[10].material.color.getHex() == 0xFF0000) {
+				
+						// Set boundary
+						viewport.boundaries[19].material.color.setHex(0xFF0000);
+						viewport.boundaries[19].material.opacity = 0.7;
+						viewport.boundaries[19].visible = true;
+						viewport.boundaries[19].renderOrder = 0;
+					}
+				
+					// Otherwise
+					else
+				
+						// Set boundary's visibility
+						viewport.boundaries[19].visible = viewport.showBoundaries;
+				
+					// Check if models goes out of bounds on connector between medium and high right
+					if((bedHighMaxX > bedMediumMaxX && viewport.boundaries[7].material.color.getHex() == 0xFF0000) || viewport.boundaries[11].material.color.getHex() == 0xFF0000) {
+				
+						// Set boundary
+						viewport.boundaries[20].material.color.setHex(0xFF0000);
+						viewport.boundaries[20].material.opacity = 0.7;
+						viewport.boundaries[20].visible = true;
+						viewport.boundaries[20].renderOrder = 0;
+					}
+				
+					// Otherwise
+					else
+				
+						// Set boundary's visibility
+						viewport.boundaries[20].visible = viewport.showBoundaries;
+				
+					// Check if models goes out of bounds on connector between medium and high left
+					if((bedHighMinX < bedMediumMinX && viewport.boundaries[8].material.color.getHex() == 0xFF0000) || viewport.boundaries[12].material.color.getHex() == 0xFF0000) {
+				
+						// Set boundary
+						viewport.boundaries[21].material.color.setHex(0xFF0000);
+						viewport.boundaries[21].material.opacity = 0.7;
+						viewport.boundaries[21].visible = true;
+						viewport.boundaries[21].renderOrder = 0;
+					}
+				
+					// Otherwise
+					else
+				
+						// Set boundary's visibility
+						viewport.boundaries[21].visible = viewport.showBoundaries;
 				},
 
 				// Render
@@ -2030,6 +2609,7 @@ $(function() {
 																			<button class="delete disabled">Delete</button>
 																			<button class="clone disabled">Clone</button>
 																			<button class="reset disabled">Reset</button>
+																			<button class="boundaries">Boundaries</button>
 																		</div>
 																		<div class="values translate">
 																			<p>X<input type="number" step="any" name="x"></p>
@@ -2120,6 +2700,25 @@ $(function() {
 	
 																		// Reset model
 																		viewport.resetModel();
+																	});
+																	
+																	// Boundaries button click event
+																	$("#slicing_configuration_dialog .modal-extra button.boundaries").click(function() {
+	
+																		// Set show boundaries
+																		viewport.showBoundaries = !viewport.showBoundaries;
+	
+																		// Go through all boundaries
+																		for(var i = 0; i < viewport.boundaries.length; i++)
+		
+																			// Check if boundary isn't set
+																			if(viewport.boundaries[i].material.color.getHex() != 0xFF0000)
+		
+																				// Toggle visibility
+																				viewport.boundaries[i].visible = viewport.showBoundaries;
+		
+																		// Render
+																		viewport.render();
 																	});
 	
 																	// Printer color button click event
