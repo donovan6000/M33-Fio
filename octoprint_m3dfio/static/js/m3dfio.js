@@ -1344,7 +1344,7 @@ $(function() {
 						var model = viewport.models[i];
 		
 						// Sum model's center together
-						centerX += model.mesh.position.x;
+						centerX -= model.mesh.position.x;
 						centerZ += model.mesh.position.z;
 		
 						// Save model's current matrix
@@ -1371,7 +1371,7 @@ $(function() {
 					}
 				
 					// Get average center for models
-					centerX /= -(viewport.models.length - 1);
+					centerX /= (viewport.models.length - 1);
 					centerZ /= (viewport.models.length - 1);
 					
 					// Save model's center
@@ -2716,6 +2716,12 @@ $(function() {
 		
 																				// Toggle visibility
 																				viewport.boundaries[i].visible = viewport.showBoundaries;
+																		
+																		// Select button
+																		if(viewport.showBoundaries)
+																			$(this).addClass("disabled");
+																		else
+																			$(this).removeClass("disabled");
 		
 																		// Render
 																		viewport.render();
