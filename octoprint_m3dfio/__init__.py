@@ -580,19 +580,8 @@ class M3DFioPlugin(
 		
 			os.remove(path + file)
 		
-		# Check if slicer was changed
-		if self.slicerChanges != None :
-		
-			# Move original files back
-			os.remove(self.slicerChanges.get("Slicer Profile Location"))
-			shutil.move(self.slicerChanges.get("Slicer Profile Temporary"), self.slicerChanges.get("Slicer Profile Location"))
-			os.remove(self.slicerChanges.get("Model Location"))
-			shutil.move(self.slicerChanges.get("Model Temporary"), self.slicerChanges.get("Model Location"))
-			
-			# Restore printer profile
-			self._printer_profile_manager.save(self.slicerChanges.get("Printer Profile Content"), True)
-			
-			self.slicerChanges = None
+		# Restore files
+		self.restoreFiles()
 	
 	# Get default settings
 	def get_settings_defaults(self) :
@@ -1786,6 +1775,23 @@ class M3DFioPlugin(
 		# Return response
 		return response
 	
+	# Restore files
+	def restoreFiles(self) :
+	
+		# Check if slicer was changed
+		if self.slicerChanges != None :
+		
+			# Move original files back
+			os.remove(self.slicerChanges.get("Slicer Profile Location"))
+			shutil.move(self.slicerChanges.get("Slicer Profile Temporary"), self.slicerChanges.get("Slicer Profile Location"))
+			os.remove(self.slicerChanges.get("Model Location"))
+			shutil.move(self.slicerChanges.get("Model Temporary"), self.slicerChanges.get("Model Location"))
+		
+			# Restore printer profile
+			self._printer_profile_manager.save(self.slicerChanges.get("Printer Profile Content"), True)
+			
+			self.slicerChanges = None
+	
 	# Event monitor
 	def on_event(self, event, payload) :
 	
@@ -1831,19 +1837,8 @@ class M3DFioPlugin(
 			# Clear processing slice
 			self.processingSlice = False
 			
-			# Check if slicer was changed
-			if self.slicerChanges != None :
-			
-				# Move original files back
-				os.remove(self.slicerChanges.get("Slicer Profile Location"))
-				shutil.move(self.slicerChanges.get("Slicer Profile Temporary"), self.slicerChanges.get("Slicer Profile Location"))
-				os.remove(self.slicerChanges.get("Model Location"))
-				shutil.move(self.slicerChanges.get("Model Temporary"), self.slicerChanges.get("Model Location"))
-			
-				# Restore printer profile
-				self._printer_profile_manager.save(self.slicerChanges.get("Printer Profile Content"), True)
-				
-				self.slicerChanges = None
+			# Restore files
+			self.restoreFiles()
 		
 		# Otherwise check if a print is starting
 		elif event == octoprint.events.Events.PRINT_STARTED :
@@ -2906,7 +2901,10 @@ class M3DFioPlugin(
 		
 					# Set error message
 					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Set error message", text = "Could not upload the file. The dimensions of the model go outside the bounds of the printer."))
-			
+				
+				# Restore files
+				self.restoreFiles()
+				
 				# Return false
 				return False
 			
