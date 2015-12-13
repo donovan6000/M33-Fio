@@ -2730,7 +2730,7 @@ class M3DFioPlugin(
 		if hasattr(self, "printerFrontRightOffset") and self.printerFrontRightOffset != softwareFrontRightOffset :
 
 			# Add new value to list
-			packed = struct.pack('f', softwareFrontRightOrientation)
+			packed = struct.pack('f', softwareFrontRightOffset)
 			newValue = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
 			commandList += ["M618 S18 P" + str(newValue) + "\n", "M619 S18\n"]
 
