@@ -2538,9 +2538,6 @@ $(function() {
 						$("#slicing_configuration_dialog .modal-extra").remove();
 						$("#slicing_configuration_dialog .modal-body").css("display", '');
 						$("#slicing_configuration_dialog .modal-cover").removeClass("show").css("z-index", '');
-						
-						// Save software settings
-						saveSoftwareSettings()
 					}, 300);
 				}
 			}
@@ -3824,6 +3821,10 @@ $(function() {
 				"M104 S0\n",
 				"M107\n",
 				"G32\n",
+				"M619 S2\n",
+				"M619 S3\n",
+				"M619 S4\n",
+				"M619 S5\n",
 				"M65536;wait\n"
 			];
 		
@@ -3837,6 +3838,9 @@ $(function() {
 			
 				// On success
 				success: function(data) {
+				
+					// Save software settings
+					saveSoftwareSettings();
 			
 					// Ok click event
 					$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
@@ -4191,7 +4195,9 @@ $(function() {
 				"M65537;stop\n",
 				"G91\n",
 				"G0 Z0.0999 F100\n",
-				"G33\n"
+				"G33\n",
+				"M117\n",
+				"M65536;wait\n"
 			];
 			
 			// Send request
@@ -4291,6 +4297,10 @@ $(function() {
 							"M104 S0\n",
 							"M107\n",
 							"G32\n",
+							"M619 S2\n",
+							"M619 S3\n",
+							"M619 S4\n",
+							"M619 S5\n",
 							"M65536;wait\n"
 						];
 		
@@ -5279,6 +5289,10 @@ $(function() {
 											"M104 S0\n",
 											"M107\n",
 											"G32\n",
+											"M619 S2\n",
+											"M619 S3\n",
+											"M619 S4\n",
+											"M619 S5\n",
 											"M65536;wait\n"
 										];
 		
@@ -5292,6 +5306,9 @@ $(function() {
 			
 											// On success
 											success: function(data) {
+											
+												// Save software settings
+												saveSoftwareSettings();
 			
 												// Ok click event
 												$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
@@ -5362,6 +5379,10 @@ $(function() {
 							"M104 S0\n",
 							"M107\n",
 							"G32\n",
+							"M619 S2\n",
+							"M619 S3\n",
+							"M619 S4\n",
+							"M619 S5\n",
 							"M65536;wait\n"
 						];
 		
@@ -5375,6 +5396,9 @@ $(function() {
 			
 							// On success
 							success: function(data) {
+							
+								// Save software settings
+								saveSoftwareSettings();
 			
 								// Ok click event
 								$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
