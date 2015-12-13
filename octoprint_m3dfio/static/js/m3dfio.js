@@ -748,7 +748,8 @@ $(function() {
 					
 					// Create measurement material
 					var measurementMaterial = new THREE.LineBasicMaterial({
-						color: 0x0000ff
+						color: 0x0000ff,
+						side: THREE.DoubleSide
 					});
 				
 					// Create measurement geometry
