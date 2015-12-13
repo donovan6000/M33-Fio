@@ -1035,7 +1035,7 @@ $(function() {
 						// Fix model's Y
 						viewport.fixModelY();
 					
-						// Set modelLoaded
+						// Set model loaded
 						viewport.modelLoaded = true;
 					});
 				},
@@ -1371,6 +1371,9 @@ $(function() {
 			
 				// Clone model
 				cloneModel: function() {
+				
+					// Clear model loaded
+					viewport.modelLoaded = false;
 			
 					// Get currently selected model
 					var model = viewport.transformControls.object;
@@ -1412,6 +1415,9 @@ $(function() {
 						// Render
 						viewport.render();
 					}, 100);
+					
+					// Set model loaded
+					viewport.modelLoaded = true;
 				},
 			
 				// Reset model
@@ -1575,10 +1581,12 @@ $(function() {
 			
 				// Update model changes
 				updateModelChanges: function() {
-			
-					// Check if a model is currently selected
+				
+					// Get currently selected model
 					var model = viewport.transformControls.object;
-					if(model) {
+					
+					// Check if a showing measurements and model is currently selected
+					if(viewport.showMeasurements && model) {
 				
 						// Get model's boundary box
 						var boundaryBox = new THREE.Box3().setFromObject(model);
@@ -1630,7 +1638,6 @@ $(function() {
 					$("#slicing_configuration_dialog .modal-extra button." + viewport.transformControls.getMode()).addClass("disabled");
 
 					// Check if a model is currently selected
-					var model = viewport.transformControls.object;
 					if(model) {
 	
 						// Enable delete, clone, and reset
@@ -2798,9 +2805,37 @@ $(function() {
 																		// Set file type
 																		var extension = this.files[0].name.lastIndexOf('.');
 																		var type = extension != -1 ? this.files[0].name.substr(extension + 1) : "stl";
+																		var url = URL.createObjectURL(this.files[0]);
+																		
+																		// Display cover
+																		$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").text("Loading model…");
+																		
+																		setTimeout(function() {
 	
-																		// Import model
-																		viewport.importModel(URL.createObjectURL(this.files[0]), type);
+																			// Import model
+																			viewport.importModel(url, type);
+																		
+																			// Wait until model is loaded
+																			function isModelLoaded() {
+									
+																				// Check if model is loaded
+																				if(viewport.modelLoaded) {
+								
+																					// Hide cover
+																					$("#slicing_configuration_dialog .modal-cover").addClass("noTransition").removeClass("show");
+																					setTimeout(function() {
+																						$("#slicing_configuration_dialog .modal-cover").css("z-index", '').removeClass("noTransition");
+																					}, 300);
+																				}
+																			
+																				// Otherwise
+																				else
+									
+																					// Check if model is loaded again
+																					setTimeout(isModelLoaded, 100);
+																			}
+																			setTimeout(isModelLoaded, 100);
+																		}, 300);
 																	});
 	
 																	// Button click event
@@ -2863,9 +2898,36 @@ $(function() {
 	
 																	// Clone button click event
 																	$("#slicing_configuration_dialog .modal-extra button.clone").click(function() {
-	
-																		// Clone model
-																		viewport.cloneModel();
+																		
+																		// Display cover
+																		$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").text("Cloning model…");
+																		
+																		setTimeout(function() {
+																		
+																			// Clone model
+																			viewport.cloneModel();
+																		
+																			// Wait until model is loaded
+																			function isModelLoaded() {
+									
+																				// Check if model is loaded
+																				if(viewport.modelLoaded) {
+								
+																					// Hide cover
+																					$("#slicing_configuration_dialog .modal-cover").addClass("noTransition").removeClass("show");
+																					setTimeout(function() {
+																						$("#slicing_configuration_dialog .modal-cover").css("z-index", '').removeClass("noTransition");
+																					}, 300);
+																				}
+																			
+																				// Otherwise
+																				else
+									
+																					// Check if model is loaded again
+																					setTimeout(isModelLoaded, 100);
+																			}
+																			setTimeout(isModelLoaded, 100);
+																		}, 300);
 																	});
 	
 																	// Reset button click event
@@ -2919,6 +2981,9 @@ $(function() {
 																				$("div.measurements > p").addClass("show");
 																			else
 																				$("div.measurements > p").removeClass("show");
+																			
+																			// Update model changes
+																			viewport.updateModelChanges();
 		
 																			// Render
 																			viewport.render();
@@ -3020,7 +3085,6 @@ $(function() {
 											}
 										});
 									}, 300);
-								
 								}
 								
 								// Otherwise
