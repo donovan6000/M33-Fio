@@ -133,18 +133,21 @@
 
 					for ( i = gizmoMap[ name ].length; i --; ) {
 					
-						if( scope.mode !== "translate" || ( ( ( name === "XYZ" || scope.allowedTranslation.search( name ) !== - 1 ) && ( scope.allowedTranslation === "XYZXZ" || name.length != 2 ) ) ) ) {
+						if ( scope.mode !== "translate" || ( ( ( name === "XYZ" || scope.allowedTranslation.search( name ) !== - 1 ) && ( scope.allowedTranslation === "XYZXZ" || name.length != 2 ) ) ) ) {
+						
+							if ( ! scope.rotationDisableE || name !== "E" ) {
+							
+								var object = gizmoMap[ name ][ i ][ 0 ];
+								var position = gizmoMap[ name ][ i ][ 1 ];
+								var rotation = gizmoMap[ name ][ i ][ 2 ];
 
-							var object = gizmoMap[ name ][ i ][ 0 ];
-							var position = gizmoMap[ name ][ i ][ 1 ];
-							var rotation = gizmoMap[ name ][ i ][ 2 ];
+								object.name = name;
 
-							object.name = name;
+								if ( position ) object.position.set( position[ 0 ], position[ 1 ], position[ 2 ] );
+								if ( rotation ) object.rotation.set( rotation[ 0 ], rotation[ 1 ], rotation[ 2 ] );
 
-							if ( position ) object.position.set( position[ 0 ], position[ 1 ], position[ 2 ] );
-							if ( rotation ) object.rotation.set( rotation[ 0 ], rotation[ 1 ], rotation[ 2 ] );
-
-							parent.add( object );
+								parent.add( object );
+							}
 						}
 
 					}
@@ -362,9 +365,10 @@
 	THREE.TransformGizmoTranslate.prototype = Object.create( THREE.TransformGizmo.prototype );
 	THREE.TransformGizmoTranslate.prototype.constructor = THREE.TransformGizmoTranslate;
 
-	THREE.TransformGizmoRotate = function () {
+	THREE.TransformGizmoRotate = function ( rotationDisableE ) {
 	
 		this.mode = "rotate";
+		this.rotationDisableE = rotationDisableE;
 		THREE.TransformGizmo.call( this );
 
 		var CircleGeometry = function ( radius, facing, arc ) {
@@ -626,7 +630,9 @@
 		this.object = undefined;
 		this.visible = false;
 		this.translationSnap = null;
+		this.scaleSnap = null;
 		this.rotationSnap = null;
+		this.rotationDisableE = false;
 		this.space = "world";
 		this.allowedTranslation = "XYZXZ";
 		this.size = 1;
@@ -640,7 +646,7 @@
 		var _gizmo = {
 
 			"translate": new THREE.TransformGizmoTranslate( this.allowedTranslation ),
-			"rotate": new THREE.TransformGizmoRotate(),
+			"rotate": new THREE.TransformGizmoRotate( this.rotationDisableE ),
 			"scale": new THREE.TransformGizmoScale()
 		};
 
@@ -769,6 +775,12 @@
 			scope.translationSnap = translationSnap;
 
 		};
+		
+		this.setScaleSnap = function ( scaleSnap ) {
+
+			scope.scaleSnap = scaleSnap;
+
+		};
 
 		this.setRotationSnap = function ( rotationSnap ) {
 
@@ -808,7 +820,20 @@
 			scope.dispatchEvent( changeEvent );
 
 		};
+		
+		this.setRotationDisableE = function ( rotationDisableE ) {
 
+			scope.rotationDisableE = rotationDisableE;
+			
+			scope.remove( _gizmo["rotate"] );
+			_gizmo["rotate"] = new THREE.TransformGizmoRotate( this.rotationDisableE );
+			_gizmo["rotate"].visible = ( "rotate" === _mode );
+			scope.add( _gizmo["rotate"] );
+			
+			this.update();
+			scope.dispatchEvent( changeEvent );
+
+		};
 
 		this.update = function () {
 
@@ -1011,6 +1036,14 @@
 						if ( scope.axis === "Y" ) scope.object.scale.y = oldScale.y * ( 1 + point.y / 50 );
 						if ( scope.axis === "Z" ) scope.object.scale.z = oldScale.z * ( 1 + point.z / 50 );
 
+					}
+					
+					if ( scope.scaleSnap !== null ) {
+					
+						if ( scope.axis.search( "X" ) !== - 1 ) scope.object.scale.x = Math.round( scope.object.scale.x / scope.scaleSnap ) * scope.scaleSnap;
+						if ( scope.axis.search( "Y" ) !== - 1 ) scope.object.scale.y = Math.round( scope.object.scale.y / scope.scaleSnap ) * scope.scaleSnap;
+						if ( scope.axis.search( "Z" ) !== - 1 ) scope.object.scale.z = Math.round( scope.object.scale.z / scope.scaleSnap ) * scope.scaleSnap;
+						
 					}
 
 				}

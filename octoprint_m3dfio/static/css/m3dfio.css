@@ -372,9 +372,13 @@ body > div.page-container > div.message > div > div > div.calibrate > div.distan
 	overflow: visible !important;
 }
 
+#slicing_configuration_dialog.model {
+	min-height: 568px !important;;
+	min-width: 540px !important;
+}
 
 #slicing_configuration_dialog.model .modal-extra {
-	margin-bottom: -5px;
+	margin-bottom: -7px;
 }
 
 #slicing_configuration_dialog.profile .modal-extra {
@@ -477,7 +481,7 @@ body > div.page-container > div.message > div > div > div.calibrate > div.distan
 
 #slicing_configuration_dialog.model .modal-extra > div {
 	position: absolute;
-	top: 0;
+	top: 63px;
 	left: 50%;
 	transform: translateX(-50%);
 	display: inline-flex;
@@ -498,7 +502,28 @@ body > div.page-container > div.message > div > div > div.calibrate > div.distan
 	left: 0;
 	top: 50%;
 	transform: translateY(-50%);
-	flex-direction:  column;
+	flex-direction: column;
+}
+
+
+#slicing_configuration_dialog.model .modal-extra > div.measurements {
+	left: auto;
+	right: auto;
+	top: auto;
+	bottom: auto;
+}
+
+#slicing_configuration_dialog.model .modal-extra > div.measurements > p {
+	margin: 0;
+	padding: 0;
+	position: absolute;
+	top: 0;
+	left: 0;
+	pointer-events: none;
+	visibility: hidden;
+	font-family: "Helvetica";
+	color: white;
+	text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
 }
 
 #slicing_configuration_dialog.model .modal-extra > div.values {
@@ -540,8 +565,8 @@ body > div.page-container > div.message > div > div > div.calibrate > div.distan
 #slicing_configuration_dialog.model .modal-extra > div > button {
 	display: block;
 	cursor: pointer;
-	width: 50px;
-	height: 50px;
+	width: 40px;
+	height: 40px;
 	margin: 2px 4px;
 	position: relative;
 	padding: 0;
@@ -549,6 +574,7 @@ body > div.page-container > div.message > div > div > div.calibrate > div.distan
 	border-radius: 5px;
 	border: 1px solid black;
 	outline: none;
+	flex-shrink: 0;
 }
 
 #slicing_configuration_dialog.model .modal-extra > div > button::-moz-focus-inner {
@@ -580,7 +606,7 @@ body > div.page-container > div.message > div > div > div.calibrate > div.distan
 	pointer-events: none;
 }
 
-#slicing_configuration_dialog.model .modal-extra > div > button.disabled.snap {
+#slicing_configuration_dialog.model .modal-extra > div > button.disabled.snap, #slicing_configuration_dialog.model .modal-extra > div > button.disabled.boundaries, #slicing_configuration_dialog.model .modal-extra > div > button.disabled.measurements {
 	pointer-events: auto;
 }
 

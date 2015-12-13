@@ -4,6 +4,7 @@
  * @author alteredq / http://alteredqualia.com/
  * @author WestLangley / http://github.com/WestLangley
  * @author erich666 / http://erichaines.com
+ * @author donvan6000 / http://exploitkings.com
  */
 /*global THREE, console */
 
@@ -768,6 +769,8 @@
 		}
 
 		function contextmenu( event ) {
+		
+			if ( scope.enabled === false || scope.enablePan === false ) return;
 
 			event.preventDefault();
 

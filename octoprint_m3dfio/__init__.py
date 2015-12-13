@@ -610,7 +610,7 @@ class M3DFioPlugin(
 			UseBacklashCompensationPreprocessor = True,
 			UseFeedRateConversionPreprocessor = True,
 			AutomaticallyObtainSettings = True,
-			UseCenterModelPreprocessor = True,
+			UseCenterModelPreprocessor = False,
 			IgnorePrintDimensionLimitations = False,
 			PreprocessOnTheFly = True,
 			PrinterColor = "White",

@@ -647,115 +647,6 @@ $(function() {
 			}, 1000);
 		}
 		
-		// Update values
-		function updateValues() {
-
-			// Set currently active buttons
-			$("#slicing_configuration_dialog .modal-extra button.translate, #slicing_configuration_dialog .modal-extra button.rotate, #slicing_configuration_dialog .modal-extra button.scale").removeClass("disabled");
-			$("#slicing_configuration_dialog .modal-extra div.values").removeClass("translate rotate scale").addClass(viewport.transformControls.getMode());
-			$("#slicing_configuration_dialog .modal-extra button." + viewport.transformControls.getMode()).addClass("disabled");
-
-			// Check if a model is currently selected
-			var model = viewport.transformControls.object;
-			if(model) {
-
-				// Enable delete, clone, and reset
-				$("#slicing_configuration_dialog .modal-extra button.delete, #slicing_configuration_dialog .modal-extra button.clone, #slicing_configuration_dialog .modal-extra button.reset").removeClass("disabled");
-
-				// Show values
-				$("#slicing_configuration_dialog .modal-extra div.values p").addClass("show");
-				if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("translate"))
-					$("#slicing_configuration_dialog .modal-extra div.values input[name=\"y\"").parent().removeClass("show");
-
-				// Check if an input is not focused
-				if(!$("#slicing_configuration_dialog .modal-extra input:focus").length) {
-
-					// Check if in translate mode
-					if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("translate")) {
-
-						// Display position values
-						$("#slicing_configuration_dialog .modal-extra div.values input[name=\"x\"").val((model.position.x.toFixed(3) == 0 ? 0 : -model.position.x).toFixed(3));
-						$("#slicing_configuration_dialog .modal-extra div.values input[name=\"z\"").val(model.position.z.toFixed(3));
-					}
-
-					// Otherwise check if in rotate mode
-					else if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("rotate")) {
-
-						// Display rotation values
-						$("#slicing_configuration_dialog .modal-extra div.values input[name=\"x\"").val((model.rotation.x * 180 / Math.PI).toFixed(3));
-						$("#slicing_configuration_dialog .modal-extra div.values input[name=\"y\"").val((model.rotation.y * 180 / Math.PI).toFixed(3));
-						$("#slicing_configuration_dialog .modal-extra div.values input[name=\"z\"").val((model.rotation.z * 180 / Math.PI).toFixed(3));
-					}
-
-					// Otherwise check if in scale mode
-					else if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("scale")) {
-
-						// Display scale values
-						$("#slicing_configuration_dialog .modal-extra div.values input[name=\"x\"").val(model.scale.x.toFixed(3));
-						$("#slicing_configuration_dialog .modal-extra div.values input[name=\"y\"").val(model.scale.y.toFixed(3));
-						$("#slicing_configuration_dialog .modal-extra div.values input[name=\"z\"").val(model.scale.z.toFixed(3));
-					}
-				}
-			}
-
-			// Otherwise
-			else {
-
-				// Disable delete, clone, and reset
-				$("#slicing_configuration_dialog .modal-extra button.delete, #slicing_configuration_dialog .modal-extra button.clone, #slicing_configuration_dialog .modal-extra button.reset").addClass("disabled");
-
-				// Hide values
-				$("#slicing_configuration_dialog .modal-extra div.values p").removeClass("show");
-
-				// Blur input
-				$("#slicing_configuration_dialog .modal-extra div.values input").blur();
-			}
-		}
-		
-		// Apply changes
-		function applyChanges(name, value) {
-
-			// Get currently selected model
-			var model = viewport.transformControls.object;
-
-			// Check if in translate mode
-			if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("translate")) {
-
-				// Set model's position
-				if(name == 'x')
-					model.position.x = -parseFloat(value);
-				else if(name == 'z')
-					model.position.z = parseFloat(value);
-			}
-
-			// Otherwise check if in rotate mode
-			else if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("rotate")) {
-
-				// Set model's rotation
-				if(name == 'x')
-					model.rotation.x = THREE.Math.degToRad(parseFloat(value));
-				else if(name == 'y')
-					model.rotation.y = THREE.Math.degToRad(parseFloat(value));
-				else if(name == 'z')
-					model.rotation.z = THREE.Math.degToRad(parseFloat(value));
-			}
-
-			// Otherwise check if in scale mode
-			else if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("scale")) {
-
-				// Set model's scale
-				if(name == 'x')
-					model.scale.x = parseFloat(value);
-				else if(name == 'y')
-					model.scale.y = parseFloat(value);
-				else if(name == 'z')
-					model.scale.z = parseFloat(value);
-			}
-
-			// Fix model's Y
-			viewport.fixModelY();
-		}
-		
 		// Load model
 		function loadModel(file) {
 
@@ -769,10 +660,13 @@ $(function() {
 				orbitControls: null,
 				transformControls: null,
 				models: [],
+				modelLoaded: false,
 				glow: null,
 				boundaries: [],
-				modelLoaded: false,
 				showBoundaries: false,
+				measurements: [],
+				showMeasurements: false,
+				removeSelectionTimeout: null,
 
 				// Initialize
 				init: function() {
@@ -782,7 +676,7 @@ $(function() {
 						this.scene[i] = new THREE.Scene();
 
 					// Create camera
-					var SCREEN_WIDTH = $("#slicing_configuration_dialog").width(), SCREEN_HEIGHT = $(window).height() - 200;
+					var SCREEN_WIDTH = $("#slicing_configuration_dialog").width(), SCREEN_HEIGHT = $("#slicing_configuration_dialog").height() - 123;
 					var VIEW_ANGLE = 45, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 0.1, FAR = 20000;
 					this.camera = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
 					this.scene[0].add(this.camera);
@@ -808,6 +702,7 @@ $(function() {
 					this.transformControls = new THREE.TransformControls(this.camera, this.renderer.domElement);
 					this.transformControls.space = "world";
 					this.transformControls.setAllowedTranslation("XZ");
+					this.transformControls.setRotationDisableE(true);
 					this.scene[0].add(this.transformControls);
 
 					// Create lights
@@ -835,7 +730,7 @@ $(function() {
 			
 						// Set printer's orientation
 						mesh.rotation.set(3 * Math.PI / 2, 0, Math.PI);
-						mesh.position.set(0, 61, 0);
+						mesh.position.set(0, 60.7, 0);
 						mesh.scale.set(1, 1, 1);
 				
 						// Append model to list
@@ -850,6 +745,40 @@ $(function() {
 						// Import model
 						viewport.importModel(file, "stl");
 					});
+					
+					// Create measurement material
+					var measurementMaterial = new THREE.LineBasicMaterial({
+						color: 0x0000ff
+					});
+				
+					// Create measurement geometry
+					var measurementGeometry = new THREE.Geometry();
+					measurementGeometry.vertices.push(new THREE.Vector3(0, 0, 0));
+					measurementGeometry.vertices.push(new THREE.Vector3(0, 0, 0));
+				
+					// Create measurements
+					for(var i = 0; i < 3; i++)
+						this.measurements[i] = [];
+				
+					// Width measurement
+					this.measurements[0][0] = new THREE.Line(measurementGeometry.clone(), measurementMaterial);
+					this.measurements[0][1] = new THREE.Vector3();
+				
+					// Depth measurement
+					this.measurements[1][0] = new THREE.Line(measurementGeometry.clone(), measurementMaterial);
+					this.measurements[1][1] = new THREE.Vector3();
+				
+					// Height measurement
+					this.measurements[2][0] = new THREE.Line(measurementGeometry.clone(), measurementMaterial);
+					this.measurements[2][1] = new THREE.Vector3();
+				
+					// Go through all measurements
+					for(var i = 0; i < this.measurements.length; i++) {
+				
+						// Add measurements to scene
+						this.measurements[i][0].visible = false;
+						this.scene[1].add(this.measurements[i][0]);
+					}
 				
 					// Create boundary material
 					var boundaryMaterial = new THREE.MeshLambertMaterial({
@@ -1032,6 +961,7 @@ $(function() {
 					this.transformControls.addEventListener("mouseDown", this.startTransform);
 					this.transformControls.addEventListener("mouseUp", this.endTransform);
 					this.transformControls.addEventListener("mouseUp", this.fixModelY);
+					this.transformControls.addEventListener("change", this.updateModelChanges);
 					this.transformControls.addEventListener("change", this.render);
 					this.orbitControls.addEventListener("change", this.render);
 					$(document).on("mousedown.viewport", this.mouseDownEvent);
@@ -1251,14 +1181,31 @@ $(function() {
 							viewport.selectModel(intersects[0].object);
 			
 						// Otherwise
-						else
-			
-							// Remove selection
-							viewport.removeSelection();
+						else {
+					
+							// Set remove selection interval
+							viewport.removeSelectionTimeout = setTimeout(function() {
+						
+								// Remove selection
+								viewport.removeSelection();
+							
+								// Render
+								viewport.render();
+							}, 70);
+						
+							$(document).on("mousemove.viewport", viewport.stopRemoveSelectionTimeout);
+						}
 					
 						// Render
 						viewport.render();
 					}
+				},
+				
+				// Stop remove selection timeout
+				stopRemoveSelectionTimeout: function() {
+			
+					// Clear remove selection timeout
+					clearTimeout(viewport.removeSelectionTimeout);
 				},
 			
 				// Enable snap
@@ -1266,6 +1213,7 @@ $(function() {
 			
 					// Enable grid and rotation snap
 					viewport.transformControls.setTranslationSnap(5);
+					viewport.transformControls.setScaleSnap(0.05);
 					viewport.transformControls.setRotationSnap(THREE.Math.degToRad(15));
 					$("#slicing_configuration_dialog .modal-extra button.snap").addClass("disabled");
 				},
@@ -1275,6 +1223,7 @@ $(function() {
 			
 					// Disable grid and rotation snap
 					viewport.transformControls.setTranslationSnap(null);
+					viewport.transformControls.setScaleSnap(null);
 					viewport.transformControls.setRotationSnap(null);
 					$("#slicing_configuration_dialog .modal-extra button.snap").removeClass("disabled");
 				},
@@ -1317,9 +1266,9 @@ $(function() {
 				resizeEvent: function() {
 	
 					// Update camera
-					viewport.camera.aspect = $("#slicing_configuration_dialog").width() / ($(window).height() - 200);
+					viewport.camera.aspect = $("#slicing_configuration_dialog").width() / ($("#slicing_configuration_dialog").height() - 123);
 					viewport.camera.updateProjectionMatrix();
-					viewport.renderer.setSize($("#slicing_configuration_dialog").width(), $(window).height() - 200);
+					viewport.renderer.setSize($("#slicing_configuration_dialog").width(), $("#slicing_configuration_dialog").height() - 123);
 				
 					// Render
 					viewport.render();
@@ -1389,10 +1338,8 @@ $(function() {
 				destroy: function() {
 		
 					// Disable events
-					$(document).off("mousedown.viewport");
-					$(window).off("resize.viewport");
-					$(window).off("keydown.viewport");
-					$(window).off("keyup.viewport");
+					$(document).off("mousedown.viewport mousemove.viewport");
+					$(window).off("resize.viewport keydown.viewport keyup.viewport");
 		
 					// Clear viewport
 					viewport = null;
@@ -1415,6 +1362,9 @@ $(function() {
 					// Update boundaries
 					viewport.updateBoundaries();
 					
+					// Upate measurements
+					viewport.updateModelChanges();
+					
 					// Render
 					viewport.render();
 				},
@@ -1428,9 +1378,8 @@ $(function() {
 					// Clone model
 					var clonedModel = new THREE.Mesh(model.geometry.clone(), model.material.clone());
 				
-					// Copy original orientation, except center cloned model
+					// Copy original orientation
 					clonedModel.applyMatrix(model.matrix);
-					clonedModel.position.set(0, 0, 0);
 				
 					// Add cloned model to scene
 					viewport.scene[0].add(clonedModel);
@@ -1442,12 +1391,27 @@ $(function() {
 							viewport.models.push({mesh: clonedModel, type: viewport.models[i].type});
 							break;
 						}
-				
+					
 					// Select model
 					viewport.selectModel(clonedModel);
 
 					// Fix model's Y
 					viewport.fixModelY();
+					
+					// Remove selection
+					viewport.removeSelection();
+					
+					// Render
+					viewport.render();
+					
+					setTimeout(function() {
+				
+						// Select model
+						viewport.selectModel(clonedModel);
+						
+						// Render
+						viewport.render();
+					}, 100);
 				},
 			
 				// Reset model
@@ -1501,6 +1465,9 @@ $(function() {
 						// Remove glow
 						viewport.scene[1].remove(viewport.glow);
 						viewport.glow = null;
+						
+						// Update model changes
+						viewport.updateModelChanges();
 					}
 				},
 			
@@ -1558,22 +1525,195 @@ $(function() {
 				    	// Add glow to scene
 					viewport.scene[1].add(viewport.glow);
 				
-					// Update values
-					updateValues();
+					// Update model changes
+					viewport.updateModelChanges();
 				},
 				
-				// Clear bondaries
-				clearBoundaries: function() {
-			
-					// Go through all boundaries
-					for(var i = 0; i < viewport.boundaries.length; i++) {
-				
-						// Reset boundary
-						viewport.boundaries[i].material.color.setHex(0x00FF00);
-						viewport.boundaries[i].material.opacity = 0.2;
-						viewport.boundaries[i].visible = viewport.showBoundaries;
-						viewport.boundaries[i].renderOrder = 1;
+				// Apply changes
+				applyChanges: function(name, value) {
+	
+					// Get currently selected model
+					var model = viewport.transformControls.object;
+
+					// Check if in translate mode
+					if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("translate")) {
+	
+						// Set model's position
+						if(name == 'x')
+							model.position.x = -parseFloat(value);
+						else if(name == 'z')
+							model.position.z = parseFloat(value);
 					}
+	
+					// Otherwise check if in rotate mode
+					else if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("rotate")) {
+	
+						// Set model's rotation
+						if(name == 'x')
+							model.rotation.x = THREE.Math.degToRad(parseFloat(value));
+						else if(name == 'y')
+							model.rotation.y = THREE.Math.degToRad(parseFloat(value));
+						else if(name == 'z')
+							model.rotation.z = THREE.Math.degToRad(parseFloat(value));
+					}
+	
+					// Otherwise check if in scale mode
+					else if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("scale")) {
+	
+						// Set model's scale
+						if(name == 'x')
+							model.scale.x = parseFloat(value);
+						else if(name == 'y')
+							model.scale.y = parseFloat(value);
+						else if(name == 'z')
+							model.scale.z = parseFloat(value);
+					}
+		
+					// Fix model's Y
+					viewport.fixModelY();
+				},
+			
+				// Update model changes
+				updateModelChanges: function() {
+			
+					// Check if a model is currently selected
+					var model = viewport.transformControls.object;
+					if(model) {
+				
+						// Get model's boundary box
+						var boundaryBox = new THREE.Box3().setFromObject(model);
+					
+						// Set width measurement
+						viewport.measurements[0][0].geometry.vertices[0].set(boundaryBox.max.x + 1, boundaryBox.min.y - 1, boundaryBox.min.z - 1);
+						viewport.measurements[0][0].geometry.vertices[1].set(boundaryBox.min.x - 1, boundaryBox.min.y - 1, boundaryBox.min.z - 1);
+						viewport.measurements[0][1].set(boundaryBox.max.x + (boundaryBox.min.x - boundaryBox.max.x) / 2, boundaryBox.min.y, boundaryBox.min.z);
+						$("#slicing_configuration_dialog .modal-extra div.measurements > p.width").text((boundaryBox.max.x - boundaryBox.min.x).toFixed(3) + "mm");
+						
+				
+						// Set depth measurement
+						viewport.measurements[1][0].geometry.vertices[0].set(boundaryBox.min.x - 1, boundaryBox.min.y - 1, boundaryBox.min.z - 1);
+						viewport.measurements[1][0].geometry.vertices[1].set(boundaryBox.min.x - 1, boundaryBox.min.y - 1, boundaryBox.max.z + 1);
+						viewport.measurements[1][1].set(boundaryBox.min.x, boundaryBox.min.y, boundaryBox.min.z + (boundaryBox.max.z - boundaryBox.min.z) / 2);
+						$("#slicing_configuration_dialog .modal-extra div.measurements > p.depth").text((boundaryBox.max.z - boundaryBox.min.z).toFixed(3) + "mm");
+					
+						// Set height measurement
+						viewport.measurements[2][0].geometry.vertices[0].set(boundaryBox.min.x - 1, boundaryBox.min.y - 1, boundaryBox.max.z + 1);
+						viewport.measurements[2][0].geometry.vertices[1].set(boundaryBox.min.x - 1, boundaryBox.max.y + 1, boundaryBox.max.z + 1);
+						viewport.measurements[2][1].set(boundaryBox.min.x, boundaryBox.min.y + (boundaryBox.max.y - boundaryBox.min.y) / 2, boundaryBox.max.z);
+						$("#slicing_configuration_dialog .modal-extra div.measurements > p.height").text((boundaryBox.max.y - boundaryBox.min.y).toFixed(3) + "mm");
+					
+						// Show measurements
+						for(var i = 0; i < viewport.measurements.length; i++) {
+							viewport.measurements[i][0].geometry.verticesNeedUpdate = true;
+							viewport.measurements[i][0].visible = viewport.showMeasurements;
+						}
+					
+						if(viewport.showMeasurements)
+							$("#slicing_configuration_dialog .modal-extra div.measurements > p").addClass("show");
+						else
+							$("#slicing_configuration_dialog .modal-extra div.measurements > p").removeClass("show");
+					}
+				
+					// Otherwise
+					else {
+				
+						// Hide measurements
+						for(var i = 0; i < viewport.measurements.length; i++)
+							viewport.measurements[i][0].visible = false;
+					
+						$("#slicing_configuration_dialog .modal-extra div.measurements > p").removeClass("show");
+					}
+				
+					// Set currently active buttons
+					$("#slicing_configuration_dialog .modal-extra button.translate, #slicing_configuration_dialog .modal-extra button.rotate, #slicing_configuration_dialog .modal-extra button.scale").removeClass("disabled");
+					$("#slicing_configuration_dialog .modal-extra div.values").removeClass("translate rotate scale").addClass(viewport.transformControls.getMode());
+					$("#slicing_configuration_dialog .modal-extra button." + viewport.transformControls.getMode()).addClass("disabled");
+
+					// Check if a model is currently selected
+					var model = viewport.transformControls.object;
+					if(model) {
+	
+						// Enable delete, clone, and reset
+						$("#slicing_configuration_dialog .modal-extra button.delete, #slicing_configuration_dialog .modal-extra button.clone, #slicing_configuration_dialog .modal-extra button.reset").removeClass("disabled");
+		
+						// Show values
+						$("#slicing_configuration_dialog .modal-extra div.values p").addClass("show");
+						if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("translate"))
+							$("#slicing_configuration_dialog .modal-extra div.values input[name=\"y\"").parent().removeClass("show");
+		
+						// Check if an input is not focused
+						if(!$("#slicing_configuration_dialog .modal-extra input:focus").length) {
+		
+							// Check if in translate mode
+							if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("translate")) {
+	
+								// Display position values
+								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"x\"").val((model.position.x.toFixed(3) == 0 ? 0 : -model.position.x).toFixed(3));
+								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"z\"").val(model.position.z.toFixed(3));
+							}
+		
+							// Otherwise check if in rotate mode
+							else if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("rotate")) {
+
+								// Display rotation values
+								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"x\"").val((model.rotation.x * 180 / Math.PI).toFixed(3));
+								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"y\"").val((model.rotation.y * 180 / Math.PI).toFixed(3));
+								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"z\"").val((model.rotation.z * 180 / Math.PI).toFixed(3));
+							}
+		
+							// Otherwise check if in scale mode
+							else if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("scale")) {
+
+								// Display scale values
+								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"x\"").val(model.scale.x.toFixed(3));
+								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"y\"").val(model.scale.y.toFixed(3));
+								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"z\"").val(model.scale.z.toFixed(3));
+							}
+						}
+					}
+	
+					// Otherwise
+					else {
+	
+						// Disable delete, clone, and reset
+						$("#slicing_configuration_dialog .modal-extra button.delete, #slicing_configuration_dialog .modal-extra button.clone, #slicing_configuration_dialog .modal-extra button.reset").addClass("disabled");
+	
+						// Hide values
+						$("#slicing_configuration_dialog .modal-extra div.values p").removeClass("show");
+		
+						// Blur input
+						$("#slicing_configuration_dialog .modal-extra div.values input").blur();
+					}
+				
+					// Check if glow exists
+					if(viewport.glow) {
+			
+						// Get currently selected model
+						var model = viewport.transformControls.object;
+			
+						// Update glow's orientation
+						viewport.glow.position.copy(model.position);
+						viewport.glow.rotation.copy(model.rotation);
+						viewport.glow.scale.copy(model.scale);
+					}
+				},
+			
+				// Get 2D position
+				get2dPosition: function(vector) {
+			
+					// Initialize variables
+					var clonedVector = vector.clone();
+					var position = new THREE.Vector2();
+				
+					// Normalized device coordinate
+					clonedVector.project(viewport.camera);
+
+					// Get 2D position
+					position.x = Math.round((clonedVector.x + 1) * viewport.renderer.domElement.width  / 2);
+					position.y = Math.round((-clonedVector.y + 1) * viewport.renderer.domElement.height / 2);
+				
+					// Return position
+					return position;
 				},
 				
 				// Update boundaries
@@ -1622,8 +1762,15 @@ $(function() {
 						}
 					}
 				
-					// Clear boundaries
-					viewport.clearBoundaries();
+					// Go through all boundaries
+					for(var i = 0; i < viewport.boundaries.length; i++) {
+				
+						// Reset boundary
+						viewport.boundaries[i].material.color.setHex(0x00FF00);
+						viewport.boundaries[i].material.opacity = 0.2;
+						viewport.boundaries[i].visible = viewport.showBoundaries;
+						viewport.boundaries[i].renderOrder = 1;
+					}
 				
 					// Check if models goes out of bounds on low front
 					if(minimums[0].z < bedLowMinY - (bedLowMaxY + bedLowMinY) / 2) {
@@ -1968,18 +2115,37 @@ $(function() {
 					// Update controls
 					viewport.transformControls.update();
 					viewport.orbitControls.update();
-			
+				
 					// Check if glow exists
 					if(viewport.glow) {
-			
-						// Get currently selected model
-						var model = viewport.transformControls.object;
-			
-						// Update glow's orientation
-						viewport.glow.position.copy(model.position);
-						viewport.glow.rotation.copy(model.rotation);
-						viewport.glow.scale.copy(model.scale);
 				
+						// Get camera distance
+						var distance = viewport.camera.position.distanceTo(viewport.orbitControls.target);
+						if(distance < 200)
+							distance = 200;
+						else if(distance > 500)
+							distance = 500;
+				
+						// Set measurement size
+						$("#slicing_configuration_dialog .modal-extra div.measurements > p").css("font-size", 8 + ((500 / distance) - 1) / (2.5 - 1) * (12 - 8) + "px");
+						
+						// Set z index order for measurement values
+						var order = [];
+						for(var i = 0; i < 3; i++)
+							order[i] = viewport.camera.position.distanceTo(viewport.measurements[i][1]);
+						
+						for(var i = 0; i < 3; i++) {
+							var lowest = order.indexOf(Math.max.apply(Math, order));
+							$("#slicing_configuration_dialog .modal-extra div.measurements > p").eq(lowest).css("z-index", i);
+							order[lowest] = Number.NEGATIVE_INFINITY;
+						}
+						
+						// Position measurement values
+						for(var i = 0; i < 3; i++) {
+							var position = viewport.get2dPosition(viewport.measurements[i][1]);
+							$("#slicing_configuration_dialog .modal-extra div.measurements > p").eq(i).css({"top" : position.y - 3 + "px", "left" : position.x - $("#slicing_configuration_dialog .modal-extra div.measurements > p").eq(i).width() / 2 + "px"});
+						}
+						
 						// Update glow's view vector
 						viewport.glow.material.uniforms.viewVector.value = new THREE.Vector3().subVectors(viewport.camera.position, viewport.glow.position);
 					}
@@ -1989,9 +2155,6 @@ $(function() {
 					viewport.renderer.render(viewport.scene[0], viewport.camera);
 					viewport.renderer.clearDepth();
 					viewport.renderer.render(viewport.scene[1], viewport.camera);
-				
-					// Update values
-					updateValues();
 				}
 			};
 
@@ -2323,8 +2486,12 @@ $(function() {
 			if($("#slicing_configuration_dialog").css("display") == "block") {
 			
 				// Set slicer open is not already set
-				if(!slicerOpen)
+				if(!slicerOpen) {
 					slicerOpen = true;
+					
+					// Prevent closing slicer by clicking outside
+					$("div.modal-scrollable").off("click.modal");
+				}
 			}
 			
 			// Otherwise
@@ -2610,11 +2777,17 @@ $(function() {
 																			<button class="clone disabled">Clone</button>
 																			<button class="reset disabled">Reset</button>
 																			<button class="boundaries">Boundaries</button>
+																			<button class="measurements">Measurements</button>
 																		</div>
 																		<div class="values translate">
 																			<p>X<input type="number" step="any" name="x"></p>
 																			<p>Y<input type="number" step="any" name="y"></p>
 																			<p>Z<input type="number" step="any" name="z"></p>
+																		</div>
+																		<div class="measurements">
+																			<p class="width"></p>
+																			<p class="depth"></p>
+																			<p class="height"></p>
 																		</div>
 																	`);
 																	$("#slicing_configuration_dialog .modal-extra").append(viewport.renderer.domElement);
@@ -2726,6 +2899,37 @@ $(function() {
 																		// Render
 																		viewport.render();
 																	});
+																	
+																	// Measurements button click event
+																	$("#slicing_configuration_dialog .modal-extra button.measurements").click(function() {
+	
+																		// Set show measurements
+																		viewport.showMeasurements = !viewport.showMeasurements;
+		
+																		// Check if a model is currently selected
+																		if(viewport.transformControls.object) {
+	
+																			// Go through all boundaries
+																			for(var i = 0; i < viewport.measurements.length; i++)
+		
+																				// Toggle visibility
+																				viewport.measurements[i][0].visible = viewport.showMeasurements;
+			
+																			if(viewport.showMeasurements)
+																				$("div.measurements > p").addClass("show");
+																			else
+																				$("div.measurements > p").removeClass("show");
+		
+																			// Render
+																			viewport.render();
+																		}
+																		
+																		// Select button
+																		if(viewport.showMeasurements)
+																			$(this).addClass("disabled");
+																		else
+																			$(this).removeClass("disabled");
+																	});
 	
 																	// Printer color button click event
 																	$("#slicing_configuration_dialog .modal-extra div.printer button").click(function() {
@@ -2764,14 +2968,14 @@ $(function() {
 																			$(this).val(parseFloat($(this).val()).toFixed(3));
 			
 																			// Apply changes
-																			applyChanges($(this).attr("name"), $(this).val());
+																			viewport.applyChanges($(this).attr("name"), $(this).val());
 																		}
 		
 																		// Otherwise
 																		else
 		
-																			// Update values
-																			updateValues();
+																			// Update model changes
+																			viewport.updateModelChanges();
 																	});
 	
 																	// Value change event
@@ -2781,8 +2985,11 @@ $(function() {
 																		if(!isNaN(parseFloat($(this).val())))
 		
 																			// Apply changes
-																			applyChanges($(this).attr("name"), $(this).val());
+																			viewport.applyChanges($(this).attr("name"), $(this).val());
 																	});
+																	
+																	// Update model changes
+																	viewport.updateModelChanges();
 								
 																	// Set slicer menu
 																	slicerMenu = "Modify Model";
