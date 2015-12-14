@@ -9,7 +9,7 @@ You can install it with OctoPrint's built in plugin manager. The URL for that is
 pip install https://github.com/donovan6000/M3D-Fio/archive/master.zip
 ```
 
-OctoPrint's autodetect serial port and baudrate feature doesn't work with the Micro 3D printer, so you'll need to manually set the baudrate to `115200` and the serial port to something like `COMx` for Windows, `/dev/ttyACMx` for Linux, or `/dev/tty.usbmodemxxxx` for OS X.
+M3D Fio works in conjunction with OctoPrint's autodetect serial port and baudrate feature, so neither of those values need to be specified in order to successfully connect the printer.
 
 If your using Windows and the printer isn't recognized in the device manager, then you'll need to install the drivers manually which are located in `/drivers/Windows/`.
 

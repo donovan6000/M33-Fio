@@ -216,6 +216,9 @@ class M3DFioPlugin(
 			
 				# Return port
 				return port[0]
+		
+		# Return none
+		return None
 	
 	# On start
 	def on_after_startup(self) :
@@ -1966,13 +1969,21 @@ class M3DFioPlugin(
 	def on_printer_add_log(self, data) :
 	
 		# Check if connection was just established
-		if data.startswith("Send: ") and "M110" in data and self._printer.get_state_string() == "Connecting" :
+		if data.startswith("Send: ") and "M110" in data and (self._printer.get_state_string() == "Connecting" or self._printer.get_state_string() == "Detecting baudrate") :
 		
 			# Initialize variables
 			error = False
 		
 			# Get current printer connection state
 			currentState, currentPort, currentBaudrate, currentProfile = self._printer.get_current_connection()
+			
+			# Automatic port detection
+			if currentPort is None or currentPort == "AUTO" :
+				currentPort = self.getPort()
+			
+			# Automatic baudrate detection
+			if currentBaudrate == 0 :
+				currentBaudrate = 115200;
 			
 			# Check if EEPROM hasn't been read yet
 			if not self.eeprom :
@@ -4658,6 +4669,51 @@ class M3DFioPlugin(
 	
 		# Return file
 		return flask.send_from_directory(self.get_plugin_data_folder(), file)
+	
+	# Auto connect
+	def autoConnect(self, comm_instance, port, baudrate, connection_timeout) :
+	
+		# Check if port isn't specified
+		if port is None or port == "AUTO" :
+			
+			# Set state to detecting
+			comm_instance._changeState(comm_instance.STATE_DETECT_SERIAL)
+			
+			# Check if printer isn't detected
+			port = self.getPort()
+			if port is None :
+			
+				# Set state to failed
+				comm_instance._log("Failed to autodetect serial port")
+				comm_instance._errorValue = 'Failed to autodetect serial port.'
+				comm_instance._changeState(comm_instance.STATE_ERROR)
+				eventManager().fire(Events.ERROR, {"error": comm_instance.getErrorString()})
+				return None
+			
+			# Otherwise
+			else :
+			
+				# Connect to printer
+				serial_obj = serial.Serial(port, 115200, timeout=connection_timeout, writeTimeout=10000, parity=serial.PARITY_NONE)
+		
+		# Otherwise
+		else:
+		
+			# Set tate to connecting
+			comm_instance._log("Connecting to: %s" % port)
+			
+			# Set baudrate if not specified
+			if baudrate == 0 :
+				baudrate = 115200
+			
+			# Connect to port
+			serial_obj = serial.Serial(str(port), baudrate, timeout=connection_timeout, writeTimeout=10000, parity=serial.PARITY_ODD)
+			serial_obj.close()
+			serial_obj.parity = serial.PARITY_NONE
+			serial_obj.open()
+		
+		# Return connection
+		return serial_obj
 
 # Plugin info
 __plugin_name__ = "M3D Fio"
@@ -4676,5 +4732,6 @@ def __plugin_load__() :
 	__plugin_hooks__ = {
 		"octoprint.filemanager.preprocessor" : __plugin_implementation__.preprocessGcode,
 		"octoprint.plugin.softwareupdate.check_config" : __plugin_implementation__.getUpdateInformation,
-		"octoprint.server.http.bodysize": __plugin_implementation__.increaseUploadSize
+		"octoprint.server.http.bodysize": __plugin_implementation__.increaseUploadSize,
+		"octoprint.comm.transport.serial.factory":  __plugin_implementation__.autoConnect
 	}
