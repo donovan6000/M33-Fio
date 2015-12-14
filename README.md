@@ -9,7 +9,7 @@ You can install it with OctoPrint's built in plugin manager. The URL for that is
 pip install https://github.com/donovan6000/M3D-Fio/archive/master.zip
 ```
 
-M3D Fio works in conjunction with OctoPrint's autodetect serial port and baudrate feature, so neither of those values need to be specified in order to successfully connect the printer.
+M3D Fio works in conjunction with OctoPrint's autodetect serial port and baudrate feature, so neither of those values need to be specified in order to successfully connect to the printer.
 
 If your using Windows and the printer isn't recognized in the device manager, then you'll need to install the drivers manually which are located in `/drivers/Windows/`.
 
