@@ -39,12 +39,10 @@ using namespace std;
 #define WAVE_SIZE 0.15
 
 // Bed compensation pre-processor settings
-#define LEVELLING_MOVE_X 104.9
-#define LEVELLING_MOVE_Y 103.0
 #define SEGMENT_LENGTH 2.0
 
 // Feed rate conversion pre-processor settings
-#define MAX_FEED_RATE 60.0001
+#define MAX_FEED_RATE 60.001
 
 
 // Enumerations
@@ -264,7 +262,7 @@ Gcode createTackPoint(const Gcode &point, const Gcode &refrence) {
 	// Check if time is greater than 5
 	if(time > 5) {
 	
-		// Set g-code to a delay command based on time
+		// Set G-code to a delay command based on time
 		gcode.setValue('G', "4");
 		gcode.setValue('P', to_string(time));
 	}
@@ -878,7 +876,7 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 					commands.push_front(Command(line, INPUT));
 				}
 	
-				// Otherwise check if at end of file 
+				// Otherwise
 				else
 
 					// Break
@@ -893,8 +891,7 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			if(!processedCommand) {
 	
 				// Append input to commands
-				command.set(input, INPUT);
-				commands.push_front(command);
+				commands.push_front(Command(input, INPUT));
 				
 				// Set processed command
 				processedCommand = true;
@@ -921,21 +918,24 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 		// Check if printing test border and using center model pre-processor
 		if(!printingTestBorder && useCenterModelPreprocessor && command.skip < CENTER) {
 
-			// Check if command contains valid G-code and it's G0 or G1
-			if(!gcode.isEmpty() && gcode.hasValue('G') && (gcode.getValue('G') == "0" or gcode.getValue('G') == "1")) {
+			// Check if command contains valid G-code
+			if(!gcode.isEmpty()) 
+			
+				// Check if command is G0 or G1
+				if(gcode.hasValue('G') && (gcode.getValue('G') == "0" or gcode.getValue('G') == "1")) {
 
-				// Check if line contains an X value
-				if(gcode.hasValue('X'))
+					// Check if line contains an X value
+					if(gcode.hasValue('X'))
 
-					// Adjust X value
-					gcode.setValue('X', to_string(stod(gcode.getValue('X')) + displacementX));
+						// Adjust X value
+						gcode.setValue('X', to_string(stod(gcode.getValue('X')) + displacementX));
 
-				// Check if line contains a Y value
-				if(gcode.hasValue('Y'))
+					// Check if line contains a Y value
+					if(gcode.hasValue('Y'))
 
-					// Adjust Y value
-					gcode.setValue('Y', to_string(stod(gcode.getValue('Y')) + displacementY));
-			}
+						// Adjust Y value
+						gcode.setValue('Y', to_string(stod(gcode.getValue('Y')) + displacementY));
+				}
 		}
 
 		// Check if not printing test border and using validation pre-processor
@@ -1105,244 +1105,250 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			// Initialize new commands
 			stack<Command> newCommands;
 
-			// Check if command contains valid G-code and it's a G command
-			if(!gcode.isEmpty() && gcode.hasValue('G')) {
+			// Check if command contains valid G-code
+			if(!gcode.isEmpty())
+			
+				// Check if command is a G command
+				if(gcode.hasValue('G')) {
 				
-				// Check if at a new layer
-				if(waveBondingLayerCounter < 2 && command.origin != PREPARATION && gcode.hasValue('Z'))
+					// Check if at a new layer
+					if(waveBondingLayerCounter < 2 && command.origin != PREPARATION && gcode.hasValue('Z'))
 	
-					// Increment layer counter
-					waveBondingLayerCounter++;
+						// Increment layer counter
+						waveBondingLayerCounter++;
 
-				// Check if on first counted layer
-				if(waveBondingLayerCounter == 1) {
+					// Check if on first counted layer
+					if(waveBondingLayerCounter == 1) {
 
-					// Check if command is G0 or G1 and it's in absolute mode
-					if((gcode.getValue('G') == "0" || gcode.getValue('G') == "1") && !waveBondingRelativeMode) {
+						// Check if command is G0 or G1 and it's in absolute mode
+						if((gcode.getValue('G') == "0" || gcode.getValue('G') == "1") && !waveBondingRelativeMode) {
 
-						// Check if line contains an X or Y value
-						if(gcode.hasValue('X') || gcode.hasValue('Y'))
+							// Check if line contains an X or Y value
+							if(gcode.hasValue('X') || gcode.hasValue('Y'))
 
-							// Set changes plane
-							waveBondingChangesPlane = true;
+								// Set changes plane
+								waveBondingChangesPlane = true;
 
-						// Set delta values
-						double deltaX = !gcode.hasValue('X') ? 0 : stod(gcode.getValue('X')) - waveBondingPositionRelativeX;
-						double deltaY = !gcode.hasValue('Y') ? 0 : stod(gcode.getValue('Y')) - waveBondingPositionRelativeY;
-						double deltaZ = !gcode.hasValue('Z') ? 0 : stod(gcode.getValue('Z')) - waveBondingPositionRelativeZ;
-						double deltaE = !gcode.hasValue('E') ? 0 : stod(gcode.getValue('E')) - waveBondingPositionRelativeE;
+							// Set delta values
+							double deltaX = !gcode.hasValue('X') ? 0 : stod(gcode.getValue('X')) - waveBondingPositionRelativeX;
+							double deltaY = !gcode.hasValue('Y') ? 0 : stod(gcode.getValue('Y')) - waveBondingPositionRelativeY;
+							double deltaZ = !gcode.hasValue('Z') ? 0 : stod(gcode.getValue('Z')) - waveBondingPositionRelativeZ;
+							double deltaE = !gcode.hasValue('E') ? 0 : stod(gcode.getValue('E')) - waveBondingPositionRelativeE;
 
-						// Adjust relative values for the changes
-						waveBondingPositionRelativeX += deltaX;
-						waveBondingPositionRelativeY += deltaY;
-						waveBondingPositionRelativeZ += deltaZ;
-						waveBondingPositionRelativeE += deltaE;
+							// Adjust relative values for the changes
+							waveBondingPositionRelativeX += deltaX;
+							waveBondingPositionRelativeY += deltaY;
+							waveBondingPositionRelativeZ += deltaZ;
+							waveBondingPositionRelativeE += deltaE;
 
-						// Calculate distance of change
-						double distance = sqrt(deltaX * deltaX + deltaY * deltaY);
+							// Calculate distance of change
+							double distance = sqrt(deltaX * deltaX + deltaY * deltaY);
 
-						// Set wave ratio
-						uint32_t waveRatio = distance > WAVE_PERIOD_QUARTER ? distance / WAVE_PERIOD_QUARTER : 1;
+							// Set wave ratio
+							uint32_t waveRatio = distance > WAVE_PERIOD_QUARTER ? stod(to_string(distance / WAVE_PERIOD_QUARTER)) : 1;
 
-						// Set relative differences
-						double relativeDifferenceX = waveBondingPositionRelativeX - deltaX;
-						double relativeDifferenceY = waveBondingPositionRelativeY - deltaY;
-						double relativeDifferenceZ = waveBondingPositionRelativeZ - deltaZ;
-						double relativeDifferenceE = waveBondingPositionRelativeE - deltaE;
+							// Set relative differences
+							double relativeDifferenceX = waveBondingPositionRelativeX - deltaX;
+							double relativeDifferenceY = waveBondingPositionRelativeY - deltaY;
+							double relativeDifferenceZ = waveBondingPositionRelativeZ - deltaZ;
+							double relativeDifferenceE = waveBondingPositionRelativeE - deltaE;
 
-						// Set delta ratios
-						double deltaRatioX, deltaRatioY, deltaRatioZ, deltaRatioE;
-						if(distance) {
-							deltaRatioX = deltaX / distance;
-							deltaRatioY = deltaY / distance;
-							deltaRatioZ = deltaZ / distance;
-							deltaRatioE = deltaE / distance;
-						}
-						else {
-							deltaRatioX = 0;
-							deltaRatioY = 0;
-							deltaRatioZ = 0;
-							deltaRatioE = 0;
-						}
+							// Set delta ratios
+							double deltaRatioX, deltaRatioY, deltaRatioZ, deltaRatioE;
+							if(distance) {
+								deltaRatioX = deltaX / distance;
+								deltaRatioY = deltaY / distance;
+								deltaRatioZ = deltaZ / distance;
+								deltaRatioE = deltaE / distance;
+							}
+							else {
+								deltaRatioX = 0;
+								deltaRatioY = 0;
+								deltaRatioZ = 0;
+								deltaRatioE = 0;
+							}
 
-						// Check if delta E is greater than zero 
-						if(deltaE > 0) {
+							// Check if delta E is greater than zero 
+							if(deltaE > 0) {
 
-							// Check if previous G-code is not empty
-							if(!waveBondingPreviousGcode.isEmpty()) {
+								// Check if previous G-code is not empty
+								if(!waveBondingPreviousGcode.isEmpty()) {
 
-								// Check if corner count is at most one and sharp corner
-								if(waveBondingCornerCounter <= 1 && isSharpCorner(gcode, waveBondingPreviousGcode)) {
+									//Check if first sharp corner
+									if(waveBondingCornerCounter < 1 && isSharpCorner(gcode, waveBondingPreviousGcode)) {
 
-									// Check if refrence G-codes isn't set
-									if(waveBondingRefrenceGcode.isEmpty()) {
+										// Check if refrence G-codes isn't set
+										if(waveBondingRefrenceGcode.isEmpty()) {
 	
-										// Check if a tack point was created
-										waveBondingTackPoint = createTackPoint(gcode, waveBondingPreviousGcode);
-										if(!waveBondingTackPoint.isEmpty())
+											// Check if a tack point was created
+											waveBondingTackPoint = createTackPoint(gcode, waveBondingPreviousGcode);
+											if(!waveBondingTackPoint.isEmpty())
 								
+												// Add tack point to output
+												newCommands.push(Command(waveBondingTackPoint.getAscii() + '\n', WAVE, WAVE));
+										}
+	
+										// Set refrence G-code
+										waveBondingRefrenceGcode = gcode;
+	
+										// Increment corner counter
+										waveBondingCornerCounter++;
+									}
+
+									// Otherwise check if sharp corner
+									else if(isSharpCorner(gcode, waveBondingRefrenceGcode)) {
+
+										// Check if a tack point was created
+										waveBondingTackPoint = createTackPoint(gcode, waveBondingRefrenceGcode);
+										if(!waveBondingTackPoint.isEmpty())
+							
 											// Add tack point to output
 											newCommands.push(Command(waveBondingTackPoint.getAscii() + '\n', WAVE, WAVE));
+	
+										// Set refrence G-code
+										waveBondingRefrenceGcode = gcode;
 									}
-	
-									// Set refrence G-code
-									waveBondingRefrenceGcode = gcode;
-	
-									// Increment corner counter
-									waveBondingCornerCounter++;
 								}
 
-								// Otherwise check is corner count is at least one and sharp corner
-								else if(waveBondingCornerCounter >= 1 && isSharpCorner(gcode, waveBondingRefrenceGcode)) {
-
-									// Check if a tack point was created
-									waveBondingTackPoint = createTackPoint(gcode, waveBondingRefrenceGcode);
-									if(!waveBondingTackPoint.isEmpty())
-							
-										// Add tack point to output
-										newCommands.push(Command(waveBondingTackPoint.getAscii() + '\n', WAVE, WAVE));
-	
-									// Set refrence G-code
-									waveBondingRefrenceGcode = gcode;
-								}
-							}
-
-							// Go through all of the wave
-							for(uint32_t i = 1; i <= waveRatio; i++) {
+								// Go through all of the wave
+								for(uint32_t i = 1; i <= waveRatio; i++) {
 					
-								// Check if at last component
-								double tempRelativeX, tempRelativeY, tempRelativeZ, tempRelativeE;
-								if(i == waveRatio) {
+									// Check if at last component
+									double tempRelativeX, tempRelativeY, tempRelativeZ, tempRelativeE;
+									if(i == waveRatio) {
 
-									// Set temp relative values
-									tempRelativeX = waveBondingPositionRelativeX;
-									tempRelativeY = waveBondingPositionRelativeY;
-									tempRelativeZ = waveBondingPositionRelativeZ;
-									tempRelativeE = waveBondingPositionRelativeE;
-								}
+										// Set temp relative values
+										tempRelativeX = waveBondingPositionRelativeX;
+										tempRelativeY = waveBondingPositionRelativeY;
+										tempRelativeZ = waveBondingPositionRelativeZ;
+										tempRelativeE = waveBondingPositionRelativeE;
+									}
 
-								// Otherwise
-								else {
-
-									// Set temp relative values
-									tempRelativeX = relativeDifferenceX + i * WAVE_PERIOD_QUARTER * deltaRatioX;
-									tempRelativeY = relativeDifferenceY + i * WAVE_PERIOD_QUARTER * deltaRatioY;
-									tempRelativeZ = relativeDifferenceZ + i * WAVE_PERIOD_QUARTER * deltaRatioZ;
-									tempRelativeE = relativeDifferenceE + i * WAVE_PERIOD_QUARTER * deltaRatioE;
-								}
-
-								// Check if not at least component
-								if(i != waveRatio) {
-
-									// Set extra G-code G value
-									waveBondingExtraGcode.clear();
-									waveBondingExtraGcode.setValue('G', gcode.getValue('G'));
-	
-									// Set extra G-code X value
-									if(gcode.hasValue('X'))
-										waveBondingExtraGcode.setValue('X', to_string(waveBondingPositionRelativeX - deltaX + tempRelativeX - relativeDifferenceX));
-	
-									// Set extra G-cdoe Y value
-									if(gcode.hasValue('Y'))
-										waveBondingExtraGcode.setValue('Y', to_string(waveBondingPositionRelativeY - deltaY + tempRelativeY - relativeDifferenceY));
-	
-									// Set extra G-code F value if first element
-									if(gcode.hasValue('F') && i == 1)
-										waveBondingExtraGcode.setValue('F', gcode.getValue('F'));
-	
-									// Check if plane changed
-									if(waveBondingChangesPlane)
-	
-										// Set extra G-code Z value
-										waveBondingExtraGcode.setValue('Z', to_string(waveBondingPositionRelativeZ - deltaZ + tempRelativeZ - relativeDifferenceZ + getCurrentAdjustmentZ()));
-	
-									// Otherwise check if command has a Z value and changes in Z are noticable
-									else if(gcode.hasValue('Z') && deltaZ != DBL_EPSILON)
-	
-										// Set extra G-code Z value
-										waveBondingExtraGcode.setValue('Z', to_string(waveBondingPositionRelativeZ - deltaZ + tempRelativeZ - relativeDifferenceZ));
-		
-									// Set extra G-code E value
-									waveBondingExtraGcode.setValue('E', to_string(waveBondingPositionRelativeE - deltaE + tempRelativeE - relativeDifferenceE));
-							
-									// Add extra G-code to output
-									newCommands.push(Command(waveBondingExtraGcode.getAscii() + '\n', WAVE, WAVE));
-								}
-
-								// Otherwise check if plane changed
-								else if(waveBondingChangesPlane) {
-
-									// Check if command has a Z value
-									if(gcode.hasValue('Z'))
-	
-										// Add to command's Z value
-										gcode.setValue('Z', to_string(stod(gcode.getValue('Z')) + getCurrentAdjustmentZ()));
-	
 									// Otherwise
-									else
+									else {
+
+										// Set temp relative values
+										tempRelativeX = relativeDifferenceX + i * WAVE_PERIOD_QUARTER * deltaRatioX;
+										tempRelativeY = relativeDifferenceY + i * WAVE_PERIOD_QUARTER * deltaRatioY;
+										tempRelativeZ = relativeDifferenceZ + i * WAVE_PERIOD_QUARTER * deltaRatioZ;
+										tempRelativeE = relativeDifferenceE + i * WAVE_PERIOD_QUARTER * deltaRatioE;
+									}
+
+									// Check if not at least component
+									if(i != waveRatio) {
+
+										// Set extra G-code G value
+										waveBondingExtraGcode.clear();
+										waveBondingExtraGcode.setValue('G', gcode.getValue('G'));
 	
-										// Set command's Z value
-										gcode.setValue('Z', to_string(relativeDifferenceZ + deltaZ + getCurrentAdjustmentZ()));
+										// Set extra G-code X value
+										if(gcode.hasValue('X'))
+											waveBondingExtraGcode.setValue('X', to_string(waveBondingPositionRelativeX - deltaX + tempRelativeX - relativeDifferenceX));
+	
+										// Set extra G-cdoe Y value
+										if(gcode.hasValue('Y'))
+											waveBondingExtraGcode.setValue('Y', to_string(waveBondingPositionRelativeY - deltaY + tempRelativeY - relativeDifferenceY));
+	
+										// Set extra G-code F value if first element
+										if(gcode.hasValue('F') && i == 1)
+											waveBondingExtraGcode.setValue('F', gcode.getValue('F'));
+	
+										// Check if plane changed
+										if(waveBondingChangesPlane)
+	
+											// Set extra G-code Z value
+											waveBondingExtraGcode.setValue('Z', to_string(waveBondingPositionRelativeZ - deltaZ + tempRelativeZ - relativeDifferenceZ + getCurrentAdjustmentZ()));
+	
+										// Otherwise check if command has a Z value and changes in Z are noticable
+										else if(gcode.hasValue('Z') && deltaZ != DBL_EPSILON)
+	
+											// Set extra G-code Z value
+											waveBondingExtraGcode.setValue('Z', to_string(waveBondingPositionRelativeZ - deltaZ + tempRelativeZ - relativeDifferenceZ));
+		
+										// Set extra G-code E value
+										waveBondingExtraGcode.setValue('E', to_string(waveBondingPositionRelativeE - deltaE + tempRelativeE - relativeDifferenceE));
+							
+										// Add extra G-code to output
+										newCommands.push(Command(waveBondingExtraGcode.getAscii() + '\n', WAVE, WAVE));
+									}
+
+									// Otherwise check if plane changed
+									else if(waveBondingChangesPlane) {
+
+										// Check if command has a Z value
+										if(gcode.hasValue('Z'))
+	
+											// Add to command's Z value
+											gcode.setValue('Z', to_string(stod(gcode.getValue('Z')) + getCurrentAdjustmentZ()));
+	
+										// Otherwise
+										else
+	
+											// Set command's Z value
+											gcode.setValue('Z', to_string(relativeDifferenceZ + deltaZ + getCurrentAdjustmentZ()));
+									}
 								}
 							}
+							
+							// Check if no corners have occured
+							if(waveBondingCornerCounter < 1)
+							
+								// Set previous G-code
+								waveBondingPreviousGcode = gcode;
 						}
 
-						// Set previous G-code
-						waveBondingPreviousGcode = gcode;
-					}
+						// Otherwise check if command is G28
+						else if(gcode.getValue('G') == "28") {
 
-					// Otherwise check if command is G28
-					else if(gcode.getValue('G') == "28") {
-
-						// Set X and Y to home
-						waveBondingPositionRelativeX = 54;
-						waveBondingPositionRelativeY = 50;
-					}
-
-					// Otherwise check if command is G90
-					else if(gcode.getValue('G') == "90")
-
-						// Clear relative mode
-						waveBondingRelativeMode = false;
-
-					// Otherwise check if command is G91
-					else if(gcode.getValue('G') == "91")
-
-						// Set relative mode
-						waveBondingRelativeMode = true;
-
-					// Otherwise check if command is G92
-					else if(gcode.getValue('G') == "92") {
-
-						// Check if command doesn't have an X, Y, Z, and E value
-						if(!gcode.hasValue('X') && !gcode.hasValue('Y') && !gcode.hasValue('Z') && !gcode.hasValue('E')) {
-
-							// Set command values to zero
-							gcode.setValue('X', "0");
-							gcode.setValue('Y', "0");
-							gcode.setValue('Z', "0");
-							gcode.setValue('E', "0");
+							// Set X and Y to home
+							waveBondingPositionRelativeX = 54;
+							waveBondingPositionRelativeY = 50;
 						}
 
-						// Otherwise
-						else {
+						// Otherwise check if command is G90
+						else if(gcode.getValue('G') == "90")
 
-							// Set relative positions
-							if(gcode.hasValue('X'))
-								waveBondingPositionRelativeX = stod(gcode.getValue('X'));
+							// Clear relative mode
+							waveBondingRelativeMode = false;
 
-							if(gcode.hasValue('Y'))
-								waveBondingPositionRelativeY = stod(gcode.getValue('Y'));
+						// Otherwise check if command is G91
+						else if(gcode.getValue('G') == "91")
 
-							if(gcode.hasValue('Z'))
-								waveBondingPositionRelativeZ = stod(gcode.getValue('Z'));
+							// Set relative mode
+							waveBondingRelativeMode = true;
 
-							if(gcode.hasValue('E'))
-								waveBondingPositionRelativeE = stod(gcode.getValue('E'));
+						// Otherwise check if command is G92
+						else if(gcode.getValue('G') == "92") {
+
+							// Check if command doesn't have an X, Y, Z, and E value
+							if(!gcode.hasValue('X') && !gcode.hasValue('Y') && !gcode.hasValue('Z') && !gcode.hasValue('E')) {
+
+								// Set command values to zero
+								gcode.setValue('X', "0");
+								gcode.setValue('Y', "0");
+								gcode.setValue('Z', "0");
+								gcode.setValue('E', "0");
+							}
+
+							// Otherwise
+							else {
+
+								// Set relative positions
+								if(gcode.hasValue('X'))
+									waveBondingPositionRelativeX = stod(gcode.getValue('X'));
+
+								if(gcode.hasValue('Y'))
+									waveBondingPositionRelativeY = stod(gcode.getValue('Y'));
+
+								if(gcode.hasValue('Z'))
+									waveBondingPositionRelativeZ = stod(gcode.getValue('Z'));
+
+								if(gcode.hasValue('E'))
+									waveBondingPositionRelativeE = stod(gcode.getValue('E'));
+							}
 						}
 					}
 				}
-			}
 									
 			// Check if new commands exist
 			if(newCommands.size()) {
@@ -1373,7 +1379,7 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			// Check if command contains valid G-code
 			if(!gcode.isEmpty()) {
 			
-				// Otherwise check if not past the second layer and at a new layer
+				// Check if at a new layer
 				if(thermalBondingLayerCounter < 2 && command.origin != PREPARATION && gcode.hasValue('Z')) {
 		
 					// Check if on first counted layer
@@ -1410,33 +1416,29 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 							// Check if previous command exists and filament is ABS, HIPS, or PLA
 							if(!thermalBondingPreviousGcode.isEmpty() && (filamentType == ABS || filamentType == HIPS || filamentType == PLA)) {
 
-								// Check if corner counter is less than or equal to one
-								if(thermalBondingCornerCounter <= 1) {
-	
-									// Check if sharp corner
-									if(isSharpCorner(gcode, thermalBondingPreviousGcode)) {
+								// Check if first sharp corner
+								if(thermalBondingCornerCounter < 1 && isSharpCorner(gcode, thermalBondingPreviousGcode)) {
 		
-										// Check if refrence G-codes isn't set
-										if(thermalBondingRefrenceGcode.isEmpty()) {
-			
-											// Check if a tack point was created
-											thermalBondingTackPoint = createTackPoint(gcode, thermalBondingPreviousGcode);
-											if(!thermalBondingTackPoint.isEmpty())
-									
-												// Add tack point to output
-												newCommands.push(Command(thermalBondingTackPoint.getAscii() + '\n', THERMAL, THERMAL));
-										}
-										
-										// Set refrence G-code
-										thermalBondingRefrenceGcode = gcode;
-			
-										// Increment corner count
-										thermalBondingCornerCounter++;
+									// Check if refrence G-codes isn't set
+									if(thermalBondingRefrenceGcode.isEmpty()) {
+		
+										// Check if a tack point was created
+										thermalBondingTackPoint = createTackPoint(gcode, thermalBondingPreviousGcode);
+										if(!thermalBondingTackPoint.isEmpty())
+								
+											// Add tack point to output
+											newCommands.push(Command(thermalBondingTackPoint.getAscii() + '\n', THERMAL, THERMAL));
 									}
+									
+									// Set refrence G-code
+									thermalBondingRefrenceGcode = gcode;
+		
+									// Increment corner count
+									thermalBondingCornerCounter++;
 								}
 	
-								// Otherwise check if corner counter is greater than one and sharp corner
-								else if(thermalBondingCornerCounter >= 1 && isSharpCorner(gcode, thermalBondingRefrenceGcode)) {
+								// Otherwise check if sharp corner
+								else if(isSharpCorner(gcode, thermalBondingRefrenceGcode)) {
 	
 									// Check if a tack point was created
 									thermalBondingTackPoint = createTackPoint(gcode, thermalBondingRefrenceGcode);
@@ -1449,6 +1451,12 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 									thermalBondingRefrenceGcode = gcode;
 								}
 							}
+							
+							// Check if no corners have occured
+							if(thermalBondingCornerCounter < 1)
+							
+								// Set previous G-code
+								thermalBondingPreviousGcode = gcode;
 						}
 
 						// Otherwise check if command is G90
@@ -1463,9 +1471,6 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 							// Set relative mode
 							thermalBondingRelativeMode = true;
 					}
-
-					// Set previous G-code
-					thermalBondingPreviousGcode = gcode;
 				}
 			}
 			
@@ -1495,172 +1500,168 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			// Initialize new commands
 			stack<Command> newCommands;
 
-			// Check if command contains valid G-code and it's a G command
-			if(!gcode.isEmpty() and gcode.hasValue('G')) {
+			// Check if command contains valid G-code
+			if(!gcode.isEmpty())
 			
-				// Check if command is G0 or G1 and it's in absolute mode
-				if((gcode.getValue('G') == "0" || gcode.getValue('G') == "1") && !bedCompensationRelativeMode) {
+				// Check if command is a G command
+				if(gcode.hasValue('G')) {
+			
+					// Check if command is G0 or G1 and it's in absolute mode
+					if((gcode.getValue('G') == "0" || gcode.getValue('G') == "1") && !bedCompensationRelativeMode) {
 
-					// Check if command has an X or Y value
-					if(gcode.hasValue('X') || gcode.hasValue('Y'))
+						// Check if command has an X or Y value
+						if(gcode.hasValue('X') || gcode.hasValue('Y'))
 
-						// Set changes plane
-						bedCompensationChangesPlane = true;
+							// Set changes plane
+							bedCompensationChangesPlane = true;
 
-					// Check if command contains a Z value
-					if(gcode.hasValue('Z'))
+						// Check if command contains a Z value
+						if(gcode.hasValue('Z'))
 
-						// Add to command's Z value
-						gcode.setValue('Z', to_string(stod(gcode.getValue('Z')) + bedHeightOffset));
+							// Add to command's Z value
+							gcode.setValue('Z', to_string(stod(gcode.getValue('Z')) + bedHeightOffset));
 
-					// Set delta values
-					double deltaX = !gcode.hasValue('X') ? 0 : stod(gcode.getValue('X')) - bedCompensationPositionRelativeX;
-					double deltaY = !gcode.hasValue('Y') ? 0 : stod(gcode.getValue('Y')) - bedCompensationPositionRelativeY;
-					double deltaZ = !gcode.hasValue('Z') ? 0 : stod(gcode.getValue('Z')) - bedCompensationPositionRelativeZ;
-					double deltaE = !gcode.hasValue('E') ? 0 : stod(gcode.getValue('E')) - bedCompensationPositionRelativeE;
+						// Set delta values
+						double deltaX = !gcode.hasValue('X') ? 0 : stod(gcode.getValue('X')) - bedCompensationPositionRelativeX;
+						double deltaY = !gcode.hasValue('Y') ? 0 : stod(gcode.getValue('Y')) - bedCompensationPositionRelativeY;
+						double deltaZ = !gcode.hasValue('Z') ? 0 : stod(gcode.getValue('Z')) - bedCompensationPositionRelativeZ;
+						double deltaE = !gcode.hasValue('E') ? 0 : stod(gcode.getValue('E')) - bedCompensationPositionRelativeE;
 
-					// Adjust position absolute and relative values for the changes
-					bedCompensationPositionAbsoluteX += deltaX;
-					bedCompensationPositionAbsoluteY += deltaY;
-					bedCompensationPositionRelativeX += deltaX;
-					bedCompensationPositionRelativeY += deltaY;
-					bedCompensationPositionRelativeZ += deltaZ;
-					bedCompensationPositionRelativeE += deltaE;
+						// Adjust position absolute and relative values for the changes
+						bedCompensationPositionAbsoluteX += deltaX;
+						bedCompensationPositionAbsoluteY += deltaY;
+						bedCompensationPositionRelativeX += deltaX;
+						bedCompensationPositionRelativeY += deltaY;
+						bedCompensationPositionRelativeZ += deltaZ;
+						bedCompensationPositionRelativeE += deltaE;
 
-					// Calculate distance
-					double distance = sqrt(deltaX * deltaX + deltaY * deltaY);
+						// Calculate distance
+						double distance = sqrt(deltaX * deltaX + deltaY * deltaY);
 
-					// Set segment counter
-					uint32_t segmentCounter = distance > SEGMENT_LENGTH ? distance / SEGMENT_LENGTH : 1;
+						// Set segment counter
+						uint32_t segmentCounter = distance > SEGMENT_LENGTH ? stod(to_string(distance / SEGMENT_LENGTH)) : 1;
 
-					// Set absolute and relative differences
-					double absoluteDifferenceX = bedCompensationPositionAbsoluteX - deltaX;
-					double absoluteDifferenceY = bedCompensationPositionAbsoluteY - deltaY;
-					double relativeDifferenceX = bedCompensationPositionRelativeX - deltaX;
-					double relativeDifferenceY = bedCompensationPositionRelativeY - deltaY;
-					double relativeDifferenceZ = bedCompensationPositionRelativeZ - deltaZ;
-					double relativeDifferenceE = bedCompensationPositionRelativeE - deltaE;
+						// Set absolute and relative differences
+						double absoluteDifferenceX = bedCompensationPositionAbsoluteX - deltaX;
+						double absoluteDifferenceY = bedCompensationPositionAbsoluteY - deltaY;
+						double relativeDifferenceX = bedCompensationPositionRelativeX - deltaX;
+						double relativeDifferenceY = bedCompensationPositionRelativeY - deltaY;
+						double relativeDifferenceZ = bedCompensationPositionRelativeZ - deltaZ;
+						double relativeDifferenceE = bedCompensationPositionRelativeE - deltaE;
 
-					// Set delta ratios
-					double deltaRatioX, deltaRatioY, deltaRatioZ, deltaRatioE;
-					if(distance) {
-						deltaRatioX = deltaX / distance;
-						deltaRatioY = deltaY / distance;
-						deltaRatioZ = deltaZ / distance;
-						deltaRatioE = deltaE / distance;
-					}
-					else {
-						deltaRatioX = 0;
-						deltaRatioY = 0;
-						deltaRatioZ = 0;
-						deltaRatioE = 0;
-					}
+						// Set delta ratios
+						double deltaRatioX, deltaRatioY, deltaRatioZ, deltaRatioE;
+						if(distance) {
+							deltaRatioX = deltaX / distance;
+							deltaRatioY = deltaY / distance;
+							deltaRatioZ = deltaZ / distance;
+							deltaRatioE = deltaE / distance;
+						}
+						else {
+							deltaRatioX = 0;
+							deltaRatioY = 0;
+							deltaRatioZ = 0;
+							deltaRatioE = 0;
+						}
 
-					// Check if change in E is greater than zero
-					if(deltaE > 0) {
+						// Check if change in E is greater than zero
+						if(deltaE > 0) {
 
-						// Go through all segments
-						for(uint32_t i = 1; i <= segmentCounter; i++) {
+							// Go through all segments
+							for(uint32_t i = 1; i <= segmentCounter; i++) {
 				
-							// Check if at last segment
-							double tempAbsoluteX, tempAbsoluteY, tempRelativeX, tempRelativeY, tempRelativeZ, tempRelativeE;
-							if(i == segmentCounter) {
+								// Check if at last segment
+								double tempAbsoluteX, tempAbsoluteY, tempRelativeX, tempRelativeY, tempRelativeZ, tempRelativeE;
+								if(i == segmentCounter) {
 
-								// Set temp values
-								tempAbsoluteX = bedCompensationPositionAbsoluteX;
-								tempAbsoluteY = bedCompensationPositionAbsoluteY;
-								tempRelativeX = bedCompensationPositionRelativeX;
-								tempRelativeY = bedCompensationPositionRelativeY;
-								tempRelativeZ = bedCompensationPositionRelativeZ;
-								tempRelativeE = bedCompensationPositionRelativeE;
-							}
+									// Set temp values
+									tempAbsoluteX = bedCompensationPositionAbsoluteX;
+									tempAbsoluteY = bedCompensationPositionAbsoluteY;
+									tempRelativeX = bedCompensationPositionRelativeX;
+									tempRelativeY = bedCompensationPositionRelativeY;
+									tempRelativeZ = bedCompensationPositionRelativeZ;
+									tempRelativeE = bedCompensationPositionRelativeE;
+								}
 	
-							// Otherwise
-							else {
+								// Otherwise
+								else {
 
-								// Set temp values
-								tempAbsoluteX = absoluteDifferenceX + i * SEGMENT_LENGTH * deltaRatioX;
-								tempAbsoluteY = absoluteDifferenceY + i * SEGMENT_LENGTH * deltaRatioY;
-								tempRelativeX = relativeDifferenceX + i * SEGMENT_LENGTH * deltaRatioX;
-								tempRelativeY = relativeDifferenceY + i * SEGMENT_LENGTH * deltaRatioY;
-								tempRelativeZ = relativeDifferenceZ + i * SEGMENT_LENGTH * deltaRatioZ;
-								tempRelativeE = relativeDifferenceE + i * SEGMENT_LENGTH * deltaRatioE;
-							}
+									// Set temp values
+									tempAbsoluteX = absoluteDifferenceX + i * SEGMENT_LENGTH * deltaRatioX;
+									tempAbsoluteY = absoluteDifferenceY + i * SEGMENT_LENGTH * deltaRatioY;
+									tempRelativeX = relativeDifferenceX + i * SEGMENT_LENGTH * deltaRatioX;
+									tempRelativeY = relativeDifferenceY + i * SEGMENT_LENGTH * deltaRatioY;
+									tempRelativeZ = relativeDifferenceZ + i * SEGMENT_LENGTH * deltaRatioZ;
+									tempRelativeE = relativeDifferenceE + i * SEGMENT_LENGTH * deltaRatioE;
+								}
 	
-							// Get height adjustment
-							double heightAdjustment = getHeightAdjustmentRequired(tempAbsoluteX, tempAbsoluteY);
+								// Get height adjustment
+								double heightAdjustment = getHeightAdjustmentRequired(tempAbsoluteX, tempAbsoluteY);
 
-							// Check if not at last segment
-							if(i != segmentCounter) {
+								// Check if not at last segment
+								if(i != segmentCounter) {
 
-								// Set extra G-code
-								bedCompensationExtraGcode.clear();
-								bedCompensationExtraGcode.setValue('G', gcode.getValue('G'));
+									// Set extra G-code
+									bedCompensationExtraGcode.clear();
+									bedCompensationExtraGcode.setValue('G', gcode.getValue('G'));
 
-								// Check if command has an X value
-								if(gcode.hasValue('X'))
+									// Check if command has an X value
+									if(gcode.hasValue('X'))
 
-									// Set extra G-code X value
-									bedCompensationExtraGcode.setValue('X', to_string(bedCompensationPositionRelativeX - deltaX + tempRelativeX - relativeDifferenceX));
+										// Set extra G-code X value
+										bedCompensationExtraGcode.setValue('X', to_string(bedCompensationPositionRelativeX - deltaX + tempRelativeX - relativeDifferenceX));
 	
-								// Check if command has a Y value
-								if(gcode.hasValue('Y'))
+									// Check if command has a Y value
+									if(gcode.hasValue('Y'))
 
-									// Set extra G-code Y value
-									bedCompensationExtraGcode.setValue('Y', to_string(bedCompensationPositionRelativeY - deltaY + tempRelativeY - relativeDifferenceY));
+										// Set extra G-code Y value
+										bedCompensationExtraGcode.setValue('Y', to_string(bedCompensationPositionRelativeY - deltaY + tempRelativeY - relativeDifferenceY));
 
-								// Check if command has F value and in first element
-								if(gcode.hasValue('F') && i == 1)
+									// Check if command has F value and in first element
+									if(gcode.hasValue('F') && i == 1)
 
-									// Set extra G-code F value
-									bedCompensationExtraGcode.setValue('F', gcode.getValue('F'));
+										// Set extra G-code F value
+										bedCompensationExtraGcode.setValue('F', gcode.getValue('F'));
 
-								// Check if the plane changed
-								if(bedCompensationChangesPlane)
+									// Check if the plane changed
+									if(bedCompensationChangesPlane)
 
-									// Set extra G-code Z value
-									bedCompensationExtraGcode.setValue('Z', to_string(bedCompensationPositionRelativeZ - deltaZ + tempRelativeZ - relativeDifferenceZ + heightAdjustment));
+										// Set extra G-code Z value
+										bedCompensationExtraGcode.setValue('Z', to_string(bedCompensationPositionRelativeZ - deltaZ + tempRelativeZ - relativeDifferenceZ + heightAdjustment));
 
-								// Otherwise check if command has a Z value and the change in Z in noticable
-								else if(gcode.hasValue('Z') && deltaZ != DBL_EPSILON)
+									// Otherwise check if command has a Z value and the change in Z in noticable
+									else if(gcode.hasValue('Z') && deltaZ != DBL_EPSILON)
 
-									// Set extra G-code Z value
-									bedCompensationExtraGcode.setValue('Z', to_string(bedCompensationPositionRelativeZ - deltaZ + tempRelativeZ - relativeDifferenceZ));
+										// Set extra G-code Z value
+										bedCompensationExtraGcode.setValue('Z', to_string(bedCompensationPositionRelativeZ - deltaZ + tempRelativeZ - relativeDifferenceZ));
 
-								// Set extra G-gode E value
-								bedCompensationExtraGcode.setValue('E', to_string(bedCompensationPositionRelativeE - deltaE + tempRelativeE - relativeDifferenceE));
+									// Set extra G-gode E value
+									bedCompensationExtraGcode.setValue('E', to_string(bedCompensationPositionRelativeE - deltaE + tempRelativeE - relativeDifferenceE));
 						
-								// Add extra G-code to output
-								newCommands.push(Command(bedCompensationExtraGcode.getAscii() + '\n', BED, BED));
-							}
+									// Add extra G-code to output
+									newCommands.push(Command(bedCompensationExtraGcode.getAscii() + '\n', BED, BED));
+								}
 
-							// Otherwise
-							else {
-
-								// Check if the plane changed
-								if(bedCompensationChangesPlane) {
+								// Otherwise check if the plane changed
+								else if(bedCompensationChangesPlane) {
 
 									// Check if command has a Z value
 									if(gcode.hasValue('Z'))
-	
+
 										// Add value to command Z value
 										gcode.setValue('Z', to_string(stod(gcode.getValue('Z')) + heightAdjustment));
-	
+
 									// Otherwise
 									else
-	
+
 										// Set command Z value
 										gcode.setValue('Z', to_string(relativeDifferenceZ + deltaZ + heightAdjustment));
 								}
 							}
 						}
-					}
 					
-					// Otherwise
-					else {
-
-						// Check if the plane changed
-						if(bedCompensationChangesPlane) {
+						// Otherwise check if the plane changed
+						else if(bedCompensationChangesPlane) {
 
 							// Set height adjustment
 							double heightAdjustment = getHeightAdjustmentRequired(bedCompensationPositionAbsoluteX, bedCompensationPositionAbsoluteY);
@@ -1678,59 +1679,58 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 								gcode.setValue('Z', to_string(bedCompensationPositionRelativeZ + heightAdjustment));
 						}
 					}
-				}
 
-				// Otherwise check if command is G28
-				else if(gcode.getValue('G') == "28") {
+					// Otherwise check if command is G28
+					else if(gcode.getValue('G') == "28") {
 
-					// Set X and Y to home
-					bedCompensationPositionRelativeX = bedCompensationPositionAbsoluteX = 54;
-					bedCompensationPositionRelativeY = bedCompensationPositionAbsoluteY = 50;
-				}
-
-				// Otherwise check if command is G90
-				else if(gcode.getValue('G') == "90")
-
-					// Clear relative mode
-					bedCompensationRelativeMode = false;
-
-				// Otherwise check if command is G91
-				else if(gcode.getValue('G') == "91")
-
-					// Set relative mode
-					bedCompensationRelativeMode = true;
-
-				// Otherwise check if command is G92
-				else if(gcode.getValue('G') == "92") {
-
-					// Check if command doesn't have an X, Y, Z, and E value
-					if(!gcode.hasValue('X') && !gcode.hasValue('Y') && !gcode.hasValue('Z') && !gcode.hasValue('E')) {
-
-						// Set command values to zero
-						gcode.setValue('X', "0");
-						gcode.setValue('Y', "0");
-						gcode.setValue('Z', "0");
-						gcode.setValue('E', "0");
+						// Set X and Y to home
+						bedCompensationPositionRelativeX = bedCompensationPositionAbsoluteX = 54;
+						bedCompensationPositionRelativeY = bedCompensationPositionAbsoluteY = 50;
 					}
 
-					// Otherwise
-					else {
+					// Otherwise check if command is G90
+					else if(gcode.getValue('G') == "90")
 
-						// Set relative positions
-						if(gcode.hasValue('X'))
-							bedCompensationPositionRelativeX = stod(gcode.getValue('X'));
+						// Clear relative mode
+						bedCompensationRelativeMode = false;
 
-						if(gcode.hasValue('Y'))
-							bedCompensationPositionRelativeY = stod(gcode.getValue('Y'));
+					// Otherwise check if command is G91
+					else if(gcode.getValue('G') == "91")
 
-						if(gcode.hasValue('Z'))
-							bedCompensationPositionRelativeZ = stod(gcode.getValue('Z'));
+						// Set relative mode
+						bedCompensationRelativeMode = true;
 
-						if(gcode.hasValue('E'))
-							bedCompensationPositionRelativeE = stod(gcode.getValue('E'));
+					// Otherwise check if command is G92
+					else if(gcode.getValue('G') == "92") {
+
+						// Check if command doesn't have an X, Y, Z, and E value
+						if(!gcode.hasValue('X') && !gcode.hasValue('Y') && !gcode.hasValue('Z') && !gcode.hasValue('E')) {
+
+							// Set command values to zero
+							gcode.setValue('X', "0");
+							gcode.setValue('Y', "0");
+							gcode.setValue('Z', "0");
+							gcode.setValue('E', "0");
+						}
+
+						// Otherwise
+						else {
+
+							// Set relative positions
+							if(gcode.hasValue('X'))
+								bedCompensationPositionRelativeX = stod(gcode.getValue('X'));
+
+							if(gcode.hasValue('Y'))
+								bedCompensationPositionRelativeY = stod(gcode.getValue('Y'));
+
+							if(gcode.hasValue('Z'))
+								bedCompensationPositionRelativeZ = stod(gcode.getValue('Z'));
+
+							if(gcode.hasValue('E'))
+								bedCompensationPositionRelativeE = stod(gcode.getValue('E'));
+						}
 					}
 				}
-			}
 	
 			// Check if new commands exist
 			if(newCommands.size()) {
@@ -1758,140 +1758,143 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			// Initialize new commands
 			stack<Command> newCommands;
 
-			// Check if command contains valid G-code and it's a G command
-			if(!gcode.isEmpty() && gcode.hasValue('G')) {
+			// Check if command contains valid G-code
+			if(!gcode.isEmpty())
+			
+				// Check if command is a G command
+				if(gcode.hasValue('G')) {
 
-				// Check if command is G0 or G1 and it's in absolute mode
-				if((gcode.getValue('G') == "0" || gcode.getValue('G') == "1") && !backlashCompensationRelativeMode) {
+					// Check if command is G0 or G1 and it's in absolute mode
+					if((gcode.getValue('G') == "0" || gcode.getValue('G') == "1") && !backlashCompensationRelativeMode) {
 
-					// Check if command has an F value
-					if(gcode.hasValue('F'))
+						// Check if command has an F value
+						if(gcode.hasValue('F'))
 
-						// Set value F
-						valueF = gcode.getValue('F');
+							// Set value F
+							valueF = gcode.getValue('F');
 
-					// Set delta values
-					double deltaX = !gcode.hasValue('X') ? 0 : stod(gcode.getValue('X')) - backlashPositionRelativeX;
-					double deltaY = !gcode.hasValue('Y') ? 0 : stod(gcode.getValue('Y')) - backlashPositionRelativeY;
-					double deltaZ = !gcode.hasValue('Z') ? 0 : stod(gcode.getValue('Z')) - backlashPositionRelativeZ;
-					double deltaE = !gcode.hasValue('E') ? 0 : stod(gcode.getValue('E')) - backlashPositionRelativeE;
+						// Set delta values
+						double deltaX = !gcode.hasValue('X') ? 0 : stod(gcode.getValue('X')) - backlashPositionRelativeX;
+						double deltaY = !gcode.hasValue('Y') ? 0 : stod(gcode.getValue('Y')) - backlashPositionRelativeY;
+						double deltaZ = !gcode.hasValue('Z') ? 0 : stod(gcode.getValue('Z')) - backlashPositionRelativeZ;
+						double deltaE = !gcode.hasValue('E') ? 0 : stod(gcode.getValue('E')) - backlashPositionRelativeE;
 
-					// Set directions
-					directions directionX = deltaX > DBL_EPSILON ? POSITIVE : deltaX < -DBL_EPSILON ? NEGATIVE : previousDirectionX;
-					directions directionY = deltaY > DBL_EPSILON ? POSITIVE : deltaY < -DBL_EPSILON ? NEGATIVE : previousDirectionY;
+						// Set directions
+						directions directionX = deltaX > DBL_EPSILON ? POSITIVE : deltaX < -DBL_EPSILON ? NEGATIVE : previousDirectionX;
+						directions directionY = deltaY > DBL_EPSILON ? POSITIVE : deltaY < -DBL_EPSILON ? NEGATIVE : previousDirectionY;
 					
-					// Check if direction has changed
-					if((directionX != previousDirectionX && previousDirectionX != NEITHER) || (directionY != previousDirectionY && previousDirectionY != NEITHER)) {
+						// Check if direction has changed
+						if((directionX != previousDirectionX && previousDirectionX != NEITHER) || (directionY != previousDirectionY && previousDirectionY != NEITHER)) {
 
-						// Set extra G-code G value
-						backlashCompensationExtraGcode.clear();
-						backlashCompensationExtraGcode.setValue('G', gcode.getValue('G'));
+							// Set extra G-code G value
+							backlashCompensationExtraGcode.clear();
+							backlashCompensationExtraGcode.setValue('G', gcode.getValue('G'));
 
-						// Check if X direction has changed
-						if(directionX != previousDirectionX && previousDirectionX != NEITHER)
+							// Check if X direction has changed
+							if(directionX != previousDirectionX && previousDirectionX != NEITHER)
 
-							// Set X compensation
-							compensationX += backlashX * (directionX == POSITIVE ? 1 : -1);
+								// Set X compensation
+								compensationX += backlashX * (directionX == POSITIVE ? 1 : -1);
 	
-						// Check if Y direction has changed
-						if(directionY != previousDirectionY && previousDirectionY != NEITHER)
+							// Check if Y direction has changed
+							if(directionY != previousDirectionY && previousDirectionY != NEITHER)
 
-							// Set Y compensation
-							compensationY += backlashY * (directionY == POSITIVE ? 1 : -1);
+								// Set Y compensation
+								compensationY += backlashY * (directionY == POSITIVE ? 1 : -1);
 	
-						// Set extra G-code X and Y values
-						backlashCompensationExtraGcode.setValue('X', to_string(backlashPositionRelativeX + compensationX));
-						backlashCompensationExtraGcode.setValue('Y', to_string(backlashPositionRelativeY + compensationY));
+							// Set extra G-code X and Y values
+							backlashCompensationExtraGcode.setValue('X', to_string(backlashPositionRelativeX + compensationX));
+							backlashCompensationExtraGcode.setValue('Y', to_string(backlashPositionRelativeY + compensationY));
 	
-						// Set extra G-code F value
-						backlashCompensationExtraGcode.setValue('F', to_string(backlashSpeed));
+							// Set extra G-code F value
+							backlashCompensationExtraGcode.setValue('F', to_string(backlashSpeed));
 				
-						// Add extra G-code to output
-						newCommands.push(Command(backlashCompensationExtraGcode.getAscii() + '\n', BACKLASH, BACKLASH));
+							// Add extra G-code to output
+							newCommands.push(Command(backlashCompensationExtraGcode.getAscii() + '\n', BACKLASH, BACKLASH));
 				
-						// Set command's F value
-						gcode.setValue('F', valueF);
-					}
+							// Set command's F value
+							gcode.setValue('F', valueF);
+						}
 
-					// Check if command has an X value
-					if(gcode.hasValue('X'))
-
-						// Add to command's X value
-						gcode.setValue('X', to_string(stod(gcode.getValue('X')) + compensationX));
-
-					// Check if command has a Y value
-					if(gcode.hasValue('Y'))
-
-						// Add to command's Y value
-						gcode.setValue('Y', to_string(stod(gcode.getValue('Y')) + compensationY));
-
-					// Set relative values
-					backlashPositionRelativeX += deltaX;
-					backlashPositionRelativeY += deltaY;
-					backlashPositionRelativeZ += deltaZ;
-					backlashPositionRelativeE += deltaE;
-
-					// Store directions
-					previousDirectionX = directionX;
-					previousDirectionY = directionY;
-				}
-
-				// Otherwise check if command is G28
-				else if(gcode.getValue('G') == "28") {
-
-					// Set relative values
-					backlashPositionRelativeX = 54;
-					backlashPositionRelativeY = 50;
-
-					// Reset values
-					valueF = "1000";
-					previousDirectionX = previousDirectionY = NEITHER;
-					compensationX = compensationY = 0;
-				}
-
-				// Otherwise check if command is G90
-				else if(gcode.getValue('G') == "90")
-
-					// Clear relative mode
-					backlashCompensationRelativeMode = false;
-
-				// Otherwise check if command is G91
-				else if(gcode.getValue('G') == "91")
-
-					// Set relative mode
-					backlashCompensationRelativeMode = true;
-
-				// Otherwise check if command is G92
-				else if(gcode.getValue('G') == "92") {
-
-					// Check if command doesn't have an X, Y, Z, and E value
-					if(!gcode.hasValue('X') && !gcode.hasValue('Y') && !gcode.hasValue('Z') && !gcode.hasValue('E')) {
-
-						// Set command values to zero
-						gcode.setValue('X', "0");
-						gcode.setValue('Y', "0");
-						gcode.setValue('Z', "0");
-						gcode.setValue('E', "0");
-					}
-
-					// Otherwise
-					else {
-
-						// Set relative positions
+						// Check if command has an X value
 						if(gcode.hasValue('X'))
-							backlashPositionRelativeX = stod(gcode.getValue('X'));
-	
-						if(gcode.hasValue('Y'))
-							backlashPositionRelativeY = stod(gcode.getValue('Y'));
-	
-						if(gcode.hasValue('Z'))
-							backlashPositionRelativeZ = stod(gcode.getValue('Z'));
 
-						if(gcode.hasValue('E'))
-							backlashPositionRelativeE = stod(gcode.getValue('E'));
+							// Add to command's X value
+							gcode.setValue('X', to_string(stod(gcode.getValue('X')) + compensationX));
+
+						// Check if command has a Y value
+						if(gcode.hasValue('Y'))
+
+							// Add to command's Y value
+							gcode.setValue('Y', to_string(stod(gcode.getValue('Y')) + compensationY));
+
+						// Set relative values
+						backlashPositionRelativeX += deltaX;
+						backlashPositionRelativeY += deltaY;
+						backlashPositionRelativeZ += deltaZ;
+						backlashPositionRelativeE += deltaE;
+
+						// Store directions
+						previousDirectionX = directionX;
+						previousDirectionY = directionY;
+					}
+
+					// Otherwise check if command is G28
+					else if(gcode.getValue('G') == "28") {
+
+						// Set relative values
+						backlashPositionRelativeX = 54;
+						backlashPositionRelativeY = 50;
+
+						// Reset values
+						valueF = "1000";
+						previousDirectionX = previousDirectionY = NEITHER;
+						compensationX = compensationY = 0;
+					}
+
+					// Otherwise check if command is G90
+					else if(gcode.getValue('G') == "90")
+
+						// Clear relative mode
+						backlashCompensationRelativeMode = false;
+
+					// Otherwise check if command is G91
+					else if(gcode.getValue('G') == "91")
+
+						// Set relative mode
+						backlashCompensationRelativeMode = true;
+
+					// Otherwise check if command is G92
+					else if(gcode.getValue('G') == "92") {
+
+						// Check if command doesn't have an X, Y, Z, and E value
+						if(!gcode.hasValue('X') && !gcode.hasValue('Y') && !gcode.hasValue('Z') && !gcode.hasValue('E')) {
+
+							// Set command values to zero
+							gcode.setValue('X', "0");
+							gcode.setValue('Y', "0");
+							gcode.setValue('Z', "0");
+							gcode.setValue('E', "0");
+						}
+
+						// Otherwise
+						else {
+
+							// Set relative positions
+							if(gcode.hasValue('X'))
+								backlashPositionRelativeX = stod(gcode.getValue('X'));
+	
+							if(gcode.hasValue('Y'))
+								backlashPositionRelativeY = stod(gcode.getValue('Y'));
+	
+							if(gcode.hasValue('Z'))
+								backlashPositionRelativeZ = stod(gcode.getValue('Z'));
+
+							if(gcode.hasValue('E'))
+								backlashPositionRelativeE = stod(gcode.getValue('E'));
+						}
 					}
 				}
-			}
 	
 			// Check if new commands exist
 			if(newCommands.size()) {

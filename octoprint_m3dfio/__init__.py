@@ -116,12 +116,10 @@ class M3DFioPlugin(
 		self.waveSize = 0.15
 		
 		# Bed compensation pre-processor settings
-		self.levellingMoveX = 104.9
-		self.levellingMoveY = 103.0
 		self.segmentLength = 2.0
 
 		# Feed rate conversion pre-processor settings
-		self.maxFeedRatePerSecond = 60.0001
+		self.maxFeedRatePerSecond = 60.001
 		
 		# Reset pre-processor settings
 		self.resetPreprocessorSettings()
@@ -3140,7 +3138,7 @@ class M3DFioPlugin(
 		if time > 5 :
 	
 			# Set G-code to a delay command based on time
-			gcode.setValue('G', "4")
+			gcode.setValue('G', '4')
 			gcode.setValue('P', str(time))
 	
 		# Return G-code
@@ -3347,8 +3345,8 @@ class M3DFioPlugin(
 						line = input.readline()
 						commands.append(Command(line, "INPUT", ''))
 		
-					# Otherwise check if at end of file 
-					elif input.tell() == os.fstat(input.fileno()).st_size :
+					# Otherwise
+					else :
 	
 						# Break
 						break
@@ -3359,26 +3357,23 @@ class M3DFioPlugin(
 					# Set progress bar text
 					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Pre-processing … (" + str(input.tell() * 100 / os.fstat(input.fileno()).st_size) + "%)"))
 			
-			# Otherwise
-			else :
-			
-				# Check if no more commands
-				if len(commands) == 0 :
+			# Otherwise check if no more commands
+			elif len(commands) == 0 :
 				
-					# Check if command hasn't been processed
-					if not processedCommand :
-			
-						# Append input to commands
-						commands.append(Command(input, "INPUT", ''))
-						
-						# Set processed command
-						processedCommand = True
+				# Check if command hasn't been processed
+				if not processedCommand :
+		
+					# Append input to commands
+					commands.append(Command(input, "INPUT", ''))
 					
-					# Otherwise
-					else :
-					
-						# Break
-						break
+					# Set processed command
+					processedCommand = True
+				
+				# Otherwise
+				else :
+				
+					# Break
+					break
 
 			# Parse next line in commands
 			gcode = Gcode()
@@ -3572,13 +3567,13 @@ class M3DFioPlugin(
 
 				# Check if command contains valid G-code
 				if not gcode.isEmpty() :
-
+				
 					# Check if command is a G command
 					if gcode.hasValue('G') :
 					
 						# Check if at a new layer
 						if self.waveBondingLayerCounter < 2 and command.origin != "PREPARATION" and gcode.hasValue('Z') :
-			
+		
 							# Increment layer counter
 							self.waveBondingLayerCounter += 1
 
@@ -3593,23 +3588,23 @@ class M3DFioPlugin(
 
 									# Set changes plane
 									self.waveBondingChangesPlane = True
-	
+
 								# Set delta values
 								if gcode.hasValue('X') :
 									deltaX = float(gcode.getValue('X')) - self.waveBondingPositionRelativeX
 								else :
 									deltaX = 0
-	
+
 								if gcode.hasValue('Y') :
 									deltaY = float(gcode.getValue('Y')) - self.waveBondingPositionRelativeY
 								else :
 									deltaY = 0
-	
+
 								if gcode.hasValue('Z') :
 									deltaZ = float(gcode.getValue('Z')) - self.waveBondingPositionRelativeZ
 								else :
 									deltaZ = 0
-		
+	
 								if gcode.hasValue('E') :
 									deltaE = float(gcode.getValue('E')) - self.waveBondingPositionRelativeE
 								else :
@@ -3623,13 +3618,13 @@ class M3DFioPlugin(
 
 								# Calculate distance of change
 								distance = math.sqrt(deltaX * deltaX + deltaY * deltaY)
-	
+
 								# Set wave ratio
 								if distance > self.wavePeriodQuarter :
-									waveRatio = int(distance / self.wavePeriodQuarter)
+									waveRatio = int(float(str(distance / self.wavePeriodQuarter)))
 								else :
 									waveRatio = 1
-	
+
 								# Set relative differences
 								relativeDifferenceX = self.waveBondingPositionRelativeX - deltaX
 								relativeDifferenceY = self.waveBondingPositionRelativeY - deltaY
@@ -3647,125 +3642,128 @@ class M3DFioPlugin(
 									deltaRatioY = 0
 									deltaRatioZ = 0
 									deltaRatioE = 0
-	
+
 								# Check if delta E is greater than zero 
 								if deltaE > 0 :
 
 									# Check if previous G-code is not empty
 									if not self.waveBondingPreviousGcode.isEmpty() :
+
+										# Check if first sharp corner
+										if self.waveBondingCornerCounter < 1 and self.isSharpCorner(gcode, self.waveBondingPreviousGcode) :
 	
-										# Check if corner count is at most one and sharp corner
-										if self.waveBondingCornerCounter <= 1 and self.isSharpCorner(gcode, self.waveBondingPreviousGcode) :
-		
 											# Check if refrence G-codes isn't set
 											if self.waveBondingRefrenceGcode.isEmpty() :
-			
+		
 												# Check if a tack point was created
 												self.waveBondingTackPoint = self.createTackPoint(gcode, self.waveBondingPreviousGcode)
 												if not self.waveBondingTackPoint.isEmpty() :
-										
+									
 													# Add tack point to output
 													newCommands.append(Command(self.waveBondingTackPoint.getAscii() + '\n', "WAVE", "CENTER VALIDATION PREPARATION WAVE"))
-			
+		
 											# Set refrence G-code
 											self.waveBondingRefrenceGcode = copy.deepcopy(gcode)
-			
+		
 											# Increment corner counter
 											self.waveBondingCornerCounter += 1
-		
-										# Otherwise check is corner count is at least one and sharp corner
-										elif self.waveBondingCornerCounter >= 1 and self.isSharpCorner(gcode, self.waveBondingRefrenceGcode) :
-		
+	
+										# Otherwise check if sharp corner
+										elif self.isSharpCorner(gcode, self.waveBondingRefrenceGcode) :
+	
 											# Check if a tack point was created
 											self.waveBondingTackPoint = self.createTackPoint(gcode, self.waveBondingRefrenceGcode)
 											if not self.waveBondingTackPoint.isEmpty() :
-									
+								
 												# Add tack point to output
 												newCommands.append(Command(self.waveBondingTackPoint.getAscii() + '\n', "WAVE", "CENTER VALIDATION PREPARATION WAVE"))
-			
+		
 											# Set refrence G-code
 											self.waveBondingRefrenceGcode = copy.deepcopy(gcode)
-	
+
 									# Go through all of the wave
 									index = 1
 									while index <= waveRatio :
-	
+
 										# Check if at last component
 										if index == waveRatio :
-		
+	
 											# Set temp relative values
 											tempRelativeX = self.waveBondingPositionRelativeX
 											tempRelativeY = self.waveBondingPositionRelativeY
 											tempRelativeZ = self.waveBondingPositionRelativeZ
 											tempRelativeE = self.waveBondingPositionRelativeE
-		
+	
 										# Otherwise
 										else :
-		
+	
 											# Set temp relative values
 											tempRelativeX = relativeDifferenceX + index * self.wavePeriodQuarter * deltaRatioX
 											tempRelativeY = relativeDifferenceY + index * self.wavePeriodQuarter * deltaRatioY
 											tempRelativeZ = relativeDifferenceZ + index * self.wavePeriodQuarter * deltaRatioZ
 											tempRelativeE = relativeDifferenceE + index * self.wavePeriodQuarter * deltaRatioE
-		
+	
 										# Check if not at least component
 										if index != waveRatio :
-		
+	
 											# Set extra G-code G value
 											self.waveBondingExtraGcode.clear()
 											self.waveBondingExtraGcode.setValue('G', gcode.getValue('G'))
-			
+		
 											# Set extra G-code X value
 											if gcode.hasValue('X') :
 												self.waveBondingExtraGcode.setValue('X', "%f" % (self.waveBondingPositionRelativeX - deltaX + tempRelativeX - relativeDifferenceX))
-			
+		
 											# Set extra G-cdoe Y value
 											if gcode.hasValue('Y') :
 												self.waveBondingExtraGcode.setValue('Y', "%f" % (self.waveBondingPositionRelativeY - deltaY + tempRelativeY - relativeDifferenceY))
-			
+		
 											# Set extra G-code F value if first element
 											if gcode.hasValue('F') and index == 1 :
 												self.waveBondingExtraGcode.setValue('F', gcode.getValue('F'))
-			
+		
 											# Check if plane changed
 											if self.waveBondingChangesPlane :
-			
+		
 												# Set extra G-code Z value
 												self.waveBondingExtraGcode.setValue('Z', "%f" % (self.waveBondingPositionRelativeZ - deltaZ + tempRelativeZ - relativeDifferenceZ + self.getCurrentAdjustmentZ()))
-			
+		
 											# Otherwise check if command has a Z value and changes in Z are noticable
 											elif gcode.hasValue('Z') and deltaZ != sys.float_info.epsilon :
-			
+		
 												# Set extra G-code Z value
 												self.waveBondingExtraGcode.setValue('Z', "%f" % (self.waveBondingPositionRelativeZ - deltaZ + tempRelativeZ - relativeDifferenceZ))
-				
+			
 											# Set extra G-code E value
 											self.waveBondingExtraGcode.setValue('E', "%f" % (self.waveBondingPositionRelativeE - deltaE + tempRelativeE - relativeDifferenceE))
-									
+								
 											# Add extra G-code to output
 											newCommands.append(Command(self.waveBondingExtraGcode.getAscii() + '\n', "WAVE", "CENTER VALIDATION PREPARATION WAVE"))
-		
+	
 										# Otherwise check if plane changed
 										elif self.waveBondingChangesPlane :
-		
+	
 											# Check if command has a Z value
 											if gcode.hasValue('Z') :
-			
+		
 												# Add to command's Z value
 												gcode.setValue('Z', "%f" % (float(gcode.getValue('Z')) + self.getCurrentAdjustmentZ()))
-			
+		
 											# Otherwise
 											else :
-			
+		
 												# Set command's Z value
 												gcode.setValue('Z', "%f" % (relativeDifferenceZ + deltaZ + self.getCurrentAdjustmentZ()))
-			
+		
 										# Increment index
 										index += 1
+							
+								# Check if no corners have occured
+								if self.waveBondingCornerCounter < 1 :
 
-								# Set previous G-code
-								self.waveBondingPreviousGcode = copy.deepcopy(gcode)
-	
+									# Set previous G-code
+									self.waveBondingPreviousGcode = copy.deepcopy(gcode)
+						
 							# Otherwise check if command is G28
 							elif gcode.getValue('G') == "28" :
 
@@ -3803,16 +3801,16 @@ class M3DFioPlugin(
 									# Set relative positions
 									if gcode.hasValue('X') :
 										self.waveBondingPositionRelativeX = float(gcode.getValue('X'))
-		
+	
 									if gcode.hasValue('Y') :
 										self.waveBondingPositionRelativeY = float(gcode.getValue('Y'))
-		
+	
 									if gcode.hasValue('Z') :
 										self.waveBondingPositionRelativeZ = float(gcode.getValue('Z'))
-	
+
 									if gcode.hasValue('E') :
 										self.waveBondingPositionRelativeE = float(gcode.getValue('E'))
-										
+				
 				# Check if new commands exist
 				if len(newCommands) :
 		
@@ -3838,7 +3836,7 @@ class M3DFioPlugin(
 				# Check if command contains valid G-code
 				if not gcode.isEmpty() :
 				
-					# Otherwise check if not past the second layer and at a new layer
+					# Check if at a new layer
 					if self.thermalBondingLayerCounter < 2 and command.origin != "PREPARATION" and gcode.hasValue('Z') :
 			
 						# Check if on first counted layer
@@ -3883,30 +3881,27 @@ class M3DFioPlugin(
 								# Check if previous command exists and filament is ABS, HIPS, or PLA
 								if not self.thermalBondingPreviousGcode.isEmpty() and (str(self._settings.get(["FilamentType"])) == "ABS" or str(self._settings.get(["FilamentType"])) == "HIPS" or str(self._settings.get(["FilamentType"])) == "PLA") :
 	
-									# Check if corner counter is less than or equal to one
-									if self.thermalBondingCornerCounter <= 1 :
-		
-										# Check if sharp corner
-										if self.isSharpCorner(gcode, self.thermalBondingPreviousGcode) :
+									# Check if first sharp corner
+									if self.thermalBondingCornerCounter < 1 and self.isSharpCorner(gcode, self.thermalBondingPreviousGcode) :
 			
-											# Check if refrence G-codes isn't set
-											if self.thermalBondingRefrenceGcode.isEmpty() :
-				
-												# Check if a tack point was created
-												self.thermalBondingTackPoint = self.createTackPoint(gcode, self.thermalBondingPreviousGcode)
-												if not self.thermalBondingTackPoint.isEmpty() :
+										# Check if refrence G-codes isn't set
+										if self.thermalBondingRefrenceGcode.isEmpty() :
+			
+											# Check if a tack point was created
+											self.thermalBondingTackPoint = self.createTackPoint(gcode, self.thermalBondingPreviousGcode)
+											if not self.thermalBondingTackPoint.isEmpty() :
+									
+												# Add tack point to output
+												newCommands.append(Command(self.thermalBondingTackPoint.getAscii() + '\n', "THERMAL", "CENTER VALIDATION PREPARATION WAVE THERMAL"))
 										
-													# Add tack point to output
-													newCommands.append(Command(self.thermalBondingTackPoint.getAscii() + '\n', "THERMAL", "CENTER VALIDATION PREPARATION WAVE THERMAL"))
-											
-											# Set refrence G-code
-											self.thermalBondingRefrenceGcode = copy.deepcopy(gcode)
-				
-											# Increment corner count
-											self.thermalBondingCornerCounter += 1
+										# Set refrence G-code
+										self.thermalBondingRefrenceGcode = copy.deepcopy(gcode)
+			
+										# Increment corner count
+										self.thermalBondingCornerCounter += 1
 		
-									# Otherwise check if corner counter is greater than one and sharp corner
-									elif self.thermalBondingCornerCounter >= 1 and self.isSharpCorner(gcode, self.thermalBondingRefrenceGcode) :
+									# Otherwise check if sharp corner
+									elif self.isSharpCorner(gcode, self.thermalBondingRefrenceGcode) :
 		
 										# Check if a tack point was created
 										self.thermalBondingTackPoint = self.createTackPoint(gcode, self.thermalBondingRefrenceGcode)
@@ -3917,6 +3912,12 @@ class M3DFioPlugin(
 									
 										# Set refrence G-code
 										self.thermalBondingRefrenceGcode = copy.deepcopy(gcode)
+								
+								# Check if no corners have occured
+								if self.thermalBondingCornerCounter < 1 :
+
+									# Set previous G-code
+									self.thermalBondingPreviousGcode = copy.deepcopy(gcode)
 
 							# Otherwise check if command is G90
 							elif gcode.getValue('G') == "90" :
@@ -3929,9 +3930,6 @@ class M3DFioPlugin(
 
 								# Set relative mode
 								self.thermalBondingRelativeMode = True
-
-						# Set previous G-code
-						self.thermalBondingPreviousGcode = copy.deepcopy(gcode)
 		
 				# Check if new commands exist
 				if len(newCommands) :
@@ -4010,7 +4008,7 @@ class M3DFioPlugin(
 
 							# Set segment counter
 							if distance > self.segmentLength :
-								segmentCounter = int(distance / self.segmentLength)
+								segmentCounter = int(float(str(distance / self.segmentLength)))
 							else :
 								segmentCounter = 1
 	
@@ -4108,48 +4106,42 @@ class M3DFioPlugin(
 								
 										# Add extra G-code to output
 										newCommands.append(Command(self.bedCompensationExtraGcode.getAscii() + '\n', "BED", "CENTER VALIDATION PREPARATION WAVE THERMAL BED"))
-	
-									# Otherwise
-									else :
-	
-										# Check if the plane changed
-										if self.bedCompensationChangesPlane :
+									
+									# Otherwise check if the plane changed
+									elif self.bedCompensationChangesPlane :
 		
-											# Check if command has a Z value
-											if gcode.hasValue('Z') :
-			
-												# Add value to command Z value
-												gcode.setValue('Z', "%f" % (float(gcode.getValue('Z')) + heightAdjustment))
-			
-											# Otherwise
-											else :
-			
-												# Set command Z value
-												gcode.setValue('Z', "%f" % (relativeDifferenceZ + deltaZ + heightAdjustment))
+										# Check if command has a Z value
+										if gcode.hasValue('Z') :
+		
+											# Add value to command Z value
+											gcode.setValue('Z', "%f" % (float(gcode.getValue('Z')) + heightAdjustment))
+		
+										# Otherwise
+										else :
+		
+											# Set command Z value
+											gcode.setValue('Z', "%f" % (relativeDifferenceZ + deltaZ + heightAdjustment))
 			
 									# Increment index
 									index += 1
 							
-							# Otherwise
-							else :
-
-								# Check if the plane changed
-								if self.bedCompensationChangesPlane :
+							# Otherwise check if the plane changed
+							elif self.bedCompensationChangesPlane :
 		
-									# Set height adjustment
-									heightAdjustment = self.getHeightAdjustmentRequired(self.bedCompensationPositionAbsoluteX, self.bedCompensationPositionAbsoluteY)
-	
-									# Check if command has a Z value
-									if gcode.hasValue('Z') :
-	
-										# Add value to command Z
-										gcode.setValue('Z', "%f" % (float(gcode.getValue('Z')) + heightAdjustment))
-	
-									# Otherwise
-									else :
-	
-										# Set command Z
-										gcode.setValue('Z', "%f" % (self.bedCompensationPositionRelativeZ + heightAdjustment))
+								# Set height adjustment
+								heightAdjustment = self.getHeightAdjustmentRequired(self.bedCompensationPositionAbsoluteX, self.bedCompensationPositionAbsoluteY)
+
+								# Check if command has a Z value
+								if gcode.hasValue('Z') :
+
+									# Add value to command Z
+									gcode.setValue('Z', "%f" % (float(gcode.getValue('Z')) + heightAdjustment))
+
+								# Otherwise
+								else :
+
+									# Set command Z
+									gcode.setValue('Z', "%f" % (self.bedCompensationPositionRelativeZ + heightAdjustment))
 
 						# Otherwise check if command is G28
 						elif gcode.getValue('G') == "28" :
@@ -4197,7 +4189,7 @@ class M3DFioPlugin(
 	
 								if gcode.hasValue('E') :
 									self.bedCompensationPositionRelativeE = float(gcode.getValue('E'))
-		
+				
 				# Check if new commands exist
 				if len(newCommands) :
 		
@@ -4384,7 +4376,7 @@ class M3DFioPlugin(
 		
 								if gcode.hasValue('E') :
 									self.backlashPositionRelativeE = float(gcode.getValue('E'))
-		
+				
 				# Check if new commands exist
 				if len(newCommands) :
 		
