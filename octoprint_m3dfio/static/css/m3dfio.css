@@ -6,7 +6,7 @@
 	color: rgba(255, 0, 0, 1);
 }
 
-#settings_plugin_m3dfio label.disabled {
+#settings_plugin_m3dfio label.disabled, #settings_plugin_m3dfio input[type="number"][disabled] {
 	opacity: 0.5;
 	cursor: not-allowed;
 }
