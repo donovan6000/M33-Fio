@@ -2223,14 +2223,15 @@ $(function() {
 		$("#control > div.jog-panel.general").find("button:nth-of-type(2)").after(`
 			<button class="btn btn-block control-box" data-bind="enable: isOperational() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M106 S255 *'}) }">Fan on</button>
 			<button class="btn btn-block control-box" data-bind="enable: isOperational() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M107 *'}) }">Fan off</button>
-		`)
+		`);
 		$("#control > div.jog-panel.general").find("button:nth-of-type(5)").remove();
 		$("#control > div.jog-panel.general").find("button:nth-of-type(5)").remove();
 		
-		// Create absolute and relative controls
+		// Create absolute and relative controls and open settings
 		$("#control > div.jog-panel.general").find("div").append(`
 			<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'G90'}) }">Absolute mode</button>
 			<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'G91'}) }">Relative mode</button>
+			<button class="btn btn-block control-box" data-bind="enable: loginState.isUser()">Open Settings</button>
 		`);
 	
 		// Add filament controls
@@ -2820,9 +2821,9 @@ $(function() {
 																				if(viewport.modelLoaded) {
 								
 																					// Hide cover
-																					$("#slicing_configuration_dialog .modal-cover").addClass("noTransition").removeClass("show");
+																					$("#slicing_configuration_dialog .modal-cover").removeClass("show");
 																					setTimeout(function() {
-																						$("#slicing_configuration_dialog .modal-cover").css("z-index", '').removeClass("noTransition");
+																						$("#slicing_configuration_dialog .modal-cover").css("z-index", '');
 																					}, 300);
 																				}
 																			
@@ -2912,9 +2913,9 @@ $(function() {
 																				if(viewport.modelLoaded) {
 								
 																					// Hide cover
-																					$("#slicing_configuration_dialog .modal-cover").addClass("noTransition").removeClass("show");
+																					$("#slicing_configuration_dialog .modal-cover").removeClass("show");
 																					setTimeout(function() {
-																						$("#slicing_configuration_dialog .modal-cover").css("z-index", '').removeClass("noTransition");
+																						$("#slicing_configuration_dialog .modal-cover").css("z-index", '');
 																					}, 300);
 																				}
 																			
@@ -3051,9 +3052,6 @@ $(function() {
 																			viewport.applyChanges($(this).attr("name"), $(this).val());
 																	});
 																	
-																	// Update model changes
-																	viewport.updateModelChanges();
-								
 																	// Set slicer menu
 																	slicerMenu = "Modify Model";
 								
@@ -3585,6 +3583,15 @@ $(function() {
 					}
 				}
 			});
+		});
+		
+		// Open settings control
+		$("#control > div.jog-panel.general").find("button:nth-of-type(7)").click(function() {
+		
+			// Open M3D Fio settings
+			$("#navbar_show_settings").click();
+			$("#settings_plugin_m3dfio").addClass("active").siblings(".active").removeClass("active");
+			$("#settings_plugin_m3dfio_link").addClass("active").siblings(".active").removeClass("active");
 		});
 	
 		// Set unload filament control

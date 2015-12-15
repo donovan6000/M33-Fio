@@ -1978,7 +1978,7 @@ class M3DFioPlugin(
 			currentState, currentPort, currentBaudrate, currentProfile = self._printer.get_current_connection()
 			
 			# Automatic port detection
-			if currentPort is None or currentPort == "AUTO" :
+			if not currentPort or currentPort == "AUTO" :
 				currentPort = self.getPort()
 			
 			# Automatic baudrate detection
@@ -4673,47 +4673,34 @@ class M3DFioPlugin(
 	# Auto connect
 	def autoConnect(self, comm_instance, port, baudrate, connection_timeout) :
 	
+		# Set baudrate if not specified
+		if baudrate == 0 :
+			baudrate = 115200
+		
 		# Check if port isn't specified
-		if port is None or port == "AUTO" :
+		if not port or port == "AUTO" :
 			
 			# Set state to detecting
 			comm_instance._changeState(comm_instance.STATE_DETECT_SERIAL)
 			
 			# Check if printer isn't detected
 			port = self.getPort()
-			if port is None :
+			if not port :
 			
 				# Set state to failed
 				comm_instance._log("Failed to autodetect serial port")
-				comm_instance._errorValue = 'Failed to autodetect serial port.'
+				comm_instance._errorValue = "Failed to autodetect serial port."
 				comm_instance._changeState(comm_instance.STATE_ERROR)
 				eventManager().fire(Events.ERROR, {"error": comm_instance.getErrorString()})
+				
+				# Return none
 				return None
-			
-			# Otherwise
-			else :
-			
-				# Connect to printer
-				serial_obj = serial.Serial(port, 115200, timeout=connection_timeout, writeTimeout=10000, parity=serial.PARITY_NONE)
 		
-		# Otherwise
-		else:
-		
-			# Set tate to connecting
-			comm_instance._log("Connecting to: %s" % port)
-			
-			# Set baudrate if not specified
-			if baudrate == 0 :
-				baudrate = 115200
-			
-			# Connect to port
-			serial_obj = serial.Serial(str(port), baudrate, timeout=connection_timeout, writeTimeout=10000, parity=serial.PARITY_ODD)
-			serial_obj.close()
-			serial_obj.parity = serial.PARITY_NONE
-			serial_obj.open()
+		# Set state to connecting
+		comm_instance._log("Connecting to: " + str(port))
 		
 		# Return connection
-		return serial_obj
+		return serial.Serial(str(port), baudrate, timeout=connection_timeout, writeTimeout=10000, parity=serial.PARITY_NONE)
 
 # Plugin info
 __plugin_name__ = "M3D Fio"
