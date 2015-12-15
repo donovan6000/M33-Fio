@@ -1040,9 +1040,26 @@
 					
 					if ( scope.scaleSnap !== null ) {
 					
-						if ( scope.axis.search( "X" ) !== - 1 ) scope.object.scale.x = Math.round( scope.object.scale.x / scope.scaleSnap ) * scope.scaleSnap;
-						if ( scope.axis.search( "Y" ) !== - 1 ) scope.object.scale.y = Math.round( scope.object.scale.y / scope.scaleSnap ) * scope.scaleSnap;
-						if ( scope.axis.search( "Z" ) !== - 1 ) scope.object.scale.z = Math.round( scope.object.scale.z / scope.scaleSnap ) * scope.scaleSnap;
+						if ( scope.axis.search( "X" ) !== - 1 ) {
+						
+							var value = Math.round( scope.object.scale.x / scope.scaleSnap ) * scope.scaleSnap;
+							scope.object.scale.x = value == 0 ? 0.000000000001 : value;
+						
+						}
+						
+						if ( scope.axis.search( "Y" ) !== - 1 ) {
+						
+							var value = Math.round( scope.object.scale.y / scope.scaleSnap ) * scope.scaleSnap;
+							scope.object.scale.y = value == 0 ? 0.000000000001 : value;
+							
+						}
+						
+						if ( scope.axis.search( "Z" ) !== - 1 ) {
+						
+							var value = Math.round( scope.object.scale.z / scope.scaleSnap ) * scope.scaleSnap;
+							scope.object.scale.z = value == 0 ? 0.000000000001 : value;
+							
+						}
 						
 					}
 

@@ -453,7 +453,10 @@ class M3DFioPlugin(
 		machine["machine_width"] = printerProfile["volume"]["width"]
 		machine["machine_height"] = printerProfile["volume"]["height"]
 		machine["machine_depth"] = printerProfile["volume"]["depth"]
-		machine["machine_shape"] = str(printerProfile["volume"]["formFactor"]).capitalize()
+		if printerProfile["volume"]["formFactor"] == "circular" :
+			machine["machine_shape"] = "Circular"
+		else :
+			machine["machine_shape"] = "Square"
 		
 		index = 0
 		while index < printerProfile["extruder"]["count"] :
