@@ -132,6 +132,7 @@ EXPORT void setUseCenterModelPreprocessor(bool value);
 EXPORT void setIgnorePrintDimensionLimitations(bool value);
 EXPORT void setUsingMicroPass(bool value);
 EXPORT void setPrintingTestBorder(bool value);
+EXPORT void setPrintingBacklashCalibrationCylinder(bool value);
 
 /*
 Name: Reset pre-processor settings

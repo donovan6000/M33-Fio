@@ -90,12 +90,12 @@
 }
 
 #control div.jog-panel.calibration button {
-	width: 166px;
+	width: 180px;
 	float: left;
 }
 
-#control div.jog-panel.calibration button:first-of-type, #control div.jog-panel.calibration button:nth-of-type(2), #control div.jog-panel.calibration button:nth-of-type(11), #control div.jog-panel.calibration button:nth-of-type(12), #control div.jog-panel.calibration button:nth-of-type(13) {
-	width: 210px;
+#control div.jog-panel.calibration button:first-of-type, #control div.jog-panel.calibration button:nth-of-type(2), #control div.jog-panel.calibration button:nth-of-type(11), #control div.jog-panel.calibration button:nth-of-type(12), #control div.jog-panel.calibration button:nth-of-type(13), #control div.jog-panel.calibration button:nth-of-type(14) {
+	width: 230px;
 	clear: both;
 }
 
@@ -110,19 +110,32 @@
 	margin-right: 15px;
 }
 
+#control div.jog-panel.calibration button:nth-of-type(4), #control div.jog-panel.calibration button:nth-of-type(6), #control div.jog-panel.calibration button:nth-of-type(8), #control div.jog-panel.calibration button:nth-of-type(10) {
+	position: relative;
+	left: 5px;
+} 
+
 #control div.jog-panel.calibration > div > button:nth-of-type(3) {
+	position: relative;
+	left: 5px;
 	transform: rotate(45deg);
 }
 
 #control div.jog-panel.calibration > div > button:nth-of-type(5) {
+	position: relative;
+	left: 5px;
 	transform: rotate(-45deg);
 }
 
 #control div.jog-panel.calibration > div > button:nth-of-type(7) {
+	position: relative;
+	left: 5px;
 	transform: rotate(45deg);
 }
 
 #control div.jog-panel.calibration > div > button:nth-of-type(9) {
+	position: relative;
+	left: 5px;
 	transform: rotate(-45deg);
 }
 

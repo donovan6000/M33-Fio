@@ -130,6 +130,7 @@ class M3DFioPlugin(
 		# General settings
 		self.preprocessOnTheFlyReady = False
 		self.printingTestBorder = False
+		self.printingBacklashCalibrationCylinder = False
 		self.changedCommands = []
 		
 		# Center model pre-processor settings
@@ -812,16 +813,18 @@ class M3DFioPlugin(
 				else :
 					return flask.jsonify(dict(value = "Ok"))
 			
-			# Otherwise check if parameter is to print test border
-			elif data["value"].startswith("Print test border") :
+			# Otherwise check if parameter is to print test border or backlash calibration cylinder
+			elif data["value"] == "Print test border" or data["value"] == "Print backlash calibration cylinder" :
 			
-				# Set test border file location
-				location = self._basefolder + "/static/files/test border.gcode"
+				# Set file location and destination
+				if data["value"] == "Print test border" :
+					location = self._basefolder + "/static/files/test border.gcode"
+					destination = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "test border")
+				else :
+					location = self._basefolder + "/static/files/backlash calibration cylinder.gcode"
+					destination = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "backlash calibration cylinder")
 				
-				# Set test border file destination
-				destination = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "test border")
-				
-				# Remove processed test border if it already exists
+				# Remove destination file if it already exists
 				if os.path.isfile(destination) :
 					os.remove(destination)
 				
@@ -831,11 +834,13 @@ class M3DFioPlugin(
 					# Reset pre-processor settings
 					self.resetPreprocessorSettings()
 				
-					# Set printing test border
-					self.printingTestBorder = True
-					
-					# Display message
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Preparing test border"))
+					# Set printing type and display message
+					if data["value"] == "Print test border" :
+						self.printingTestBorder = True
+						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Preparing test border"))
+					else :
+						self.printingBacklashCalibrationCylinder = True
+						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Preparing backlash calibration cylinder"))
 					
 					# Check if using shared library
 					if self.sharedLibrary and self._settings.get_boolean(["UseSharedLibrary"]) :
@@ -869,6 +874,7 @@ class M3DFioPlugin(
 						self.sharedLibrary.setIgnorePrintDimensionLimitations(ctypes.c_bool(self._settings.get_boolean(["IgnorePrintDimensionLimitations"])))
 						self.sharedLibrary.setUsingMicroPass(ctypes.c_bool(self.usingMicroPass))
 						self.sharedLibrary.setPrintingTestBorder(ctypes.c_bool(self.printingTestBorder))
+						self.sharedLibrary.setPrintingBacklashCalibrationCylinder(ctypes.c_bool(self.printingBacklashCalibrationCylinder))
 						
 						# Collect print information
 						self.sharedLibrary.collectPrintInformation(ctypes.c_char_p(location))
@@ -1856,6 +1862,12 @@ class M3DFioPlugin(
 					# Set printing test border
 					self.printingTestBorder = True
 				
+				# Otherwise check if printing backlash calibration cylinder
+				elif payload.get("filename") == "backlash_calibration_cylinder" :
+				
+					# Set printing backlash calibration cylinder
+					self.printingBacklashCalibrationCylinder = True
+				
 				# Display message
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Collecting print information"))
 				
@@ -1891,6 +1903,7 @@ class M3DFioPlugin(
 					self.sharedLibrary.setIgnorePrintDimensionLimitations(ctypes.c_bool(self._settings.get_boolean(["IgnorePrintDimensionLimitations"])))
 					self.sharedLibrary.setUsingMicroPass(ctypes.c_bool(self.usingMicroPass))
 					self.sharedLibrary.setPrintingTestBorder(ctypes.c_bool(self.printingTestBorder))
+					self.sharedLibrary.setPrintingBacklashCalibrationCylinder(ctypes.c_bool(self.printingBacklashCalibrationCylinder))
 				
 					# Collect print information
 					printIsValid = self.sharedLibrary.collectPrintInformation(ctypes.c_char_p(payload.get("file")))
@@ -2880,7 +2893,8 @@ class M3DFioPlugin(
 				self.sharedLibrary.setIgnorePrintDimensionLimitations(ctypes.c_bool(self._settings.get_boolean(["IgnorePrintDimensionLimitations"])))
 				self.sharedLibrary.setUsingMicroPass(ctypes.c_bool(self.usingMicroPass))
 				self.sharedLibrary.setPrintingTestBorder(ctypes.c_bool(self.printingTestBorder))
-				
+				self.sharedLibrary.setPrintingBacklashCalibrationCylinder(ctypes.c_bool(self.printingBacklashCalibrationCylinder))
+						
 				# Collect print information
 				printIsValid = self.sharedLibrary.collectPrintInformation(ctypes.c_char_p(input))
 			
@@ -3014,8 +3028,8 @@ class M3DFioPlugin(
 						else :
 							localZ = commandZ
 			
-						# Check if not ignoring print dimension limitations, not printing a test border, and Z is out of bounds
-						if not self._settings.get_boolean(["IgnorePrintDimensionLimitations"]) and not self.printingTestBorder and (localZ < self.bedLowMinZ or localZ > self.bedHighMaxZ) :
+						# Check if not ignoring print dimension limitations, not printing a test border or backlash calibration cylinder, and Z is out of bounds
+						if not self._settings.get_boolean(["IgnorePrintDimensionLimitations"]) and not self.printingTestBorder and not self.printingBacklashCalibrationCylinder and (localZ < self.bedLowMinZ or localZ > self.bedHighMaxZ) :
 				
 							# Return false
 							return False
@@ -3030,8 +3044,8 @@ class M3DFioPlugin(
 						else :
 							tier = "High"
 				
-					# Check if not ignoring print dimension limitations, not printing a test border, and centering model pre-processor isn't used
-					if not self._settings.get_boolean(["IgnorePrintDimensionLimitations"]) and not self.printingTestBorder and not self._settings.get_boolean(["UseCenterModelPreprocessor"]) :
+					# Check if not ignoring print dimension limitations, not printing a test border or backlash calibration cylinder, and centering model pre-processor isn't used
+					if not self._settings.get_boolean(["IgnorePrintDimensionLimitations"]) and not self.printingTestBorder and not self.printingBacklashCalibrationCylinder and not self._settings.get_boolean(["UseCenterModelPreprocessor"]) :
 			
 						# Return false if X or Y are out of bounds				
 						if tier == "Low" and (localX < self.bedLowMinX or localX > self.bedLowMaxX or localY < self.bedLowMinY or localY > self.bedLowMaxY) :
@@ -3074,8 +3088,8 @@ class M3DFioPlugin(
 					# Set relative mode
 					relativeMode = True
 	
-		# Check if center model pre-processor is set and not printing a test border
-		if self._settings.get_boolean(["UseCenterModelPreprocessor"]) and not self.printingTestBorder :
+		# Check if center model pre-processor is set and not printing a test border or backlash calibration cylinder
+		if self._settings.get_boolean(["UseCenterModelPreprocessor"]) and not self.printingTestBorder and not self.printingBacklashCalibrationCylinder :
 	
 			# Calculate adjustments
 			self.displacementX = (self.bedLowMaxX - max(self.maxXExtruderLow, max(self.maxXExtruderMedium, self.maxXExtruderHigh)) - min(self.minXExtruderLow, min(self.minXExtruderMedium, self.minXExtruderHigh)) + self.bedLowMinX) / 2
@@ -3362,8 +3376,8 @@ class M3DFioPlugin(
 						# Break
 						break
 				
-				# Check if not printing test border
-				if not self.printingTestBorder :
+				# Check if not printing test border or backlash calibration cylinder
+				if not self.printingTestBorder and not self.printingBacklashCalibrationCylinder :
 				
 					# Set progress bar text
 					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Pre-processing … (" + str(input.tell() * 100 / os.fstat(input.fileno()).st_size) + "%)"))
@@ -3397,8 +3411,8 @@ class M3DFioPlugin(
 				# Remove line number
 				gcode.removeParameter('N')
 	
-			# Check if printing test border and using center model pre-processor
-			if not self.printingTestBorder and self._settings.get_boolean(["UseCenterModelPreprocessor"]) and "CENTER" not in command.skip :
+			# Check if printing test border or backlash calibration cylinder and using center model pre-processor
+			if not self.printingTestBorder and not self.printingBacklashCalibrationCylinder and self._settings.get_boolean(["UseCenterModelPreprocessor"]) and "CENTER" not in command.skip :
 
 				# Check if command contains valid G-code
 				if not gcode.isEmpty() :
@@ -3418,8 +3432,8 @@ class M3DFioPlugin(
 							# Adjust Y value
 							gcode.setValue('Y', "%f" % (float(gcode.getValue('Y')) + self.displacementY))
 
-			# Check if not printing test border and using validation pre-processor
-			if not self.printingTestBorder and self._settings.get_boolean(["UseValidationPreprocessor"]) and "VALIDATION" not in command.skip :
+			# Check if not printing test border or backlash calibration cylinder and using validation pre-processor
+			if not self.printingTestBorder and not self.printingBacklashCalibrationCylinder and self._settings.get_boolean(["UseValidationPreprocessor"]) and "VALIDATION" not in command.skip :
 
 				# Check if command contains valid G-code
 				if not gcode.isEmpty() :
@@ -3446,8 +3460,8 @@ class M3DFioPlugin(
 						if gcode.isEmpty() :
 							continue
 
-			# Check if printing test border or using preparation pre-processor
-			if (self.printingTestBorder or self._settings.get_boolean(["UsePreparationPreprocessor"])) and "PREPARATION" not in command.skip :
+			# Check if printing test border or backlash calibration cylinder or using preparation pre-processor
+			if (self.printingTestBorder or self.printingBacklashCalibrationCylinder or self._settings.get_boolean(["UsePreparationPreprocessor"])) and "PREPARATION" not in command.skip :
 
 				# Check if intro hasn't been added yet
 				if not self.addedIntro :
@@ -3457,69 +3471,86 @@ class M3DFioPlugin(
 			
 					# Initialize new commands
 					newCommands = []
-			
-					# Check if not printing test border
-					cornerX = cornerY = 0
-					if not self.printingTestBorder :
-
-						# Set corner X
-						if self.maxXExtruderLow < self.bedLowMaxX :
-							cornerX = (self.bedLowMaxX - self.bedLowMinX) / 2
-						elif self.minXExtruderLow > self.bedLowMinX :
-							cornerX = -(self.bedLowMaxX - self.bedLowMinX) / 2
-
-						# Set corner Y
-						if self.maxYExtruderLow < self.bedLowMaxY :
-							cornerY = (self.bedLowMaxY - self.bedLowMinY - 10) / 2
-						elif self.minYExtruderLow > self.bedLowMinY :
-							cornerY = -(self.bedLowMaxY - self.bedLowMinY - 10) / 2
 					
-					# Add intro to output
-					if str(self._settings.get(["FilamentType"])) == "PLA" :
-						newCommands.append(Command("M106 S255\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					else :
-						newCommands.append(Command("M106 S50\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("M17\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G90\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("M104 S" + str(self._settings.get_int(["FilamentTemperature"])) + '\n', "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G0 Z5 F2900\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G28\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-
-					# Add heat bed command if using Micro Pass
-					if self.usingMicroPass :
-						if str(self._settings.get(["FilamentType"])) == "PLA" :
-							newCommands.append(Command("M190 S70\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						else :
-							newCommands.append(Command("M190 S80\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-
-					# Check if one of the corners wasn't set
-					if cornerX == 0 or cornerY == 0 :
-
-						# Prepare extruder the standard way
-						newCommands.append(Command("M18\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					# Check if printing backlash calibration cylinder
+					if self.printingBacklashCalibrationCylinder :
+					
+						# Add intro to output
+						newCommands.append(Command("G90\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M104 S" + str(self._settings.get_int(["FilamentTemperature"])) + '\n', "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G28\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G0 Z2\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 						newCommands.append(Command("M109 S" + str(self._settings.get_int(["FilamentTemperature"])) + '\n', "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G4 S2\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("M17\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G91\n","PREPARATION",  "CENTER VALIDATION PREPARATION"))
-
+						if str(self._settings.get(["FilamentType"])) == "PLA" :
+							newCommands.append(Command("M106 S255\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						else :
+							newCommands.append(Command("M106 S1\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					
 					# Otherwise
 					else :
+			
+						# Check if not printing test border
+						cornerX = cornerY = 0
+						if not self.printingTestBorder :
 
-						# Prepare extruder by leaving excess at corner
-						newCommands.append(Command("G91\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G0 X%f Y%f F2900\n" % (-cornerX, -cornerY), "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("M18\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("M109 S" + str(self._settings.get_int(["FilamentTemperature"])) + '\n', "PREPARATION", "CENTER VALIDATION PREPARATION"))
+							# Set corner X
+							if self.maxXExtruderLow < self.bedLowMaxX :
+								cornerX = (self.bedLowMaxX - self.bedLowMinX) / 2
+							elif self.minXExtruderLow > self.bedLowMinX :
+								cornerX = -(self.bedLowMaxX - self.bedLowMinX) / 2
+
+							# Set corner Y
+							if self.maxYExtruderLow < self.bedLowMaxY :
+								cornerY = (self.bedLowMaxY - self.bedLowMinY - 10) / 2
+							elif self.minYExtruderLow > self.bedLowMinY :
+								cornerY = -(self.bedLowMaxY - self.bedLowMinY - 10) / 2
+					
+						# Add intro to output
+						if str(self._settings.get(["FilamentType"])) == "PLA" :
+							newCommands.append(Command("M106 S255\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						else :
+							newCommands.append(Command("M106 S50\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 						newCommands.append(Command("M17\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G0 Z-4 F2900\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G0 E7.5 F2000\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G4 S3\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G0 X%f Y%f Z-0.999 F2900\n" % ((cornerX * 0.1), (cornerY * 0.1)), "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G0 X%f Y%f F1000\n" % ((cornerX * 0.9), (cornerY * 0.9)), "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G90\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M104 S" + str(self._settings.get_int(["FilamentTemperature"])) + '\n', "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G0 Z5 F2900\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G28\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 
-					newCommands.append(Command("G92 E0\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G90\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G0 Z0.4 F2400\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						# Add heat bed command if using Micro Pass
+						if self.usingMicroPass :
+							if str(self._settings.get(["FilamentType"])) == "PLA" :
+								newCommands.append(Command("M190 S70\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+							else :
+								newCommands.append(Command("M190 S80\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+
+						# Check if one of the corners wasn't set
+						if cornerX == 0 or cornerY == 0 :
+
+							# Prepare extruder the standard way
+							newCommands.append(Command("M18\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+							newCommands.append(Command("M109 S" + str(self._settings.get_int(["FilamentTemperature"])) + '\n', "PREPARATION", "CENTER VALIDATION PREPARATION"))
+							newCommands.append(Command("G4 S2\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+							newCommands.append(Command("M17\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+							newCommands.append(Command("G91\n","PREPARATION",  "CENTER VALIDATION PREPARATION"))
+
+						# Otherwise
+						else :
+
+							# Prepare extruder by leaving excess at corner
+							newCommands.append(Command("G91\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+							newCommands.append(Command("G0 X%f Y%f F2900\n" % (-cornerX, -cornerY), "PREPARATION", "CENTER VALIDATION PREPARATION"))
+							newCommands.append(Command("M18\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+							newCommands.append(Command("M109 S" + str(self._settings.get_int(["FilamentTemperature"])) + '\n', "PREPARATION", "CENTER VALIDATION PREPARATION"))
+							newCommands.append(Command("M17\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+							newCommands.append(Command("G0 Z-4 F2900\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+							newCommands.append(Command("G0 E7.5 F2000\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+							newCommands.append(Command("G4 S3\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+							newCommands.append(Command("G0 X%f Y%f Z-0.999 F2900\n" % ((cornerX * 0.1), (cornerY * 0.1)), "PREPARATION", "CENTER VALIDATION PREPARATION"))
+							newCommands.append(Command("G0 X%f Y%f F1000\n" % ((cornerX * 0.9), (cornerY * 0.9)), "PREPARATION", "CENTER VALIDATION PREPARATION"))
+
+						newCommands.append(Command("G92 E0\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G90\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G0 Z0.4 F2400\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 			
 					# Finish processing command later
 					if not gcode.isEmpty() :
@@ -3542,26 +3573,35 @@ class M3DFioPlugin(
 			
 					# Initialize new commands
 					newCommands = []
-
-					# Add outro to output
-					newCommands.append(Command("G91\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G0 E-1 F2000\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G0 X5 Y5 F2000\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G0 E-18 F2000\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("M104 S0\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-
-					if self.usingMicroPass :
-						newCommands.append(Command("M140 S0\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-
-					if self.maxZExtruder > 60 :
-						if self.maxZExtruder < 110 :
-							newCommands.append(Command("G0 Z3 F2900\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G90\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G0 X90 Y84\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					
+					# Check if printing backlash calibration cylinder
+					if self.printingBacklashCalibrationCylinder :
+					
+						# Add outro to output
+						newCommands.append(Command("M104 S0\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					
+					# Otherwise
 					else :
-						newCommands.append(Command("G0 Z3 F2900\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G90\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G0 X95 Y95\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+
+						# Add outro to output
+						newCommands.append(Command("G91\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G0 E-1 F2000\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G0 X5 Y5 F2000\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G0 E-18 F2000\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M104 S0\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+
+						if self.usingMicroPass :
+							newCommands.append(Command("M140 S0\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+
+						if self.maxZExtruder > 60 :
+							if self.maxZExtruder < 110 :
+								newCommands.append(Command("G0 Z3 F2900\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+							newCommands.append(Command("G90\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+							newCommands.append(Command("G0 X90 Y84\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						else :
+							newCommands.append(Command("G0 Z3 F2900\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+							newCommands.append(Command("G90\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+							newCommands.append(Command("G0 X95 Y95\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 
 					newCommands.append(Command("M18\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 					newCommands.append(Command("M107\n", "PREPARATION", "CENTER VALIDATION PREPARATION"))
@@ -3570,8 +3610,8 @@ class M3DFioPlugin(
 					while len(newCommands) :
 						commands.append(newCommands.pop())
 
-			# Check if not printing test border and using wave bonding pre-processor
-			if not self.printingTestBorder and self._settings.get_boolean(["UseWaveBondingPreprocessor"]) and "WAVE" not in command.skip :
+			# Check if not printing test border or backlash calibration cylinder and using wave bonding pre-processor
+			if not self.printingTestBorder and not self.printingBacklashCalibrationCylinder and self._settings.get_boolean(["UseWaveBondingPreprocessor"]) and "WAVE" not in command.skip :
 	
 				# Initialize new commands
 				newCommands = []
@@ -3838,8 +3878,8 @@ class M3DFioPlugin(
 					# Get next command
 					continue
 
-			# Check if printing test border or using thermal bonding pre-processor
-			if (self.printingTestBorder or self._settings.get_boolean(["UseThermalBondingPreprocessor"])) and "THERMAL" not in command.skip :
+			# Check if not printing a backlash calibration cylinder and printing test border or using thermal bonding pre-processor
+			if not self.printingBacklashCalibrationCylinder and (self.printingTestBorder or self._settings.get_boolean(["UseThermalBondingPreprocessor"])) and "THERMAL" not in command.skip :
 	
 				# Initialize new commands
 				newCommands = []
@@ -3958,8 +3998,8 @@ class M3DFioPlugin(
 					# Get next command
 					continue
 
-			# Check if printing test border or using bed compensation pre-processor
-			if (self.printingTestBorder or self._settings.get_boolean(["UseBedCompensationPreprocessor"])) and "BED" not in command.skip :
+			# Check if not printing a backlash calibration cylinder and printing test border or using bed compensation pre-processor
+			if not self.printingBacklashCalibrationCylinder and (self.printingTestBorder or self._settings.get_boolean(["UseBedCompensationPreprocessor"])) and "BED" not in command.skip :
 	
 				# Initialize new commands
 				newCommands = []
@@ -4217,8 +4257,8 @@ class M3DFioPlugin(
 					# Get next command
 					continue
 
-			# Check if printing test border or using backlash compentation pre-processor
-			if (self.printingTestBorder or self._settings.get_boolean(["UseBacklashCompensationPreprocessor"])) and "BACKLASH" not in command.skip :
+			# Check if not printing a backlash calibration cylinder and printing test border or using backlash compentation pre-processor
+			if not self.printingBacklashCalibrationCylinder and (self.printingTestBorder or self._settings.get_boolean(["UseBacklashCompensationPreprocessor"])) and "BACKLASH" not in command.skip :
 	
 				# Initialize new commands
 				newCommands = []
@@ -4404,8 +4444,8 @@ class M3DFioPlugin(
 					# Get next command
 					continue
 
-			# Check if printing test border or using feed rate conversion pre-processor
-			if (self.printingTestBorder or self._settings.get_boolean(["UseFeedRateConversionPreprocessor"])) and "FEED" not in command.skip :
+			# Check if not printing a backlash calibration cylinder and printing test border or using feed rate conversion pre-processor
+			if not self.printingBacklashCalibrationCylinder and (self.printingTestBorder or self._settings.get_boolean(["UseFeedRateConversionPreprocessor"])) and "FEED" not in command.skip :
 
 				# Check if command contains valid G-code
 				if not gcode.isEmpty() :

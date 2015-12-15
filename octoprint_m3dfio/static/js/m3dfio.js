@@ -2262,6 +2262,7 @@ $(function() {
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Save Z as back left Z0</button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Save Z as bed center Z0</button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Print test border</button>
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Print backlash calibration cylinder</button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Run complete bed calibration</button>
 				</div>
 			</div>
@@ -4244,8 +4245,21 @@ $(function() {
 			});
 		});
 		
-		// Complete bed calibration control
+		// Set print backlash calibration cylinder control
 		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(13)").click(function(event) {
+		
+			// Send request
+			$.ajax({
+				url: API_BASEURL + "plugin/m3dfio",
+				type: "POST",
+				dataType: "json",
+				data: JSON.stringify({command: "message", value: "Print backlash calibration cylinder"}),
+				contentType: "application/json; charset=UTF-8",
+			});
+		});
+		
+		// Run complete bed calibration control
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(14)").click(function(event) {
 			
 			// No click event
 			$("body > div.page-container > div.message").find("button.confirm").eq(0).one("click", function() {

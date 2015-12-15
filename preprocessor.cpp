@@ -144,6 +144,7 @@ bool useCenterModelPreprocessor;
 bool ignorePrintDimensionLimitations;
 bool usingMicroPass;
 bool printingTestBorder;
+bool printingBacklashCalibrationCylinder;
 
 // Return value
 string returnValue;
@@ -580,10 +581,17 @@ EXPORT void setPrintingTestBorder(bool value) {
 	printingTestBorder = value;
 }
 
+EXPORT void setPrintingBacklashCalibrationCylinder(bool value) {
+
+	// Set printing backlash calibration cylinder
+	printingBacklashCalibrationCylinder = value;
+}
+
 EXPORT void resetPreprocessorSettings() {
 
 	// General settings
 	printingTestBorder = false;
+	printingBacklashCalibrationCylinder = false;
 
 	// Center model pre-processor settings
 	displacementX = 0;
@@ -717,8 +725,8 @@ EXPORT bool collectPrintInformation(const char *file) {
 							// Set local Z
 							localZ = relativeMode ? localZ + commandZ : commandZ;
 							
-							// Check if not ignoring print dimension limitations, not printing a test border, and Z is out of bounds
-							if(!ignorePrintDimensionLimitations && !printingTestBorder && (localZ < BED_LOW_MIN_Z || localZ > BED_HIGH_MAX_Z))
+							// Check if not ignoring print dimension limitations, not printing a test border or backlash calibration cylinder, and Z is out of bounds
+							if(!ignorePrintDimensionLimitations && !printingTestBorder && !printingBacklashCalibrationCylinder && (localZ < BED_LOW_MIN_Z || localZ > BED_HIGH_MAX_Z))
 					
 								// Return false
 								return false;
@@ -739,8 +747,8 @@ EXPORT bool collectPrintInformation(const char *file) {
 					
 							case LOW:
 							
-								// Check if not ignoring print dimension limitations, not printing a test border, centering model pre-processor isn't used, and X or Y is out of bounds
-								if(!ignorePrintDimensionLimitations && !printingTestBorder && !useCenterModelPreprocessor && (localX < BED_LOW_MIN_X || localX > BED_LOW_MAX_X || localY < BED_LOW_MIN_Y || localY > BED_LOW_MAX_Y))
+								// Check if not ignoring print dimension limitations, not printing a test border or backlash calibration cylinder, centering model pre-processor isn't used, and X or Y is out of bounds
+								if(!ignorePrintDimensionLimitations && !printingTestBorder && !printingBacklashCalibrationCylinder && !useCenterModelPreprocessor && (localX < BED_LOW_MIN_X || localX > BED_LOW_MAX_X || localY < BED_LOW_MIN_Y || localY > BED_LOW_MAX_Y))
 								
 									// Return false
 									return false;
@@ -753,8 +761,8 @@ EXPORT bool collectPrintInformation(const char *file) {
 						
 							case MEDIUM:
 							
-								// Check if not ignoring print dimension limitations, not printing a test border, centering model pre-processor isn't used, and X or Y is out of bounds
-								if(!ignorePrintDimensionLimitations && !printingTestBorder && !useCenterModelPreprocessor && (localX < BED_MEDIUM_MIN_X || localX > BED_MEDIUM_MAX_X || localY < BED_MEDIUM_MIN_Y || localY > BED_MEDIUM_MAX_Y))
+								// Check if not ignoring print dimension limitations, not printing a test border or backlash calibration cylinder, centering model pre-processor isn't used, and X or Y is out of bounds
+								if(!ignorePrintDimensionLimitations && !printingTestBorder && !printingBacklashCalibrationCylinder && !useCenterModelPreprocessor && (localX < BED_MEDIUM_MIN_X || localX > BED_MEDIUM_MAX_X || localY < BED_MEDIUM_MIN_Y || localY > BED_MEDIUM_MAX_Y))
 								
 									// Return false
 									return false;
@@ -767,8 +775,8 @@ EXPORT bool collectPrintInformation(const char *file) {
 
 							case HIGH:
 							
-								// Check if not ignoring print dimension limitations, not printing a test border, centering model pre-processor isn't used, and X or Y is out of bounds
-								if(!ignorePrintDimensionLimitations && !printingTestBorder && !useCenterModelPreprocessor && (localX < BED_HIGH_MIN_X || localX > BED_HIGH_MAX_X || localY < BED_HIGH_MIN_Y || localY > BED_HIGH_MAX_Y))
+								// Check if not ignoring print dimension limitations, not printing a test border or backlash calibration cylinder, centering model pre-processor isn't used, and X or Y is out of bounds
+								if(!ignorePrintDimensionLimitations && !printingTestBorder && !printingBacklashCalibrationCylinder && !useCenterModelPreprocessor && (localX < BED_HIGH_MIN_X || localX > BED_HIGH_MAX_X || localY < BED_HIGH_MIN_Y || localY > BED_HIGH_MAX_Y))
 								
 									// Return false
 									return false;
@@ -801,8 +809,8 @@ EXPORT bool collectPrintInformation(const char *file) {
 			}
 		}
 		
-		// Check if center model pre-processor is set and not printing a test border
-		if(useCenterModelPreprocessor && !printingTestBorder) {
+		// Check if center model pre-processor is set and not printing a test border or backlash calibration cylinder
+		if(useCenterModelPreprocessor && !printingTestBorder && !printingBacklashCalibrationCylinder) {
 	
 			// Calculate adjustments
 			displacementX = (BED_LOW_MAX_X - max(maxXExtruderLow, max(maxXExtruderMedium, maxXExtruderHigh)) - min(minXExtruderLow, min(minXExtruderMedium, minXExtruderHigh)) + BED_LOW_MIN_X) / 2;
@@ -915,8 +923,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			// Remove line number
 			gcode.removeParameter('N');
 
-		// Check if printing test border and using center model pre-processor
-		if(!printingTestBorder && useCenterModelPreprocessor && command.skip < CENTER) {
+		// Check if printing test border or backlash calibration cylinder and using center model pre-processor
+		if(!printingTestBorder && !printingBacklashCalibrationCylinder && useCenterModelPreprocessor && command.skip < CENTER) {
 
 			// Check if command contains valid G-code
 			if(!gcode.isEmpty()) 
@@ -938,8 +946,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 				}
 		}
 
-		// Check if not printing test border and using validation pre-processor
-		if(!printingTestBorder && useValidationPreprocessor && command.skip < VALIDATION) {
+		// Check if not printing test border or backlash calibration cylinder and using validation pre-processor
+		if(!printingTestBorder && !printingBacklashCalibrationCylinder && useValidationPreprocessor && command.skip < VALIDATION) {
 
 			// Check if command contains valid G-code
 			if(!gcode.isEmpty()) {
@@ -969,8 +977,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			}
 		}
 
-		// Check if printing test border or using preparation pre-processor
-		if((printingTestBorder || usePreparationPreprocessor) && command.skip < PREPARATION) {
+		// Check if printing test border or backlash calibration cylinder or using preparation pre-processor
+		if((printingTestBorder || printingBacklashCalibrationCylinder || usePreparationPreprocessor) && command.skip < PREPARATION) {
 
 			// Check if intro hasn't been added yet
 			if(!addedIntro) {
@@ -980,66 +988,82 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 		
 				// Initialize new commands
 				stack<Command> newCommands;
-		
-				// Check if not printing test border
-				double cornerX = 0, cornerY = 0;
-				if(!printingTestBorder) {
-
-					// Set corner X
-					if(maxXExtruderLow < BED_LOW_MAX_X)
-						cornerX = (BED_LOW_MAX_X - BED_LOW_MIN_X) / 2;
-					else if(minXExtruderLow > BED_LOW_MIN_X)
-						cornerX = -(BED_LOW_MAX_X - BED_LOW_MIN_X) / 2;
-
-					// Set corner Y
-					if(maxYExtruderLow < BED_LOW_MAX_Y)
-						cornerY = (BED_LOW_MAX_Y - BED_LOW_MIN_Y - 10) / 2;
-					else if(minYExtruderLow > BED_LOW_MIN_Y)
-						cornerY = -(BED_LOW_MAX_Y - BED_LOW_MIN_Y - 10) / 2;
+				
+				// Check if printing backlash calibration cylinder
+				if(printingBacklashCalibrationCylinder) {
+				
+					// Add intro to output
+					newCommands.push(Command("G90\n", PREPARATION, PREPARATION));
+					newCommands.push(Command("M104 S" + to_string(filamentTemperature) + '\n', PREPARATION, PREPARATION));
+					newCommands.push(Command("G28\n", PREPARATION, PREPARATION));
+					newCommands.push(Command("G0 Z2\n", PREPARATION, PREPARATION));
+					newCommands.push(Command("M109 S" + to_string(filamentTemperature) + '\n', PREPARATION, PREPARATION));
+					newCommands.push(Command("M106 S" + static_cast<string>(filamentType == PLA ? "255" : "1") + '\n', PREPARATION, PREPARATION));
 				}
 				
-				// Add intro to output
-				newCommands.push(Command("M106 S" + static_cast<string>(filamentType == PLA ? "255" : "50") + '\n', PREPARATION, PREPARATION));
-				newCommands.push(Command("M17\n", PREPARATION, PREPARATION));
-				newCommands.push(Command("G90\n", PREPARATION, PREPARATION));
-				newCommands.push(Command("M104 S" + to_string(filamentTemperature) + '\n', PREPARATION, PREPARATION));
-				newCommands.push(Command("G0 Z5 F2900\n", PREPARATION, PREPARATION));
-				newCommands.push(Command("G28\n", PREPARATION, PREPARATION));
-
-				// Add heat bed command if using Micro Pass
-				if(usingMicroPass)
-					newCommands.push(Command("M190 S" + static_cast<string>(filamentType == PLA ? "70" : "80") + '\n', PREPARATION, PREPARATION));
-
-				// Check if one of the corners wasn't set
-				if(!cornerX || !cornerY) {
-
-					// Prepare extruder the standard way
-					newCommands.push(Command("M18\n", PREPARATION, PREPARATION));
-					newCommands.push(Command("M109 S" + to_string(filamentTemperature) + '\n', PREPARATION, PREPARATION));
-					newCommands.push(Command("G4 S2\n", PREPARATION, PREPARATION));
-					newCommands.push(Command("M17\n", PREPARATION, PREPARATION));
-					newCommands.push(Command("G91\n", PREPARATION, PREPARATION));
-				}
-
 				// Otherwise
 				else {
+		
+					// Check if not printing test border
+					double cornerX = 0, cornerY = 0;
+					if(!printingTestBorder) {
 
-					// Prepare extruder by leaving excess at corner
-					newCommands.push(Command("G91\n", PREPARATION, PREPARATION));
-					newCommands.push(Command("G0 X" + to_string(-cornerX) + " Y" + to_string(-cornerY) + " F2900\n", PREPARATION, PREPARATION));
-					newCommands.push(Command("M18\n", PREPARATION, PREPARATION));
-					newCommands.push(Command("M109 S" + to_string(filamentTemperature) + '\n', PREPARATION, PREPARATION));
+						// Set corner X
+						if(maxXExtruderLow < BED_LOW_MAX_X)
+							cornerX = (BED_LOW_MAX_X - BED_LOW_MIN_X) / 2;
+						else if(minXExtruderLow > BED_LOW_MIN_X)
+							cornerX = -(BED_LOW_MAX_X - BED_LOW_MIN_X) / 2;
+
+						// Set corner Y
+						if(maxYExtruderLow < BED_LOW_MAX_Y)
+							cornerY = (BED_LOW_MAX_Y - BED_LOW_MIN_Y - 10) / 2;
+						else if(minYExtruderLow > BED_LOW_MIN_Y)
+							cornerY = -(BED_LOW_MAX_Y - BED_LOW_MIN_Y - 10) / 2;
+					}
+				
+					// Add intro to output
+					newCommands.push(Command("M106 S" + static_cast<string>(filamentType == PLA ? "255" : "50") + '\n', PREPARATION, PREPARATION));
 					newCommands.push(Command("M17\n", PREPARATION, PREPARATION));
-					newCommands.push(Command("G0 Z-4 F2900\n", PREPARATION, PREPARATION));
-					newCommands.push(Command("G0 E7.5 F2000\n", PREPARATION, PREPARATION));
-					newCommands.push(Command("G4 S3\n", PREPARATION, PREPARATION));
-					newCommands.push(Command("G0 X" + to_string(cornerX * 0.1) + " Y" + to_string(cornerY * 0.1) + " Z-0.999 F2900\n", PREPARATION, PREPARATION));
-					newCommands.push(Command("G0 X" + to_string(cornerX * 0.9) + " Y" + to_string(cornerY * 0.9) + " F1000\n", PREPARATION, PREPARATION));
-				}
+					newCommands.push(Command("G90\n", PREPARATION, PREPARATION));
+					newCommands.push(Command("M104 S" + to_string(filamentTemperature) + '\n', PREPARATION, PREPARATION));
+					newCommands.push(Command("G0 Z5 F2900\n", PREPARATION, PREPARATION));
+					newCommands.push(Command("G28\n", PREPARATION, PREPARATION));
 
-				newCommands.push(Command("G92 E0\n", PREPARATION, PREPARATION));
-				newCommands.push(Command("G90\n", PREPARATION, PREPARATION));
-				newCommands.push(Command("G0 Z0.4 F2400\n", PREPARATION, PREPARATION));
+					// Add heat bed command if using Micro Pass
+					if(usingMicroPass)
+						newCommands.push(Command("M190 S" + static_cast<string>(filamentType == PLA ? "70" : "80") + '\n', PREPARATION, PREPARATION));
+
+					// Check if one of the corners wasn't set
+					if(!cornerX || !cornerY) {
+
+						// Prepare extruder the standard way
+						newCommands.push(Command("M18\n", PREPARATION, PREPARATION));
+						newCommands.push(Command("M109 S" + to_string(filamentTemperature) + '\n', PREPARATION, PREPARATION));
+						newCommands.push(Command("G4 S2\n", PREPARATION, PREPARATION));
+						newCommands.push(Command("M17\n", PREPARATION, PREPARATION));
+						newCommands.push(Command("G91\n", PREPARATION, PREPARATION));
+					}
+
+					// Otherwise
+					else {
+
+						// Prepare extruder by leaving excess at corner
+						newCommands.push(Command("G91\n", PREPARATION, PREPARATION));
+						newCommands.push(Command("G0 X" + to_string(-cornerX) + " Y" + to_string(-cornerY) + " F2900\n", PREPARATION, PREPARATION));
+						newCommands.push(Command("M18\n", PREPARATION, PREPARATION));
+						newCommands.push(Command("M109 S" + to_string(filamentTemperature) + '\n', PREPARATION, PREPARATION));
+						newCommands.push(Command("M17\n", PREPARATION, PREPARATION));
+						newCommands.push(Command("G0 Z-4 F2900\n", PREPARATION, PREPARATION));
+						newCommands.push(Command("G0 E7.5 F2000\n", PREPARATION, PREPARATION));
+						newCommands.push(Command("G4 S3\n", PREPARATION, PREPARATION));
+						newCommands.push(Command("G0 X" + to_string(cornerX * 0.1) + " Y" + to_string(cornerY * 0.1) + " Z-0.999 F2900\n", PREPARATION, PREPARATION));
+						newCommands.push(Command("G0 X" + to_string(cornerX * 0.9) + " Y" + to_string(cornerY * 0.9) + " F1000\n", PREPARATION, PREPARATION));
+					}
+
+					newCommands.push(Command("G92 E0\n", PREPARATION, PREPARATION));
+					newCommands.push(Command("G90\n", PREPARATION, PREPARATION));
+					newCommands.push(Command("G0 Z0.4 F2400\n", PREPARATION, PREPARATION));
+				}
 		
 				// Finish processing command later
 				if(!gcode.isEmpty())
@@ -1065,27 +1089,37 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 		
 				// Initialize new commands
 				stack<Command> newCommands;
-
-				// Add outro to output
-				newCommands.push(Command("G91\n", PREPARATION, PREPARATION));
-				newCommands.push(Command("G0 E-1 F2000\n", PREPARATION, PREPARATION));
-				newCommands.push(Command("G0 X5 Y5 F2000\n", PREPARATION, PREPARATION));
-				newCommands.push(Command("G0 E-18 F2000\n", PREPARATION, PREPARATION));
-				newCommands.push(Command("M104 S0\n", PREPARATION, PREPARATION));
-
-				if(usingMicroPass)
-					newCommands.push(Command("M140 S0\n", PREPARATION, PREPARATION));
-
-				if(maxZExtruder > 60) {
-					if(maxZExtruder < 110)
-						newCommands.push(Command("G0 Z3 F2900\n", PREPARATION, PREPARATION));
-					newCommands.push(Command("G90\n", PREPARATION, PREPARATION));
-					newCommands.push(Command("G0 X90 Y84\n", PREPARATION, PREPARATION));
-				}
+				
+				// Check if printing backlash calibration cylinder
+				if(printingBacklashCalibrationCylinder)
+				
+					// Add outro to output
+					newCommands.push(Command("M104 S0\n", PREPARATION, PREPARATION));
+				
+				// Otherwise
 				else {
-					newCommands.push(Command("G0 Z3 F2900\n", PREPARATION, PREPARATION));
-					newCommands.push(Command("G90\n", PREPARATION, PREPARATION));
-					newCommands.push(Command("G0 X95 Y95\n", PREPARATION, PREPARATION));
+
+					// Add outro to output
+					newCommands.push(Command("G91\n", PREPARATION, PREPARATION));
+					newCommands.push(Command("G0 E-1 F2000\n", PREPARATION, PREPARATION));
+					newCommands.push(Command("G0 X5 Y5 F2000\n", PREPARATION, PREPARATION));
+					newCommands.push(Command("G0 E-18 F2000\n", PREPARATION, PREPARATION));
+					newCommands.push(Command("M104 S0\n", PREPARATION, PREPARATION));
+
+					if(usingMicroPass)
+						newCommands.push(Command("M140 S0\n", PREPARATION, PREPARATION));
+
+					if(maxZExtruder > 60) {
+						if(maxZExtruder < 110)
+							newCommands.push(Command("G0 Z3 F2900\n", PREPARATION, PREPARATION));
+						newCommands.push(Command("G90\n", PREPARATION, PREPARATION));
+						newCommands.push(Command("G0 X90 Y84\n", PREPARATION, PREPARATION));
+					}
+					else {
+						newCommands.push(Command("G0 Z3 F2900\n", PREPARATION, PREPARATION));
+						newCommands.push(Command("G90\n", PREPARATION, PREPARATION));
+						newCommands.push(Command("G0 X95 Y95\n", PREPARATION, PREPARATION));
+					}
 				}
 
 				newCommands.push(Command("M18\n", PREPARATION, PREPARATION));
@@ -1099,8 +1133,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			}
 		}
 
-		// Check if not printing test border and using wave bonding pre-processor
-		if(!printingTestBorder && useWaveBondingPreprocessor && command.skip < WAVE) {
+		// Check if not printing test border or backlash calibration cylinder and using wave bonding pre-processor
+		if(!printingTestBorder && !printingBacklashCalibrationCylinder && useWaveBondingPreprocessor && command.skip < WAVE) {
 		
 			// Initialize new commands
 			stack<Command> newCommands;
@@ -1370,8 +1404,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			}
 		}
 
-		// Check if printing test border or using thermal bonding pre-processor
-		if((printingTestBorder || useThermalBondingPreprocessor) && command.skip < THERMAL) {
+		// Check if not printing backlash calibration cylinder and printing test border or using thermal bonding pre-processor
+		if(!printingBacklashCalibrationCylinder && (printingTestBorder || useThermalBondingPreprocessor) && command.skip < THERMAL) {
 
 			// Initialize new commands
 			stack<Command> newCommands;
@@ -1494,8 +1528,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			}
 		}
 
-		// Check if printing test border or using bed compensation pre-processor
-		if((printingTestBorder|| useBedCompensationPreprocessor) && command.skip < BED) {
+		// Check if not printing backlash calibration cylinder and printing test border or using bed compensation pre-processor
+		if(!printingBacklashCalibrationCylinder && (printingTestBorder|| useBedCompensationPreprocessor) && command.skip < BED) {
 		
 			// Initialize new commands
 			stack<Command> newCommands;
@@ -1752,8 +1786,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			}
 		}
 
-		// Check if printing test border or using backlash compentation pre-processor
-		if((printingTestBorder || useBacklashCompensationPreprocessor) && command.skip < BACKLASH) {
+		// Check if not printing backlash calibration cylinder and printing test border or using backlash compentation pre-processor
+		if(!printingBacklashCalibrationCylinder && (printingTestBorder || useBacklashCompensationPreprocessor) && command.skip < BACKLASH) {
 
 			// Initialize new commands
 			stack<Command> newCommands;
@@ -1916,8 +1950,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			}
 		}
 
-		// Check if printing test border or using feed rate conversion pre-processor
-		if((printingTestBorder || useFeedRateConversionPreprocessor) && command.skip < FEED) {
+		// Check if not printing backlash calibration cylinder and printing test border or using feed rate conversion pre-processor
+		if(!printingBacklashCalibrationCylinder && (printingTestBorder || useFeedRateConversionPreprocessor) && command.skip < FEED) {
 
 			// Check if command contains valid G-code and it's a G command with an F value
 			if(!gcode.isEmpty() && gcode.hasValue('G') && gcode.hasValue('F')) {
