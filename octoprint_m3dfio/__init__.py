@@ -618,8 +618,8 @@ class M3DFioPlugin(
 			UseCenterModelPreprocessor = False,
 			IgnorePrintDimensionLimitations = False,
 			PreprocessOnTheFly = True,
-			PrinterColor = "White",
-			FilamentColor = "Orange",
+			PrinterColor = "Black",
+			FilamentColor = "White",
 			UseSharedLibrary = True
 		)
 	

@@ -51,49 +51,51 @@ $(function() {
 		var printerMaterials = {
 		
 			Black: new THREE.MeshPhongMaterial({
-				color: 0x000000,
+				color: 0x2A2A2A,
 				specular: 0x050505,
 				shininess: 80,
 				side: THREE.DoubleSide
 			}),
 			
 			White: new THREE.MeshPhongMaterial({
-				color: 0xFFFFFF,
+				color: 0xFBFBFB,
 				specular: 0x050505,
 				shininess: 80,
 				side: THREE.DoubleSide
 			}),
 			
 			Blue: new THREE.MeshPhongMaterial({
-				color: 0x2EBADD,
+				color: 0x4783C1,
 				specular: 0x050505,
 				shininess: 80,
 				side: THREE.DoubleSide
 			}),
 			
 			Green: new THREE.MeshPhongMaterial({
-				color: 0x7AE050,
+				color: 0x00D700,
 				specular: 0x050505,
 				shininess: 80,
 				side: THREE.DoubleSide
 			}),
 			
 			Orange: new THREE.MeshPhongMaterial({
-				color: 0x000000,
+				color: 0xED2600,
 				specular: 0x050505,
 				shininess: 80,
 				side: THREE.DoubleSide
 			}),
 			
 			Clear: new THREE.MeshPhongMaterial({
-				color: 0x000000,
-				specular: 0x050505,
-				shininess: 80,
-				side: THREE.DoubleSide
+				color: 0xE2E2E3,
+				specular: 0xFFFFFF,
+				shininess: 100,
+				side: THREE.DoubleSide,
+				transparent: true,
+				opacity: 0.4
 			}),
 			
 			Silver: new THREE.MeshPhongMaterial({
-				color: 0xB9B9B9,
+				color: 0xB7B8B9,
 				specular: 0x050505,
 				shininess: 80,
 				side: THREE.DoubleSide
@@ -103,13 +105,53 @@ $(function() {
 		// Set filament materials
 		var filamentMaterials = {
 		
-			Blue: new THREE.MeshLambertMaterial({
-				color: 0x2EBADD,
+			White: new THREE.MeshLambertMaterial({
+				color: 0xF4F3E9,
 				side: THREE.DoubleSide
 			}),
-		
+			
+			Pink: new THREE.MeshLambertMaterial({
+				color: 0xFF006B,
+				side: THREE.DoubleSide
+			}),
+			
+			Red: new THREE.MeshLambertMaterial({
+				color: 0xEE0000,
+				side: THREE.DoubleSide
+			}),
+			
 			Orange: new THREE.MeshLambertMaterial({
-				color: 0xEC9F3B,
+				color: 0xFE9800,
+				side: THREE.DoubleSide
+			}),
+
+			Yellow: new THREE.MeshLambertMaterial({
+				color: 0xFFEA00,
+				side: THREE.DoubleSide
+			}),
+			
+			Green: new THREE.MeshLambertMaterial({
+				color: 0x009E60,
+				side: THREE.DoubleSide
+			}),
+
+			"Light Blue": new THREE.MeshLambertMaterial({
+				color: 0x00EEEE,
+				side: THREE.DoubleSide
+			}),
+
+			Blue: new THREE.MeshLambertMaterial({
+				color: 0x236B8E,
+				side: THREE.DoubleSide
+			}),
+
+			Purple: new THREE.MeshLambertMaterial({
+				color: 0x9A009A,
+				side: THREE.DoubleSide
+			}),
+
+			Black: new THREE.MeshLambertMaterial({
+				color: 0x404040,
 				side: THREE.DoubleSide
 			})
 		};
@@ -717,7 +759,7 @@ $(function() {
 					// Create sky box
 					var skyBoxGeometry = new THREE.CubeGeometry(10000, 10000, 10000);
 					var skyBoxMaterial = new THREE.MeshBasicMaterial({
-						color: 0xFAFAFA,
+						color: 0xFCFCFC,
 						side: THREE.BackSide
 					});
 					var skyBox = new THREE.Mesh(skyBoxGeometry, skyBoxMaterial);
@@ -734,6 +776,7 @@ $(function() {
 						mesh.rotation.set(3 * Math.PI / 2, 0, Math.PI);
 						mesh.position.set(0, 60.7, 0);
 						mesh.scale.set(1, 1, 1);
+						mesh.renderOrder = 3;
 			
 						// Append model to list
 						viewport.models.push({mesh: mesh, type: "stl", glow: null});
@@ -1031,6 +1074,7 @@ $(function() {
 						mesh.position.set(0, 0, 0);
 						mesh.rotation.set(0, 0, 0);
 						mesh.scale.set(1, 1, 1);
+						mesh.renderOrder = 0;
 	
 						// Add model to scene
 						viewport.scene[0].add(mesh);
@@ -1198,7 +1242,7 @@ $(function() {
 				mouseDownEvent: function(event) {
 	
 					// Check if not clicking on a button or input
-					if(!$(event.target).is("button, input")) {
+					if(!$(event.target).is("button, img, input")) {
 	
 						// Initialize variables
 						var raycaster = new THREE.Raycaster();
@@ -1791,7 +1835,7 @@ $(function() {
 						$("#slicing_configuration_dialog .modal-extra button.delete, #slicing_configuration_dialog .modal-extra button.clone, #slicing_configuration_dialog .modal-extra button.reset").removeClass("disabled");
 	
 						// Show values
-						$("#slicing_configuration_dialog .modal-extra div.values p").addClass("show");
+						$("#slicing_configuration_dialog .modal-extra div.values div").addClass("show").children('p').addClass("show");
 						if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("translate"))
 							$("#slicing_configuration_dialog .modal-extra div.values input[name=\"y\"]").parent().removeClass("show");
 	
@@ -1802,6 +1846,7 @@ $(function() {
 							if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("translate")) {
 
 								// Display position values
+								$("#slicing_configuration_dialog .modal-extra div.values p span").text("mm");
 								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"x\"]").val((model.position.x.toFixed(3) == 0 ? 0 : -model.position.x).toFixed(3));
 								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"z\"]").val(model.position.z.toFixed(3));
 							}
@@ -1810,6 +1855,7 @@ $(function() {
 							else if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("rotate")) {
 
 								// Display rotation values
+								$("#slicing_configuration_dialog .modal-extra div.values p span").text('°');
 								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"x\"]").val((model.rotation.x * 180 / Math.PI).toFixed(3));
 								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"y\"]").val((model.rotation.y * 180 / Math.PI).toFixed(3));
 								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"z\"]").val((model.rotation.z * 180 / Math.PI).toFixed(3));
@@ -1848,7 +1894,7 @@ $(function() {
 						$("#slicing_configuration_dialog .modal-extra button.delete, #slicing_configuration_dialog .modal-extra button.clone, #slicing_configuration_dialog .modal-extra button.reset").addClass("disabled");
 
 						// Hide values
-						$("#slicing_configuration_dialog .modal-extra div.values p").removeClass("show");
+						$("#slicing_configuration_dialog .modal-extra div.values div").removeClass("show").children('p').removeClass("show");
 	
 						// Blur input
 						$("#slicing_configuration_dialog .modal-extra div.values input").blur();
@@ -2017,7 +2063,7 @@ $(function() {
 						viewport.boundaries[i].material.color.setHex(0x00FF00);
 						viewport.boundaries[i].material.opacity = 0.2;
 						viewport.boundaries[i].visible = viewport.showBoundaries;
-						viewport.boundaries[i].renderOrder = 1;
+						viewport.boundaries[i].renderOrder = 2;
 					}
 			
 					// Check if models goes out of bounds on low front
@@ -2027,7 +2073,7 @@ $(function() {
 						viewport.boundaries[1].material.color.setHex(0xFF0000);
 						viewport.boundaries[1].material.opacity = 0.7;
 						viewport.boundaries[1].visible = true;
-						viewport.boundaries[1].renderOrder = 0;
+						viewport.boundaries[1].renderOrder = 1;
 					}
 			
 					// Otherwise
@@ -2043,7 +2089,7 @@ $(function() {
 						viewport.boundaries[2].material.color.setHex(0xFF0000);
 						viewport.boundaries[2].material.opacity = 0.7;
 						viewport.boundaries[2].visible = true;
-						viewport.boundaries[2].renderOrder = 0;
+						viewport.boundaries[2].renderOrder = 1;
 					}
 			
 					// Otherwise
@@ -2059,7 +2105,7 @@ $(function() {
 						viewport.boundaries[3].material.color.setHex(0xFF0000);
 						viewport.boundaries[3].material.opacity = 0.7;
 						viewport.boundaries[3].visible = true;
-						viewport.boundaries[3].renderOrder = 0;
+						viewport.boundaries[3].renderOrder = 1;
 					}
 			
 					// Otherwise
@@ -2075,7 +2121,7 @@ $(function() {
 						viewport.boundaries[4].material.color.setHex(0xFF0000);
 						viewport.boundaries[4].material.opacity = 0.7;
 						viewport.boundaries[4].visible = true;
-						viewport.boundaries[4].renderOrder = 0;
+						viewport.boundaries[4].renderOrder = 1;
 					}
 			
 					// Otherwise
@@ -2091,7 +2137,7 @@ $(function() {
 						viewport.boundaries[5].material.color.setHex(0xFF0000);
 						viewport.boundaries[5].material.opacity = 0.7;
 						viewport.boundaries[5].visible = true;
-						viewport.boundaries[5].renderOrder = 0;
+						viewport.boundaries[5].renderOrder = 1;
 					}
 			
 					// Otherwise
@@ -2107,7 +2153,7 @@ $(function() {
 						viewport.boundaries[6].material.color.setHex(0xFF0000);
 						viewport.boundaries[6].material.opacity = 0.7;
 						viewport.boundaries[6].visible = true;
-						viewport.boundaries[6].renderOrder = 0;
+						viewport.boundaries[6].renderOrder = 1;
 					}
 			
 					// Otherwise
@@ -2123,7 +2169,7 @@ $(function() {
 						viewport.boundaries[7].material.color.setHex(0xFF0000);
 						viewport.boundaries[7].material.opacity = 0.7;
 						viewport.boundaries[7].visible = true;
-						viewport.boundaries[7].renderOrder = 0;
+						viewport.boundaries[7].renderOrder = 1;
 					}
 			
 					// Otherwise
@@ -2139,7 +2185,7 @@ $(function() {
 						viewport.boundaries[8].material.color.setHex(0xFF0000);
 						viewport.boundaries[8].material.opacity = 0.7;
 						viewport.boundaries[8].visible = true;
-						viewport.boundaries[8].renderOrder = 0;
+						viewport.boundaries[8].renderOrder = 1;
 					}
 			
 					// Otherwise
@@ -2155,7 +2201,7 @@ $(function() {
 						viewport.boundaries[9].material.color.setHex(0xFF0000);
 						viewport.boundaries[9].material.opacity = 0.7;
 						viewport.boundaries[9].visible = true;
-						viewport.boundaries[9].renderOrder = 0;
+						viewport.boundaries[9].renderOrder = 1;
 					}
 			
 					// Otherwise
@@ -2171,7 +2217,7 @@ $(function() {
 						viewport.boundaries[10].material.color.setHex(0xFF0000);
 						viewport.boundaries[10].material.opacity = 0.7;
 						viewport.boundaries[10].visible = true;
-						viewport.boundaries[10].renderOrder = 0;
+						viewport.boundaries[10].renderOrder = 1;
 					}
 			
 					// Otherwise
@@ -2187,7 +2233,7 @@ $(function() {
 						viewport.boundaries[11].material.color.setHex(0xFF0000);
 						viewport.boundaries[11].material.opacity = 0.7;
 						viewport.boundaries[11].visible = true;
-						viewport.boundaries[11].renderOrder = 0;
+						viewport.boundaries[11].renderOrder = 1;
 					}
 			
 					// Otherwise
@@ -2203,7 +2249,7 @@ $(function() {
 						viewport.boundaries[12].material.color.setHex(0xFF0000);
 						viewport.boundaries[12].material.opacity = 0.7;
 						viewport.boundaries[12].visible = true;
-						viewport.boundaries[12].renderOrder = 0;
+						viewport.boundaries[12].renderOrder = 1;
 					}
 			
 					// Otherwise
@@ -2219,7 +2265,7 @@ $(function() {
 						viewport.boundaries[13].material.color.setHex(0xFF0000);
 						viewport.boundaries[13].material.opacity = 0.7;
 						viewport.boundaries[13].visible = true;
-						viewport.boundaries[13].renderOrder = 0;
+						viewport.boundaries[13].renderOrder = 1;
 					}
 			
 					// Otherwise
@@ -2235,7 +2281,7 @@ $(function() {
 						viewport.boundaries[14].material.color.setHex(0xFF0000);
 						viewport.boundaries[14].material.opacity = 0.7;
 						viewport.boundaries[14].visible = true;
-						viewport.boundaries[14].renderOrder = 0;
+						viewport.boundaries[14].renderOrder = 1;
 					}
 			
 					// Otherwise
@@ -2251,7 +2297,7 @@ $(function() {
 						viewport.boundaries[15].material.color.setHex(0xFF0000);
 						viewport.boundaries[15].material.opacity = 0.7;
 						viewport.boundaries[15].visible = true;
-						viewport.boundaries[15].renderOrder = 0;
+						viewport.boundaries[15].renderOrder = 1;
 					}
 			
 					// Otherwise
@@ -2267,7 +2313,7 @@ $(function() {
 						viewport.boundaries[16].material.color.setHex(0xFF0000);
 						viewport.boundaries[16].material.opacity = 0.7;
 						viewport.boundaries[16].visible = true;
-						viewport.boundaries[16].renderOrder = 0;
+						viewport.boundaries[16].renderOrder = 1;
 					}
 			
 					// Otherwise
@@ -2283,7 +2329,7 @@ $(function() {
 						viewport.boundaries[17].material.color.setHex(0xFF0000);
 						viewport.boundaries[17].material.opacity = 0.7;
 						viewport.boundaries[17].visible = true;
-						viewport.boundaries[17].renderOrder = 0;
+						viewport.boundaries[17].renderOrder = 1;
 					}
 			
 					// Otherwise
@@ -2299,7 +2345,7 @@ $(function() {
 						viewport.boundaries[18].material.color.setHex(0xFF0000);
 						viewport.boundaries[18].material.opacity = 0.7;
 						viewport.boundaries[18].visible = true;
-						viewport.boundaries[18].renderOrder = 0;
+						viewport.boundaries[18].renderOrder = 1;
 					}
 			
 					// Otherwise
@@ -2315,7 +2361,7 @@ $(function() {
 						viewport.boundaries[19].material.color.setHex(0xFF0000);
 						viewport.boundaries[19].material.opacity = 0.7;
 						viewport.boundaries[19].visible = true;
-						viewport.boundaries[19].renderOrder = 0;
+						viewport.boundaries[19].renderOrder = 1;
 					}
 			
 					// Otherwise
@@ -2331,7 +2377,7 @@ $(function() {
 						viewport.boundaries[20].material.color.setHex(0xFF0000);
 						viewport.boundaries[20].material.opacity = 0.7;
 						viewport.boundaries[20].visible = true;
-						viewport.boundaries[20].renderOrder = 0;
+						viewport.boundaries[20].renderOrder = 1;
 					}
 			
 					// Otherwise
@@ -2347,7 +2393,7 @@ $(function() {
 						viewport.boundaries[21].material.color.setHex(0xFF0000);
 						viewport.boundaries[21].material.opacity = 0.7;
 						viewport.boundaries[21].visible = true;
-						viewport.boundaries[21].renderOrder = 0;
+						viewport.boundaries[21].renderOrder = 1;
 					}
 			
 					// Otherwise
@@ -3020,35 +3066,46 @@ $(function() {
 																	
 																	$("#slicing_configuration_dialog .modal-extra").empty().append(`
 																		<div class="printer">
-																			<button data-color="Black"><img src="black.png"></button>
-																			<button data-color="White"><img src="white.png"></button>
-																			<button data-color="Blue"><img src="blue.png"></button>
-																			<button data-color="Green"><img src="green.png"></button>
-																			<button data-color="Orange"><img src="orange.png"></button>
-																			<button data-color="Clear"><img src="clear.png"></button>
-																			<button data-color="Silver"><img src="silver.png"></button>
+																			<button data-color="Black" title="Black"><img src="/plugin/m3dfio/static/img/black.png"></button>
+																			<button data-color="White" title="White"><img src="/plugin/m3dfio/static/img/white.png"></button>
+																			<button data-color="Blue" title="Blue"><img src="/plugin/m3dfio/static/img/blue.png"></button>
+																			<button data-color="Green" title="Green"><img src="/plugin/m3dfio/static/img/green.png"></button>
+																			<button data-color="Orange" title="Orange"><img src="/plugin/m3dfio/static/img/orange.png"></button>
+																			<button data-color="Clear" title="Clear"><img src="/plugin/m3dfio/static/img/clear.png"></button>
+																			<button data-color="Silver" title="Silver"><img src="/plugin/m3dfio/static/img/silver.png"></button>
 																		</div>
 																		<div class="filament">
-																			<button data-color="Blue"><img style="background-color: #00EEEE;" src="filament.png"></button>
-																			<button data-color="Orange"><img style="background-color: #FE9800;" src="filament.png"></button>
+																			<button data-color="White" title="White"><span style="background-color: #F4F3E9;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
+																			<button data-color="Pink" title="Pink"><span style="background-color: #FF006B;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
+																			<button data-color="Red" title="Red"><span style="background-color: #EE0000;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
+																			<button data-color="Orange" title="Orange"><span style="background-color: #FE9800;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
+																			<button data-color="Yellow" title="Yellow"><span style="background-color: #FFEA00;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
+																			<button data-color="Green" title="Green"><span style="background-color: #009E60;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
+																			<button data-color="Light Blue" title="Light Blue"><span style="background-color: #00EEEE;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
+																			<button data-color="Blue" title="Blue"><span style="background-color: #236B8E;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
+																			<button data-color="Purple" title="Purple"><span style="background-color: #9A009A;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
+																			<button data-color="Black" title="Black"><span style="background-color: #404040;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
 																		</div>
 																		<div class="model">
 																			<input type="file" accept=".stl, .obj">
-																			<button class="import">Import</button>
-																			<button class="translate disabled">Translate</button>
-																			<button class="rotate">Rotate</button>
-																			<button class="scale">Scale</button>
-																			<button class="snap">Snap</button>
-																			<button class="delete disabled">Delete</button>
-																			<button class="clone disabled">Clone</button>
-																			<button class="reset disabled">Reset</button>
-																			<button class="boundaries">Boundaries</button>
-																			<button class="measurements">Measurements</button>
+																			<button class="import" title="Import"><img src="/plugin/m3dfio/static/img/import.png"></button>
+																			<button class="translate disabled" title="Translate"><img src="/plugin/m3dfio/static/img/translate.png"></button>
+																			<button class="rotate" title="Rotate"><img src="/plugin/m3dfio/static/img/rotate.png"></button>
+																			<button class="scale" title="Scale"><img src="/plugin/m3dfio/static/img/scale.png"></button>
+																			<button class="snap" title="Snap"><img src="/plugin/m3dfio/static/img/snap.png"></button>
+																			<button class="delete disabled" title="Delete"><img src="/plugin/m3dfio/static/img/delete.png"></button>
+																			<button class="clone disabled" title="Clone"><img src="/plugin/m3dfio/static/img/clone.png"></button>
+																			<button class="reset disabled" title="Reset"><img src="/plugin/m3dfio/static/img/reset.png"></button>
+																			<button class="boundaries" title="Boundaries"><img src="/plugin/m3dfio/static/img/boundaries.png"></button>
+																			<button class="measurements" title="Measurements"><img src="/plugin/m3dfio/static/img/measurements.png"></button>
 																		</div>
 																		<div class="values translate">
-																			<p>X<input type="number" step="any" name="x"></p>
-																			<p>Y<input type="number" step="any" name="y"></p>
-																			<p>Z<input type="number" step="any" name="z"></p>
+																			<div>
+																				<p>X<input type="number" step="any" name="x"><span></span></p>
+																				<p>Y<input type="number" step="any" name="y"><span></span></p>
+																				<p>Z<input type="number" step="any" name="z"><span></span></p>
+																				<span></span>
+																			</div>
 																		</div>
 																		<div class="measurements">
 																			<p class="width"></p>
@@ -3060,7 +3117,14 @@ $(function() {
 																	$("#slicing_configuration_dialog .modal-extra div.printer button[data-color=\"" + self.settings.settings.plugins.m3dfio.PrinterColor() + "\"]").addClass("disabled");
 																	$("#slicing_configuration_dialog .modal-extra div.filament button[data-color=\"" + self.settings.settings.plugins.m3dfio.FilamentColor() + "\"]").addClass("disabled");
 																	$("#slicing_configuration_dialog .modal-extra").append(viewport.renderer.domElement);
-	
+																	
+																	// Image drag event
+																	$("#slicing_configuration_dialog .modal-extra img").on("dragstart", function(event) {
+																	
+																		// Prevent default
+																		event.preventDefault();
+																	});
+																	
 																	// Input change event
 																	$("#slicing_configuration_dialog .modal-extra input[type=\"file\"]").change(function(event) {
 
