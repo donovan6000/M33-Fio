@@ -770,7 +770,7 @@ $(function() {
 						color: 0x000000,
 						side: THREE.DoubleSide
 					}));
-					mesh.position.set(0, 0, 0);
+					mesh.position.set(0, -0.25, 0);
 					mesh.rotation.set(Math.PI / 2, 0, 0);
 					mesh.renderOrder = 4;
 					
@@ -786,7 +786,7 @@ $(function() {
 		
 						// Set printer's orientation
 						mesh.rotation.set(3 * Math.PI / 2, 0, Math.PI);
-						mesh.position.set(0, 53.6, 0);
+						mesh.position.set(0, 53.35, 0);
 						mesh.scale.set(1.233333333, 1.233333333, 1.233333333);
 						mesh.renderOrder = 3;
 			
@@ -807,7 +807,7 @@ $(function() {
 								side: THREE.FrontSide,
 								transparent: true
 							}));
-							mesh.position.set(0, -22.6, -92.5);
+							mesh.position.set(0, -22.85, -92.5);
 							mesh.rotation.set(0, -Math.PI, 0);
 							mesh.renderOrder = 4;
 							
