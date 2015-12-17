@@ -420,8 +420,8 @@ body > div.page-container > div.message > div > div > div.calibrate > div.distan
 #slicing_configuration_dialog.profile .modal-extra div > textarea {
 	resize: none;
 	font: normal 12px monospace;
-	white-space: pre;
-	word-break: break-all;
+	white-space: pre-wrap;
+	word-break: break-word;
 	flex-grow: 1;
 	width: 100% !important;
 	height: 100% !important;
@@ -619,15 +619,19 @@ body > div.page-container > div.message > div > div > div.calibrate > div.distan
 	border-radius: 0 4px 4px 0;
 	border: 1px solid #ccc;
 	border-left: none;
-	line-height: 20px;
+	line-height: 22px;
+	height: 22px;
 	color: #555;
 	vertical-align: middle;
 	text-shadow: 0 1px 0 #fff;
 	background-color: #eee;
 	position: relative;
-	top: -2px;
-	padding: 3px 4px;
+	top: 0;
+	padding: 0 2px;
+	margin: 0;
 	pointer-events: none;
+	display: inline-block;
+	float: right;
 }
 
 #slicing_configuration_dialog.model .modal-extra > div.values > div > p:nth-of-type(3) {
