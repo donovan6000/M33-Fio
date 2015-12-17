@@ -668,8 +668,7 @@ $(function() {
 					type: "POST",
 					dataType: "json",
 					data: JSON.stringify({command: "message", value: "Save Printer Settings"}),
-					contentType: "application/json; charset=UTF-8",
-					timeout: 3600 * 1000
+					contentType: "application/json; charset=UTF-8"
 				});
 			}, 1000);
 		}
@@ -685,8 +684,7 @@ $(function() {
 					type: "POST",
 					dataType: "json",
 					data: JSON.stringify({command: "message", value: "Save Software Settings"}),
-					contentType: "application/json; charset=UTF-8",
-					timeout: 3600 * 1000
+					contentType: "application/json; charset=UTF-8"
 				});
 			}, 1000);
 		}
@@ -2797,7 +2795,6 @@ $(function() {
 								data: $.param(parameter),
 								dataType: "json",
 								contentType: "application/x-www-form-urlencoded; charset=UTF-8",
-								timeout: 3600 * 1000,
 
 								// On success
 								success: function(data) {
@@ -2854,8 +2851,7 @@ $(function() {
 						type: "POST",
 						dataType: "json",
 						data: JSON.stringify({command: "message", value: "Remove temp"}),
-						contentType: "application/json; charset=UTF-8",
-						timeout: 3600 * 1000
+						contentType: "application/json; charset=UTF-8"
 					});
 					
 					setTimeout(function() {
@@ -2928,7 +2924,6 @@ $(function() {
 									})
 								}),
 								contentType: "application/json; charset=UTF-8",
-								timeout: 3600 * 1000,
 
 								// On success
 								success: function(data) {
@@ -2938,7 +2933,6 @@ $(function() {
 										url: data.path,
 										type: "GET",
 										contentType: "application/x-www-form-urlencoded; charset=UTF-8",
-										timeout: 3600 * 1000,
 
 										// On success
 										success: function(data) {
@@ -3053,7 +3047,6 @@ $(function() {
 							data: $.param(parameter),
 							dataType: "json",
 							contentType: "application/x-www-form-urlencoded; charset=UTF-8",
-							timeout: 3600 * 1000,
 
 							// On success
 							success: function(data) {
@@ -3073,7 +3066,6 @@ $(function() {
 											dataType: "json",
 											data: JSON.stringify({command: "message", value: "View model: " + modelName}),
 											contentType: "application/json; charset=UTF-8",
-											timeout: 3600 * 1000,
 
 											// On success
 											success: function(data) {
@@ -3454,7 +3446,6 @@ $(function() {
 												
 												xhr.open("GET", data.path);
 												xhr.responseType = "blob";
-												xhr.timeout = 3600 * 1000;
 												xhr.setRequestHeader("X-Api-Key", $.ajaxSettings.headers["X-Api-Key"])
 												xhr.send();
 											}
@@ -3536,7 +3527,6 @@ $(function() {
 									data: $.param(parameter),
 									dataType: "json",
 									contentType: "application/x-www-form-urlencoded; charset=UTF-8",
-									timeout: 3600 * 1000,
 
 									// On success
 									success: function(data) {
@@ -3604,8 +3594,7 @@ $(function() {
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: commands}),
-				contentType: "application/json; charset=UTF-8",
-				timeout: 3600 * 1000
+				contentType: "application/json; charset=UTF-8"
 			});
 		});
 		
@@ -3634,8 +3623,7 @@ $(function() {
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: commands}),
-				contentType: "application/json; charset=UTF-8",
-				timeout: 3600 * 1000
+				contentType: "application/json; charset=UTF-8"
 			});
 		});
 	
@@ -3657,8 +3645,7 @@ $(function() {
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: commands}),
-				contentType: "application/json; charset=UTF-8",
-				timeout: 3600 * 1000
+				contentType: "application/json; charset=UTF-8"
 			});
 		});
 	
@@ -3680,8 +3667,7 @@ $(function() {
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: commands}),
-				contentType: "application/json; charset=UTF-8",
-				timeout: 3600 * 1000
+				contentType: "application/json; charset=UTF-8"
 			});
 		});
 	
@@ -3703,8 +3689,7 @@ $(function() {
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: commands}),
-				contentType: "application/json; charset=UTF-8",
-				timeout: 3600 * 1000
+				contentType: "application/json; charset=UTF-8"
 			});
 		});
 	
@@ -3726,8 +3711,7 @@ $(function() {
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: commands}),
-				contentType: "application/json; charset=UTF-8",
-				timeout: 3600 * 1000
+				contentType: "application/json; charset=UTF-8"
 			});
 		});
 	
@@ -3749,8 +3733,7 @@ $(function() {
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: commands}),
-				contentType: "application/json; charset=UTF-8",
-				timeout: 3600 * 1000
+				contentType: "application/json; charset=UTF-8"
 			});
 		});
 	
@@ -3772,8 +3755,7 @@ $(function() {
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: commands}),
-				contentType: "application/json; charset=UTF-8",
-				timeout: 3600 * 1000
+				contentType: "application/json; charset=UTF-8"
 			});
 		});
 	
@@ -3795,8 +3777,7 @@ $(function() {
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: commands}),
-				contentType: "application/json; charset=UTF-8",
-				timeout: 3600 * 1000
+				contentType: "application/json; charset=UTF-8"
 			});
 		});
 	
@@ -3818,8 +3799,7 @@ $(function() {
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: commands}),
-				contentType: "application/json; charset=UTF-8",
-				timeout: 3600 * 1000
+				contentType: "application/json; charset=UTF-8"
 			});
 		});
 	
@@ -3841,8 +3821,7 @@ $(function() {
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: commands}),
-				contentType: "application/json; charset=UTF-8",
-				timeout: 3600 * 1000
+				contentType: "application/json; charset=UTF-8"
 			});
 		});
 	
@@ -3887,7 +3866,6 @@ $(function() {
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: commands}),
 				contentType: "application/json; charset=UTF-8",
-				timeout: 3600 * 1000,
 			
 				// On success
 				success: function(data) {
@@ -3953,7 +3931,6 @@ $(function() {
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: commands}),
 				contentType: "application/json; charset=UTF-8",
-				timeout: 3600 * 1000,
 			
 				// On success
 				success: function(data) {
@@ -4015,7 +3992,6 @@ $(function() {
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: commands}),
 				contentType: "application/json; charset=UTF-8",
-				timeout: 3600 * 1000,
 		
 				// On success
 				success: function(data) {
@@ -4046,7 +4022,6 @@ $(function() {
 						dataType: "json",
 						data: JSON.stringify({command: "message", value: commands}),
 						contentType: "application/json; charset=UTF-8",
-						timeout: 3600 * 1000,
 				
 						// On success
 						success: function(data) {
@@ -4103,7 +4078,6 @@ $(function() {
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: commands}),
 				contentType: "application/json; charset=UTF-8",
-				timeout: 3600 * 1000,
 			
 				// On success
 				success: function(data) {
@@ -4134,7 +4108,6 @@ $(function() {
 						dataType: "json",
 						data: JSON.stringify({command: "message", value: commands}),
 						contentType: "application/json; charset=UTF-8",
-						timeout: 3600 * 1000,
 					
 						// On success
 						success: function(data) {
@@ -4191,7 +4164,6 @@ $(function() {
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: commands}),
 				contentType: "application/json; charset=UTF-8",
-				timeout: 3600 * 1000,
 			
 				// On success
 				success: function(data) {
@@ -4240,7 +4212,6 @@ $(function() {
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: commands}),
 				contentType: "application/json; charset=UTF-8",
-				timeout: 3600 * 1000,
 			
 				// On success
 				success: function(data) {
@@ -4280,8 +4251,7 @@ $(function() {
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: commands}),
-				contentType: "application/json; charset=UTF-8",
-				timeout: 3600 * 1000
+				contentType: "application/json; charset=UTF-8"
 			});
 		});
 	
@@ -4304,8 +4274,7 @@ $(function() {
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: commands}),
-				contentType: "application/json; charset=UTF-8",
-				timeout: 3600 * 1000
+				contentType: "application/json; charset=UTF-8"
 			});
 		});
 	
@@ -4328,8 +4297,7 @@ $(function() {
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: commands}),
-				contentType: "application/json; charset=UTF-8",
-				timeout: 3600 * 1000
+				contentType: "application/json; charset=UTF-8"
 			});
 		});
 	
@@ -4352,8 +4320,7 @@ $(function() {
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: commands}),
-				contentType: "application/json; charset=UTF-8",
-				timeout: 3600 * 1000
+				contentType: "application/json; charset=UTF-8"
 			});
 		});
 	
@@ -4376,7 +4343,6 @@ $(function() {
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: commands}),
 				contentType: "application/json; charset=UTF-8",
-				timeout: 3600 * 1000,
 			
 				// On success
 				success: function(data) {
@@ -4395,7 +4361,6 @@ $(function() {
 						dataType: "json",
 						data: JSON.stringify({command: "message", value: commands}),
 						contentType: "application/json; charset=UTF-8",
-						timeout: 3600 * 1000,
 						
 						// On success
 						success: function(data) {
@@ -4437,7 +4402,6 @@ $(function() {
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: commands}),
 				contentType: "application/json; charset=UTF-8",
-				timeout: 3600 * 1000,
 			
 				// On success
 				success: function(data) {
@@ -4456,7 +4420,6 @@ $(function() {
 						dataType: "json",
 						data: JSON.stringify({command: "message", value: commands}),
 						contentType: "application/json; charset=UTF-8",
-						timeout: 3600 * 1000,
 						
 						// On success
 						success: function(data) {
@@ -4498,7 +4461,6 @@ $(function() {
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: commands}),
 				contentType: "application/json; charset=UTF-8",
-				timeout: 3600 * 1000,
 			
 				// On success
 				success: function(data) {
@@ -4517,7 +4479,6 @@ $(function() {
 						dataType: "json",
 						data: JSON.stringify({command: "message", value: commands}),
 						contentType: "application/json; charset=UTF-8",
-						timeout: 3600 * 1000,
 						
 						// On success
 						success: function(data) {
@@ -4559,7 +4520,6 @@ $(function() {
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: commands}),
 				contentType: "application/json; charset=UTF-8",
-				timeout: 3600 * 1000,
 			
 				// On success
 				success: function(data) {
@@ -4578,7 +4538,6 @@ $(function() {
 						dataType: "json",
 						data: JSON.stringify({command: "message", value: commands}),
 						contentType: "application/json; charset=UTF-8",
-						timeout: 3600 * 1000,
 						
 						// On success
 						success: function(data) {
@@ -4625,7 +4584,6 @@ $(function() {
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: commands}),
 				contentType: "application/json; charset=UTF-8",
-				timeout: 3600 * 1000,
 						
 				// On success
 				success: function(data) {
@@ -4652,8 +4610,7 @@ $(function() {
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: "Print test border"}),
-				contentType: "application/json; charset=UTF-8",
-				timeout: 3600 * 1000
+				contentType: "application/json; charset=UTF-8"
 			});
 		});
 		
@@ -4666,8 +4623,7 @@ $(function() {
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: "Print backlash calibration cylinder"}),
-				contentType: "application/json; charset=UTF-8",
-				timeout: 3600 * 1000
+				contentType: "application/json; charset=UTF-8"
 			});
 		});
 		
@@ -4713,7 +4669,6 @@ $(function() {
 					dataType: "json",
 					data: JSON.stringify({command: "message", value: commands}),
 					contentType: "application/json; charset=UTF-8",
-					timeout: 3600 * 1000,
 			
 					// On success
 					success: function(data) {
@@ -4746,7 +4701,6 @@ $(function() {
 							dataType: "json",
 							data: JSON.stringify({command: "message", value: commands}),
 							contentType: "application/json; charset=UTF-8",
-							timeout: 3600 * 1000,
 			
 							// On success
 							success: function(data) {
@@ -4772,7 +4726,6 @@ $(function() {
 									dataType: "json",
 									data: JSON.stringify({command: "message", value: commands}),
 									contentType: "application/json; charset=UTF-8",
-									timeout: 3600 * 1000,
 			
 									// On success
 									success: function(data) {
@@ -4793,7 +4746,6 @@ $(function() {
 												dataType: "json",
 												data: JSON.stringify({command: "message", value: commands}),
 												contentType: "application/json; charset=UTF-8",
-												timeout: 3600 * 1000,
 			
 												// On success
 												success: function(data) {
@@ -4812,7 +4764,6 @@ $(function() {
 														dataType: "json",
 														data: JSON.stringify({command: "message", value: commands}),
 														contentType: "application/json; charset=UTF-8",
-														timeout: 3600 * 1000,
 						
 														// On success
 														success: function(data) {
@@ -4838,7 +4789,6 @@ $(function() {
 																dataType: "json",
 																data: JSON.stringify({command: "message", value: commands}),
 																contentType: "application/json; charset=UTF-8",
-																timeout: 3600 * 1000,
 			
 																// On success
 																success: function(data) {
@@ -4859,7 +4809,6 @@ $(function() {
 																			dataType: "json",
 																			data: JSON.stringify({command: "message", value: commands}),
 																			contentType: "application/json; charset=UTF-8",
-																			timeout: 3600 * 1000,
 			
 																			// On success
 																			success: function(data) {
@@ -4878,7 +4827,6 @@ $(function() {
 																					dataType: "json",
 																					data: JSON.stringify({command: "message", value: commands}),
 																					contentType: "application/json; charset=UTF-8",
-																					timeout: 3600 * 1000,
 						
 																					// On success
 																					success: function(data) {
@@ -4904,7 +4852,6 @@ $(function() {
 																							dataType: "json",
 																							data: JSON.stringify({command: "message", value: commands}),
 																							contentType: "application/json; charset=UTF-8",
-																							timeout: 3600 * 1000,
 			
 																							// On success
 																							success: function(data) {
@@ -4925,7 +4872,6 @@ $(function() {
 																										dataType: "json",
 																										data: JSON.stringify({command: "message", value: commands}),
 																										contentType: "application/json; charset=UTF-8",
-																										timeout: 3600 * 1000,
 			
 																										// On success
 																										success: function(data) {
@@ -4944,7 +4890,6 @@ $(function() {
 																												dataType: "json",
 																												data: JSON.stringify({command: "message", value: commands}),
 																												contentType: "application/json; charset=UTF-8",
-																												timeout: 3600 * 1000,
 						
 																												// On success
 																												success: function(data) {
@@ -4970,7 +4915,6 @@ $(function() {
 																														dataType: "json",
 																														data: JSON.stringify({command: "message", value: commands}),
 																														contentType: "application/json; charset=UTF-8",
-																														timeout: 3600 * 1000,
 			
 																														// On success
 																														success: function(data) {
@@ -4991,7 +4935,6 @@ $(function() {
 																																	dataType: "json",
 																																	data: JSON.stringify({command: "message", value: commands}),
 																																	contentType: "application/json; charset=UTF-8",
-																																	timeout: 3600 * 1000,
 			
 																																	// On success
 																																	success: function(data) {
@@ -5010,7 +4953,6 @@ $(function() {
 																																			dataType: "json",
 																																			data: JSON.stringify({command: "message", value: commands}),
 																																			contentType: "application/json; charset=UTF-8",
-																																			timeout: 3600 * 1000,
 						
 																																			// On success
 																																			success: function(data) {
@@ -5032,7 +4974,6 @@ $(function() {
 																																					dataType: "json",
 																																					data: JSON.stringify({command: "message", value: commands}),
 																																					contentType: "application/json; charset=UTF-8",
-																																					timeout: 3600 * 1000,
 						
 																																					// On success
 																																					success: function(data) {
@@ -5114,7 +5055,6 @@ $(function() {
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: "Set Fan: HengLiXin"}),
 				contentType: "application/json; charset=UTF-8",
-				timeout: 3600 * 1000,
 			
 				// On success
 				success: function(data) {
@@ -5145,7 +5085,6 @@ $(function() {
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: "Set Fan: Listener"}),
 				contentType: "application/json; charset=UTF-8",
-				timeout: 3600 * 1000,
 			
 				// On success
 				success: function(data) {
@@ -5177,7 +5116,6 @@ $(function() {
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: "Set Fan: Shenzhew"}),
 				contentType: "application/json; charset=UTF-8",
-				timeout: 3600 * 1000,
 			
 				// On success
 				success: function(data) {
@@ -5208,7 +5146,6 @@ $(function() {
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: "Set Fan: Xinyujie"}),
 				contentType: "application/json; charset=UTF-8",
-				timeout: 3600 * 1000,
 			
 				// On success
 				success: function(data) {
@@ -5239,7 +5176,6 @@ $(function() {
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: "Set Extruder Current: 500"}),
 				contentType: "application/json; charset=UTF-8",
-				timeout: 3600 * 1000,
 			
 				// On success
 				success: function(data) {
@@ -5270,7 +5206,6 @@ $(function() {
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: "Set Extruder Current: 660"}),
 				contentType: "application/json; charset=UTF-8",
-				timeout: 3600 * 1000,
 			
 				// On success
 				success: function(data) {
@@ -5394,7 +5329,6 @@ $(function() {
 						dataType: "json",
 						data: JSON.stringify({command: "file", name: file.name, content: event.target.result}),
 						contentType: "application/json; charset=UTF-8",
-						timeout: 3600 * 1000,
 			
 						// On success
 						success: function(data) {
@@ -5437,7 +5371,6 @@ $(function() {
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: "Read EEPROM"}),
 				contentType: "application/json; charset=UTF-8",
-				timeout: 3600 * 1000,
 			
 				// On success
 				success: function(data) {
@@ -5519,7 +5452,6 @@ $(function() {
 					dataType: "json",
 					data: JSON.stringify({command: "message", value: "Write EEPROM:" + eeprom}),
 					contentType: "application/json; charset=UTF-8",
-					timeout: 3600 * 1000,
 			
 					// On success
 					success: function(data) {
@@ -5712,7 +5644,6 @@ $(function() {
 							dataType: "json",
 							data: JSON.stringify({command: "message", value: commands}),
 							contentType: "application/json; charset=UTF-8",
-							timeout: 3600 * 1000,
 			
 							// On success
 							success: function(data) {
@@ -5762,7 +5693,6 @@ $(function() {
 											dataType: "json",
 											data: JSON.stringify({command: "message", value: commands}),
 											contentType: "application/json; charset=UTF-8",
-											timeout: 3600 * 1000,
 			
 											// On success
 											success: function(data) {
@@ -5853,7 +5783,6 @@ $(function() {
 							dataType: "json",
 							data: JSON.stringify({command: "message", value: commands}),
 							contentType: "application/json; charset=UTF-8",
-							timeout: 3600 * 1000,
 			
 							// On success
 							success: function(data) {
@@ -5913,8 +5842,7 @@ $(function() {
 							type: "POST",
 							dataType: "json",
 							data: JSON.stringify({command: "message", value: $(this).text()}),
-							contentType: "application/json; charset=UTF-8",
-							timeout: 3600 * 1000
+							contentType: "application/json; charset=UTF-8"
 						});
 					});
 					
@@ -5937,8 +5865,7 @@ $(function() {
 							type: "POST",
 							dataType: "json",
 							data: JSON.stringify({command: "message", value: $(this).text()}),
-							contentType: "application/json; charset=UTF-8",
-							timeout: 3600 * 1000
+							contentType: "application/json; charset=UTF-8"
 						});
 					});
 					
