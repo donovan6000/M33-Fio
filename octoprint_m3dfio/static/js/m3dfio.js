@@ -1050,6 +1050,8 @@ $(function() {
 						var loader = new THREE.STLLoader();
 					else if(type == "obj")
 						var loader = new THREE.OBJLoader();
+					else if(type == "m3d")
+						var loader = new THREE.M3DLoader();
 					else {
 						viewport.modelLoaded = true;
 						return;
@@ -1069,6 +1071,8 @@ $(function() {
 							mesh.rotation.set(3 * Math.PI / 2, 0, Math.PI);
 						else if(type == "obj")
 							mesh.rotation.set(0, 0, 0);
+						else if(type == "m3d")
+							mesh.rotation.set(-Math.PI / 2, 0, -Math.PI / 2);
 						mesh.updateMatrix();
 						mesh.geometry.applyMatrix(mesh.matrix);
 						mesh.position.set(0, 0, 0);
@@ -1439,6 +1443,8 @@ $(function() {
 						if(model.type == "stl")
 							model.mesh.rotation.set(3 * Math.PI / 2, 0, Math.PI);
 						else if(model.type == "obj")
+							model.mesh.rotation.set(Math.PI / 2, Math.PI, 0);
+						else if(model.type == "m3d")
 							model.mesh.rotation.set(Math.PI / 2, Math.PI, 0);
 						model.mesh.scale.set(1, 1, 1);
 						viewport.render();
@@ -2468,6 +2474,8 @@ $(function() {
 			// Set loader
 			if(type == "obj")
 				var loader = new THREE.OBJLoader();
+			else if(type == "m3d")
+				var loader = new THREE.M3DLoader();
 			else
 				var loader = new THREE.STLLoader();
 			
@@ -2480,6 +2488,8 @@ $(function() {
 				// Set model's rotation
 				if(type == "obj")
 					mesh.rotation.set(Math.PI / 2, Math.PI, 0);
+				else if(type == "m3d")
+					mesh.rotation.set(0, 0, Math.PI / 2);
 				else
 					mesh.rotation.set(0, 0, 0);
 				
@@ -2702,9 +2712,9 @@ $(function() {
 			// Initialize variables
 			var file = this.files[0];
 			
-			// Check if uploading a Wavefront OBJ
+			// Check if uploading a Wavefront OBJ or M3D
 			var extension = file.name.lastIndexOf('.');
-			if(extension != -1 && file.name.substr(extension + 1) == "obj") {
+			if(extension != -1 && (file.name.substr(extension + 1) == "obj" || file.name.substr(extension + 1) == "m3d")) {
 			
 				// Stop default behavior
 				event.stopImmediatePropagation();
@@ -3087,7 +3097,7 @@ $(function() {
 																			<button data-color="Black" title="Black"><span style="background-color: #404040;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
 																		</div>
 																		<div class="model">
-																			<input type="file" accept=".stl, .obj">
+																			<input type="file" accept=".stl, .obj, .m3d">
 																			<button class="import" title="Import"><img src="/plugin/m3dfio/static/img/import.png"></button>
 																			<button class="translate disabled" title="Translate"><img src="/plugin/m3dfio/static/img/translate.png"></button>
 																			<button class="rotate" title="Rotate"><img src="/plugin/m3dfio/static/img/rotate.png"></button>
