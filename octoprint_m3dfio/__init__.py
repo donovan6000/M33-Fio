@@ -1675,7 +1675,7 @@ class M3DFioPlugin(
 						commands = self.preprocess(data)
 					
 					# Check if pre-processed commands were returned
-					if(len(commands)) :
+					if len(commands) and commands != [''] :
 					
 						# Set data to first pre-processed command
 						data = 'N' + str(lineNumber) + ' ' + commands[0]
@@ -1690,13 +1690,13 @@ class M3DFioPlugin(
 						data = 'N' + str(lineNumber) + " G4"
 					
 					# Store changed command
-					self.changedCommands[lineNumber] = data;
+					self.changedCommands[lineNumber] = data
 				
 				# Otherwise
 				else :
 				
 					# Set data to requested command
-					data = self.changedCommands[lineNumber] ;
+					data = self.changedCommands[lineNumber]
 			
 			# Check if command contains valid G-code
 			if gcode.parseLine(data) :
