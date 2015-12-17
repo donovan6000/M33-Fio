@@ -131,7 +131,7 @@ class M3DFioPlugin(
 		self.preprocessOnTheFlyReady = False
 		self.printingTestBorder = False
 		self.printingBacklashCalibrationCylinder = False
-		self.changedCommands = []
+		self.changedCommands = {}
 		
 		# Center model pre-processor settings
 		self.displacementX = 0
@@ -1652,9 +1652,9 @@ class M3DFioPlugin(
 		
 			# Initialize variables
 			gcode = Gcode()
-		
+			
 			# Check if pre-processing on the fly and command is not a starting line number and wasn't added on the fly
-			if self._printer.is_printing() and self._settings.get_boolean(["PreprocessOnTheFly"]) and not data.startswith("N0 M110 ") and " **" not in data:
+			if self._printer.is_printing() and self._settings.get_boolean(["PreprocessOnTheFly"]) and not data.startswith("N0 M110 ") and "**" not in data:
 			
 				# Get line number
 				lineNumber = int(re.findall("^N(\d+)", data)[0])
@@ -1673,15 +1673,30 @@ class M3DFioPlugin(
 					
 						# Pre-process command
 						commands = self.preprocess(data)
+					
+					# Check if pre-processed commands were returned
+					if(len(commands)) :
+					
+						# Set data to first pre-processed command
+						data = 'N' + str(lineNumber) + ' ' + commands[0]
 				
-					# Send pre-processed commands to the printer
-					self._printer.commands(commands)
+						# Send the remaining pre-processed commands to the printer
+						self._printer.commands(commands[1 :])
+					
+					# Otherwise
+					else :
+					
+						# Set command to nothing
+						data = 'N' + str(lineNumber) + " G4"
 					
 					# Store changed command
-					self.changedCommands += [lineNumber]
+					self.changedCommands[lineNumber] = data;
 				
-				# Change command
-				data = 'N' + str(lineNumber) + " G4"
+				# Otherwise
+				else :
+				
+					# Set data to requested command
+					data = self.changedCommands[lineNumber] ;
 			
 			# Check if command contains valid G-code
 			if gcode.parseLine(data) :
@@ -1694,7 +1709,7 @@ class M3DFioPlugin(
 				
 				# Get the command's binary representation
 				data = gcode.getBinary()
-				self._logger.info(gcode.getAscii())
+			
 			# Send command to printer
 			self._printer.get_transport().write(data)
 			
@@ -1718,7 +1733,7 @@ class M3DFioPlugin(
 			
 			# Removed stored value if command was changed
 			if lineNumber in self.changedCommands :
-				self.changedCommands.remove(lineNumber)
+				self.changedCommands.pop(lineNumber)
 	
 			# Set response to contain correct line number
 			response = "ok " + str(lineNumber + self.numberWrapCounter * 0x10000) + '\n'
@@ -1735,7 +1750,7 @@ class M3DFioPlugin(
 			
 			# Removed stored value if command was changed
 			if lineNumber in self.changedCommands :
-				self.changedCommands.remove(lineNumber)
+				self.changedCommands.pop(lineNumber)
 	
 			# Set response to contain correct line number
 			response = "ok " + str(lineNumber + self.numberWrapCounter * 0x10000) + '\n'
@@ -1746,7 +1761,7 @@ class M3DFioPlugin(
 	
 		# Otherwise check if response was a resend value
 		elif response.startswith("Resend ") :
-	
+		
 			# Set response to contain correct line number
 			response = "Resend:" + str(int(response[7 :]) + self.numberWrapCounter * 0x10000) + '\n'
 	
@@ -1951,7 +1966,7 @@ class M3DFioPlugin(
 				if self.sharedLibrary and self._settings.get_boolean(["UseSharedLibrary"]) :
 				
 					# Pre-process command
-					commands = self.sharedLibrary.preprocess(ctypes.c_char_p(data), ctypes.c_char_p(None), ctypes.c_bool(True)).split(',')
+					commands = self.sharedLibrary.preprocess(ctypes.c_char_p("G4"), ctypes.c_char_p(None), ctypes.c_bool(True)).split(',')
 				
 				# Otherwise
 				else :
@@ -4479,7 +4494,7 @@ class M3DFioPlugin(
 				else :
 				
 					# Append ascii representation of the command to list
-					value += [gcode.getAscii() + " *\n"]
+					value += [gcode.getAscii() + "*\n"]
 		
 		# Check if not outputting to a file
 		if output == None :

@@ -1981,7 +1981,7 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			else
 			
 				// Append ascii representation of the command to list
-				returnValue += gcode.getAscii() + " *\n,";
+				returnValue += gcode.getAscii() + "*\n,";
 		}
 	}
 	

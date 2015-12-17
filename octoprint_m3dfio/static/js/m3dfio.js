@@ -2553,8 +2553,8 @@ $(function() {
 		
 		// Change fan controls
 		$("#control > div.jog-panel.general").find("button:nth-of-type(2)").after(`
-			<button class="btn btn-block control-box" data-bind="enable: isOperational() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M106 S255 *'}) }">Fan on</button>
-			<button class="btn btn-block control-box" data-bind="enable: isOperational() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M107 *'}) }">Fan off</button>
+			<button class="btn btn-block control-box" data-bind="enable: isOperational() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M106 S255*'}) }">Fan on</button>
+			<button class="btn btn-block control-box" data-bind="enable: isOperational() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M107*'}) }">Fan off</button>
 		`);
 		$("#control > div.jog-panel.general").find("button:nth-of-type(5)").remove();
 		$("#control > div.jog-panel.general").find("button:nth-of-type(5)").remove();
@@ -3833,7 +3833,7 @@ $(function() {
 			
 				// Set commands
 				var commands = [
-					"M109 S" + parseInt($(this).text().substr(12)) + ' *\n',
+					"M109 S" + parseInt($(this).text().substr(12)) + '\n',
 					"G4 S2\n"
 				];
 			
@@ -3856,7 +3856,7 @@ $(function() {
 			
 				// Set commands
 				var commands = [
-					"M104 S" + parseInt($(this).text().substr(12)) + ' *\n'
+					"M104 S" + parseInt($(this).text().substr(12)) + "*\n"
 				];
 		
 			// Send request
@@ -3898,7 +3898,7 @@ $(function() {
 			
 				// Set commands
 				var commands = [
-					"M190 S" + parseInt($(this).text().substr(12)) + ' *\n',
+					"M190 S" + parseInt($(this).text().substr(12)) + '\n',
 					"G4 S2\n"
 				];
 			
@@ -3921,7 +3921,7 @@ $(function() {
 			
 				// Set commands
 				var commands = [
-					"M140 S" + parseInt($(this).text().substr(12)) + ' *\n'
+					"M140 S" + parseInt($(this).text().substr(12)) + "*\n"
 				];
 		
 			// Send request
