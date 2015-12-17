@@ -736,7 +736,7 @@ $(function() {
 
 					// Create controls
 					this.orbitControls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
-					this.orbitControls.target.set(0, 62, 0);
+					this.orbitControls.target.set(0, 54.9, 0);
 					this.orbitControls.minDistance = 200;
 					this.orbitControls.maxDistance = 500;
 					this.orbitControls.minPolarAngle = 0;
@@ -764,18 +764,30 @@ $(function() {
 					});
 					var skyBox = new THREE.Mesh(skyBoxGeometry, skyBoxMaterial);
 					this.scene[0].add(skyBox);
+					
+					// Create print bed
+					var mesh = new THREE.Mesh(new THREE.PlaneGeometry(bedLowMaxX - bedLowMinX, bedLowMaxY - bedLowMinX), new THREE.MeshBasicMaterial({
+						color: 0x000000,
+						side: THREE.DoubleSide
+					}));
+					mesh.position.set(0, 0, 0);
+					mesh.rotation.set(Math.PI / 2, 0, 0);
+					mesh.renderOrder = 4;
+					
+					// Add print bed to scene
+					viewport.scene[0].add(mesh);
 	
 					// Load printer model
-					var printer = new THREE.STLLoader();
-					printer.load("/plugin/m3dfio/static/files/printer.stl", function(geometry) {
+					var loader = new THREE.STLLoader();
+					loader.load("/plugin/m3dfio/static/files/printer.stl", function(geometry) {
 	
 						// Create printer's mesh
 						var mesh = new THREE.Mesh(geometry, printerMaterials[self.settings.settings.plugins.m3dfio.PrinterColor()]);
 		
 						// Set printer's orientation
 						mesh.rotation.set(3 * Math.PI / 2, 0, Math.PI);
-						mesh.position.set(0, 60.7, 0);
-						mesh.scale.set(1, 1, 1);
+						mesh.position.set(0, 53.6, 0);
+						mesh.scale.set(1.233333333, 1.233333333, 1.233333333);
 						mesh.renderOrder = 3;
 			
 						// Append model to list
@@ -783,12 +795,31 @@ $(function() {
 		
 						// Add printer to scene
 						viewport.scene[0].add(mesh);
+						
+						// Load logo
+						var loader = new THREE.TextureLoader();
+						loader.load("/plugin/m3dfio/static/img/logo.png", function (map) {
+						
+							// Create logo
+							var mesh = new THREE.Mesh(new THREE.PlaneGeometry(51.5, 12), new THREE.MeshBasicMaterial({
+								map: map,
+								color: 0xFFFFFF,
+								side: THREE.FrontSide,
+								transparent: true
+							}));
+							mesh.position.set(0, -22.6, -92.5);
+							mesh.rotation.set(0, -Math.PI, 0);
+							mesh.renderOrder = 4;
+							
+							// Add logo to scene
+							viewport.scene[0].add(mesh);
 				
-						// Render
-						viewport.render();
+							// Render
+							viewport.render();
 					
-						// Import model
-						viewport.importModel(file, "stl");
+							// Import model
+							viewport.importModel(file, "stl");
+						});
 					});
 				
 					// Create measurement material
@@ -831,7 +862,8 @@ $(function() {
 						color: 0x00FF00,
 						transparent: true,
 						opacity: 0.2,
-						side: THREE.DoubleSide
+						side: THREE.DoubleSide,
+						depthWrite: false
 					});
 			
 					// Low bottom boundary
