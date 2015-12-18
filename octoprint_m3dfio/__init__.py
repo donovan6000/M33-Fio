@@ -1730,13 +1730,14 @@ class M3DFioPlugin(
 		
 			# Get line number
 			lineNumber = int(response[3 :])
+			adjustedLineNumber = lineNumber + self.numberWrapCounter * 0x10000
 			
 			# Removed stored value if command was changed
-			if lineNumber in self.changedCommands :
-				self.changedCommands.pop(lineNumber)
+			if adjustedLineNumber in self.changedCommands :
+				self.changedCommands.pop(adjustedLineNumber)
 	
 			# Set response to contain correct line number
-			response = "ok " + str(lineNumber + self.numberWrapCounter * 0x10000) + '\n'
+			response = "ok " + str(adjustedLineNumber) + '\n'
 		
 			# Increment number wrap counter if applicable
 			if lineNumber == 0xFFFF :
@@ -1747,13 +1748,14 @@ class M3DFioPlugin(
 	
 			# Get line number
 			lineNumber = int(response[5 :])
+			adjustedLineNumber = lineNumber + self.numberWrapCounter * 0x10000
 			
 			# Removed stored value if command was changed
-			if lineNumber in self.changedCommands :
-				self.changedCommands.pop(lineNumber)
+			if adjustedLineNumber in self.changedCommands :
+				self.changedCommands.pop(adjustedLineNumber)
 	
 			# Set response to contain correct line number
-			response = "ok " + str(lineNumber + self.numberWrapCounter * 0x10000) + '\n'
+			response = "ok " + str(adjustedLineNumber) + '\n'
 		
 			# Increment number wrap counter if applicable
 			if lineNumber == 0xFFFF :
