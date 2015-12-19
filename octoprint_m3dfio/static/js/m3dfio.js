@@ -3584,8 +3584,8 @@ $(function() {
 		
 			// Set commands
 			var commands = [
-				"G91\n",
-				"G0 Z" + ($(this).hasClass("down") ? '-' : '') + $("body > div.page-container > div.message").find("button.distance.active").text() + " F100\n"
+				"G91",
+				"G0 Z" + ($(this).hasClass("down") ? '-' : '') + $("body > div.page-container > div.message").find("button.distance.active").text() + " F100"
 			];
 			
 			// Send request
@@ -3613,8 +3613,8 @@ $(function() {
 		
 			// Set commands
 			var commands = [
-				"G91\n",
-				"G0 X" + $("#control #jog_distance > button.active").text() + " F100\n"
+				"G91",
+				"G0 X" + $("#control #jog_distance > button.active").text() + " F100"
 			];
 		
 			// Send request
@@ -3635,8 +3635,8 @@ $(function() {
 		
 			// Set commands
 			var commands = [
-				"G91\n",
-				"G0 X-" + $("#control #jog_distance > button.active").text() + " F100\n"
+				"G91",
+				"G0 X-" + $("#control #jog_distance > button.active").text() + " F100"
 			];
 		
 			// Send request
@@ -3657,8 +3657,8 @@ $(function() {
 		
 			// Set commands
 			var commands = [
-				"G91\n",
-				"G0 Y" + $("#control #jog_distance > button.active").text() + " F100\n"
+				"G91",
+				"G0 Y" + $("#control #jog_distance > button.active").text() + " F100"
 			];
 		
 			// Send request
@@ -3679,8 +3679,8 @@ $(function() {
 		
 			// Set commands
 			var commands = [
-				"G91\n",
-				"G0 Y-" + $("#control #jog_distance > button.active").text() + " F100\n"
+				"G91",
+				"G0 Y-" + $("#control #jog_distance > button.active").text() + " F100"
 			];
 		
 			// Send request
@@ -3701,8 +3701,8 @@ $(function() {
 		
 			// Set commands
 			var commands = [
-				"G91\n",
-				"G0 Z" + $("#control #jog_distance > button.active").text() + " F100\n"
+				"G91",
+				"G0 Z" + $("#control #jog_distance > button.active").text() + " F100"
 			];
 		
 			// Send request
@@ -3723,8 +3723,8 @@ $(function() {
 		
 			// Set commands
 			var commands = [
-				"G91\n",
-				"G0 Z-" + $("#control #jog_distance > button.active").text() + " F100\n"
+				"G91",
+				"G0 Z-" + $("#control #jog_distance > button.active").text() + " F100"
 			];
 		
 			// Send request
@@ -3745,8 +3745,8 @@ $(function() {
 		
 			// Set commands
 			var commands = [
-				"G90\n",
-				"G28\n"
+				"G90",
+				"G28"
 			];
 		
 			// Send request
@@ -3767,8 +3767,8 @@ $(function() {
 		
 			// Set commands
 			var commands = [
-				"G90\n",
-				"G0 Z5 F100\n"
+				"G90",
+				"G0 Z5 F100"
 			];
 		
 			// Send request
@@ -3789,8 +3789,8 @@ $(function() {
 		
 			// Set commands
 			var commands = [
-				"G91\n",
-				"G0 E" + ($("#control > div.jog-panel.extruder").find("div > div:nth-of-type(2) >input").val().length ? $("#control > div.jog-panel.extruder").find("div > div:nth-of-type(2) >input").val() : '5' ) + " F450\n"
+				"G91",
+				"G0 E" + ($("#control > div.jog-panel.extruder").find("div > div:nth-of-type(2) >input").val().length ? $("#control > div.jog-panel.extruder").find("div > div:nth-of-type(2) >input").val() : '5' ) + " F450"
 			];
 		
 			// Send request
@@ -3811,8 +3811,8 @@ $(function() {
 		
 			// Set commands
 			var commands = [
-				"G91\n",
-				"G0 E-" + ($("#control > div.jog-panel.extruder").find("div > div:nth-of-type(2) >input").val().length ? $("#control > div.jog-panel.extruder").find("div > div:nth-of-type(2) >input").val() : '5' ) + " F450\n"
+				"G91",
+				"G0 E-" + ($("#control > div.jog-panel.extruder").find("div > div:nth-of-type(2) >input").val().length ? $("#control > div.jog-panel.extruder").find("div > div:nth-of-type(2) >input").val() : '5' ) + " F450"
 			];
 		
 			// Send request
@@ -3833,15 +3833,13 @@ $(function() {
 			
 				// Set commands
 				var commands = [
-					"M109 S" + parseInt($(this).text().substr(12)) + '\n',
-					"G4 S2\n"
+					"M109 S" + parseInt($(this).text().substr(12)),
+					"G4 S2",
+					"M65536;wait"
 				];
 			
 				// Show message
 				showMessage("Temperature Status", "Warming up");
-			
-				// Add wait command
-				commands.push("M65536;wait\n");
 			
 				// Display temperature
 				var updateTemperature = setInterval(function() {
@@ -3856,7 +3854,7 @@ $(function() {
 			
 				// Set commands
 				var commands = [
-					"M104 S" + parseInt($(this).text().substr(12)) + "*\n"
+					"M104 S" + parseInt($(this).text().substr(12)) + '*'
 				];
 		
 			// Send request
@@ -3898,15 +3896,13 @@ $(function() {
 			
 				// Set commands
 				var commands = [
-					"M190 S" + parseInt($(this).text().substr(12)) + '\n',
-					"G4 S2\n"
+					"M190 S" + parseInt($(this).text().substr(12)),
+					"G4 S2",
+					"M65536;wait"
 				];
 			
 				// Show message
 				showMessage("Temperature Status", "Warming up");
-			
-				// Add wait command
-				commands.push("M65536;wait\n");
 			
 				// Display temperature
 				var updateTemperature = setInterval(function() {
@@ -3921,7 +3917,7 @@ $(function() {
 			
 				// Set commands
 				var commands = [
-					"M140 S" + parseInt($(this).text().substr(12)) + "*\n"
+					"M140 S" + parseInt($(this).text().substr(12)) + '*'
 				];
 		
 			// Send request
@@ -3972,10 +3968,10 @@ $(function() {
 		
 			// Set commands
 			var commands = [
-				"M106\n",
-				"M109 S250\n",
-				"G4 S2\n",
-				"M65536;wait\n"
+				"M106",
+				"M109 S250",
+				"G4 S2",
+				"M65536;wait"
 			];
 			
 			// Display temperature
@@ -4004,16 +4000,16 @@ $(function() {
 		
 					// Set commands
 					commands = [
-						"G90\n",
-						"G92\n"
+						"G90",
+						"G92"
 					];
 			
 					for(var i = 2; i <= 60; i += 2)
-						commands.push("G0 E-" + i + " F450\n");
+						commands.push("G0 E-" + i + " F450");
 	
-					commands.push("M104 S0\n");
-					commands.push("M107\n");
-					commands.push("M65536;wait\n");
+					commands.push("M104 S0");
+					commands.push("M107");
+					commands.push("M65536;wait");
 			
 					// Send request
 					$.ajax({
@@ -4058,10 +4054,10 @@ $(function() {
 		
 			// Set commands
 			var commands = [
-				"M106\n",
-				"M109 S250\n",
-				"G4 S2\n",
-				"M65536;wait\n"
+				"M106",
+				"M109 S250",
+				"G4 S2",
+				"M65536;wait"
 			];
 			
 			// Display temperature
@@ -4090,16 +4086,16 @@ $(function() {
 			
 					// Set commands
 					commands = [
-						"G90\n",
-						"G92\n"
+						"G90",
+						"G92"
 					];
 				
 					for(var i = 2; i <= 60; i += 2)
-						commands.push("G0 E" + i + " F450\n");
+						commands.push("G0 E" + i + " F450");
 		
-					commands.push("M104 S0\n");
-					commands.push("M107\n");
-					commands.push("M65536;wait\n");
+					commands.push("M104 S0");
+					commands.push("M107");
+					commands.push("M65536;wait");
 				
 					// Send request
 					$.ajax({
@@ -4144,17 +4140,17 @@ $(function() {
 		
 			// Set commands
 			var commands = [
-				"G4 P100\n",
-				"M65537;stop\n",
-				"M104 S0\n",
-				"G91\n",
-				"G0 Y20 Z2 F150\n",
-				"M109 S150\n",
-				"M104 S0\n",
-				"M107\n",
-				"G30\n",
-				"M117\n",
-				"M65536;wait\n"
+				"G4 P100",
+				"M65537;stop",
+				"M104 S0",
+				"G91",
+				"G0 Y20 Z2 F150",
+				"M109 S150",
+				"M104 S0",
+				"M107",
+				"G30",
+				"M117",
+				"M65536;wait"
 			];
 		
 			// Send request
@@ -4189,20 +4185,20 @@ $(function() {
 		
 			// Set commands
 			var commands = [
-				"G4 P100\n",
-				"M65537;stop\n",
-				"M104 S0\n",
-				"G91\n",
-				"G0 Y20 Z2 F150\n",
-				"M109 S150\n",
-				"M104 S0\n",
-				"M107\n",
-				"G32\n",
-				"M619 S2\n",
-				"M619 S3\n",
-				"M619 S4\n",
-				"M619 S5\n",
-				"M65536;wait\n"
+				"G4 P100",
+				"M65537;stop",
+				"M104 S0",
+				"G91",
+				"G0 Y20 Z2 F150",
+				"M109 S150",
+				"M104 S0",
+				"M107",
+				"G32",
+				"M619 S2",
+				"M619 S3",
+				"M619 S4",
+				"M619 S5",
+				"M65536;wait"
 			];
 		
 			// Send request
@@ -4237,12 +4233,12 @@ $(function() {
 		
 			// Set commands
 			var commands = [
-				"G4 P100\n",
-				"M65537;stop\n",
-				"G90\n",
-				"G0 Z3 F100\n",
-				"G28\n",
-				"G0 X9 Y5 Z3 F100\n"
+				"G4 P100",
+				"M65537;stop",
+				"G90",
+				"G0 Z3 F100",
+				"G28",
+				"G0 X9 Y5 Z3 F100"
 			];
 		
 			// Send request
@@ -4260,12 +4256,12 @@ $(function() {
 		
 			// Set commands
 			var commands = [
-				"G4 P100\n",
-				"M65537;stop\n",
-				"G90\n",
-				"G0 Z3 F100\n",
-				"G28\n",
-				"G0 X99 Y5 Z3 F100\n"
+				"G4 P100",
+				"M65537;stop",
+				"G90",
+				"G0 Z3 F100",
+				"G28",
+				"G0 X99 Y5 Z3 F100"
 			];
 		
 			// Send request
@@ -4283,12 +4279,12 @@ $(function() {
 		
 			// Set commands
 			var commands = [
-				"G4 P100\n",
-				"M65537;stop\n",
-				"G90\n",
-				"G0 Z3 F100\n",
-				"G28\n",
-				"G0 X99 Y95 Z3 F100\n"
+				"G4 P100",
+				"M65537;stop",
+				"G90",
+				"G0 Z3 F100",
+				"G28",
+				"G0 X99 Y95 Z3 F100"
 			];
 		
 			// Send request
@@ -4306,12 +4302,12 @@ $(function() {
 		
 			// Set commands
 			var commands = [
-				"G4 P100\n",
-				"M65537;stop\n",
-				"G90\n",
-				"G0 Z3 F100\n",
-				"G28\n",
-				"G0 X9 Y95 Z3 F100\n"
+				"G4 P100",
+				"M65537;stop",
+				"G90",
+				"G0 Z3 F100",
+				"G28",
+				"G0 X9 Y95 Z3 F100"
 			];
 		
 			// Send request
@@ -4332,8 +4328,8 @@ $(function() {
 		
 			// Set commands
 			var commands = [
-				"M114\n",
-				"M65536;wait\n"
+				"M114",
+				"M65536;wait"
 			];
 		
 			// Send request
@@ -4346,12 +4342,12 @@ $(function() {
 			
 				// On success
 				success: function(data) {
-				
+			
 					// Set commands
 					commands = [
-						"M618 S19 P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.FrontLeftOrientation()) + '\n',
-						"M619 S19\n",
-						"M65536;wait\n"
+						"M618 S19 P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.FrontLeftOrientation()),
+						"M619 S19",
+						"M65536;wait"
 					];
 				
 					// Send request
@@ -4391,8 +4387,8 @@ $(function() {
 		
 			// Set commands
 			var commands = [
-				"M114\n",
-				"M65536;wait\n"
+				"M114",
+				"M65536;wait"
 			];
 		
 			// Send request
@@ -4408,9 +4404,9 @@ $(function() {
 			
 					// Set commands
 					commands = [
-						"M618 S18 P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.FrontRightOrientation()) + '\n',
-						"M619 S18\n",
-						"M65536;wait\n"
+						"M618 S18 P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.FrontRightOrientation()),
+						"M619 S18",
+						"M65536;wait"
 					];
 				
 					// Send request
@@ -4450,8 +4446,8 @@ $(function() {
 		
 			// Set commands
 			var commands = [
-				"M114\n",
-				"M65536;wait\n"
+				"M114",
+				"M65536;wait"
 			];
 		
 			// Send request
@@ -4467,9 +4463,9 @@ $(function() {
 			
 					// Set commands
 					commands = [
-						"M618 S17 P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.BackRightOrientation()) + '\n',
-						"M619 S17\n",
-						"M65536;wait\n"
+						"M618 S17 P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.BackRightOrientation()),
+						"M619 S17",
+						"M65536;wait"
 					];
 				
 					// Send request
@@ -4509,8 +4505,8 @@ $(function() {
 		
 			// Set commands
 			var commands = [
-				"M114\n",
-				"M65536;wait\n"
+				"M114",
+				"M65536;wait"
 			];
 		
 			// Send request
@@ -4526,9 +4522,9 @@ $(function() {
 			
 					// Set commands
 					commands = [
-						"M618 S16 P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.BackLeftOrientation()) + '\n',
-						"M619 S16\n",
-						"M65536;wait\n"
+						"M618 S16 P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.BackLeftOrientation()),
+						"M619 S16",
+						"M65536;wait"
 					];
 				
 					// Send request
@@ -4568,13 +4564,13 @@ $(function() {
 			
 			// Set commands
 			var commands = [
-				"G4 P100\n",
-				"M65537;stop\n",
-				"G91\n",
-				"G0 Z0.0999 F100\n",
-				"G33\n",
-				"M117\n",
-				"M65536;wait\n"
+				"G4 P100",
+				"M65537;stop",
+				"G91",
+				"G0 Z0.0999 F100",
+				"G33",
+				"M117",
+				"M65536;wait"
 			];
 			
 			// Send request
@@ -4649,17 +4645,17 @@ $(function() {
 		
 				// Set commands
 				var commands = [
-					"G4 P100\n",
-					"M65537;stop\n",
-					"M104 S0\n",
-					"G91\n",
-					"G0 Y20 Z2 F150\n",
-					"M109 S150\n",
-					"M104 S0\n",
-					"M107\n",
-					"G30\n",
-					"M117\n",
-					"M65536;wait\n"
+					"G4 P100",
+					"M65537;stop",
+					"M104 S0",
+					"G91",
+					"G0 Y20 Z2 F150",
+					"M109 S150",
+					"M104 S0",
+					"M107",
+					"G30",
+					"M117",
+					"M65536;wait"
 				];
 		
 				// Send request
@@ -4678,20 +4674,20 @@ $(function() {
 		
 						// Set commands
 						var commands = [
-							"G4 P100\n",
-							"M65537;stop\n",
-							"M104 S0\n",
-							"G91\n",
-							"G0 Y20 Z2 F150\n",
-							"M109 S150\n",
-							"M104 S0\n",
-							"M107\n",
-							"G32\n",
-							"M619 S2\n",
-							"M619 S3\n",
-							"M619 S4\n",
-							"M619 S5\n",
-							"M65536;wait\n"
+							"G4 P100",
+							"M65537;stop",
+							"M104 S0",
+							"G91",
+							"G0 Y20 Z2 F150",
+							"M109 S150",
+							"M104 S0",
+							"M107",
+							"G32",
+							"M619 S2",
+							"M619 S3",
+							"M619 S4",
+							"M619 S5",
+							"M65536;wait"
 						];
 		
 						// Send request
@@ -4710,13 +4706,13 @@ $(function() {
 			
 								// Set commands
 								var commands = [
-									"G4 P100\n",
-									"M65537;stop\n",
-									"G90\n",
-									"G0 Z3 F100\n",
-									"G28\n",
-									"G0 X9 Y5 Z3 F100\n",
-									"M65536;wait\n"
+									"G4 P100",
+									"M65537;stop",
+									"G90",
+									"G0 Z3 F100",
+									"G28",
+									"G0 X9 Y5 Z3 F100",
+									"M65536;wait"
 								];
 		
 								// Send request
@@ -4735,8 +4731,8 @@ $(function() {
 		
 											// Set commands
 											var commands = [
-												"M114\n",
-												"M65536;wait\n"
+												"M114",
+												"M65536;wait"
 											];
 		
 											// Send request
@@ -4752,9 +4748,9 @@ $(function() {
 			
 													// Set commands
 													commands = [
-														"M618 S19 P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.FrontLeftOrientation()) + '\n',
-														"M619 S19\n",
-														"M65536;wait\n"
+														"M618 S19 P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.FrontLeftOrientation()),
+														"M619 S19",
+														"M65536;wait"
 													];
 				
 													// Send request
@@ -4773,13 +4769,13 @@ $(function() {
 			
 															// Set commands
 															var commands = [
-																"G4 P100\n",
-																"M65537;stop\n",
-																"G90\n",
-																"G0 Z3 F100\n",
-																"G28\n",
-																"G0 X99 Y5 Z3 F100\n",
-																"M65536;wait\n"
+																"G4 P100",
+																"M65537;stop",
+																"G90",
+																"G0 Z3 F100",
+																"G28",
+																"G0 X99 Y5 Z3 F100",
+																"M65536;wait"
 															];
 		
 															// Send request
@@ -4798,8 +4794,8 @@ $(function() {
 		
 																		// Set commands
 																		var commands = [
-																			"M114\n",
-																			"M65536;wait\n"
+																			"M114",
+																			"M65536;wait"
 																		];
 		
 																		// Send request
@@ -4815,9 +4811,9 @@ $(function() {
 			
 																				// Set commands
 																				commands = [
-																					"M618 S18 P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.FrontRightOrientation()) + '\n',
-																					"M619 S18\n",
-																					"M65536;wait\n"
+																					"M618 S18 P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.FrontRightOrientation()),
+																					"M619 S18",
+																					"M65536;wait"
 																				];
 				
 																				// Send request
@@ -4836,13 +4832,13 @@ $(function() {
 			
 																						// Set commands
 																						var commands = [
-																							"G4 P100\n",
-																							"M65537;stop\n",
-																							"G90\n",
-																							"G0 Z3 F100\n",
-																							"G28\n",
-																							"G0 X99 Y95 Z3 F100\n",
-																							"M65536;wait\n"
+																							"G4 P100",
+																							"M65537;stop",
+																							"G90",
+																							"G0 Z3 F100",
+																							"G28",
+																							"G0 X99 Y95 Z3 F100",
+																							"M65536;wait"
 																						];
 		
 																						// Send request
@@ -4861,8 +4857,8 @@ $(function() {
 		
 																									// Set commands
 																									var commands = [
-																										"M114\n",
-																										"M65536;wait\n"
+																										"M114",
+																										"M65536;wait"
 																									];
 		
 																									// Send request
@@ -4878,9 +4874,9 @@ $(function() {
 			
 																											// Set commands
 																											commands = [
-																												"M618 S17 P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.BackRightOrientation()) + '\n',
-																												"M619 S17\n",
-																												"M65536;wait\n"
+																												"M618 S17 P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.BackRightOrientation()),
+																												"M619 S17",
+																												"M65536;wait"
 																											];
 				
 																											// Send request
@@ -4899,13 +4895,13 @@ $(function() {
 			
 																													// Set commands
 																													var commands = [
-																														"G4 P100\n",
-																														"M65537;stop\n",
-																														"G90\n",
-																														"G0 Z3 F100\n",
-																														"G28\n",
-																														"G0 X9 Y95 Z3 F100\n",
-																														"M65536;wait\n"
+																														"G4 P100",
+																														"M65537;stop",
+																														"G90",
+																														"G0 Z3 F100",
+																														"G28",
+																														"G0 X9 Y95 Z3 F100",
+																														"M65536;wait"
 																													];
 		
 																													// Send request
@@ -4924,8 +4920,8 @@ $(function() {
 		
 																																// Set commands
 																																var commands = [
-																																	"M114\n",
-																																	"M65536;wait\n"
+																																	"M114",
+																																	"M65536;wait"
 																																];
 		
 																																// Send request
@@ -4941,9 +4937,9 @@ $(function() {
 			
 																																		// Set commands
 																																		commands = [
-																																			"M618 S16 P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.BackLeftOrientation()) + '\n',
-																																			"M619 S16\n",
-																																			"M65536;wait\n"
+																																			"M618 S16 P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.BackLeftOrientation()),
+																																			"M619 S16",
+																																			"M65536;wait"
 																																		];
 				
 																																		// Send request
@@ -4959,12 +4955,12 @@ $(function() {
 			
 																																				// Set commands
 																																				commands = [
-																																					"G4 P100\n",
-																																					"M65537;stop\n",
-																																					"G90\n",
-																																					"G28\n",
-																																					"M18\n",
-																																					"M65536;wait\n"
+																																					"G4 P100",
+																																					"M65537;stop",
+																																					"G90",
+																																					"G28",
+																																					"M18",
+																																					"M65536;wait"
 																																				];
 				
 																																				// Send request
@@ -5624,17 +5620,17 @@ $(function() {
 		
 						// Set commands
 						var commands = [
-							"G4 P100\n",
-							"M65537;stop\n",
-							"M104 S0\n",
-							"G91\n",
-							"G0 Y20 Z2 F150\n",
-							"M109 S150\n",
-							"M104 S0\n",
-							"M107\n",
-							"G30\n",
-							"M117\n",
-							"M65536;wait\n"
+							"G4 P100",
+							"M65537;stop",
+							"M104 S0",
+							"G91",
+							"G0 Y20 Z2 F150",
+							"M109 S150",
+							"M104 S0",
+							"M107",
+							"G30",
+							"M117",
+							"M65536;wait"
 						];
 		
 						// Send request
@@ -5670,20 +5666,20 @@ $(function() {
 		
 										// Set commands
 										var commands = [
-											"G4 P100\n",
-											"M65537;stop\n",
-											"M104 S0\n",
-											"G91\n",
-											"G0 Y20 Z2 F150\n",
-											"M109 S150\n",
-											"M104 S0\n",
-											"M107\n",
-											"G32\n",
-											"M619 S2\n",
-											"M619 S3\n",
-											"M619 S4\n",
-											"M619 S5\n",
-											"M65536;wait\n"
+											"G4 P100",
+											"M65537;stop",
+											"M104 S0",
+											"G91",
+											"G0 Y20 Z2 F150",
+											"M109 S150",
+											"M104 S0",
+											"M107",
+											"G32",
+											"M619 S2",
+											"M619 S3",
+											"M619 S4",
+											"M619 S5",
+											"M65536;wait"
 										];
 		
 										// Send request
@@ -5760,20 +5756,20 @@ $(function() {
 		
 						// Set commands
 						var commands = [
-							"G4 P100\n",
-							"M65537;stop\n",
-							"M104 S0\n",
-							"G91\n",
-							"G0 Y20 Z2 F150\n",
-							"M109 S150\n",
-							"M104 S0\n",
-							"M107\n",
-							"G32\n",
-							"M619 S2\n",
-							"M619 S3\n",
-							"M619 S4\n",
-							"M619 S5\n",
-							"M65536;wait\n"
+							"G4 P100",
+							"M65537;stop",
+							"M104 S0",
+							"G91",
+							"G0 Y20 Z2 F150",
+							"M109 S150",
+							"M104 S0",
+							"M107",
+							"G32",
+							"M619 S2",
+							"M619 S3",
+							"M619 S4",
+							"M619 S5",
+							"M65536;wait"
 						];
 		
 						// Send request

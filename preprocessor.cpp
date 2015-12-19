@@ -993,12 +993,12 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 				if(printingBacklashCalibrationCylinder) {
 				
 					// Add intro to output
-					newCommands.push(Command("G90\n", PREPARATION, PREPARATION));
-					newCommands.push(Command("M104 S" + to_string(filamentTemperature) + '\n', PREPARATION, PREPARATION));
-					newCommands.push(Command("G28\n", PREPARATION, PREPARATION));
-					newCommands.push(Command("G0 Z2\n", PREPARATION, PREPARATION));
-					newCommands.push(Command("M109 S" + to_string(filamentTemperature) + '\n', PREPARATION, PREPARATION));
-					newCommands.push(Command("M106 S" + static_cast<string>(filamentType == PLA ? "255" : "1") + '\n', PREPARATION, PREPARATION));
+					newCommands.push(Command("G90", PREPARATION, PREPARATION));
+					newCommands.push(Command("M104 S" + to_string(filamentTemperature), PREPARATION, PREPARATION));
+					newCommands.push(Command("G28", PREPARATION, PREPARATION));
+					newCommands.push(Command("G0 Z2", PREPARATION, PREPARATION));
+					newCommands.push(Command("M109 S" + to_string(filamentTemperature), PREPARATION, PREPARATION));
+					newCommands.push(Command("M106 S" + static_cast<string>(filamentType == PLA ? "255" : "1"), PREPARATION, PREPARATION));
 				}
 				
 				// Otherwise
@@ -1022,52 +1022,52 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 					}
 				
 					// Add intro to output
-					newCommands.push(Command("M106 S" + static_cast<string>(filamentType == PLA ? "255" : "50") + '\n', PREPARATION, PREPARATION));
-					newCommands.push(Command("M17\n", PREPARATION, PREPARATION));
-					newCommands.push(Command("G90\n", PREPARATION, PREPARATION));
-					newCommands.push(Command("M104 S" + to_string(filamentTemperature) + '\n', PREPARATION, PREPARATION));
-					newCommands.push(Command("G0 Z5 F2900\n", PREPARATION, PREPARATION));
-					newCommands.push(Command("G28\n", PREPARATION, PREPARATION));
+					newCommands.push(Command("M106 S" + static_cast<string>(filamentType == PLA ? "255" : "50"), PREPARATION, PREPARATION));
+					newCommands.push(Command("M17", PREPARATION, PREPARATION));
+					newCommands.push(Command("G90", PREPARATION, PREPARATION));
+					newCommands.push(Command("M104 S" + to_string(filamentTemperature), PREPARATION, PREPARATION));
+					newCommands.push(Command("G0 Z5 F2900", PREPARATION, PREPARATION));
+					newCommands.push(Command("G28", PREPARATION, PREPARATION));
 
 					// Add heat bed command if using Micro Pass
 					if(usingMicroPass)
-						newCommands.push(Command("M190 S" + static_cast<string>(filamentType == PLA ? "70" : "80") + '\n', PREPARATION, PREPARATION));
+						newCommands.push(Command("M190 S" + static_cast<string>(filamentType == PLA ? "70" : "80"), PREPARATION, PREPARATION));
 
 					// Check if one of the corners wasn't set
 					if(!cornerX || !cornerY) {
 
 						// Prepare extruder the standard way
-						newCommands.push(Command("M18\n", PREPARATION, PREPARATION));
-						newCommands.push(Command("M109 S" + to_string(filamentTemperature) + '\n', PREPARATION, PREPARATION));
-						newCommands.push(Command("G4 S2\n", PREPARATION, PREPARATION));
-						newCommands.push(Command("M17\n", PREPARATION, PREPARATION));
-						newCommands.push(Command("G91\n", PREPARATION, PREPARATION));
+						newCommands.push(Command("M18", PREPARATION, PREPARATION));
+						newCommands.push(Command("M109 S" + to_string(filamentTemperature), PREPARATION, PREPARATION));
+						newCommands.push(Command("G4 S2", PREPARATION, PREPARATION));
+						newCommands.push(Command("M17", PREPARATION, PREPARATION));
+						newCommands.push(Command("G91", PREPARATION, PREPARATION));
 					}
 
 					// Otherwise
 					else {
 
 						// Prepare extruder by leaving excess at corner
-						newCommands.push(Command("G91\n", PREPARATION, PREPARATION));
-						newCommands.push(Command("G0 X" + to_string(-cornerX) + " Y" + to_string(-cornerY) + " F2900\n", PREPARATION, PREPARATION));
-						newCommands.push(Command("M18\n", PREPARATION, PREPARATION));
-						newCommands.push(Command("M109 S" + to_string(filamentTemperature) + '\n', PREPARATION, PREPARATION));
-						newCommands.push(Command("M17\n", PREPARATION, PREPARATION));
-						newCommands.push(Command("G0 Z-4 F2900\n", PREPARATION, PREPARATION));
-						newCommands.push(Command("G0 E7.5 F2000\n", PREPARATION, PREPARATION));
-						newCommands.push(Command("G4 S3\n", PREPARATION, PREPARATION));
-						newCommands.push(Command("G0 X" + to_string(cornerX * 0.1) + " Y" + to_string(cornerY * 0.1) + " Z-0.999 F2900\n", PREPARATION, PREPARATION));
-						newCommands.push(Command("G0 X" + to_string(cornerX * 0.9) + " Y" + to_string(cornerY * 0.9) + " F1000\n", PREPARATION, PREPARATION));
+						newCommands.push(Command("G91", PREPARATION, PREPARATION));
+						newCommands.push(Command("G0 X" + to_string(-cornerX) + " Y" + to_string(-cornerY) + " F2900", PREPARATION, PREPARATION));
+						newCommands.push(Command("M18", PREPARATION, PREPARATION));
+						newCommands.push(Command("M109 S" + to_string(filamentTemperature), PREPARATION, PREPARATION));
+						newCommands.push(Command("M17", PREPARATION, PREPARATION));
+						newCommands.push(Command("G0 Z-4 F2900", PREPARATION, PREPARATION));
+						newCommands.push(Command("G0 E7.5 F2000", PREPARATION, PREPARATION));
+						newCommands.push(Command("G4 S3", PREPARATION, PREPARATION));
+						newCommands.push(Command("G0 X" + to_string(cornerX * 0.1) + " Y" + to_string(cornerY * 0.1) + " Z-0.999 F2900", PREPARATION, PREPARATION));
+						newCommands.push(Command("G0 X" + to_string(cornerX * 0.9) + " Y" + to_string(cornerY * 0.9) + " F1000", PREPARATION, PREPARATION));
 					}
 
-					newCommands.push(Command("G92 E0\n", PREPARATION, PREPARATION));
-					newCommands.push(Command("G90\n", PREPARATION, PREPARATION));
-					newCommands.push(Command("G0 Z0.4 F2400\n", PREPARATION, PREPARATION));
+					newCommands.push(Command("G92 E0", PREPARATION, PREPARATION));
+					newCommands.push(Command("G90", PREPARATION, PREPARATION));
+					newCommands.push(Command("G0 Z0.4 F2400", PREPARATION, PREPARATION));
 				}
 		
 				// Finish processing command later
 				if(!gcode.isEmpty())
-					commands.push_front(Command(gcode.getAscii() + '\n', command.origin, PREPARATION));
+					commands.push_front(Command(gcode.getAscii(), command.origin, PREPARATION));
 				else
 					commands.push_front(Command(command.line, command.origin, PREPARATION));
 	
@@ -1094,36 +1094,36 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 				if(printingBacklashCalibrationCylinder)
 				
 					// Add outro to output
-					newCommands.push(Command("M104 S0\n", PREPARATION, PREPARATION));
+					newCommands.push(Command("M104 S0", PREPARATION, PREPARATION));
 				
 				// Otherwise
 				else {
 
 					// Add outro to output
-					newCommands.push(Command("G91\n", PREPARATION, PREPARATION));
-					newCommands.push(Command("G0 E-1 F2000\n", PREPARATION, PREPARATION));
-					newCommands.push(Command("G0 X5 Y5 F2000\n", PREPARATION, PREPARATION));
-					newCommands.push(Command("G0 E-18 F2000\n", PREPARATION, PREPARATION));
-					newCommands.push(Command("M104 S0\n", PREPARATION, PREPARATION));
+					newCommands.push(Command("G91", PREPARATION, PREPARATION));
+					newCommands.push(Command("G0 E-1 F2000", PREPARATION, PREPARATION));
+					newCommands.push(Command("G0 X5 Y5 F2000", PREPARATION, PREPARATION));
+					newCommands.push(Command("G0 E-18 F2000", PREPARATION, PREPARATION));
+					newCommands.push(Command("M104 S0", PREPARATION, PREPARATION));
 
 					if(usingMicroPass)
-						newCommands.push(Command("M140 S0\n", PREPARATION, PREPARATION));
+						newCommands.push(Command("M140 S0", PREPARATION, PREPARATION));
 
 					if(maxZExtruder > 60) {
 						if(maxZExtruder < 110)
-							newCommands.push(Command("G0 Z3 F2900\n", PREPARATION, PREPARATION));
-						newCommands.push(Command("G90\n", PREPARATION, PREPARATION));
-						newCommands.push(Command("G0 X90 Y84\n", PREPARATION, PREPARATION));
+							newCommands.push(Command("G0 Z3 F2900", PREPARATION, PREPARATION));
+						newCommands.push(Command("G90", PREPARATION, PREPARATION));
+						newCommands.push(Command("G0 X90 Y84", PREPARATION, PREPARATION));
 					}
 					else {
-						newCommands.push(Command("G0 Z3 F2900\n", PREPARATION, PREPARATION));
-						newCommands.push(Command("G90\n", PREPARATION, PREPARATION));
-						newCommands.push(Command("G0 X95 Y95\n", PREPARATION, PREPARATION));
+						newCommands.push(Command("G0 Z3 F2900", PREPARATION, PREPARATION));
+						newCommands.push(Command("G90", PREPARATION, PREPARATION));
+						newCommands.push(Command("G0 X95 Y95", PREPARATION, PREPARATION));
 					}
 				}
 
-				newCommands.push(Command("M18\n", PREPARATION, PREPARATION));
-				newCommands.push(Command("M107\n", PREPARATION, PREPARATION));
+				newCommands.push(Command("M18", PREPARATION, PREPARATION));
+				newCommands.push(Command("M107", PREPARATION, PREPARATION));
 		
 				// Append new commands to commands
 				while(newCommands.size()) {
@@ -1219,7 +1219,7 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 											if(!waveBondingTackPoint.isEmpty())
 								
 												// Add tack point to output
-												newCommands.push(Command(waveBondingTackPoint.getAscii() + '\n', WAVE, WAVE));
+												newCommands.push(Command(waveBondingTackPoint.getAscii(), WAVE, WAVE));
 										}
 	
 										// Set refrence G-code
@@ -1237,7 +1237,7 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 										if(!waveBondingTackPoint.isEmpty())
 							
 											// Add tack point to output
-											newCommands.push(Command(waveBondingTackPoint.getAscii() + '\n', WAVE, WAVE));
+											newCommands.push(Command(waveBondingTackPoint.getAscii(), WAVE, WAVE));
 	
 										// Set refrence G-code
 										waveBondingRefrenceGcode = gcode;
@@ -1303,7 +1303,7 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 										waveBondingExtraGcode.setValue('E', to_string(waveBondingPositionRelativeE - deltaE + tempRelativeE - relativeDifferenceE));
 							
 										// Add extra G-code to output
-										newCommands.push(Command(waveBondingExtraGcode.getAscii() + '\n', WAVE, WAVE));
+										newCommands.push(Command(waveBondingExtraGcode.getAscii(), WAVE, WAVE));
 									}
 
 									// Otherwise check if plane changed
@@ -1389,7 +1389,7 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			
 				// Finish processing command later
 				if(!gcode.isEmpty())
-					commands.push_front(Command(gcode.getAscii() + '\n', command.origin, WAVE));
+					commands.push_front(Command(gcode.getAscii(), command.origin, WAVE));
 				else
 					commands.push_front(Command(command.line, command.origin, WAVE));
 	
@@ -1420,13 +1420,13 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 					if(thermalBondingLayerCounter == 0)
 		
 						// Add temperature to output
-						newCommands.push(Command("M109 S" + to_string(getBoundedTemperature(filamentTemperature + (filamentType == PLA ? 10 : 15))) + '\n', THERMAL, THERMAL));
+						newCommands.push(Command("M109 S" + to_string(getBoundedTemperature(filamentTemperature + (filamentType == PLA ? 10 : 15))), THERMAL, THERMAL));
 			
 					// Otherwise
 					else
 		
 						// Add temperature to output
-						newCommands.push(Command("M104 S" + to_string(filamentTemperature) + '\n', THERMAL, THERMAL));
+						newCommands.push(Command("M104 S" + to_string(filamentTemperature), THERMAL, THERMAL));
 			
 					// Increment layer counter
 					thermalBondingLayerCounter++;
@@ -1461,7 +1461,7 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 										if(!thermalBondingTackPoint.isEmpty())
 								
 											// Add tack point to output
-											newCommands.push(Command(thermalBondingTackPoint.getAscii() + '\n', THERMAL, THERMAL));
+											newCommands.push(Command(thermalBondingTackPoint.getAscii(), THERMAL, THERMAL));
 									}
 									
 									// Set refrence G-code
@@ -1479,7 +1479,7 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 									if(!thermalBondingTackPoint.isEmpty())
 							
 										// Add tack point to output
-										newCommands.push(Command(thermalBondingTackPoint.getAscii() + '\n', THERMAL, THERMAL));
+										newCommands.push(Command(thermalBondingTackPoint.getAscii(), THERMAL, THERMAL));
 								
 									// Set refrence G-code
 									thermalBondingRefrenceGcode = gcode;
@@ -1513,7 +1513,7 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			
 				// Finish processing command later
 				if(!gcode.isEmpty())
-					commands.push_front(Command(gcode.getAscii() + '\n', command.origin, THERMAL));
+					commands.push_front(Command(gcode.getAscii(), command.origin, THERMAL));
 				else
 					commands.push_front(Command(command.line, command.origin, THERMAL));
 	
@@ -1673,7 +1673,7 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 									bedCompensationExtraGcode.setValue('E', to_string(bedCompensationPositionRelativeE - deltaE + tempRelativeE - relativeDifferenceE));
 						
 									// Add extra G-code to output
-									newCommands.push(Command(bedCompensationExtraGcode.getAscii() + '\n', BED, BED));
+									newCommands.push(Command(bedCompensationExtraGcode.getAscii(), BED, BED));
 								}
 
 								// Otherwise check if the plane changed
@@ -1771,7 +1771,7 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			
 				// Finish processing command later
 				if(!gcode.isEmpty())
-					commands.push_front(Command(gcode.getAscii() + '\n', command.origin, BED));
+					commands.push_front(Command(gcode.getAscii(), command.origin, BED));
 				else
 					commands.push_front(Command(command.line, command.origin, BED));
 	
@@ -1844,7 +1844,7 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 							backlashCompensationExtraGcode.setValue('F', to_string(backlashSpeed));
 				
 							// Add extra G-code to output
-							newCommands.push(Command(backlashCompensationExtraGcode.getAscii() + '\n', BACKLASH, BACKLASH));
+							newCommands.push(Command(backlashCompensationExtraGcode.getAscii(), BACKLASH, BACKLASH));
 				
 							// Set command's F value
 							gcode.setValue('F', valueF);
@@ -1935,7 +1935,7 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			
 				// Finish processing command later
 				if(!gcode.isEmpty())
-					commands.push_front(Command(gcode.getAscii() + '\n', command.origin, BACKLASH));
+					commands.push_front(Command(gcode.getAscii(), command.origin, BACKLASH));
 				else
 					commands.push_front(Command(command.line, command.origin, BACKLASH));
 	
@@ -1981,7 +1981,7 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			else
 			
 				// Append ascii representation of the command to list
-				returnValue += gcode.getAscii() + "*\n,";
+				returnValue += gcode.getAscii() + "*,";
 		}
 	}
 	
