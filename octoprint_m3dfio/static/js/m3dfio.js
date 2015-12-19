@@ -4346,10 +4346,10 @@ $(function() {
 			
 				// On success
 				success: function(data) {
-			
+				
 					// Set commands
 					commands = [
-						"M618 S19 P" + floatToBinary(currentZ) + '\n',
+						"M618 S19 P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.FrontLeftOrientation()) + '\n',
 						"M619 S19\n",
 						"M65536;wait\n"
 					];
@@ -4408,7 +4408,7 @@ $(function() {
 			
 					// Set commands
 					commands = [
-						"M618 S18 P" + floatToBinary(currentZ) + '\n',
+						"M618 S18 P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.FrontRightOrientation()) + '\n',
 						"M619 S18\n",
 						"M65536;wait\n"
 					];
@@ -4467,7 +4467,7 @@ $(function() {
 			
 					// Set commands
 					commands = [
-						"M618 S17 P" + floatToBinary(currentZ) + '\n',
+						"M618 S17 P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.BackRightOrientation()) + '\n',
 						"M619 S17\n",
 						"M65536;wait\n"
 					];
@@ -4526,7 +4526,7 @@ $(function() {
 			
 					// Set commands
 					commands = [
-						"M618 S16 P" + floatToBinary(currentZ) + '\n',
+						"M618 S16 P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.BackLeftOrientation()) + '\n',
 						"M619 S16\n",
 						"M65536;wait\n"
 					];
@@ -4752,7 +4752,7 @@ $(function() {
 			
 													// Set commands
 													commands = [
-														"M618 S19 P" + floatToBinary(currentZ) + '\n',
+														"M618 S19 P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.FrontLeftOrientation()) + '\n',
 														"M619 S19\n",
 														"M65536;wait\n"
 													];
@@ -4815,7 +4815,7 @@ $(function() {
 			
 																				// Set commands
 																				commands = [
-																					"M618 S18 P" + floatToBinary(currentZ) + '\n',
+																					"M618 S18 P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.FrontRightOrientation()) + '\n',
 																					"M619 S18\n",
 																					"M65536;wait\n"
 																				];
@@ -4878,7 +4878,7 @@ $(function() {
 			
 																											// Set commands
 																											commands = [
-																												"M618 S17 P" + floatToBinary(currentZ) + '\n',
+																												"M618 S17 P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.BackRightOrientation()) + '\n',
 																												"M619 S17\n",
 																												"M65536;wait\n"
 																											];
@@ -4941,7 +4941,7 @@ $(function() {
 			
 																																		// Set commands
 																																		commands = [
-																																			"M618 S16 P" + floatToBinary(currentZ) + '\n',
+																																			"M618 S16 P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.BackLeftOrientation()) + '\n',
 																																			"M619 S16\n",
 																																			"M65536;wait\n"
 																																		];
