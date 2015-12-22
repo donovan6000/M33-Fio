@@ -17,5 +17,5 @@ If your using Linux, you can install OctoPrint, M3D Fio, and all their dependenc
 
 ```shell
 wget https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/Linux/install.sh
-sh ./install.sh
+sudo sh ./install.sh
 ```
