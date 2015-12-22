@@ -1,4 +1,5 @@
 @ECHO OFF
+@SETLOCAL ENABLEDELAYEDEXPANSION
 
 REM Request elevated privileges
 IF "%PROCESSOR_ARCHITECTURE%" EQU "amd64" (
@@ -41,46 +42,61 @@ IF %ERRORLEVEL% EQU 0 (
 	REM Otherwise
 	) ELSE (
 	
-		REM Download Wget
+		REM Move to temporary location
 		CD "%TEMP%"
-		bitsadmin.exe /transfer "Wget" https://eternallybored.org/misc/wget/current/wget.exe "%TEMP%\wget.exe"
-
+		
 		REM Install OctoPrint dependencies
-		wget.exe -O python.msi https://www.python.org/ftp/python/2.7.11/python-2.7.11.msi
+		bitsadmin.exe /transfer "Python Version" https://www.python.org/downloads/windows/ "%TEMP%\index.html"
+		FOR /f "tokens=8" %%f IN ('find "Latest Python 2 Release" "%TEMP%\index.html"') DO SET version=%%f
+		SET version=!version:~0,-9!
+		bitsadmin.exe /transfer "Python" https://www.python.org/ftp/python/!version!/python-!version!.msi "%TEMP%\python.msi"
 		msiexec /i python.msi TARGETDIR=C:\python /quiet
 		DEL python.msi
+		DEL index.html
+
+		REM Create Wget
+		COPY /y nul wget.py
+		ECHO import sys> wget.py
+		ECHO import urllib>> wget.py
+		ECHO urllib.urlretrieve(str(sys.argv[1]^), str(sys.argv[2]^)^)>> wget.py
+		
+		REM Create unzip
+		COPY /y nul unzip.py
+		ECHO import sys> unzip.py
+		ECHO import zipfile>> unzip.py
+		ECHO with zipfile.ZipFile(str(sys.argv[1]^), 'r'^) as contents :>> unzip.py
+		ECHO 	contents.extractall(^)>> unzip.py
 
 		REM Install OctoPrint
-		wget.exe https://github.com/foosel/OctoPrint/archive/master.zip
-		wget http://stahlworks.com/dev/unzip.exe
-		unzip.exe master.zip
+		C:\python\python.exe wget.py https://github.com/foosel/OctoPrint/archive/master.zip master.zip
+		C:\python\python.exe unzip.py master.zip
 		CD OctoPrint-master
 		C:\python\python.exe setup.py install
 		MOVE /Y run "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup\OctoPrint.pyw"
 		CD ..
 		RD /s /q OctoPrint-master
-		DEL unzip.exe
+		DEL unzip.py
 		DEL master.zip
 	
 		REM Install M3D Fio
 		ECHO y | C:\python\Scripts\pip.exe uninstall OctoPrint-M3DFio
-		wget.exe https://github.com/donovan6000/M3D-Fio/archive/master.zip
+		C:\python\python.exe wget.py https://github.com/donovan6000/M3D-Fio/archive/master.zip master.zip
 		:loop
 		C:\python\Scripts\pip.exe install master.zip
 		IF ERRORLEVEL 1 GOTO loop
 		DEL master.zip
 		
 		REM Install drivers
-		wget https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/Windows/M3D.inf
-		wget https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/Windows/M3D.cat
+		C:\python\python.exe wget.py https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/Windows/M3D.inf M3D.inf
+		C:\python\python.exe wget.py https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/Windows/M3D.cat M3D.cat
 		PnPUtil -i -a M3D.inf
 		DEL M3D.inf
 		DEL M3D.cat
 		
 		REM Create URL link on desktop
-		wget https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/Windows/OctoPrint.url
+		C:\python\python.exe wget.py https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/Windows/OctoPrint.url OctoPrint.url
 		MOVE OctoPrint.url "C:\Users\%USERNAME%\Desktop"
-		DEL wget.exe
+		DEL wget.py
 
 		REM Start OctoPrint
 		START "C:\python\python.exe" "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup\OctoPrint.pyw"

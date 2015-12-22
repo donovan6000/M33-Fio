@@ -18,7 +18,8 @@ else
 	wget -q --tries=1 --timeout=5 --spider http://google.com
 	if [ $? -eq 0 ]; then
 	
-		cd $TEMP
+		# Move to temporary location
+		cd $(dirname $(mktemp -u))
 	
 		# Set if using OctoPi
 		if [ -f /etc/init.d/octoprint ]; then
