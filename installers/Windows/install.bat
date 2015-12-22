@@ -1,5 +1,31 @@
 @ECHO OFF
 
+REM Request elevated privileges
+IF "%PROCESSOR_ARCHITECTURE%" EQU "amd64" (
+	>nul 2>&1 "%SYSTEMROOT%\SysWOW64\icacls.exe" "%SYSTEMROOT%\SysWOW64\config\system"
+) ELSE (
+	>nul 2>&1 "%SYSTEMROOT%\system32\icacls.exe" "%SYSTEMROOT%\system32\config\system"
+)
+
+IF %ERRORLEVEL% NEQ 0 (
+	GOTO UACPrompt
+) ELSE (
+	GOTO gotAdmin
+)
+
+:UACPrompt
+	ECHO Set UAC = CreateObject^("Shell.Application"^) > "%TEMP%\getadmin.vbs"
+	SET params = %*:"=""
+	ECHO UAC.ShellExecute "cmd.exe", "/c %~s0 %params%", "", "runas", 1 >> "%TEMP%\getadmin.vbs"
+
+	"%TEMP%\getadmin.vbs"
+	DEL "%TEMP%\getadmin.vbs"
+	EXIT /B
+
+:gotAdmin
+	PUSHD "%CD%"
+	CD /D "%~dp0"
+
 REM Check if run as admin
 NET SESSION >nul 2>&1
 IF %ERRORLEVEL% EQU 0 (
