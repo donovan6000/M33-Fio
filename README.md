@@ -11,7 +11,7 @@ https://github.com/donovan6000/M3D-Fio/archive/master.zip
 
 M3D Fio works in conjunction with OctoPrint's autodetect serial port and baudrate feature, so neither of those values need to be specified in order to successfully connect to the Micro 3D printer.
 
-If your using Windows, you can install OctoPrint, M3D Fio, and all their dependencies by running [this file](https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/Windows/install.bat).
+If your using Windows, you can install OctoPrint, M3D Fio, and all their dependencies by running <a href="https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/Windows/install.bat" download>this file</a>
 
 If your using Linux, you can install OctoPrint, M3D Fio, and all their dependencies by running the following commands:
 
