@@ -16,7 +16,8 @@ IF %ERRORLEVEL% EQU 0 (
 	) ELSE (
 	
 		REM Download Wget
-		bitsadmin.exe /transfer "Wget" https://eternallybored.org/misc/wget/current/wget.exe "%cd%\wget.exe"
+		CD "%TEMP%"
+		bitsadmin.exe /transfer "Wget" https://eternallybored.org/misc/wget/current/wget.exe "%TEMP%\wget.exe"
 
 		REM Install OctoPrint dependencies
 		wget.exe -O python.msi https://www.python.org/ftp/python/2.7.11/python-2.7.11.msi
