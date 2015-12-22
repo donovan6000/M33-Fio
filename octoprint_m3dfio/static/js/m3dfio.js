@@ -585,7 +585,7 @@ $(function() {
 			// Convert value to be camelcase
 			return value.replace(/(?:^\w|[A-Z]|\b\w)/g, function(letter, index) {
 				return index == 0 ? letter.toLowerCase() : letter.toUpperCase();
-			}).replace(/\s+/g, "");
+			}).replace(/\s+/g, '');
 		}
 
 		// Float To Binary
@@ -5388,7 +5388,7 @@ $(function() {
 		$("#control > div.jog-panel.eeprom").find("div > button:nth-of-type(2)").click(function(event) {
 			
 			// Initialzie EEPROM
-			var eeprom = "";
+			var eeprom = '';
 			
 			// Go through all EEPROM inputs
 			$("#control > div.jog-panel.eeprom table input").each(function() {
@@ -5413,7 +5413,7 @@ $(function() {
 				if(!value.length || value.length > 2 || !/^[0-9a-fA-F]+$/.test(value)) {
 				
 					// Clear EEPROM and return false
-					eeprom = "";
+					eeprom = '';
 					return false;
 				}
 				
@@ -5522,7 +5522,7 @@ $(function() {
 					// Reset progress bar				
 					$("#gcode_upload_progress > div.bar").css("width", "0%");
 					$("#gcode_upload_progress").removeClass("progress-striped active");
-					$("#gcode_upload_progress > div.bar").text("");
+					$("#gcode_upload_progress > div.bar").text('');
 				}
 				else {
 			

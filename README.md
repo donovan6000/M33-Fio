@@ -3,19 +3,19 @@ OctoPrint plugin for the Micro 3D printer that provides a complete, platform ind
 
 © 2015 Exploit Kings. All rights reserved.
 
-You can install it with OctoPrint's built in plugin manager. The URL for that is [https://github.com/donovan6000/M3D-Fio/archive/master.zip](https://github.com/donovan6000/M3D-Fio/archive/master.zip) or you can install it manually with the command
+You can install it with OctoPrint's built in plugin manager using the following URL as the plugins source:
 
 ```shell
-pip install https://github.com/donovan6000/M3D-Fio/archive/master.zip
+https://github.com/donovan6000/M3D-Fio/archive/master.zip
 ```
 
-M3D Fio works in conjunction with OctoPrint's autodetect serial port and baudrate feature, so neither of those values need to be specified in order to successfully connect to the printer.
+M3D Fio works in conjunction with OctoPrint's autodetect serial port and baudrate feature, so neither of those values need to be specified in order to successfully connect to the Micro 3D printer.
 
-If your using Windows and the printer isn't recognized in the device manager, then you'll need to install the drivers manually which are located in `/drivers/Windows/`.
+If your using Windows, you can install OctoPrint, M3D Fio, and all their dependencies by running [this file](https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/Windows/install.bat) with administrative privileges.
 
-If you are using Linux, the 90-m3d-local.rules needs to applied in order to avoid issues. You can apply it with the following commands:
+If your using Linux, you can install OctoPrint, M3D Fio, and all their dependencies by running the following commands:
 
 ```shell
-wget -O /etc/udev/rules.d/90-m3d-local.rules https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/drivers/Linux/90-m3d-local.rules
-sudo /etc/init.d/udev restart
+wget https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/Linux/install.sh
+sudo sh install.sh
 ```
