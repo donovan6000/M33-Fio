@@ -19,7 +19,7 @@ else
 	if [ $? -eq 0 ]; then
 
 		# Move to temporary location
-		#cd $TMPDIR
+		cd $TMPDIR
 
 		# Install Python
 		curl -o index.html https://www.python.org/downloads/mac-osx/
