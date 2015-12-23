@@ -344,63 +344,6 @@ class M3DFioPlugin(
 	    	
 	    	# Enable printer callbacks
 		self._printer.register_callback(self)
-		
-		# Check if Cura is a registered slicer
-		if "cura" in self._slicing_manager.registered_slicers :
-		
-			# Set Cura profile location and destination
-			profileLocation = self._basefolder + "/static/profiles/"
-			profileDestination = self._slicing_manager.get_slicer_profile_path("cura") + '/'
-		
-			# Go through all Cura profiles
-			for profile in os.listdir(profileLocation) :
-			
-				# Get profile version
-				version = re.search(" V(\d+)\.+\S*$", profile)
-			
-				# Check if version number exists
-				if version :
-				
-					# Set profile version, identifier, and name
-					profileVersion = version.group(1)
-					profileIdentifier = profile[0 : version.start()]
-					profileName = self._slicing_manager.get_profile_path("cura", profileIdentifier)[len(profileDestination) :].lower()
-				
-					# Set to create or replace file
-					replace = True
-			
-					# Check if profile already exists
-					if os.path.isfile(profileDestination + profileName) :
-				
-						# Get existing profile description line
-						for line in open(profileDestination + profileName) :
-					
-							# Check if profile display name exists
-							if line.startswith("_display_name:") :
-					
-								# Get current version
-								version = re.search(" V(\d+)$", line)
-								
-								# Check if newer version is available
-								if version and int(version.group(1)) < int(profileVersion) :
-						
-									# Remove current profile
-									os.remove(profileDestination + profileName)
-							
-								# Otherwise
-								else :
-							
-									# Clear replace
-									replace = False
-							
-								# Stop searching file
-								break
-				
-					# Check if profile is being created or replaced
-					if replace :
-					
-						# Save Cura profile as OctoPrint profile
-						self.convertCuraToProfile(profileLocation + profile, profileDestination + profileName, profileName, profileIdentifier + " V" + profileVersion, "Imported by M3D Fio on " + time.strftime("%Y-%m-%d %H:%M"))
 	
 	# Covert Cura to profile
 	def convertCuraToProfile(self, input, output, name, displayName, description) :
@@ -1872,14 +1815,74 @@ class M3DFioPlugin(
 								self._slicing_manager.get_slicer("cura", False)._settings.set(["cura_engine"], location)
 								break
 				
-				# Check if Cura Engine wasn't found and user hasn't been reminded yet
-				if not self.curaReminder and not "cura" in self._slicing_manager.configured_slicers :
+				# Check if Cura is still not configured
+				if not "cura" in self._slicing_manager.configured_slicers :
 				
-					# Send message
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Cura Not Installed"))
+					# Check if a reminder hasn't been sent
+					if not self.curaReminder :
+				
+						# Send message
+						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Cura Not Installed"))
 					
-					# Set cura reminder
-					self.curaReminder = True
+						# Set cura reminder
+						self.curaReminder = True
+				
+				# Otherwise
+				else :
+		
+					# Set Cura profile location and destination
+					profileLocation = self._basefolder + "/static/profiles/"
+					profileDestination = self._slicing_manager.get_slicer_profile_path("cura") + '/'
+		
+					# Go through all Cura profiles
+					for profile in os.listdir(profileLocation) :
+			
+						# Get profile version
+						version = re.search(" V(\d+)\.+\S*$", profile)
+			
+						# Check if version number exists
+						if version :
+				
+							# Set profile version, identifier, and name
+							profileVersion = version.group(1)
+							profileIdentifier = profile[0 : version.start()]
+							profileName = self._slicing_manager.get_profile_path("cura", profileIdentifier)[len(profileDestination) :].lower()
+				
+							# Set to create or replace file
+							replace = True
+			
+							# Check if profile already exists
+							if os.path.isfile(profileDestination + profileName) :
+				
+								# Get existing profile description line
+								for line in open(profileDestination + profileName) :
+					
+									# Check if profile display name exists
+									if line.startswith("_display_name:") :
+					
+										# Get current version
+										version = re.search(" V(\d+)$", line)
+								
+										# Check if newer version is available
+										if version and int(version.group(1)) < int(profileVersion) :
+						
+											# Remove current profile
+											os.remove(profileDestination + profileName)
+							
+										# Otherwise
+										else :
+							
+											# Clear replace
+											replace = False
+							
+										# Stop searching file
+										break
+				
+							# Check if profile is being created or replaced
+							if replace :
+					
+								# Save Cura profile as OctoPrint profile
+								self.convertCuraToProfile(profileLocation + profile, profileDestination + profileName, profileName, profileIdentifier + " V" + profileVersion, "Imported by M3D Fio on " + time.strftime("%Y-%m-%d %H:%M"))
 		
 		# Otherwise check if event is slicing started
 		elif event == octoprint.events.Events.SLICING_STARTED :
