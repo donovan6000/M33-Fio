@@ -19,24 +19,25 @@ else
 	if [ $? -eq 0 ]; then
 
 		# Move to temporary location
-		cd $TMPDIR
+		#cd $TMPDIR
 
 		# Install Python
 		curl -o index.html https://www.python.org/downloads/mac-osx/
-		version='$(grep -Po '(?<=Latest Python 2 Release - Python )[0-9\.]*' index.html)'
+		version="$(grep -Po "(?<=Latest Python 2 Release - Python )[0-9\.]*" index.html)"
 		rm index.html
 		curl -o python.pkg https://www.python.org/ftp/python/${version}/python-${version}-macosx10.6.pkg
 		installer -pkg python.pkg -target /
 		rm python.pkg
+		pythonVersion="$(cut -f1,2 -d'.' <<< ${version})"
 
 		# Install command line tools
-		curl -O 'https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/OS X/command line tools installer.bash'
-		bash 'command line tools installer.bash'
-		rm 'command line tools installer.bash'
+		curl -O 'https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/OS%20X/command%20line%20tools%20installer.bash'
+		bash 'command%20line%20tools%20installer.bash'
+		rm 'command%20line%20tools%20installer.bash'
 
 		# Install PyObjC core
 		curl -o index.html https://pypi.python.org/pypi/pyobjc-core
-		version='$(grep -Poa '(?<=pyobjc-core-)[0-9\.]*(?=\.tar\.gz)' index.html | head -1)'
+		version="$(grep -Poa "(?<=pyobjc-core-)[0-9\.]*(?=\.tar\.gz)" index.html | head -1)"
 		rm index.html
 		curl -o pyobjc-core.tar.gz https://pypi.python.org/packages/source/p/pyobjc-core/pyobjc-core-${version}.tar.gz
 		tar zxvf pyobjc-core.tar.gz
@@ -45,24 +46,24 @@ else
 
 		# Patch installer
 		sed -i -e 's/\(self\.sdk_root = subprocess.*\)/try:\
-				    \1/g' setup.py
+                    \1/g' setup.py
 		sed -i -e 's/\(universal_newlines=True.*\)/\1\
-				except subprocess.CalledProcessError as e:\
-				    self.sdk_root = \'"'"'\/\'"'"'/g' setup.py
+                except subprocess.CalledProcessError as e:\
+                    self.sdk_root = \'"'"'\/\'"'"'/g' setup.py
 
-		python setup.py install
+		/Library/Frameworks/Python.framework/Versions/${pythonVersion}/bin/python setup.py install
 		cd ..
 		rm -rf pyobjc-core-${version}
 
 		# Install PyObjC framework
 		curl -o index.html https://pypi.python.org/pypi/pyobjc-framework-Cocoa
-		version='$(grep -Poa '(?<=pyobjc-framework-Cocoa-)[0-9\.]*(?=\.tar\.gz)' index.html | head -1)'
+		version="$(grep -Poa "(?<=pyobjc-framework-Cocoa-)[0-9\.]*(?=\.tar\.gz)" index.html | head -1)"
 		rm index.html
 		curl -o pyobjc-framework-Cocoa.tar.gz https://pypi.python.org/packages/source/p/pyobjc-framework-Cocoa/pyobjc-framework-Cocoa-${version}.tar.gz
 		tar zxvf pyobjc-framework-Cocoa.tar.gz
 		rm pyobjc-framework-Cocoa.tar.gz
 		cd pyobjc-framework-Cocoa-${version}
-		python setup.py install
+		/Library/Frameworks/Python.framework/Versions/${pythonVersion}/bin/python setup.py install
 		cd ..
 		rm -rf pyobjc-framework-Cocoa-${version}
 		
@@ -70,28 +71,29 @@ else
 		curl -LOk https://github.com/foosel/OctoPrint/archive/master.zip
 		unzip master.zip
 		cd OctoPrint-master
-		python setup.py install
+		/Library/Frameworks/Python.framework/Versions/${pythonVersion}/bin/python setup.py install
 		cd ..
 		rm -rf OctoPrint-master
 		rm master.zip
 
 		# Install M3D Fio
-		echo 'y' | pip uninstall OctoPrint-M3DFio
+		echo 'y' | /Library/Frameworks/Python.framework/Versions/${pythonVersion}/bin/pip uninstall OctoPrint-M3DFio
 		curl -LOk https://github.com/donovan6000/M3D-Fio/archive/master.zip
-		while ! pip install master.zip
+		while ! /Library/Frameworks/Python.framework/Versions/${pythonVersion}/bin/pip install master.zip
 		do
 			:
 		done
 		rm master.zip
-
+		
 		# Add OctoPrint to startup programs
-		curl -O 'https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/OS X/com.octoprint.app.plist'
+		curl -O 'https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/OS%20X/com.octoprint.app.plist'
+		sed -i -e 's/\\/path\/to\/octoprint/\/Library\/Frameworks\/Python.framework\/Versions\/${pythonVersion}\/bin\/octoprint/g' setup.py
 		mv com.octoprint.app.plist '/Library/LaunchAgents'
 
 		# Create URL link on desktop
-		curl -O 'https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/OS X/OctoPrint.webloc'
+		curl -O 'https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/OS%20X/OctoPrint.webloc'
 		mv OctoPrint.webloc '/Users/'"$SUDO_USER"'/Desktop'
-
+		
 		# Start OctoPrint
 		su $SUDO_USER -c 'launchctl load /Library/LaunchAgents/com.octoprint.app.plist'
 

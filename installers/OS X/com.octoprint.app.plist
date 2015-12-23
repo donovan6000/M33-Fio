@@ -6,7 +6,7 @@
         <string>com.octoprint.app</string>
         <key>ProgramArguments</key>
         <array> 
-            <string>/Library/Frameworks/Python.framework/Versions/2.7/bin/octoprint</string>
+            <string>/path/to/octoprint</string>
 	</array>
         <key>RunAtLoad</key>
         <true/>
