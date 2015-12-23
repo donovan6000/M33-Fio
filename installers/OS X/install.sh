@@ -45,9 +45,9 @@ else
 		cd pyobjc-core-${version}
 
 		# Patch installer
-		sed -i -e 's/\(self\.sdk_root = subprocess.*\)/try:\
+		sed -i '' -e 's/\(self\.sdk_root = subprocess.*\)/try:\
                     \1/g' setup.py
-		sed -i -e 's/\(universal_newlines=True.*\)/\1\
+		sed -i '' -e 's/\(universal_newlines=True.*\)/\1\
                 except subprocess.CalledProcessError as e:\
                     self.sdk_root = \'"'"'\/\'"'"'/g' setup.py
 
@@ -87,7 +87,7 @@ else
 		
 		# Add OctoPrint to startup programs
 		curl -O 'https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/OS%20X/com.octoprint.app.plist'
-		sed -i -e 's/\\/path\/to\/octoprint/\/Library\/Frameworks\/Python.framework\/Versions\/${pythonVersion}\/bin\/octoprint/g' setup.py
+		sed -i '' -e 's/\/path\/to\/octoprint/\/Library\/Frameworks\/Python.framework\/Versions\/'"${pythonVersion}"'\/bin\/octoprint/g' com.octoprint.app.plist
 		mv com.octoprint.app.plist '/Library/LaunchAgents'
 
 		# Create URL link on desktop

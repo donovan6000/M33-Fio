@@ -447,6 +447,13 @@ $(function() {
 				color: "rgb(190, 165, 190)"
 			}
 		];
+		
+		// Encode html entities
+		function htmlEncode(value) {
+
+			// Return encoded html
+			return $("<div>").text(value).html();
+		}
 
 		// Show message
 		function showMessage(header, text, secondButton, firstButton) {
@@ -459,7 +466,7 @@ $(function() {
 	
 			// Set header and text
 			message.find("h4").text(header);
-			message.find("p").text(text);
+			message.find("p").html(text);
 	
 			// Set first button if specified
 			var buttons = message.find("button.confirm");
@@ -2754,7 +2761,7 @@ $(function() {
 				var location = $(this).attr("id") == "gcode_upload" ? "local" : "sdcard";
 				
 				// Display message
-				showMessage("Conversion Status", "Converting " + file.name + " to " + newFileName);
+				showMessage("Conversion Status", htmlEncode("Converting " + file.name + " to " + newFileName));
 				
 				// Convert file to STL
 				convertedModel = null;
@@ -5569,6 +5576,20 @@ $(function() {
 				// Disable shared library options
 				$("#settings_plugin_m3dfio label.sharedLibrary").addClass("disabled").children("input").prop("disabled", true);
 			
+			// Otherwise check if data is that Cura isn't installed
+			else if(data.value == "Cura Not Installed") {
+			
+				// Ok click event
+				$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+				
+					// Hide message
+					hideMessage();
+				});
+			
+				// Show message
+				showMessage("Message", "It's recommended that you install the <a href=\"https://ultimaker.com/en/products/cura-software/list\" target=\"_blank\">latest Cura 15.04 release</a> to fully utilize M3D Fio's capabilities.", "Ok");
+			}
+			
 			// Otherwise check if data is EEPROM
 			else if(data.value == "EEPROM" && typeof data.eeprom !== "undefined") {
 			
@@ -5808,7 +5829,7 @@ $(function() {
 			else if(data.value == "Show Message" && typeof data.message !== "undefined")
 			
 				// Display message
-				showMessage("Printing Status", data.message);
+				showMessage("Printing Status", htmlEncode(data.message));
 			
 			// Otherwise check if data is to hide message
 			else if(data.value == "Hide Message")
@@ -5843,7 +5864,7 @@ $(function() {
 					});
 					
 					// Display message
-					showMessage("Error Status", data.message, "Yes", "No");
+					showMessage("Error Status", htmlEncode(data.message), "Yes", "No");
 				}
 				
 				// Otherwise check if a confirmation is requested
@@ -5866,14 +5887,14 @@ $(function() {
 					});
 					
 					// Display message
-					showMessage("Error Status", data.message, "Ok");
+					showMessage("Error Status", htmlEncode(data.message), "Ok");
 				}
 				
 				// Otherwise
 				else
 				
 					// Display message
-					showMessage("Error Status", data.message);
+					showMessage("Error Status", htmlEncode(data.message));
 			}
 		}
 	}
