@@ -317,19 +317,19 @@ class M3DFioPlugin(
 				self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder + "/static/libraries/preprocessor_x86-64.dll")
 		
 		# Otherwise check if running on OS X and using an i386 or x86-64 device
-		#elif platform.uname()[0].startswith("Darwin") and (platform.uname()[4].endswith("86") or platform.uname()[4].endswith("64")) :
+		elif platform.uname()[0].startswith("Darwin") and (platform.uname()[4].endswith("86") or platform.uname()[4].endswith("64")) :
 		
 			# Check if Python is running as 32-bit
-		#	if platform.architecture()[0].startswith("32") :
+			if platform.architecture()[0].startswith("32") :
 			
 				# Set shared library
-		#		self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder + "/static/libraries/preprocessor_i386.dylib")
+				self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder + "/static/libraries/preprocessor_i386.dylib")
 		
 			# Otherwise check if Python is running as 64-bit
-		#	elif platform.architecture()[0].startswith("64") :
+			elif platform.architecture()[0].startswith("64") :
 			
 				# Set shared library
-		#		self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder + "/static/libraries/preprocessor_x86-64.dylib")
+				self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder + "/static/libraries/preprocessor_x86-64.dylib")
 		
 		# Check if shared library was set
 		if self.sharedLibrary :
@@ -354,7 +354,8 @@ class M3DFioPlugin(
 					"/usr/share/cura/CuraEngine",
 					"/usr/local/bin/CuraEngine",
 					"/usr/bin/CuraEngine",
-					"/usr/local/bin/cura_engine"
+					"/usr/local/bin/cura_engine",
+					"/Applications/Cura/Cura.app/Contents/Resources/CuraEngine"
 				
 				]
 				for locations in curaEngineLocations :
