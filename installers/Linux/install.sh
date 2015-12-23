@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Request elevated privileges
 [ "$(whoami)" != "root" ] && exec sudo -- "$0" "$@"
@@ -33,7 +33,7 @@ else
 		then
 		
 			# Install OctoPrint dependencies
-			apt-get -y install python python-pip
+			apt-get -y install python python-pip python-dev libyaml-dev build-essential
 	
 			# Install OctoPrint
 			wget https://github.com/foosel/OctoPrint/archive/master.zip
@@ -56,7 +56,7 @@ else
 	
 		# Apply udev rule
 		wget -O /etc/udev/rules.d/90-m3d-local.rules https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/Linux/90-m3d-local.rules
-		sudo /etc/init.d/udev restart
+		/etc/init.d/udev restart
 		
 		# Check if not using OctoPi
 		if ! $usingOctoPi
