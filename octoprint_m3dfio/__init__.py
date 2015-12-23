@@ -213,8 +213,11 @@ class M3DFioPlugin(
 		# Go through all connected serial ports
 		for port in list(serial.tools.list_ports.comports()) :
 		
+			# Get device
+			device = port[2].upper()
+		
 			# Check if port contains the correct VID and PID
-			if port[2].upper().startswith("USB VID:PID=03EB:2404") :
+			if device.startswith("USB VID:PID=03EB:2404") or device.startswith("USB VID:PID=3EB:2404") :
 			
 				# Return port
 				return port[0]
