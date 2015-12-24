@@ -958,8 +958,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 					// Get next line
 					continue;
 
-				// Check if unit to millimeters command
-				if(gcode.hasValue('G') && gcode.getValue('G') == "21")
+				// Check if unit to millimeters or home command
+				if(gcode.hasValue('G') && (gcode.getValue('G') == "21" || gcode.getValue('G') == "28"))
 
 					// Get next line
 					continue;
