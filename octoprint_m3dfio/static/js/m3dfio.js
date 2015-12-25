@@ -2956,10 +2956,11 @@ $(function() {
 											$("#slicing_configuration_dialog .modal-body").css("display", "none");
 											$("#slicing_configuration_dialog .modal-body").after(`
 												<div class="modal-extra">
-												<div>
-													<aside></aside>
-													<textarea spellcheck="false"></textarea>
+													<div>
+														<aside></aside>
+														<textarea spellcheck="false"></textarea>
 													</div>
+													<span></span>
 												</div
 											`);
 											$("#slicing_configuration_dialog .modal-extra textarea").val(data);
@@ -2999,7 +3000,7 @@ $(function() {
 														lineNumberArea.empty();
 												
 														// Create new line numbers
-														for(var i = 1; i <= numberOfLines + 100; i++)
+														for(var i = 1; i <= numberOfLines; i++)
 															lineNumberArea.append(i + "<br>");
 														lineNumberArea.append("<br>");
 													

@@ -347,12 +347,23 @@ class M3DFioPlugin(
 	
 	# Covert Cura to profile
 	def convertCuraToProfile(self, input, output, name, displayName, description) :
+	
+		# Create input file
+		fd, curaProfile = tempfile.mkstemp()
+		
+		# Remove comments from input
+		for line in open(input) :
+			if ';' in line and ".gcode" not in line and line[0] != '\t' :
+				os.write(fd, line[0 : line.index(';')] + '\n')
+			else :
+				os.write(fd, line)
+		os.close(fd)
 			
 		# Import profile manager
 		profileManager = imp.load_source("Profile", self._slicing_manager.get_slicer("cura")._basefolder + "/profile.py")
 		
 		# Create profile
-		profile = octoprint.slicing.SlicingProfile("cura", name, profileManager.Profile.from_cura_ini(input), displayName, description)
+		profile = octoprint.slicing.SlicingProfile("cura", name, profileManager.Profile.from_cura_ini(curaProfile), displayName, description)
 		
 		# Save profile	
 		self._slicing_manager.get_slicer("cura").save_slicer_profile(output, profile)
@@ -452,7 +463,10 @@ class M3DFioPlugin(
 		for key in machine.keys() :
 		
 			# Write setting to output
-			output.write(str(key) + " = " + str(machine[key]) + '\n')
+			output.write(str(key) + " = " + str(machine[key]))
+			if str(key) == "machine_shape" :
+				output.write("; Square, Circular")
+			output.write('\n')
 		
 		# Write profile
 		output.write("\n[profile]\n")
@@ -481,7 +495,18 @@ class M3DFioPlugin(
 			else :
 			
 				# Write setting to output
-				output.write(str(key) + " = " + str(settings[key]) + '\n')
+				output.write(str(key) + " = " + str(settings[key]))
+				if str(key) == "retraction_combing" :
+					output.write("; Off, All, No Skin")
+				elif str(key) == "support" :
+					output.write("; None, Touching buildplate, Everywhere")
+				elif str(key) == "platform_adhesion" :
+					output.write("; None, Brim, Raft")
+				elif str(key) == "support_dual_extrusion" :
+					output.write("; Both, First extruder, Second extruder")
+				elif str(key) == "support_type" :
+					output.write("; Grid, Lines")
+				output.write('\n')
 		
 		# Write alterations
 		output.write("\n[alterations]\n")

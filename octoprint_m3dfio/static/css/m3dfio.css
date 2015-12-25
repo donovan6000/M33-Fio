@@ -402,6 +402,15 @@ body > div.page-container > div.message > div > div > div.calibrate > div.distan
 	display: flex;
 }
 
+#slicing_configuration_dialog.profile .modal-extra span {
+	width: 100%;
+	display: block;
+	height: 15px;
+	background-color: white;
+	position: absolute;
+	margin-top: -10px;
+}
+
 #slicing_configuration_dialog.profile .modal-extra div > aside {
 	float: left;
 	font: normal 12px monospace;
@@ -412,13 +421,14 @@ body > div.page-container > div.message > div > div > div.calibrate > div.distan
 	padding: 2px 5px;
 	color: #555;
 	position: relative;
+	z-index: -1;
 }
 
 #slicing_configuration_dialog.profile .modal-extra div > textarea {
 	resize: none;
 	font: normal 12px monospace;
-	white-space: pre-wrap;
-	word-break: break-word;
+	white-space: pre;
+	word-wrap: normal;
 	flex-grow: 1;
 	width: 100% !important;
 	height: 100% !important;
@@ -430,7 +440,7 @@ body > div.page-container > div.message > div > div > div.calibrate > div.distan
 	border-left: 1px solid #ccc !important;
 	border-radius: 0 !important;
 	overflow: hidden;
-	overflow-y: scroll;
+	overflow: scroll;
 	position: relative;
 	z-index: 1;
 }
