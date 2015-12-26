@@ -387,8 +387,18 @@ body > div.page-container > div.message > div > div > div.calibrate > div.distan
 	min-width: 540px !important;
 }
 
+#slicing_configuration_dialog .modal-footer a.save {
+	float: left;
+}
+
+#slicing_configuration_dialog .modal-footer a.link, #slicing_configuration_dialog:not(.profile) .modal-footer a.save {
+	display: none;
+}
+
 #slicing_configuration_dialog.model .modal-extra {
 	margin-bottom: -5px;
+	z-index: -1;
+	position: relative;
 }
 
 #slicing_configuration_dialog.profile .modal-extra {
@@ -499,7 +509,7 @@ body > div.page-container > div.message > div > div > div.calibrate > div.distan
 
 #slicing_configuration_dialog.model .modal-extra > div {
 	position: absolute;
-	top: 63px;
+	top: 0;
 	left: 50%;
 	transform: translateX(-50%);
 	display: inline-flex;
@@ -511,18 +521,17 @@ body > div.page-container > div.message > div > div > div.calibrate > div.distan
 #slicing_configuration_dialog.model .modal-extra > div.filament {
 	left: auto;
 	right: 0;
-	top: calc(50% + 2px);
+	top: calc(50% - 2px);
 	transform: translateY(-50%);
 	flex-direction:  column;
 }
 
 #slicing_configuration_dialog.model .modal-extra > div.model {
 	left: 0;
-	top: calc(50% + 2px);
+	top: calc(50% - 2px);
 	transform: translateY(-50%);
 	flex-direction: column;
 }
-
 
 #slicing_configuration_dialog.model .modal-extra > div.measurements {
 	left: auto;

@@ -512,6 +512,16 @@ $(function() {
 				$("body > div.page-container > div.message").css("z-index", '');
 			}, 300);
 		}
+		
+		// Save file
+		function saveFile(blob, name) {
+		
+			// Download file
+			var anchor = $("#slicing_configuration_dialog .modal-footer a.link")[0];
+			anchor.href = URL.createObjectURL(blob);
+			anchor.download = name;
+			anchor.click();
+		}
 
 		// Update EEPROM table
 		function updateEepromTable(eeprom) {
@@ -830,7 +840,7 @@ $(function() {
 					// Create measurement material
 					var measurementMaterial = new THREE.LineBasicMaterial({
 						color: 0x0000ff,
-						side: THREE.DoubleSide
+						side: THREE.FrontSide
 					});
 			
 					// Create measurement geometry
@@ -1459,7 +1469,7 @@ $(function() {
 					// Remove selection if an object is selected
 					if(viewport.transformControls.object)
 						viewport.removeSelection();
-		
+					
 					// Go through all models
 					for(var i = 1; i < viewport.models.length; i++) {
 		
@@ -2743,6 +2753,33 @@ $(function() {
 		`);
 		$("#slicing_configuration_dialog").find(".control-group:nth-of-type(2) > label").text("Base Slicing Profile");
 		
+		// Add save button
+		$("#slicing_configuration_dialog .modal-footer").append("<a href=\"#\" class=\"btn save\" data-dismiss=\"modal\" aria-hidden=\"true\">Save</a><a class=\"link\"></a>")
+		
+		// Save button click event
+		$("#slicing_configuration_dialog .modal-footer a.save").click(function(event) {
+		
+			// Stop default behavior
+			event.stopImmediatePropagation();
+			
+			// Blur self
+			$(this).blur();
+			
+			// Check if saving profile
+			if($("#slicing_configuration_dialog").hasClass("profile")) {
+			
+				// Download profile
+				var blob = new Blob([$("#slicing_configuration_dialog .modal-extra textarea").val()], {type: 'text/plain'});
+				saveFile(blob, slicerProfileName + ".ini");
+			}
+			
+			// Otherwise assume saving model
+			else
+			
+				// Download model
+				saveFile(viewport.exportScene(), modelName);
+		});
+		
 		// Upload file event
 		$("#gcode_upload, #gcode_upload_sd").change(function(event) {
 		
@@ -2889,6 +2926,9 @@ $(function() {
 		
 			// Initialize variables
 			var button = $(this);
+			
+			// Blur self
+			button.blur();
 		
 			// Check if button isn't disabled
 			if(!button.hasClass("disabled")) {
