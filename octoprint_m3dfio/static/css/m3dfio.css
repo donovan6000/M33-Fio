@@ -389,9 +389,11 @@ body > div.page-container > div.message > div > div > div.calibrate > div.distan
 
 #slicing_configuration_dialog .modal-footer a.save {
 	float: left;
+	position: relative;
+	left: -5px;
 }
 
-#slicing_configuration_dialog .modal-footer a.link, #slicing_configuration_dialog:not(.profile) .modal-footer a.save {
+#slicing_configuration_dialog .modal-footer a.link, #slicing_configuration_dialog:not(.model):not(.profile) .modal-footer a.save {
 	display: none;
 }
 
@@ -562,17 +564,16 @@ body > div.page-container > div.message > div > div > div.calibrate > div.distan
 }
 
 #slicing_configuration_dialog.model .modal-extra > div.values.translate {
-	top: calc(50% - 158px);
+	top: calc(50% - 160px);
 }
 
 #slicing_configuration_dialog.model .modal-extra > div.values.rotate {
-	top: calc(50% - 114px);
+	top: calc(50% - 116px);
 }
 
 #slicing_configuration_dialog.model .modal-extra > div.values.scale {
-	top: calc(50% - 72px);
+	top: calc(50% - 74px);
 }
-
 
 #slicing_configuration_dialog.model .modal-extra > div.values > div {
 	padding: 7px;

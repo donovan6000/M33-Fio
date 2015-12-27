@@ -720,6 +720,7 @@ $(function() {
 				transformControls: null,
 				models: [],
 				modelLoaded: false,
+				sceneExported: false,
 				boundaries: [],
 				showBoundaries: false,
 				measurements: [],
@@ -1375,7 +1376,7 @@ $(function() {
 						
 								// Render
 								viewport.render();
-							}, 150);
+							}, 100);
 					
 							$(document).on("mousemove.viewport", viewport.stopRemoveSelectionTimeout);
 						}
@@ -1460,15 +1461,14 @@ $(function() {
 
 				// Export scene
 				exportScene: function() {
+				
+					// Clear scene exported
+					viewport.sceneExported = false;
 	
 					// Initialize variables
 					var centerX = 0;
 					var centerZ = 0;
 					var mergedGeometry = new THREE.Geometry();
-			
-					// Remove selection if an object is selected
-					if(viewport.transformControls.object)
-						viewport.removeSelection();
 					
 					// Go through all models
 					for(var i = 1; i < viewport.models.length; i++) {
@@ -1479,13 +1479,14 @@ $(function() {
 						// Sum model's center together
 						centerX -= model.mesh.position.x;
 						centerZ += model.mesh.position.z;
-	
-						// Save model's current matrix
+
+						// Save model's current matrix and geometry
 						model.mesh.updateMatrix();
-						var matrix = model.mesh.matrix;
-	
+						var matrix = model.mesh.matrix.clone();
+						var geometry = model.mesh.geometry.clone();
+						
 						// Set model's orientation
-						model.mesh.geometry.applyMatrix(model.mesh.matrix);
+						geometry.applyMatrix(matrix);
 						model.mesh.position.set(0, 0, 0);
 						if(model.type == "stl")
 							model.mesh.rotation.set(3 * Math.PI / 2, 0, Math.PI);
@@ -1494,15 +1495,15 @@ $(function() {
 						else if(model.type == "m3d")
 							model.mesh.rotation.set(Math.PI / 2, Math.PI, 0);
 						model.mesh.scale.set(1, 1, 1);
-						viewport.render();
-		
-						// Merge model's geometry together
-						mergedGeometry.merge(model.mesh.geometry, model.mesh.matrix);
-	
-						// Apply model's previous matrix
-						model.mesh.applyMatrix(matrix);
 						model.mesh.updateMatrix();
-						viewport.render();
+	
+						// Merge model's geometry together
+						mergedGeometry.merge(geometry, model.mesh.matrix);
+
+						// Apply model's previous matrix
+						model.mesh.rotation.set(0, 0, 0);
+						model.mesh.updateMatrix();
+						model.mesh.applyMatrix(matrix);
 					}
 			
 					// Get average center for models
@@ -1515,9 +1516,15 @@ $(function() {
 					// Create merged mesh from merged geometry
 					var mergedMesh = new THREE.Mesh(mergedGeometry);
 		
-					// Return merged mesh as an STL
+					// Get merged mesh as an STL
 					var exporter = new THREE.STLBinaryExporter();
-					return new Blob([exporter.parse(mergedMesh)], {type: "text/plain"});
+					var stl = new Blob([exporter.parse(mergedMesh)], {type: "text/plain"});
+					
+					// Set scene exported
+					viewport.sceneExported = true;
+					
+					// Return STL
+					return stl;
 				},
 
 				// Destroy
@@ -2768,16 +2775,66 @@ $(function() {
 			// Check if saving profile
 			if($("#slicing_configuration_dialog").hasClass("profile")) {
 			
-				// Download profile
-				var blob = new Blob([$("#slicing_configuration_dialog .modal-extra textarea").val()], {type: 'text/plain'});
-				saveFile(blob, slicerProfileName + ".ini");
+				// Display cover
+				$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").text("Saving profile…");
+				
+				setTimeout(function() {
+			
+					// Remove comments from text
+					var text = '';
+					var lines = $("#slicing_configuration_dialog .modal-extra textarea").val().split('\n');
+				
+					for(var i = 0; i < lines.length; i++)
+						if(lines[i].indexOf(';') != -1 && lines[i].indexOf(".gcode") == -1 && lines[i][0] != '\t')
+							text += lines[i].substr(0, lines[i].indexOf(';')) + '\n';
+						else
+							text += lines[i] + '\n';
+			
+					// Download profile
+					var blob = new Blob([text], {type: 'text/plain'});
+					saveFile(blob, slicerProfileName + ".ini");
+					
+					// Hide cover
+					$("#slicing_configuration_dialog .modal-cover").removeClass("show");
+					setTimeout(function() {
+						$("#slicing_configuration_dialog .modal-cover").css("z-index", '');
+					}, 200);
+				}, 300);
 			}
 			
 			// Otherwise assume saving model
-			else
+			else {
 			
-				// Download model
-				saveFile(viewport.exportScene(), modelName);
+				// Display cover
+				$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").text("Saving model…");
+				
+				setTimeout(function() {
+
+					// Download model
+					saveFile(viewport.exportScene(), modelName);
+
+					// Wait until model is loaded
+					function isSceneExported() {
+
+						// Check if scene is exported
+						if(viewport.sceneExported) {
+
+							// Hide cover
+							$("#slicing_configuration_dialog .modal-cover").removeClass("show");
+							setTimeout(function() {
+								$("#slicing_configuration_dialog .modal-cover").css("z-index", '');
+							}, 200);
+						}
+
+						// Otherwise
+						else
+
+							// Check if scene is exported again
+							setTimeout(isSceneExported, 100);
+					}
+					setTimeout(isSceneExported, 100);
+				}, 300);
+			}
 		});
 		
 		// Upload file event
