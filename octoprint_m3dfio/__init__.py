@@ -1820,6 +1820,7 @@ class M3DFioPlugin(
 				if not "cura" in self._slicing_manager.configured_slicers :
 				
 					# Set Cura Engine locations
+					curaEngineLocations = []
 					if platform.uname()[0].startswith("Windows") :
 					
 						curaEngineLocations = [
