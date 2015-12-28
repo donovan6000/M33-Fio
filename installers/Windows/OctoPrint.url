@@ -1,2 +1,4 @@
 [InternetShortcut]
 URL=http://localhost:5000
+IconFile=%SYSTEMROOT%\System32\octoprint.ico
+IconIndex=0

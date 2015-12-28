@@ -1818,18 +1818,32 @@ class M3DFioPlugin(
 		
 				# Check if Cura is not configured
 				if not "cura" in self._slicing_manager.configured_slicers :
-			
-					# Go through all Cura Engine location
-					curaEngineLocations = [
-						"C:/Program Files*/Cura_*/CuraEngine.exe",
-						"C:/Program Files*/M3D*/*/Resources/CuraEngine",
-						"/usr/share/cura/CuraEngine",
-						"/usr/local/bin/CuraEngine",
-						"/usr/bin/CuraEngine",
-						"/usr/local/bin/cura_engine",
-						"/Applications/Cura/Cura.app/Contents/Resources/CuraEngine"
 				
-					]
+					# Set Cura Engine locations
+					if platform.uname()[0].startswith("Windows") :
+					
+						curaEngineLocations = [
+							os.environ["SYSTEMDRIVE"] + "/Program Files*/Cura_*/CuraEngine.exe",
+							os.environ["SYSTEMDRIVE"] + "/Program Files*/M3D*/*/Resources/CuraEngine/CuraEngine.exe"
+						]
+					
+					elif platform.uname()[0].startswith("Darwin") :
+					
+						curaEngineLocations = [
+							"/Applications/Cura/Cura.app/Contents/Resources/CuraEngine",
+							"/Applications/M3D.app/Contents/Resources/CuraEngine/CuraEngine"
+						]
+					
+					elif platform.uname()[0].startswith("Linux") :
+					
+						curaEngineLocations = [
+							"/usr/share/cura/CuraEngine",
+							"/usr/local/bin/CuraEngine",
+							"/usr/bin/CuraEngine",
+							"/usr/local/bin/cura_engine"
+						]
+					
+					# Go through all Cura Engine location
 					for locations in curaEngineLocations :
 						for location in glob.glob(locations) :
 				

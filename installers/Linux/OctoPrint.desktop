@@ -3,4 +3,4 @@ Encoding=UTF-8
 Name=OctoPrint
 Type=Link
 URL=http://localhost:5000
-Icon=text-html
+Icon=/usr/share/icons/octoprint.png
