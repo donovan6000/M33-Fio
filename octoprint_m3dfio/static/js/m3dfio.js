@@ -917,36 +917,36 @@ $(function() {
 			
 					// Low bottom boundary
 					this.boundaries[0] = new THREE.Mesh(new THREE.PlaneGeometry(0, 0), boundaryMaterial.clone());
-					this.boundaries[0].geometry.vertices[0].set(-bedLowMinX, bedLowMinZ, bedLowMinY);
-					this.boundaries[0].geometry.vertices[1].set(-bedLowMaxX, bedLowMinZ, bedLowMinY);
-					this.boundaries[0].geometry.vertices[2].set(-bedLowMinX, bedLowMinZ, bedLowMaxY);
-					this.boundaries[0].geometry.vertices[3].set(-bedLowMaxX, bedLowMinZ, bedLowMaxY);
+					this.boundaries[0].geometry.vertices[0].set(-bedLowMinX, bedLowMinZ - 0.25, bedLowMinY);
+					this.boundaries[0].geometry.vertices[1].set(-bedLowMaxX, bedLowMinZ - 0.25, bedLowMinY);
+					this.boundaries[0].geometry.vertices[2].set(-bedLowMinX, bedLowMinZ - 0.25, bedLowMaxY);
+					this.boundaries[0].geometry.vertices[3].set(-bedLowMaxX, bedLowMinZ - 0.25, bedLowMaxY);
 			
 					// Low front boundary
 					this.boundaries[1] = new THREE.Mesh(new THREE.PlaneGeometry(0, 0), boundaryMaterial.clone());
-					this.boundaries[1].geometry.vertices[0].set(-bedLowMinX, bedLowMinZ, bedLowMinY);
-					this.boundaries[1].geometry.vertices[1].set(-bedLowMaxX, bedLowMinZ, bedLowMinY);
+					this.boundaries[1].geometry.vertices[0].set(-bedLowMinX, bedLowMinZ - 0.25, bedLowMinY);
+					this.boundaries[1].geometry.vertices[1].set(-bedLowMaxX, bedLowMinZ - 0.25, bedLowMinY);
 					this.boundaries[1].geometry.vertices[2].set(-bedLowMinX, bedLowMaxZ, bedLowMinY);
 					this.boundaries[1].geometry.vertices[3].set(-bedLowMaxX, bedLowMaxZ, bedLowMinY);
 			
 					// Low back boundary
 					this.boundaries[2] = new THREE.Mesh(new THREE.PlaneGeometry(0, 0), boundaryMaterial.clone());
-					this.boundaries[2].geometry.vertices[0].set(-bedLowMinX, bedLowMinZ, bedLowMaxY);
-					this.boundaries[2].geometry.vertices[1].set(-bedLowMaxX, bedLowMinZ, bedLowMaxY);
+					this.boundaries[2].geometry.vertices[0].set(-bedLowMinX, bedLowMinZ - 0.25, bedLowMaxY);
+					this.boundaries[2].geometry.vertices[1].set(-bedLowMaxX, bedLowMinZ - 0.25, bedLowMaxY);
 					this.boundaries[2].geometry.vertices[2].set(-bedLowMinX, bedLowMaxZ, bedLowMaxY);
 					this.boundaries[2].geometry.vertices[3].set(-bedLowMaxX, bedLowMaxZ, bedLowMaxY);
 			
 					// Low right boundary
 					this.boundaries[3] = new THREE.Mesh(new THREE.PlaneGeometry(0, 0), boundaryMaterial.clone());
-					this.boundaries[3].geometry.vertices[0].set(-bedLowMaxX, bedLowMinZ, bedLowMinY);
-					this.boundaries[3].geometry.vertices[1].set(-bedLowMaxX, bedLowMinZ, bedLowMaxY);
+					this.boundaries[3].geometry.vertices[0].set(-bedLowMaxX, bedLowMinZ - 0.25, bedLowMinY);
+					this.boundaries[3].geometry.vertices[1].set(-bedLowMaxX, bedLowMinZ - 0.25, bedLowMaxY);
 					this.boundaries[3].geometry.vertices[2].set(-bedLowMaxX, bedLowMaxZ, bedLowMinY);
 					this.boundaries[3].geometry.vertices[3].set(-bedLowMaxX, bedLowMaxZ, bedLowMaxY);
 			
 					// Low left boundary
 					this.boundaries[4] = new THREE.Mesh(new THREE.PlaneGeometry(0, 0), boundaryMaterial.clone());
-					this.boundaries[4].geometry.vertices[0].set(-bedLowMinX, bedLowMinZ, bedLowMinY);
-					this.boundaries[4].geometry.vertices[1].set(-bedLowMinX, bedLowMinZ, bedLowMaxY);
+					this.boundaries[4].geometry.vertices[0].set(-bedLowMinX, bedLowMinZ - 0.25, bedLowMinY);
+					this.boundaries[4].geometry.vertices[1].set(-bedLowMinX, bedLowMinZ - 0.25, bedLowMaxY);
 					this.boundaries[4].geometry.vertices[2].set(-bedLowMinX, bedLowMaxZ, bedLowMinY);
 					this.boundaries[4].geometry.vertices[3].set(-bedLowMinX, bedLowMaxZ, bedLowMaxY);
 			
