@@ -41,14 +41,11 @@ using namespace std;
 // Bed compensation pre-processor settings
 #define SEGMENT_LENGTH 2.0
 
-// Feed rate conversion pre-processor settings
-#define MAX_FEED_RATE 60.001
-
 
 // Enumerations
 
 // Filament types
-enum filamentTypes {NO_TYPE, ABS, PLA, HIPS, OTHER};
+enum filamentTypes {NO_TYPE, ABS, PLA, HIPS, OTHER, FLX, TGH};
 
 // Directions
 enum directions {POSITIVE, NEGATIVE, NEITHER};
@@ -57,7 +54,7 @@ enum directions {POSITIVE, NEGATIVE, NEITHER};
 enum printTiers {LOW, MEDIUM, HIGH};
 
 // Pre-processor stages
-enum preprocessorStages {NONE, INPUT, CENTER, VALIDATION, PREPARATION, WAVE, THERMAL, BED, BACKLASH, FEED};
+enum preprocessorStages {NONE, INPUT, CENTER, VALIDATION, PREPARATION, WAVE, THERMAL, BED, BACKLASH};
 
 
 // Classes
@@ -139,7 +136,6 @@ bool useWaveBondingPreprocessor;
 bool useThermalBondingPreprocessor;
 bool useBedCompensationPreprocessor;
 bool useBacklashCompensationPreprocessor;
-bool useFeedRateConversionPreprocessor;
 bool useCenterModelPreprocessor;
 bool ignorePrintDimensionLimitations;
 bool usingMicroPass;
@@ -511,6 +507,10 @@ EXPORT void setFilamentType(const char *value) {
 		filamentType = PLA;
 	else if(!strcmp(value, "HIPS"))
 		filamentType = HIPS;
+	else if(!strcmp(value, "FLX"))
+		filamentType = FLX;
+	else if(!strcmp(value, "TGH"))
+		filamentType = TGH;
 	else
 		filamentType = OTHER;
 }
@@ -549,12 +549,6 @@ EXPORT void setUseBacklashCompensationPreprocessor(bool value) {
 
 	// Set use backlash compensation pre-processor
 	useBacklashCompensationPreprocessor = value;
-}
-
-EXPORT void setUseFeedRateConversionPreprocessor(bool value) {
-
-	// Set use feed rate conversion pre-processor
-	useFeedRateConversionPreprocessor = value;
 }
 
 EXPORT void setUseCenterModelPreprocessor(bool value) {
@@ -996,9 +990,10 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 					newCommands.push(Command("G90", PREPARATION, PREPARATION));
 					newCommands.push(Command("M104 S" + to_string(filamentTemperature), PREPARATION, PREPARATION));
 					newCommands.push(Command("G28", PREPARATION, PREPARATION));
-					newCommands.push(Command("G0 Z2", PREPARATION, PREPARATION));
+					newCommands.push(Command("G0 Z2 F48", PREPARATION, PREPARATION));
 					newCommands.push(Command("M109 S" + to_string(filamentTemperature), PREPARATION, PREPARATION));
 					newCommands.push(Command("M106 S" + static_cast<string>(filamentType == PLA ? "255" : "1"), PREPARATION, PREPARATION));
+					newCommands.push(Command("G0 F1800", PREPARATION, PREPARATION));
 				}
 				
 				// Otherwise
@@ -1026,7 +1021,7 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 					newCommands.push(Command("M17", PREPARATION, PREPARATION));
 					newCommands.push(Command("G90", PREPARATION, PREPARATION));
 					newCommands.push(Command("M104 S" + to_string(filamentTemperature), PREPARATION, PREPARATION));
-					newCommands.push(Command("G0 Z5 F2900", PREPARATION, PREPARATION));
+					newCommands.push(Command("G0 Z5 F48", PREPARATION, PREPARATION));
 					newCommands.push(Command("G28", PREPARATION, PREPARATION));
 
 					// Add heat bed command if using Micro Pass
@@ -1049,20 +1044,21 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 
 						// Prepare extruder by leaving excess at corner
 						newCommands.push(Command("G91", PREPARATION, PREPARATION));
-						newCommands.push(Command("G0 X" + to_string(-cornerX) + " Y" + to_string(-cornerY) + " F2900", PREPARATION, PREPARATION));
+						newCommands.push(Command("G0 X" + to_string(-cornerX) + " Y" + to_string(-cornerY) + " F1800", PREPARATION, PREPARATION));
 						newCommands.push(Command("M18", PREPARATION, PREPARATION));
 						newCommands.push(Command("M109 S" + to_string(filamentTemperature), PREPARATION, PREPARATION));
 						newCommands.push(Command("M17", PREPARATION, PREPARATION));
-						newCommands.push(Command("G0 Z-4 F2900", PREPARATION, PREPARATION));
-						newCommands.push(Command("G0 E7.5 F2000", PREPARATION, PREPARATION));
+						newCommands.push(Command("G0 Z-4 F48", PREPARATION, PREPARATION));
+						newCommands.push(Command("G0 E7.5 F360", PREPARATION, PREPARATION));
 						newCommands.push(Command("G4 S3", PREPARATION, PREPARATION));
-						newCommands.push(Command("G0 X" + to_string(cornerX * 0.1) + " Y" + to_string(cornerY * 0.1) + " Z-0.999 F2900", PREPARATION, PREPARATION));
+						newCommands.push(Command("G0 X" + to_string(cornerX * 0.1) + " Y" + to_string(cornerY * 0.1) + " Z-0.999 F400", PREPARATION, PREPARATION));
 						newCommands.push(Command("G0 X" + to_string(cornerX * 0.9) + " Y" + to_string(cornerY * 0.9) + " F1000", PREPARATION, PREPARATION));
 					}
 
 					newCommands.push(Command("G92 E0", PREPARATION, PREPARATION));
 					newCommands.push(Command("G90", PREPARATION, PREPARATION));
-					newCommands.push(Command("G0 Z0.4 F2400", PREPARATION, PREPARATION));
+					newCommands.push(Command("G0 Z0.4 F48", PREPARATION, PREPARATION));
+					newCommands.push(Command("G0 F1800", PREPARATION, PREPARATION));
 				}
 		
 				// Finish processing command later
@@ -1101,9 +1097,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 
 					// Add outro to output
 					newCommands.push(Command("G91", PREPARATION, PREPARATION));
-					newCommands.push(Command("G0 E-1 F2000", PREPARATION, PREPARATION));
-					newCommands.push(Command("G0 X5 Y5 F2000", PREPARATION, PREPARATION));
-					newCommands.push(Command("G0 E-18 F2000", PREPARATION, PREPARATION));
+					newCommands.push(Command("G0 X5 Y5 E-1 F1800", PREPARATION, PREPARATION));
+					newCommands.push(Command("G0 E-8 F360", PREPARATION, PREPARATION));
 					newCommands.push(Command("M104 S0", PREPARATION, PREPARATION));
 
 					if(usingMicroPass)
@@ -1111,14 +1106,14 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 
 					if(maxZExtruder > 60) {
 						if(maxZExtruder < 110)
-							newCommands.push(Command("G0 Z3 F2900", PREPARATION, PREPARATION));
+							newCommands.push(Command("G0 Z3 F90", PREPARATION, PREPARATION));
 						newCommands.push(Command("G90", PREPARATION, PREPARATION));
-						newCommands.push(Command("G0 X90 Y84", PREPARATION, PREPARATION));
+						newCommands.push(Command("G0 X90 Y84 F1800", PREPARATION, PREPARATION));
 					}
 					else {
-						newCommands.push(Command("G0 Z3 F2900", PREPARATION, PREPARATION));
+						newCommands.push(Command("G0 Z3 F90", PREPARATION, PREPARATION));
 						newCommands.push(Command("G90", PREPARATION, PREPARATION));
-						newCommands.push(Command("G0 X95 Y95", PREPARATION, PREPARATION));
+						newCommands.push(Command("G0 X95 Y95 F1800", PREPARATION, PREPARATION));
 					}
 				}
 
@@ -1417,10 +1412,26 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 				if(thermalBondingLayerCounter < 2 && command.origin != PREPARATION && gcode.hasValue('Z')) {
 		
 					// Check if on first counted layer
-					if(thermalBondingLayerCounter == 0)
+					if(thermalBondingLayerCounter == 0) {
+					
+						// Check if filament type is PLA
+						if(filamentType == PLA)
+						
+							// Add temperature to output
+							newCommands.push(Command("M109 S" + to_string(getBoundedTemperature(filamentTemperature + 10)), THERMAL, THERMAL));
+						
+						// Otherwise check if filament type is TGH or FLX
+						else if(filamentType == TGH || filamentType == FLX)
+						
+							// Add temperature to output
+							newCommands.push(Command("M109 S" + to_string(getBoundedTemperature(filamentTemperature - 15)), THERMAL, THERMAL));
+						
+						// Otherwise
+						else
 		
-						// Add temperature to output
-						newCommands.push(Command("M109 S" + to_string(getBoundedTemperature(filamentTemperature + (filamentType == PLA ? 10 : 15))), THERMAL, THERMAL));
+							// Add temperature to output
+							newCommands.push(Command("M109 S" + to_string(getBoundedTemperature(filamentTemperature + 15)), THERMAL, THERMAL));
+					}
 			
 					// Otherwise
 					else
@@ -1447,8 +1458,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 						// Check if command is G0 or G1 and it's in absolute
 						if((gcode.getValue('G') == "0" || gcode.getValue('G') == "1") && !thermalBondingRelativeMode) {
 
-							// Check if previous command exists and filament is ABS, HIPS, or PLA
-							if(!thermalBondingPreviousGcode.isEmpty() && (filamentType == ABS || filamentType == HIPS || filamentType == PLA)) {
+							// Check if previous command exists and filament is ABS, HIPS, PLA, TGH, or FLX
+							if(!thermalBondingPreviousGcode.isEmpty() && (filamentType == ABS || filamentType == HIPS || filamentType == PLA || filamentType == TGH || filamentType == FLX)) {
 
 								// Check if first sharp corner
 								if(thermalBondingCornerCounter < 1 && isSharpCorner(gcode, thermalBondingPreviousGcode)) {
@@ -1949,25 +1960,7 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 				continue;
 			}
 		}
-
-		// Check if not printing backlash calibration cylinder and printing test border or using feed rate conversion pre-processor
-		if(!printingBacklashCalibrationCylinder && (printingTestBorder || useFeedRateConversionPreprocessor) && command.skip < FEED) {
-
-			// Check if command contains valid G-code and it's a G command with an F value
-			if(!gcode.isEmpty() && gcode.hasValue('G') && gcode.hasValue('F')) {
-
-				// Get command's feedrate
-				double commandFeedRate = stod(gcode.getValue('F')) / 60;
-
-				// Force feed rate to adhere to limitations
-				if(commandFeedRate > MAX_FEED_RATE)
-					commandFeedRate = MAX_FEED_RATE;
-
-				// Set new feed rate for the command
-				gcode.setValue('F', to_string(30 + (1 - commandFeedRate / MAX_FEED_RATE) * 800));
-			}
-		}
-
+		
 		// Check if command contains valid G-code
 		if(!gcode.isEmpty()) {
 

@@ -79,89 +79,121 @@
 		</div>
 	</div>
 	<div class="control-group">
-		<div class="controls">
-			<label class="checkbox" title="Converts feed rates to match what the printer expects">
-				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.UseFeedRateConversionPreprocessor"><span>Feed Rate Conversion</span>
-			</label>
-		</div>
-	</div>
-	<div class="control-group">
 		<h4>Printer Settings</h4>
 		<label class="control-label">Backlash X</label>
 		<div class="controls">
-			<input type="number" step="0.0001" min="0" max="2" class="input-block-level" data-bind="value: settings.plugins.m3dfio.BacklashX">
+			<div class="input-append">
+				<input type="number" step="0.0001" min="0" max="2" class="input-block-level" data-bind="value: settings.plugins.m3dfio.BacklashX">
+				<span class="add-on">mm</span>
+			</div>
 		</div>
 	</div>
 	<div class="control-group">
 		<label class="control-label">Backlash Y</label>
 		<div class="controls">
-			<input type="number" step="0.0001" min="0" max="2" class="input-block-level" data-bind="value: settings.plugins.m3dfio.BacklashY">
+			<div class="input-append">
+				<input type="number" step="0.0001" min="0" max="2" class="input-block-level" data-bind="value: settings.plugins.m3dfio.BacklashY">
+				<span class="add-on">mm</span>
+			</div>
 		</div>
 	</div>
 	<div class="control-group">
 		<label class="control-label">Backlash Speed</label>
 		<div class="controls">
-			<input type="number" step="0.0001" min="1" max="4999" class="input-block-level" data-bind="value: settings.plugins.m3dfio.BacklashSpeed">
+			<div class="input-append backlashSpeed">
+				<input type="number" step="0.0001" min="1" max="4999" class="input-block-level" data-bind="value: settings.plugins.m3dfio.BacklashSpeed">
+				<span class="add-on">mm/min</span>
+			</div>
 		</div>
 	</div>
 	<div class="control-group">
 		<label class="control-label">Back Left Orientation</label>
 		<div class="controls">
-			<input type="number" step="0.000001" min="-3" max="3" class="input-block-level" data-bind="value: settings.plugins.m3dfio.BackLeftOrientation" disabled>
+			<div class="input-append">
+				<input type="number" step="0.000001" min="-3" max="3" class="input-block-level" data-bind="value: settings.plugins.m3dfio.BackLeftOrientation">
+				<span class="add-on">mm</span>
+			</div>
 		</div>
 	</div>
 	<div class="control-group">
 		<label class="control-label">Back Right Orientation</label>
 		<div class="controls">
-			<input type="number" step="0.000001" min="-3" max="3" class="input-block-level" data-bind="value: settings.plugins.m3dfio.BackRightOrientation" disabled>
+			<div class="input-append">
+				<input type="number" step="0.000001" min="-3" max="3" class="input-block-level" data-bind="value: settings.plugins.m3dfio.BackRightOrientation">
+				<span class="add-on">mm</span>
+			</div>
 		</div>
 	</div>
 	<div class="control-group">
 		<label class="control-label">Front Right Orientation</label>
 		<div class="controls">
-			<input type="number" step="0.000001" min="-3" max="3" class="input-block-level" data-bind="value: settings.plugins.m3dfio.FrontRightOrientation" disabled>
+			<div class="input-append">
+				<input type="number" step="0.000001" min="-3" max="3" class="input-block-level" data-bind="value: settings.plugins.m3dfio.FrontRightOrientation">
+				<span class="add-on">mm</span>
+			</div>
 		</div>
 	</div>
 	<div class="control-group">
 		<label class="control-label">Front Left Orientation</label>
 		<div class="controls">
-			<input type="number" step="0.000001" min="-3" max="3" class="input-block-level" data-bind="value: settings.plugins.m3dfio.FrontLeftOrientation" disabled>
+			<div class="input-append">
+				<input type="number" step="0.000001" min="-3" max="3" class="input-block-level" data-bind="value: settings.plugins.m3dfio.FrontLeftOrientation">
+				<span class="add-on">mm</span>
+			</div>
 		</div>
 	</div>
 	<div class="control-group">
 		<label class="control-label">Bed Height Offset</label>
 		<div class="controls">
-			<input type="number" step="0.0001" class="input-block-level" data-bind="value: settings.plugins.m3dfio.BedHeightOffset">
+			<div class="input-append">
+				<input type="number" step="0.0001" class="input-block-level" data-bind="value: settings.plugins.m3dfio.BedHeightOffset">
+				<span class="add-on">mm</span>
+			</div>
 		</div>
 	</div>
 	<div class="control-group">
 		<label class="control-label">Back Left Offset</label>
 		<div class="controls">
-			<input type="number" step="0.0001" class="input-block-level" data-bind="value: settings.plugins.m3dfio.BackLeftOffset">
+			<div class="input-append">
+				<input type="number" step="0.0001" class="input-block-level" data-bind="value: settings.plugins.m3dfio.BackLeftOffset">
+				<span class="add-on">mm</span>
+			</div>
 		</div>
 	</div>
 	<div class="control-group">
 		<label class="control-label">Back Right Offset</label>
 		<div class="controls">
-			<input type="number" step="0.0001" class="input-block-level" data-bind="value: settings.plugins.m3dfio.BackRightOffset">
+			<div class="input-append">
+				<input type="number" step="0.0001" class="input-block-level" data-bind="value: settings.plugins.m3dfio.BackRightOffset">
+				<span class="add-on">mm</span>
+			</div>
 		</div>
 	</div>
 	<div class="control-group">
 		<label class="control-label">Front Right Offset</label>
 		<div class="controls">
-			<input type="number" step="0.0001" class="input-block-level" data-bind="value: settings.plugins.m3dfio.FrontRightOffset">
+			<div class="input-append">
+				<input type="number" step="0.0001" class="input-block-level" data-bind="value: settings.plugins.m3dfio.FrontRightOffset">
+				<span class="add-on">mm</span>
+			</div>
 		</div>
 	</div>
 	<div class="control-group">
 		<label class="control-label">Front Left Offset</label>
 		<div class="controls">
-			<input type="number" step="0.0001" class="input-block-level" data-bind="value: settings.plugins.m3dfio.FrontLeftOffset">
+			<div class="input-append">
+				<input type="number" step="0.0001" class="input-block-level" data-bind="value: settings.plugins.m3dfio.FrontLeftOffset">
+				<span class="add-on">mm</span>
+			</div>
 		</div>
 	</div>
 	<div class="control-group">
 		<label class="control-label">Filament Temperature</label>
 		<div class="controls">
-			<input type="number" step="1" min="150" max="285" class="input-block-level" data-bind="value: settings.plugins.m3dfio.FilamentTemperature">
+			<div class="input-append filamentTemperature">
+				<input type="number" step="1" min="150" max="285" class="input-block-level" data-bind="value: settings.plugins.m3dfio.FilamentTemperature">
+				<span class="add-on">°C</span>
+			</div>
 		</div>
 	</div>
 	<div class="control-group">
@@ -171,6 +203,8 @@
 				<option value="ABS">ABS</option>
 				<option value="PLA">PLA</option>
 				<option value="HIPS">HIPS</option>
+				<option value="TGH">TGH</option>
+				<option value="FLX">FLX</option>
 				<option value="OTHER">Other</option>
 			</select> 
 		</div>

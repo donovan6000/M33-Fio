@@ -126,7 +126,6 @@ extern "C" {
 	EXPORT void setUseThermalBondingPreprocessor(bool value);
 	EXPORT void setUseBedCompensationPreprocessor(bool value);
 	EXPORT void setUseBacklashCompensationPreprocessor(bool value);
-	EXPORT void setUseFeedRateConversionPreprocessor(bool value);
 	EXPORT void setUseCenterModelPreprocessor(bool value);
 	EXPORT void setIgnorePrintDimensionLimitations(bool value);
 	EXPORT void setUsingMicroPass(bool value);

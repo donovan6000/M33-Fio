@@ -180,273 +180,315 @@ $(function() {
 			}
 		`;
 		
-		// Set EEPROM offsets
-		var eepromOffsets = [
-			{
-				name: "Backlash Expansion E",
-				offset: 0x42,
-				bytes: 4,
-				color: "rgb(255, 200, 200)"
-			},
-			{
-				name: "Backlash Expansion X Plus",
-				offset: 0x2E,
-				bytes: 4,
-				color: "rgb(200, 255, 200)"
-			},
-			{
-				name: "Backlash Expansion YL Plus",
-				offset: 0x32,
-				bytes: 4,
-				color: "rgb(200, 200, 255)"
-			},
-			{
-				name: "Backlash Expansion YR Minus",
-				offset: 0x3A,
-				bytes: 4,
-				color: "rgb(255, 255, 200)"
-			},
-			{
-				name: "Backlash Expansion YR Plus",
-				offset: 0x36,
-				bytes: 4,
-				color: "rgb(255, 200, 255)"
-			},
-			{
-				name: "Backlash Expansion Z",
-				offset: 0x3E,
-				bytes: 4,
-				color: "rgb(200, 255, 255)"
-			},
-			{
-				name: "Backlash Speed",
-				offset: 0x5E,
-				bytes: 4,
-				color: "rgb(200, 200, 200)"
-			},
-			{
-				name: "Backlash X",
-				offset: 0x0C,
-				bytes: 4,
-				color: "rgb(200, 150, 150)"
-			},
-			{
-				name: "Backlash Y",
-				offset: 0x10,
-				bytes: 4,
-				color: "rgb(150, 200, 150)"
-			},
-			{
-				name: "Bed Orientation Back Left",
-				offset: 0x18,
-				bytes: 4,
-				color: "rgb(150, 150, 200)"
-			},
-			{
-				name: "Bed Orientation Back Right",
-				offset: 0x14,
-				bytes: 4,
-				color: "rgb(200, 200, 150)"
-			},
-			{
-				name: "Bed Orientation Front Left",
-				offset: 0x1C,
-				bytes: 4,
-				color: "rgb(200, 150, 200)"
-			},
-			{
-				name: "Bed Orientation Front Right",
-				offset: 0x20,
-				bytes: 4,
-				color: "rgb(150, 200, 200)"
-			},
-			{
-				name: "G32 Version",
-				offset: 0x62,
-				bytes: 1,
-				color: "rgb(230, 180, 180)"
-			},
-			{
-				name: "E Axis Steps Per MM",
-				offset: 0x2E2,
-				bytes: 4,
-				color: "rgb(180, 230, 180)"
-			},
-			{
-				name: "Extruder Current",
-				offset: 0x2E8,
-				bytes: 2,
-				color: "rgb(180, 180, 230)"
-			},
-			{
-				name: "Fan Offset",
-				offset: 0x2AC,
-				bytes: 1,
-				color: "rgb(230, 230, 180)"
-			},
-			{
-				name: "Fan Scale",
-				offset: 0x2AD,
-				bytes: 4,
-				color: "rgb(230, 180, 230)"
-			},
-			{
-				name: "Fan Type",
-				offset: 0x2AB,
-				bytes: 1,
-				color: "rgb(180, 230, 230)"
-			},
-			{
-				name: "Filament Amount",
-				offset: 0x2A,
-				bytes: 4,
-				color: "rgb(245, 160, 160)"
-			},
-			{
-				name: "Filament Temperature",
-				offset: 0x29,
-				bytes: 1,
-				color: "rgb(160, 245, 160)"
-			},
-			{
-				name: "Filament Location And Type",
-				offset: 0x28,
-				bytes: 1,
-				color: "rgb(160, 160, 245)"
-			},
-			{
-				name: "Firmware CRC",
-				offset: 0x04,
-				bytes: 4,
-				color: "rgb(245, 245, 160)"
-			},
-			{
+		// EEPROM offsets
+		var eepromOffsets = {
+			firmwareVersion : {
 				name: "Firmware Version",
 				offset: 0x00,
 				bytes: 4,
 				color: "rgb(245, 160, 245)"
 			},
-			{
-				name: "Hardware Status",
-				offset: 0x2B8,
+			firmwareCrc : {
+				name: "Firmware CRC",
+				offset: 0x04,
 				bytes: 4,
-				color: "rgb(160, 245, 245)"
+				color: "rgb(245, 245, 160)"
 			},
-			{
-				name: "Heater Calibration Mode",
-				offset: 0x2B1,
-				bytes: 1,
-				color: "rgb(230, 210, 210)"
-			},
-			{
-				name: "Heater Resistance M",
-				offset: 0x2EA,
-				bytes: 4,
-				color: "rgb(210, 230, 210)"
-			},
-			{
-				name: "Heater Temperature Measurement B",
-				offset: 0x2BA,
-				bytes: 6,
-				color: "rgb(210, 210, 230)"
-			},
-			{
-				name: "Hours Counter",
-				offset: 0x2C0,
-				bytes: 4,
-				color: "rgb(230, 230, 110)"
-			},
-			{
+			lastRecordedZValue : {
 				name: "Last Recorded Z Value",
 				offset: 0x08,
 				bytes: 4,
 				color: "rgb(230, 210, 230)"
 			},
-			{
-				name: "Saved Z State",
-				offset: 0x2E6,
-				bytes: 1,
-				color: "rgb(210, 230, 230)"
+			backlashX : {
+				name: "Backlash X",
+				offset: 0x0C,
+				bytes: 4,
+				color: "rgb(200, 150, 150)"
 			},
-			{
-				name: "Serial Number",
-				offset: 0x2EF,
-				bytes: 17,
-				color: "rgb(230, 210, 250)"
+			backlashY : {
+				name: "Backlash Y",
+				offset: 0x10,
+				bytes: 4,
+				color: "rgb(150, 200, 150)"
 			},
-			{
-				name: "Spooler Record ID",
+			bedOrientationBackRight : {
+				name: "Bed Orientation Back Right",
+				offset: 0x14,
+				bytes: 4,
+				color: "rgb(200, 200, 150)"
+			},
+			bedOrientationBackLeft : {
+				name: "Bed Orientation Back Left",
+				offset: 0x18,
+				bytes: 4,
+				color: "rgb(150, 150, 200)"
+			},
+			bedOrientationFrontLeft : {
+				name: "Bed Orientation Front Left",
+				offset: 0x1C,
+				bytes: 4,
+				color: "rgb(200, 150, 200)"
+			},
+			bedOrientationFrontRight : {
+				name: "Bed Orientation Front Right",
+				offset: 0x20,
+				bytes: 4,
+				color: "rgb(150, 200, 200)"
+			},
+			filamentColor : {
+				name: "Filament Color",
 				offset: 0x24,
 				bytes: 4,
 				color: "rgb(250, 210, 230)"
 			},
-			{
-				name: "X Axis Steps Per MM",
-				offset: 0x2D6,
+			filamentTypeAndLocation : {
+				name: "Filament Type And Location",
+				offset: 0x28,
+				bytes: 1,
+				color: "rgb(160, 160, 245)"
+			},
+			filamentTemperature : {
+				name: "Filament Temperature",
+				offset: 0x29,
+				bytes: 1,
+				color: "rgb(160, 245, 160)"
+			},
+			filamentAmount : {
+				name: "Filament Amount",
+				offset: 0x2A,
 				bytes: 4,
-				color: "rgb(220, 170, 170)"
+				color: "rgb(245, 160, 160)"
 			},
-			{
-				name: "X Motor Current",
-				offset: 0x2B2,
-				bytes: 2,
-				color: "rgb(170, 220, 170)"
-			},
-			{
-				name: "Y Axis Steps Per MM",
-				offset: 0x2DA,
+			backlashExpansionXPlus : {
+				name: "Backlash Expansion X Plus",
+				offset: 0x2E,
 				bytes: 4,
-				color: "rgb(170, 170, 220)"
+				color: "rgb(200, 255, 200)"
 			},
-			{
-				name: "Y Motor Current",
-				offset: 0x2B4,
-				bytes: 2,
-				color: "rgb(220, 220, 170)"
-			},
-			{
-				name: "Z Axis Steps Per MM",
-				offset: 0x2DE,
+			backlashExpansionYLPlus : {
+				name: "Backlash Expansion  YL Plus",
+				offset: 0x32,
 				bytes: 4,
-				color: "rgb(220, 170, 220)"
+				color: "rgb(200, 200, 255)"
 			},
-			{
+			backlashExpansionYRPlus : {
+				name: "Backlash Expansion YR Plus",
+				offset: 0x36,
+				bytes: 4,
+				color: "rgb(255, 200, 255)"
+			},
+			backlashExpansionYRMinus : {
+				name: "Backlash Expansion YR Minus",
+				offset: 0x3A,
+				bytes: 4,
+				color: "rgb(255, 255, 200)"
+			},
+			backlashExpansionZ : {
+				name: "Backlash Expansion Z",
+				offset: 0x3E,
+				bytes: 4,
+				color: "rgb(200, 255, 255)"
+			},
+			backlashExpansionE : {
+				name: "Backlash Expansion E",
+				offset: 0x42,
+				bytes: 4,
+				color: "rgb(255, 200, 200)"
+			},
+			bedOffsetBackLeft : {
 				name: "Bed Offset Back Left",
 				offset: 0x46,
 				bytes: 4,
 				color: "rgb(170, 220, 220)"
 			},
-			{
+			bedOffsetBackRight : {
 				name: "Bed Offset Back Right",
 				offset: 0x4A,
 				bytes: 4,
 				color: "rgb(190, 165, 165)"
 			},
-			{
-				name: "Bed Offset Front Left",
-				offset: 0x52,
-				bytes: 4,
-				color: "rgb(165, 190, 165)"
-			},
-			{
+			bedOffsetFrontRight : {
 				name: "Bed Offset Front Right",
 				offset: 0x4E,
 				bytes: 4,
 				color: "rgb(165, 165, 190)"
 			},
-			{
+			bedOffsetFrontLeft : {
+				name: "Bed Offset Front Left",
+				offset: 0x52,
+				bytes: 4,
+				color: "rgb(165, 190, 165)"
+			},
+			bedHeightOffset : {
 				name: "Bed Height Offset",
 				offset: 0x56,
 				bytes: 4,
 				color: "rgb(190, 190, 165)"
 			},
-			{
+			reserved : {
+				name: "Reserved",
+				offset: 0x5A,
+				bytes: 4,
+				color: "rgb(250, 190, 165)"
+			},
+			backlashSpeed : {
+				name: "Backlash Speed",
+				offset: 0x5E,
+				bytes: 4,
+				color: "rgb(200, 200, 200)"
+			},
+			g32Version : {
+				name: "G32 Version",
+				offset: 0x62,
+				bytes: 1,
+				color: "rgb(230, 180, 180)"
+			},
+			speedLimitX : {
+				name: "Speed Limit X",
+				offset: 0x66,
+				bytes: 4,
+				color: "rgb(240, 160, 160)"
+			},
+			speedLimitY : {
+				name: "Speed Limit Y",
+				offset: 0x6A,
+				bytes: 4,
+				color: "rgb(160, 240, 160)"
+			},
+			speedLimitZ : {
+				name: "Speed Limit Z",
+				offset: 0x6E,
+				bytes: 4,
+				color: "rgb(160, 160, 240)"
+			},
+			speedLimitEPositive : {
+				name: "Speed Limit E Positive",
+				offset: 0x72,
+				bytes: 4,
+				color: "rgb(240, 240, 160)"
+			},
+			speedLimitENegative : {
+				name: "Speed Limit E Negative",
+				offset: 0x76,
+				bytes: 4,
+				color: "rgb(240, 160, 240)"
+			},
+			g32FirstSample : {
+				name: "G32 First Sample",
+				offset: 0x106,
+				bytes: 4,
+				color: "rgb(200, 200, 200)"
+			},
+			fanType : {
+				name: "Fan Type",
+				offset: 0x2AB,
+				bytes: 1,
+				color: "rgb(180, 230, 230)"
+			},
+			fanOffset : {
+				name: "Fan Offset",
+				offset: 0x2AC,
+				bytes: 1,
+				color: "rgb(230, 230, 180)"
+			},
+			fanScale : {
+				name: "Fan Scale",
+				offset: 0x2AD,
+				bytes: 4,
+				color: "rgb(230, 180, 230)"
+			},
+			heaterCalibrationMode : {
+				name: "Heater Calibration Mode",
+				offset: 0x2B1,
+				bytes: 1,
+				color: "rgb(160, 240, 240)"
+			},
+			xMotorCurrent : {
+				name: "X Motor Current",
+				offset: 0x2B2,
+				bytes: 2,
+				color: "rgb(170, 220, 170)"
+			},
+			yMotorCurrent : {
+				name: "Y Motor Current",
+				offset: 0x2B4,
+				bytes: 2,
+				color: "rgb(220, 220, 170)"
+			},
+			zMotorCurrent : {
 				name: "Z Motor Current",
 				offset: 0x2B6,
 				bytes: 2,
 				color: "rgb(190, 165, 190)"
+			},
+			hardwareStatus : {
+				name: "Hardware Status",
+				offset: 0x2B8,
+				bytes: 2,
+				color: "rgb(160, 245, 245)"
+			},
+			heaterTemperatureMeasurementB : {
+				name: "Heater Temperature Measurement B",
+				offset: 0x2BA,
+				bytes: 4,
+				color: "rgb(210, 210, 230)"
+			},
+			hoursCounter : {
+				name: "Hours Counter",
+				offset: 0x2C0,
+				bytes: 4,
+				color: "rgb(230, 230, 110)"
+			},
+			xAxisStepsPerMm : {
+				name: "X Axis Steps Per MM",
+				offset: 0x2D6,
+				bytes: 4,
+				color: "rgb(220, 170, 170)"
+			},
+			yAxisStepsPerMm : {
+				name: "Y Axis Steps Per MM",
+				offset: 0x2DA,
+				bytes: 4,
+				color: "rgb(170, 170, 220)"
+			},
+			zAxisStepsPerMm : {
+				name: "Z Axis Steps Per MM",
+				offset: 0x2DE,
+				bytes: 4,
+				color: "rgb(220, 170, 220)"
+			},
+			eAxisStepsPerMm : {
+				name: "E Axis Steps Per MM",
+				offset: 0x2E2,
+				bytes: 4,
+				color: "rgb(180, 230, 180)"
+			},
+			savedZState : {
+				name: "Saved Z State",
+				offset: 0x2E6,
+				bytes: 2,
+				color: "rgb(210, 230, 230)"
+			},
+			extruderCurrent : {
+				name: "Extruder Current",
+				offset: 0x2E8,
+				bytes: 2,
+				color: "rgb(180, 180, 230)"
+			},
+			heaterResistanceM : {
+				name: "Heater Resistance M",
+				offset: 0x2EA,
+				bytes: 4,
+				color: "rgb(210, 230, 210)"
+			},
+			serialNumber : {
+				name: "Serial Number",
+				offset: 0x2EF,
+				bytes: 17,
+				color: "rgb(230, 210, 250)"
 			}
-		];
+		}
 		
 		// Encode html entities
 		function htmlEncode(value) {
@@ -594,15 +636,6 @@ $(function() {
 				// Increment index
 				index++;
 			});
-		}
-
-		// Camelcases string
-		function camelCase(value) {
-
-			// Convert value to be camelcase
-			return value.replace(/(?:^\w|[A-Z]|\b\w)/g, function(letter, index) {
-				return index == 0 ? letter.toLowerCase() : letter.toUpperCase();
-			}).replace(/\s+/g, '');
 		}
 
 		// Float To Binary
@@ -2617,7 +2650,7 @@ $(function() {
 					<button class="btn btn-block control-box arrow" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><i class="icon-arrow-up"></i></button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Save Z as back left Z0</button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Save Z as bed center Z0</button>
-					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Print test border</button>
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Print 0.4mm test border</button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Print backlash calibration cylinder</button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Run complete bed calibration</button>
 				</div>
@@ -2655,12 +2688,12 @@ $(function() {
 			table += "<td><input data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\" type=\"text\" maxlength=\"2\" autocomplete=\"off\" value=\"??\"";
 			
 			// Mark offsets
-			for(var j = 0; j < eepromOffsets.length; j++)
-				for(var k = 0; k < eepromOffsets[j].bytes; k++)
+			for(var key in eepromOffsets)
+				for(var j = 0; j < eepromOffsets[key].bytes; j++)
 				
-					if(eepromOffsets[j].offset + k == i) {
+					if(eepromOffsets[key].offset + j == i) {
 					
-						table += " style=\"background-color: " + eepromOffsets[j].color + ";\" class=\"" + camelCase(eepromOffsets[j].name) + "\" title=\"" + eepromOffsets[j].name + '"';
+						table += " style=\"background-color: " + eepromOffsets[key].color + ";\" class=\"" + key + "\" title=\"" + eepromOffsets[key].name + '"';
 						j = eepromOffsets.length;
 						break;
 					}
@@ -3690,7 +3723,7 @@ $(function() {
 			// Set commands
 			var commands = [
 				"G91",
-				"G0 Z" + ($(this).hasClass("down") ? '-' : '') + $("body > div.page-container > div.message").find("button.distance.active").text() + " F100"
+				"G0 Z" + ($(this).hasClass("down") ? '-' : '') + $("body > div.page-container > div.message").find("button.distance.active").text() + " F90"
 			];
 			
 			// Send request
@@ -3719,7 +3752,7 @@ $(function() {
 			// Set commands
 			var commands = [
 				"G91",
-				"G0 X" + $("#control #jog_distance > button.active").text() + " F100"
+				"G0 X" + $("#control #jog_distance > button.active").text() + " F3000"
 			];
 		
 			// Send request
@@ -3741,7 +3774,7 @@ $(function() {
 			// Set commands
 			var commands = [
 				"G91",
-				"G0 X-" + $("#control #jog_distance > button.active").text() + " F100"
+				"G0 X-" + $("#control #jog_distance > button.active").text() + " F3000"
 			];
 		
 			// Send request
@@ -3763,7 +3796,7 @@ $(function() {
 			// Set commands
 			var commands = [
 				"G91",
-				"G0 Y" + $("#control #jog_distance > button.active").text() + " F100"
+				"G0 Y" + $("#control #jog_distance > button.active").text() + " F3000"
 			];
 		
 			// Send request
@@ -3785,7 +3818,7 @@ $(function() {
 			// Set commands
 			var commands = [
 				"G91",
-				"G0 Y-" + $("#control #jog_distance > button.active").text() + " F100"
+				"G0 Y-" + $("#control #jog_distance > button.active").text() + " F3000"
 			];
 		
 			// Send request
@@ -3807,7 +3840,7 @@ $(function() {
 			// Set commands
 			var commands = [
 				"G91",
-				"G0 Z" + $("#control #jog_distance > button.active").text() + " F100"
+				"G0 Z" + $("#control #jog_distance > button.active").text() + " F90"
 			];
 		
 			// Send request
@@ -3829,7 +3862,7 @@ $(function() {
 			// Set commands
 			var commands = [
 				"G91",
-				"G0 Z-" + $("#control #jog_distance > button.active").text() + " F100"
+				"G0 Z-" + $("#control #jog_distance > button.active").text() + " F90"
 			];
 		
 			// Send request
@@ -3873,7 +3906,7 @@ $(function() {
 			// Set commands
 			var commands = [
 				"G90",
-				"G0 Z5 F100"
+				"G0 Z5 F90"
 			];
 		
 			// Send request
@@ -3895,7 +3928,7 @@ $(function() {
 			// Set commands
 			var commands = [
 				"G91",
-				"G0 E" + ($("#control > div.jog-panel.extruder").find("div > div:nth-of-type(2) >input").val().length ? $("#control > div.jog-panel.extruder").find("div > div:nth-of-type(2) >input").val() : '5' ) + " F450"
+				"G0 E" + ($("#control > div.jog-panel.extruder").find("div > div:nth-of-type(2) >input").val().length ? $("#control > div.jog-panel.extruder").find("div > div:nth-of-type(2) >input").val() : '5' ) + " F345"
 			];
 		
 			// Send request
@@ -3917,7 +3950,7 @@ $(function() {
 			// Set commands
 			var commands = [
 				"G91",
-				"G0 E-" + ($("#control > div.jog-panel.extruder").find("div > div:nth-of-type(2) >input").val().length ? $("#control > div.jog-panel.extruder").find("div > div:nth-of-type(2) >input").val() : '5' ) + " F450"
+				"G0 E-" + ($("#control > div.jog-panel.extruder").find("div > div:nth-of-type(2) >input").val().length ? $("#control > div.jog-panel.extruder").find("div > div:nth-of-type(2) >input").val() : '5' ) + " F345"
 			];
 		
 			// Send request
@@ -4110,7 +4143,7 @@ $(function() {
 					];
 			
 					for(var i = 2; i <= 60; i += 2)
-						commands.push("G0 E-" + i + " F450");
+						commands.push("G0 E-" + i + " F345");
 	
 					commands.push("M104 S0");
 					commands.push("M107");
@@ -4196,7 +4229,7 @@ $(function() {
 					];
 				
 					for(var i = 2; i <= 60; i += 2)
-						commands.push("G0 E" + i + " F450");
+						commands.push("G0 E" + i + " F345");
 		
 					commands.push("M104 S0");
 					commands.push("M107");
@@ -4249,7 +4282,7 @@ $(function() {
 				"M65537;stop",
 				"M104 S0",
 				"G91",
-				"G0 Y20 Z2 F150",
+				"G0 Y20 Z2 F3000",
 				"M109 S150",
 				"M104 S0",
 				"M107",
@@ -4294,15 +4327,15 @@ $(function() {
 				"M65537;stop",
 				"M104 S0",
 				"G91",
-				"G0 Y20 Z2 F150",
+				"G0 Y20 Z2 F3000",
 				"M109 S150",
 				"M104 S0",
 				"M107",
 				"G32",
-				"M619 S2",
-				"M619 S3",
-				"M619 S4",
-				"M619 S5",
+				"M619 S" + eepromOffsets["bedOrientationBackRight"]["offset"] + " T" + eepromOffsets["bedOrientationBackRight"]["bytes"],
+				"M619 S" + eepromOffsets["bedOrientationBackLeft"]["offset"] + " T" + eepromOffsets["bedOrientationBackLeft"]["bytes"],
+				"M619 S" + eepromOffsets["bedOrientationFrontLeft"]["offset"] + " T" + eepromOffsets["bedOrientationFrontLeft"]["bytes"],
+				"M619 S" + eepromOffsets["bedOrientationFrontRight"]["offset"] + " T" + eepromOffsets["bedOrientationFrontRight"]["bytes"],
 				"M65536;wait"
 			];
 		
@@ -4341,9 +4374,9 @@ $(function() {
 				"G4 P100",
 				"M65537;stop",
 				"G90",
-				"G0 Z3 F100",
+				"G0 Z3 F90",
 				"G28",
-				"G0 X9 Y5 Z3 F100"
+				"G0 X9 Y5 Z3 F3000"
 			];
 		
 			// Send request
@@ -4364,9 +4397,9 @@ $(function() {
 				"G4 P100",
 				"M65537;stop",
 				"G90",
-				"G0 Z3 F100",
+				"G0 Z3 F90",
 				"G28",
-				"G0 X99 Y5 Z3 F100"
+				"G0 X99 Y5 Z3 F3000"
 			];
 		
 			// Send request
@@ -4387,9 +4420,9 @@ $(function() {
 				"G4 P100",
 				"M65537;stop",
 				"G90",
-				"G0 Z3 F100",
+				"G0 Z3 F90",
 				"G28",
-				"G0 X99 Y95 Z3 F100"
+				"G0 X99 Y95 Z3 F3000"
 			];
 		
 			// Send request
@@ -4410,9 +4443,9 @@ $(function() {
 				"G4 P100",
 				"M65537;stop",
 				"G90",
-				"G0 Z3 F100",
+				"G0 Z3 F90",
 				"G28",
-				"G0 X9 Y95 Z3 F100"
+				"G0 X9 Y95 Z3 F3000"
 			];
 		
 			// Send request
@@ -4450,8 +4483,8 @@ $(function() {
 			
 					// Set commands
 					commands = [
-						"M618 S19 P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.FrontLeftOrientation()),
-						"M619 S19",
+						"M618 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.FrontLeftOrientation()),
+						"M619 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"],
 						"M65536;wait"
 					];
 				
@@ -4509,8 +4542,8 @@ $(function() {
 			
 					// Set commands
 					commands = [
-						"M618 S18 P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.FrontRightOrientation()),
-						"M619 S18",
+						"M618 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.FrontRightOrientation()),
+						"M619 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"],
 						"M65536;wait"
 					];
 				
@@ -4568,8 +4601,8 @@ $(function() {
 			
 					// Set commands
 					commands = [
-						"M618 S17 P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.BackRightOrientation()),
-						"M619 S17",
+						"M618 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.BackRightOrientation()),
+						"M619 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"],
 						"M65536;wait"
 					];
 				
@@ -4627,8 +4660,8 @@ $(function() {
 			
 					// Set commands
 					commands = [
-						"M618 S16 P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.BackLeftOrientation()),
-						"M619 S16",
+						"M618 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.BackLeftOrientation()),
+						"M619 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"],
 						"M65536;wait"
 					];
 				
@@ -4672,7 +4705,7 @@ $(function() {
 				"G4 P100",
 				"M65537;stop",
 				"G91",
-				"G0 Z0.0999 F100",
+				"G0 Z0.0999 F90",
 				"G33",
 				"M117",
 				"M65536;wait"
@@ -4754,7 +4787,7 @@ $(function() {
 					"M65537;stop",
 					"M104 S0",
 					"G91",
-					"G0 Y20 Z2 F150",
+					"G0 Y20 Z2 F3000",
 					"M109 S150",
 					"M104 S0",
 					"M107",
@@ -4783,15 +4816,15 @@ $(function() {
 							"M65537;stop",
 							"M104 S0",
 							"G91",
-							"G0 Y20 Z2 F150",
+							"G0 Y20 Z2 F3000",
 							"M109 S150",
 							"M104 S0",
 							"M107",
 							"G32",
-							"M619 S2",
-							"M619 S3",
-							"M619 S4",
-							"M619 S5",
+							"M619 S" + eepromOffsets["bedOrientationBackRight"]["offset"] + " T" + eepromOffsets["bedOrientationBackRight"]["bytes"],
+							"M619 S" + eepromOffsets["bedOrientationBackLeft"]["offset"] + " T" + eepromOffsets["bedOrientationBackLeft"]["bytes"],
+							"M619 S" + eepromOffsets["bedOrientationFrontLeft"]["offset"] + " T" + eepromOffsets["bedOrientationFrontLeft"]["bytes"],
+							"M619 S" + eepromOffsets["bedOrientationFrontRight"]["offset"] + " T" + eepromOffsets["bedOrientationFrontRight"]["bytes"],
 							"M65536;wait"
 						];
 		
@@ -4814,9 +4847,9 @@ $(function() {
 									"G4 P100",
 									"M65537;stop",
 									"G90",
-									"G0 Z3 F100",
+									"G0 Z3 F90",
 									"G28",
-									"G0 X9 Y5 Z3 F100",
+									"G0 X9 Y5 Z3 F3000",
 									"M65536;wait"
 								];
 		
@@ -4853,8 +4886,8 @@ $(function() {
 			
 													// Set commands
 													commands = [
-														"M618 S19 P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.FrontLeftOrientation()),
-														"M619 S19",
+														"M618 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.FrontLeftOrientation()),
+														"M619 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"],
 														"M65536;wait"
 													];
 				
@@ -4877,9 +4910,9 @@ $(function() {
 																"G4 P100",
 																"M65537;stop",
 																"G90",
-																"G0 Z3 F100",
+																"G0 Z3 F90",
 																"G28",
-																"G0 X99 Y5 Z3 F100",
+																"G0 X99 Y5 Z3 F3000",
 																"M65536;wait"
 															];
 		
@@ -4916,8 +4949,8 @@ $(function() {
 			
 																				// Set commands
 																				commands = [
-																					"M618 S18 P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.FrontRightOrientation()),
-																					"M619 S18",
+																					"M618 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.FrontRightOrientation()),
+																					"M619 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"],
 																					"M65536;wait"
 																				];
 				
@@ -4940,9 +4973,9 @@ $(function() {
 																							"G4 P100",
 																							"M65537;stop",
 																							"G90",
-																							"G0 Z3 F100",
+																							"G0 Z3 F90",
 																							"G28",
-																							"G0 X99 Y95 Z3 F100",
+																							"G0 X99 Y95 Z3 F3000",
 																							"M65536;wait"
 																						];
 		
@@ -4979,8 +5012,8 @@ $(function() {
 			
 																											// Set commands
 																											commands = [
-																												"M618 S17 P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.BackRightOrientation()),
-																												"M619 S17",
+																												"M618 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.BackRightOrientation()),
+																												"M619 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"],
 																												"M65536;wait"
 																											];
 				
@@ -5003,9 +5036,9 @@ $(function() {
 																														"G4 P100",
 																														"M65537;stop",
 																														"G90",
-																														"G0 Z3 F100",
+																														"G0 Z3 F90",
 																														"G28",
-																														"G0 X9 Y95 Z3 F100",
+																														"G0 X9 Y95 Z3 F3000",
 																														"M65536;wait"
 																													];
 		
@@ -5042,8 +5075,8 @@ $(function() {
 			
 																																		// Set commands
 																																		commands = [
-																																			"M618 S16 P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.BackLeftOrientation()),
-																																			"M619 S16",
+																																			"M618 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.BackLeftOrientation()),
+																																			"M619 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"],
 																																			"M65536;wait"
 																																		];
 				
@@ -5698,18 +5731,19 @@ $(function() {
 				$("#control > div.jog-panel.advanced").find("div > button").removeClass("current");
 				
 				// Indicate current fan type
-				var fanType = (parseInt(data.eeprom[0x2AB * 2], 16) << 4) | parseInt(data.eeprom[0x2AB * 2 + 1], 16);
+				var fanType = (parseInt(data.eeprom[eepromOffsets["fanType"].offset * 2], 16) << 4) | parseInt(data.eeprom[eepromOffsets["fanType"].offset * 2 + 1], 16);
 				if(fanType >= 1 && fanType <= 4)
 					$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(" + fanType + ")").addClass("current");
 					
 				// Indicate current extruder current
-				var extruderCurrent = ((parseInt(data.eeprom[0x2E8 * 2], 16) << 4) | parseInt(data.eeprom[0x2E8 * 2 + 1], 16)) | (((parseInt(data.eeprom[0x2E9 * 2], 16) << 4) | parseInt(data.eeprom[0x2E9 * 2 + 1], 16)) << 8)
+				var extruderCurrent = ((parseInt(data.eeprom[eepromOffsets["extruderCurrent"].offset * 2], 16) << 4) | parseInt(data.eeprom[eepromOffsets["extruderCurrent"].offset * 2 + 1], 16)) | (((parseInt(data.eeprom[(eepromOffsets["extruderCurrent"].offset + 1) * 2], 16) << 4) | parseInt(data.eeprom[(eepromOffsets["extruderCurrent"].offset + 1) * 2 + 1], 16)) << 8)
 				if(extruderCurrent == 500)
 					$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(5)").addClass("current");
 				else if(extruderCurrent == 660)
 					$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(6)").addClass("current");
 				
-				var firmwareVersion = ((parseInt(data.eeprom[0], 16) << 4) | parseInt(data.eeprom[1], 16)) | (((parseInt(data.eeprom[2], 16) << 4) | parseInt(data.eeprom[3], 16)) << 8) | (((parseInt(data.eeprom[4], 16) << 4) | parseInt(data.eeprom[5], 16)) << 16) | (((parseInt(data.eeprom[6], 16) << 4) | parseInt(data.eeprom[7], 16)) << 24);
+				// Show current firmware version
+				var firmwareVersion = ((parseInt(data.eeprom[eepromOffsets["firmwareVersion"].offset], 16) << 4) | parseInt(data.eeprom[eepromOffsets["firmwareVersion"].offset + 1], 16)) | (((parseInt(data.eeprom[eepromOffsets["firmwareVersion"].offset + 2], 16) << 4) | parseInt(data.eeprom[eepromOffsets["firmwareVersion"].offset + 3], 16)) << 8) | (((parseInt(data.eeprom[eepromOffsets["firmwareVersion"].offset + 4], 16) << 4) | parseInt(data.eeprom[eepromOffsets["firmwareVersion"].offset + 5], 16)) << 16) | (((parseInt(data.eeprom[eepromOffsets["firmwareVersion"].offset + 6], 16) << 4) | parseInt(data.eeprom[eepromOffsets["firmwareVersion"].offset + 7], 16)) << 24);
 				
 				$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(7)").html("Update firmware<span>Currently Using: " + firmwareVersion + "</span>");
 			}
@@ -5743,7 +5777,7 @@ $(function() {
 							"M65537;stop",
 							"M104 S0",
 							"G91",
-							"G0 Y20 Z2 F150",
+							"G0 Y20 Z2 F3000",
 							"M109 S150",
 							"M104 S0",
 							"M107",
@@ -5789,15 +5823,15 @@ $(function() {
 											"M65537;stop",
 											"M104 S0",
 											"G91",
-											"G0 Y20 Z2 F150",
+											"G0 Y20 Z2 F3000",
 											"M109 S150",
 											"M104 S0",
 											"M107",
 											"G32",
-											"M619 S2",
-											"M619 S3",
-											"M619 S4",
-											"M619 S5",
+											"M619 S" + eepromOffsets["bedOrientationBackRight"]["offset"] + " T" + eepromOffsets["bedOrientationBackRight"]["bytes"],
+											"M619 S" + eepromOffsets["bedOrientationBackLeft"]["offset"] + " T" + eepromOffsets["bedOrientationBackLeft"]["bytes"],
+											"M619 S" + eepromOffsets["bedOrientationFrontLeft"]["offset"] + " T" + eepromOffsets["bedOrientationFrontLeft"]["bytes"],
+											"M619 S" + eepromOffsets["bedOrientationFrontRight"]["offset"] + " T" + eepromOffsets["bedOrientationFrontRight"]["bytes"],
 											"M65536;wait"
 										];
 		
@@ -5879,15 +5913,15 @@ $(function() {
 							"M65537;stop",
 							"M104 S0",
 							"G91",
-							"G0 Y20 Z2 F150",
+							"G0 Y20 Z2 F3000",
 							"M109 S150",
 							"M104 S0",
 							"M107",
 							"G32",
-							"M619 S2",
-							"M619 S3",
-							"M619 S4",
-							"M619 S5",
+							"M619 S" + eepromOffsets["bedOrientationBackRight"]["offset"] + " T" + eepromOffsets["bedOrientationBackRight"]["bytes"],
+							"M619 S" + eepromOffsets["bedOrientationBackLeft"]["offset"] + " T" + eepromOffsets["bedOrientationBackLeft"]["bytes"],
+							"M619 S" + eepromOffsets["bedOrientationFrontLeft"]["offset"] + " T" + eepromOffsets["bedOrientationFrontLeft"]["bytes"],
+							"M619 S" + eepromOffsets["bedOrientationFrontRight"]["offset"] + " T" + eepromOffsets["bedOrientationFrontRight"]["bytes"],
 							"M65536;wait"
 						];
 		

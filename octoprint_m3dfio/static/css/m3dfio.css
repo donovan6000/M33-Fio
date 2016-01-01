@@ -6,7 +6,7 @@
 	color: rgba(255, 0, 0, 1);
 }
 
-#settings_plugin_m3dfio label.disabled, #settings_plugin_m3dfio input[type="number"][disabled] {
+#settings_plugin_m3dfio label.disabled {
 	opacity: 0.5;
 	cursor: not-allowed;
 }
@@ -36,8 +36,24 @@
 	cursor: default;
 }
 
+#settings_plugin_m3dfio div.input-append {
+	width: calc(100% - 24px);
+}
+
 #settings_plugin_m3dfio input[type="number"], #settings_plugin_m3dfio select {
 	width: calc(100% - 24px);
+}
+
+#settings_plugin_m3dfio div.input-append input[type="number"] {
+	width: calc(100% - 34px);
+}
+
+#settings_plugin_m3dfio div.input-append.filamentTemperature input[type="number"] {
+	width: calc(100% - 27px);
+}
+
+#settings_plugin_m3dfio div.input-append.backlashSpeed input[type="number"] {
+	width: calc(100% - 61px);
 }
 
 #control div.jog-panel.extruder > div > div:first-of-type, #control div.jog-panel.extruder > div > div:nth-of-type(3), #control div.jog-panel.extruder > div > button:nth-of-type(3), #control div.jog-panel.controls > div:nth-of-type(4), #control div.jog-panel.controls > button:first-of-type {

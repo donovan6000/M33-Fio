@@ -6,7 +6,7 @@ V0.23 December 17, 2015
 	* Improved the on the fly pre-procesor so that it doesn't send so many G4 commands. Thanks mrvn!
 	* Went through all the pre-processor stages and made sure they match the ones in the official software. The only stages that differ are preparation, thermal bonding and wave bonding since the official versions have errors or lacks functionality.
 	* Added a Micro 3D printer profile that gets installed and selected automatically
-	* Added ability to upload ans slice obj and m3d models
+	* Added ability to upload and slice obj and m3d models
 
 V0.22 December 1, 2015
 
