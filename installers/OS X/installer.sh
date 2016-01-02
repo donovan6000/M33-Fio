@@ -92,8 +92,8 @@ else
 		mv com.octoprint.app.plist '/Library/LaunchAgents'
 
 		# Create URL link on desktop
-		curl -O 'https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/OS%20X/url.zip'
-		ditto -x -k --sequesterRsrc --rsrc url.zip '/Users/'"$SUDO_USER"'/Desktop'
+		curl -O 'https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/OS%20X/shortcut.zip'
+		ditto -x -k --sequesterRsrc --rsrc shortcut.zip '/Users/'"$SUDO_USER"'/Desktop'
 		
 		# Start OctoPrint
 		su $SUDO_USER -c 'launchctl load /Library/LaunchAgents/com.octoprint.app.plist'

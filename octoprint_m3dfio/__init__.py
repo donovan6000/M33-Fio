@@ -5,7 +5,7 @@ from __future__ import absolute_import
 # Plugin details
 __author__ = "donovan6000 <donovan6000@exploitkings.com>"
 __license__ = "GNU General Public License http://www.gnu.org/licenses/gpl.txt"
-__copyright__ = "Copyright (C) 2015 Exploit Kings. All rights reserved."
+__copyright__ = "Copyright (C) 2015-2016 Exploit Kings. All rights reserved."
 
 
 # Imports
