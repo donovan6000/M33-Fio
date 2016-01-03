@@ -3627,7 +3627,7 @@ $(function() {
 							reader.onload = function(event) {
 							
 								// Append model's center to slicer profile if slicer is Cura
-								if(slicerName == "cura") 
+								if(slicerName == "cura")
 									slicerProfileContent += "\nobject_center_x = " + modelCenter[0] + "\nobject_center_y = " + modelCenter[1] + '\n';
 			
 								// Set parameter

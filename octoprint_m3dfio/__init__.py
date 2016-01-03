@@ -5075,15 +5075,15 @@ class M3DFioPlugin(
 					else :
 						printerProfile["heatedBed"] = False
 			
-				search = re.findall("machine_width\s*?=\s*?(\d+.\d+)", flask.request.values["Slicer Profile Content"])
+				search = re.findall("machine_width\s*?=\s*?(\d+.?\d*)", flask.request.values["Slicer Profile Content"])
 				if len(search) :
 					printerProfile["volume"]["width"] = float(search[0])
 			
-				search = re.findall("machine_height\s*?=\s*?(\d+.\d+)", flask.request.values["Slicer Profile Content"])
+				search = re.findall("machine_height\s*?=\s*?(\d+.?\d*)", flask.request.values["Slicer Profile Content"])
 				if len(search) :
 					printerProfile["volume"]["height"] = float(search[0])
 			
-				search = re.findall("machine_depth\s*?=\s*?(\d+.\d+)", flask.request.values["Slicer Profile Content"])
+				search = re.findall("machine_depth\s*?=\s*?(\d+.?\d*)", flask.request.values["Slicer Profile Content"])
 				if len(search) :
 					printerProfile["volume"]["depth"] = float(search[0])
 			
@@ -5094,7 +5094,7 @@ class M3DFioPlugin(
 					else :
 						printerProfile["volume"]["formFactor"] = "rectangular"
 			
-				search = re.findall("nozzle_size\s*?=\s*?(\d+.\d+)", flask.request.values["Slicer Profile Content"])
+				search = re.findall("nozzle_size\s*?=\s*?(\d+.?\d*)", flask.request.values["Slicer Profile Content"])
 				if len(search) :
 					printerProfile["extruder"]["nozzleDiameter"] = float(search[0])
 			
@@ -5107,7 +5107,7 @@ class M3DFioPlugin(
 						printerProfile["volume"]["formFactor"] = "rectangular"
 						printerProfile["volume"]["origin"] = "lowerleft"
 			
-				search = re.findall("extruder_offset_(x|y)(\d)\s*?=\s*?(-?\d+.\d+)", flask.request.values["Slicer Profile Content"])
+				search = re.findall("extruder_offset_(x|y)(\d)\s*?=\s*?(-?\d+.?\d*)", flask.request.values["Slicer Profile Content"])
 				vectors = [Vector(0, 0)] * printerProfile["extruder"]["count"]
 			
 				for offset in search :
@@ -5123,18 +5123,18 @@ class M3DFioPlugin(
 					index += 1
 			
 				# Get model's center X and Y
-				search = re.findall("object_center_x\s*?=\s*?(-?\d+.\d+)", flask.request.values["Slicer Profile Content"])
+				search = re.findall("object_center_x\s*?=\s*?(-?\d+.?\d*)", flask.request.values["Slicer Profile Content"])
 				if len(search) :
 					centerX = float(search[0])
 				else :
 					centerX = 0
-			
-				search = re.findall("object_center_y\s*?=\s*?(-?\d+.\d+)", flask.request.values["Slicer Profile Content"])
+				
+				search = re.findall("object_center_y\s*?=\s*?(-?\d+.?\d*)", flask.request.values["Slicer Profile Content"])
 				if len(search) :
 					centerY = float(search[0])
 				else :
 					centerY = 0
-			
+				
 				# Adjust printer profile so that its center is equal to the model's center
 				printerProfile["volume"]["width"] += centerX * 2
 				printerProfile["volume"]["depth"] += centerY * 2
