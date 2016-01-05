@@ -79,6 +79,7 @@ class M3DFioPlugin(
 		self.sharedLibrary = None
 		self.curaReminder = False
 		self.lastCommandSent = None
+		self.lastResponseWasWait = False
 		
 		# Rom decryption and encryption tables
 		self.romDecryptionTable = [0x26, 0xE2, 0x63, 0xAC, 0x27, 0xDE, 0x0D, 0x94, 0x79, 0xAB, 0x29, 0x87, 0x14, 0x95, 0x1F, 0xAE, 0x5F, 0xED, 0x47, 0xCE, 0x60, 0xBC, 0x11, 0xC3, 0x42, 0xE3, 0x03, 0x8E, 0x6D, 0x9D, 0x6E, 0xF2, 0x4D, 0x84, 0x25, 0xFF, 0x40, 0xC0, 0x44, 0xFD, 0x0F, 0x9B, 0x67, 0x90, 0x16, 0xB4, 0x07, 0x80, 0x39, 0xFB, 0x1D, 0xF9, 0x5A, 0xCA, 0x57, 0xA9, 0x5E, 0xEF, 0x6B, 0xB6, 0x2F, 0x83, 0x65, 0x8A, 0x13, 0xF5, 0x3C, 0xDC, 0x37, 0xD3, 0x0A, 0xF4, 0x77, 0xF3, 0x20, 0xE8, 0x73, 0xDB, 0x7B, 0xBB, 0x0B, 0xFA, 0x64, 0x8F, 0x08, 0xA3, 0x7D, 0xEB, 0x5C, 0x9C, 0x3E, 0x8C, 0x30, 0xB0, 0x7F, 0xBE, 0x2A, 0xD0, 0x68, 0xA2, 0x22, 0xF7, 0x1C, 0xC2, 0x17, 0xCD, 0x78, 0xC7, 0x21, 0x9E, 0x70, 0x99, 0x1A, 0xF8, 0x58, 0xEA, 0x36, 0xB1, 0x69, 0xC9, 0x04, 0xEE, 0x3B, 0xD6, 0x34, 0xFE, 0x55, 0xE7, 0x1B, 0xA6, 0x4A, 0x9A, 0x54, 0xE6, 0x51, 0xA0, 0x4E, 0xCF, 0x32, 0x88, 0x48, 0xA4, 0x33, 0xA5, 0x5B, 0xB9, 0x62, 0xD4, 0x6F, 0x98, 0x6C, 0xE1, 0x53, 0xCB, 0x46, 0xDD, 0x01, 0xE5, 0x7A, 0x86, 0x75, 0xDF, 0x31, 0xD2, 0x02, 0x97, 0x66, 0xE4, 0x38, 0xEC, 0x12, 0xB7, 0x00, 0x93, 0x15, 0x8B, 0x6A, 0xC5, 0x71, 0x92, 0x45, 0xA1, 0x59, 0xF0, 0x06, 0xA8, 0x5D, 0x82, 0x2C, 0xC4, 0x43, 0xCC, 0x2D, 0xD5, 0x35, 0xD7, 0x3D, 0xB2, 0x74, 0xB3, 0x09, 0xC6, 0x7C, 0xBF, 0x2E, 0xB8, 0x28, 0x9F, 0x41, 0xBA, 0x10, 0xAF, 0x0C, 0xFC, 0x23, 0xD9, 0x49, 0xF6, 0x7E, 0x8D, 0x18, 0x96, 0x56, 0xD1, 0x2B, 0xAD, 0x4B, 0xC1, 0x4F, 0xC8, 0x3A, 0xF1, 0x1E, 0xBD, 0x4C, 0xDA, 0x50, 0xA7, 0x52, 0xE9, 0x76, 0xD8, 0x19, 0x91, 0x72, 0x85, 0x3F, 0x81, 0x61, 0xAA, 0x05, 0x89, 0x0E, 0xB5, 0x24, 0xE0]
@@ -433,7 +434,41 @@ class M3DFioPlugin(
 	
 	# On start
 	def on_after_startup(self) :
+		
+		# Check if Pip isn't set
+		if octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.get(["pip"]) == None :
+		
+			# Set Pip locations
+			pipLocations = []
+			if platform.uname()[0].startswith("Windows") :
+		
+				pipLocations = [
+					os.environ["SYSTEMDRIVE"] + "/python/Scripts/pip.exe"
+				]
+		
+			elif platform.uname()[0].startswith("Darwin") :
+		
+				pipLocations = [
+					"/Library/Frameworks/Python.framework/Versions/*/bin/pip"
+				]
+		
+			elif platform.uname()[0].startswith("Linux") :
+		
+				pipLocations = [
+					"/usr/bin/pip"
+				]
+		
+			# Go through all Pip location
+			for locations in pipLocations :
+				for location in glob.glob(locations) :
 	
+					# Check if location is a file
+					if os.path.isfile(location) :
+			
+						# Set Pip location
+						octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.set(["pip"], location)
+						break
+		
 		# Create and overwrite Micro 3D printer profile
 		printerProfile = dict(
 			id = "micro_3d",
@@ -466,7 +501,7 @@ class M3DFioPlugin(
 		
 		# Select Micro 3D printer profile
 		self._printer_profile_manager.select("micro_3d")
-	
+		
 		# Find provided firmware
 		for file in os.listdir(self._basefolder + "/static/files/") :
 			if file.endswith(".hex") :
@@ -774,7 +809,12 @@ class M3DFioPlugin(
 			PreprocessOnTheFly = True,
 			PrinterColor = "Black",
 			FilamentColor = "White",
-			UseSharedLibrary = True
+			UseSharedLibrary = True,
+			SpeedLimitX = 1500,
+			SpeedLimitY = 1500,
+			SpeedLimitZ = 90,
+			SpeedLimitEPositive = 102,
+			SpeedLimitENegative = 360
 		)
 	
 	# Template manager
@@ -1888,98 +1928,122 @@ class M3DFioPlugin(
 		# Get response
 		response = self.originalRead()
 		
-		# Check if response was a processed value
-		if response.startswith("ok ") and response[3].isdigit() :
+		# Check if response is wait
+		if response.startswith("wait") :
 		
-			# Get line number
-			lineNumber = int(response[3 :])
-			adjustedLineNumber = lineNumber + self.numberWrapCounter * 0x10000
+			# Check if last response wasn't wait
+			if not self.lastResponseWasWait :
 			
-			# Removed stored value
-			if adjustedLineNumber in self.sentCommands :
-				self.sentCommands.pop(adjustedLineNumber)
+				# Set last response was wait
+				self.lastResponseWasWait = True
 			
-			# Set response to contain correct line number
-			response = "ok " + str(adjustedLineNumber) + '\n'
-		
-			# Increment number wrap counter if applicable
-			if lineNumber == 0xFFFF :
-				self.numberWrapCounter += 1
-	
-		# Otherwise check if response was a skip value
-		elif response.startswith("skip ") :
-	
-			# Get line number
-			lineNumber = int(response[5 :])
-			adjustedLineNumber = lineNumber + self.numberWrapCounter * 0x10000
-			
-			# Removed stored value
-			if adjustedLineNumber in self.sentCommands :
-				self.sentCommands.pop(adjustedLineNumber)
-			
-			# Set response to contain correct line number
-			response = "ok " + str(adjustedLineNumber) + '\n'
-		
-			# Increment number wrap counter if applicable
-			if lineNumber == 0xFFFF :
-				self.numberWrapCounter += 1
-	
-		# Otherwise check if response was a resend a specified value
-		elif response.startswith("rs ") :
-		
-			# Get line number
-			adjustedLineNumber = int(response[3 :]) + self.numberWrapCounter * 0x10000
-			
-			# Check if command hasn't been processed
-			if adjustedLineNumber in self.sentCommands :
-			
-				# Send command
-				gcode = Gcode()
-				gcode.parseLine(self.sentCommands[adjustedLineNumber])
-				self.originalWrite(gcode.getBinary())
-			
-			# Return nothing
-			return ''
-		
-		# Otherwise check if response is to resend last value
-		elif response.startswith("rs") :
-		
-			# Send last command
-			self.originalWrite(self.lastCommandSent)
-			
-			# Return nothing
-			return ''
-		
-		# Otherwise check if response was an error code
-		elif response.startswith("Error:") :
-	
-			# Set error response
-			if response[6 : 10] == "1000" :
-				response = "ok M110 without line number\n"
-			elif response[6 : 10] == "1001" :
-				response = "ok Cannot cold extrude\n"
-			elif response[6 : 10] == "1002" :
-				response = "ok Cannot calibrate in unknown state\n"
-			elif response[6 : 10] == "1003" :
-				response = "ok Unknown G-Code\n"
-			elif response[6 : 10] == "1004" :
-				response = "ok Unknown M-Code\n"
-			elif response[6 : 10] == "1005" :
-				response = "ok Unknown command\n"
-			elif response[6 : 10] == "1006" :
-				response = "ok Heater failed\n"
-			elif response[6 : 10] == "1007" :
-				response = "ok Move to large\n"
-			elif response[6 : 10] == "1008" :
-				response = "ok System has been inactive for to long, heater and motors have been turned off\n"
-			elif response[6 : 10] == "1009" :
-				response = "ok Target address out of range\n"
-			elif response[6 : 10] == "1010" :
-				response = "ok Command cannot run because micro motion chip encountered an error\n"
-			elif response[6 : 10].isdigit() :
-				response = "ok An error has occured\n"
+			# Otherwise
 			else :
-				response = "ok " +  response[6 :]
+			
+				# Clear response
+				response = ''
+				
+				# Send message
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Duplicate Wait"))
+		
+		# Otherwise
+		else :
+			
+			# Clear last response was wait
+			self.lastResponseWasWait = False
+		
+			# Check if response was a processed value
+			if response.startswith("ok ") and response[3].isdigit() :
+		
+				# Get line number
+				lineNumber = int(response[3 :])
+				adjustedLineNumber = lineNumber + self.numberWrapCounter * 0x10000
+			
+				# Removed stored value
+				if adjustedLineNumber in self.sentCommands :
+					self.sentCommands.pop(adjustedLineNumber)
+			
+				# Set response to contain correct line number
+				response = "ok " + str(adjustedLineNumber) + '\n'
+		
+				# Increment number wrap counter if applicable
+				if lineNumber == 0xFFFF :
+					self.numberWrapCounter += 1
+	
+			# Otherwise check if response was a skip value
+			elif response.startswith("skip ") :
+	
+				# Get line number
+				lineNumber = int(response[5 :])
+				adjustedLineNumber = lineNumber + self.numberWrapCounter * 0x10000
+			
+				# Removed stored value
+				if adjustedLineNumber in self.sentCommands :
+					self.sentCommands.pop(adjustedLineNumber)
+			
+				# Set response to contain correct line number
+				response = "ok " + str(adjustedLineNumber) + '\n'
+		
+				# Increment number wrap counter if applicable
+				if lineNumber == 0xFFFF :
+					self.numberWrapCounter += 1
+	
+			# Otherwise check if response was a resend a specified value
+			elif response.startswith("rs ") :
+		
+				# Get line number
+				adjustedLineNumber = int(response[3 :]) + self.numberWrapCounter * 0x10000
+			
+				# Check if command hasn't been processed
+				if adjustedLineNumber in self.sentCommands :
+			
+					# Send command
+					gcode = Gcode()
+					gcode.parseLine(self.sentCommands[adjustedLineNumber])
+					self.originalWrite(gcode.getBinary())
+			
+				# Return nothing
+				return ''
+		
+			# Otherwise check if response is to resend last value
+			elif response.startswith("rs") :
+		
+				# Send last command
+				self.originalWrite(self.lastCommandSent)
+			
+				# Return nothing
+				return ''
+		
+			# Otherwise check if response was an error code
+			elif response.startswith("Error:") :
+	
+				# Set error response
+				if response[6 : 10] == "1000" :
+					response = "ok M110 without line number\n"
+				elif response[6 : 10] == "1001" :
+					response = "ok Cannot cold extrude\n"
+				elif response[6 : 10] == "1002" :
+					response = "ok Cannot calibrate in unknown state\n"
+				elif response[6 : 10] == "1003" :
+					response = "ok Unknown G-Code\n"
+				elif response[6 : 10] == "1004" :
+					response = "ok Unknown M-Code\n"
+				elif response[6 : 10] == "1005" :
+					response = "ok Unknown command\n"
+				elif response[6 : 10] == "1006" :
+					response = "ok Heater failed\n"
+				elif response[6 : 10] == "1007" :
+					response = "ok Move to large\n"
+				elif response[6 : 10] == "1008" :
+					response = "ok System has been inactive for too long, heater and motors have been turned off\n"
+				elif response[6 : 10] == "1009" :
+					response = "ok Target address out of range\n"
+				elif response[6 : 10] == "1010" :
+					response = "ok Command cannot run because micro motion chip encountered an error\n"
+				elif response[6 : 10].isdigit() :
+					response = "ok An error has occured\n"
+				else :
+					response = "ok " +  response[6 :]
 		
 		# Return response
 		return response
@@ -2876,6 +2940,11 @@ class M3DFioPlugin(
 					"M619 S" + str(self.eepromOffsets["bedOffsetFrontLeft"]["offset"]) + " T" + str(self.eepromOffsets["bedOffsetFrontLeft"]["bytes"]),
 					"M619 S" + str(self.eepromOffsets["bedHeightOffset"]["offset"]) + " T" + str(self.eepromOffsets["bedHeightOffset"]["bytes"]),
 					"M619 S" + str(self.eepromOffsets["backlashSpeed"]["offset"]) + " T" + str(self.eepromOffsets["backlashSpeed"]["bytes"]),
+					"M619 S" + str(self.eepromOffsets["speedLimitX"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitX"]["bytes"]),
+					"M619 S" + str(self.eepromOffsets["speedLimitY"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitY"]["bytes"]),
+					"M619 S" + str(self.eepromOffsets["speedLimitZ"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitZ"]["bytes"]),
+					"M619 S" + str(self.eepromOffsets["speedLimitEPositive"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitEPositive"]["bytes"]),
+					"M619 S" + str(self.eepromOffsets["speedLimitENegative"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitENegative"]["bytes"]),
 					"M619 S" + str(self.eepromOffsets["g32Version"]["offset"]) + " T" + str(self.eepromOffsets["g32Version"]["bytes"]),
 				])
 		
@@ -3152,6 +3221,96 @@ class M3DFioPlugin(
 				if self._settings.get_boolean(["AutomaticallyObtainSettings"]) :
 					self._settings.set_float(["BacklashSpeed"], self.printerBacklashSpeed)
 			
+			# Otherwise check if data is for speed limit X
+			elif "PT:" + str(self.eepromOffsets["speedLimitX"]["offset"]) + ' ' in data :
+			
+				# Convert data to float
+				value = int(data[data.find("DT:") + 3 :])
+				data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
+				bytes = struct.pack('4B', *data)
+				value = struct.unpack('f', bytes)[0]
+				
+				if math.isnan(value) :
+					self.printerSpeedLimitX = self.get_settings_defaults()["SpeedLimitX"]
+				else :
+					self.printerSpeedLimitX = round(value, 6)
+				
+				# Check if set to automatically collect printer settings
+				if self._settings.get_boolean(["AutomaticallyObtainSettings"]) :
+					self._settings.set_float(["SpeedLimitX"], self.printerSpeedLimitX)
+			
+			# Otherwise check if data is for speed limit Y
+			elif "PT:" + str(self.eepromOffsets["speedLimitY"]["offset"]) + ' ' in data :
+			
+				# Convert data to float
+				value = int(data[data.find("DT:") + 3 :])
+				data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
+				bytes = struct.pack('4B', *data)
+				value = struct.unpack('f', bytes)[0]
+				
+				if math.isnan(value) :
+					self.printerSpeedLimitY = self.get_settings_defaults()["SpeedLimitY"]
+				else :
+					self.printerSpeedLimitY = round(value, 6)
+				
+				# Check if set to automatically collect printer settings
+				if self._settings.get_boolean(["AutomaticallyObtainSettings"]) :
+					self._settings.set_float(["SpeedLimitY"], self.printerSpeedLimitY)
+			
+			# Otherwise check if data is for speed limit Z
+			elif "PT:" + str(self.eepromOffsets["speedLimitZ"]["offset"]) + ' ' in data :
+			
+				# Convert data to float
+				value = int(data[data.find("DT:") + 3 :])
+				data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
+				bytes = struct.pack('4B', *data)
+				value = struct.unpack('f', bytes)[0]
+				
+				if math.isnan(value) :
+					self.printerSpeedLimitZ = self.get_settings_defaults()["SpeedLimitZ"]
+				else :
+					self.printerSpeedLimitZ = round(value, 6)
+				
+				# Check if set to automatically collect printer settings
+				if self._settings.get_boolean(["AutomaticallyObtainSettings"]) :
+					self._settings.set_float(["SpeedLimitZ"], self.printerSpeedLimitZ)
+			
+			# Otherwise check if data is for speed limit E positive
+			elif "PT:" + str(self.eepromOffsets["speedLimitEPositive"]["offset"]) + ' ' in data :
+			
+				# Convert data to float
+				value = int(data[data.find("DT:") + 3 :])
+				data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
+				bytes = struct.pack('4B', *data)
+				value = struct.unpack('f', bytes)[0]
+				
+				if math.isnan(value) :
+					self.printerSpeedLimitEPositive = self.get_settings_defaults()["SpeedLimitEPositive"]
+				else :
+					self.printerSpeedLimitEPositive = round(value, 6)
+				
+				# Check if set to automatically collect printer settings
+				if self._settings.get_boolean(["AutomaticallyObtainSettings"]) :
+					self._settings.set_float(["SpeedLimitEPositive"], self.printerSpeedLimitEPositive)
+			
+			# Otherwise check if data is for speed limit E negative
+			elif "PT:" + str(self.eepromOffsets["speedLimitENegative"]["offset"]) + ' ' in data :
+			
+				# Convert data to float
+				value = int(data[data.find("DT:") + 3 :])
+				data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
+				bytes = struct.pack('4B', *data)
+				value = struct.unpack('f', bytes)[0]
+				
+				if math.isnan(value) :
+					self.printerSpeedLimitENegative = self.get_settings_defaults()["SpeedLimitENegative"]
+				else :
+					self.printerSpeedLimitENegative = round(value, 6)
+				
+				# Check if set to automatically collect printer settings
+				if self._settings.get_boolean(["AutomaticallyObtainSettings"]) :
+					self._settings.set_float(["SpeedLimitENegative"], self.printerSpeedLimitENegative)
+			
 			# Otherwise check if data is for G32 version
 			elif "PT:" + str(self.eepromOffsets["g32Version"]["offset"]) + ' ' in data :
 			
@@ -3194,6 +3353,11 @@ class M3DFioPlugin(
 		softwareBedHeightOffset = self._settings.get_float(["BedHeightOffset"])
 		softwareFilamentTemperature = self._settings.get_int(["FilamentTemperature"])
 		softwareFilamentType = str(self._settings.get(["FilamentType"]))
+		softwareSpeedLimitX = self._settings.get_float(["SpeedLimitX"])
+		softwareSpeedLimitY = self._settings.get_float(["SpeedLimitY"])
+		softwareSpeedLimitZ = self._settings.get_float(["SpeedLimitZ"])
+		softwareSpeedLimitEPositive = self._settings.get_float(["SpeedLimitEPositive"])
+		softwareSpeedLimitENegative = self._settings.get_float(["SpeedLimitENegative"])
 	
 		# Check if backlash Xs differ
 		commandList = []
@@ -3318,6 +3482,46 @@ class M3DFioPlugin(
 			
 			commandList += ["M618 S" + str(self.eepromOffsets["filamentTypeAndLocation"]["offset"]) + " T" + str(self.eepromOffsets["filamentTypeAndLocation"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.eepromOffsets["filamentTypeAndLocation"]["offset"]) + " T" + str(self.eepromOffsets["filamentTypeAndLocation"]["bytes"])]
 		
+		# Check if speed limit Xs differ
+		if hasattr(self, "printerSpeedLimitX") and self.printerSpeedLimitX != softwareSpeedLimitX :
+
+			# Add new value to list
+			packed = struct.pack('f', softwareSpeedLimitX)
+			newValue = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
+			commandList += ["M618 S" + str(self.eepromOffsets["speedLimitX"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitX"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.eepromOffsets["speedLimitX"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitX"]["bytes"])]
+		
+		# Check if speed limit Ys differ
+		if hasattr(self, "printerSpeedLimitY") and self.printerSpeedLimitY != softwareSpeedLimitY :
+
+			# Add new value to list
+			packed = struct.pack('f', softwareSpeedLimitY)
+			newValue = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
+			commandList += ["M618 S" + str(self.eepromOffsets["speedLimitY"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitY"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.eepromOffsets["speedLimitY"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitY"]["bytes"])]
+		
+		# Check if speed limit Zs differ
+		if hasattr(self, "printerSpeedLimitZ") and self.printerSpeedLimitZ != softwareSpeedLimitZ :
+
+			# Add new value to list
+			packed = struct.pack('f', softwareSpeedLimitZ)
+			newValue = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
+			commandList += ["M618 S" + str(self.eepromOffsets["speedLimitZ"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitZ"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.eepromOffsets["speedLimitZ"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitZ"]["bytes"])]
+		
+		# Check if speed limit E positives differ
+		if hasattr(self, "printerSpeedLimitEPositive") and self.printerSpeedLimitEPositive != softwareSpeedLimitEPositive :
+
+			# Add new value to list
+			packed = struct.pack('f', softwareSpeedLimitEPositive)
+			newValue = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
+			commandList += ["M618 S" + str(self.eepromOffsets["speedLimitEPositive"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitEPositive"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.eepromOffsets["speedLimitEPositive"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitEPositive"]["bytes"])]
+		
+		# Check if speed limit E negatives differ
+		if hasattr(self, "printerSpeedLimitENegative") and self.printerSpeedLimitENegative != softwareSpeedLimitENegative :
+
+			# Add new value to list
+			packed = struct.pack('f', softwareSpeedLimitENegative)
+			newValue = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
+			commandList += ["M618 S" + str(self.eepromOffsets["speedLimitENegative"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitENegative"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.eepromOffsets["speedLimitENegative"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitENegative"]["bytes"])]
+		
 		# Return command list
 		return commandList
 	
@@ -3352,7 +3556,12 @@ class M3DFioPlugin(
 			u"BackRightOrientation" : self._settings.get_float(["BackRightOrientation"]),
 			u"PrinterColor" : u'' +  str(self._settings.get(["PrinterColor"])),
 			u"FilamentColor" : u'' +  str(self._settings.get(["FilamentColor"])),
-			u"UseSharedLibrary" : self._settings.get_boolean(["UseSharedLibrary"])
+			u"UseSharedLibrary" : self._settings.get_boolean(["UseSharedLibrary"]),
+			u"SpeedLimitX" : self._settings.get_float(["SpeedLimitX"]),
+			u"SpeedLimitY" : self._settings.get_float(["SpeedLimitY"]),
+			u"SpeedLimitZ" : self._settings.get_float(["SpeedLimitZ"]),
+			u"SpeedLimitEPositive" : self._settings.get_float(["SpeedLimitEPositive"]),
+			u"SpeedLimitENegative" : self._settings.get_float(["SpeedLimitENegative"])
 		}
 		
 		# Save settings
@@ -5241,7 +5450,9 @@ class M3DFioPlugin(
 				comm_instance._log("Failed to autodetect serial port")
 				comm_instance._errorValue = "Failed to autodetect serial port."
 				comm_instance._changeState(comm_instance.STATE_ERROR)
-				eventManager().fire(Events.ERROR, {"error": comm_instance.getErrorString()})
+				
+				# Send message
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Cycle Power"))
 				
 				# Return none
 				return None

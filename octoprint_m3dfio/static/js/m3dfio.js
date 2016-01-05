@@ -26,6 +26,7 @@ $(function() {
 		self.settings = parameters[2];
 		self.files = parameters[3];
 		self.slicing = parameters[4];
+		self.terminal = parameters[5];
 		
 		// Bed dimensions
 		var bedLowMaxX = 113.0;
@@ -260,26 +261,26 @@ $(function() {
 				bytes: 4,
 				color: "rgb(245, 160, 160)"
 			},
-			backlashExpansionXPlus : {
-				name: "Backlash Expansion X Plus",
+			backlashExpansionXPositive : {
+				name: "Backlash Expansion X+",
 				offset: 0x2E,
 				bytes: 4,
 				color: "rgb(200, 255, 200)"
 			},
-			backlashExpansionYLPlus : {
-				name: "Backlash Expansion  YL Plus",
+			backlashExpansionYLPositive : {
+				name: "Backlash Expansion  YL+",
 				offset: 0x32,
 				bytes: 4,
 				color: "rgb(200, 200, 255)"
 			},
-			backlashExpansionYRPlus : {
-				name: "Backlash Expansion YR Plus",
+			backlashExpansionYRPositive : {
+				name: "Backlash Expansion YR+",
 				offset: 0x36,
 				bytes: 4,
 				color: "rgb(255, 200, 255)"
 			},
-			backlashExpansionYRMinus : {
-				name: "Backlash Expansion YR Minus",
+			backlashExpansionYRNegative : {
+				name: "Backlash Expansion YR-",
 				offset: 0x3A,
 				bytes: 4,
 				color: "rgb(255, 255, 200)"
@@ -5721,6 +5722,31 @@ $(function() {
 				showMessage("Message", "It's recommended that you install the <a href=\"https://ultimaker.com/en/products/cura-software/list\" target=\"_blank\">latest Cura 15.04 release</a> to fully utilize M3D Fio's capabilities.", "Ok");
 			}
 			
+			// Otherwise check if data is that a duplicate wait was received
+			else if(data.value == "Duplicate Wait") {
+			
+				// Append part of ellipse to logged wait
+				var command = self.terminal.log.pop();
+				if(command.line.indexOf("wait ") == -1)
+					command.line += ' ';
+				command.line += '.';
+				self.terminal.log.push(command);
+			}
+			
+			// Otherwise check if data is to cycle power
+			else if(data.value == "Cycle Power") {
+			
+				// Ok click event
+				$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+				
+					// Hide message
+					hideMessage();
+				});
+			
+				// Show message
+				showMessage("Message", "No Micro 3D printer detected. Try cycling the printer's power and try again.", "Ok");
+			}
+			
 			// Otherwise check if data is EEPROM
 			else if(data.value == "EEPROM" && typeof data.eeprom !== "undefined") {
 			
@@ -6036,6 +6062,6 @@ $(function() {
 	
 		// Constructor
 		M3DFioViewModel,
-		["printerStateViewModel", "temperatureViewModel", "settingsViewModel", "gcodeFilesViewModel", "slicingViewModel"]
+		["printerStateViewModel", "temperatureViewModel", "settingsViewModel", "gcodeFilesViewModel", "slicingViewModel", "terminalViewModel"]
 	]);
 });

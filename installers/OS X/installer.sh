@@ -28,8 +28,7 @@ else
 		curl -o python.pkg https://www.python.org/ftp/python/${version}/python-${version}-macosx10.6.pkg
 		installer -pkg python.pkg -target /
 		rm python.pkg
-		echo 'export PATH=/Library/Frameworks/Python.framework/Versions/'"$(cut -f1,2 -d'.' <<< ${version})"'/bin:$PATH' >> '/Users/'"$SUDO_USER"'/.bash_profile'
-		source '/Users/'"$SUDO_USER"'/.bash_profile'
+		pythonVersion="$(cut -f1,2 -d'.' <<< ${version})"
 
 		# Install command line tools
 		curl -O 'https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/OS%20X/command%20line%20tools%20installer.bash'
@@ -52,7 +51,7 @@ else
                 except subprocess.CalledProcessError as e:\
                     self.sdk_root = \'"'"'\/\'"'"'/g' setup.py
 
-		python setup.py install
+		/Library/Frameworks/Python.framework/Versions/${pythonVersion}/bin/python setup.py install
 		cd ..
 		rm -rf pyobjc-core-${version}
 
@@ -64,7 +63,7 @@ else
 		tar zxvf pyobjc-framework-Cocoa.tar.gz
 		rm pyobjc-framework-Cocoa.tar.gz
 		cd pyobjc-framework-Cocoa-${version}
-		python setup.py install
+		/Library/Frameworks/Python.framework/Versions/${pythonVersion}/bin/python setup.py install
 		cd ..
 		rm -rf pyobjc-framework-Cocoa-${version}
 		
@@ -72,15 +71,15 @@ else
 		curl -LOk https://github.com/foosel/OctoPrint/archive/master.zip
 		unzip master.zip
 		cd OctoPrint-master
-		python setup.py install
+		/Library/Frameworks/Python.framework/Versions/${pythonVersion}/bin/python setup.py install
 		cd ..
 		rm -rf OctoPrint-master
 		rm master.zip
 
 		# Install M3D Fio
-		echo 'y' | pip uninstall OctoPrint-M3DFio
+		echo 'y' | /Library/Frameworks/Python.framework/Versions/${pythonVersion}/bin/pip uninstall OctoPrint-M3DFio
 		curl -LOk https://github.com/donovan6000/M3D-Fio/archive/master.zip
-		while ! pip install master.zip
+		while ! /Library/Frameworks/Python.framework/Versions/${pythonVersion}/bin/pip install master.zip
 		do
 			:
 		done
@@ -88,7 +87,7 @@ else
 		
 		# Add OctoPrint to startup programs
 		curl -O 'https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/OS%20X/com.octoprint.app.plist'
-		sed -i '' -e 's#/path/to/octoprint#'"$(type octoprint | cut -d' ' -f3)"'#g' com.octoprint.app.plist
+		sed -i '' -e 's/\/path\/to\/octoprint/\/Library\/Frameworks\/Python.framework\/Versions\/'"${pythonVersion}"'\/bin\/octoprint/g' com.octoprint.app.plist
 		mv com.octoprint.app.plist '/Library/LaunchAgents'
 
 		# Create URL link on desktop
