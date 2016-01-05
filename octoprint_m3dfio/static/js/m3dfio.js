@@ -5661,6 +5661,11 @@ $(function() {
 				// Set printer connected
 				printerConnected = true;
 			
+			// Check if data is that a Micro 3D is connected
+			else if(data.value == "Serial Number" && typeof data.serialNumber !== "undefined")
+			
+				$("#navbar_plugin_m3dfio > a").text(data.serialNumber);
+			
 			// Otherwise check if data is that a Micro 3D isn't connected
 			else if(data.value == "Micro 3D Not Connected" && printerConnected) {
 			
@@ -5669,6 +5674,8 @@ $(function() {
 				$("#control > div.jog-panel.advanced").find("div > button").removeClass("current");
 				$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(7)").text("Update firmware to V" + providedFirmware);
 				$("#control > div.jog-panel.eeprom table input").val(eepromDisplayType == "ascii" ? "?" : (eepromDisplayType == "decimal" ? "???" : "??"));
+				
+				$("#navbar_plugin_m3dfio > a").text('');
 			}
 			
 			// Otherwise check if data is that a Micro Pass is connected

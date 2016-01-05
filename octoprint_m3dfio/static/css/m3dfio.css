@@ -57,6 +57,14 @@
 	width: calc(100% - 45px);
 }
 
+#navbar_plugin_m3dfio > a {
+	cursor: default;
+	width: 540px;
+	position: relative;
+	right: 20px;
+	top: 1px;
+}
+
 #control div.jog-panel.extruder > div > div:first-of-type, #control div.jog-panel.extruder > div > div:nth-of-type(3), #control div.jog-panel.extruder > div > button:nth-of-type(3), #control div.jog-panel.controls > div:nth-of-type(4), #control div.jog-panel.controls > button:first-of-type {
 	display: none !important;
 }
