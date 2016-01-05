@@ -18,6 +18,7 @@ $(function() {
 		var currentZ;
 		var viewport = null;
 		var convertedModel = null;
+		var providedFirmware = "2015122112";
 		var self = this;
 		
 		// Get state views
@@ -339,8 +340,8 @@ $(function() {
 				bytes: 4,
 				color: "rgb(200, 200, 200)"
 			},
-			g32Version : {
-				name: "G32 Version",
+			bedOrientationVersion : {
+				name: "Bed Orientation Version",
 				offset: 0x62,
 				bytes: 1,
 				color: "rgb(230, 180, 180)"
@@ -375,8 +376,8 @@ $(function() {
 				bytes: 4,
 				color: "rgb(240, 160, 240)"
 			},
-			g32FirstSample : {
-				name: "G32 First Sample",
+			bedOrientationFirstSample : {
+				name: "Bed Orientation First Sample",
 				offset: 0x106,
 				bytes: 4,
 				color: "rgb(200, 200, 200)"
@@ -2597,6 +2598,11 @@ $(function() {
 		$("#control > div.jog-panel").eq(0).addClass("controls").find("div.distance > div").prepend(`
 			<button type="button" id="control-distance001" class="btn distance" data-distance="0.01" data-bind="enable: loginState.isUser()">0.01</button>
 		`);
+		$("#control-distance001").attr("title", "Sets extruder's position adjustment to 0.01mm");
+		$("#control-distance01").attr("title", "Sets extruder's position adjustment to 0.1mm");
+		$("#control-distance1").attr("title", "Sets extruder's position adjustment to 1mm");
+		$("#control-distance10").attr("title", "Sets extruder's position adjustment to 10mm");
+		$("#control-distance100").attr("title", "Sets extruder's position adjustment to 100mm");
 		$("#control > div.jog-panel.controls").find("div.distance > div > button:nth-of-type(3)").click();
 	
 		// Change tool section text
@@ -2606,22 +2612,23 @@ $(function() {
 
 		// Create motor on control
 		$("#control > div.jog-panel").eq(2).addClass("general").find("div").prepend(`
-			<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M17'}) }">Motors on</button>
+			<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M17'}) }" title="Turns on extruder's motor">Motors on</button>
 		`);
+		$("#control > div.jog-panel.general").find("button:nth-of-type(2)").attr("title", "Turns off extruder's motor");
 		
 		// Change fan controls
 		$("#control > div.jog-panel.general").find("button:nth-of-type(2)").after(`
-			<button class="btn btn-block control-box" data-bind="enable: isOperational() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M106 S255*'}) }">Fan on</button>
-			<button class="btn btn-block control-box" data-bind="enable: isOperational() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M107*'}) }">Fan off</button>
+			<button class="btn btn-block control-box" data-bind="enable: isOperational() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M106 S255*'}) }" title="Turns on extruder's fan">Fan on</button>
+			<button class="btn btn-block control-box" data-bind="enable: isOperational() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M107*'}) }" title="Turns off extruder's fan">Fan off</button>
 		`);
 		$("#control > div.jog-panel.general").find("button:nth-of-type(5)").remove();
 		$("#control > div.jog-panel.general").find("button:nth-of-type(5)").remove();
 		
 		// Create absolute and relative controls and open settings
 		$("#control > div.jog-panel.general").find("div").append(`
-			<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'G90'}) }">Absolute mode</button>
-			<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'G91'}) }">Relative mode</button>
-			<button class="btn btn-block control-box" data-bind="enable: loginState.isUser()">Open Settings</button>
+			<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'G90'}) }" title="Sets extruder to use absolute positioning">Absolute mode</button>
+			<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'G91'}) }" title="Sets extruder to use relative positioning">Relative mode</button>
+			<button class="btn btn-block control-box" data-bind="enable: loginState.isUser()">Open settings</button>
 		`);
 	
 		// Add filament controls
@@ -2669,7 +2676,8 @@ $(function() {
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="/plugin/m3dfio/static/img/Xinyujie.png">Xinyujie fan</button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">500mA extruder current</button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">660mA extruder current</button>
-					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Update firmware</button>
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Update firmware to V` + providedFirmware + `</button>
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Update firmware with file</button>
 					<input type="file" accept=".rom, .bin, .hex">
 				</div>
 			</div>
@@ -2733,7 +2741,7 @@ $(function() {
 				<input style="width: 100px;" data-bind="slider: {min: 100, max: 235, step: 1, value: flowRate, tooltip: 'hide'}" type="number">
 			</div>
 			<button class="btn btn-block control-box" data-bind="enable: isOperational() && loginState.isUser()">Temperature:<span data-bind="text: flowRate() + 50 + '°C'"></span></button>
-			<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M104 S0'}) }">Heater off</button>
+			<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M104 S0'}) }" title="Turns off extruder's heater">Heater off</button>
 			<div class="microPass">
 				<h1 class="microPass">Heat Bed</h1>
 				<div style="width: 114px;" class="slider slider-horizontal">
@@ -2985,7 +2993,7 @@ $(function() {
 						url: API_BASEURL + "plugin/m3dfio",
 						type: "POST",
 						dataType: "json",
-						data: JSON.stringify({command: "message", value: "Remove temp"}),
+						data: JSON.stringify({command: "message", value: "Remove Temp"}),
 						contentType: "application/json; charset=UTF-8"
 					});
 					
@@ -3055,7 +3063,7 @@ $(function() {
 								dataType: "json",
 								data: JSON.stringify({
 									command: "message",
-									value: "View profile: " + JSON.stringify({
+									value: "View Profile: " + JSON.stringify({
 										slicerName: slicerName,
 										slicerProfileName: slicerProfileName,
 										printerProfileName: printerProfileName
@@ -3203,7 +3211,7 @@ $(function() {
 											url: API_BASEURL + "plugin/m3dfio",
 											type: "POST",
 											dataType: "json",
-											data: JSON.stringify({command: "message", value: "View model: " + modelName}),
+											data: JSON.stringify({command: "message", value: "View Model: " + modelName}),
 											contentType: "application/json; charset=UTF-8",
 
 											// On success
@@ -3745,7 +3753,7 @@ $(function() {
 		});
 	
 		// Override X increment control
-		$("#control #control-xinc").click(function(event) {
+		$("#control #control-xinc").attr("title", "Increases extruder's X position by the specified amount").click(function(event) {
 	
 			// Stop default behavior
 			event.stopImmediatePropagation();
@@ -3767,7 +3775,7 @@ $(function() {
 		});
 	
 		// Override X decrement control
-		$("#control #control-xdec").click(function(event) {
+		$("#control #control-xdec").attr("title", "Decreases extruder's X position by the specified amount").click(function(event) {
 	
 			// Stop default behavior
 			event.stopImmediatePropagation();
@@ -3789,7 +3797,7 @@ $(function() {
 		});
 	
 		// Override Y increment control
-		$("#control #control-yinc").click(function(event) {
+		$("#control #control-yinc").attr("title", "Increases extruder's Y position by the specified amount").click(function(event) {
 	
 			// Stop default behavior
 			event.stopImmediatePropagation();
@@ -3811,7 +3819,7 @@ $(function() {
 		});
 	
 		// Override Y decrement control
-		$("#control #control-ydec").click(function(event) {
+		$("#control #control-ydec").attr("title", "Decreases extruder's Y position by the specified amount").click(function(event) {
 	
 			// Stop default behavior
 			event.stopImmediatePropagation();
@@ -3833,7 +3841,7 @@ $(function() {
 		});
 	
 		// Override Z increment control
-		$("#control #control-zinc").click(function(event) {
+		$("#control #control-zinc").attr("title", "Increases extruder's Z position by the specified amount").click(function(event) {
 	
 			// Stop default behavior
 			event.stopImmediatePropagation();
@@ -3855,7 +3863,7 @@ $(function() {
 		});
 	
 		// Override Z decrement control
-		$("#control #control-zdec").click(function(event) {
+		$("#control #control-zdec").attr("title", "Decreases extruder's Z position by the specified amount").click(function(event) {
 	
 			// Stop default behavior
 			event.stopImmediatePropagation();
@@ -3877,7 +3885,7 @@ $(function() {
 		});
 	
 		// Override X Y home control
-		$("#control #control-xyhome").click(function(event) {
+		$("#control #control-xyhome").attr("title", "Set extruder's X position to 54 and Y position to 50").click(function(event) {
 	
 			// Stop default behavior
 			event.stopImmediatePropagation();
@@ -3899,7 +3907,7 @@ $(function() {
 		});
 	
 		// Override Z home control
-		$("#control #control-zhome").click(function(event) {
+		$("#control #control-zhome").attr("title", "Set extruder's Z position to 5").click(function(event) {
 	
 			// Stop default behavior
 			event.stopImmediatePropagation();
@@ -3921,7 +3929,7 @@ $(function() {
 		});
 	
 		// Override extrude control
-		$("#control > div.jog-panel.extruder").find("div > button:first-of-type").click(function(event) {
+		$("#control > div.jog-panel.extruder").find("div > button:first-of-type").attr("title", "Extrudes the specified amount of filament").click(function(event) {
 	
 			// Stop default behavior
 			event.stopImmediatePropagation();
@@ -3943,7 +3951,7 @@ $(function() {
 		});
 	
 		// Override retract control
-		$("#control > div.jog-panel.extruder").find("div > button:nth-of-type(2)").click(function(event) {
+		$("#control > div.jog-panel.extruder").find("div > button:nth-of-type(2)").attr("title", "Retracts the specified amount of filament").click(function(event) {
 	
 			// Stop default behavior
 			event.stopImmediatePropagation();
@@ -3965,7 +3973,7 @@ $(function() {
 		});
 	
 		// Set extruder temperature control
-		$("#control > div.jog-panel.extruder").find("div > button:nth-of-type(4)").click(function(event) {
+		$("#control > div.jog-panel.extruder").find("div > button:nth-of-type(4)").attr("title", "Sets extruder's temperature to the specified amount").click(function(event) {
 			
 			// Check if not printing
 			if(self.printerState.isPrinting() !== true) {
@@ -4028,7 +4036,7 @@ $(function() {
 		});
 		
 		// Set heat bed temperature control
-		$("#control > div.jog-panel.extruder").find("div > div.microPass > button:first-of-type").click(function(event) {
+		$("#control > div.jog-panel.extruder").find("div > div.microPass > button:first-of-type").attr("title", "Sets heat bed's temperature to the specified amount").click(function(event) {
 			
 			// Check if not printing
 			if(self.printerState.isPrinting() !== true) {
@@ -4091,7 +4099,7 @@ $(function() {
 		});
 		
 		// Open settings control
-		$("#control > div.jog-panel.general").find("button:nth-of-type(7)").click(function() {
+		$("#control > div.jog-panel.general").find("button:nth-of-type(7)").attr("title", "Opens settings").click(function() {
 		
 			// Open M3D Fio settings
 			$("#navbar_show_settings").click();
@@ -4100,7 +4108,7 @@ $(function() {
 		});
 	
 		// Set unload filament control
-		$("#control > div.jog-panel.filament").find("div > button:nth-of-type(1)").click(function(event) {
+		$("#control > div.jog-panel.filament").find("div > button:nth-of-type(1)").attr("title", "Unloads filament").click(function(event) {
 			
 			// Show message
 			showMessage("Filament Status", "Warming up");
@@ -4186,7 +4194,7 @@ $(function() {
 		});
 	
 		// Set load filament control
-		$("#control > div.jog-panel.filament").find("div > button:nth-of-type(2)").click(function(event) {
+		$("#control > div.jog-panel.filament").find("div > button:nth-of-type(2)").attr("title", "Loads filament").click(function(event) {
 			
 			// Show message
 			showMessage("Filament Status", "Warming up");
@@ -4272,7 +4280,7 @@ $(function() {
 		});
 	
 		// Set calibrate bed center Z0 control
-		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(1)").click(function(event) {
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(1)").attr("title", "Automatically calibrates the bed's center's Z0").click(function(event) {
 			
 			// Show message
 			showMessage("Calibration Status", "Calibrating bed center Z0");
@@ -4317,7 +4325,7 @@ $(function() {
 		});
 	
 		// Set calibrate bed orientation control
-		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(2)").click(function(event) {
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(2)").attr("title", "Automatically calibrates the bed's orientation").click(function(event) {
 			
 			// Show message
 			showMessage("Calibration Status", "Calibrating bed orientation");
@@ -4368,7 +4376,7 @@ $(function() {
 		});
 	
 		// Set go to front left
-		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(3)").click(function(event) {
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(3)").attr("title", "Positions extruder above the bed's front left corner").click(function(event) {
 		
 			// Set commands
 			var commands = [
@@ -4391,7 +4399,7 @@ $(function() {
 		});
 	
 		// Set go to front right
-		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(5)").click(function(event) {
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(5)").attr("title", "Positions extruder above the bed's front right corner").click(function(event) {
 		
 			// Set commands
 			var commands = [
@@ -4414,7 +4422,7 @@ $(function() {
 		});
 	
 		// Set go to back right
-		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(7)").click(function(event) {
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(7)").attr("title", "Positions extruder above the bed's back right corner").click(function(event) {
 		
 			// Set commands
 			var commands = [
@@ -4437,7 +4445,7 @@ $(function() {
 		});
 	
 		// Set go to back left
-		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(9)").click(function(event) {
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(9)").attr("title", "Positions extruder above the bed's back left corner").click(function(event) {
 		
 			// Set commands
 			var commands = [
@@ -4460,7 +4468,7 @@ $(function() {
 		});
 	
 		// Set save Z as front left Z0 control
-		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(4)").click(function(event) {
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(4)").attr("title", "Saves the extruder's current Z value as the bed's front left corner's Z0").click(function(event) {
 			
 			// Show message
 			showMessage("Saving Status", "Saving Z as front left Z0");
@@ -4519,7 +4527,7 @@ $(function() {
 		});
 	
 		// Set save Z as front right Z0 control
-		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(6)").click(function(event) {
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(6)").attr("title", "Saves the extruder's current Z value as the bed's front right corner's Z0").click(function(event) {
 			
 			// Show message
 			showMessage("Saving Status", "Saving Z as front right Z0");
@@ -4578,7 +4586,7 @@ $(function() {
 		});
 	
 		// Set save Z as back right Z0 control
-		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(8)").click(function(event) {
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(8)").attr("title", "Saves the extruder's current Z value as the bed's back right corner's Z0").click(function(event) {
 			
 			// Show message
 			showMessage("Saving Status", "Saving Z as back right Z0");
@@ -4637,7 +4645,7 @@ $(function() {
 		});
 	
 		// Set save Z as back left Z0 control
-		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(10)").click(function(event) {
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(10)").attr("title", "Saves the extruder's current Z value as the bed's back left corner's Z0").click(function(event) {
 			
 			// Show message
 			showMessage("Saving Status", "Saving Z as back left Z0");
@@ -4696,7 +4704,7 @@ $(function() {
 		});
 		
 		// Set save Z as bed center Z0 control
-		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(11)").click(function(event) {
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(11)").attr("title", "Saves the extruder's current Z value as the bed center's Z0").click(function(event) {
 			
 			// Show message
 			showMessage("Saving Status", "Saving Z as bed center Z0");
@@ -4737,33 +4745,33 @@ $(function() {
 		});
 		
 		// Set print test border control
-		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(12)").click(function(event) {
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(12)").attr("title", "Prints 0.4mm test border").click(function(event) {
 		
 			// Send request
 			$.ajax({
 				url: API_BASEURL + "plugin/m3dfio",
 				type: "POST",
 				dataType: "json",
-				data: JSON.stringify({command: "message", value: "Print test border"}),
+				data: JSON.stringify({command: "message", value: "Print Test Border"}),
 				contentType: "application/json; charset=UTF-8"
 			});
 		});
 		
 		// Set print backlash calibration cylinder control
-		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(13)").click(function(event) {
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(13)").attr("title", "Prints backlash calibration cylinder").click(function(event) {
 		
 			// Send request
 			$.ajax({
 				url: API_BASEURL + "plugin/m3dfio",
 				type: "POST",
 				dataType: "json",
-				data: JSON.stringify({command: "message", value: "Print backlash calibration cylinder"}),
+				data: JSON.stringify({command: "message", value: "Print Backlash Calibration Cylinder"}),
 				contentType: "application/json; charset=UTF-8"
 			});
 		});
 		
 		// Run complete bed calibration control
-		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(14)").click(function(event) {
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(14)").attr("title", "Automatically calibrates the bed's center's Z0, automatically calibrates the bed's orientation, and manually calibrates the Z0 values for the bed's four corners").click(function(event) {
 			
 			// No click event
 			$("body > div.page-container > div.message").find("button.confirm").eq(0).one("click", function() {
@@ -5178,7 +5186,7 @@ $(function() {
 		});
 		
 		// Set HengLiXin fan control
-		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(1)").click(function(event) {
+		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(1)").attr("title", "Sets fan to HengLiXin fan").click(function(event) {
 			
 			// Show message
 			showMessage("Fan Status", "Setting fan to HengLiXin");
@@ -5208,7 +5216,7 @@ $(function() {
 		});
 	
 		// Set Listener fan control
-		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(2)").click(function(event) {
+		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(2)").attr("title", "Sets fan to Listener fan").click(function(event) {
 			
 			// Show message
 			showMessage("Fan Status", "Setting fan to Listener");
@@ -5238,7 +5246,7 @@ $(function() {
 		});
 	
 		// Set Shenzhew fan control
-		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(3)").click(function(event) {
+		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(3)").attr("title", "Sets fan to Shenzhew fan").click(function(event) {
 			
 			// Show message
 			showMessage("Fan Status", "Setting fan to Shenzhew");
@@ -5269,7 +5277,7 @@ $(function() {
 		});
 		
 		// Set Xinyujie fan control
-		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(4)").click(function(event) {
+		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(4)").attr("title", "Sets fan to Xinyujie fan").click(function(event) {
 			
 			// Show message
 			showMessage("Fan Status", "Setting fan to Xinyujie");
@@ -5299,7 +5307,7 @@ $(function() {
 		});
 	
 		// Set 500mA extruder current control
-		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(5)").click(function(event) {
+		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(5)").attr("title", "Sets extruder's current to 500mA").click(function(event) {
 			
 			// Show message
 			showMessage("Extruder Status", "Setting extruder current to 500mA");
@@ -5329,7 +5337,7 @@ $(function() {
 		});
 	
 		// Set 660mA extruder current control
-		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(6)").click(function(event) {
+		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(6)").attr("title", "Sets extruder's current to 660mA").click(function(event) {
 			
 			// Show message
 			showMessage("Extruder Status", "Setting extruder current to 660mA");
@@ -5357,15 +5365,45 @@ $(function() {
 				}
 			});
 		});
+		
+		// Set update firmware to version control
+		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(7)").attr("title", "Updates printer's firmware to V" + providedFirmware).click(function(event) {
+		
+			// Show message
+			showMessage("Firmware Status", "Updating firmware");
 	
-		// Set update firmware control
-		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(7)").click(function(event) {
+			// Send request
+			$.ajax({
+				url: API_BASEURL + "plugin/m3dfio",
+				type: "POST",
+				dataType: "json",
+				data: JSON.stringify({command: "message", value: "Update Firmware To Provided"}),
+				contentType: "application/json; charset=UTF-8",
+	
+				// On success
+				success: function(data) {
+	
+					// Ok click event
+					$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+	
+						// Hide message
+						hideMessage();
+					});
+
+					// Show message
+					showMessage("Firmware Status", data.value == "Ok" ? "Done" : "Failed", "Ok");
+				}
+			});
+		});
+	
+		// Set update firmware with file control
+		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(8)").attr("title", "Updates printer's firmware with a provided file").click(function(event) {
 	
 			// Open file input dialog
 			$("#control > div.jog-panel.advanced").find("div > input").click();
 		});
 		
-		// On update firmware input change
+		// On update firmware with file input change
 		$("#control > div.jog-panel.advanced").find("div > input").change(function(event) {
 	
 			// Initialize variables
@@ -5484,6 +5522,9 @@ $(function() {
 		});
 		
 		// Change EEPROM display control
+		$("#control > div.jog-panel.eeprom").find("input[type=\"radio\"]").eq(0).attr("title", "Displays EEPROM as hexadecimal values");
+		$("#control > div.jog-panel.eeprom").find("input[type=\"radio\"]").eq(1).attr("title", "Displays EEPROM as decimal values");
+		$("#control > div.jog-panel.eeprom").find("input[type=\"radio\"]").eq(2).attr("title", "Displays EEPROM as ASCII values");
 		$("#control > div.jog-panel.eeprom").find("input[type=\"radio\"]").click(function() {
 		
 			// Update EEPROM table
@@ -5494,7 +5535,7 @@ $(function() {
 		});
 		
 		// Read EEPROM control
-		$("#control > div.jog-panel.eeprom").find("div > button:nth-of-type(1)").click(function(event) {
+		$("#control > div.jog-panel.eeprom").find("div > button:nth-of-type(1)").attr("title", "Reads EEPROM from the printer").click(function(event) {
 			
 			// Show message
 			showMessage("EEPROM Status", "Reading EEPROM");
@@ -5524,7 +5565,7 @@ $(function() {
 		});
 		
 		// Write EEPROM control
-		$("#control > div.jog-panel.eeprom").find("div > button:nth-of-type(2)").click(function(event) {
+		$("#control > div.jog-panel.eeprom").find("div > button:nth-of-type(2)").attr("title", "Writes changes to the printer's EEPROM").click(function(event) {
 			
 			// Initialzie EEPROM
 			var eeprom = '';
@@ -5626,7 +5667,7 @@ $(function() {
 				// Clear printer connected
 				printerConnected = false;
 				$("#control > div.jog-panel.advanced").find("div > button").removeClass("current");
-				$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(7)").text("Update firmware");
+				$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(7)").text("Update firmware to V" + providedFirmware);
 				$("#control > div.jog-panel.eeprom table input").val(eepromDisplayType == "ascii" ? "?" : (eepromDisplayType == "decimal" ? "???" : "??"));
 			}
 			
@@ -5771,7 +5812,7 @@ $(function() {
 				// Show current firmware version
 				var firmwareVersion = ((parseInt(data.eeprom[eepromOffsets["firmwareVersion"].offset], 16) << 4) | parseInt(data.eeprom[eepromOffsets["firmwareVersion"].offset + 1], 16)) | (((parseInt(data.eeprom[eepromOffsets["firmwareVersion"].offset + 2], 16) << 4) | parseInt(data.eeprom[eepromOffsets["firmwareVersion"].offset + 3], 16)) << 8) | (((parseInt(data.eeprom[eepromOffsets["firmwareVersion"].offset + 4], 16) << 4) | parseInt(data.eeprom[eepromOffsets["firmwareVersion"].offset + 5], 16)) << 16) | (((parseInt(data.eeprom[eepromOffsets["firmwareVersion"].offset + 6], 16) << 4) | parseInt(data.eeprom[eepromOffsets["firmwareVersion"].offset + 7], 16)) << 24);
 				
-				$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(7)").html("Update firmware<span>Currently Using: " + firmwareVersion + "</span>");
+				$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(7)").html("Update firmware to V" + providedFirmware + "<span>Currently Using: V" + firmwareVersion + "</span>");
 			}
 			
 			// Otherwise check if data is invalid values

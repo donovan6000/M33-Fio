@@ -192,7 +192,7 @@ class M3DFioPlugin(
 				offset = 0x5E,
 				bytes = 4
 			),
-			g32Version = dict(
+			bedOrientationVersion = dict(
 				offset = 0x62,
 				bytes = 1
 			),
@@ -216,7 +216,7 @@ class M3DFioPlugin(
 				offset = 0x76,
 				bytes = 4
 			),
-			g32FirstSample = dict(
+			bedOrientationFirstSample = dict(
 				offset = 0x106,
 				bytes = 4
 			),
@@ -772,7 +772,6 @@ class M3DFioPlugin(
 		# Delete all temporary files
 		path = self.get_plugin_data_folder() + '/'
 		for file in os.listdir(path) :
-		
 			os.remove(path + file)
 		
 		# Restore files
@@ -1011,10 +1010,10 @@ class M3DFioPlugin(
 					return flask.jsonify(dict(value = "Ok"))
 			
 			# Otherwise check if parameter is to print test border or backlash calibration cylinder
-			elif data["value"] == "Print test border" or data["value"] == "Print backlash calibration cylinder" :
+			elif data["value"] == "Print Test Border" or data["value"] == "Print Backlash Calibration Cylinder" :
 			
 				# Set file location and destination
-				if data["value"] == "Print test border" :
+				if data["value"] == "Print Test Border" :
 					location = self._basefolder + "/static/files/test border.gcode"
 					destination = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "test border")
 				else :
@@ -1032,7 +1031,7 @@ class M3DFioPlugin(
 					self.resetPreprocessorSettings()
 				
 					# Set printing type and display message
-					if data["value"] == "Print test border" :
+					if data["value"] == "Print Test Border" :
 						self.printingTestBorder = True
 						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Preparing test border"))
 					else :
@@ -1243,7 +1242,7 @@ class M3DFioPlugin(
 					self.messageResponse = True
 			
 			# Otherwise check if parameter is to view a profile
-			elif data["value"].startswith("View profile:") :
+			elif data["value"].startswith("View Profile:") :
 			
 				# Get values
 				values = json.loads(data["value"][14 :])
@@ -1278,7 +1277,7 @@ class M3DFioPlugin(
 				return flask.jsonify(dict(value = "Ok", path = "/plugin/m3dfio/download/" + destinationName))
 			
 			# Otherwise check if parameter is to view a model
-			elif data["value"].startswith("View model:") :
+			elif data["value"].startswith("View Model:") :
 			
 				# Get file's name and location
 				fileName = data["value"][12 :]
@@ -1306,13 +1305,71 @@ class M3DFioPlugin(
 				return flask.jsonify(dict(value = "Ok", path = "/plugin/m3dfio/download/" + destinationName))
 			
 			# Otherwise check if parameter is to remove temporary files
-			elif data["value"] == "Remove temp" :
+			elif data["value"] == "Remove Temp" :
 			
 				# Delete all temporary files
 				path = self.get_plugin_data_folder() + '/'
 				for file in os.listdir(path) :
-		
 					os.remove(path + file)
+			
+			# Otherwise check if parameter is to update firmware to provided
+			elif data["value"] == "Update Firmware To Provided" :
+			
+				# Initialize variables
+				error = False
+			
+				# Disable printer callbacks
+				self._printer.unregister_callback(self)
+			
+				# Get current printer connection state
+				currentState, currentPort, currentBaudrate, currentProfile = self._printer.get_current_connection()
+			
+				# Switch into bootloader mode
+				self.sendCommands("M115 S628")
+				time.sleep(1)
+			
+				# Set updated port
+				currentPort = self.getPort()
+		
+				# Connect to the printer
+				connection = serial.Serial(currentPort, currentBaudrate, timeout = 20)
+				connection.writeTimeout = 20
+			
+				# Check if getting EEPROM failed
+				if not self.getEeprom(connection) :
+		
+					# Set error
+					error = True
+		
+				# Otherwise
+				else :
+			
+					# Check if updating firmware failed
+					if not self.updateToProvidedFirmware(connection) :
+			
+						# Set error
+						error = True
+				
+					# Otherwise
+					else :
+				
+						# Send new EEPROM
+						self.getEeprom(connection, True)
+			
+				# Close connection
+				connection.close()
+			
+				# Enable printer callbacks
+				self._printer.register_callback(self)
+			
+				# Re-connect
+				self._printer.connect(port = currentPort, baudrate = currentBaudrate, profile = currentProfile)
+			
+				# Send response
+				if error :
+					return flask.jsonify(dict(value = "Error"))
+				else :
+					return flask.jsonify(dict(value = "Ok"))
 		
 		# Otherwise check if command is a file
 		elif command == "file" :
@@ -2945,7 +3002,7 @@ class M3DFioPlugin(
 					"M619 S" + str(self.eepromOffsets["speedLimitZ"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitZ"]["bytes"]),
 					"M619 S" + str(self.eepromOffsets["speedLimitEPositive"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitEPositive"]["bytes"]),
 					"M619 S" + str(self.eepromOffsets["speedLimitENegative"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitENegative"]["bytes"]),
-					"M619 S" + str(self.eepromOffsets["g32Version"]["offset"]) + " T" + str(self.eepromOffsets["g32Version"]["bytes"]),
+					"M619 S" + str(self.eepromOffsets["bedOrientationVersion"]["offset"]) + " T" + str(self.eepromOffsets["bedOrientationVersion"]["bytes"]),
 				])
 		
 		# Otherwise check if data contains valid Z information
@@ -3311,10 +3368,10 @@ class M3DFioPlugin(
 				if self._settings.get_boolean(["AutomaticallyObtainSettings"]) :
 					self._settings.set_float(["SpeedLimitENegative"], self.printerSpeedLimitENegative)
 			
-			# Otherwise check if data is for G32 version
-			elif "PT:" + str(self.eepromOffsets["g32Version"]["offset"]) + ' ' in data :
+			# Otherwise check if data is for bed orientation version
+			elif "PT:" + str(self.eepromOffsets["bedOrientationVersion"]["offset"]) + ' ' in data :
 			
-				# Send invalid bed orientation and calibration question hasn't already been asked
+				# Send invalid bed orientation if calibration question hasn't already been asked
 				if data[data.find("DT:") + 3 :] == '0' and self.calibrateBedOrientation != None :
 				
 					# Set invalid bed orientation
