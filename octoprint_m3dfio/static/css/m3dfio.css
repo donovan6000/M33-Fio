@@ -560,6 +560,11 @@ body > div.page-container > div.message > div > div > div.calibrate > div.distan
 	flex-direction: column;
 }
 
+#slicing_configuration_dialog.model .modal-extra > div.display {
+	bottom: 7px;
+	top: auto;
+}
+
 #slicing_configuration_dialog.model .modal-extra > div.measurements {
 	left: auto;
 	right: auto;
@@ -740,7 +745,7 @@ body > div.page-container > div.message > div > div > div.calibrate > div.distan
 	position: relative;
 }
 
-#slicing_configuration_dialog.model .modal-extra > div > button.disabled.delete, #slicing_configuration_dialog.model .modal-extra > div > button.disabled.clone, #slicing_configuration_dialog.model .modal-extra > div > button.disabled.reset {
+#slicing_configuration_dialog.model .modal-extra > div > button[disabled], #slicing_configuration_dialog.model .modal-extra > div > button.disabled.delete, #slicing_configuration_dialog.model .modal-extra > div > button.disabled.clone, #slicing_configuration_dialog.model .modal-extra > div > button.disabled.reset, #slicing_configuration_dialog.model .modal-extra > div > button.disabled.merge {
 	opacity: 0.5;
 	pointer-events: none;
 }
