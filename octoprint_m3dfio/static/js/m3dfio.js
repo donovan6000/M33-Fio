@@ -763,8 +763,8 @@ $(function() {
 				showMeasurements: false,
 				removeSelectionTimeout: null,
 				savedMatrix: null,
-				cutBox: null,
-				cutBoxOutline: null,
+				cutShape: null,
+				cutShapeOutline: null,
 
 				// Initialize
 				init: function() {
@@ -1314,7 +1314,7 @@ $(function() {
 							case 13 :
 						
 								// Check if cutting models
-								if(viewport.cutBox !== null)
+								if(viewport.cutShape !== null)
 							
 									// Apply cut
 									viewport.applyCut();
@@ -1342,7 +1342,7 @@ $(function() {
 				mouseDownEvent: function(event) {
 
 					// Check if not in cutting models and not clicking on a button or input
-					if(viewport.cutBox === null && !$(event.target).is("button, img, input")) {
+					if(viewport.cutShape === null && !$(event.target).is("button, img, input")) {
 
 						// Initialize variables
 						var raycaster = new THREE.Raycaster();
@@ -1605,11 +1605,11 @@ $(function() {
 						}
 				
 					// Check if cutting models
-					if(viewport.cutBox !== null) {
+					if(viewport.cutShape !== null) {
 
-						// Select cut box
+						// Select cut shape
 						viewport.removeSelection();
-						viewport.transformControls.attach(viewport.cutBox);
+						viewport.transformControls.attach(viewport.cutShape);
 					}
 			
 					// Update boundaries
@@ -1691,12 +1691,12 @@ $(function() {
 				resetModel: function() {
 			
 					// Check if cutting models
-					if(viewport.cutBox !== null) {
+					if(viewport.cutShape !== null) {
 				
-						// Reset cut box's orientation
-						viewport.cutBox.position.set(0, bedHighMaxZ - bedLowMinZ - viewport.models[0].mesh.position.y, 0);
-						viewport.cutBox.rotation.set(0, 0, 0);
-						viewport.cutBox.scale.set(1, 1, 1);
+						// Reset cut shape's orientation
+						viewport.cutShape.position.set(0, bedHighMaxZ - bedLowMinZ - viewport.models[0].mesh.position.y, 0);
+						viewport.cutShape.rotation.set(0, 0, 0);
+						viewport.cutShape.scale.set(1, 1, 1);
 					
 						// Render
 						viewport.render();
@@ -1726,13 +1726,13 @@ $(function() {
 				deleteModel: function() {
 			
 					// Check if cutting models
-					if(viewport.cutBox !== null) {
+					if(viewport.cutShape !== null) {
 				
-						// Remove cut box
-						viewport.scene[0].remove(viewport.cutBox);
-						viewport.scene[0].remove(viewport.cutBoxOutline);
-						viewport.cutBox = null;
-						viewport.cutBoxOutline = null;
+						// Remove cut shape
+						viewport.scene[0].remove(viewport.cutShape);
+						viewport.scene[0].remove(viewport.cutShapeOutline);
+						viewport.cutShape = null;
+						viewport.cutShapeOutline = null;
 					
 						// Deselect button
 						$("#slicing_configuration_dialog .modal-extra button.cut").removeClass("disabled");
@@ -1931,7 +1931,7 @@ $(function() {
 					var model = viewport.transformControls.object;
 				
 					// Check if a showing measurements, a model is currently selected, and not cutting models
-					if(viewport.showMeasurements && model && viewport.cutBox === null) {
+					if(viewport.showMeasurements && model && viewport.cutShape === null) {
 		
 						// Get model's boundary box
 						var boundaryBox = new THREE.Box3().setFromObject(model);
@@ -1986,7 +1986,7 @@ $(function() {
 
 						// Show values
 						$("#slicing_configuration_dialog .modal-extra div.values div").addClass("show").children('p').addClass("show");
-						if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("translate") && viewport.cutBox === null)
+						if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("translate") && viewport.cutShape === null)
 							$("#slicing_configuration_dialog .modal-extra div.values input[name=\"y\"]").parent().removeClass("show");
 
 						// Check if an input is not focused
@@ -2048,17 +2048,17 @@ $(function() {
 							$("#slicing_configuration_dialog .modal-extra button.merge").addClass("disabled");
 						
 						// Check if cutting models
-						if(viewport.cutBox !== null) {
+						if(viewport.cutShape !== null) {
 						
-							// Update cut box's outline's orientation
-							viewport.cutBoxOutline.position.copy(viewport.cutBox.position);
-							viewport.cutBoxOutline.rotation.copy(viewport.cutBox.rotation);
-							viewport.cutBoxOutline.scale.copy(viewport.cutBox.scale);
+							// Update cut shape's outline's orientation
+							viewport.cutShapeOutline.position.copy(viewport.cutShape.position);
+							viewport.cutShapeOutline.rotation.copy(viewport.cutShape.rotation);
+							viewport.cutShapeOutline.scale.copy(viewport.cutShape.scale);
 						}
 					}
 
 					// Otherwise check if not cutting models
-					else if(viewport.cutBox === null) {
+					else if(viewport.cutShape === null) {
 
 						// Disable delete, clone, and reset
 						$("#slicing_configuration_dialog .modal-extra button.delete, #slicing_configuration_dialog .modal-extra button.clone, #slicing_configuration_dialog .modal-extra button.reset").addClass("disabled");
@@ -2597,11 +2597,11 @@ $(function() {
 						var intersections = [];
 						var differences = [];
 				
-						// Update cut box's geometry
-						viewport.cutBox.geometry.applyMatrix(viewport.cutBox.matrix);
-						viewport.cutBox.position.set(0, 0, 0);
-						viewport.cutBox.rotation.set(0, 0, 0);
-						viewport.cutBox.scale.set(1, 1, 1);
+						// Update cut shape's geometry
+						viewport.cutShape.geometry.applyMatrix(viewport.cutShape.matrix);
+						viewport.cutShape.position.set(0, 0, 0);
+						viewport.cutShape.rotation.set(0, 0, 0);
+						viewport.cutShape.scale.set(1, 1, 1);
 			
 						// Go through all models
 						for(var i = 1; i < viewport.models.length; i++) {
@@ -2613,10 +2613,10 @@ $(function() {
 							viewport.models[i].mesh.scale.set(1, 1, 1);
 				
 							// Create difference and intersection meshes
-							var cutBoxBsp = new ThreeBSP(viewport.cutBox);
+							var cutShapeBsp = new ThreeBSP(viewport.cutShape);
 							var modelBsp = new ThreeBSP(viewport.models[i].mesh);
-							var meshDifference = modelBsp.subtract(cutBoxBsp).toMesh(new THREE.MeshLambertMaterial(filamentMaterials["white"]));
-							var meshIntersection = modelBsp.intersect(cutBoxBsp).toMesh(new THREE.MeshLambertMaterial(filamentMaterials["white"]));
+							var meshDifference = modelBsp.subtract(cutShapeBsp).toMesh(new THREE.MeshLambertMaterial(filamentMaterials["white"]));
+							var meshIntersection = modelBsp.intersect(cutShapeBsp).toMesh(new THREE.MeshLambertMaterial(filamentMaterials["white"]));
 				
 							// Delete model
 							viewport.scene[0].remove(viewport.models[i].mesh);
@@ -2662,11 +2662,11 @@ $(function() {
 							}
 						}
 				
-						// Remove cut box
-						viewport.scene[0].remove(viewport.cutBox);
-						viewport.scene[0].remove(viewport.cutBoxOutline);
-						viewport.cutBox = null;
-						viewport.cutBoxOutline = null;
+						// Remove cut shape
+						viewport.scene[0].remove(viewport.cutShape);
+						viewport.scene[0].remove(viewport.cutShapeOutline);
+						viewport.cutShape = null;
+						viewport.cutShapeOutline = null;
 						viewport.transformControls.detach();
 						viewport.transformControls.setAllowedTranslation("XZ");
 				
@@ -2808,6 +2808,64 @@ $(function() {
 							$("#slicing_configuration_dialog .modal-cover").css("z-index", '');
 						}, 200);
 					}, 300);
+				},
+				
+				// Line geometry
+				lineGeometry: function(geometry) {
+			
+					// Create line geometry
+					var lineGeometry = new THREE.Geometry();
+				
+					// Go through all geometry's quads
+					for(var i = 0; i < geometry.faces.length - 1; i += 2) {
+				
+						// Get quad's vertices
+						var quadVertices = [];
+						quadVertices[0] = geometry.vertices[geometry.faces[i].a].clone();
+						quadVertices[1] = geometry.vertices[geometry.faces[i].b].clone();
+						quadVertices[2] = geometry.vertices[geometry.faces[i + 1].b].clone();
+						quadVertices[3] = geometry.vertices[geometry.faces[i + 1].c].clone();
+						quadVertices[4] = quadVertices[0];
+					
+						// Check if first quad
+						if(!lineGeometry.vertices.length) {
+					
+							// Append quad's vertices to line geometry
+							for(var j = 0; j < 4; j++)
+								lineGeometry.vertices.push(quadVertices[j], quadVertices[j + 1]);
+						}
+					
+						// Otherwise
+						else {
+					
+							// Go through all quad's vertecies
+							for(var j = 0; j < 4; j++)
+					
+								// Go through all line geometry's vertecies
+								for(var k = 0; k < lineGeometry.vertices.length - 1; k += 2) {
+							
+									// Check if line exists
+									if((lineGeometry.vertices[k].equals(quadVertices[j]) && lineGeometry.vertices[k + 1].equals(quadVertices[j + 1])) || (lineGeometry.vertices[k].equals(quadVertices[j + 1]) && lineGeometry.vertices[k + 1].equals(quadVertices[j])))
+								
+										// Break
+										break;
+								
+									// Check if line doesn't exists
+									if(k == lineGeometry.vertices.length - 2) {
+								
+										// Append quad's vertices to line geometry
+										lineGeometry.vertices.push(quadVertices[j], quadVertices[j + 1]);
+										break;
+									}
+								}
+						}
+					}
+				
+					// Compute line distance
+					lineGeometry.computeLineDistances();
+				
+					// Return line geometry
+					return lineGeometry;
 				},
 
 				// Render
@@ -3824,75 +3882,41 @@ $(function() {
 																	$("#slicing_configuration_dialog .modal-extra button.cut").click(function() {
 				
 																		// Check if not cutting models
-																		if(viewport.cutBox === null) {
+																		if(viewport.cutShape === null) {
 					
 																			// Select button
 																			$(this).addClass("disabled");
 						
 																			// Disable import and clone buttons
 																			$("#slicing_configuration_dialog .modal-extra button.import, #slicing_configuration_dialog .modal-extra button.clone").prop("disabled", true);
-				
-																			// Create outline geometry
-																			var outlineGeometry = new THREE.Geometry();
-																			var size = 50 * 0.5;
-																			outlineGeometry.vertices.push(
-																				new THREE.Vector3(-size, -size, -size),
-																				new THREE.Vector3(-size, size, -size),
-																				new THREE.Vector3(-size, size, -size),
-																				new THREE.Vector3(size, size, -size),
-																				new THREE.Vector3(size, size, -size),
-																				new THREE.Vector3(size, -size, -size),
-																				new THREE.Vector3(size, -size, -size),
-																				new THREE.Vector3(-size, -size, -size),
-																				new THREE.Vector3(-size, -size, size),
-																				new THREE.Vector3(-size, size, size),
-																				new THREE.Vector3(-size, size, size),
-																				new THREE.Vector3(size, size, size),
-																				new THREE.Vector3(size, size, size),
-																				new THREE.Vector3(size, -size, size),
-																				new THREE.Vector3(size, -size, size),
-																				new THREE.Vector3(-size, -size, size),
-																				new THREE.Vector3(-size, -size, -size),
-																				new THREE.Vector3(-size, -size, size),
-																				new THREE.Vector3(-size, size, -size),
-																				new THREE.Vector3(-size, size, size),
-																				new THREE.Vector3(size, size, -size),
-																				new THREE.Vector3(size, size, size),
-																				new THREE.Vector3(size, -size, -size),
-																				new THREE.Vector3(size, -size, size)
-																			);
 																			
-																			// Compute line distannce
-																			outlineGeometry.computeLineDistances();
-																			
-																			// Create cut box
-																			viewport.cutBoxOutline = new THREE.LineSegments(outlineGeometry, new THREE.LineDashedMaterial({
-																				color: 0xffaa00,
-																				dashSize: 3,
-																				gapSize: 1,
-																				linewidth: 2
-																			}));
-																			
-																			// Create cut box
-																			viewport.cutBox = new THREE.Mesh(new THREE.CubeGeometry(50, 50, 50), new THREE.MeshBasicMaterial({
-																				//map: map,
+																			// Create cut shape
+																			viewport.cutShape = new THREE.Mesh(new THREE.CubeGeometry(50, 50, 50), new THREE.MeshBasicMaterial({
 																				color: 0xCCCCCC,
 																				transparent: true,
 																				opacity: 0.1,
 																				side: THREE.DoubleSide,
 																				depthWrite: false
 																			}));
-																			viewport.cutBox.position.set(0, bedHighMaxZ - bedLowMinZ - viewport.models[0].mesh.position.y, 0);
-																			viewport.cutBox.rotation.set(0, 0, 0);
+																			viewport.cutShape.position.set(0, bedHighMaxZ - bedLowMinZ - viewport.models[0].mesh.position.y, 0);
+																			viewport.cutShape.rotation.set(0, 0, 0);
 																			
-																			// Add cut box to scene
-																			viewport.scene[0].add(viewport.cutBox);
-																			viewport.scene[0].add(viewport.cutBoxOutline);
+																			// Create cut shape outline
+																			viewport.cutShapeOutline = new THREE.LineSegments(viewport.lineGeometry(viewport.cutShape.geometry), new THREE.LineDashedMaterial({
+																				color: 0xffaa00,
+																				dashSize: 3,
+																				gapSize: 1,
+																				linewidth: 2
+																			}));
+																			
+																			// Add cut shape and outline to scene
+																			viewport.scene[0].add(viewport.cutShape);
+																			viewport.scene[0].add(viewport.cutShapeOutline);
 					
-																			// Select cut box
+																			// Select cut shape
 																			viewport.removeSelection();
 																			viewport.transformControls.setAllowedTranslation("XYZ");
-																			viewport.transformControls.attach(viewport.cutBox);
+																			viewport.transformControls.attach(viewport.cutShape);
 					
 																			// Update model changes
 																			viewport.updateModelChanges();
