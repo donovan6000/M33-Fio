@@ -2217,6 +2217,9 @@ class M3DFioPlugin(
 		
 		# Otherwise check if client connects
 		elif event == octoprint.events.Events.CLIENT_OPENED :
+		
+			# Send provided firmware version
+			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Provided Firmware", version = self.providedFirmware))
 			
 			# Check if EEPROM was read
 			if self.eeprom :
@@ -5349,7 +5352,13 @@ class M3DFioPlugin(
 	def upload(self):
 		
 		# Check if uploading everything
-		if "Model Name" in flask.request.values and "Slicer Profile Name" in flask.request.values and "Slicer Name" in flask.request.values and "Model Content" in flask.request.values and "Printer Profile Name" in flask.request.values and "Slicer Profile Content" in flask.request.values :
+		if "Model Name" in flask.request.values and "Slicer Profile Name" in flask.request.values and "Slicer Name" in flask.request.values and "Model Content" in flask.request.values and "Printer Profile Name" in flask.request.values and "Slicer Profile Content" in flask.request.values and "After Slicing Action" in flask.request.values :
+		
+			# Check if printing after slicing and a printer isn't connected
+			if flask.request.values["After Slicing Action"] != "none" and self._printer.get_state_string() == "Offline" :
+			
+				# Return error
+				return flask.jsonify(dict(value = "Error"))
 	
 			# Check if slicer profile or model name contain path traversal
 			if "../" in flask.request.values["Slicer Profile Name"] or "../" in flask.request.values["Model Name"] :
@@ -5360,7 +5369,6 @@ class M3DFioPlugin(
 			# Get file locations
 			profileLocation = self._slicing_manager.get_profile_path(flask.request.values["Slicer Name"], flask.request.values["Slicer Profile Name"])
 			modelLocation = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, flask.request.values["Model Name"])
-		
 		
 			# Check if slicer profile, model, or printer profile doesn't exist
 			if not os.path.isfile(profileLocation) or not os.path.isfile(modelLocation) or not self._printer_profile_manager.exists(flask.request.values["Printer Profile Name"]) :

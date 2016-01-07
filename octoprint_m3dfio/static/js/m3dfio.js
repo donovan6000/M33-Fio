@@ -14,11 +14,12 @@ $(function() {
 		var slicerProfileName;
 		var slicerProfileContent;
 		var printerProfileName;
+		var afterSlicingAction;
 		var modelCenter = [0, 0];
 		var currentZ;
 		var viewport = null;
 		var convertedModel = null;
-		var providedFirmware = "2015122112";
+		var providedFirmware;
 		var self = this;
 		
 		// Get state views
@@ -2987,7 +2988,7 @@ $(function() {
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="/plugin/m3dfio/static/img/Xinyujie.png">Xinyujie fan</button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">500mA extruder current</button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">660mA extruder current</button>
-					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Update firmware to V` + providedFirmware + `</button>
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Update firmware to provided</button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Update firmware with file</button>
 					<input type="file" accept=".rom, .bin, .hex">
 				</div>
@@ -3352,12 +3353,13 @@ $(function() {
 					// Disable button
 					button.addClass("disabled");
 					
-					// Get slicer, slicer profile, printer profile, and model name
+					// Get slicer, slicer profile, printer profile, model name, and after slicing action
 					slicerName = $("#slicing_configuration_dialog").find(".control-group:nth-of-type(1) select").val();
 					slicerProfileName = $("#slicing_configuration_dialog").find(".control-group:nth-of-type(2) select").val();
 					printerProfileName = $("#slicing_configuration_dialog").find(".control-group:nth-of-type(3) select").val();
 					modelName = $("#slicing_configuration_dialog").find("h3").text();
 					modelName = modelName.substr(modelName.indexOf(' ') + 1);
+					afterSlicingAction = $("#slicing_configuration_dialog").find(".control-group:nth-of-type(5) select").val();
 					
 					// Check if slicer menu is select profile
 					if(slicerMenu == "Select Profile") {
@@ -4074,6 +4076,10 @@ $(function() {
 									{
 										name: "Printer Profile Name",
 										value: printerProfileName
+									},
+									{
+										name: "After Slicing Action",
+										value: afterSlicingAction
 									}
 								];
 		
@@ -5777,7 +5783,7 @@ $(function() {
 		});
 		
 		// Set update firmware to version control
-		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(7)").attr("title", "Updates printer's firmware to V" + providedFirmware).click(function(event) {
+		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(7)").click(function(event) {
 		
 			// Show message
 			showMessage("Firmware Status", "Updating firmware");
@@ -6203,6 +6209,16 @@ $(function() {
 			
 				// Show message
 				showMessage("Message", "No Micro 3D printer detected. Try cycling the printer's power and try again.", "Ok");
+			}
+			
+			// Otherwise check if data is provided firmware
+			else if(data.value == "Provided Firmware" && typeof data.version !== "undefined") {
+			
+				// Set provided firmware
+				providedFirmware = data.version;
+				
+				// Set button text and title
+				$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(7)").text("Update firmware to V" + providedFirmware).attr("title", "Updates printer's firmware to V" + providedFirmware);
 			}
 			
 			// Otherwise check if data is EEPROM
