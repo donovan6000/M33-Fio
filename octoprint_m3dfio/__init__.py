@@ -2101,6 +2101,10 @@ class M3DFioPlugin(
 				if gcode.hasValue('N') :
 					self.sentCommands[int(gcode.getValue('N'))] = data
 				
+				output = open("/home/donovan6000/Programming/output.txt", "ab");
+				output.write(gcode.getAscii() + '\n');
+				output.close();
+				
 				# Get the command's binary representation
 				data = gcode.getBinary()
 			
@@ -2966,11 +2970,13 @@ class M3DFioPlugin(
 									time.sleep(0.01)
 						
 					# Otherwise check if firmware is outdated
-					elif not error and firmwareVersion < int(self.providedFirmware) :
+					#elif not error and firmwareVersion < int(self.providedFirmware) :
+					elif not error and firmwareVersion != int(self.providedFirmware) :
 					
 						# Set if firmware is incompatible
+						#incompatible = firmwareVersion < 2015102303
 						incompatible = firmwareVersion != 2015102303
-					
+						
 						# Display message
 						self.messageResponse = None
 						if incompatible :
