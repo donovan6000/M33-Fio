@@ -2101,10 +2101,6 @@ class M3DFioPlugin(
 				if gcode.hasValue('N') :
 					self.sentCommands[int(gcode.getValue('N'))] = data
 				
-				output = open("/home/donovan6000/Programming/output.txt", "ab");
-				output.write(gcode.getAscii() + '\n');
-				output.close();
-				
 				# Get the command's binary representation
 				data = gcode.getBinary()
 			
