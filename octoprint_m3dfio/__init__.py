@@ -4301,8 +4301,8 @@ class M3DFioPlugin(
 							# Adjust Y value
 							gcode.setValue('Y', "%f" % (float(gcode.getValue('Y')) + self.displacementY))
 
-			# Check if not printing test border or backlash calibration cylinder and using validation pre-processor
-			if not self.printingTestBorder and not self.printingBacklashCalibrationCylinder and self._settings.get_boolean(["UseValidationPreprocessor"]) and "VALIDATION" not in command.skip :
+			# Check if printing test border or backlash calibration cylinder or using validation pre-processor
+			if (self.printingTestBorder or self.printingBacklashCalibrationCylinder or self._settings.get_boolean(["UseValidationPreprocessor"])) and "VALIDATION" not in command.skip :
 
 				# Check if command contains valid G-code
 				if not gcode.isEmpty() :
@@ -4341,87 +4341,69 @@ class M3DFioPlugin(
 					# Initialize new commands
 					newCommands = []
 					
-					# Check if printing backlash calibration cylinder
-					if self.printingBacklashCalibrationCylinder :
-					
-						# Add intro to output
-						newCommands.append(Command("G90", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("M104 S" + str(self._settings.get_int(["FilamentTemperature"])), "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G28", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G0 Z2 F48", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("M109 S" + str(self._settings.get_int(["FilamentTemperature"])), "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					# Check if not printing test border
+					cornerX = cornerY = 0
+					if not self.printingTestBorder :
+
+						# Set corner X
+						if self.maxXExtruderLow < self.bedLowMaxX :
+							cornerX = (self.bedLowMaxX - self.bedLowMinX) / 2
+						elif self.minXExtruderLow > self.bedLowMinX :
+							cornerX = -(self.bedLowMaxX - self.bedLowMinX) / 2
+
+						# Set corner Y
+						if self.maxYExtruderLow < self.bedLowMaxY :
+							cornerY = (self.bedLowMaxY - self.bedLowMinY - 10) / 2
+						elif self.minYExtruderLow > self.bedLowMinY :
+							cornerY = -(self.bedLowMaxY - self.bedLowMinY - 10) / 2
+				
+					# Add intro to output
+					if str(self._settings.get(["FilamentType"])) == "PLA" or str(self._settings.get(["FilamentType"])) == "FLX" or str(self._settings.get(["FilamentType"])) == "TGH" :
+						newCommands.append(Command("M106 S255", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					else :
+						newCommands.append(Command("M106 S50", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("M17", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G90", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("M104 S" + str(self._settings.get_int(["FilamentTemperature"])), "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G0 Z5 F48", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G28", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+
+					# Add heat bed command if using Micro Pass
+					if self.usingMicroPass :
 						if str(self._settings.get(["FilamentType"])) == "PLA" :
-							newCommands.append(Command("M106 S255", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+							newCommands.append(Command("M190 S70", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 						else :
-							newCommands.append(Command("M106 S1", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G0 F1800", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					
+							newCommands.append(Command("M190 S80", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+
+					# Check if one of the corners wasn't set
+					if cornerX == 0 or cornerY == 0 :
+
+						# Prepare extruder the standard way
+						newCommands.append(Command("M18", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M109 S" + str(self._settings.get_int(["FilamentTemperature"])), "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G4 S2", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M17", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G91","PREPARATION",  "CENTER VALIDATION PREPARATION"))
+
 					# Otherwise
 					else :
-			
-						# Check if not printing test border
-						cornerX = cornerY = 0
-						if not self.printingTestBorder :
 
-							# Set corner X
-							if self.maxXExtruderLow < self.bedLowMaxX :
-								cornerX = (self.bedLowMaxX - self.bedLowMinX) / 2
-							elif self.minXExtruderLow > self.bedLowMinX :
-								cornerX = -(self.bedLowMaxX - self.bedLowMinX) / 2
-
-							# Set corner Y
-							if self.maxYExtruderLow < self.bedLowMaxY :
-								cornerY = (self.bedLowMaxY - self.bedLowMinY - 10) / 2
-							elif self.minYExtruderLow > self.bedLowMinY :
-								cornerY = -(self.bedLowMaxY - self.bedLowMinY - 10) / 2
-					
-						# Add intro to output
-						if str(self._settings.get(["FilamentType"])) == "PLA" or str(self._settings.get(["FilamentType"])) == "FLX" or str(self._settings.get(["FilamentType"])) == "TGH" :
-							newCommands.append(Command("M106 S255", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						else :
-							newCommands.append(Command("M106 S50", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						# Prepare extruder by leaving excess at corner
+						newCommands.append(Command("G91", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G0 X%f Y%f F1800" % (-cornerX, -cornerY), "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M18", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M109 S" + str(self._settings.get_int(["FilamentTemperature"])), "PREPARATION", "CENTER VALIDATION PREPARATION"))
 						newCommands.append(Command("M17", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G90", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("M104 S" + str(self._settings.get_int(["FilamentTemperature"])), "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G0 Z5 F48", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G28", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G0 Z-4 F48", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G0 E7.5 F360", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G4 S3", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G0 X%f Y%f Z-0.999 F400" % ((cornerX * 0.1), (cornerY * 0.1)), "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G0 X%f Y%f F1000" % ((cornerX * 0.9), (cornerY * 0.9)), "PREPARATION", "CENTER VALIDATION PREPARATION"))
 
-						# Add heat bed command if using Micro Pass
-						if self.usingMicroPass :
-							if str(self._settings.get(["FilamentType"])) == "PLA" :
-								newCommands.append(Command("M190 S70", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-							else :
-								newCommands.append(Command("M190 S80", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-
-						# Check if one of the corners wasn't set
-						if cornerX == 0 or cornerY == 0 :
-
-							# Prepare extruder the standard way
-							newCommands.append(Command("M18", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-							newCommands.append(Command("M109 S" + str(self._settings.get_int(["FilamentTemperature"])), "PREPARATION", "CENTER VALIDATION PREPARATION"))
-							newCommands.append(Command("G4 S2", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-							newCommands.append(Command("M17", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-							newCommands.append(Command("G91","PREPARATION",  "CENTER VALIDATION PREPARATION"))
-
-						# Otherwise
-						else :
-
-							# Prepare extruder by leaving excess at corner
-							newCommands.append(Command("G91", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-							newCommands.append(Command("G0 X%f Y%f F1800" % (-cornerX, -cornerY), "PREPARATION", "CENTER VALIDATION PREPARATION"))
-							newCommands.append(Command("M18", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-							newCommands.append(Command("M109 S" + str(self._settings.get_int(["FilamentTemperature"])), "PREPARATION", "CENTER VALIDATION PREPARATION"))
-							newCommands.append(Command("M17", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-							newCommands.append(Command("G0 Z-4 F48", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-							newCommands.append(Command("G0 E7.5 F360", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-							newCommands.append(Command("G4 S3", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-							newCommands.append(Command("G0 X%f Y%f Z-0.999 F400" % ((cornerX * 0.1), (cornerY * 0.1)), "PREPARATION", "CENTER VALIDATION PREPARATION"))
-							newCommands.append(Command("G0 X%f Y%f F1000" % ((cornerX * 0.9), (cornerY * 0.9)), "PREPARATION", "CENTER VALIDATION PREPARATION"))
-
-						newCommands.append(Command("G92 E0", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G90", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G0 Z0.4 F48", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G0 F1800", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G92 E0", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G90", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G0 Z0.4 F48", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G0 F1800", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 			
 					# Finish processing command later
 					if not gcode.isEmpty() :
@@ -4445,33 +4427,24 @@ class M3DFioPlugin(
 					# Initialize new commands
 					newCommands = []
 					
-					# Check if printing backlash calibration cylinder
-					if self.printingBacklashCalibrationCylinder :
-					
-						# Add outro to output
-						newCommands.append(Command("M104 S0", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					
-					# Otherwise
-					else :
+					# Add outro to output
+					newCommands.append(Command("G91", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G0 X5 Y5 E-1 F1800", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G0 E-8 F360", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("M104 S0", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 
-						# Add outro to output
-						newCommands.append(Command("G91", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G0 X5 Y5 E-1 F1800", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G0 E-8 F360", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("M104 S0", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					if self.usingMicroPass :
+						newCommands.append(Command("M140 S0", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 
-						if self.usingMicroPass :
-							newCommands.append(Command("M140 S0", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-
-						if self.maxZExtruder > 60 :
-							if self.maxZExtruder < 110 :
-								newCommands.append(Command("G0 Z3 F90", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-							newCommands.append(Command("G90", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-							newCommands.append(Command("G0 X90 Y84 F1800", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						else :
+					if self.maxZExtruder > 60 :
+						if self.maxZExtruder < 110 :
 							newCommands.append(Command("G0 Z3 F90", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-							newCommands.append(Command("G90", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-							newCommands.append(Command("G0 X95 Y95 F1800", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G90", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G0 X90 Y84 F1800", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					else :
+						newCommands.append(Command("G0 Z3 F90", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G90", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G0 X95 Y95 F1800", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 
 					newCommands.append(Command("M18", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 					newCommands.append(Command("M107", "PREPARATION", "CENTER VALIDATION PREPARATION"))
@@ -4748,8 +4721,8 @@ class M3DFioPlugin(
 					# Get next command
 					continue
 
-			# Check if not printing a backlash calibration cylinder and printing test border or using thermal bonding pre-processor
-			if not self.printingBacklashCalibrationCylinder and (self.printingTestBorder or self._settings.get_boolean(["UseThermalBondingPreprocessor"])) and "THERMAL" not in command.skip :
+			# Check if printing test border or backlash calibration cylinder or using thermal bonding pre-processor
+			if (self.printingTestBorder or self.printingBacklashCalibrationCylinder or self._settings.get_boolean(["UseThermalBondingPreprocessor"])) and "THERMAL" not in command.skip :
 	
 				# Initialize new commands
 				newCommands = []
@@ -4874,8 +4847,8 @@ class M3DFioPlugin(
 					# Get next command
 					continue
 
-			# Check if not printing a backlash calibration cylinder and printing test border or using bed compensation pre-processor
-			if not self.printingBacklashCalibrationCylinder and (self.printingTestBorder or self._settings.get_boolean(["UseBedCompensationPreprocessor"])) and "BED" not in command.skip :
+			# Check if printing test border or backlash calibration cylinder or using bed compensation pre-processor
+			if (self.printingTestBorder or self.printingBacklashCalibrationCylinder or self._settings.get_boolean(["UseBedCompensationPreprocessor"])) and "BED" not in command.skip :
 	
 				# Initialize new commands
 				newCommands = []
@@ -5133,8 +5106,8 @@ class M3DFioPlugin(
 					# Get next command
 					continue
 
-			# Check if not printing a backlash calibration cylinder and printing test border or using backlash compentation pre-processor
-			if not self.printingBacklashCalibrationCylinder and (self.printingTestBorder or self._settings.get_boolean(["UseBacklashCompensationPreprocessor"])) and "BACKLASH" not in command.skip :
+			# Check if printing test border or backlash calibration cylinder or using backlash compentation pre-processor
+			if (self.printingTestBorder or self.printingBacklashCalibrationCylinder or self._settings.get_boolean(["UseBacklashCompensationPreprocessor"])) and "BACKLASH" not in command.skip :
 	
 				# Initialize new commands
 				newCommands = []

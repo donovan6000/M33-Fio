@@ -778,7 +778,7 @@ $(function() {
 					var VIEW_ANGLE = 45, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 0.1, FAR = 20000;
 					this.camera = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
 					this.scene[0].add(this.camera);
-					this.camera.position.set(0, 0, -340);
+					this.camera.position.set(0, 50, -340);
 					this.camera.lookAt(new THREE.Vector3(0, 0, 0));
 
 					// Create renderer
@@ -794,7 +794,7 @@ $(function() {
 					this.orbitControls.minDistance = 200;
 					this.orbitControls.maxDistance = 500;
 					this.orbitControls.minPolarAngle = 0;
-					this.orbitControls.maxPolarAngle = Math.PI / 2;
+					this.orbitControls.maxPolarAngle = THREE.Math.degToRad(100);
 					this.orbitControls.enablePan = false;
 	
 					this.transformControls = new THREE.TransformControls(this.camera, this.renderer.domElement);
@@ -1228,47 +1228,67 @@ $(function() {
 		
 								// Prevent default action
 								event.preventDefault();
+								
+								// Check if not cutting models
+								if(viewport.cutShape === null) {
 	
-								// Check if an object is selected
-								if(viewport.transformControls.object) {
+									// Check if an object is selected
+									if(viewport.transformControls.object) {
 		
-									// Go through all models
-									for(var i = 1; i < viewport.models.length; i++)
+										// Go through all models
+										for(var i = 1; i < viewport.models.length; i++)
 			
-										// Check if model is currently selected
-										if(viewport.models[i].mesh == viewport.transformControls.object) {
+											// Check if model is currently selected
+											if(viewport.models[i].mesh == viewport.transformControls.object) {
 								
-											// Check if shift isn't pressed
-											if(!event.shiftKey)
+												// Check if shift isn't pressed
+												if(!event.shiftKey)
 									
-												// Remove selection
-												viewport.removeSelection();
+													// Remove selection
+													viewport.removeSelection();
 								
-											// Check if model isn't the last one
-											if(i != viewport.models.length - 1)
+												// Check if model isn't the last one
+												if(i != viewport.models.length - 1)
 									
-												// Select next model
-												viewport.selectModel(viewport.models[i + 1].mesh);
+													// Select next model
+													viewport.selectModel(viewport.models[i + 1].mesh);
 									
-											// Otherwise
-											else
+												// Otherwise
+												else
 									
-												// Select first model
-												viewport.selectModel(viewport.models[1].mesh);
+													// Select first model
+													viewport.selectModel(viewport.models[1].mesh);
 					
-											// Break
-											break;
-										}
-								}
+												// Break
+												break;
+											}
+									}
 				
-								// Otherwise check if a model exists
-								else if(viewport.models.length > 1)
+									// Otherwise check if a model exists
+									else if(viewport.models.length > 1)
 			
-									// Select first model
-									viewport.selectModel(viewport.models[1].mesh);
-				
-								// Render
-								viewport.render();
+										// Select first model
+										viewport.selectModel(viewport.models[1].mesh);
+									
+									// Render
+									viewport.render();
+								}
+								
+								// Otherwise
+								else {
+								
+									// Check if cut chape is a cube
+									if(viewport.cutShape.geometry.type == "BoxGeometry")
+									
+										// Change cut shape to a sphere
+										viewport.setCutShape("sphere");
+									
+									// Otherwise check if cut shape is a sphere
+									else if(viewport.cutShape.geometry.type == "SphereGeometry")
+									
+										// Change cut shape to a sube
+										viewport.setCutShape("cube");
+								}
 							break;
 	
 							// Check if delete was pressed
@@ -1697,13 +1717,10 @@ $(function() {
 						viewport.cutShape.position.set(0, bedHighMaxZ - bedLowMinZ - viewport.models[0].mesh.position.y, 0);
 						viewport.cutShape.rotation.set(0, 0, 0);
 						viewport.cutShape.scale.set(1, 1, 1);
-					
-						// Render
-						viewport.render();
 					}
 				
 					// Otherwise
-					else {
+					else
 			
 						// Go through all models
 						for(var i = 1; i < viewport.models.length; i++)
@@ -1716,10 +1733,9 @@ $(function() {
 								viewport.models[i].mesh.rotation.set(0, 0, 0);
 								viewport.models[i].mesh.scale.set(1, 1, 1);
 							}
-		
-						// Fix model's Y
-						viewport.fixModelY();
-					}
+					
+					// Fix model's Y
+					viewport.fixModelY();
 				},
 	
 				// Delete model
@@ -1739,6 +1755,9 @@ $(function() {
 					
 						// Enable import and clone buttons
 						$("#slicing_configuration_dialog .modal-extra button.import, #slicing_configuration_dialog .modal-extra button.clone").prop("disabled", false);
+						
+						// Hide cut shape options
+						$("#slicing_configuration_dialog .modal-extra div.cutShape").removeClass("show");
 					}
 				
 					// Otherwise
@@ -2592,10 +2611,17 @@ $(function() {
 				
 						// Enable import and clone buttons
 						$("#slicing_configuration_dialog .modal-extra button.import, #slicing_configuration_dialog .modal-extra button.clone").prop("disabled", false);
+						
+						// Hide cut shape options
+						$("#slicing_configuration_dialog .modal-extra div.cutShape").removeClass("show");
 			
 						// Initialize variables
 						var intersections = [];
 						var differences = [];
+						
+						// Increase sphere detail if cut shape is a sphere
+						if(viewport.cutShape.geometry.type == "SphereGeometry")
+							viewport.cutShape.geometry = new THREE.SphereGeometry(25, 25, 25);
 				
 						// Update cut shape's geometry
 						viewport.cutShape.geometry.applyMatrix(viewport.cutShape.matrix);
@@ -2720,6 +2746,42 @@ $(function() {
 							$("#slicing_configuration_dialog .modal-cover").css("z-index", '');
 						}, 200);
 					}, 300);
+				},
+				
+				// Set cut shape
+				setCutShape: function(shape) {
+				
+					// Initialize variables
+					var changed = false;
+					
+					// Select button
+					$("#slicing_configuration_dialog .modal-extra div.cutShape button." + shape).addClass("disabled").siblings("button").removeClass("disabled");
+				
+					// Check if cut shape is a sphere
+					if(shape == "cube" && viewport.cutShape.geometry.type == "SphereGeometry") {
+					
+						// Change cut shape to a cube
+						viewport.cutShape.geometry = new THREE.CubeGeometry(50, 50, 50);
+						changed = true;
+					}
+				
+					// Otherwise check if cut chape is a cube
+					else if(shape == "sphere" && viewport.cutShape.geometry.type == "BoxGeometry") {
+					
+						// Change cut shape to a sphere
+						viewport.cutShape.geometry = new THREE.SphereGeometry(25, 10, 10);
+						changed = true;
+					}
+					
+					// Check if cut shape changed
+					if(changed) {
+					
+						// Update cut shape outline
+						viewport.cutShapeOutline.geometry = viewport.lineGeometry(viewport.cutShape.geometry);
+
+						// Render
+						viewport.render();
+					}
 				},
 			
 				// Apply merge
@@ -3257,7 +3319,7 @@ $(function() {
 			
 			// Check if uploading a Wavefront OBJ or M3D
 			var extension = file.name.lastIndexOf('.');
-			if(extension != -1 && (file.name.substr(extension + 1) == "obj" || file.name.substr(extension + 1) == "m3d")) {
+			if(extension != -1 && (file.name.substr(extension + 1).toLowerCase() == "obj" || file.name.substr(extension + 1).toLowerCase() == "m3d")) {
 			
 				// Stop default behavior
 				event.stopImmediatePropagation();
@@ -3271,7 +3333,7 @@ $(function() {
 				
 				// Convert file to STL
 				convertedModel = null;
-				convertToStl(URL.createObjectURL(file), file.name.substr(extension + 1));
+				convertToStl(URL.createObjectURL(file), file.name.substr(extension + 1).toLowerCase());
 				
 				function conversionDone() {
 				
@@ -3663,6 +3725,13 @@ $(function() {
 																				<span></span>
 																			</div>
 																		</div>
+																		<div class="cutShape">
+																			<div>
+																				<button class="cube disabled" title="Cube"><img src="/plugin/m3dfio/static/img/cube.png"></button>
+																				<button class="sphere" title="Sphere"><img src="/plugin/m3dfio/static/img/sphere.png"></button>
+																				<span></span>
+																			</div>
+																		</div>
 																		<div class="measurements">
 																			<p class="width"></p>
 																			<p class="depth"></p>
@@ -3686,7 +3755,7 @@ $(function() {
 
 																		// Set file type
 																		var extension = this.files[0].name.lastIndexOf('.');
-																		var type = extension != -1 ? this.files[0].name.substr(extension + 1) : "stl";
+																		var type = extension != -1 ? this.files[0].name.substr(extension + 1).toLowerCase() : "stl";
 																		var url = URL.createObjectURL(this.files[0]);
 
 																		// Display cover
@@ -3890,8 +3959,17 @@ $(function() {
 																			// Disable import and clone buttons
 																			$("#slicing_configuration_dialog .modal-extra button.import, #slicing_configuration_dialog .modal-extra button.clone").prop("disabled", true);
 																			
+																			// Show cut shape options
+																			$("#slicing_configuration_dialog .modal-extra div.cutShape").addClass("show");
+																			
+																			// Create cut shape geometry
+																			if($("#slicing_configuration_dialog .modal-extra div.cutShape > div > button.disabled").hasClass("cube"))
+																				var cutShapeGeometry = new THREE.CubeGeometry(50, 50, 50);
+																			else if($("#slicing_configuration_dialog .modal-extra div.cutShape > div > button.disabled").hasClass("sphere"))
+																				var cutShapeGeometry = new THREE.SphereGeometry(25, 10, 10);
+																			
 																			// Create cut shape
-																			viewport.cutShape = new THREE.Mesh(new THREE.CubeGeometry(50, 50, 50), new THREE.MeshBasicMaterial({
+																			viewport.cutShape = new THREE.Mesh(cutShapeGeometry, new THREE.MeshBasicMaterial({
 																				color: 0xCCCCCC,
 																				transparent: true,
 																				opacity: 0.1,
@@ -3902,7 +3980,7 @@ $(function() {
 																			viewport.cutShape.rotation.set(0, 0, 0);
 																			
 																			// Create cut shape outline
-																			viewport.cutShapeOutline = new THREE.LineSegments(viewport.lineGeometry(viewport.cutShape.geometry), new THREE.LineDashedMaterial({
+																			viewport.cutShapeOutline = new THREE.LineSegments(viewport.lineGeometry(cutShapeGeometry), new THREE.LineDashedMaterial({
 																				color: 0xffaa00,
 																				dashSize: 3,
 																				gapSize: 1,
@@ -3930,6 +4008,22 @@ $(function() {
 																		
 																			// Apply cut
 																			viewport.applyCut();
+																	});
+																	
+																	// Cut shape click event
+																	$("#slicing_configuration_dialog .modal-extra div.cutShape button").click(function() {
+																		
+																		// Check if button is cube
+																		if($(this).hasClass("cube"))
+									
+																			// Change cut shape to a sube
+																			viewport.setCutShape("cube");
+																		
+																		// Otherwise check if button is sphere
+																		else if($(this).hasClass("sphere"))
+									
+																			// Change cut shape to a sphere
+																			viewport.setCutShape("sphere");
 																	});
 				
 																	// Merge button click event
@@ -5187,27 +5281,57 @@ $(function() {
 		// Set print test border control
 		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(12)").attr("title", "Prints 0.4mm test border").click(function(event) {
 		
-			// Send request
-			$.ajax({
-				url: API_BASEURL + "plugin/m3dfio",
-				type: "POST",
-				dataType: "json",
-				data: JSON.stringify({command: "message", value: "Print Test Border"}),
-				contentType: "application/json; charset=UTF-8"
+			// No click event
+			$("body > div.page-container > div.message").find("button.confirm").eq(0).one("click", function() {
+			
+				// Hide message
+				$("body > div.page-container > div.message").find("button.confirm").off("click");
+				hideMessage();
 			});
+
+			// Yes click event
+			$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+			
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m3dfio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({command: "message", value: "Print Test Border"}),
+					contentType: "application/json; charset=UTF-8"
+				});
+			});
+			
+			// Show message
+			showMessage("Calibration Status", "It's recommended to print this test border after completely calibrating the bed to ensure that the calibration is accurate. The test border should print as a solid, even extruded border, and the 'Back Left Offset', 'Back Right Offset', 'Front Right Offset', and 'Front Left Offset' values can be adjusted to correct any issues with it. If the test border contains squiggly ripples, then it is too high. If the test border contains missing gaps, then it is too low. It's also recommended to print a model with a raft after this is done to see if the 'Bed Height Offset' value needs to be adjusted. If the raft does not securely stick to the bed, then it is too high. If the model isn't easily removed from the raft, then it is too low. All the referenced values can be found by clicking the 'Open settings' button in the 'General' section. Proceed?", "Yes", "No");
 		});
 		
 		// Set print backlash calibration cylinder control
 		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(13)").attr("title", "Prints backlash calibration cylinder").click(function(event) {
 		
-			// Send request
-			$.ajax({
-				url: API_BASEURL + "plugin/m3dfio",
-				type: "POST",
-				dataType: "json",
-				data: JSON.stringify({command: "message", value: "Print Backlash Calibration Cylinder"}),
-				contentType: "application/json; charset=UTF-8"
+			// No click event
+			$("body > div.page-container > div.message").find("button.confirm").eq(0).one("click", function() {
+			
+				// Hide message
+				$("body > div.page-container > div.message").find("button.confirm").off("click");
+				hideMessage();
 			});
+
+			// Yes click event
+			$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+			
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m3dfio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({command: "message", value: "Print Backlash Calibration Cylinder"}),
+					contentType: "application/json; charset=UTF-8"
+				});
+			});
+			
+			// Show message
+			showMessage("Calibration Status", "It's recommended to print this backlash calibration cylinder after the print bed has been accurately calibrated. To start this procedure, the 'Backlash X' and 'Backlash Y' values should be set to 0 so that an uncompensated cylinder can be printed. The cylinder's X backlash signature gaps are located at 2 and 8 o'clock and Y backlash signature gaps are located at 5 and 11 o'clock. The front left corner of the cylinder's base is cut off to make identifying the cylinder's orientation easier. After printing an initial cylinder, adjust the 'Backlash X' value to close the X signature gaps, print, and repeat if necessary to ensure the accuracy. 'Backlash X' values typically range within 0.2mm to 0.6mm. After the 'Backlash X' value has been calibrated, adjust the 'Backlash Y' value to close the Y signature gaps, print, and repeat if necessary to ensure the accuracy. 'Backlash Y' values typically range within 0.4mm to 1.3mm. You may need fine tune the 'Backlash X' vale again after 'Backlash Y' value has been calibrated. All the referenced values can be found by clicking the 'Open settings' button in the 'General' section. Proceed?", "Yes", "No");
 		});
 		
 		// Run complete bed calibration control
