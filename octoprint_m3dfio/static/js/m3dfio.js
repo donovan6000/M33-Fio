@@ -183,6 +183,55 @@ $(function() {
 			}
 		`;
 		
+		// Virtual EEPROM offsets
+		var virtualEepromOffsets = {
+			backlashX : {
+				offset: 0
+			},
+			backlashY : {
+				offset: 1
+			},
+			bedOrientationBackRight : {
+				offset: 2
+			},
+			bedOrientationBackLeft : {
+				offset: 3
+			},
+			bedOrientationFrontLeft : {
+				offset: 4
+			},
+			bedOrientationFrontRight : {
+				offset: 5
+			},
+			filamentTypeAndLocation : {
+				offset: 7
+			},
+			filamentTemperature : {
+				offset: 8
+			},
+			bedOffsetBackLeft : {
+				offset: 16
+			},
+			bedOffsetBackRight : {
+				offset: 17
+			},
+			bedOffsetFrontRight : {
+				offset: 18
+			},
+			bedOffsetFrontLeft : {
+				offset: 19
+			},
+			bedHeightOffset : {
+				offset: 20
+			},
+			backlashSpeed : {
+				offset: 22
+			},
+			bedOrientationVersion : {
+				offset: 23
+			}
+		};
+		
 		// EEPROM offsets
 		var eepromOffsets = {
 			firmwareVersion : {
@@ -491,7 +540,7 @@ $(function() {
 				bytes: 17,
 				color: "rgb(230, 210, 250)"
 			}
-		}
+		};
 		
 		// Encode html entities
 		function htmlEncode(value) {
@@ -4875,10 +4924,10 @@ $(function() {
 				"M104 S0",
 				"M107",
 				"G32",
-				"M619 S" + eepromOffsets["bedOrientationBackRight"]["offset"] + " T" + eepromOffsets["bedOrientationBackRight"]["bytes"],
-				"M619 S" + eepromOffsets["bedOrientationBackLeft"]["offset"] + " T" + eepromOffsets["bedOrientationBackLeft"]["bytes"],
-				"M619 S" + eepromOffsets["bedOrientationFrontLeft"]["offset"] + " T" + eepromOffsets["bedOrientationFrontLeft"]["bytes"],
-				"M619 S" + eepromOffsets["bedOrientationFrontRight"]["offset"] + " T" + eepromOffsets["bedOrientationFrontRight"]["bytes"],
+				"M619 S" + virtualEepromOffsets["bedOrientationBackRight"]["offset"] + " T" + eepromOffsets["bedOrientationBackRight"]["bytes"],
+				"M619 S" + virtualEepromOffsets["bedOrientationBackLeft"]["offset"] + " T" + eepromOffsets["bedOrientationBackLeft"]["bytes"],
+				"M619 S" + virtualEepromOffsets["bedOrientationFrontLeft"]["offset"] + " T" + eepromOffsets["bedOrientationFrontLeft"]["bytes"],
+				"M619 S" + virtualEepromOffsets["bedOrientationFrontRight"]["offset"] + " T" + eepromOffsets["bedOrientationFrontRight"]["bytes"],
 				"M65536;wait"
 			];
 		
@@ -5026,8 +5075,8 @@ $(function() {
 			
 					// Set commands
 					commands = [
-						"M618 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.FrontLeftOrientation()),
-						"M619 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"],
+						"M618 S" + virtualEepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.FrontLeftOrientation()),
+						"M619 S" + virtualEepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"],
 						"M65536;wait"
 					];
 				
@@ -5085,8 +5134,8 @@ $(function() {
 			
 					// Set commands
 					commands = [
-						"M618 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.FrontRightOrientation()),
-						"M619 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"],
+						"M618 S" + virtualEepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.FrontRightOrientation()),
+						"M619 S" + virtualEepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"],
 						"M65536;wait"
 					];
 				
@@ -5144,8 +5193,8 @@ $(function() {
 			
 					// Set commands
 					commands = [
-						"M618 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.BackRightOrientation()),
-						"M619 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"],
+						"M618 S" + virtualEepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.BackRightOrientation()),
+						"M619 S" + virtualEepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"],
 						"M65536;wait"
 					];
 				
@@ -5203,8 +5252,8 @@ $(function() {
 			
 					// Set commands
 					commands = [
-						"M618 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.BackLeftOrientation()),
-						"M619 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"],
+						"M618 S" + virtualEepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.BackLeftOrientation()),
+						"M619 S" + virtualEepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"],
 						"M65536;wait"
 					];
 				
@@ -5394,10 +5443,10 @@ $(function() {
 							"M104 S0",
 							"M107",
 							"G32",
-							"M619 S" + eepromOffsets["bedOrientationBackRight"]["offset"] + " T" + eepromOffsets["bedOrientationBackRight"]["bytes"],
-							"M619 S" + eepromOffsets["bedOrientationBackLeft"]["offset"] + " T" + eepromOffsets["bedOrientationBackLeft"]["bytes"],
-							"M619 S" + eepromOffsets["bedOrientationFrontLeft"]["offset"] + " T" + eepromOffsets["bedOrientationFrontLeft"]["bytes"],
-							"M619 S" + eepromOffsets["bedOrientationFrontRight"]["offset"] + " T" + eepromOffsets["bedOrientationFrontRight"]["bytes"],
+							"M619 S" + virtualEepromOffsets["bedOrientationBackRight"]["offset"] + " T" + eepromOffsets["bedOrientationBackRight"]["bytes"],
+							"M619 S" + virtualEepromOffsets["bedOrientationBackLeft"]["offset"] + " T" + eepromOffsets["bedOrientationBackLeft"]["bytes"],
+							"M619 S" + virtualEepromOffsets["bedOrientationFrontLeft"]["offset"] + " T" + eepromOffsets["bedOrientationFrontLeft"]["bytes"],
+							"M619 S" + virtualEepromOffsets["bedOrientationFrontRight"]["offset"] + " T" + eepromOffsets["bedOrientationFrontRight"]["bytes"],
 							"M65536;wait"
 						];
 		
@@ -5459,8 +5508,8 @@ $(function() {
 			
 													// Set commands
 													commands = [
-														"M618 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.FrontLeftOrientation()),
-														"M619 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"],
+														"M618 S" + virtualEepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.FrontLeftOrientation()),
+														"M619 S" + virtualEepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"],
 														"M65536;wait"
 													];
 				
@@ -5522,8 +5571,8 @@ $(function() {
 			
 																				// Set commands
 																				commands = [
-																					"M618 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.FrontRightOrientation()),
-																					"M619 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"],
+																					"M618 S" + virtualEepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.FrontRightOrientation()),
+																					"M619 S" + virtualEepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"],
 																					"M65536;wait"
 																				];
 				
@@ -5585,8 +5634,8 @@ $(function() {
 			
 																											// Set commands
 																											commands = [
-																												"M618 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.BackRightOrientation()),
-																												"M619 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"],
+																												"M618 S" + virtualEepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.BackRightOrientation()),
+																												"M619 S" + virtualEepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"],
 																												"M65536;wait"
 																											];
 				
@@ -5648,8 +5697,8 @@ $(function() {
 			
 																																		// Set commands
 																																		commands = [
-																																			"M618 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.BackLeftOrientation()),
-																																			"M619 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"],
+																																			"M618 S" + virtualEepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.BackLeftOrientation()),
+																																			"M619 S" + virtualEepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"],
 																																			"M65536;wait"
 																																		];
 				
@@ -6476,10 +6525,10 @@ $(function() {
 											"M104 S0",
 											"M107",
 											"G32",
-											"M619 S" + eepromOffsets["bedOrientationBackRight"]["offset"] + " T" + eepromOffsets["bedOrientationBackRight"]["bytes"],
-											"M619 S" + eepromOffsets["bedOrientationBackLeft"]["offset"] + " T" + eepromOffsets["bedOrientationBackLeft"]["bytes"],
-											"M619 S" + eepromOffsets["bedOrientationFrontLeft"]["offset"] + " T" + eepromOffsets["bedOrientationFrontLeft"]["bytes"],
-											"M619 S" + eepromOffsets["bedOrientationFrontRight"]["offset"] + " T" + eepromOffsets["bedOrientationFrontRight"]["bytes"],
+											"M619 S" + virtualEepromOffsets["bedOrientationBackRight"]["offset"] + " T" + eepromOffsets["bedOrientationBackRight"]["bytes"],
+											"M619 S" + virtualEepromOffsets["bedOrientationBackLeft"]["offset"] + " T" + eepromOffsets["bedOrientationBackLeft"]["bytes"],
+											"M619 S" + virtualEepromOffsets["bedOrientationFrontLeft"]["offset"] + " T" + eepromOffsets["bedOrientationFrontLeft"]["bytes"],
+											"M619 S" + virtualEepromOffsets["bedOrientationFrontRight"]["offset"] + " T" + eepromOffsets["bedOrientationFrontRight"]["bytes"],
 											"M65536;wait"
 										];
 		
@@ -6566,10 +6615,10 @@ $(function() {
 							"M104 S0",
 							"M107",
 							"G32",
-							"M619 S" + eepromOffsets["bedOrientationBackRight"]["offset"] + " T" + eepromOffsets["bedOrientationBackRight"]["bytes"],
-							"M619 S" + eepromOffsets["bedOrientationBackLeft"]["offset"] + " T" + eepromOffsets["bedOrientationBackLeft"]["bytes"],
-							"M619 S" + eepromOffsets["bedOrientationFrontLeft"]["offset"] + " T" + eepromOffsets["bedOrientationFrontLeft"]["bytes"],
-							"M619 S" + eepromOffsets["bedOrientationFrontRight"]["offset"] + " T" + eepromOffsets["bedOrientationFrontRight"]["bytes"],
+							"M619 S" + virtualEepromOffsets["bedOrientationBackRight"]["offset"] + " T" + eepromOffsets["bedOrientationBackRight"]["bytes"],
+							"M619 S" + virtualEepromOffsets["bedOrientationBackLeft"]["offset"] + " T" + eepromOffsets["bedOrientationBackLeft"]["bytes"],
+							"M619 S" + virtualEepromOffsets["bedOrientationFrontLeft"]["offset"] + " T" + eepromOffsets["bedOrientationFrontLeft"]["bytes"],
+							"M619 S" + virtualEepromOffsets["bedOrientationFrontRight"]["offset"] + " T" + eepromOffsets["bedOrientationFrontRight"]["bytes"],
 							"M65536;wait"
 						];
 		
