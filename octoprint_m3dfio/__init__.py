@@ -2247,10 +2247,10 @@ class M3DFioPlugin(
 					self.numberWrapCounter += 1
 	
 			# Otherwise check if response was a resend value
-			elif response.startswith("Resend ") or response.startswith("rs") :
+			elif response.startswith("Resend") or response.startswith("rs") :
 			
 				# Check if resending specified value
-				if response.startswith("Resend ") :
+				if response.startswith("Resend") :
 				
 					# Get line number
 					adjustedLineNumber = int(response[7 :]) + self.numberWrapCounter * 0x10000

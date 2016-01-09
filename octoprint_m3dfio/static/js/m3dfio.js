@@ -6263,7 +6263,7 @@ $(function() {
 			}
 		});
 		
-		// Select OctoPrint instance change event
+		// OctoPrint instance manager change event
 		$("#navbar_plugin_m3dfio > select").change(function() {
 		
 			// Check if creating a new instance
@@ -6880,7 +6880,7 @@ $(function() {
 			$("#navbar_plugin_m3dfio > select > option").last().prop("disabled", false).prev().prop("disabled", false);
 		}
 		
-		// User log in event
+		// User log out event
 		self.onUserLoggedOut = function() {
 		
 			// Disable managing OctoPrint instances
