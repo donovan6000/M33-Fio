@@ -586,10 +586,11 @@ $(function() {
 				$("body > div.page-container > div.message > div > div > div:not(.calibrate)").addClass("show");
 				$("body > div.page-container > div.message > div > img").removeClass("show");
 				
-				// Check if preforming a complete calibration
-				if(secondButton == "Done") {
+				// Show calibration menu if preforming a complete calibration
+				if(secondButton == "Done")
 					$("body > div.page-container > div.message > div > div > div.calibrate").addClass("show");
-				}
+				else
+					$("body > div.page-container > div.message > div > div > div.calibrate").removeClass("show");
 			}
 	
 			// Show message
@@ -3164,7 +3165,6 @@ $(function() {
 			</div>
 		`);
 		
-		
 		// Create EEPROM table
 		var table = "<tr><td></td>";
 		for(var i = 0; i < 0x10; i++)
@@ -3284,7 +3284,11 @@ $(function() {
 		$("#slicing_configuration_dialog").find(".control-group:nth-of-type(2) > label").text("Base Slicing Profile");
 		
 		// Add save button
-		$("#slicing_configuration_dialog .modal-footer").append("<a href=\"#\" class=\"btn save\" data-dismiss=\"modal\" aria-hidden=\"true\">Save</a><a class=\"link\"></a>")
+		$("#slicing_configuration_dialog .modal-footer").append("<a href=\"#\" class=\"btn save\" data-dismiss=\"modal\" aria-hidden=\"true\">Save</a><a class=\"link\"></a>");
+		
+		// Allow positioning OctoPrint instance manager
+		$("div.navbar-inner div.container").css("position", "relative");
+		$("div.navbar-inner ul.nav.pull-right").css("position", "static");
 		
 		// Save button click event
 		$("#slicing_configuration_dialog .modal-footer a.save").click(function(event) {
@@ -6259,6 +6263,115 @@ $(function() {
 			}
 		});
 		
+		// Select OctoPrint instance change event
+		$("#navbar_plugin_m3dfio > select").change(function() {
+		
+			// Check if creating a new instance
+			if($(this).val() == "new") {
+			
+				// Show message
+				showMessage("Message", "Creating OctoPrint instance");
+			
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m3dfio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({command: "message", value: "Create OctoPrint Instance"}),
+					contentType: "application/json; charset=UTF-8",
+					
+					// On success
+					success: function(data) {
+					
+						// Check if an error occured
+						if(data.value == "Error") {
+						
+							// Ok click event
+							$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+				
+								// Hide message
+								hideMessage();
+							});
+			
+							// Show message
+							showMessage("Message", "Failed to create OctoPrint instance", "Ok");
+						}
+						
+						// Otherwise
+						else
+						
+							setTimeout(function() {
+						
+								// Go to OctoPrint instance
+								window.location.port = data.port;
+							}, 1000);
+					}
+				});
+			}
+			
+			// Check if closing an instance
+			else if($(this).val() == "close") {
+			
+				// Show message
+				showMessage("Message", "Closing OctoPrint instance");
+			
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m3dfio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({command: "message", value: "Close OctoPrint Instance: " + window.location.port}),
+					contentType: "application/json; charset=UTF-8",
+					
+					// On success
+					success: function(data) {
+					
+						// Check if an error occured
+						if(data.value == "Error") {
+						
+							// Ok click event
+							$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+							
+								// Select current port
+								$("#navbar_plugin_m3dfio > select > option[value=" + window.location.port + ']').prop("selected", true);
+				
+								// Hide message
+								hideMessage();
+							});
+			
+							// Show message
+							showMessage("Message", "Initial OctoPrint instance cannot be closed", "Ok");
+						}
+						
+						// Otherwise
+						else
+					
+							// Go through all options
+							$("#navbar_plugin_m3dfio > select > option").each(function() {
+							
+								// Check if another OctoPrint instance exists
+								if($(this).attr("value") != "new" && $(this).attr("value") != "close" && $(this).attr("value") != window.location.port) {
+									var port = $(this).attr("value")
+									setTimeout(function() {
+					
+										// Go to OctoPrint instance
+										window.location.port = port;
+									}, 1000);
+								
+									return false;
+								}
+							});
+					}
+				});
+			}
+			
+			// Otherwise
+			else
+			
+				// Go to OctoPrint instance
+				window.location.port = $(this).val();
+		});
+		
 		// On data update message
 		self.onDataUpdaterPluginMessage = function(plugin, data) {
 		
@@ -6274,10 +6387,11 @@ $(function() {
 				// Set printer connected
 				printerConnected = true;
 			
-			// Check if data is that a Micro 3D is connected
-			else if(data.value == "Serial Number" && typeof data.serialNumber !== "undefined")
+			// Check if data is printer details
+			else if(data.value == "Printer Details" && typeof data.serialNumber !== "undefined" && typeof data.serialPort !== "undefined")
 			
-				$("#navbar_plugin_m3dfio > a").text(data.serialNumber);
+				// Update connected printer details
+				$("#navbar_plugin_m3dfio > a").text(data.serialNumber + " at " + data.serialPort);
 			
 			// Otherwise check if data is that a Micro 3D isn't connected
 			else if(data.value == "Micro 3D Not Connected" && printerConnected) {
@@ -6406,6 +6520,38 @@ $(function() {
 			
 				// Show message
 				showMessage("Message", "No Micro 3D printer detected. Try cycling the printer's power and try again.", "Ok");
+			}
+			
+			// Otherwise check if data is process details
+			else if(data.value == "Process Details" && typeof data.processes !== "undefined") {
+			
+				// Reset process details
+				$("#navbar_plugin_m3dfio > select > option:not([value=\"new\"]):not([value=\"close\"])").remove();
+				
+				// Go through all processes
+				var currentPort;
+				for(var i = 0; i < data.processes.length; i++)
+			
+					// Go through all options
+					$("#navbar_plugin_m3dfio > select > option").each(function() {
+				
+						// Check if at end of options or at ordered position
+						if($(this).attr("value") == "new" || parseInt($(this).attr("value")) > parseInt(data.port)) {
+			
+							// Insert option
+							$(this).before("<option value = \"" + data.processes[i][0] + "\">Port " + data.processes[i][0] + "</option>");
+							
+							// Set current port
+							if(data.processes[i][1] == true)
+								currentPort = i;
+							
+							// Return false
+							return false;
+						}
+					});
+				
+				// Select current port
+				$("#navbar_plugin_m3dfio > select > option").eq(currentPort).attr("selected", "true");	
 			}
 			
 			// Otherwise check if data is provided firmware
@@ -6725,6 +6871,20 @@ $(function() {
 					// Display message
 					showMessage("Error Status", htmlEncode(data.message));
 			}
+		}
+		
+		// User log in event
+		self.onUserLoggedIn = function() {
+		
+			// Enable managing OctoPrint instances
+			$("#navbar_plugin_m3dfio > select > option").last().prop("disabled", false).prev().prop("disabled", false);
+		}
+		
+		// User log in event
+		self.onUserLoggedOut = function() {
+		
+			// Disable managing OctoPrint instances
+			$("#navbar_plugin_m3dfio > select > option").last().prop("disabled", true).prev().prop("disabled", true);
 		}
 	}
 

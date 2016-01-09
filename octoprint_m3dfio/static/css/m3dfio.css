@@ -30,7 +30,7 @@
 #settings_plugin_m3dfio input[type="checkbox"] {
 	background: transparent;
 	border: 0;
-	outline: 0;
+	outline: none;
 }
 
 #settings_plugin_m3dfio label.control-label {
@@ -57,11 +57,25 @@
 	width: calc(100% - 45px);
 }
 
+#navbar_plugin_m3dfio {
+	display: inline;
+	position: absolute;
+	top: 0;
+	left: 158px;
+}
+
+#navbar_plugin_m3dfio > select {
+	width: 140px;
+	position: relative;
+	right: 30px;
+	top: 5px;
+}
+
 #navbar_plugin_m3dfio > a {
 	cursor: default;
-	width: 540px;
+	display: inline;
 	position: relative;
-	right: 20px;
+	right: 30px;
 	top: 1px;
 }
 

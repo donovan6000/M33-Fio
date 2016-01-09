@@ -32,6 +32,8 @@ import imp
 import glob
 import ctypes
 import platform
+import subprocess
+import psutil
 from .gcode import Gcode
 from .vector import Vector
 
@@ -82,6 +84,7 @@ class M3DFioPlugin(
 		self.lastResponseWasWait = False
 		self.allSerialPorts = []
 		self.currentSerialPort = None
+		self.providedFirmware = ''
 		
 		# Rom decryption and encryption tables
 		self.romDecryptionTable = [0x26, 0xE2, 0x63, 0xAC, 0x27, 0xDE, 0x0D, 0x94, 0x79, 0xAB, 0x29, 0x87, 0x14, 0x95, 0x1F, 0xAE, 0x5F, 0xED, 0x47, 0xCE, 0x60, 0xBC, 0x11, 0xC3, 0x42, 0xE3, 0x03, 0x8E, 0x6D, 0x9D, 0x6E, 0xF2, 0x4D, 0x84, 0x25, 0xFF, 0x40, 0xC0, 0x44, 0xFD, 0x0F, 0x9B, 0x67, 0x90, 0x16, 0xB4, 0x07, 0x80, 0x39, 0xFB, 0x1D, 0xF9, 0x5A, 0xCA, 0x57, 0xA9, 0x5E, 0xEF, 0x6B, 0xB6, 0x2F, 0x83, 0x65, 0x8A, 0x13, 0xF5, 0x3C, 0xDC, 0x37, 0xD3, 0x0A, 0xF4, 0x77, 0xF3, 0x20, 0xE8, 0x73, 0xDB, 0x7B, 0xBB, 0x0B, 0xFA, 0x64, 0x8F, 0x08, 0xA3, 0x7D, 0xEB, 0x5C, 0x9C, 0x3E, 0x8C, 0x30, 0xB0, 0x7F, 0xBE, 0x2A, 0xD0, 0x68, 0xA2, 0x22, 0xF7, 0x1C, 0xC2, 0x17, 0xCD, 0x78, 0xC7, 0x21, 0x9E, 0x70, 0x99, 0x1A, 0xF8, 0x58, 0xEA, 0x36, 0xB1, 0x69, 0xC9, 0x04, 0xEE, 0x3B, 0xD6, 0x34, 0xFE, 0x55, 0xE7, 0x1B, 0xA6, 0x4A, 0x9A, 0x54, 0xE6, 0x51, 0xA0, 0x4E, 0xCF, 0x32, 0x88, 0x48, 0xA4, 0x33, 0xA5, 0x5B, 0xB9, 0x62, 0xD4, 0x6F, 0x98, 0x6C, 0xE1, 0x53, 0xCB, 0x46, 0xDD, 0x01, 0xE5, 0x7A, 0x86, 0x75, 0xDF, 0x31, 0xD2, 0x02, 0x97, 0x66, 0xE4, 0x38, 0xEC, 0x12, 0xB7, 0x00, 0x93, 0x15, 0x8B, 0x6A, 0xC5, 0x71, 0x92, 0x45, 0xA1, 0x59, 0xF0, 0x06, 0xA8, 0x5D, 0x82, 0x2C, 0xC4, 0x43, 0xCC, 0x2D, 0xD5, 0x35, 0xD7, 0x3D, 0xB2, 0x74, 0xB3, 0x09, 0xC6, 0x7C, 0xBF, 0x2E, 0xB8, 0x28, 0x9F, 0x41, 0xBA, 0x10, 0xAF, 0x0C, 0xFC, 0x23, 0xD9, 0x49, 0xF6, 0x7E, 0x8D, 0x18, 0x96, 0x56, 0xD1, 0x2B, 0xAD, 0x4B, 0xC1, 0x4F, 0xC8, 0x3A, 0xF1, 0x1E, 0xBD, 0x4C, 0xDA, 0x50, 0xA7, 0x52, 0xE9, 0x76, 0xD8, 0x19, 0x91, 0x72, 0x85, 0x3F, 0x81, 0x61, 0xAA, 0x05, 0x89, 0x0E, 0xB5, 0x24, 0xE0]
@@ -528,7 +531,7 @@ class M3DFioPlugin(
 	
 	# On start
 	def on_after_startup(self) :
-		
+	
 		# Check if Pip isn't set
 		if octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.get(["pip"]) == None :
 		
@@ -870,6 +873,11 @@ class M3DFioPlugin(
 		
 		# Restore files
 		self.restoreFiles()
+		
+		# Remove config file
+		configFile = self._settings.global_get_basefolder("base") + "/config.yaml" + str(self.getOctoPrintPort(psutil.Process(os.getpid()).connections()))
+		if os.path.isfile(configFile) :
+			os.remove(configFile)
 	
 	# Get default settings
 	def get_settings_defaults(self) :
@@ -1008,9 +1016,8 @@ class M3DFioPlugin(
 				currentPort = self.getPort()
 				
 				# Connect to the printer
-				connection = serial.Serial(currentPort, currentBaudrate, timeout = 20)
-				connection.writeTimeout = 20
-				
+				connection = serial.Serial(currentPort, currentBaudrate, timeout = 10000, writeTimeout = 10000, parity = serial.PARITY_NONE)
+						
 				# Check if getting EEPROM failed
 				if not self.getEeprom(connection) :
 				
@@ -1070,8 +1077,7 @@ class M3DFioPlugin(
 				currentPort = self.getPort()
 				
 				# Connect to the printer
-				connection = serial.Serial(currentPort, currentBaudrate, timeout = 20)
-				connection.writeTimeout = 20
+				connection = serial.Serial(currentPort, currentBaudrate, timeout = 10000, writeTimeout = 10000, parity = serial.PARITY_NONE);
 				
 				# Check if getting EEPROM failed
 				if not self.getEeprom(connection) :
@@ -1218,8 +1224,7 @@ class M3DFioPlugin(
 				currentPort = self.getPort()
 				
 				# Connect to the printer
-				connection = serial.Serial(currentPort, currentBaudrate, timeout = 20)
-				connection.writeTimeout = 20
+				connection = serial.Serial(currentPort, currentBaudrate, timeout = 10000, writeTimeout = 10000, parity = serial.PARITY_NONE);
 				
 				# Get EEPROM and send it
 				self.getEeprom(connection, True)
@@ -1274,8 +1279,7 @@ class M3DFioPlugin(
 					currentPort = self.getPort()
 				
 					# Connect to the printer
-					connection = serial.Serial(currentPort, currentBaudrate, timeout = 20)
-					connection.writeTimeout = 20
+					connection = serial.Serial(currentPort, currentBaudrate, timeout = 10000, writeTimeout = 10000, parity = serial.PARITY_NONE);
 					
 					# Check if getting EEPROM failed
 					if not self.getEeprom(connection) :
@@ -1441,9 +1445,8 @@ class M3DFioPlugin(
 				currentPort = self.getPort()
 		
 				# Connect to the printer
-				connection = serial.Serial(currentPort, currentBaudrate, timeout = 20)
-				connection.writeTimeout = 20
-			
+				connection = serial.Serial(currentPort, currentBaudrate, timeout = 10000, writeTimeout = 10000, parity = serial.PARITY_NONE);
+				
 				# Check if getting EEPROM failed
 				if not self.getEeprom(connection) :
 		
@@ -1479,6 +1482,74 @@ class M3DFioPlugin(
 					return flask.jsonify(dict(value = "Error"))
 				else :
 					return flask.jsonify(dict(value = "Ok"))
+			
+			# Otherwise check if value is to close an OctoPrint instance
+			elif data["value"].startswith("Close OctoPrint Instance:") :
+			
+				# Get port
+				port = int(data["value"][26 :])
+				
+				# Find all OctoPrint instances
+				for process in psutil.process_iter() :
+					if process.name() == "octoprint" or process.name() == "python" :
+						
+						# Check if process has the specified port
+						processDetails = psutil.Process(process.pid)
+						if port == self.getOctoPrintPort(processDetails.connections()) :
+						
+							# Check if attempting to close initial OctoPrint instance
+							if process.name() == "octoprint" :
+							
+								# Return error
+								return flask.jsonify(dict(value = "Error"))
+						
+							# Terminate process
+							processDetails.terminate()
+							
+							# Break
+							break;
+				
+				# Return response
+				return flask.jsonify(dict(value = "Ok"))
+			
+			# Otherwise check if value is to create an OctoPrint instance
+			elif data["value"] == "Create OctoPrint Instance" :
+			
+				# Go through all ports
+				portFound = False
+				port = 5000
+				while not portFound :
+				
+					# Set port found
+					portFound = True
+				
+					# Find all OctoPrint instances
+					for process in psutil.process_iter() :
+						if process.name() == "octoprint" or process.name() == "python" :
+					
+							# Check if process has the specified port
+							processDetails = psutil.Process(process.pid)
+							if port == self.getOctoPrintPort(psutil.Process(process.pid).connections()) :
+								portFound = False
+					
+					# Check if port wasn't found
+					if not portFound :
+					
+						# Check if at last port
+						if port == 9999 :
+					
+							# Send response
+							return flask.jsonify(dict(value = "Error"))
+				
+						# Try next port
+						port += 1
+			
+				# Create instance and config file
+				shutil.copyfile(self._settings.global_get_basefolder("base") + "/config.yaml", self._settings.global_get_basefolder("base") + "/config.yaml" + str(port))
+				instance = subprocess.Popen([sys.executable + " -c \"import octoprint;octoprint.main();\" --port " + str(port) + " --config " + self._settings.global_get_basefolder("base") + "/config.yaml" + str(port)], shell = True)
+				
+				# Send response
+				return flask.jsonify(dict(value = "Ok", port = port))
 		
 		# Otherwise check if command is a file
 		elif command == "file" :
@@ -1508,9 +1579,8 @@ class M3DFioPlugin(
 				currentPort = self.getPort()
 			
 				# Connect to the printer
-				connection = serial.Serial(currentPort, currentBaudrate, timeout = 20)
-				connection.writeTimeout = 20
-			
+				connection = serial.Serial(currentPort, currentBaudrate, timeout = 10000, writeTimeout = 10000, parity = serial.PARITY_NONE);
+				
 				# Get encrypted rom from unicode content
 				for character in data["content"] :
 					encryptedRom += chr(ord(character))
@@ -1622,8 +1692,8 @@ class M3DFioPlugin(
 		# Get serial number from EEPROM
 		serialNumber = self.eeprom[self.eepromOffsets["serialNumber"]["offset"] : self.eepromOffsets["serialNumber"]["offset"] + self.eepromOffsets["serialNumber"]["bytes"] - 1]
 		
-		# Send serial number
-		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Serial Number", serialNumber = serialNumber))
+		# Send printer details
+		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Printer Details", serialNumber = serialNumber, serialPort = connection.port))
 		
 		# Return true
 		return True
@@ -1985,7 +2055,7 @@ class M3DFioPlugin(
 	def sendCommands(self, commands) :
 		
 		# Check if printing
-		if self._printer.is_printing() :
+		if False and self._printer.is_printing() :
 		
 			# Make sure commands is a list
 			if not isinstance(commands, list) :
@@ -2077,7 +2147,7 @@ class M3DFioPlugin(
 			
 			# Check if command contains valid G-code
 			if gcode.parseLine(data) :
-	
+			
 				# Check if data contains a starting line number
 				if gcode.getValue('N') == "0" and gcode.getValue('M') == "110" :
 			
@@ -2289,6 +2359,9 @@ class M3DFioPlugin(
 		# Otherwise check if client connects
 		elif event == octoprint.events.Events.CLIENT_OPENED :
 		
+			# Send OctoPrint instances details
+			self.sendOctoPrintDetails()
+		
 			# Send provided firmware version
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Provided Firmware", version = self.providedFirmware))
 			
@@ -2297,6 +2370,12 @@ class M3DFioPlugin(
 			
 				# Send eeprom
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "EEPROM", eeprom = self.eeprom.encode("hex").upper()))
+				
+				# Get serial number from EEPROM
+				serialNumber = self.eeprom[self.eepromOffsets["serialNumber"]["offset"] : self.eepromOffsets["serialNumber"]["offset"] + self.eepromOffsets["serialNumber"]["bytes"] - 1]
+		
+				# Send printer details
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Printer Details", serialNumber = serialNumber, serialPort = self._printer.get_transport().port))
 			
 			# Check if Cura is a registered slicer
 			if "cura" in self._slicing_manager.registered_slicers :
@@ -2554,6 +2633,34 @@ class M3DFioPlugin(
 			time.sleep(2)
 			self.sendCommands(commands)
 	
+	# Get OctoPrint port
+	def getOctoPrintPort(self, connections) :
+	
+		# Go through all connections
+		for connection in connections :
+		
+			# Check if listening on port
+			if connection.status == "LISTEN" :
+			
+				# Return port
+				return connection.laddr[1]
+	
+	# Send OctoPrint details
+	def sendOctoPrintDetails(self) :
+	
+		# Initialize variables
+		processes = []
+		
+		# Find all OctoPrint instances
+		for process in psutil.process_iter() :
+			if process.name() == "octoprint" or process.name() == "python" :
+			
+				# Append process to list
+				processes += [[self.getOctoPrintPort(psutil.Process(process.pid).connections()), os.getpid() == process.pid]]
+			
+		# Send OctoPrint instances
+		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Process Details", processes = processes))
+	
 	# Receive data to log
 	def on_printer_add_log(self, data) :
 	
@@ -2584,15 +2691,15 @@ class M3DFioPlugin(
 				self._printer.unregister_callback(self)
 				
 				# Close connection
-				self._printer.get_transport().close()
+				if isinstance(self._printer.get_transport(), serial.Serial) :
+					self._printer.get_transport().close()
 				time.sleep(1)
 				
 				# Set updated port
 				currentPort = self.getPort()
 
 				# Connect to the printer
-				connection = serial.Serial(currentPort, currentBaudrate, timeout = 20)
-				connection.writeTimeout = 20
+				connection = serial.Serial(currentPort, currentBaudrate, timeout = 10000, writeTimeout = 10000, parity = serial.PARITY_NONE);
 				
 				# Check if not in bootloader mode
 				connection.write("M115")
@@ -2612,8 +2719,7 @@ class M3DFioPlugin(
 					currentPort = self.getPort()
 					
 					# Re-connect
-					connection = serial.Serial(currentPort, currentBaudrate, timeout = 20)
-					connection.writeTimeout = 20
+					connection = serial.Serial(currentPort, currentBaudrate, timeout = 10000, writeTimeout = 10000, parity = serial.PARITY_NONE);
 				
 				# Check if getting EEPROM was successful
 				if self.getEeprom(connection) :
@@ -3089,8 +3195,8 @@ class M3DFioPlugin(
 			self.invalidPrinter = False
 			
 			# Inrease serial timeout
-			self._printer.get_transport().timeout = 20
-			self._printer.get_transport().writeTimeout = 20
+			self._printer.get_transport().timeout = 10000
+			self._printer.get_transport().writeTimeout = 10000
 			
 			# Request printer information
 			self._printer.get_transport().write("M115")
@@ -5650,7 +5756,7 @@ class M3DFioPlugin(
 		comm_instance._log("Connecting to: " + str(port))
 		
 		# Return connection
-		return serial.Serial(str(port), baudrate, timeout=connection_timeout, writeTimeout=10000, parity=serial.PARITY_NONE)
+		return serial.Serial(str(port), baudrate, timeout = 10000, writeTimeout = 10000, parity = serial.PARITY_NONE)
 
 # Plugin info
 __plugin_name__ = "M3D Fio"
