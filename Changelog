@@ -1,5 +1,13 @@
 Changelog:
 
+V0.24 January 10, 2016
+
+	* Fixed on the fly pre-processor so that commands are sent in the correct order
+	* Implemented ways to cut and join models in the model editor
+	* Updated slider profiles and printer firmware to match the latest released by M3D
+	* Multiple printer support by managing OctoPrint instances
+	* Test border and backlash calibration cylinder will inform users how to use them before they're printed
+
 V0.23 December 17, 2015
 
 	* Implemented way to modify the printer profile, slicer profile, and model when slicing

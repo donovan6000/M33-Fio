@@ -91,55 +91,6 @@ class M3DFioPlugin(
 
 		self.romEncryptionTable = [0xAC, 0x9C, 0xA4, 0x1A, 0x78, 0xFA, 0xB8, 0x2E, 0x54, 0xC8, 0x46, 0x50, 0xD4, 0x06, 0xFC, 0x28, 0xD2, 0x16, 0xAA, 0x40, 0x0C, 0xAE, 0x2C, 0x68, 0xDC, 0xF2, 0x70, 0x80, 0x66, 0x32, 0xE8, 0x0E, 0x4A, 0x6C, 0x64, 0xD6, 0xFE, 0x22, 0x00, 0x04, 0xCE, 0x0A, 0x60, 0xE0, 0xBC, 0xC0, 0xCC, 0x3C, 0x5C, 0xA2, 0x8A, 0x8E, 0x7C, 0xC2, 0x74, 0x44, 0xA8, 0x30, 0xE6, 0x7A, 0x42, 0xC4, 0x5A, 0xF6, 0x24, 0xD0, 0x18, 0xBE, 0x26, 0xB4, 0x9A, 0x12, 0x8C, 0xD8, 0x82, 0xE2, 0xEA, 0x20, 0x88, 0xE4, 0xEC, 0x86, 0xEE, 0x98, 0x84, 0x7E, 0xDE, 0x36, 0x72, 0xB6, 0x34, 0x90, 0x58, 0xBA, 0x38, 0x10, 0x14, 0xF8, 0x92, 0x02, 0x52, 0x3E, 0xA6, 0x2A, 0x62, 0x76, 0xB0, 0x3A, 0x96, 0x1C, 0x1E, 0x94, 0x6E, 0xB2, 0xF4, 0x4C, 0xC6, 0xA0, 0xF0, 0x48, 0x6A, 0x08, 0x9E, 0x4E, 0xCA, 0x56, 0xDA, 0x5E, 0x2F, 0xF7, 0xBB, 0x3D, 0x21, 0xF5, 0x9F, 0x0B, 0x8B, 0xFB, 0x3F, 0xAF, 0x5B, 0xDB, 0x1B, 0x53, 0x2B, 0xF3, 0xB3, 0xAD, 0x07, 0x0D, 0xDD, 0xA5, 0x95, 0x6F, 0x83, 0x29, 0x59, 0x1D, 0x6D, 0xCF, 0x87, 0xB5, 0x63, 0x55, 0x8D, 0x8F, 0x81, 0xED, 0xB9, 0x37, 0xF9, 0x09, 0x03, 0xE1, 0x0F, 0xD3, 0x5D, 0x75, 0xC5, 0xC7, 0x2D, 0xFD, 0x3B, 0xAB, 0xCD, 0x91, 0xD1, 0x4F, 0x15, 0xE9, 0x5F, 0xCB, 0x25, 0xE3, 0x67, 0x17, 0xBD, 0xB1, 0xC9, 0x6B, 0xE5, 0x77, 0x35, 0x99, 0xBF, 0x69, 0x13, 0x89, 0x61, 0xDF, 0xA3, 0x45, 0x93, 0xC1, 0x7B, 0xC3, 0xF1, 0xD7, 0xEB, 0x4D, 0x43, 0x9B, 0x05, 0xA1, 0xFF, 0x97, 0x01, 0x19, 0xA7, 0x9D, 0x85, 0x7F, 0x4B, 0xEF, 0x73, 0x57, 0xA9, 0x11, 0x79, 0x39, 0xB7, 0xE7, 0x1F, 0x49, 0x47, 0x41, 0xD9, 0x65, 0x71, 0x33, 0x51, 0x31, 0xD5, 0x27, 0x7D, 0x23]
 		
-		# Virtual EEPROM offsets
-		self.virtualEepromOffsets = dict(
-			backlashX = dict(
-				offset = 0
-			),
-			backlashY = dict(
-				offset = 1
-			),
-			bedOrientationBackRight = dict(
-				offset = 2
-			),
-			bedOrientationBackLeft = dict(
-				offset = 3
-			),
-			bedOrientationFrontLeft = dict(
-				offset = 4
-			),
-			bedOrientationFrontRight = dict(
-				offset = 5
-			),
-			filamentTypeAndLocation = dict(
-				offset = 7
-			),
-			filamentTemperature = dict(
-				offset = 8
-			),
-			bedOffsetBackLeft = dict(
-				offset = 16
-			),
-			bedOffsetBackRight = dict(
-				offset = 17
-			),
-			bedOffsetFrontRight = dict(
-				offset = 18
-			),
-			bedOffsetFrontLeft = dict(
-				offset = 19
-			),
-			bedHeightOffset = dict(
-				offset = 20
-			),
-			backlashSpeed = dict(
-				offset = 22
-			),
-			bedOrientationVersion = dict(
-				offset = 23
-			)
-		)
-		
 		# EEPROM offsets
 		self.eepromOffsets = dict(
 			firmwareVersion = dict(
@@ -394,6 +345,7 @@ class M3DFioPlugin(
 		self.printingTestBorder = False
 		self.printingBacklashCalibrationCylinder = False
 		self.sentCommands = {}
+		self.resetLineNumberCommand = False
 		
 		# Center model pre-processor settings
 		self.displacementX = 0
@@ -1077,7 +1029,7 @@ class M3DFioPlugin(
 				currentPort = self.getPort()
 				
 				# Connect to the printer
-				connection = serial.Serial(currentPort, currentBaudrate, timeout = 10000, writeTimeout = 10000, parity = serial.PARITY_NONE);
+				connection = serial.Serial(currentPort, currentBaudrate, timeout = 10000, writeTimeout = 10000, parity = serial.PARITY_NONE)
 				
 				# Check if getting EEPROM failed
 				if not self.getEeprom(connection) :
@@ -1224,7 +1176,7 @@ class M3DFioPlugin(
 				currentPort = self.getPort()
 				
 				# Connect to the printer
-				connection = serial.Serial(currentPort, currentBaudrate, timeout = 10000, writeTimeout = 10000, parity = serial.PARITY_NONE);
+				connection = serial.Serial(currentPort, currentBaudrate, timeout = 10000, writeTimeout = 10000, parity = serial.PARITY_NONE)
 				
 				# Get EEPROM and send it
 				self.getEeprom(connection, True)
@@ -1279,7 +1231,7 @@ class M3DFioPlugin(
 					currentPort = self.getPort()
 				
 					# Connect to the printer
-					connection = serial.Serial(currentPort, currentBaudrate, timeout = 10000, writeTimeout = 10000, parity = serial.PARITY_NONE);
+					connection = serial.Serial(currentPort, currentBaudrate, timeout = 10000, writeTimeout = 10000, parity = serial.PARITY_NONE)
 					
 					# Check if getting EEPROM failed
 					if not self.getEeprom(connection) :
@@ -1445,7 +1397,7 @@ class M3DFioPlugin(
 				currentPort = self.getPort()
 		
 				# Connect to the printer
-				connection = serial.Serial(currentPort, currentBaudrate, timeout = 10000, writeTimeout = 10000, parity = serial.PARITY_NONE);
+				connection = serial.Serial(currentPort, currentBaudrate, timeout = 10000, writeTimeout = 10000, parity = serial.PARITY_NONE)
 				
 				# Check if getting EEPROM failed
 				if not self.getEeprom(connection) :
@@ -1507,7 +1459,7 @@ class M3DFioPlugin(
 							processDetails.terminate()
 							
 							# Break
-							break;
+							break
 				
 				# Return response
 				return flask.jsonify(dict(value = "Ok"))
@@ -1546,7 +1498,7 @@ class M3DFioPlugin(
 			
 				# Create instance and config file
 				shutil.copyfile(self._settings.global_get_basefolder("base") + "/config.yaml", self._settings.global_get_basefolder("base") + "/config.yaml" + str(port))
-				instance = subprocess.Popen([sys.executable + " -c \"import octoprint;octoprint.main();\" --port " + str(port) + " --config " + self._settings.global_get_basefolder("base") + "/config.yaml" + str(port)], shell = True)
+				instance = subprocess.Popen([sys.executable + " -c \"import octoprint;octoprint.main()\" --port " + str(port) + " --config " + self._settings.global_get_basefolder("base") + "/config.yaml" + str(port)], shell = True)
 				
 				# Send response
 				return flask.jsonify(dict(value = "Ok", port = port))
@@ -1579,7 +1531,7 @@ class M3DFioPlugin(
 				currentPort = self.getPort()
 			
 				# Connect to the printer
-				connection = serial.Serial(currentPort, currentBaudrate, timeout = 10000, writeTimeout = 10000, parity = serial.PARITY_NONE);
+				connection = serial.Serial(currentPort, currentBaudrate, timeout = 10000, writeTimeout = 10000, parity = serial.PARITY_NONE)
 				
 				# Get encrypted rom from unicode content
 				for character in data["content"] :
@@ -1751,7 +1703,7 @@ class M3DFioPlugin(
 					if len(encryptedRom) / 2 % self.chipPageSize != 0 :
 						pagesToWrite += 1
 
-					#Go through all pages to write
+					# Go through all pages to write
 					index = 0
 					while index < pagesToWrite :
 
@@ -2055,19 +2007,27 @@ class M3DFioPlugin(
 	def sendCommands(self, commands) :
 		
 		# Check if printing
-		if False and self._printer.is_printing() :
+		if self._printer.is_printing() :
 		
 			# Make sure commands is a list
 			if not isinstance(commands, list) :
 				commands = [commands]
 		
 			# Append all currently queued commands to list
+			while not self._printer._comm._send_queue.empty() :
+				command = self._printer._comm._send_queue.get()
+				commands += [(command[0], command[2])]
+			
 			while not self._printer._comm._commandQueue.empty() :
-				commands += [self._printer._comm._commandQueue.get()]
+				command = self._printer._comm._commandQueue.get()
+				commands += [(command[0], command[1])]
 			
 			# Insert list into queue
 			for command in commands :
-				self._printer._comm._commandQueue.put(command)
+				if isinstance(command, tuple) :
+					self._printer._comm._commandQueue.put(command)
+				else :
+					self._printer._comm._commandQueue.put((command, None))
 		
 		# Otherwise
 		else :
@@ -2113,7 +2073,7 @@ class M3DFioPlugin(
 			gcode = Gcode()
 			
 			# Check if pre-processing on the fly and command is not a starting line number and wasn't added on the fly
-			if self._printer.is_printing() and self._settings.get_boolean(["PreprocessOnTheFly"]) and not data.startswith("N0 M110 ") and "**" not in data:
+			if self._printer.is_printing() and self._settings.get_boolean(["PreprocessOnTheFly"]) and not data.startswith("N0 M110 ") and "**" not in data :
 			
 				# Get line number
 				lineNumber = int(re.findall("^N(\d+)", data)[0])
@@ -2150,22 +2110,9 @@ class M3DFioPlugin(
 			
 				# Check if data contains a starting line number
 				if gcode.getValue('N') == "0" and gcode.getValue('M') == "110" :
-			
-					# Reset number wrap counter
-					self.numberWrapCounter = 0
-				
-				# Check if command contains G and F values
-				if gcode.hasValue('G') and gcode.hasValue('F') :
-
-					# Get command's feedrate
-					commandFeedRate = float(gcode.getValue('F')) / 60
-
-					# Force feed rate to adhere to limitations
-					if commandFeedRate > 60.001 :
-						commandFeedRate = 60.001
-
-					# Set new feed rate for the command
-					gcode.setValue('F', "%f" % (30 + (1 - commandFeedRate / 60.001) * 800))
+					
+					# Set reset line number command
+					self.resetLineNumberCommand = True
 				
 				# Store command
 				if gcode.hasValue('N') :
@@ -2210,36 +2157,35 @@ class M3DFioPlugin(
 			# Clear last response was wait
 			self.lastResponseWasWait = False
 		
-			# Check if response was a processed value
-			if response.startswith("ok ") and response[3].isdigit() :
+			# Check if response was a processed or skipped value
+			if (response.startswith("ok ") and response[3].isdigit()) or response.startswith("skip ") :
 		
 				# Get line number
-				lineNumber = int(response[3 :])
+				if response.startswith("ok ") : 
+					lineNumber = int(response[3 :])
+				else :
+					lineNumber = int(response[5 :])
+				
+				# Adjust line number
 				adjustedLineNumber = lineNumber + self.numberWrapCounter * 0x10000
+				
+				# Check if processing a reset line number command
+				if self.resetLineNumberCommand and lineNumber == 0 :
+				
+					# Clear reset line number command
+					self.resetLineNumberCommand = False
+					
+					# Reset number wrap counter
+					self.numberWrapCounter = 0
+					
+					# Fix adjusted line number
+					adjustedLineNumber = 0
 			
 				# Removed stored value
 				if adjustedLineNumber in self.sentCommands :
 					self.sentCommands.pop(adjustedLineNumber)
 			
-				# Set response to contain correct line number
-				response = "ok " + str(adjustedLineNumber) + '\n'
-		
-				# Increment number wrap counter if applicable
-				if lineNumber == 0xFFFF :
-					self.numberWrapCounter += 1
-	
-			# Otherwise check if response was a skip value
-			elif response.startswith("skip ") :
-	
-				# Get line number
-				lineNumber = int(response[5 :])
-				adjustedLineNumber = lineNumber + self.numberWrapCounter * 0x10000
-			
-				# Removed stored value
-				if adjustedLineNumber in self.sentCommands :
-					self.sentCommands.pop(adjustedLineNumber)
-			
-				# Set response to contain correct line number
+				# Set response to contain adjusted line number
 				response = "ok " + str(adjustedLineNumber) + '\n'
 		
 				# Increment number wrap counter if applicable
@@ -2247,36 +2193,27 @@ class M3DFioPlugin(
 					self.numberWrapCounter += 1
 	
 			# Otherwise check if response was a resend value
-			elif response.startswith("Resend") or response.startswith("rs") :
+			elif response.startswith("rs") :
 			
 				# Check if resending specified value
-				if response.startswith("Resend") :
-				
-					# Get line number
-					adjustedLineNumber = int(response[7 :]) + self.numberWrapCounter * 0x10000
-				
-				# Otherwise check if resending specified value
-				elif response.startswith("rs ") :
+				if response.startswith("rs ") :
 		
 					# Get line number
 					adjustedLineNumber = int(response[3 :]) + self.numberWrapCounter * 0x10000
+					
+					# Check if command hasn't been processed
+					if adjustedLineNumber in self.sentCommands :
+		
+						# Send command
+						gcode = Gcode()
+						gcode.parseLine(self.sentCommands[adjustedLineNumber])
+						self.originalWrite(gcode.getBinary())
 				
 				# Otherwise
 				else :
 				
 					# Send last command
 					self.originalWrite(self.lastCommandSent)
-			
-					# Return nothing
-					return ''
-				
-				# Check if command hasn't been processed
-				if adjustedLineNumber in self.sentCommands :
-		
-					# Send command
-					gcode = Gcode()
-					gcode.parseLine(self.sentCommands[adjustedLineNumber])
-					self.originalWrite(gcode.getBinary())
 				
 				# Return nothing
 				return ''
@@ -2373,7 +2310,7 @@ class M3DFioPlugin(
 				
 				# Get serial number from EEPROM
 				serialNumber = self.eeprom[self.eepromOffsets["serialNumber"]["offset"] : self.eepromOffsets["serialNumber"]["offset"] + self.eepromOffsets["serialNumber"]["bytes"] - 1]
-		
+				
 				# Send printer details
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Printer Details", serialNumber = serialNumber, serialPort = self._printer.get_transport().port))
 			
@@ -2630,7 +2567,7 @@ class M3DFioPlugin(
 				commands += ["M140 S0"]
 		
 			# Send cancel commands
-			time.sleep(2)
+			time.sleep(1)
 			self.sendCommands(commands)
 	
 	# Get OctoPrint port
@@ -2699,7 +2636,7 @@ class M3DFioPlugin(
 				currentPort = self.getPort()
 
 				# Connect to the printer
-				connection = serial.Serial(currentPort, currentBaudrate, timeout = 10000, writeTimeout = 10000, parity = serial.PARITY_NONE);
+				connection = serial.Serial(currentPort, currentBaudrate, timeout = 10000, writeTimeout = 10000, parity = serial.PARITY_NONE)
 				
 				# Check if not in bootloader mode
 				connection.write("M115")
@@ -2719,7 +2656,7 @@ class M3DFioPlugin(
 					currentPort = self.getPort()
 					
 					# Re-connect
-					connection = serial.Serial(currentPort, currentBaudrate, timeout = 10000, writeTimeout = 10000, parity = serial.PARITY_NONE);
+					connection = serial.Serial(currentPort, currentBaudrate, timeout = 10000, writeTimeout = 10000, parity = serial.PARITY_NONE)
 				
 				# Check if getting EEPROM was successful
 				if self.getEeprom(connection) :
@@ -3072,12 +3009,10 @@ class M3DFioPlugin(
 									time.sleep(0.01)
 						
 					# Otherwise check if firmware is outdated
-					#elif not error and firmwareVersion < int(self.providedFirmware) :
-					elif not error and firmwareVersion != int(self.providedFirmware) :
+					elif not error and firmwareVersion < int(self.providedFirmware) :
 					
 						# Set if firmware is incompatible
-						#incompatible = firmwareVersion < 2015102303
-						incompatible = firmwareVersion != 2015102303
+						incompatible = firmwareVersion < 2015122112
 						
 						# Display message
 						self.messageResponse = None
@@ -3243,26 +3178,26 @@ class M3DFioPlugin(
 				self.sendCommands([
 					"M117",
 					"M114",
-					"M619 S" + str(self.virtualEepromOffsets["backlashX"]["offset"]) + " T" + str(self.eepromOffsets["backlashX"]["bytes"]),
-					"M619 S" + str(self.virtualEepromOffsets["backlashY"]["offset"]) + " T" + str(self.eepromOffsets["backlashY"]["bytes"]),
-					"M619 S" + str(self.virtualEepromOffsets["bedOrientationBackRight"]["offset"]) + " T" + str(self.eepromOffsets["bedOrientationBackRight"]["bytes"]),
-					"M619 S" + str(self.virtualEepromOffsets["bedOrientationBackLeft"]["offset"]) + " T" + str(self.eepromOffsets["bedOrientationBackLeft"]["bytes"]),
-					"M619 S" + str(self.virtualEepromOffsets["bedOrientationFrontLeft"]["offset"]) + " T" + str(self.eepromOffsets["bedOrientationFrontLeft"]["bytes"]),
-					"M619 S" + str(self.virtualEepromOffsets["bedOrientationFrontRight"]["offset"]) + " T" + str(self.eepromOffsets["bedOrientationFrontRight"]["bytes"]),
-					"M619 S" + str(self.virtualEepromOffsets["filamentTypeAndLocation"]["offset"]) + " T" + str(self.eepromOffsets["filamentTypeAndLocation"]["bytes"]),
-					"M619 S" + str(self.virtualEepromOffsets["filamentTemperature"]["offset"]) + " T" + str(self.eepromOffsets["filamentTemperature"]["bytes"]),
-					"M619 S" + str(self.virtualEepromOffsets["bedOffsetBackLeft"]["offset"]) + " T" + str(self.eepromOffsets["bedOffsetBackLeft"]["bytes"]),
-					"M619 S" + str(self.virtualEepromOffsets["bedOffsetBackRight"]["offset"]) + " T" + str(self.eepromOffsets["bedOffsetBackRight"]["bytes"]),
-					"M619 S" + str(self.virtualEepromOffsets["bedOffsetFrontRight"]["offset"]) + " T" + str(self.eepromOffsets["bedOffsetFrontRight"]["bytes"]),
-					"M619 S" + str(self.virtualEepromOffsets["bedOffsetFrontLeft"]["offset"]) + " T" + str(self.eepromOffsets["bedOffsetFrontLeft"]["bytes"]),
-					"M619 S" + str(self.virtualEepromOffsets["bedHeightOffset"]["offset"]) + " T" + str(self.eepromOffsets["bedHeightOffset"]["bytes"]),
-					"M619 S" + str(self.virtualEepromOffsets["backlashSpeed"]["offset"]) + " T" + str(self.eepromOffsets["backlashSpeed"]["bytes"]),
-					#"M619 S" + str(self.eepromOffsets["speedLimitX"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitX"]["bytes"]),
-					#"M619 S" + str(self.eepromOffsets["speedLimitY"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitY"]["bytes"]),
-					#"M619 S" + str(self.eepromOffsets["speedLimitZ"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitZ"]["bytes"]),
-					#"M619 S" + str(self.eepromOffsets["speedLimitEPositive"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitEPositive"]["bytes"]),
-					#"M619 S" + str(self.eepromOffsets["speedLimitENegative"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitENegative"]["bytes"]),
-					"M619 S" + str(self.virtualEepromOffsets["bedOrientationVersion"]["offset"]) + " T" + str(self.eepromOffsets["bedOrientationVersion"]["bytes"]),
+					"M619 S" + str(self.eepromOffsets["backlashX"]["offset"]) + " T" + str(self.eepromOffsets["backlashX"]["bytes"]),
+					"M619 S" + str(self.eepromOffsets["backlashY"]["offset"]) + " T" + str(self.eepromOffsets["backlashY"]["bytes"]),
+					"M619 S" + str(self.eepromOffsets["bedOrientationBackRight"]["offset"]) + " T" + str(self.eepromOffsets["bedOrientationBackRight"]["bytes"]),
+					"M619 S" + str(self.eepromOffsets["bedOrientationBackLeft"]["offset"]) + " T" + str(self.eepromOffsets["bedOrientationBackLeft"]["bytes"]),
+					"M619 S" + str(self.eepromOffsets["bedOrientationFrontLeft"]["offset"]) + " T" + str(self.eepromOffsets["bedOrientationFrontLeft"]["bytes"]),
+					"M619 S" + str(self.eepromOffsets["bedOrientationFrontRight"]["offset"]) + " T" + str(self.eepromOffsets["bedOrientationFrontRight"]["bytes"]),
+					"M619 S" + str(self.eepromOffsets["filamentTypeAndLocation"]["offset"]) + " T" + str(self.eepromOffsets["filamentTypeAndLocation"]["bytes"]),
+					"M619 S" + str(self.eepromOffsets["filamentTemperature"]["offset"]) + " T" + str(self.eepromOffsets["filamentTemperature"]["bytes"]),
+					"M619 S" + str(self.eepromOffsets["bedOffsetBackLeft"]["offset"]) + " T" + str(self.eepromOffsets["bedOffsetBackLeft"]["bytes"]),
+					"M619 S" + str(self.eepromOffsets["bedOffsetBackRight"]["offset"]) + " T" + str(self.eepromOffsets["bedOffsetBackRight"]["bytes"]),
+					"M619 S" + str(self.eepromOffsets["bedOffsetFrontRight"]["offset"]) + " T" + str(self.eepromOffsets["bedOffsetFrontRight"]["bytes"]),
+					"M619 S" + str(self.eepromOffsets["bedOffsetFrontLeft"]["offset"]) + " T" + str(self.eepromOffsets["bedOffsetFrontLeft"]["bytes"]),
+					"M619 S" + str(self.eepromOffsets["bedHeightOffset"]["offset"]) + " T" + str(self.eepromOffsets["bedHeightOffset"]["bytes"]),
+					"M619 S" + str(self.eepromOffsets["backlashSpeed"]["offset"]) + " T" + str(self.eepromOffsets["backlashSpeed"]["bytes"]),
+					"M619 S" + str(self.eepromOffsets["speedLimitX"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitX"]["bytes"]),
+					"M619 S" + str(self.eepromOffsets["speedLimitY"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitY"]["bytes"]),
+					"M619 S" + str(self.eepromOffsets["speedLimitZ"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitZ"]["bytes"]),
+					"M619 S" + str(self.eepromOffsets["speedLimitEPositive"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitEPositive"]["bytes"]),
+					"M619 S" + str(self.eepromOffsets["speedLimitENegative"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitENegative"]["bytes"]),
+					"M619 S" + str(self.eepromOffsets["bedOrientationVersion"]["offset"]) + " T" + str(self.eepromOffsets["bedOrientationVersion"]["bytes"]),
 				])
 		
 		# Otherwise check if data contains valid Z information
@@ -3284,7 +3219,7 @@ class M3DFioPlugin(
 		elif "DT:" in data :
 		
 			# Check if data is for backlash X
-			if "PT:" + str(self.virtualEepromOffsets["backlashX"]["offset"]) + ' ' in data :
+			if "PT:" + str(self.eepromOffsets["backlashX"]["offset"]) + ' ' in data :
 			
 				# Convert data to float
 				value = int(data[data.find("DT:") + 3 :])
@@ -3302,7 +3237,7 @@ class M3DFioPlugin(
 					self._settings.set_float(["BacklashX"], self.printerBacklashX)
 			
 			# Otherwise check if data is for backlash Y
-			elif "PT:" + str(self.virtualEepromOffsets["backlashY"]["offset"]) + ' ' in data :
+			elif "PT:" + str(self.eepromOffsets["backlashY"]["offset"]) + ' ' in data :
 			
 				# Convert data to float
 				value = int(data[data.find("DT:") + 3 :])
@@ -3320,7 +3255,7 @@ class M3DFioPlugin(
 					self._settings.set_float(["BacklashY"], self.printerBacklashY)
 			
 			# Otherwise check if data is for back right orientation
-			elif "PT:" + str(self.virtualEepromOffsets["bedOrientationBackRight"]["offset"]) + ' ' in data :
+			elif "PT:" + str(self.eepromOffsets["bedOrientationBackRight"]["offset"]) + ' ' in data :
 			
 				# Convert data to float
 				value = int(data[data.find("DT:") + 3 :])
@@ -3338,7 +3273,7 @@ class M3DFioPlugin(
 					self._settings.set_float(["BackRightOrientation"], self.printerBackRightOrientation)
 			
 			# Otherwise check if data is for back left orientation
-			elif "PT:" + str(self.virtualEepromOffsets["bedOrientationBackLeft"]["offset"]) + ' ' in data :
+			elif "PT:" + str(self.eepromOffsets["bedOrientationBackLeft"]["offset"]) + ' ' in data :
 			
 				# Convert data to float
 				value = int(data[data.find("DT:") + 3 :])
@@ -3356,7 +3291,7 @@ class M3DFioPlugin(
 					self._settings.set_float(["BackLeftOrientation"], self.printerBackLeftOrientation)
 			
 			# Otherwise check if data is for front left orientation
-			elif "PT:" + str(self.virtualEepromOffsets["bedOrientationFrontLeft"]["offset"]) + ' ' in data :
+			elif "PT:" + str(self.eepromOffsets["bedOrientationFrontLeft"]["offset"]) + ' ' in data :
 			
 				# Convert data to float
 				value = int(data[data.find("DT:") + 3 :])
@@ -3374,7 +3309,7 @@ class M3DFioPlugin(
 					self._settings.set_float(["FrontLeftOrientation"], self.printerFrontLeftOrientation)
 			
 			# Otherwise check if data is for front right orientation
-			elif "PT:" + str(self.virtualEepromOffsets["bedOrientationFrontRight"]["offset"]) + ' ' in data :
+			elif "PT:" + str(self.eepromOffsets["bedOrientationFrontRight"]["offset"]) + ' ' in data :
 			
 				# Convert data to float
 				value = int(data[data.find("DT:") + 3 :])
@@ -3398,7 +3333,7 @@ class M3DFioPlugin(
 						self.invalidBedOrientation = True
 				
 			# Otherwise check if data is for filament type and location
-			elif "PT:" + str(self.virtualEepromOffsets["filamentTypeAndLocation"]["offset"]) + ' ' in data :
+			elif "PT:" + str(self.eepromOffsets["filamentTypeAndLocation"]["offset"]) + ' ' in data :
 			
 				# Convert data to value
 				value = int(data[data.find("DT:") + 3 :])
@@ -3421,7 +3356,7 @@ class M3DFioPlugin(
 					self._settings.set(["FilamentType"], self.printerFilamentType)
 			
 			# Otherwise check if data is for filament temperature
-			elif "PT:" + str(self.virtualEepromOffsets["filamentTemperature"]["offset"]) + ' ' in data :
+			elif "PT:" + str(self.eepromOffsets["filamentTemperature"]["offset"]) + ' ' in data :
 			
 				# Convert data to value
 				self.printerFilamentTemperature = int(data[data.find("DT:") + 3 :]) + 100
@@ -3431,7 +3366,7 @@ class M3DFioPlugin(
 					self._settings.set_int(["FilamentTemperature"], self.printerFilamentTemperature)
 			
 			# Otherwise check if data is for back left offset
-			elif "PT:" + str(self.virtualEepromOffsets["bedOffsetBackLeft"]["offset"]) + ' ' in data :
+			elif "PT:" + str(self.eepromOffsets["bedOffsetBackLeft"]["offset"]) + ' ' in data :
 			
 				# Convert data to float
 				value = int(data[data.find("DT:") + 3 :])
@@ -3449,7 +3384,7 @@ class M3DFioPlugin(
 					self._settings.set_float(["BackLeftOffset"], self.printerBackLeftOffset)
 			
 			# Otherwise check if data is for back right offset
-			elif "PT:" + str(self.virtualEepromOffsets["bedOffsetBackRight"]["offset"]) + ' ' in data :
+			elif "PT:" + str(self.eepromOffsets["bedOffsetBackRight"]["offset"]) + ' ' in data :
 			
 				# Convert data to float
 				value = int(data[data.find("DT:") + 3 :])
@@ -3467,7 +3402,7 @@ class M3DFioPlugin(
 					self._settings.set_float(["BackRightOffset"], self.printerBackRightOffset)
 			
 			# Otherwise check if data is for front right offset
-			elif "PT:" + str(self.virtualEepromOffsets["bedOffsetFrontRight"]["offset"]) + ' ' in data :
+			elif "PT:" + str(self.eepromOffsets["bedOffsetFrontRight"]["offset"]) + ' ' in data :
 			
 				# Convert data to float
 				value = int(data[data.find("DT:") + 3 :])
@@ -3485,7 +3420,7 @@ class M3DFioPlugin(
 					self._settings.set_float(["FrontRightOffset"], self.printerFrontRightOffset)
 			
 			# Otherwise check if data is for front left offset
-			elif "PT:" + str(self.virtualEepromOffsets["bedOffsetFrontLeft"]["offset"]) + ' ' in data :
+			elif "PT:" + str(self.eepromOffsets["bedOffsetFrontLeft"]["offset"]) + ' ' in data :
 			
 				# Convert data to float
 				value = int(data[data.find("DT:") + 3 :])
@@ -3503,7 +3438,7 @@ class M3DFioPlugin(
 					self._settings.set_float(["FrontLeftOffset"], self.printerFrontLeftOffset)
 			
 			# Otherwise check if data is for bed height offset
-			elif "PT:" + str(self.virtualEepromOffsets["bedHeightOffset"]["offset"]) + ' ' in data :
+			elif "PT:" + str(self.eepromOffsets["bedHeightOffset"]["offset"]) + ' ' in data :
 			
 				# Convert data to float
 				value = int(data[data.find("DT:") + 3 :])
@@ -3521,7 +3456,7 @@ class M3DFioPlugin(
 					self._settings.set_float(["BedHeightOffset"], self.printerBedHeightOffset)
 			
 			# Otherwise check if data is for backlash speed
-			elif "PT:" + str(self.virtualEepromOffsets["backlashSpeed"]["offset"]) + ' ' in data :
+			elif "PT:" + str(self.eepromOffsets["backlashSpeed"]["offset"]) + ' ' in data :
 			
 				# Convert data to float
 				value = int(data[data.find("DT:") + 3 :])
@@ -3539,97 +3474,97 @@ class M3DFioPlugin(
 					self._settings.set_float(["BacklashSpeed"], self.printerBacklashSpeed)
 			
 			# Otherwise check if data is for speed limit X
-			#elif "PT:" + str(self.eepromOffsets["speedLimitX"]["offset"]) + ' ' in data :
-			#
-			#	# Convert data to float
-			#	value = int(data[data.find("DT:") + 3 :])
-			#	data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
-			#	bytes = struct.pack('4B', *data)
-			#	value = struct.unpack('f', bytes)[0]
-			#	
-			#	if math.isnan(value) :
-			#		self.printerSpeedLimitX = self.get_settings_defaults()["SpeedLimitX"]
-			#	else :
-			#		self.printerSpeedLimitX = round(value, 6)
-			#	
-			#	# Check if set to automatically collect printer settings
-			#	if self._settings.get_boolean(["AutomaticallyObtainSettings"]) :
-			#		self._settings.set_float(["SpeedLimitX"], self.printerSpeedLimitX)
-			#
-			## Otherwise check if data is for speed limit Y
-			#elif "PT:" + str(self.eepromOffsets["speedLimitY"]["offset"]) + ' ' in data :
-			#
-			#	# Convert data to float
-			#	value = int(data[data.find("DT:") + 3 :])
-			#	data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
-			#	bytes = struct.pack('4B', *data)
-			#	value = struct.unpack('f', bytes)[0]
-			#	
-			#	if math.isnan(value) :
-			#		self.printerSpeedLimitY = self.get_settings_defaults()["SpeedLimitY"]
-			#	else :
-			#		self.printerSpeedLimitY = round(value, 6)
-			#	
-			#	# Check if set to automatically collect printer settings
-			#	if self._settings.get_boolean(["AutomaticallyObtainSettings"]) :
-			#		self._settings.set_float(["SpeedLimitY"], self.printerSpeedLimitY)
-			#
-			## Otherwise check if data is for speed limit Z
-			#elif "PT:" + str(self.eepromOffsets["speedLimitZ"]["offset"]) + ' ' in data :
-			#
-			#	# Convert data to float
-			#	value = int(data[data.find("DT:") + 3 :])
-			#	data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
-			#	bytes = struct.pack('4B', *data)
-			#	value = struct.unpack('f', bytes)[0]
-			#	
-			#	if math.isnan(value) :
-			#		self.printerSpeedLimitZ = self.get_settings_defaults()["SpeedLimitZ"]
-			#	else :
-			#		self.printerSpeedLimitZ = round(value, 6)
-			#	
-			#	# Check if set to automatically collect printer settings
-			#	if self._settings.get_boolean(["AutomaticallyObtainSettings"]) :
-			#		self._settings.set_float(["SpeedLimitZ"], self.printerSpeedLimitZ)
-			#
-			## Otherwise check if data is for speed limit E positive
-			#elif "PT:" + str(self.eepromOffsets["speedLimitEPositive"]["offset"]) + ' ' in data :
-			#
-			#	# Convert data to float
-			#	value = int(data[data.find("DT:") + 3 :])
-			#	data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
-			#	bytes = struct.pack('4B', *data)
-			#	value = struct.unpack('f', bytes)[0]
-			#	
-			#	if math.isnan(value) :
-			#		self.printerSpeedLimitEPositive = self.get_settings_defaults()["SpeedLimitEPositive"]
-			#	else :
-			#		self.printerSpeedLimitEPositive = round(value, 6)
-			#	
-			#	# Check if set to automatically collect printer settings
-			#	if self._settings.get_boolean(["AutomaticallyObtainSettings"]) :
-			#		self._settings.set_float(["SpeedLimitEPositive"], self.printerSpeedLimitEPositive)
-			#
-			## Otherwise check if data is for speed limit E negative
-			#elif "PT:" + str(self.eepromOffsets["speedLimitENegative"]["offset"]) + ' ' in data :
-			#
-			#	# Convert data to float
-			#	value = int(data[data.find("DT:") + 3 :])
-			#	data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
-			#	bytes = struct.pack('4B', *data)
-			#	value = struct.unpack('f', bytes)[0]
-			#	
-			#	if math.isnan(value) :
-			#		self.printerSpeedLimitENegative = self.get_settings_defaults()["SpeedLimitENegative"]
-			#	else :
-			#		self.printerSpeedLimitENegative = round(value, 6)
-			#	
-			#	# Check if set to automatically collect printer settings
-			#	if self._settings.get_boolean(["AutomaticallyObtainSettings"]) :
-			#		self._settings.set_float(["SpeedLimitENegative"], self.printerSpeedLimitENegative)
+			elif "PT:" + str(self.eepromOffsets["speedLimitX"]["offset"]) + ' ' in data :
+			
+				# Convert data to float
+				value = int(data[data.find("DT:") + 3 :])
+				data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
+				bytes = struct.pack('4B', *data)
+				value = struct.unpack('f', bytes)[0]
+				
+				if math.isnan(value) :
+					self.printerSpeedLimitX = self.get_settings_defaults()["SpeedLimitX"]
+				else :
+					self.printerSpeedLimitX = round(value, 6)
+				
+				# Check if set to automatically collect printer settings
+				if self._settings.get_boolean(["AutomaticallyObtainSettings"]) :
+					self._settings.set_float(["SpeedLimitX"], self.printerSpeedLimitX)
+			
+			# Otherwise check if data is for speed limit Y
+			elif "PT:" + str(self.eepromOffsets["speedLimitY"]["offset"]) + ' ' in data :
+			
+				# Convert data to float
+				value = int(data[data.find("DT:") + 3 :])
+				data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
+				bytes = struct.pack('4B', *data)
+				value = struct.unpack('f', bytes)[0]
+				
+				if math.isnan(value) :
+					self.printerSpeedLimitY = self.get_settings_defaults()["SpeedLimitY"]
+				else :
+					self.printerSpeedLimitY = round(value, 6)
+				
+				# Check if set to automatically collect printer settings
+				if self._settings.get_boolean(["AutomaticallyObtainSettings"]) :
+					self._settings.set_float(["SpeedLimitY"], self.printerSpeedLimitY)
+			
+			# Otherwise check if data is for speed limit Z
+			elif "PT:" + str(self.eepromOffsets["speedLimitZ"]["offset"]) + ' ' in data :
+			
+				# Convert data to float
+				value = int(data[data.find("DT:") + 3 :])
+				data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
+				bytes = struct.pack('4B', *data)
+				value = struct.unpack('f', bytes)[0]
+				
+				if math.isnan(value) :
+					self.printerSpeedLimitZ = self.get_settings_defaults()["SpeedLimitZ"]
+				else :
+					self.printerSpeedLimitZ = round(value, 6)
+				
+				# Check if set to automatically collect printer settings
+				if self._settings.get_boolean(["AutomaticallyObtainSettings"]) :
+					self._settings.set_float(["SpeedLimitZ"], self.printerSpeedLimitZ)
+			
+			# Otherwise check if data is for speed limit E positive
+			elif "PT:" + str(self.eepromOffsets["speedLimitEPositive"]["offset"]) + ' ' in data :
+			
+				# Convert data to float
+				value = int(data[data.find("DT:") + 3 :])
+				data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
+				bytes = struct.pack('4B', *data)
+				value = struct.unpack('f', bytes)[0]
+				
+				if math.isnan(value) :
+					self.printerSpeedLimitEPositive = self.get_settings_defaults()["SpeedLimitEPositive"]
+				else :
+					self.printerSpeedLimitEPositive = round(value, 6)
+				
+				# Check if set to automatically collect printer settings
+				if self._settings.get_boolean(["AutomaticallyObtainSettings"]) :
+					self._settings.set_float(["SpeedLimitEPositive"], self.printerSpeedLimitEPositive)
+			
+			# Otherwise check if data is for speed limit E negative
+			elif "PT:" + str(self.eepromOffsets["speedLimitENegative"]["offset"]) + ' ' in data :
+			
+				# Convert data to float
+				value = int(data[data.find("DT:") + 3 :])
+				data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
+				bytes = struct.pack('4B', *data)
+				value = struct.unpack('f', bytes)[0]
+				
+				if math.isnan(value) :
+					self.printerSpeedLimitENegative = self.get_settings_defaults()["SpeedLimitENegative"]
+				else :
+					self.printerSpeedLimitENegative = round(value, 6)
+				
+				# Check if set to automatically collect printer settings
+				if self._settings.get_boolean(["AutomaticallyObtainSettings"]) :
+					self._settings.set_float(["SpeedLimitENegative"], self.printerSpeedLimitENegative)
 			
 			# Otherwise check if data is for bed orientation version
-			elif "PT:" + str(self.virtualEepromOffsets["bedOrientationVersion"]["offset"]) + ' ' in data :
+			elif "PT:" + str(self.eepromOffsets["bedOrientationVersion"]["offset"]) + ' ' in data :
 			
 				# Send invalid bed orientation if calibration question hasn't already been asked
 				if data[data.find("DT:") + 3 :] == '0' and self.calibrateBedOrientation != None :
@@ -3683,7 +3618,7 @@ class M3DFioPlugin(
 			# Add new value to list
 			packed = struct.pack('f', softwareBacklashX)
 			newValue = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
-			commandList += ["M618 S" + str(self.virtualEepromOffsets["backlashX"]["offset"]) + " T" + str(self.eepromOffsets["backlashX"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.virtualEepromOffsets["backlashX"]["offset"]) + " T" + str(self.eepromOffsets["backlashX"]["bytes"])]
+			commandList += ["M618 S" + str(self.eepromOffsets["backlashX"]["offset"]) + " T" + str(self.eepromOffsets["backlashX"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.eepromOffsets["backlashX"]["offset"]) + " T" + str(self.eepromOffsets["backlashX"]["bytes"])]
 
 		# Check if backlash Ys differ
 		if hasattr(self, "printerBacklashY") and self.printerBacklashY != softwareBacklashY :
@@ -3691,7 +3626,7 @@ class M3DFioPlugin(
 			# Add new value to list
 			packed = struct.pack('f', softwareBacklashY)
 			newValue = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
-			commandList += ["M618 S" + str(self.virtualEepromOffsets["backlashY"]["offset"]) + " T" + str(self.eepromOffsets["backlashY"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.virtualEepromOffsets["backlashY"]["offset"]) + " T" + str(self.eepromOffsets["backlashY"]["bytes"])]
+			commandList += ["M618 S" + str(self.eepromOffsets["backlashY"]["offset"]) + " T" + str(self.eepromOffsets["backlashY"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.eepromOffsets["backlashY"]["offset"]) + " T" + str(self.eepromOffsets["backlashY"]["bytes"])]
 
 		# Check if back right orientations differ
 		if hasattr(self, "printerBackRightOrientation") and self.printerBackRightOrientation != softwareBackRightOrientation :
@@ -3699,7 +3634,7 @@ class M3DFioPlugin(
 			# Add new value to list
 			packed = struct.pack('f', softwareBackRightOrientation)
 			newValue = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
-			commandList += ["M618 S" + str(self.virtualEepromOffsets["bedOrientationBackRight"]["offset"]) + " T" + str(self.eepromOffsets["bedOrientationBackRight"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.virtualEepromOffsets["bedOrientationBackRight"]["offset"]) + " T" + str(self.eepromOffsets["bedOrientationBackRight"]["bytes"])]
+			commandList += ["M618 S" + str(self.eepromOffsets["bedOrientationBackRight"]["offset"]) + " T" + str(self.eepromOffsets["bedOrientationBackRight"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.eepromOffsets["bedOrientationBackRight"]["offset"]) + " T" + str(self.eepromOffsets["bedOrientationBackRight"]["bytes"])]
 
 		# Check if back left orientations differ
 		if hasattr(self, "printerBackLeftOrientation") and self.printerBackLeftOrientation != softwareBackLeftOrientation :
@@ -3707,7 +3642,7 @@ class M3DFioPlugin(
 			# Add new value to list
 			packed = struct.pack('f', softwareBackLeftOrientation)
 			newValue = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
-			commandList += ["M618 S" + str(self.virtualEepromOffsets["bedOrientationBackLeft"]["offset"]) + " T" + str(self.eepromOffsets["bedOrientationBackLeft"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.virtualEepromOffsets["bedOrientationBackLeft"]["offset"]) + " T" + str(self.eepromOffsets["bedOrientationBackLeft"]["bytes"])]
+			commandList += ["M618 S" + str(self.eepromOffsets["bedOrientationBackLeft"]["offset"]) + " T" + str(self.eepromOffsets["bedOrientationBackLeft"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.eepromOffsets["bedOrientationBackLeft"]["offset"]) + " T" + str(self.eepromOffsets["bedOrientationBackLeft"]["bytes"])]
 
 		# Check if front left orientations differ
 		if hasattr(self, "printerFrontLeftOrientation") and self.printerFrontLeftOrientation != softwareFrontLeftOrientation :
@@ -3715,7 +3650,7 @@ class M3DFioPlugin(
 			# Add new value to list
 			packed = struct.pack('f', softwareFrontLeftOrientation)
 			newValue = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
-			commandList += ["M618 S" + str(self.virtualEepromOffsets["bedOrientationFrontLeft"]["offset"]) + " T" + str(self.eepromOffsets["bedOrientationFrontLeft"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.virtualEepromOffsets["bedOrientationFrontLeft"]["offset"]) + " T" + str(self.eepromOffsets["bedOrientationFrontLeft"]["bytes"])]
+			commandList += ["M618 S" + str(self.eepromOffsets["bedOrientationFrontLeft"]["offset"]) + " T" + str(self.eepromOffsets["bedOrientationFrontLeft"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.eepromOffsets["bedOrientationFrontLeft"]["offset"]) + " T" + str(self.eepromOffsets["bedOrientationFrontLeft"]["bytes"])]
 
 		# Check if front right orientations differ
 		if hasattr(self, "printerFrontRightOrientation") and self.printerFrontRightOrientation != softwareFrontRightOrientation :
@@ -3723,7 +3658,7 @@ class M3DFioPlugin(
 			# Add new value to list
 			packed = struct.pack('f', softwareFrontRightOrientation)
 			newValue = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
-			commandList += ["M618 S" + str(self.virtualEepromOffsets["bedOrientationFrontRight"]["offset"]) + " T" + str(self.eepromOffsets["bedOrientationFrontRight"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.virtualEepromOffsets["bedOrientationFrontRight"]["offset"]) + " T" + str(self.eepromOffsets["bedOrientationFrontRight"]["bytes"])]
+			commandList += ["M618 S" + str(self.eepromOffsets["bedOrientationFrontRight"]["offset"]) + " T" + str(self.eepromOffsets["bedOrientationFrontRight"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.eepromOffsets["bedOrientationFrontRight"]["offset"]) + " T" + str(self.eepromOffsets["bedOrientationFrontRight"]["bytes"])]
 
 		# Check if backlash speeds differ
 		if hasattr(self, "printerBacklashSpeed") and self.printerBacklashSpeed != softwareBacklashSpeed :
@@ -3731,7 +3666,7 @@ class M3DFioPlugin(
 			# Add new value to list
 			packed = struct.pack('f', softwareBacklashSpeed)
 			newValue = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
-			commandList += ["M618 S" + str(self.virtualEepromOffsets["backlashSpeed"]["offset"]) + " T" + str(self.eepromOffsets["backlashSpeed"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.virtualEepromOffsets["backlashSpeed"]["offset"]) + " T" + str(self.eepromOffsets["backlashSpeed"]["bytes"])]
+			commandList += ["M618 S" + str(self.eepromOffsets["backlashSpeed"]["offset"]) + " T" + str(self.eepromOffsets["backlashSpeed"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.eepromOffsets["backlashSpeed"]["offset"]) + " T" + str(self.eepromOffsets["backlashSpeed"]["bytes"])]
 
 		# Check if back left offsets differ
 		if hasattr(self, "printerBackLeftOffset") and self.printerBackLeftOffset != softwareBackLeftOffset :
@@ -3739,7 +3674,7 @@ class M3DFioPlugin(
 			# Add new value to list
 			packed = struct.pack('f', softwareBackLeftOffset)
 			newValue = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
-			commandList += ["M618 S" + str(self.virtualEepromOffsets["bedOffsetBackLeft"]["offset"]) + " T" + str(self.eepromOffsets["bedOffsetBackLeft"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.virtualEepromOffsets["bedOffsetBackLeft"]["offset"]) + " T" + str(self.eepromOffsets["bedOffsetBackLeft"]["bytes"])]
+			commandList += ["M618 S" + str(self.eepromOffsets["bedOffsetBackLeft"]["offset"]) + " T" + str(self.eepromOffsets["bedOffsetBackLeft"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.eepromOffsets["bedOffsetBackLeft"]["offset"]) + " T" + str(self.eepromOffsets["bedOffsetBackLeft"]["bytes"])]
 
 		# Check if back right offsets differ
 		if hasattr(self, "printerBackRightOffset") and self.printerBackRightOffset != softwareBackRightOffset :
@@ -3747,7 +3682,7 @@ class M3DFioPlugin(
 			# Add new value to list
 			packed = struct.pack('f', softwareBackRightOffset)
 			newValue = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
-			commandList += ["M618 S" + str(self.virtualEepromOffsets["bedOffsetBackRight"]["offset"]) + " T" + str(self.eepromOffsets["bedOffsetBackRight"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.virtualEepromOffsets["bedOffsetBackRight"]["offset"]) + " T" + str(self.eepromOffsets["bedOffsetBackRight"]["bytes"])]
+			commandList += ["M618 S" + str(self.eepromOffsets["bedOffsetBackRight"]["offset"]) + " T" + str(self.eepromOffsets["bedOffsetBackRight"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.eepromOffsets["bedOffsetBackRight"]["offset"]) + " T" + str(self.eepromOffsets["bedOffsetBackRight"]["bytes"])]
 
 		# Check if front right offsets differ
 		if hasattr(self, "printerFrontRightOffset") and self.printerFrontRightOffset != softwareFrontRightOffset :
@@ -3755,7 +3690,7 @@ class M3DFioPlugin(
 			# Add new value to list
 			packed = struct.pack('f', softwareFrontRightOffset)
 			newValue = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
-			commandList += ["M618 S" + str(self.virtualEepromOffsets["bedOffsetFrontRight"]["offset"]) + " T" + str(self.eepromOffsets["bedOffsetFrontRight"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.virtualEepromOffsets["bedOffsetFrontRight"]["offset"]) + " T" + str(self.eepromOffsets["bedOffsetFrontRight"]["bytes"])]
+			commandList += ["M618 S" + str(self.eepromOffsets["bedOffsetFrontRight"]["offset"]) + " T" + str(self.eepromOffsets["bedOffsetFrontRight"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.eepromOffsets["bedOffsetFrontRight"]["offset"]) + " T" + str(self.eepromOffsets["bedOffsetFrontRight"]["bytes"])]
 
 		# Check if front left offsets differ
 		if hasattr(self, "printerFrontLeftOffset") and self.printerFrontLeftOffset != softwareFrontLeftOffset :
@@ -3763,7 +3698,7 @@ class M3DFioPlugin(
 			# Add new value to list
 			packed = struct.pack('f', softwareFrontLeftOffset)
 			newValue = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
-			commandList += ["M618 S" + str(self.virtualEepromOffsets["bedOffsetFrontLeft"]["offset"]) + " T" + str(self.eepromOffsets["bedOffsetFrontLeft"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.virtualEepromOffsets["bedOffsetFrontLeft"]["offset"]) + " T" + str(self.eepromOffsets["bedOffsetFrontLeft"]["bytes"])]
+			commandList += ["M618 S" + str(self.eepromOffsets["bedOffsetFrontLeft"]["offset"]) + " T" + str(self.eepromOffsets["bedOffsetFrontLeft"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.eepromOffsets["bedOffsetFrontLeft"]["offset"]) + " T" + str(self.eepromOffsets["bedOffsetFrontLeft"]["bytes"])]
 
 		# Check if bed height offsets differ
 		if hasattr(self, "printerBedHeightOffset") and self.printerBedHeightOffset != softwareBedHeightOffset :
@@ -3771,13 +3706,13 @@ class M3DFioPlugin(
 			# Add new value to list
 			packed = struct.pack('f', softwareBedHeightOffset)
 			newValue = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
-			commandList += ["M618 S" + str(self.virtualEepromOffsets["bedHeightOffset"]["offset"]) + " T" + str(self.eepromOffsets["bedHeightOffset"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.virtualEepromOffsets["bedHeightOffset"]["offset"]) + " T" + str(self.eepromOffsets["bedHeightOffset"]["bytes"])]
+			commandList += ["M618 S" + str(self.eepromOffsets["bedHeightOffset"]["offset"]) + " T" + str(self.eepromOffsets["bedHeightOffset"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.eepromOffsets["bedHeightOffset"]["offset"]) + " T" + str(self.eepromOffsets["bedHeightOffset"]["bytes"])]
 
 		# Check if filament temperatures differ
 		if hasattr(self, "printerFilamentTemperature") and self.printerFilamentTemperature != softwareFilamentTemperature :
 
 			# Add new value to list
-			commandList += ["M618 S" + str(self.virtualEepromOffsets["filamentTemperature"]["offset"]) + " T" + str(self.eepromOffsets["filamentTemperature"]["bytes"]) + " P" + str(softwareFilamentTemperature - 100), "M619 S" + str(self.virtualEepromOffsets["filamentTemperature"]["offset"]) + " T" + str(self.eepromOffsets["filamentTemperature"]["bytes"])]
+			commandList += ["M618 S" + str(self.eepromOffsets["filamentTemperature"]["offset"]) + " T" + str(self.eepromOffsets["filamentTemperature"]["bytes"]) + " P" + str(softwareFilamentTemperature - 100), "M619 S" + str(self.eepromOffsets["filamentTemperature"]["offset"]) + " T" + str(self.eepromOffsets["filamentTemperature"]["bytes"])]
 
 		# Check if filament types differ
 		if hasattr(self, "printerFilamentType") and self.printerFilamentType != softwareFilamentType :
@@ -3797,7 +3732,7 @@ class M3DFioPlugin(
 			elif softwareFilamentType == "TGH" :
 				newValue |= 0x06
 			
-			commandList += ["M618 S" + str(self.virtualEepromOffsets["filamentTypeAndLocation"]["offset"]) + " T" + str(self.eepromOffsets["filamentTypeAndLocation"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.virtualEepromOffsets["filamentTypeAndLocation"]["offset"]) + " T" + str(self.eepromOffsets["filamentTypeAndLocation"]["bytes"])]
+			commandList += ["M618 S" + str(self.eepromOffsets["filamentTypeAndLocation"]["offset"]) + " T" + str(self.eepromOffsets["filamentTypeAndLocation"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.eepromOffsets["filamentTypeAndLocation"]["offset"]) + " T" + str(self.eepromOffsets["filamentTypeAndLocation"]["bytes"])]
 		
 		# Check if speed limit Xs differ
 		if hasattr(self, "printerSpeedLimitX") and self.printerSpeedLimitX != softwareSpeedLimitX :
