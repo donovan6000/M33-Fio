@@ -20,13 +20,13 @@ sudo sh ./installer.sh
 ```
 
 M3D Fio expands the capabilities of OctoPrint to make it fully compatible with the Micro 3D printer. All of the printer's settings can be customized.
-![alt text](https://raw.githubusercontent.com/donovan6000/M3D-Fio/images/settings.png "Settings")
+![alt text](https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/images/settings.png "Settings")
 
 Controls are added which allow calibrating the print bed, loading/unloading filament, updating the firmware, managing the EEPROM, etc.
-![alt text](https://raw.githubusercontent.com/donovan6000/M3D-Fio/images/controls.png "Controls")
+![alt text](https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/images/controls.png "Controls")
 
 Any model sliced in OctoPrint can be modified before hand.
-![alt text](https://raw.githubusercontent.com/donovan6000/M3D-Fio/images/model%20editor.png "Model Editor")
+![alt text](https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/images/model%20editor.png "Model Editor")
 
 New instances of OctoPrint can be created to allow using multiple printers at once.
-![alt text](https://raw.githubusercontent.com/donovan6000/M3D-Fio/images/multiple%20instances.png "Multiple Instances")
+![alt text](https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/images/multiple%20instances.png "Multiple Instances")
