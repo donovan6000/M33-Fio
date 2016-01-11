@@ -1,5 +1,9 @@
 Changelog:
 
+V0.24.1 January 11, 2016
+
+	* Fixed printing G-code files that are longer than 65535 lines
+
 V0.24 January 10, 2016
 
 	* Fixed on the fly pre-processor so that commands are sent in the correct order

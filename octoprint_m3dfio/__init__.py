@@ -2108,6 +2108,9 @@ class M3DFioPlugin(
 			# Check if command contains valid G-code
 			if gcode.parseLine(data) :
 			
+				# Get the command's binary representation
+				data = gcode.getBinary()
+			
 				# Check if data contains a starting line number
 				if gcode.getValue('N') == "0" and gcode.getValue('M') == "110" :
 					
@@ -2117,9 +2120,6 @@ class M3DFioPlugin(
 				# Store command
 				if gcode.hasValue('N') :
 					self.sentCommands[int(gcode.getValue('N'))] = data
-				
-				# Get the command's binary representation
-				data = gcode.getBinary()
 			
 			# Set last command sent
 			self.lastCommandSent = data
@@ -2181,7 +2181,7 @@ class M3DFioPlugin(
 					# Fix adjusted line number
 					adjustedLineNumber = 0
 			
-				# Removed stored value
+				# Remove stored value
 				if adjustedLineNumber in self.sentCommands :
 					self.sentCommands.pop(adjustedLineNumber)
 			
@@ -2199,15 +2199,19 @@ class M3DFioPlugin(
 				if response.startswith("rs ") :
 		
 					# Get line number
-					adjustedLineNumber = int(response[3 :]) + self.numberWrapCounter * 0x10000
+					lineNumber = int(response[3 :])
+					
+					# Adjust line number
+					if lineNumber == 0x10000 :
+						adjustedLineNumber = lineNumber + (self.numberWrapCounter - 1) * 0x10000
+					else :
+						adjustedLineNumber = lineNumber + self.numberWrapCounter * 0x10000
 					
 					# Check if command hasn't been processed
 					if adjustedLineNumber in self.sentCommands :
 		
-						# Send command
-						gcode = Gcode()
-						gcode.parseLine(self.sentCommands[adjustedLineNumber])
-						self.originalWrite(gcode.getBinary())
+						# Resend command
+						self.originalWrite(self.sentCommands[adjustedLineNumber])
 				
 				# Otherwise
 				else :
