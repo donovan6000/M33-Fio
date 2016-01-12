@@ -1,5 +1,9 @@
 Changelog:
 
+V0.24.2 January 11, 2016
+
+	* Fixed an issue where the printer would occasionally not send back confirmations for processed commands
+
 V0.24.1 January 11, 2016
 
 	* Fixed printing G-code files that are longer than 65535 lines

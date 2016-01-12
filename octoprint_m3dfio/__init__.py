@@ -69,7 +69,6 @@ class M3DFioPlugin(
 		self.originalWrite = None
 		self.originalRead = None
 		self.invalidPrinter = True
-		self.numberWrapCounter = 0
 		self.waiting = None
 		self.processingSlice = False
 		self.usingMicroPass = False
@@ -82,6 +81,7 @@ class M3DFioPlugin(
 		self.curaReminder = False
 		self.lastCommandSent = None
 		self.lastResponseWasWait = False
+		self.lastResponseWasTemperatureReading = False
 		self.allSerialPorts = []
 		self.currentSerialPort = None
 		self.providedFirmware = ''
@@ -345,7 +345,9 @@ class M3DFioPlugin(
 		self.printingTestBorder = False
 		self.printingBacklashCalibrationCylinder = False
 		self.sentCommands = {}
-		self.resetLineNumberCommand = False
+		self.lineNumbersSent = []
+		self.resetLineNumberCommandSent = False
+		self.numberWrapCounter = 0
 		
 		# Center model pre-processor settings
 		self.displacementX = 0
@@ -2041,6 +2043,9 @@ class M3DFioPlugin(
 		# Check if printing and using on the fly pre-processing
 		if self._printer.is_printing() and self._settings.get_boolean(["PreprocessOnTheFly"]) :
 		
+			# Clear last response was wait
+			self.lastResponseWasWait = False
+		
 			# Wait until pre-processing on the fly is ready
 			while not self.preprocessOnTheFlyReady :
 				time.sleep(0.01)
@@ -2110,16 +2115,24 @@ class M3DFioPlugin(
 			
 				# Get the command's binary representation
 				data = gcode.getBinary()
-			
-				# Check if data contains a starting line number
-				if gcode.getValue('N') == "0" and gcode.getValue('M') == "110" :
-					
-					# Set reset line number command
-					self.resetLineNumberCommand = True
 				
-				# Store command
-				if gcode.hasValue('N') :
-					self.sentCommands[int(gcode.getValue('N'))] = data
+				# Check if printing and command has a line number
+				if self._printer.is_printing() and gcode.hasValue('N') :
+					
+					# Get line number
+					lineNumber = int(gcode.getValue('N'))
+		
+					# Check if command contains a starting line number
+					if lineNumber == 0 and gcode.getValue('M') == "110" :
+				
+						# Set reset line number command sent
+						self.resetLineNumberCommandSent = True
+					
+					# Store line number
+					self.lineNumbersSent.append(lineNumber)
+			
+					# Store command
+					self.sentCommands[lineNumber] = data
 			
 			# Set last command sent
 			self.lastCommandSent = data
@@ -2136,122 +2149,149 @@ class M3DFioPlugin(
 		# Check if response is wait
 		if response.startswith("wait") :
 		
-			# Check if last response wasn't wait
-			if not self.lastResponseWasWait :
+			# Check if printing and a command hasn't been confirmed
+			if self._printer.is_printing() and self.lastResponseWasTemperatureReading and len(self.lineNumbersSent) :
 			
-				# Set last response was wait
-				self.lastResponseWasWait = True
+				# Set response to confirm command
+				response = "ok " + str(self.lineNumbersSent[0] % 0x10000) + '\n'
+			
+			# Otherwise
+			else :
+		
+				# Check if last response wasn't wait
+				if not self.lastResponseWasWait :
+			
+					# Set last response was wait
+					self.lastResponseWasWait = True
+			
+				# Otherwise
+				else :
+			
+					# Clear response
+					response = ''
+				
+					# Send message
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Duplicate Wait"))
+		
+		# Otherwise
+		else :
+		
+			# Clear last response was wait
+			self.lastResponseWasWait = False
+		
+		# Check if response is a temperature reading
+		if response.startswith("T:") :
+		
+			# Set last response was temperature reading
+			self.lastResponseWasTemperatureReading = True
+		
+		# Otherwise
+		else :
+		
+			# Clear last response was temperature reading
+			self.lastResponseWasTemperatureReading = False
+		
+		# Check if response was a processed or skipped value
+		if (response.startswith("ok ") and response[3].isdigit()) or response.startswith("skip ") :
+	
+			# Get line number
+			if response.startswith("ok ") : 
+				lineNumber = int(response[3 :])
+			else :
+				lineNumber = int(response[5 :])
+			
+			# Adjust line number
+			adjustedLineNumber = lineNumber + self.numberWrapCounter * 0x10000
+			
+			# Check if processing a reset line number command
+			if self.resetLineNumberCommandSent and lineNumber == 0 :
+			
+				# Clear reset line number command sent
+				self.resetLineNumberCommandSent = False
+				
+				# Reset number wrap counter
+				self.numberWrapCounter = 0
+				
+				# Fix adjusted line number
+				adjustedLineNumber = 0
+			
+			# Check if processing command
+			if len(self.lineNumbersSent) and adjustedLineNumber == self.lineNumbersSent[0] :
+			
+				# Remove stored line number
+				self.lineNumbersSent.pop(0)
+			
+			# Remove stored value
+			if adjustedLineNumber in self.sentCommands :
+				self.sentCommands.pop(adjustedLineNumber)
+		
+			# Set response to contain adjusted line number
+			response = "ok " + str(adjustedLineNumber) + '\n'
+	
+			# Increment number wrap counter if applicable
+			if lineNumber == 0xFFFF :
+				self.numberWrapCounter += 1
+
+		# Otherwise check if response was a resend value
+		elif response.startswith("rs") :
+		
+			# Check if resending specified value
+			if response.startswith("rs ") :
+	
+				# Get line number
+				lineNumber = int(response[3 :])
+				
+				# Adjust line number
+				if lineNumber == 0x10000 :
+					adjustedLineNumber = lineNumber + (self.numberWrapCounter - 1) * 0x10000
+				else :
+					adjustedLineNumber = lineNumber + self.numberWrapCounter * 0x10000
+				
+				# Check if command hasn't been processed
+				if adjustedLineNumber in self.sentCommands :
+	
+					# Resend command
+					self.originalWrite(self.sentCommands[adjustedLineNumber])
 			
 			# Otherwise
 			else :
 			
-				# Clear response
-				response = ''
-				
-				# Send message
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Duplicate Wait"))
-		
-		# Otherwise
-		else :
+				# Send last command
+				self.originalWrite(self.lastCommandSent)
 			
-			# Clear last response was wait
-			self.lastResponseWasWait = False
+			# Return nothing
+			return ''
 		
-			# Check if response was a processed or skipped value
-			if (response.startswith("ok ") and response[3].isdigit()) or response.startswith("skip ") :
-		
-				# Get line number
-				if response.startswith("ok ") : 
-					lineNumber = int(response[3 :])
-				else :
-					lineNumber = int(response[5 :])
-				
-				# Adjust line number
-				adjustedLineNumber = lineNumber + self.numberWrapCounter * 0x10000
-				
-				# Check if processing a reset line number command
-				if self.resetLineNumberCommand and lineNumber == 0 :
-				
-					# Clear reset line number command
-					self.resetLineNumberCommand = False
-					
-					# Reset number wrap counter
-					self.numberWrapCounter = 0
-					
-					# Fix adjusted line number
-					adjustedLineNumber = 0
-			
-				# Remove stored value
-				if adjustedLineNumber in self.sentCommands :
-					self.sentCommands.pop(adjustedLineNumber)
-			
-				# Set response to contain adjusted line number
-				response = "ok " + str(adjustedLineNumber) + '\n'
-		
-				# Increment number wrap counter if applicable
-				if lineNumber == 0xFFFF :
-					self.numberWrapCounter += 1
-	
-			# Otherwise check if response was a resend value
-			elif response.startswith("rs") :
-			
-				# Check if resending specified value
-				if response.startswith("rs ") :
-		
-					# Get line number
-					lineNumber = int(response[3 :])
-					
-					# Adjust line number
-					if lineNumber == 0x10000 :
-						adjustedLineNumber = lineNumber + (self.numberWrapCounter - 1) * 0x10000
-					else :
-						adjustedLineNumber = lineNumber + self.numberWrapCounter * 0x10000
-					
-					# Check if command hasn't been processed
-					if adjustedLineNumber in self.sentCommands :
-		
-						# Resend command
-						self.originalWrite(self.sentCommands[adjustedLineNumber])
-				
-				# Otherwise
-				else :
-				
-					# Send last command
-					self.originalWrite(self.lastCommandSent)
-				
-				# Return nothing
-				return ''
-			
-			# Otherwise check if response was an error code
-			elif response.startswith("Error:") :
-	
-				# Set error response
-				if response[6 : 10] == "1000" :
-					response = "ok M110 without line number\n"
-				elif response[6 : 10] == "1001" :
-					response = "ok Cannot cold extrude\n"
-				elif response[6 : 10] == "1002" :
-					response = "ok Cannot calibrate in unknown state\n"
-				elif response[6 : 10] == "1003" :
-					response = "ok Unknown G-Code\n"
-				elif response[6 : 10] == "1004" :
-					response = "ok Unknown M-Code\n"
-				elif response[6 : 10] == "1005" :
-					response = "ok Unknown command\n"
-				elif response[6 : 10] == "1006" :
-					response = "ok Heater failed\n"
-				elif response[6 : 10] == "1007" :
-					response = "ok Move to large\n"
-				elif response[6 : 10] == "1008" :
-					response = "ok System has been inactive for too long, heater and motors have been turned off\n"
-				elif response[6 : 10] == "1009" :
-					response = "ok Target address out of range\n"
-				elif response[6 : 10] == "1010" :
-					response = "ok Command cannot run because micro motion chip encountered an error\n"
-				elif response[6 : 10].isdigit() :
-					response = "ok An error has occured\n"
-				else :
-					response = "ok " +  response[6 :]
+		# Otherwise check if response was an error code
+		elif response.startswith("Error:") :
+
+			# Set error response
+			if response[6 : 10] == "1000" :
+				response = "ok M110 without line number\n"
+			elif response[6 : 10] == "1001" :
+				response = "ok Cannot cold extrude\n"
+			elif response[6 : 10] == "1002" :
+				response = "ok Cannot calibrate in unknown state\n"
+			elif response[6 : 10] == "1003" :
+				response = "ok Unknown G-Code\n"
+			elif response[6 : 10] == "1004" :
+				response = "ok Unknown M-Code\n"
+			elif response[6 : 10] == "1005" :
+				response = "ok Unknown command\n"
+			elif response[6 : 10] == "1006" :
+				response = "ok Heater failed\n"
+			elif response[6 : 10] == "1007" :
+				response = "ok Move to large\n"
+			elif response[6 : 10] == "1008" :
+				response = "ok System has been inactive for too long, heater and motors have been turned off\n"
+			elif response[6 : 10] == "1009" :
+				response = "ok Target address out of range\n"
+			elif response[6 : 10] == "1010" :
+				response = "ok Command cannot run because micro motion chip encountered an error\n"
+			elif response[6 : 10].isdigit() :
+				response = "ok An error has occured\n"
+			else :
+				response = "ok " +  response[6 :]
 		
 		# Return response
 		return response
@@ -2447,11 +2487,11 @@ class M3DFioPlugin(
 		# Otherwise check if a print is starting
 		elif event == octoprint.events.Events.PRINT_STARTED :
 		
-			# Reset pre-processor settings
-			self.resetPreprocessorSettings()
-		
 			# Check if pre-processing on the fly
 			if self._settings.get_boolean(["PreprocessOnTheFly"]) :
+			
+				# Reset pre-processor settings
+				self.resetPreprocessorSettings()
 				
 				# Check if printing test border
 				if payload.get("filename") == "test_border" :
@@ -3101,7 +3141,8 @@ class M3DFioPlugin(
 				self.savePorts(currentPort)
 			
 				# Attempt to put printer into G-code processing mode
-				self._printer.get_transport().write("Q")
+				if isinstance(self._printer.get_transport(), serial.Serial) :
+					self._printer.get_transport().write("Q")
 				time.sleep(1)
 	
 				# Set updated port
@@ -4421,7 +4462,7 @@ class M3DFioPlugin(
 
 			# Check if printing test border or backlash calibration cylinder or using validation pre-processor
 			if (self.printingTestBorder or self.printingBacklashCalibrationCylinder or self._settings.get_boolean(["UseValidationPreprocessor"])) and "VALIDATION" not in command.skip :
-
+			
 				# Check if command contains valid G-code
 				if not gcode.isEmpty() :
 
@@ -4446,7 +4487,7 @@ class M3DFioPlugin(
 						# Get next line if empty
 						if gcode.isEmpty() :
 							continue
-
+			
 			# Check if printing test border or backlash calibration cylinder or using preparation pre-processor
 			if (self.printingTestBorder or self.printingBacklashCalibrationCylinder or self._settings.get_boolean(["UsePreparationPreprocessor"])) and "PREPARATION" not in command.skip :
 
