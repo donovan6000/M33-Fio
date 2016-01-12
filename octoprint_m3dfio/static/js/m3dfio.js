@@ -3339,54 +3339,37 @@ $(function() {
 				convertedModel = null;
 				convertToStl(URL.createObjectURL(file), file.name.substr(extension + 1).toLowerCase());
 				
+				// Clear value
+				$(this).val('');
+				
 				function conversionDone() {
 				
 					// Check if conversion is done
 					if(convertedModel !== null) {
 					
-						// Read in file
-						var reader = new FileReader();
-						reader.readAsBinaryString(convertedModel);
-
-						// On file load
-						reader.onload = function(event) {
-				
-							// Set parameter
-							var parameter = [
-								{
-									name: "Model Name",
-									value: newFileName
-								},
-								{
-									name: "Model Content",
-									value: event.target.result
-								},
-								{
-									name: "Model Location",
-									value: location
-								}
-							];
-
-							// Send request
-							$.ajax({
-								url: "/plugin/m3dfio/upload",
-								type: "POST",
-								data: $.param(parameter),
-								dataType: "json",
-								contentType: "application/x-www-form-urlencoded; charset=UTF-8",
-
-								// On success
-								success: function(data) {
+						// Create request
+						var form = new FormData();
+						form.append("file", convertedModel, newFileName);
 					
-									// Hide message
-									hideMessage();
-							
-									// Show slicing dialog
-									self.files.requestData(newFileName, location);
-									self.slicing.show(location, newFileName);
-								}
-							});
-						}
+						// Send request
+						$.ajax({
+							url: "/api/files/" + location,
+							type: "POST",
+							data: form,
+							processData: false,
+							contentType: false,
+
+							// On success
+							success: function(data) {
+				
+								// Hide message
+								hideMessage();
+						
+								// Show slicing dialog
+								self.files.requestData(newFileName, location);
+								self.slicing.show(location, newFileName);
+							}
+						});
 					}
 					
 					// Otherwise
@@ -3643,494 +3626,481 @@ $(function() {
 						
 									setTimeout(function() {
 			
-										// Send request
-										$.ajax({
-											url: API_BASEURL + "plugin/m3dfio",
-											type: "POST",
-											dataType: "json",
-											data: JSON.stringify({command: "message", value: "View Model: " + modelName}),
-											contentType: "application/json; charset=UTF-8",
-
-											// On success
-											success: function(data) {
+										// Download model
+										var xhr = new XMLHttpRequest();
+										xhr.onreadystatechange = function() {
+										
+											// Check if model has loaded
+											if(this.readyState == 4 && this.status == 200) {
 											
-												// Download model
-												var xhr = new XMLHttpRequest();
-												xhr.onreadystatechange = function() {
-												
-													// Check if model has loaded
-													if(this.readyState == 4 && this.status == 200) {
-													
-														// Load model from blob
-														loadModel(URL.createObjectURL(this.response));
-									
-														// Wait until model is loaded
-														function isModelLoaded() {
+												// Load model from blob
+												loadModel(URL.createObjectURL(this.response));
+							
+												// Wait until model is loaded
+												function isModelLoaded() {
 
-															// Check if model is loaded
-															if(viewport.modelLoaded) {
+													// Check if model is loaded
+													if(viewport.modelLoaded) {
 
-																// Hide cover
-																$("#slicing_configuration_dialog .modal-cover").addClass("noTransition").removeClass("show");
-																setTimeout(function() {
-																	$("#slicing_configuration_dialog .modal-cover").css("z-index", '').removeClass("noTransition");
-																}, 200);
+														// Hide cover
+														$("#slicing_configuration_dialog .modal-cover").addClass("noTransition").removeClass("show");
+														setTimeout(function() {
+															$("#slicing_configuration_dialog .modal-cover").css("z-index", '').removeClass("noTransition");
+														}, 200);
 
-																// Display model
-																$("#slicing_configuration_dialog").addClass("noTransition").removeClass("profile");
-																setTimeout(function() {
-																	$("#slicing_configuration_dialog").removeClass("noTransition").addClass("model");
-																	$("#slicing_configuration_dialog p.currentMenu").text("Modify Model");
-				
-																	$("#slicing_configuration_dialog .modal-extra").empty().append(`
-																		<div class="printer">
-																			<button data-color="Black" title="Black"><img src="/plugin/m3dfio/static/img/black.png"></button>
-																			<button data-color="White" title="White"><img src="/plugin/m3dfio/static/img/white.png"></button>
-																			<button data-color="Blue" title="Blue"><img src="/plugin/m3dfio/static/img/blue.png"></button>
-																			<button data-color="Green" title="Green"><img src="/plugin/m3dfio/static/img/green.png"></button>
-																			<button data-color="Orange" title="Orange"><img src="/plugin/m3dfio/static/img/orange.png"></button>
-																			<button data-color="Clear" title="Clear"><img src="/plugin/m3dfio/static/img/clear.png"></button>
-																			<button data-color="Silver" title="Silver"><img src="/plugin/m3dfio/static/img/silver.png"></button>
-																		</div>
-																		<div class="filament">
-																			<button data-color="White" title="White"><span style="background-color: #F4F3E9;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
-																			<button data-color="Pink" title="Pink"><span style="background-color: #FF006B;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
-																			<button data-color="Red" title="Red"><span style="background-color: #EE0000;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
-																			<button data-color="Orange" title="Orange"><span style="background-color: #FE9800;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
-																			<button data-color="Yellow" title="Yellow"><span style="background-color: #FFEA00;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
-																			<button data-color="Green" title="Green"><span style="background-color: #009E60;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
-																			<button data-color="Light Blue" title="Light Blue"><span style="background-color: #00EEEE;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
-																			<button data-color="Blue" title="Blue"><span style="background-color: #236B8E;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
-																			<button data-color="Purple" title="Purple"><span style="background-color: #9A009A;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
-																			<button data-color="Black" title="Black"><span style="background-color: #404040;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
-																		</div>
-																		<div class="model">
-																			<input type="file" accept=".stl, .obj, .m3d">
-																			<button class="import" title="Import"><img src="/plugin/m3dfio/static/img/import.png"></button>
-																			<button class="translate disabled" title="Translate"><img src="/plugin/m3dfio/static/img/translate.png"></button>
-																			<button class="rotate" title="Rotate"><img src="/plugin/m3dfio/static/img/rotate.png"></button>
-																			<button class="scale" title="Scale"><img src="/plugin/m3dfio/static/img/scale.png"></button>
-																			<button class="snap" title="Snap"><img src="/plugin/m3dfio/static/img/snap.png"></button>
-																			<button class="delete disabled" title="Delete"><img src="/plugin/m3dfio/static/img/delete.png"></button>
-																			<button class="clone disabled" title="Clone"><img src="/plugin/m3dfio/static/img/clone.png"></button>
-																			<button class="reset disabled" title="Reset"><img src="/plugin/m3dfio/static/img/reset.png"></button>
-																			<button class="cut" title="Cut"><img src="/plugin/m3dfio/static/img/cut.png"></button>
-																			<button class="merge" title="Merge"><img src="/plugin/m3dfio/static/img/merge.png"></button>
-																		</div>
-																		<div class="display">
-																			<button class="boundaries" title="Boundaries"><img src="/plugin/m3dfio/static/img/boundaries.png"></button>
-																			<button class="measurements" title="Measurements"><img src="/plugin/m3dfio/static/img/measurements.png"></button>
-																		</div>
-																		<div class="values translate">
-																			<div>
-																				<p>X<input type="number" step="any" name="x"><span></span></p>
-																				<p>Y<input type="number" step="any" name="y"><span></span></p>
-																				<p>Z<input type="number" step="any" name="z"><span></span></p>
-																				<span></span>
-																			</div>
-																		</div>
-																		<div class="cutShape">
-																			<div>
-																				<button class="cube disabled" title="Cube"><img src="/plugin/m3dfio/static/img/cube.png"></button>
-																				<button class="sphere" title="Sphere"><img src="/plugin/m3dfio/static/img/sphere.png"></button>
-																				<span></span>
-																			</div>
-																		</div>
-																		<div class="measurements">
-																			<p class="width"></p>
-																			<p class="depth"></p>
-																			<p class="height"></p>
-																		</div>
-																	`);
-				
-																	$("#slicing_configuration_dialog .modal-extra div.printer button[data-color=\"" + self.settings.settings.plugins.m3dfio.PrinterColor() + "\"]").addClass("disabled");
-																	$("#slicing_configuration_dialog .modal-extra div.filament button[data-color=\"" + self.settings.settings.plugins.m3dfio.FilamentColor() + "\"]").addClass("disabled");
-																	$("#slicing_configuration_dialog .modal-extra").append(viewport.renderer.domElement);
-				
-																	// Image drag event
-																	$("#slicing_configuration_dialog .modal-extra img").on("dragstart", function(event) {
-				
-																		// Prevent default
-																		event.preventDefault();
-																	});
-				
-																	// Input change event
-																	$("#slicing_configuration_dialog .modal-extra input[type=\"file\"]").change(function(event) {
-
-																		// Set file type
-																		var extension = this.files[0].name.lastIndexOf('.');
-																		var type = extension != -1 ? this.files[0].name.substr(extension + 1).toLowerCase() : "stl";
-																		var url = URL.createObjectURL(this.files[0]);
-
-																		// Display cover
-																		$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").text("Loading model…");
-
-																		setTimeout(function() {
-
-																			// Import model
-																			viewport.importModel(url, type);
-
-																			// Wait until model is loaded
-																			function isModelLoaded() {
-
-																				// Check if model is loaded
-																				if(viewport.modelLoaded) {
-
-																					// Hide cover
-																					$("#slicing_configuration_dialog .modal-cover").removeClass("show");
-																					setTimeout(function() {
-																						$("#slicing_configuration_dialog .modal-cover").css("z-index", '');
-																					}, 200);
-																				}
-
-																				// Otherwise
-																				else
-
-																					// Check if model is loaded again
-																					setTimeout(isModelLoaded, 100);
-																			}
-																			setTimeout(isModelLoaded, 100);
-																		}, 300);
-																	});
-
-																	// Button click event
-																	$("#slicing_configuration_dialog .modal-extra button").click(function() {
-
-																		// Blur self
-																		$(this).blur();
-																	});
-
-																	// Import model button click event
-																	$("#slicing_configuration_dialog .modal-extra button.import").click(function() {
-
-																		// Show file dialog box
-																		$("#slicing_configuration_dialog .modal-extra input[type=\"file\"]").click();
-																	});
-
-																	// Translate button click event
-																	$("#slicing_configuration_dialog .modal-extra button.translate").click(function(event) {
-
-																		// Set selection mode to translate
-																		viewport.setMode("translate");
-																	});
-
-																	// Rotate button click event
-																	$("#slicing_configuration_dialog .modal-extra button.rotate").click(function() {
-
-																		// Set selection mode to rotate
-																		viewport.setMode("rotate");
-																	});
-
-																	// Scale button click event
-																	$("#slicing_configuration_dialog .modal-extra button.scale").click(function() {
-
-																		// Set selection mode to scale
-																		viewport.setMode("scale");
-																	});
-
-																	// Snap button click event
-																	$("#slicing_configuration_dialog .modal-extra button.snap").click(function() {
-
-																		// Check if snap controls are currently enabled
-																		if(viewport.transformControls.translationSnap)
-
-																			// Disable grid and rotation snap
-																			viewport.disableSnap();
-
-																		// Otherwise
-																		else
-
-																			// Enable grid and rotation snap
-																			viewport.enableSnap();
-																	});
-
-																	// Delete button click event
-																	$("#slicing_configuration_dialog .modal-extra button.delete").click(function() {
-
-																		// Delete model
-																		viewport.deleteModel();
-																	});
-
-																	// Clone button click event
-																	$("#slicing_configuration_dialog .modal-extra button.clone").click(function() {
-
-																		// Display cover
-																		$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").text("Cloning model…");
-
-																		setTimeout(function() {
-
-																			// Clone model
-																			viewport.cloneModel();
-
-																			// Wait until model is loaded
-																			function isModelLoaded() {
-
-																				// Check if model is loaded
-																				if(viewport.modelLoaded) {
-
-																					// Hide cover
-																					$("#slicing_configuration_dialog .modal-cover").removeClass("show");
-																					setTimeout(function() {
-																						$("#slicing_configuration_dialog .modal-cover").css("z-index", '');
-																					}, 200);
-																				}
-
-																				// Otherwise
-																				else
-
-																					// Check if model is loaded again
-																					setTimeout(isModelLoaded, 100);
-																			}
-																			setTimeout(isModelLoaded, 100);
-																		}, 300);
-																	});
-
-																	// Reset button click event
-																	$("#slicing_configuration_dialog .modal-extra button.reset").click(function() {
-
-																		// Reset model
-																		viewport.resetModel();
-																	});
-
-																	// Boundaries button click event
-																	$("#slicing_configuration_dialog .modal-extra button.boundaries").click(function() {
-
-																		// Set show boundaries
-																		viewport.showBoundaries = !viewport.showBoundaries;
-
-																		// Go through all boundaries
-																		for(var i = 0; i < viewport.boundaries.length; i++)
-
-																			// Check if boundary isn't set
-																			if(viewport.boundaries[i].material.color.getHex() != 0xFF0000)
-
-																				// Toggle visibility
-																				viewport.boundaries[i].visible = viewport.showBoundaries;
-
-																		// Select button
-																		if(viewport.showBoundaries)
-																			$(this).addClass("disabled");
-																		else
-																			$(this).removeClass("disabled");
-
-																		// Render
-																		viewport.render();
-																	});
-
-																	// Measurements button click event
-																	$("#slicing_configuration_dialog .modal-extra button.measurements").click(function() {
-
-																		// Set show measurements
-																		viewport.showMeasurements = !viewport.showMeasurements;
-
-																		// Check if a model is currently selected
-																		if(viewport.transformControls.object) {
-
-																			// Go through all boundaries
-																			for(var i = 0; i < viewport.measurements.length; i++)
-
-																				// Toggle visibility
-																				viewport.measurements[i][0].visible = viewport.showMeasurements;
-
-																			if(viewport.showMeasurements)
-																				$("div.measurements > p").addClass("show");
-																			else
-																				$("div.measurements > p").removeClass("show");
-
-																			// Update model changes
-																			viewport.updateModelChanges();
-
-																			// Render
-																			viewport.render();
-																		}
-
-																		// Select button
-																		if(viewport.showMeasurements)
-																			$(this).addClass("disabled");
-																		else
-																			$(this).removeClass("disabled");
-																	});
-				
-																	// Cut button click event
-																	$("#slicing_configuration_dialog .modal-extra button.cut").click(function() {
-				
-																		// Check if not cutting models
-																		if(viewport.cutShape === null) {
-					
-																			// Select button
-																			$(this).addClass("disabled");
-						
-																			// Disable import and clone buttons
-																			$("#slicing_configuration_dialog .modal-extra button.import, #slicing_configuration_dialog .modal-extra button.clone").prop("disabled", true);
-																			
-																			// Show cut shape options
-																			$("#slicing_configuration_dialog .modal-extra div.cutShape").addClass("show");
-																			
-																			// Create cut shape geometry
-																			if($("#slicing_configuration_dialog .modal-extra div.cutShape > div > button.disabled").hasClass("cube"))
-																				var cutShapeGeometry = new THREE.CubeGeometry(50, 50, 50);
-																			else if($("#slicing_configuration_dialog .modal-extra div.cutShape > div > button.disabled").hasClass("sphere"))
-																				var cutShapeGeometry = new THREE.SphereGeometry(25, 10, 10);
-																			
-																			// Create cut shape
-																			viewport.cutShape = new THREE.Mesh(cutShapeGeometry, new THREE.MeshBasicMaterial({
-																				color: 0xCCCCCC,
-																				transparent: true,
-																				opacity: 0.1,
-																				side: THREE.DoubleSide,
-																				depthWrite: false
-																			}));
-																			viewport.cutShape.position.set(0, bedHighMaxZ - bedLowMinZ - viewport.models[0].mesh.position.y, 0);
-																			viewport.cutShape.rotation.set(0, 0, 0);
-																			
-																			// Create cut shape outline
-																			viewport.cutShapeOutline = new THREE.LineSegments(viewport.lineGeometry(cutShapeGeometry), new THREE.LineDashedMaterial({
-																				color: 0xffaa00,
-																				dashSize: 3,
-																				gapSize: 1,
-																				linewidth: 2
-																			}));
-																			
-																			// Add cut shape and outline to scene
-																			viewport.scene[0].add(viewport.cutShape);
-																			viewport.scene[0].add(viewport.cutShapeOutline);
-					
-																			// Select cut shape
-																			viewport.removeSelection();
-																			viewport.transformControls.setAllowedTranslation("XYZ");
-																			viewport.transformControls.attach(viewport.cutShape);
-					
-																			// Update model changes
-																			viewport.updateModelChanges();
+														// Display model
+														$("#slicing_configuration_dialog").addClass("noTransition").removeClass("profile");
+														setTimeout(function() {
+															$("#slicing_configuration_dialog").removeClass("noTransition").addClass("model");
+															$("#slicing_configuration_dialog p.currentMenu").text("Modify Model");
 		
-																			// Render
-																			viewport.render();
+															$("#slicing_configuration_dialog .modal-extra").empty().append(`
+																<div class="printer">
+																	<button data-color="Black" title="Black"><img src="/plugin/m3dfio/static/img/black.png"></button>
+																	<button data-color="White" title="White"><img src="/plugin/m3dfio/static/img/white.png"></button>
+																	<button data-color="Blue" title="Blue"><img src="/plugin/m3dfio/static/img/blue.png"></button>
+																	<button data-color="Green" title="Green"><img src="/plugin/m3dfio/static/img/green.png"></button>
+																	<button data-color="Orange" title="Orange"><img src="/plugin/m3dfio/static/img/orange.png"></button>
+																	<button data-color="Clear" title="Clear"><img src="/plugin/m3dfio/static/img/clear.png"></button>
+																	<button data-color="Silver" title="Silver"><img src="/plugin/m3dfio/static/img/silver.png"></button>
+																</div>
+																<div class="filament">
+																	<button data-color="White" title="White"><span style="background-color: #F4F3E9;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
+																	<button data-color="Pink" title="Pink"><span style="background-color: #FF006B;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
+																	<button data-color="Red" title="Red"><span style="background-color: #EE0000;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
+																	<button data-color="Orange" title="Orange"><span style="background-color: #FE9800;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
+																	<button data-color="Yellow" title="Yellow"><span style="background-color: #FFEA00;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
+																	<button data-color="Green" title="Green"><span style="background-color: #009E60;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
+																	<button data-color="Light Blue" title="Light Blue"><span style="background-color: #00EEEE;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
+																	<button data-color="Blue" title="Blue"><span style="background-color: #236B8E;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
+																	<button data-color="Purple" title="Purple"><span style="background-color: #9A009A;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
+																	<button data-color="Black" title="Black"><span style="background-color: #404040;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
+																</div>
+																<div class="model">
+																	<input type="file" accept=".stl, .obj, .m3d">
+																	<button class="import" title="Import"><img src="/plugin/m3dfio/static/img/import.png"></button>
+																	<button class="translate disabled" title="Translate"><img src="/plugin/m3dfio/static/img/translate.png"></button>
+																	<button class="rotate" title="Rotate"><img src="/plugin/m3dfio/static/img/rotate.png"></button>
+																	<button class="scale" title="Scale"><img src="/plugin/m3dfio/static/img/scale.png"></button>
+																	<button class="snap" title="Snap"><img src="/plugin/m3dfio/static/img/snap.png"></button>
+																	<button class="delete disabled" title="Delete"><img src="/plugin/m3dfio/static/img/delete.png"></button>
+																	<button class="clone disabled" title="Clone"><img src="/plugin/m3dfio/static/img/clone.png"></button>
+																	<button class="reset disabled" title="Reset"><img src="/plugin/m3dfio/static/img/reset.png"></button>
+																	<button class="cut" title="Cut"><img src="/plugin/m3dfio/static/img/cut.png"></button>
+																	<button class="merge" title="Merge"><img src="/plugin/m3dfio/static/img/merge.png"></button>
+																</div>
+																<div class="display">
+																	<button class="boundaries" title="Boundaries"><img src="/plugin/m3dfio/static/img/boundaries.png"></button>
+																	<button class="measurements" title="Measurements"><img src="/plugin/m3dfio/static/img/measurements.png"></button>
+																</div>
+																<div class="values translate">
+																	<div>
+																		<p>X<input type="number" step="any" name="x"><span></span></p>
+																		<p>Y<input type="number" step="any" name="y"><span></span></p>
+																		<p>Z<input type="number" step="any" name="z"><span></span></p>
+																		<span></span>
+																	</div>
+																</div>
+																<div class="cutShape">
+																	<div>
+																		<button class="cube disabled" title="Cube"><img src="/plugin/m3dfio/static/img/cube.png"></button>
+																		<button class="sphere" title="Sphere"><img src="/plugin/m3dfio/static/img/sphere.png"></button>
+																		<span></span>
+																	</div>
+																</div>
+																<div class="measurements">
+																	<p class="width"></p>
+																	<p class="depth"></p>
+																	<p class="height"></p>
+																</div>
+															`);
+		
+															$("#slicing_configuration_dialog .modal-extra div.printer button[data-color=\"" + self.settings.settings.plugins.m3dfio.PrinterColor() + "\"]").addClass("disabled");
+															$("#slicing_configuration_dialog .modal-extra div.filament button[data-color=\"" + self.settings.settings.plugins.m3dfio.FilamentColor() + "\"]").addClass("disabled");
+															$("#slicing_configuration_dialog .modal-extra").append(viewport.renderer.domElement);
+		
+															// Image drag event
+															$("#slicing_configuration_dialog .modal-extra img").on("dragstart", function(event) {
+		
+																// Prevent default
+																event.preventDefault();
+															});
+		
+															// Input change event
+															$("#slicing_configuration_dialog .modal-extra input[type=\"file\"]").change(function(event) {
+
+																// Set file type
+																var extension = this.files[0].name.lastIndexOf('.');
+																var type = extension != -1 ? this.files[0].name.substr(extension + 1).toLowerCase() : "stl";
+																var url = URL.createObjectURL(this.files[0]);
+
+																// Display cover
+																$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").text("Loading model…");
+
+																setTimeout(function() {
+
+																	// Import model
+																	viewport.importModel(url, type);
+
+																	// Wait until model is loaded
+																	function isModelLoaded() {
+
+																		// Check if model is loaded
+																		if(viewport.modelLoaded) {
+
+																			// Hide cover
+																			$("#slicing_configuration_dialog .modal-cover").removeClass("show");
+																			setTimeout(function() {
+																				$("#slicing_configuration_dialog .modal-cover").css("z-index", '');
+																			}, 200);
 																		}
-					
+
 																		// Otherwise
 																		else
-																		
-																			// Apply cut
-																			viewport.applyCut();
-																	});
-																	
-																	// Cut shape click event
-																	$("#slicing_configuration_dialog .modal-extra div.cutShape button").click(function() {
-																		
-																		// Check if button is cube
-																		if($(this).hasClass("cube"))
-									
-																			// Change cut shape to a sube
-																			viewport.setCutShape("cube");
-																		
-																		// Otherwise check if button is sphere
-																		else if($(this).hasClass("sphere"))
-									
-																			// Change cut shape to a sphere
-																			viewport.setCutShape("sphere");
-																	});
-				
-																	// Merge button click event
-																	$("#slicing_configuration_dialog .modal-extra button.merge").click(function() {
-				
-																		// Apply merge
-																		viewport.applyMerge();
-																	});
 
-																	// Printer color button click event
-																	$("#slicing_configuration_dialog .modal-extra div.printer button").click(function() {
+																			// Check if model is loaded again
+																			setTimeout(isModelLoaded, 100);
+																	}
+																	setTimeout(isModelLoaded, 100);
+																}, 300);
+															});
 
-																		// Set printer color
-																		viewport.models[0].mesh.material = printerMaterials[$(this).data("color")];
-																		$(this).addClass("disabled").siblings(".disabled").removeClass("disabled");
+															// Button click event
+															$("#slicing_configuration_dialog .modal-extra button").click(function() {
 
-																		// Render
-																		viewport.render();
-																	});
+																// Blur self
+																$(this).blur();
+															});
 
-																	// Filament color button click event
-																	$("#slicing_configuration_dialog .modal-extra div.filament button").click(function() {
+															// Import model button click event
+															$("#slicing_configuration_dialog .modal-extra button.import").click(function() {
 
-																		// Go through all models
-																		for(var i = 1; i < viewport.models.length; i++)
+																// Show file dialog box
+																$("#slicing_configuration_dialog .modal-extra input[type=\"file\"]").click();
+															});
 
-																			// Check if model isn't currently selected
-																			if(viewport.models[i].glow === null)
+															// Translate button click event
+															$("#slicing_configuration_dialog .modal-extra button.translate").click(function(event) {
 
-																				// Set models' color
-																				viewport.models[i].mesh.material = filamentMaterials[$(this).data("color")];
+																// Set selection mode to translate
+																viewport.setMode("translate");
+															});
 
-																		// Select button
-																		$(this).addClass("disabled").siblings(".disabled").removeClass("disabled");
+															// Rotate button click event
+															$("#slicing_configuration_dialog .modal-extra button.rotate").click(function() {
 
-																		// Render
-																		viewport.render();
-																	});
+																// Set selection mode to rotate
+																viewport.setMode("rotate");
+															});
 
-																	// Value change event
-																	$("#slicing_configuration_dialog .modal-extra div.values input").change(function() {
+															// Scale button click event
+															$("#slicing_configuration_dialog .modal-extra button.scale").click(function() {
 
-																		// Blur self
-																		$(this).blur();
+																// Set selection mode to scale
+																viewport.setMode("scale");
+															});
 
-																		// Check if value is a number
-																		if(!isNaN(parseFloat($(this).val()))) {
+															// Snap button click event
+															$("#slicing_configuration_dialog .modal-extra button.snap").click(function() {
 
-																			// Fix value
-																			$(this).val(parseFloat($(this).val()).toFixed(3));
+																// Check if snap controls are currently enabled
+																if(viewport.transformControls.translationSnap)
 
-																			// Apply changes
-																			viewport.applyChanges($(this).attr("name"), $(this).val());
+																	// Disable grid and rotation snap
+																	viewport.disableSnap();
+
+																// Otherwise
+																else
+
+																	// Enable grid and rotation snap
+																	viewport.enableSnap();
+															});
+
+															// Delete button click event
+															$("#slicing_configuration_dialog .modal-extra button.delete").click(function() {
+
+																// Delete model
+																viewport.deleteModel();
+															});
+
+															// Clone button click event
+															$("#slicing_configuration_dialog .modal-extra button.clone").click(function() {
+
+																// Display cover
+																$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").text("Cloning model…");
+
+																setTimeout(function() {
+
+																	// Clone model
+																	viewport.cloneModel();
+
+																	// Wait until model is loaded
+																	function isModelLoaded() {
+
+																		// Check if model is loaded
+																		if(viewport.modelLoaded) {
+
+																			// Hide cover
+																			$("#slicing_configuration_dialog .modal-cover").removeClass("show");
+																			setTimeout(function() {
+																				$("#slicing_configuration_dialog .modal-cover").css("z-index", '');
+																			}, 200);
 																		}
 
 																		// Otherwise
 																		else
 
-																			// Update model changes
-																			viewport.updateModelChanges();
-																	});
+																			// Check if model is loaded again
+																			setTimeout(isModelLoaded, 100);
+																	}
+																	setTimeout(isModelLoaded, 100);
+																}, 300);
+															});
 
-																	// Value change event
-																	$("#slicing_configuration_dialog .modal-extra div.values input").keyup(function() {
+															// Reset button click event
+															$("#slicing_configuration_dialog .modal-extra button.reset").click(function() {
 
-																		// Check if value is a number
-																		if(!isNaN(parseFloat($(this).val())))
+																// Reset model
+																viewport.resetModel();
+															});
 
-																			// Apply changes
-																			viewport.applyChanges($(this).attr("name"), $(this).val());
-																	});
+															// Boundaries button click event
+															$("#slicing_configuration_dialog .modal-extra button.boundaries").click(function() {
+
+																// Set show boundaries
+																viewport.showBoundaries = !viewport.showBoundaries;
+
+																// Go through all boundaries
+																for(var i = 0; i < viewport.boundaries.length; i++)
+
+																	// Check if boundary isn't set
+																	if(viewport.boundaries[i].material.color.getHex() != 0xFF0000)
+
+																		// Toggle visibility
+																		viewport.boundaries[i].visible = viewport.showBoundaries;
+
+																// Select button
+																if(viewport.showBoundaries)
+																	$(this).addClass("disabled");
+																else
+																	$(this).removeClass("disabled");
+
+																// Render
+																viewport.render();
+															});
+
+															// Measurements button click event
+															$("#slicing_configuration_dialog .modal-extra button.measurements").click(function() {
+
+																// Set show measurements
+																viewport.showMeasurements = !viewport.showMeasurements;
+
+																// Check if a model is currently selected
+																if(viewport.transformControls.object) {
+
+																	// Go through all boundaries
+																	for(var i = 0; i < viewport.measurements.length; i++)
+
+																		// Toggle visibility
+																		viewport.measurements[i][0].visible = viewport.showMeasurements;
+
+																	if(viewport.showMeasurements)
+																		$("div.measurements > p").addClass("show");
+																	else
+																		$("div.measurements > p").removeClass("show");
 
 																	// Update model changes
 																	viewport.updateModelChanges();
+
+																	// Render
+																	viewport.render();
+																}
+
+																// Select button
+																if(viewport.showMeasurements)
+																	$(this).addClass("disabled");
+																else
+																	$(this).removeClass("disabled");
+															});
+		
+															// Cut button click event
+															$("#slicing_configuration_dialog .modal-extra button.cut").click(function() {
+		
+																// Check if not cutting models
+																if(viewport.cutShape === null) {
+			
+																	// Select button
+																	$(this).addClass("disabled");
 				
-																	// Set slicer menu
-																	slicerMenu = "Modify Model";
+																	// Disable import and clone buttons
+																	$("#slicing_configuration_dialog .modal-extra button.import, #slicing_configuration_dialog .modal-extra button.clone").prop("disabled", true);
+																	
+																	// Show cut shape options
+																	$("#slicing_configuration_dialog .modal-extra div.cutShape").addClass("show");
+																	
+																	// Create cut shape geometry
+																	if($("#slicing_configuration_dialog .modal-extra div.cutShape > div > button.disabled").hasClass("cube"))
+																		var cutShapeGeometry = new THREE.CubeGeometry(50, 50, 50);
+																	else if($("#slicing_configuration_dialog .modal-extra div.cutShape > div > button.disabled").hasClass("sphere"))
+																		var cutShapeGeometry = new THREE.SphereGeometry(25, 10, 10);
+																	
+																	// Create cut shape
+																	viewport.cutShape = new THREE.Mesh(cutShapeGeometry, new THREE.MeshBasicMaterial({
+																		color: 0xCCCCCC,
+																		transparent: true,
+																		opacity: 0.1,
+																		side: THREE.DoubleSide,
+																		depthWrite: false
+																	}));
+																	viewport.cutShape.position.set(0, bedHighMaxZ - bedLowMinZ - viewport.models[0].mesh.position.y, 0);
+																	viewport.cutShape.rotation.set(0, 0, 0);
+																	
+																	// Create cut shape outline
+																	viewport.cutShapeOutline = new THREE.LineSegments(viewport.lineGeometry(cutShapeGeometry), new THREE.LineDashedMaterial({
+																		color: 0xffaa00,
+																		dashSize: 3,
+																		gapSize: 1,
+																		linewidth: 2
+																	}));
+																	
+																	// Add cut shape and outline to scene
+																	viewport.scene[0].add(viewport.cutShape);
+																	viewport.scene[0].add(viewport.cutShapeOutline);
+			
+																	// Select cut shape
+																	viewport.removeSelection();
+																	viewport.transformControls.setAllowedTranslation("XYZ");
+																	viewport.transformControls.attach(viewport.cutShape);
+			
+																	// Update model changes
+																	viewport.updateModelChanges();
 
-																	// Set button
-																	button.text("Slice").removeClass("disabled");
+																	// Render
+																	viewport.render();
+																}
+			
+																// Otherwise
+																else
+																
+																	// Apply cut
+																	viewport.applyCut();
+															});
+															
+															// Cut shape click event
+															$("#slicing_configuration_dialog .modal-extra div.cutShape button").click(function() {
+																
+																// Check if button is cube
+																if($(this).hasClass("cube"))
+							
+																	// Change cut shape to a sube
+																	viewport.setCutShape("cube");
+																
+																// Otherwise check if button is sphere
+																else if($(this).hasClass("sphere"))
+							
+																	// Change cut shape to a sphere
+																	viewport.setCutShape("sphere");
+															});
+		
+															// Merge button click event
+															$("#slicing_configuration_dialog .modal-extra button.merge").click(function() {
+		
+																// Apply merge
+																viewport.applyMerge();
+															});
 
-																	// Resize viewport and window
-																	viewport.resizeEvent();
-																	$(window).resize();
-																}, 10);
-															}
+															// Printer color button click event
+															$("#slicing_configuration_dialog .modal-extra div.printer button").click(function() {
 
-															// Otherwise
-															else
+																// Set printer color
+																viewport.models[0].mesh.material = printerMaterials[$(this).data("color")];
+																$(this).addClass("disabled").siblings(".disabled").removeClass("disabled");
 
-																// Check if model is loaded again
-																setTimeout(isModelLoaded, 100);
-														}
-														setTimeout(isModelLoaded, 100);
+																// Render
+																viewport.render();
+															});
+
+															// Filament color button click event
+															$("#slicing_configuration_dialog .modal-extra div.filament button").click(function() {
+
+																// Go through all models
+																for(var i = 1; i < viewport.models.length; i++)
+
+																	// Check if model isn't currently selected
+																	if(viewport.models[i].glow === null)
+
+																		// Set models' color
+																		viewport.models[i].mesh.material = filamentMaterials[$(this).data("color")];
+
+																// Select button
+																$(this).addClass("disabled").siblings(".disabled").removeClass("disabled");
+
+																// Render
+																viewport.render();
+															});
+
+															// Value change event
+															$("#slicing_configuration_dialog .modal-extra div.values input").change(function() {
+
+																// Blur self
+																$(this).blur();
+
+																// Check if value is a number
+																if(!isNaN(parseFloat($(this).val()))) {
+
+																	// Fix value
+																	$(this).val(parseFloat($(this).val()).toFixed(3));
+
+																	// Apply changes
+																	viewport.applyChanges($(this).attr("name"), $(this).val());
+																}
+
+																// Otherwise
+																else
+
+																	// Update model changes
+																	viewport.updateModelChanges();
+															});
+
+															// Value change event
+															$("#slicing_configuration_dialog .modal-extra div.values input").keyup(function() {
+
+																// Check if value is a number
+																if(!isNaN(parseFloat($(this).val())))
+
+																	// Apply changes
+																	viewport.applyChanges($(this).attr("name"), $(this).val());
+															});
+
+															// Update model changes
+															viewport.updateModelChanges();
+		
+															// Set slicer menu
+															slicerMenu = "Modify Model";
+
+															// Set button
+															button.text("Slice").removeClass("disabled");
+
+															// Resize viewport and window
+															viewport.resizeEvent();
+															$(window).resize();
+														}, 10);
 													}
+
+													// Otherwise
+													else
+
+														// Check if model is loaded again
+														setTimeout(isModelLoaded, 100);
 												}
-												
-												xhr.open("GET", data.path);
-												xhr.responseType = "blob";
-												xhr.setRequestHeader("X-Api-Key", $.ajaxSettings.headers["X-Api-Key"])
-												xhr.send();
+												setTimeout(isModelLoaded, 100);
 											}
-										});
+										}
+										
+										xhr.open("GET", "/downloads/files/local/" + modelName);
+										xhr.responseType = "blob";
+										xhr.setRequestHeader("X-Api-Key", $.ajaxSettings.headers["X-Api-Key"])
+										xhr.send();
 									}, 300);
 								}
 								
@@ -4161,69 +4131,77 @@ $(function() {
 						$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").text("Applying changes…");
 						
 						setTimeout(function() {
+						
+							// Export scene as an STL
+							var scene = viewport.exportScene();
 			
-							// Read in exported scene
-							var reader = new FileReader();
-							reader.readAsBinaryString(viewport.exportScene());
-
-							// On file load
-							reader.onload = function(event) {
-							
-								// Append model's center to slicer profile if slicer is Cura
-								if(slicerName == "cura")
-									slicerProfileContent += "\nobject_center_x = " + modelCenter[0] + "\nobject_center_y = " + modelCenter[1] + '\n';
-			
-								// Set parameter
-								var parameter = [
-									{
-										name: "Slicer Name",
-										value: slicerName
-									},
-									{
-										name: "Slicer Profile Name",
-										value: slicerProfileName
-									},
-									{
-										name: "Slicer Profile Content",
-										value: slicerProfileContent
-									},
-									{
-										name: "Model Name",
-										value: modelName
-									},
-									{
-										name: "Model Content",
-										value: event.target.result
-									},
-									{
-										name: "Printer Profile Name",
-										value: printerProfileName
-									},
-									{
-										name: "After Slicing Action",
-										value: afterSlicingAction
-									}
-								];
+							// Append model's center to slicer profile if slicer is Cura
+							if(slicerName == "cura")
+								slicerProfileContent += "\nobject_center_x = " + modelCenter[0] + "\nobject_center_y = " + modelCenter[1] + '\n';
 		
-								// Send request
-								$.ajax({
-									url: "/plugin/m3dfio/upload",
-									type: "POST",
-									data: $.param(parameter),
-									dataType: "json",
-									contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+							// Set parameter
+							var parameter = [
+								{
+									name: "Slicer Name",
+									value: slicerName
+								},
+								{
+									name: "Slicer Profile Name",
+									value: slicerProfileName
+								},
+								{
+									name: "Slicer Profile Content",
+									value: slicerProfileContent
+								},
+								{
+									name: "Model Name",
+									value: modelName
+								},
+								{
+									name: "Printer Profile Name",
+									value: printerProfileName
+								},
+								{
+									name: "After Slicing Action",
+									value: afterSlicingAction
+								}
+							];
+	
+							// Send request
+							$.ajax({
+								url: "/plugin/m3dfio/upload",
+								type: "POST",
+								data: $.param(parameter),
+								dataType: "json",
+								contentType: "application/x-www-form-urlencoded; charset=UTF-8",
 
-									// On success
-									success: function(data) {
-							
-										// Set slicer menu to done
-										slicerMenu = "Done";
-										
-										// Slice
-										button.removeClass("disabled").click();
-									}
-								});
-							};
+								// On success
+								success: function(data) {
+								
+									// Create request
+									var form = new FormData();
+									form.append("file", scene, modelName);
+				
+									// Send request
+									$.ajax({
+										url: "/api/files/local",
+										type: "POST",
+										data: form,
+										processData: false,
+										contentType: false,
+
+										// On success
+										success: function(data) {
+			
+											// Set slicer menu to done
+											slicerMenu = "Done";
+									
+											// Slice
+											button.removeClass("disabled").click();
+										}
+									});
+								}
+							});
 						}, 300);
 					}
 				}

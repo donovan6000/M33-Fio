@@ -1340,34 +1340,6 @@ class M3DFioPlugin(
 				# Return location
 				return flask.jsonify(dict(value = "Ok", path = "/plugin/m3dfio/download/" + destinationName))
 			
-			# Otherwise check if parameter is to view a model
-			elif data["value"].startswith("View Model:") :
-			
-				# Get file's name and location
-				fileName = data["value"][12 :]
-				fileLocation = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, fileName)
-				
-				# Check if file name contains path traversal or file doesn't exist
-				if "../" in fileName or not os.path.isfile(fileLocation) :
-				
-					# Return error
-					return flask.jsonify(dict(value = "Error"))
-				
-				# Set file's destination
-				destinationName = fileLocation[len(self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, '')) :]
-				destinationName = "model_" + str(random.randint(0, 1000000)) +  destinationName
-				fileDestination = self.get_plugin_data_folder() + '/' + destinationName
-				
-				# Remove file in destination if it already exists
-				if os.path.isfile(fileDestination) :
-					os.remove(fileDestination)
-			
-				# Copy file to accessible location
-				shutil.copyfile(fileLocation, fileDestination)
-				
-				# Return location
-				return flask.jsonify(dict(value = "Ok", path = "/plugin/m3dfio/download/" + destinationName))
-			
 			# Otherwise check if parameter is to remove temporary files
 			elif data["value"] == "Remove Temp" :
 			
@@ -5481,15 +5453,15 @@ class M3DFioPlugin(
 	# Increase upload size
 	def increaseUploadSize(self, current_max_body_sizes, *args, **kwargs) :
 	
-		# Set a max upload size to 500MB
-		return [("POST", r"/upload", 500 * 1024 * 1024)]
+		# Set a max upload size to 50MB
+		return [("POST", r"/upload", 50 * 1024 * 1024)]
 	
 	# Upload event
 	@octoprint.plugin.BlueprintPlugin.route("/upload", methods=["POST"])
 	def upload(self):
 		
 		# Check if uploading everything
-		if "Model Name" in flask.request.values and "Slicer Profile Name" in flask.request.values and "Slicer Name" in flask.request.values and "Model Content" in flask.request.values and "Printer Profile Name" in flask.request.values and "Slicer Profile Content" in flask.request.values and "After Slicing Action" in flask.request.values :
+		if "Model Name" in flask.request.values and "Slicer Profile Name" in flask.request.values and "Slicer Name" in flask.request.values and "Printer Profile Name" in flask.request.values and "Slicer Profile Content" in flask.request.values and "After Slicing Action" in flask.request.values :
 		
 			# Check if printing after slicing and a printer isn't connected
 			if flask.request.values["After Slicing Action"] != "none" and self._printer.get_state_string() == "Offline" :
@@ -5531,11 +5503,6 @@ class M3DFioPlugin(
 				self.convertCuraToProfile(temp, profileLocation, '', '', '')
 			else :
 				shutil.move(temp, profileLocation)
-
-			# Save model to original model's location
-			output = open(modelLocation, "wb")
-			for character in flask.request.values["Model Content"] :
-				output.write(chr(ord(character)))
 			
 			# Get printer profile
 			printerProfile = self._printer_profile_manager.get(flask.request.values["Printer Profile Name"])
@@ -5667,29 +5634,6 @@ class M3DFioPlugin(
 					# Return error
 					return flask.jsonify(dict(value = "Error"))
 			
-			# Return ok
-			return flask.jsonify(dict(value = "Ok"))
-		
-		# Otherwise check if uploading a converted model
-		elif "Model Content" in flask.request.values and "Model Name" in flask.request.values and "Model Location" in flask.request.values :
-		
-			# Check if model name contain path traversal
-			if "../" in flask.request.values["Model Name"] :
-		
-				# Return error
-				return flask.jsonify(dict(value = "Error"))
-		
-			# Set destination
-			if flask.request.values["Model Location"] == "local" :
-				destination = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, flask.request.values["Model Name"])
-			else :
-				destination = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.SDCARD, flask.request.values["Model Name"])
-			
-			# Write model to destination
-			output = open(destination, "wb")
-			for character in flask.request.values["Model Content"] :
-				output.write(chr(ord(character)))
-		
 			# Return ok
 			return flask.jsonify(dict(value = "Ok"))
 		
