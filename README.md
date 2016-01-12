@@ -1,5 +1,5 @@
 # M3D Fio
-OctoPrint plugin for the Micro 3D printer that provides a complete, platform independent alternative to the printer's official software .
+OctoPrint plugin for the Micro 3D printer that provides a complete, platform independent alternative to the printer's official software.
 
 © 2015-2016 Exploit Kings. All rights reserved.
 

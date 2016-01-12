@@ -345,7 +345,7 @@ class M3DFioPlugin(
 		self.printingTestBorder = False
 		self.printingBacklashCalibrationCylinder = False
 		self.sentCommands = {}
-		self.lineNumbersSent = []
+		self.sentLineNumbers = []
 		self.resetLineNumberCommandSent = False
 		self.numberWrapCounter = 0
 		
@@ -2129,10 +2129,10 @@ class M3DFioPlugin(
 						self.resetLineNumberCommandSent = True
 					
 					# Store line number
-					self.lineNumbersSent.append(lineNumber)
+					self.sentLineNumbers.append(lineNumber % 0x10000)
 			
 					# Store command
-					self.sentCommands[lineNumber] = data
+					self.sentCommands[lineNumber % 0x10000] = data
 			
 			# Set last command sent
 			self.lastCommandSent = data
@@ -2150,10 +2150,10 @@ class M3DFioPlugin(
 		if response.startswith("wait") :
 		
 			# Check if printing and a command hasn't been confirmed
-			if self._printer.is_printing() and self.lastResponseWasTemperatureReading and len(self.lineNumbersSent) :
+			if self._printer.is_printing() and self.lastResponseWasTemperatureReading and len(self.sentLineNumbers) :
 			
 				# Set response to confirm command
-				response = "ok " + str(self.lineNumbersSent[0] % 0x10000) + '\n'
+				response = "ok " + str(self.sentLineNumbers[0]) + '\n'
 			
 			# Otherwise
 			else :
@@ -2196,12 +2196,9 @@ class M3DFioPlugin(
 	
 			# Get line number
 			if response.startswith("ok ") : 
-				lineNumber = int(response[3 :])
+				lineNumber = int(response[3 :]) % 0x10000
 			else :
-				lineNumber = int(response[5 :])
-			
-			# Adjust line number
-			adjustedLineNumber = lineNumber + self.numberWrapCounter * 0x10000
+				lineNumber = int(response[5 :]) % 0x10000
 			
 			# Check if processing a reset line number command
 			if self.resetLineNumberCommandSent and lineNumber == 0 :
@@ -2211,22 +2208,19 @@ class M3DFioPlugin(
 				
 				# Reset number wrap counter
 				self.numberWrapCounter = 0
-				
-				# Fix adjusted line number
-				adjustedLineNumber = 0
 			
 			# Check if processing command
-			if len(self.lineNumbersSent) and adjustedLineNumber == self.lineNumbersSent[0] :
+			if len(self.sentLineNumbers) and lineNumber == self.sentLineNumbers[0] :
 			
 				# Remove stored line number
-				self.lineNumbersSent.pop(0)
+				self.sentLineNumbers.pop(0)
 			
 			# Remove stored value
-			if adjustedLineNumber in self.sentCommands :
-				self.sentCommands.pop(adjustedLineNumber)
-		
+			if lineNumber in self.sentCommands :
+				self.sentCommands.pop(lineNumber)
+			
 			# Set response to contain adjusted line number
-			response = "ok " + str(adjustedLineNumber) + '\n'
+			response = "ok " + str(lineNumber + self.numberWrapCounter * 0x10000) + '\n'
 	
 			# Increment number wrap counter if applicable
 			if lineNumber == 0xFFFF :
@@ -2239,19 +2233,13 @@ class M3DFioPlugin(
 			if response.startswith("rs ") :
 	
 				# Get line number
-				lineNumber = int(response[3 :])
-				
-				# Adjust line number
-				if lineNumber == 0x10000 :
-					adjustedLineNumber = lineNumber + (self.numberWrapCounter - 1) * 0x10000
-				else :
-					adjustedLineNumber = lineNumber + self.numberWrapCounter * 0x10000
+				lineNumber = int(response[3 :]) % 0x10000
 				
 				# Check if command hasn't been processed
-				if adjustedLineNumber in self.sentCommands :
+				if lineNumber in self.sentCommands :
 	
 					# Resend command
-					self.originalWrite(self.sentCommands[adjustedLineNumber])
+					self.originalWrite(self.sentCommands[lineNumber])
 			
 			# Otherwise
 			else :

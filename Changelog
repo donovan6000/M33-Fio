@@ -1,5 +1,9 @@
 Changelog:
 
+V0.24.3 January 11, 2016
+
+	* Fixed issue with resending commands that have line numbers which have rolled over
+
 V0.24.2 January 11, 2016
 
 	* Fixed an issue where the printer would occasionally not send back confirmations for processed commands
