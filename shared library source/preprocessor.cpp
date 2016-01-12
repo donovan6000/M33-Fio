@@ -45,7 +45,7 @@ using namespace std;
 // Enumerations
 
 // Filament types
-enum filamentTypes {NO_TYPE, ABS, PLA, HIPS, OTHER, FLX, TGH};
+enum filamentTypes {NO_TYPE, ABS, PLA, HIPS, OTHER, FLX, TGH, CAM};
 
 // Directions
 enum directions {POSITIVE, NEGATIVE, NEITHER};
@@ -511,6 +511,8 @@ EXPORT void setFilamentType(const char *value) {
 		filamentType = FLX;
 	else if(!strcmp(value, "TGH"))
 		filamentType = TGH;
+	else if(!strcmp(value, "CAM"))
+		filamentType = CAM;
 	else
 		filamentType = OTHER;
 }
@@ -1408,9 +1410,18 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			
 					// Otherwise
 					else
+					
+						// Check if filament type is TGH
+						if(filamentType == TGH)
 		
-						// Add temperature to output
-						newCommands.push(Command("M104 S" + to_string(filamentTemperature), THERMAL, THERMAL));
+							// Add temperature to output
+							newCommands.push(Command("M104 S" + to_string(filamentTemperature + 15), THERMAL, THERMAL));
+						
+						// Otherwise
+						else
+						
+							// Add temperature to output
+							newCommands.push(Command("M104 S" + to_string(filamentTemperature + 15), THERMAL, THERMAL));
 			
 					// Increment layer counter
 					thermalBondingLayerCounter++;
@@ -1432,7 +1443,7 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 						if((gcode.getValue('G') == "0" || gcode.getValue('G') == "1") && !thermalBondingRelativeMode) {
 
 							// Check if previous command exists and filament is ABS, HIPS, PLA, TGH, or FLX
-							if(!thermalBondingPreviousGcode.isEmpty() && (filamentType == ABS || filamentType == HIPS || filamentType == PLA || filamentType == TGH || filamentType == FLX)) {
+							if(!thermalBondingPreviousGcode.isEmpty() && (filamentType == ABS || filamentType == HIPS || filamentType == PLA || filamentType == FLX || filamentType == TGH || filamentType == CAM)) {
 
 								// Check if first sharp corner
 								if(thermalBondingCornerCounter < 1 && isSharpCorner(gcode, thermalBondingPreviousGcode)) {

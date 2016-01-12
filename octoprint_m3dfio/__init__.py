@@ -2118,6 +2118,10 @@ class M3DFioPlugin(
 				
 				# Check if printing and command has a line number
 				if self._printer.is_printing() and gcode.hasValue('N') :
+				
+					# Limit the amount of commands that can simultaneous be sent to the printer
+					while len(self.sentLineNumbers) >= 5 :
+						time.sleep(0.01)
 					
 					# Get line number
 					lineNumber = int(gcode.getValue('N'))
@@ -3380,6 +3384,8 @@ class M3DFioPlugin(
 					filamentType = "FLX"
 				elif value & 0x3F == 6 :
 					filamentType = "TGH"
+				elif value & 0x3F == 7 :
+					filamentType = "CAM"
 				else :
 					filamentType = "OTHER"
 				self.printerFilamentType = filamentType
@@ -3764,6 +3770,8 @@ class M3DFioPlugin(
 				newValue |= 0x05
 			elif softwareFilamentType == "TGH" :
 				newValue |= 0x06
+			elif softwareFilamentType == "CAM" :
+				newValue |= 0x07
 			
 			commandList += ["M618 S" + str(self.eepromOffsets["filamentTypeAndLocation"]["offset"]) + " T" + str(self.eepromOffsets["filamentTypeAndLocation"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.eepromOffsets["filamentTypeAndLocation"]["offset"]) + " T" + str(self.eepromOffsets["filamentTypeAndLocation"]["bytes"])]
 		
@@ -4900,12 +4908,21 @@ class M3DFioPlugin(
 				
 								# Add temperature to output
 								newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 15)), "THERMAL", "CENTER VALIDATION PREPARATION WAVE THERMAL"))
-				
+						
 						# Otherwise
 						else :
+						
+							# Check if filament type is TGH
+							if str(self._settings.get(["FilamentType"])) == "TGH" :
+						
+								# Add temperature to output
+								newCommands.append(Command("M104 S" + str(self._settings.get_int(["FilamentTemperature"]) + 15), "THERMAL", "CENTER VALIDATION PREPARATION WAVE THERMAL"))
+							
+							# Otherwise
+							else :
 			
-							# Add temperature to output
-							newCommands.append(Command("M104 S" + str(self._settings.get_int(["FilamentTemperature"])), "THERMAL", "CENTER VALIDATION PREPARATION WAVE THERMAL"))
+								# Add temperature to output
+								newCommands.append(Command("M104 S" + str(self._settings.get_int(["FilamentTemperature"])), "THERMAL", "CENTER VALIDATION PREPARATION WAVE THERMAL"))
 				
 						# Increment layer counter
 						self.thermalBondingLayerCounter += 1
@@ -4926,7 +4943,7 @@ class M3DFioPlugin(
 							if (gcode.getValue('G') == "0" or gcode.getValue('G') == "1") and not self.thermalBondingRelativeMode :
 
 								# Check if previous command exists and filament is ABS, HIPS, PLA, TGH, or FLX
-								if not self.thermalBondingPreviousGcode.isEmpty() and (str(self._settings.get(["FilamentType"])) == "ABS" or str(self._settings.get(["FilamentType"])) == "HIPS" or str(self._settings.get(["FilamentType"])) == "PLA" or str(self._settings.get(["FilamentType"])) == "TGH" or str(self._settings.get(["FilamentType"])) == "FLX") :
+								if not self.thermalBondingPreviousGcode.isEmpty() and (str(self._settings.get(["FilamentType"])) == "ABS" or str(self._settings.get(["FilamentType"])) == "HIPS" or str(self._settings.get(["FilamentType"])) == "PLA" or str(self._settings.get(["FilamentType"])) == "FLX" or str(self._settings.get(["FilamentType"])) == "TGH" or str(self._settings.get(["FilamentType"])) == "CAM") :
 	
 									# Check if first sharp corner
 									if self.thermalBondingCornerCounter < 1 and self.isSharpCorner(gcode, self.thermalBondingPreviousGcode) :
