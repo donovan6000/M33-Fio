@@ -10,6 +10,8 @@ $(function() {
 		var slicerOpen = false;
 		var slicerMenu = "Select Profile";
 		var modelName;
+		var modelLocation;
+		var modelPath;
 		var slicerName;
 		var slicerProfileName;
 		var slicerProfileContent;
@@ -3315,22 +3317,33 @@ $(function() {
 			}
 		});
 		
+		// Drag and drop upload file event
+		$("#drop_locally, #drop, #drop_sd").on("drop", function(event) {
+		
+			// Upload file with expanded file support
+			uploadWithExpandedFileSupport(event, event.originalEvent.dataTransfer.files[0], $(this).attr("id") == "drop_sd" ? "sdcard" : "local");
+		});
+				
 		// Upload file event
 		$("#gcode_upload, #gcode_upload_sd").change(function(event) {
 		
-			// Initialize variables
-			var file = this.files[0];
+			// Upload file with expanded file support
+			uploadWithExpandedFileSupport(event, this.files[0], $(this).attr("id") == "gcode_upload" ? "local" : "sdcard");
+		});
+		
+		// Upload with expanded file support
+		function uploadWithExpandedFileSupport(event, file, location) {
 			
 			// Check if uploading a Wavefront OBJ or M3D
 			var extension = file.name.lastIndexOf('.');
 			if(extension != -1 && (file.name.substr(extension + 1).toLowerCase() == "obj" || file.name.substr(extension + 1).toLowerCase() == "m3d")) {
 			
 				// Stop default behavior
+				event.preventDefault();
 				event.stopImmediatePropagation();
 				
-				// Set new file name and location
+				// Set new file name
 				var newFileName = file.name.substr(0, extension) + ".stl";
-				var location = $(this).attr("id") == "gcode_upload" ? "local" : "sdcard";
 				
 				// Display message
 				showMessage("Conversion Status", htmlEncode("Converting " + file.name + " to " + newFileName));
@@ -3340,7 +3353,7 @@ $(function() {
 				convertToStl(URL.createObjectURL(file), file.name.substr(extension + 1).toLowerCase());
 				
 				// Clear value
-				$(this).val('');
+				$(event.target).val('');
 				
 				function conversionDone() {
 				
@@ -3349,7 +3362,18 @@ $(function() {
 					
 						// Create request
 						var form = new FormData();
-						form.append("file", convertedModel, newFileName);
+						
+						// Set path to file
+						if(typeof self.files.currentPath === "undefined")
+							var path = newFileName;
+						else if(self.files.currentPath().length)
+							var path = '/' + self.files.currentPath() + '/' + newFileName;
+						else
+							var path = '/' + newFileName;
+						form.append("file", convertedModel, path);
+						
+						if(typeof self.files.currentPath !== "undefined")
+							path = path.substr(1);
 					
 						// Send request
 						$.ajax({
@@ -3366,8 +3390,8 @@ $(function() {
 								hideMessage();
 						
 								// Show slicing dialog
-								self.files.requestData(newFileName, location);
-								self.slicing.show(location, newFileName);
+								self.files.requestData(path, location);
+								self.slicing.show(location, path);
 							}
 						});
 					}
@@ -3381,7 +3405,7 @@ $(function() {
 				}
 				setTimeout(conversionDone, 300);
 			}
-		});
+		}
 		
 		// Manage if slicer is opened or closed
 		setInterval(function() {
@@ -3460,12 +3484,23 @@ $(function() {
 					// Disable button
 					button.addClass("disabled");
 					
-					// Get slicer, slicer profile, printer profile, model name, and after slicing action
+					// Get slicer, slicer profile, printer profile, model name, model location, model path, and after slicing action
 					slicerName = $("#slicing_configuration_dialog").find(".control-group:nth-of-type(1) select").val();
 					slicerProfileName = $("#slicing_configuration_dialog").find(".control-group:nth-of-type(2) select").val();
 					printerProfileName = $("#slicing_configuration_dialog").find(".control-group:nth-of-type(3) select").val();
-					modelName = $("#slicing_configuration_dialog").find("h3").text();
-					modelName = modelName.substr(modelName.indexOf(' ') + 1);
+					
+					modelLocation = self.slicing.target;
+					
+					if(typeof self.slicing.path !== "undefined" && self.slicing.path.length)
+						modelPath = '/' + self.slicing.path + '/';
+					else
+						modelPath = '/'
+					
+					if(modelPath.length > 1)
+						modelName = self.slicing.file.substr(modelPath.length - 1);
+					else
+						modelName = self.slicing.file
+					
 					afterSlicingAction = $("#slicing_configuration_dialog").find(".control-group:nth-of-type(5) select").val();
 					
 					// Check if slicer menu is select profile
@@ -3623,19 +3658,19 @@ $(function() {
 								
 									// Display cover
 									$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").text("Loading model…");
-						
+									
 									setTimeout(function() {
-			
+									
 										// Download model
 										var xhr = new XMLHttpRequest();
 										xhr.onreadystatechange = function() {
-										
+						
 											// Check if model has loaded
 											if(this.readyState == 4 && this.status == 200) {
-											
+							
 												// Load model from blob
 												loadModel(URL.createObjectURL(this.response));
-							
+			
 												// Wait until model is loaded
 												function isModelLoaded() {
 
@@ -3653,7 +3688,7 @@ $(function() {
 														setTimeout(function() {
 															$("#slicing_configuration_dialog").removeClass("noTransition").addClass("model");
 															$("#slicing_configuration_dialog p.currentMenu").text("Modify Model");
-		
+
 															$("#slicing_configuration_dialog .modal-extra").empty().append(`
 																<div class="printer">
 																	<button data-color="Black" title="Black"><img src="/plugin/m3dfio/static/img/black.png"></button>
@@ -3714,18 +3749,18 @@ $(function() {
 																	<p class="height"></p>
 																</div>
 															`);
-		
+
 															$("#slicing_configuration_dialog .modal-extra div.printer button[data-color=\"" + self.settings.settings.plugins.m3dfio.PrinterColor() + "\"]").addClass("disabled");
 															$("#slicing_configuration_dialog .modal-extra div.filament button[data-color=\"" + self.settings.settings.plugins.m3dfio.FilamentColor() + "\"]").addClass("disabled");
 															$("#slicing_configuration_dialog .modal-extra").append(viewport.renderer.domElement);
-		
+
 															// Image drag event
 															$("#slicing_configuration_dialog .modal-extra img").on("dragstart", function(event) {
-		
+
 																// Prevent default
 																event.preventDefault();
 															});
-		
+
 															// Input change event
 															$("#slicing_configuration_dialog .modal-extra input[type=\"file\"]").change(function(event) {
 
@@ -3922,28 +3957,28 @@ $(function() {
 																else
 																	$(this).removeClass("disabled");
 															});
-		
+
 															// Cut button click event
 															$("#slicing_configuration_dialog .modal-extra button.cut").click(function() {
-		
+
 																// Check if not cutting models
 																if(viewport.cutShape === null) {
-			
+
 																	// Select button
 																	$(this).addClass("disabled");
-				
+
 																	// Disable import and clone buttons
 																	$("#slicing_configuration_dialog .modal-extra button.import, #slicing_configuration_dialog .modal-extra button.clone").prop("disabled", true);
-																	
+													
 																	// Show cut shape options
 																	$("#slicing_configuration_dialog .modal-extra div.cutShape").addClass("show");
-																	
+													
 																	// Create cut shape geometry
 																	if($("#slicing_configuration_dialog .modal-extra div.cutShape > div > button.disabled").hasClass("cube"))
 																		var cutShapeGeometry = new THREE.CubeGeometry(50, 50, 50);
 																	else if($("#slicing_configuration_dialog .modal-extra div.cutShape > div > button.disabled").hasClass("sphere"))
 																		var cutShapeGeometry = new THREE.SphereGeometry(25, 10, 10);
-																	
+													
 																	// Create cut shape
 																	viewport.cutShape = new THREE.Mesh(cutShapeGeometry, new THREE.MeshBasicMaterial({
 																		color: 0xCCCCCC,
@@ -3954,7 +3989,7 @@ $(function() {
 																	}));
 																	viewport.cutShape.position.set(0, bedHighMaxZ - bedLowMinZ - viewport.models[0].mesh.position.y, 0);
 																	viewport.cutShape.rotation.set(0, 0, 0);
-																	
+													
 																	// Create cut shape outline
 																	viewport.cutShapeOutline = new THREE.LineSegments(viewport.lineGeometry(cutShapeGeometry), new THREE.LineDashedMaterial({
 																		color: 0xffaa00,
@@ -3962,49 +3997,49 @@ $(function() {
 																		gapSize: 1,
 																		linewidth: 2
 																	}));
-																	
+													
 																	// Add cut shape and outline to scene
 																	viewport.scene[0].add(viewport.cutShape);
 																	viewport.scene[0].add(viewport.cutShapeOutline);
-			
+
 																	// Select cut shape
 																	viewport.removeSelection();
 																	viewport.transformControls.setAllowedTranslation("XYZ");
 																	viewport.transformControls.attach(viewport.cutShape);
-			
+
 																	// Update model changes
 																	viewport.updateModelChanges();
 
 																	// Render
 																	viewport.render();
 																}
-			
+
 																// Otherwise
 																else
-																
+												
 																	// Apply cut
 																	viewport.applyCut();
 															});
-															
+											
 															// Cut shape click event
 															$("#slicing_configuration_dialog .modal-extra div.cutShape button").click(function() {
-																
+												
 																// Check if button is cube
 																if($(this).hasClass("cube"))
-							
+			
 																	// Change cut shape to a sube
 																	viewport.setCutShape("cube");
-																
+												
 																// Otherwise check if button is sphere
 																else if($(this).hasClass("sphere"))
-							
+			
 																	// Change cut shape to a sphere
 																	viewport.setCutShape("sphere");
 															});
-		
+
 															// Merge button click event
 															$("#slicing_configuration_dialog .modal-extra button.merge").click(function() {
-		
+
 																// Apply merge
 																viewport.applyMerge();
 															});
@@ -4074,7 +4109,7 @@ $(function() {
 
 															// Update model changes
 															viewport.updateModelChanges();
-		
+
 															// Set slicer menu
 															slicerMenu = "Modify Model";
 
@@ -4096,8 +4131,8 @@ $(function() {
 												setTimeout(isModelLoaded, 100);
 											}
 										}
-										
-										xhr.open("GET", "/downloads/files/local/" + modelName);
+						
+										xhr.open("GET", "/downloads/files/" + modelLocation + modelPath + modelName);
 										xhr.responseType = "blob";
 										xhr.setRequestHeader("X-Api-Key", $.ajaxSettings.headers["X-Api-Key"])
 										xhr.send();
@@ -4158,6 +4193,14 @@ $(function() {
 									value: modelName
 								},
 								{
+									name: "Model Location",
+									value: modelLocation
+								},
+								{
+									name: "Model Path",
+									value: modelPath
+								},
+								{
 									name: "Printer Profile Name",
 									value: printerProfileName
 								},
@@ -4180,11 +4223,14 @@ $(function() {
 								
 									// Create request
 									var form = new FormData();
-									form.append("file", scene, modelName);
+									if(typeof self.files.currentPath === "undefined")
+										form.append("file", scene, modelPath.substr(1) + modelName);
+									else
+										form.append("file", scene, modelPath + modelName);
 				
 									// Send request
 									$.ajax({
-										url: "/api/files/local",
+										url: "/api/files/" + modelLocation,
 										type: "POST",
 										data: form,
 										processData: false,
