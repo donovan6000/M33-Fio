@@ -12,6 +12,7 @@ __copyright__ = "Copyright (C) 2015-2016 Exploit Kings. All rights reserved."
 import octoprint.plugin
 import octoprint.events
 import octoprint.filemanager
+import octoprint.printer
 import tempfile
 import os
 import time
@@ -2038,7 +2039,7 @@ class M3DFioPlugin(
 			self._printer.fake_ack()
 		
 		# Otherwise check if request is invalid
-		elif data == "M110\n" or data == "M21\n" or data == "M84\n" :
+		elif ((self._printer.get_state_string() == "Connecting" or self._printer.get_state_string() == "Detecting baudrate") and (data == "N0 M110 N0\n" or data == "M110\n")) or data == "M21\n" or data == "M84\n" :
 		
 			# Send fake acknowledgment
 			self._printer.fake_ack()
