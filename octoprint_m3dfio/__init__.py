@@ -35,6 +35,7 @@ import ctypes
 import platform
 import subprocess
 import psutil
+import socket
 from .gcode import Gcode
 from .vector import Vector
 
@@ -1289,13 +1290,7 @@ class M3DFioPlugin(
 				if not self.invalidPrinter :
 			
 					# Save settings to the printer
-					self.sendCommands(self.getSaveCommands())	
-			
-			# Otherwise check if parameter is to save software settings
-			elif data["value"] == "Save Software Settings" :
-			
-				# Save software settings
-				self.saveSoftwareSettings()
+					self.sendCommands(self.getSaveCommands())
 			
 			# Otherwise check if parameter is a response to a message
 			elif self.messageResponse == None and (data["value"] == "Ok" or data["value"] == "Yes" or data["value"] == "No") :
@@ -1443,33 +1438,23 @@ class M3DFioPlugin(
 			elif data["value"] == "Create OctoPrint Instance" :
 			
 				# Go through all ports
-				portFound = False
 				port = 5000
-				while not portFound :
+				while True :
 				
-					# Set port found
-					portFound = True
+					# Check if port is open
+					if self.isPortOpen(port) :
+					
+						# Break
+						break
+					
+					# Check if at last port
+					if port == 9999 :
 				
-					# Find all OctoPrint instances
-					for process in psutil.process_iter() :
-						if process.name() == "octoprint" or process.name() == "python" :
-					
-							# Check if process has the specified port
-							processDetails = psutil.Process(process.pid)
-							if port == self.getOctoPrintPort(psutil.Process(process.pid).connections()) :
-								portFound = False
-					
-					# Check if port wasn't found
-					if not portFound :
-					
-						# Check if at last port
-						if port == 9999 :
-					
-							# Send response
-							return flask.jsonify(dict(value = "Error"))
-				
-						# Try next port
-						port += 1
+						# Send response
+						return flask.jsonify(dict(value = "Error"))
+			
+					# Try next port
+					port += 1
 			
 				# Create instance and config file
 				shutil.copyfile(self._settings.global_get_basefolder("base") + "/config.yaml", self._settings.global_get_basefolder("base") + "/config.yaml" + str(port))
@@ -1477,6 +1462,42 @@ class M3DFioPlugin(
 				
 				# Send response
 				return flask.jsonify(dict(value = "Ok", port = port))
+			
+			# Otherwise check if value is to set printer color
+			elif data["value"].startswith("Set Printer Color:") :
+			
+				# Get color
+				color = data["value"][19 :]
+				
+				# Check if color is valid
+				if color == "Black" or color == "White" or color == "Blue" or color == "Green" or color == "Orange" or color == "Clear" or color == "Silver" :
+				
+					# Set setting
+					self._settings.set(["PrinterColor"], color)
+					
+					# Return response
+					return flask.jsonify(dict(value = "Ok"))
+				
+				# Return response
+				return flask.jsonify(dict(value = "Error"))
+			
+			# Otherwise check if value is to set filament color
+			elif data["value"].startswith("Set Filament Color:") :
+			
+				# Get color
+				color = data["value"][20 :]
+				
+				# Check if color is valid
+				if color == "White" or color == "Pink" or color == "Red" or color == "Orange" or color == "Yellow" or color == "Green" or color == "Light Blue" or color == "Blue" or color == "Purple" or color == "Black" :
+				
+					# Set setting
+					self._settings.set(["FilamentColor"], color)
+					
+					# Return response
+					return flask.jsonify(dict(value = "Ok"))
+				
+				# Return response
+				return flask.jsonify(dict(value = "Error"))
 		
 		# Otherwise check if command is a file
 		elif command == "file" :
@@ -1915,7 +1936,7 @@ class M3DFioPlugin(
 		currentFanType = int(ord(self.eeprom[self.eepromOffsets["fanType"]["offset"]]))
 		currentFanOffset = int(ord(self.eeprom[self.eepromOffsets["fanOffset"]["offset"]]))
 		data = [int(ord(self.eeprom[self.eepromOffsets["fanScale"]["offset"]])), int(ord(self.eeprom[self.eepromOffsets["fanScale"]["offset"] + 1])), int(ord(self.eeprom[self.eepromOffsets["fanScale"]["offset"] + 2])), int(ord(self.eeprom[self.eepromOffsets["fanScale"]["offset"] + 3]))]
-		bytes = struct.pack('4B', *data)
+		bytes = struct.pack("4B", *data)
 		currentFanScale = round(struct.unpack('f', bytes)[0], 6)
 		
 		# Check if fan scales differ
@@ -2039,7 +2060,7 @@ class M3DFioPlugin(
 			self._printer.fake_ack()
 		
 		# Otherwise check if request is invalid
-		elif ((self._printer.get_state_string() == "Connecting" or self._printer.get_state_string() == "Detecting baudrate") and (data == "N0 M110 N0\n" or data == "M110\n")) or data == "M21\n" or data == "M84\n" :
+		elif ("M110" in data and not self._printer.is_printing()) or data == "M21\n" or data == "M84\n" :
 		
 			# Send fake acknowledgment
 			self._printer.fake_ack()
@@ -2051,7 +2072,7 @@ class M3DFioPlugin(
 			gcode = Gcode()
 			
 			# Check if pre-processing on the fly and command is not a starting line number and wasn't added on the fly
-			if self._printer.is_printing() and self._settings.get_boolean(["PreprocessOnTheFly"]) and not data.startswith("N0 M110 ") and "**" not in data :
+			if self._printer.is_printing() and self._settings.get_boolean(["PreprocessOnTheFly"]) and not data.startswith("N0 M110") and "**" not in data :
 			
 				# Get line number
 				lineNumber = int(re.findall("^N(\d+)", data)[0])
@@ -2579,6 +2600,23 @@ class M3DFioPlugin(
 			time.sleep(1)
 			self.sendCommands(commands)
 	
+	# Is port open
+	def isPortOpen(self, port) :
+
+		# Create socket
+		socketConnection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	
+		# Try to open port
+		try :
+			socketConnection.bind(('', port))
+	
+		# Return false if an error occured
+		except socket.error :
+			return False
+	
+		# Return true
+		return True
+	
 	# Get OctoPrint port
 	def getOctoPrintPort(self, connections) :
 	
@@ -2833,7 +2871,7 @@ class M3DFioPlugin(
 					
 						# Get speed limit X
 						data = [int(ord(self.eeprom[self.eepromOffsets["speedLimitX"]["offset"]])), int(ord(self.eeprom[self.eepromOffsets["speedLimitX"]["offset"] + 1])), int(ord(self.eeprom[self.eepromOffsets["speedLimitX"]["offset"] + 2])), int(ord(self.eeprom[self.eepromOffsets["speedLimitX"]["offset"] + 3]))]
-						bytes = struct.pack('4B', *data)
+						bytes = struct.pack("4B", *data)
 						speedLimitX = round(struct.unpack('f', bytes)[0], 6)
 					
 						# Check if speed limit X is invalid
@@ -2861,7 +2899,7 @@ class M3DFioPlugin(
 						
 							# Get speed limit Y
 							data = [int(ord(self.eeprom[self.eepromOffsets["speedLimitY"]["offset"]])), int(ord(self.eeprom[self.eepromOffsets["speedLimitY"]["offset"] + 1])), int(ord(self.eeprom[self.eepromOffsets["speedLimitY"]["offset"] + 2])), int(ord(self.eeprom[self.eepromOffsets["speedLimitY"]["offset"] + 3]))]
-							bytes = struct.pack('4B', *data)
+							bytes = struct.pack("4B", *data)
 							speedLimitY = round(struct.unpack('f', bytes)[0], 6)
 					
 							# Check if speed limit Y is invalid
@@ -2889,7 +2927,7 @@ class M3DFioPlugin(
 						
 							# Get speed limit Z
 							data = [int(ord(self.eeprom[self.eepromOffsets["speedLimitZ"]["offset"]])), int(ord(self.eeprom[self.eepromOffsets["speedLimitZ"]["offset"] + 1])), int(ord(self.eeprom[self.eepromOffsets["speedLimitZ"]["offset"] + 2])), int(ord(self.eeprom[self.eepromOffsets["speedLimitZ"]["offset"] + 3]))]
-							bytes = struct.pack('4B', *data)
+							bytes = struct.pack("4B", *data)
 							speedLimitZ = round(struct.unpack('f', bytes)[0], 6)
 					
 							# Check if speed limit Z is invalid
@@ -2917,7 +2955,7 @@ class M3DFioPlugin(
 						
 							# Get speed limit E positive
 							data = [int(ord(self.eeprom[self.eepromOffsets["speedLimitEPositive"]["offset"]])), int(ord(self.eeprom[self.eepromOffsets["speedLimitEPositive"]["offset"] + 1])), int(ord(self.eeprom[self.eepromOffsets["speedLimitEPositive"]["offset"] + 2])), int(ord(self.eeprom[self.eepromOffsets["speedLimitEPositive"]["offset"] + 3]))]
-							bytes = struct.pack('4B', *data)
+							bytes = struct.pack("4B", *data)
 							speedLimitEPositive = round(struct.unpack('f', bytes)[0], 6)
 					
 							# Check if speed limit E positive is invalid
@@ -2945,7 +2983,7 @@ class M3DFioPlugin(
 						
 							# Get speed limit E negative
 							data = [int(ord(self.eeprom[self.eepromOffsets["speedLimitENegative"]["offset"]])), int(ord(self.eeprom[self.eepromOffsets["speedLimitENegative"]["offset"] + 1])), int(ord(self.eeprom[self.eepromOffsets["speedLimitENegative"]["offset"] + 2])), int(ord(self.eeprom[self.eepromOffsets["speedLimitENegative"]["offset"] + 3]))]
-							bytes = struct.pack('4B', *data)
+							bytes = struct.pack("4B", *data)
 							speedLimitENegative = round(struct.unpack('f', bytes)[0], 6)
 					
 							# Check if speed limit E negative is invalid
@@ -3234,7 +3272,7 @@ class M3DFioPlugin(
 				# Convert data to float
 				value = int(data[data.find("DT:") + 3 :])
 				data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
-				bytes = struct.pack('4B', *data)
+				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
 				if math.isnan(value) :
@@ -3252,7 +3290,7 @@ class M3DFioPlugin(
 				# Convert data to float
 				value = int(data[data.find("DT:") + 3 :])
 				data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
-				bytes = struct.pack('4B', *data)
+				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
 				if math.isnan(value) :
@@ -3270,7 +3308,7 @@ class M3DFioPlugin(
 				# Convert data to float
 				value = int(data[data.find("DT:") + 3 :])
 				data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
-				bytes = struct.pack('4B', *data)
+				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
 				if math.isnan(value) :
@@ -3288,7 +3326,7 @@ class M3DFioPlugin(
 				# Convert data to float
 				value = int(data[data.find("DT:") + 3 :])
 				data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
-				bytes = struct.pack('4B', *data)
+				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
 				if math.isnan(value) :
@@ -3306,7 +3344,7 @@ class M3DFioPlugin(
 				# Convert data to float
 				value = int(data[data.find("DT:") + 3 :])
 				data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
-				bytes = struct.pack('4B', *data)
+				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
 				if math.isnan(value) :
@@ -3324,7 +3362,7 @@ class M3DFioPlugin(
 				# Convert data to float
 				value = int(data[data.find("DT:") + 3 :])
 				data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
-				bytes = struct.pack('4B', *data)
+				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
 				if math.isnan(value) :
@@ -3383,7 +3421,7 @@ class M3DFioPlugin(
 				# Convert data to float
 				value = int(data[data.find("DT:") + 3 :])
 				data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
-				bytes = struct.pack('4B', *data)
+				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
 				if math.isnan(value) :
@@ -3401,7 +3439,7 @@ class M3DFioPlugin(
 				# Convert data to float
 				value = int(data[data.find("DT:") + 3 :])
 				data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
-				bytes = struct.pack('4B', *data)
+				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
 				if math.isnan(value) :
@@ -3419,7 +3457,7 @@ class M3DFioPlugin(
 				# Convert data to float
 				value = int(data[data.find("DT:") + 3 :])
 				data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
-				bytes = struct.pack('4B', *data)
+				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
 				if math.isnan(value) :
@@ -3437,7 +3475,7 @@ class M3DFioPlugin(
 				# Convert data to float
 				value = int(data[data.find("DT:") + 3 :])
 				data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
-				bytes = struct.pack('4B', *data)
+				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
 				if math.isnan(value) :
@@ -3455,7 +3493,7 @@ class M3DFioPlugin(
 				# Convert data to float
 				value = int(data[data.find("DT:") + 3 :])
 				data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
-				bytes = struct.pack('4B', *data)
+				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
 				if math.isnan(value) :
@@ -3473,7 +3511,7 @@ class M3DFioPlugin(
 				# Convert data to float
 				value = int(data[data.find("DT:") + 3 :])
 				data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
-				bytes = struct.pack('4B', *data)
+				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
 				if math.isnan(value) :
@@ -3491,7 +3529,7 @@ class M3DFioPlugin(
 				# Convert data to float
 				value = int(data[data.find("DT:") + 3 :])
 				data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
-				bytes = struct.pack('4B', *data)
+				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
 				if math.isnan(value) :
@@ -3509,7 +3547,7 @@ class M3DFioPlugin(
 				# Convert data to float
 				value = int(data[data.find("DT:") + 3 :])
 				data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
-				bytes = struct.pack('4B', *data)
+				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
 				if math.isnan(value) :
@@ -3527,7 +3565,7 @@ class M3DFioPlugin(
 				# Convert data to float
 				value = int(data[data.find("DT:") + 3 :])
 				data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
-				bytes = struct.pack('4B', *data)
+				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
 				if math.isnan(value) :
@@ -3545,7 +3583,7 @@ class M3DFioPlugin(
 				# Convert data to float
 				value = int(data[data.find("DT:") + 3 :])
 				data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
-				bytes = struct.pack('4B', *data)
+				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
 				if math.isnan(value) :
@@ -3563,7 +3601,7 @@ class M3DFioPlugin(
 				# Convert data to float
 				value = int(data[data.find("DT:") + 3 :])
 				data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
-				bytes = struct.pack('4B', *data)
+				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
 				if math.isnan(value) :
@@ -3594,11 +3632,11 @@ class M3DFioPlugin(
 				else :
 				
 					# Save software settings
-					self.saveSoftwareSettings()
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Save Software Settings"))
 				
 				# Send invalid values
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Invalid", bedCenter = self.invalidBedCenter, bedOrientation = self.invalidBedOrientation))
-					
+	
 	# Get save commands
 	def getSaveCommands(self) :
 	
@@ -3790,48 +3828,6 @@ class M3DFioPlugin(
 		
 		# Return command list
 		return commandList
-	
-	# Save software settings
-	def saveSoftwareSettings(self) :
-	
-		# Get settings
-		settings = {
-			u"BackRightOffset" : self._settings.get_float(["BackRightOffset"]),
-			u"BedHeightOffset" : self._settings.get_float(["BedHeightOffset"]),
-			u"FrontRightOrientation" : self._settings.get_float(["FrontRightOrientation"]),
-			u"UseThermalBondingPreprocessor" : self._settings.get_boolean(["UseThermalBondingPreprocessor"]),
-			u"UseBacklashCompensationPreprocessor" : self._settings.get_boolean(["UseBacklashCompensationPreprocessor"]),
-			u"BacklashX" : self._settings.get_float(["BacklashX"]),
-			u"BacklashY" : self._settings.get_float(["BacklashY"]),
-			u"AutomaticallyObtainSettings" : self._settings.get_boolean(["AutomaticallyObtainSettings"]),
-			u"IgnorePrintDimensionLimitations" : self._settings.get_boolean(["IgnorePrintDimensionLimitations"]),
-			u"UseBedCompensationPreprocessor" : self._settings.get_boolean(["UseBedCompensationPreprocessor"]),
-			u"FrontRightOffset" : self._settings.get_float(["FrontRightOffset"]),
-			u"BacklashSpeed" : self._settings.get_float(["BacklashSpeed"]),
-			u"FilamentType" : u'' +  str(self._settings.get(["FilamentType"])),
-			u"BackLeftOrientation" : self._settings.get_float(["BackLeftOrientation"]),
-			u"FrontLeftOrientation" : self._settings.get_float(["FrontLeftOrientation"]),
-			u"UseValidationPreprocessor" : self._settings.get_boolean(["UseValidationPreprocessor"]),
-			u"FrontLeftOffset" : self._settings.get_float(["FrontLeftOffset"]),
-			u"UseWaveBondingPreprocessor" : self._settings.get_boolean(["UseWaveBondingPreprocessor"]),
-			u"BackLeftOffset" : self._settings.get_float(["BackLeftOffset"]),
-			u"FilamentTemperature" : self._settings.get_int(["FilamentTemperature"]),
-			u"UseCenterModelPreprocessor" : self._settings.get_boolean(["UseCenterModelPreprocessor"]),
-			u"UsePreparationPreprocessor" : self._settings.get_boolean(["UsePreparationPreprocessor"]),
-			u"PreprocessOnTheFly" : self._settings.get_boolean(["PreprocessOnTheFly"]),
-			u"BackRightOrientation" : self._settings.get_float(["BackRightOrientation"]),
-			u"PrinterColor" : u'' +  str(self._settings.get(["PrinterColor"])),
-			u"FilamentColor" : u'' +  str(self._settings.get(["FilamentColor"])),
-			u"UseSharedLibrary" : self._settings.get_boolean(["UseSharedLibrary"]),
-			u"SpeedLimitX" : self._settings.get_float(["SpeedLimitX"]),
-			u"SpeedLimitY" : self._settings.get_float(["SpeedLimitY"]),
-			u"SpeedLimitZ" : self._settings.get_float(["SpeedLimitZ"]),
-			u"SpeedLimitEPositive" : self._settings.get_float(["SpeedLimitEPositive"]),
-			u"SpeedLimitENegative" : self._settings.get_float(["SpeedLimitENegative"])
-		}
-		
-		# Save settings
-		octoprint.plugin.SettingsPlugin.on_settings_save(self, settings)
 	
 	# Pre-process G-code
 	def preprocessGcode(self, path, file_object, links = None, printer_profile = None, allow_overwrite = True, *args, **kwargs) :
@@ -5459,7 +5455,7 @@ class M3DFioPlugin(
 	
 	# Upload event
 	@octoprint.plugin.BlueprintPlugin.route("/upload", methods=["POST"])
-	def upload(self):
+	def upload(self) :
 		
 		# Check if uploading everything
 		if "Model Name" in flask.request.values and "Model Location" in flask.request.values and "Model Path" in flask.request.values and "Slicer Profile Name" in flask.request.values and "Slicer Name" in flask.request.values and "Printer Profile Name" in flask.request.values and "Slicer Profile Content" in flask.request.values and "After Slicing Action" in flask.request.values :
@@ -5628,14 +5624,12 @@ class M3DFioPlugin(
 					output.write(chr(ord(character)))
 				output.close()
 				
-				try:
-				
-					# Attempt to convert profile
+				# Attempt to convert profile
+				try :
 					profile = profileManager.Profile.from_cura_ini(temp)
 				
-				except Exception as e:
-				
-					# Return error if conversion failed
+				# Return error if conversion failed
+				except Exception :
 					return flask.jsonify(dict(value = "Error"))
 				
 				# Check if profile is invalid
@@ -5652,7 +5646,7 @@ class M3DFioPlugin(
 	
 	# Download event
 	@octoprint.plugin.BlueprintPlugin.route("/download/<path:file>", methods=["GET"])
-	def download(self, file):
+	def download(self, file) :
 	
 		# Check if file contains path traversal or file doesn't exist
 		if "../" in file or not os.path.isfile(self.get_plugin_data_folder() + '/' + file) :

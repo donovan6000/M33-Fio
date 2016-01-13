@@ -716,33 +716,14 @@ $(function() {
 		// Save printer settings
 		function savePrinterSettings() {
 	
-			setTimeout(function() {
-			
-				// Send request
-				$.ajax({
-					url: API_BASEURL + "plugin/m3dfio",
-					type: "POST",
-					dataType: "json",
-					data: JSON.stringify({command: "message", value: "Save Printer Settings"}),
-					contentType: "application/json; charset=UTF-8"
-				});
-			}, 1000);
-		}
-	
-		// Save software settings
-		function saveSoftwareSettings() {
-	
-			setTimeout(function() {
-			
-				// Send request
-				$.ajax({
-					url: API_BASEURL + "plugin/m3dfio",
-					type: "POST",
-					dataType: "json",
-					data: JSON.stringify({command: "message", value: "Save Software Settings"}),
-					contentType: "application/json; charset=UTF-8"
-				});
-			}, 1000);
+			// Send request
+			$.ajax({
+				url: API_BASEURL + "plugin/m3dfio",
+				type: "POST",
+				dataType: "json",
+				data: JSON.stringify({command: "message", value: "Save Printer Settings"}),
+				contentType: "application/json; charset=UTF-8"
+			});
 		}
 		
 		// Load model
@@ -1400,7 +1381,7 @@ $(function() {
 									if(viewport.models[i].mesh == intersects[0].object) {
 							
 										// Set model's material
-										viewport.models[i].mesh.material = filamentMaterials[$("#slicing_configuration_dialog .modal-extra div.filament button.disabled").data("color")];
+										viewport.models[i].mesh.material = filamentMaterials[self.settings.settings.plugins.m3dfio.FilamentColor()];
 		
 										// Remove glow
 										viewport.scene[1].remove(viewport.models[i].glow);
@@ -1805,7 +1786,7 @@ $(function() {
 							if(viewport.models[i].glow) {
 	
 								// Set model's material
-								viewport.models[i].mesh.material = filamentMaterials[$("#slicing_configuration_dialog .modal-extra div.filament button.disabled").data("color")];
+								viewport.models[i].mesh.material = filamentMaterials[self.settings.settings.plugins.m3dfio.FilamentColor()];
 		
 								// Remove glow
 								viewport.scene[1].remove(viewport.models[i].glow);
@@ -2644,8 +2625,8 @@ $(function() {
 							// Create difference and intersection meshes
 							var cutShapeBsp = new ThreeBSP(viewport.cutShape);
 							var modelBsp = new ThreeBSP(viewport.models[i].mesh);
-							var meshDifference = modelBsp.subtract(cutShapeBsp).toMesh(new THREE.MeshLambertMaterial(filamentMaterials["white"]));
-							var meshIntersection = modelBsp.intersect(cutShapeBsp).toMesh(new THREE.MeshLambertMaterial(filamentMaterials["white"]));
+							var meshDifference = modelBsp.subtract(cutShapeBsp).toMesh(new THREE.MeshLambertMaterial(filamentMaterials[self.settings.settings.plugins.m3dfio.FilamentColor()]));
+							var meshIntersection = modelBsp.intersect(cutShapeBsp).toMesh(new THREE.MeshLambertMaterial(filamentMaterials[self.settings.settings.plugins.m3dfio.FilamentColor()]));
 				
 							// Delete model
 							viewport.scene[0].remove(viewport.models[i].mesh);
@@ -2819,7 +2800,7 @@ $(function() {
 								// Create union mesh
 								var unionBsp = new ThreeBSP(meshUnion);
 								var modelBsp = new ThreeBSP(viewport.models[i].mesh);
-								meshUnion = unionBsp.union(modelBsp).toMesh(new THREE.MeshLambertMaterial(filamentMaterials["white"]));
+								meshUnion = unionBsp.union(modelBsp).toMesh(new THREE.MeshLambertMaterial(filamentMaterials[self.settings.settings.plugins.m3dfio.FilamentColor()]));
 				
 								// Delete model
 								viewport.scene[0].remove(viewport.models[i].mesh);
@@ -3458,6 +3439,9 @@ $(function() {
 						$("#slicing_configuration_dialog .modal-extra").remove();
 						$("#slicing_configuration_dialog .modal-body").css("display", '');
 						$("#slicing_configuration_dialog .modal-cover").removeClass("show").css("z-index", '');
+						
+						// Save software and printer settings
+						self.settings.saveData(undefined, savePrinterSettings);
 					}, 300);
 				}
 			}
@@ -4046,6 +4030,21 @@ $(function() {
 
 															// Printer color button click event
 															$("#slicing_configuration_dialog .modal-extra div.printer button").click(function() {
+															
+																// Send request
+																$.ajax({
+																	url: API_BASEURL + "plugin/m3dfio",
+																	type: "POST",
+																	dataType: "json",
+																	data: JSON.stringify({command: "message", value: "Set Printer Color: " + $(this).data("color")}),
+																	contentType: "application/json; charset=UTF-8",
+																	
+																	success: function() {
+																	
+																		// Update settings
+																		self.settings.requestData();
+																	}
+																});
 
 																// Set printer color
 																viewport.models[0].mesh.material = printerMaterials[$(this).data("color")];
@@ -4057,6 +4056,21 @@ $(function() {
 
 															// Filament color button click event
 															$("#slicing_configuration_dialog .modal-extra div.filament button").click(function() {
+															
+																// Send request
+																$.ajax({
+																	url: API_BASEURL + "plugin/m3dfio",
+																	type: "POST",
+																	dataType: "json",
+																	data: JSON.stringify({command: "message", value: "Set Filament Color: " + $(this).data("color")}),
+																	contentType: "application/json; charset=UTF-8",
+																	
+																	success: function() {
+																	
+																		// Update settings
+																		self.settings.requestData();
+																	}
+																});
 
 																// Go through all models
 																for(var i = 1; i < viewport.models.length; i++)
@@ -4310,8 +4324,8 @@ $(function() {
 		// Save settings button event
 		$("#settings_dialog > div.modal-footer > button.btn-primary").click(function() {
 		
-			// Save printer settings
-			savePrinterSettings();
+			// Save software and printer settings
+			self.settings.saveData(undefined, savePrinterSettings);
 		});
 	
 		// Override X increment control
@@ -4921,8 +4935,8 @@ $(function() {
 				// On success
 				success: function(data) {
 				
-					// Save software settings
-					saveSoftwareSettings();
+					// Save software and printer settings
+					self.settings.saveData(undefined, savePrinterSettings);
 			
 					// Ok click event
 					$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
@@ -5070,8 +5084,8 @@ $(function() {
 						// On success
 						success: function(data) {
 						
-							// Save software settings
-							saveSoftwareSettings();
+							// Save software and printer settings
+							self.settings.saveData(undefined, savePrinterSettings);
 			
 							// Ok click event
 							$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
@@ -5129,8 +5143,8 @@ $(function() {
 						// On success
 						success: function(data) {
 						
-							// Save software settings
-							saveSoftwareSettings();
+							// Save software and printer settings
+							self.settings.saveData(undefined, savePrinterSettings);
 			
 							// Ok click event
 							$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
@@ -5188,8 +5202,8 @@ $(function() {
 						// On success
 						success: function(data) {
 						
-							// Save software settings
-							saveSoftwareSettings();
+							// Save software and printer settings
+							self.settings.saveData(undefined, savePrinterSettings);
 			
 							// Ok click event
 							$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
@@ -5247,8 +5261,8 @@ $(function() {
 						// On success
 						success: function(data) {
 						
-							// Save software settings
-							saveSoftwareSettings();
+							// Save software and printer settings
+							self.settings.saveData(undefined, savePrinterSettings);
 			
 							// Ok click event
 							$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
@@ -5713,8 +5727,8 @@ $(function() {
 																																					// On success
 																																					success: function(data) {
 																																					
-																																						// Save software settings
-																																						saveSoftwareSettings();
+																																						// Save software and printer settings
+																																						self.settings.saveData(undefined, savePrinterSettings);
 			
 																																						// Ok click event
 																																						$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
@@ -6475,11 +6489,18 @@ $(function() {
 			// Otherwise check if data is that a duplicate wait was received
 			else if(data.value == "Duplicate Wait") {
 			
+				// Remove empty response if it exists
+				if(self.terminal.log()[self.terminal.log().length - 1].line == "Recv: ")
+					self.terminal.log.pop();
+				
 				// Append part of ellipse to logged wait
 				var command = self.terminal.log.pop();
 				if(command.line.indexOf("wait ") == -1)
 					command.line += ' ';
+				
 				command.line += '.';
+				
+				// Update response
 				self.terminal.log.push(command);
 			}
 			
@@ -6538,6 +6559,12 @@ $(function() {
 				// Set button text and title
 				$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(7)").text("Update firmware to V" + providedFirmware).attr("title", "Updates printer's firmware to V" + providedFirmware);
 			}
+			
+			// Otherwise check if data is to save software settings
+			else if(data.value == "Save Software Settings")
+		
+				// Save software and printer settings
+				self.settings.saveData(undefined, savePrinterSettings);
 			
 			// Otherwise check if data is EEPROM
 			else if(data.value == "EEPROM" && typeof data.eeprom !== "undefined") {
@@ -6664,8 +6691,8 @@ $(function() {
 											// On success
 											success: function(data) {
 											
-												// Save software settings
-												saveSoftwareSettings();
+												// Save software and printer settings
+												self.settings.saveData(undefined, savePrinterSettings);
 			
 												// Ok click event
 												$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
@@ -6754,8 +6781,8 @@ $(function() {
 							// On success
 							success: function(data) {
 							
-								// Save software settings
-								saveSoftwareSettings();
+								// Save software and printer settings
+								self.settings.saveData(undefined, savePrinterSettings);
 			
 								// Ok click event
 								$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {

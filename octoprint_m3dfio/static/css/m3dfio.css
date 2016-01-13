@@ -53,8 +53,8 @@
 	width: calc(100% - 27px);
 }
 
-#settings_plugin_m3dfio div.input-append.mmPerSecond input[type="number"] {
-	width: calc(100% - 45px);
+#settings_plugin_m3dfio div.input-append.mmPerMinute input[type="number"] {
+	width: calc(100% - 61px);
 }
 
 #navbar_plugin_m3dfio {
