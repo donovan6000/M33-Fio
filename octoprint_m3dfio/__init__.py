@@ -933,9 +933,15 @@ class M3DFioPlugin(
 				# Set waiting
 				if data["value"][-1] == "M65536;wait" :
 					self.waiting = True
+				
+				# Go through all commands
+				for command in data["value"] :
 			
-				# Send commands to printer
-				self.sendCommands(data["value"])
+					# Send command to printer
+					self.sendCommands(command)
+					
+					# Delay
+					time.sleep(0.4)
 				
 				# Check if waiting for a response
 				if data["value"][-1] == "M65536;wait" :
@@ -1519,8 +1525,11 @@ class M3DFioPlugin(
 			# Otherwise check if parameter is to cancel print
 			elif data["value"] == "Cancel Print" :
 			
-				# Stop printing
-				self._printer.cancel_print()
+				# Check if printing
+				if self._printer.is_printing() :
+			
+					# Stop printing
+					self._printer.cancel_print()
 				
 				# Set print ready
 				self.printReady = True
@@ -2095,18 +2104,24 @@ class M3DFioPlugin(
 			
 			# Otherwise
 			else :
-			
-				# Empty command queue
-				self.emptyCommandQueue()
-				time.sleep(1)
-				self.sendCommands("M65537\n")
-				return
+				
+				# Set command to emergency stop
+				data = "M65537;stop"
 		
 		# Check if request is emergency stop
 		if "M65537" in data :
 		
-			# Set data
+			# Empty command queue
+			self.emptyCommandQueue()
+		
+			# Set data to emergency stop
 			data = "M0\n"
+			
+			# Check if printing
+			if self._printer.is_printing() :
+			
+				# Stop printing
+				self._printer.cancel_print()
 		
 		# Check if request ends waiting
 		if "M65536" in data :
@@ -2660,7 +2675,6 @@ class M3DFioPlugin(
 		
 			# Set commands
 			commands = [
-				"G4 P100",
 				"M65537;stop",
 				"M107",
 				"M104 S0",
@@ -2670,8 +2684,7 @@ class M3DFioPlugin(
 			if self.usingMicroPass :
 				commands += ["M140 S0"]
 		
-			# Send cancel commands
-			time.sleep(1)
+			# Send commands
 			self.sendCommands(commands)
 			
 			# Clear print ready

@@ -849,7 +849,7 @@ $(function() {
 								side: THREE.FrontSide,
 								transparent: true
 							}));
-							mesh.position.set(0, -22.85, -92.5);
+							mesh.position.set(0, -22.85, -92.8);
 							mesh.rotation.set(0, -Math.PI, 0);
 							mesh.renderOrder = 4;
 						
@@ -3047,11 +3047,12 @@ $(function() {
 		$("#control > div.jog-panel.general").find("button:nth-of-type(5)").remove();
 		$("#control > div.jog-panel.general").find("button:nth-of-type(5)").remove();
 		
-		// Create absolute and relative controls and open settings
+		// Create absolute and relative controls, open settings, and emergency stop
 		$("#control > div.jog-panel.general").find("div").append(`
 			<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'G90'}) }" title="Sets extruder to use absolute positioning">Absolute mode</button>
 			<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'G91'}) }" title="Sets extruder to use relative positioning">Relative mode</button>
 			<button class="btn btn-block control-box" data-bind="enable: loginState.isUser()">Open settings</button>
+			<button class="btn btn-block control-box" data-bind="enable: isOperational() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M65537;stop*'}) }" title="Stop current operation">Emergency stop</button>
 		`);
 	
 		// Add filament controls
@@ -3256,6 +3257,24 @@ $(function() {
 		// Allow positioning OctoPrint instance manager
 		$("div.navbar-inner div.container").css("position", "relative");
 		$("div.navbar-inner ul.nav.pull-right").css("position", "static");
+		
+		// Cancel print button click
+		$("#job_cancel").click(function() {
+	
+			// Set commands
+			var commands = [
+				"M65537;stop\n"
+			];
+		
+			// Send request
+			$.ajax({
+				url: API_BASEURL + "plugin/m3dfio",
+				type: "POST",
+				dataType: "json",
+				data: JSON.stringify({command: "message", value: commands}),
+				contentType: "application/json; charset=UTF-8"
+			});
+		});
 		
 		// Save button click event
 		$("#slicing_configuration_dialog .modal-footer a.save").click(function(event) {
@@ -4760,7 +4779,7 @@ $(function() {
 						"G92"
 					];
 			
-					for(var i = 2; i <= 60; i += 2)
+					for(var i = 2; i <= 30; i += 2)
 						commands.push("G0 E-" + i + " F345");
 	
 					commands.push("M104 S0");
@@ -4846,7 +4865,7 @@ $(function() {
 						"G92"
 					];
 				
-					for(var i = 2; i <= 60; i += 2)
+					for(var i = 2; i <= 30; i += 2)
 						commands.push("G0 E" + i + " F345");
 		
 					commands.push("M104 S0");
@@ -4896,11 +4915,9 @@ $(function() {
 		
 			// Set commands
 			var commands = [
-				"G4 P100",
-				"M65537;stop",
 				"M104 S0",
-				"G91",
-				"G0 Y20 Z2 F3000",
+				"G90",
+				"G0 Z3 F90",
 				"M109 S150",
 				"M104 S0",
 				"M107",
@@ -4941,11 +4958,9 @@ $(function() {
 		
 			// Set commands
 			var commands = [
-				"G4 P100",
-				"M65537;stop",
 				"M104 S0",
-				"G91",
-				"G0 Y20 Z2 F3000",
+				"G90",
+				"G0 Z3 F90",
 				"M109 S150",
 				"M104 S0",
 				"M107",
@@ -4989,8 +5004,6 @@ $(function() {
 		
 			// Set commands
 			var commands = [
-				"G4 P100",
-				"M65537;stop",
 				"G90",
 				"G0 Z3 F90",
 				"G28",
@@ -5012,8 +5025,6 @@ $(function() {
 		
 			// Set commands
 			var commands = [
-				"G4 P100",
-				"M65537;stop",
 				"G90",
 				"G0 Z3 F90",
 				"G28",
@@ -5035,8 +5046,6 @@ $(function() {
 		
 			// Set commands
 			var commands = [
-				"G4 P100",
-				"M65537;stop",
 				"G90",
 				"G0 Z3 F90",
 				"G28",
@@ -5058,8 +5067,6 @@ $(function() {
 		
 			// Set commands
 			var commands = [
-				"G4 P100",
-				"M65537;stop",
 				"G90",
 				"G0 Z3 F90",
 				"G28",
@@ -5320,8 +5327,6 @@ $(function() {
 			
 			// Set commands
 			var commands = [
-				"G4 P100",
-				"M65537;stop",
 				"G91",
 				"G0 Z0.0999 F90",
 				"G33",
@@ -5431,11 +5436,9 @@ $(function() {
 		
 				// Set commands
 				var commands = [
-					"G4 P100",
-					"M65537;stop",
 					"M104 S0",
-					"G91",
-					"G0 Y20 Z2 F3000",
+					"G90",
+					"G0 Z3 F90",
 					"M109 S150",
 					"M104 S0",
 					"M107",
@@ -5460,11 +5463,9 @@ $(function() {
 		
 						// Set commands
 						var commands = [
-							"G4 P100",
-							"M65537;stop",
 							"M104 S0",
-							"G91",
-							"G0 Y20 Z2 F3000",
+							"G90",
+							"G0 Z3 F90",
 							"M109 S150",
 							"M104 S0",
 							"M107",
@@ -5492,8 +5493,6 @@ $(function() {
 			
 								// Set commands
 								var commands = [
-									"G4 P100",
-									"M65537;stop",
 									"G90",
 									"G0 Z3 F90",
 									"G28",
@@ -5555,8 +5554,6 @@ $(function() {
 			
 															// Set commands
 															var commands = [
-																"G4 P100",
-																"M65537;stop",
 																"G90",
 																"G0 Z3 F90",
 																"G28",
@@ -5618,8 +5615,6 @@ $(function() {
 			
 																						// Set commands
 																						var commands = [
-																							"G4 P100",
-																							"M65537;stop",
 																							"G90",
 																							"G0 Z3 F90",
 																							"G28",
@@ -5681,8 +5676,6 @@ $(function() {
 			
 																													// Set commands
 																													var commands = [
-																														"G4 P100",
-																														"M65537;stop",
 																														"G90",
 																														"G0 Z3 F90",
 																														"G28",
@@ -5741,8 +5734,6 @@ $(function() {
 			
 																																				// Set commands
 																																				commands = [
-																																					"G4 P100",
-																																					"M65537;stop",
 																																					"G90",
 																																					"G28",
 																																					"M18",
@@ -6703,11 +6694,9 @@ $(function() {
 		
 						// Set commands
 						var commands = [
-							"G4 P100",
-							"M65537;stop",
 							"M104 S0",
-							"G91",
-							"G0 Y20 Z2 F3000",
+							"G90",
+							"G0 Z3 F90",
 							"M109 S150",
 							"M104 S0",
 							"M107",
@@ -6749,11 +6738,9 @@ $(function() {
 		
 										// Set commands
 										var commands = [
-											"G4 P100",
-											"M65537;stop",
 											"M104 S0",
-											"G91",
-											"G0 Y20 Z2 F3000",
+											"G90",
+											"G0 Z3 F90",
 											"M109 S150",
 											"M104 S0",
 											"M107",
@@ -6839,11 +6826,9 @@ $(function() {
 		
 						// Set commands
 						var commands = [
-							"G4 P100",
-							"M65537;stop",
 							"M104 S0",
-							"G91",
-							"G0 Y20 Z2 F3000",
+							"G90",
+							"G0 Z3 F90",
 							"M109 S150",
 							"M104 S0",
 							"M107",
