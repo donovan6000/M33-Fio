@@ -14,22 +14,22 @@ using namespace std;
 // Definitions
 
 // Bed dimensions
-#define BED_LOW_MAX_X 113.0
-#define BED_LOW_MIN_X 0.0
-#define BED_LOW_MAX_Y 107.0
-#define BED_LOW_MIN_Y 0.0
+#define BED_LOW_MAX_X 106.0
+#define BED_LOW_MIN_X -2.0
+#define BED_LOW_MAX_Y 105.0
+#define BED_LOW_MIN_Y -2.0
 #define BED_LOW_MAX_Z 5.0
 #define BED_LOW_MIN_Z 0.0
-#define BED_MEDIUM_MAX_X 110.2
-#define BED_MEDIUM_MIN_X 2.8
-#define BED_MEDIUM_MAX_Y 107.0
-#define BED_MEDIUM_MIN_Y -6.6
+#define BED_MEDIUM_MAX_X 106.0
+#define BED_MEDIUM_MIN_X -2.0
+#define BED_MEDIUM_MAX_Y 105.0
+#define BED_MEDIUM_MIN_Y -9.0
 #define BED_MEDIUM_MAX_Z 73.5
 #define BED_MEDIUM_MIN_Z BED_LOW_MAX_Z
-#define BED_HIGH_MAX_X 98.0
-#define BED_HIGH_MIN_X 6.0
-#define BED_HIGH_MAX_Y 85.5
-#define BED_HIGH_MIN_Y 9.5
+#define BED_HIGH_MAX_X 97.0
+#define BED_HIGH_MIN_X 7.0
+#define BED_HIGH_MAX_Y 85.0
+#define BED_HIGH_MIN_Y 9.0
 #define BED_HIGH_MAX_Z 112.0
 #define BED_HIGH_MIN_Z BED_MEDIUM_MAX_Z
 

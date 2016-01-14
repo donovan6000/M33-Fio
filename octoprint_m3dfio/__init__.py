@@ -303,22 +303,22 @@ class M3DFioPlugin(
 		)
 		
 		# Bed dimensions
-		self.bedLowMaxX = 113.0
-		self.bedLowMinX = 0.0
-		self.bedLowMaxY = 107.0
-		self.bedLowMinY = 0.0
+		self.bedLowMaxX = 106.0
+		self.bedLowMinX = -2.0
+		self.bedLowMaxY = 105.0
+		self.bedLowMinY = -2.0
 		self.bedLowMaxZ = 5.0
 		self.bedLowMinZ = 0.0
-		self.bedMediumMaxX = 110.2
-		self.bedMediumMinX = 2.8
-		self.bedMediumMaxY = 107.0
-		self.bedMediumMinY = -6.6
+		self.bedMediumMaxX = 106.0
+		self.bedMediumMinX = -2.0
+		self.bedMediumMaxY = 105.0
+		self.bedMediumMinY = -9.0
 		self.bedMediumMaxZ = 73.5
 		self.bedMediumMinZ = self.bedLowMaxZ
-		self.bedHighMaxX = 98.0
-		self.bedHighMinX = 6.0
-		self.bedHighMaxY = 85.5
-		self.bedHighMinY = 9.5
+		self.bedHighMaxX = 97.0
+		self.bedHighMinX = 7.0
+		self.bedHighMaxY = 85.0
+		self.bedHighMinY = 9.0
 		self.bedHighMaxZ = 112.0
 		self.bedHighMinZ = self.bedMediumMaxZ
 		

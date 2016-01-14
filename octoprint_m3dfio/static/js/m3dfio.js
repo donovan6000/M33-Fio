@@ -33,22 +33,22 @@ $(function() {
 		self.terminal = parameters[5];
 		
 		// Bed dimensions
-		var bedLowMaxX = 113.0;
-		var bedLowMinX = 0.0;
-		var bedLowMaxY = 107.0;
-		var bedLowMinY = 0.0;
+		var bedLowMaxX = 106.0;
+		var bedLowMinX = -2.0;
+		var bedLowMaxY = 105.0;
+		var bedLowMinY = -2.0;
 		var bedLowMaxZ = 5.0;
 		var bedLowMinZ = 0.0;
-		var bedMediumMaxX = 110.2;
-		var bedMediumMinX = 2.8;
-		var bedMediumMaxY = 107.0;
-		var bedMediumMinY = -6.6;
+		var bedMediumMaxX = 106.0;
+		var bedMediumMinX = -2.0;
+		var bedMediumMaxY = 105.0;
+		var bedMediumMinY = -9.0;
 		var bedMediumMaxZ = 73.5;
 		var bedMediumMinZ = bedLowMaxZ;
-		var bedHighMaxX = 98.0;
-		var bedHighMinX = 6.0;
-		var bedHighMaxY = 85.5;
-		var bedHighMinY = 9.5;
+		var bedHighMaxX = 97.0;
+		var bedHighMinX = 7.0;
+		var bedHighMaxY = 85.0;
+		var bedHighMinY = 9.0;
 		var bedHighMaxZ = 112.0;
 		var bedHighMinZ = bedMediumMaxZ
 		
@@ -766,7 +766,7 @@ $(function() {
 					var VIEW_ANGLE = 45, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 0.1, FAR = 20000;
 					this.camera = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
 					this.scene[0].add(this.camera);
-					this.camera.position.set(0, 40, -300);
+					this.camera.position.set(0, 50, -340);
 					this.camera.lookAt(new THREE.Vector3(0, 0, 0));
 
 					// Create renderer
@@ -778,7 +778,7 @@ $(function() {
 
 					// Create controls
 					this.orbitControls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
-					this.orbitControls.target.set(0, 44.9, 0);
+					this.orbitControls.target.set(0, 54.9, 0);
 					this.orbitControls.minDistance = 200;
 					this.orbitControls.maxDistance = 500;
 					this.orbitControls.minPolarAngle = 0;
@@ -808,7 +808,7 @@ $(function() {
 					this.scene[0].add(skyBox);
 				
 					// Create print bed
-					var mesh = new THREE.Mesh(new THREE.PlaneGeometry(bedLowMaxX - bedLowMinX, bedLowMaxY - bedLowMinX), new THREE.MeshBasicMaterial({
+					var mesh = new THREE.Mesh(new THREE.PlaneGeometry(121, 121), new THREE.MeshBasicMaterial({
 						color: 0x000000,
 						side: THREE.DoubleSide
 					}));
@@ -828,8 +828,8 @@ $(function() {
 	
 						// Set printer's orientation
 						mesh.rotation.set(3 * Math.PI / 2, 0, Math.PI);
-						mesh.position.set(0, 43.35, 0);
-						mesh.scale.set(1, 1, 1);
+						mesh.position.set(0, 53.35, 0);
+						mesh.scale.set(1.233792, 1.236112, 1.233333);
 						mesh.renderOrder = 3;
 		
 						// Append model to list
@@ -843,13 +843,13 @@ $(function() {
 						loader.load("/plugin/m3dfio/static/img/logo.png", function (map) {
 					
 							// Create logo
-							var mesh = new THREE.Mesh(new THREE.PlaneGeometry(42.9167, 10), new THREE.MeshBasicMaterial({
+							var mesh = new THREE.Mesh(new THREE.PlaneGeometry(51.5, 12), new THREE.MeshBasicMaterial({
 								map: map,
 								color: 0xFFFFFF,
 								side: THREE.FrontSide,
 								transparent: true
 							}));
-							mesh.position.set(0, -18, -75.1);
+							mesh.position.set(0, -22.85, -92.5);
 							mesh.rotation.set(0, -Math.PI, 0);
 							mesh.renderOrder = 4;
 						
