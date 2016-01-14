@@ -9,6 +9,7 @@ __copyright__ = "Copyright (C) 2015-2016 Exploit Kings. All rights reserved."
 
 
 # Imports
+import octoprint
 import octoprint.plugin
 import octoprint.events
 import octoprint.filemanager
@@ -460,7 +461,7 @@ class M3DFioPlugin(
 			for port in serialPorts :
 			
 				# Check if searching for current port or searching for a new port
-				if (searchForCurrent and (self.currentSerialPort == None or port[0] == self.currentSerialPort)) or (not searchForCurrent and port[0] not in self.allSerialPorts) :
+				if (searchForCurrent and (self.currentSerialPort is None or port[0] == self.currentSerialPort)) or (not searchForCurrent and port[0] not in self.allSerialPorts) :
 		
 					# Get device
 					device = port[2].upper()
@@ -490,7 +491,7 @@ class M3DFioPlugin(
 	def on_after_startup(self) :
 	
 		# Check if Pip isn't set
-		if octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.get(["pip"]) == None :
+		if octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.get(["pip"]) is None :
 		
 			# Set Pip locations
 			pipLocations = []
@@ -951,7 +952,7 @@ class M3DFioPlugin(
 						time.sleep(0.01)
 				
 					# Send response
-					if self.waiting == False :
+					if not self.waiting :
 						return flask.jsonify(dict(value = "Error"))
 					else :
 						return flask.jsonify(dict(value = "Ok"))
@@ -1009,7 +1010,7 @@ class M3DFioPlugin(
 				self._printer.register_callback(self)
 			
 				# Re-connect
-				self._printer.connect(port = currentPort, baudrate = currentBaudrate, profile = currentProfile)
+				self._printer.connect(currentPort, currentBaudrate, currentProfile)
 				
 				# Send response
 				if error :
@@ -1070,7 +1071,7 @@ class M3DFioPlugin(
 				self._printer.register_callback(self)
 				
 				# Re-connect
-				self._printer.connect(port = currentPort, baudrate = currentBaudrate, profile = currentProfile)
+				self._printer.connect(currentPort, currentBaudrate, currentProfile)
 				
 				# Send response
 				if error :
@@ -1199,7 +1200,7 @@ class M3DFioPlugin(
 				self._printer.register_callback(self)
 				
 				# Re-connect
-				self._printer.connect(port = currentPort, baudrate = currentBaudrate, profile = currentProfile)
+				self._printer.connect(currentPort, currentBaudrate, currentProfile)
 				
 				# Send response
 				if not self.eeprom :
@@ -1282,7 +1283,7 @@ class M3DFioPlugin(
 					self._printer.register_callback(self)
 		
 					# Re-connect
-					self._printer.connect(port = currentPort, baudrate = currentBaudrate, profile = currentProfile)
+					self._printer.connect(currentPort, currentBaudrate, currentProfile)
 				
 				# Send response
 				if error :
@@ -1300,7 +1301,7 @@ class M3DFioPlugin(
 					self.sendCommands(self.getSaveCommands())
 			
 			# Otherwise check if parameter is a response to a message
-			elif self.messageResponse == None and (data["value"] == "Ok" or data["value"] == "Yes" or data["value"] == "No") :
+			elif self.messageResponse is None and (data["value"] == "Ok" or data["value"] == "Yes" or data["value"] == "No") :
 			
 				# Set response
 				if data["value"] == "No" :
@@ -1404,7 +1405,7 @@ class M3DFioPlugin(
 				self._printer.register_callback(self)
 			
 				# Re-connect
-				self._printer.connect(port = currentPort, baudrate = currentBaudrate, profile = currentProfile)
+				self._printer.connect(currentPort, currentBaudrate, currentProfile)
 			
 				# Send response
 				if error :
@@ -1463,9 +1464,14 @@ class M3DFioPlugin(
 					# Try next port
 					port += 1
 			
-				# Create instance and config file
+				# Create config file
 				shutil.copyfile(self._settings.global_get_basefolder("base") + "/config.yaml", self._settings.global_get_basefolder("base") + "/config.yaml" + str(port))
-				instance = subprocess.Popen([sys.executable + " -c \"import octoprint;octoprint.main()\" --port " + str(port) + " --config " + self._settings.global_get_basefolder("base") + "/config.yaml" + str(port)], shell = True)
+				
+				# Create instance
+				if octoprint.__version__ == "0+unknown" or tuple(map(int, (octoprint.__version__.split(".")))) >= tuple(map(int, ("1.3.0".split(".")))) :
+					instance = subprocess.Popen([sys.executable + " -c \"import octoprint;octoprint.main()\" serve --port " + str(port) + " --config " + self._settings.global_get_basefolder("base") + "/config.yaml" + str(port)], shell = True)
+				else :
+					instance = subprocess.Popen([sys.executable + " -c \"import octoprint;octoprint.main()\" --port " + str(port) + " --config " + self._settings.global_get_basefolder("base") + "/config.yaml" + str(port)], shell = True)
 				
 				# Send response
 				return flask.jsonify(dict(value = "Ok", port = port))
@@ -1622,7 +1628,7 @@ class M3DFioPlugin(
 			self._printer.register_callback(self)
 			
 			# Re-connect
-			self._printer.connect(port = currentPort, baudrate = currentBaudrate, profile = currentProfile)
+			self._printer.connect(currentPort, currentBaudrate, currentProfile)
 			
 			# Send response
 			if error :
@@ -2359,7 +2365,7 @@ class M3DFioPlugin(
 	def restoreFiles(self) :
 	
 		# Check if slicer was changed
-		if self.slicerChanges != None :
+		if self.slicerChanges is not None :
 		
 			# Move original files back
 			os.remove(self.slicerChanges.get("Slicer Profile Location"))
@@ -2379,7 +2385,7 @@ class M3DFioPlugin(
 		if event == octoprint.events.Events.DISCONNECTED :
 		
 			# Check if a Micro 3D is connected
-			if self.invalidPrinter == False :
+			if not self.invalidPrinter :
 		
 				# Clear invalid printer
 				self.invalidPrinter = True
@@ -2546,99 +2552,108 @@ class M3DFioPlugin(
 		# Otherwise check if a print is starting
 		elif event == octoprint.events.Events.PRINT_STARTED :
 		
-			# Clear print ready
-			self.printReady = False
+			# Check if pre-processing on the fly
+			if self._settings.get_boolean(["PreprocessOnTheFly"]) :
+		
+				# Clear print ready
+				self.printReady = False
 			
-			# Send message
-			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Print Not Ready"))
+				# Send message
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Print Not Ready"))
 			
-			# Wait until print is ready
-			while not self.printReady :
-				time.sleep(0.01)
+				# Wait until print is ready
+				while not self.printReady :
+					time.sleep(0.01)
 			
-			# Check if print wasn't canceled and is using pre-processing on the fly
-			if self._printer.is_printing() and self._settings.get_boolean(["PreprocessOnTheFly"]) :
-			
-				# Reset pre-processor settings
-				self.resetPreprocessorSettings()
-			
-				# Check if printing test border
-				if payload.get("filename") == "test_border" :
-			
-					# Set printing test border
-					self.printingTestBorder = True
-			
-				# Otherwise check if printing backlash calibration cylinder
-				elif payload.get("filename") == "backlash_calibration_cylinder" :
-			
-					# Set printing backlash calibration cylinder
-					self.printingBacklashCalibrationCylinder = True
-			
-				# Display message
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Collecting print information"))
-			
-				# Check if using shared library
-				if self.sharedLibrary and self._settings.get_boolean(["UseSharedLibrary"]) :
+				# Check if print wasn't canceled
+				if self._printer.is_printing() :
 			
 					# Reset pre-processor settings
-					self.sharedLibrary.resetPreprocessorSettings()
-	
-					# Set values
-					self.sharedLibrary.setBacklashX(ctypes.c_double(self._settings.get_float(["BacklashX"])))
-					self.sharedLibrary.setBacklashY(ctypes.c_double(self._settings.get_float(["BacklashY"])))
-					self.sharedLibrary.setBacklashSpeed(ctypes.c_double(self._settings.get_float(["BacklashSpeed"])))
-					self.sharedLibrary.setBackRightOrientation(ctypes.c_double(self._settings.get_float(["BackRightOrientation"])))
-					self.sharedLibrary.setBackLeftOrientation(ctypes.c_double(self._settings.get_float(["BackLeftOrientation"])))
-					self.sharedLibrary.setFrontLeftOrientation(ctypes.c_double(self._settings.get_float(["FrontLeftOrientation"])))
-					self.sharedLibrary.setFrontRightOrientation(ctypes.c_double(self._settings.get_float(["FrontRightOrientation"])))
-					self.sharedLibrary.setBedHeightOffset(ctypes.c_double(self._settings.get_float(["BedHeightOffset"])))
-					self.sharedLibrary.setBackRightOffset(ctypes.c_double(self._settings.get_float(["BackRightOffset"])))
-					self.sharedLibrary.setBackLeftOffset(ctypes.c_double(self._settings.get_float(["BackLeftOffset"])))
-					self.sharedLibrary.setFrontLeftOffset(ctypes.c_double(self._settings.get_float(["FrontLeftOffset"])))
-					self.sharedLibrary.setFrontRightOffset(ctypes.c_double(self._settings.get_float(["FrontRightOffset"])))
-					self.sharedLibrary.setFilamentTemperature(ctypes.c_ushort(self._settings.get_int(["FilamentTemperature"])))
-					self.sharedLibrary.setFilamentType(ctypes.c_char_p(str(self._settings.get(["FilamentType"]))))
-					self.sharedLibrary.setUseValidationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseValidationPreprocessor"])))
-					self.sharedLibrary.setUsePreparationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UsePreparationPreprocessor"])))
-					self.sharedLibrary.setUseWaveBondingPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseWaveBondingPreprocessor"])))
-					self.sharedLibrary.setUseThermalBondingPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseThermalBondingPreprocessor"])))
-					self.sharedLibrary.setUseBedCompensationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseBedCompensationPreprocessor"])))
-					self.sharedLibrary.setUseBacklashCompensationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseBacklashCompensationPreprocessor"])))
-					self.sharedLibrary.setUseCenterModelPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseCenterModelPreprocessor"])))
-					self.sharedLibrary.setIgnorePrintDimensionLimitations(ctypes.c_bool(self._settings.get_boolean(["IgnorePrintDimensionLimitations"])))
-					self.sharedLibrary.setUsingMicroPass(ctypes.c_bool(self.usingMicroPass))
-					self.sharedLibrary.setPrintingTestBorder(ctypes.c_bool(self.printingTestBorder))
-					self.sharedLibrary.setPrintingBacklashCalibrationCylinder(ctypes.c_bool(self.printingBacklashCalibrationCylinder))
+					self.resetPreprocessorSettings()
 			
-					# Collect print information
-					printIsValid = self.sharedLibrary.collectPrintInformation(ctypes.c_char_p(payload.get("file")))
+					# Check if printing test border
+					if payload.get("filename") == "test_border" :
+			
+						# Set printing test border
+						self.printingTestBorder = True
+			
+					# Otherwise check if printing backlash calibration cylinder
+					elif payload.get("filename") == "backlash_calibration_cylinder" :
+			
+						# Set printing backlash calibration cylinder
+						self.printingBacklashCalibrationCylinder = True
+			
+					# Display message
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Collecting print information"))
+			
+					# Check if using shared library
+					if self.sharedLibrary and self._settings.get_boolean(["UseSharedLibrary"]) :
+			
+						# Reset pre-processor settings
+						self.sharedLibrary.resetPreprocessorSettings()
+	
+						# Set values
+						self.sharedLibrary.setBacklashX(ctypes.c_double(self._settings.get_float(["BacklashX"])))
+						self.sharedLibrary.setBacklashY(ctypes.c_double(self._settings.get_float(["BacklashY"])))
+						self.sharedLibrary.setBacklashSpeed(ctypes.c_double(self._settings.get_float(["BacklashSpeed"])))
+						self.sharedLibrary.setBackRightOrientation(ctypes.c_double(self._settings.get_float(["BackRightOrientation"])))
+						self.sharedLibrary.setBackLeftOrientation(ctypes.c_double(self._settings.get_float(["BackLeftOrientation"])))
+						self.sharedLibrary.setFrontLeftOrientation(ctypes.c_double(self._settings.get_float(["FrontLeftOrientation"])))
+						self.sharedLibrary.setFrontRightOrientation(ctypes.c_double(self._settings.get_float(["FrontRightOrientation"])))
+						self.sharedLibrary.setBedHeightOffset(ctypes.c_double(self._settings.get_float(["BedHeightOffset"])))
+						self.sharedLibrary.setBackRightOffset(ctypes.c_double(self._settings.get_float(["BackRightOffset"])))
+						self.sharedLibrary.setBackLeftOffset(ctypes.c_double(self._settings.get_float(["BackLeftOffset"])))
+						self.sharedLibrary.setFrontLeftOffset(ctypes.c_double(self._settings.get_float(["FrontLeftOffset"])))
+						self.sharedLibrary.setFrontRightOffset(ctypes.c_double(self._settings.get_float(["FrontRightOffset"])))
+						self.sharedLibrary.setFilamentTemperature(ctypes.c_ushort(self._settings.get_int(["FilamentTemperature"])))
+						self.sharedLibrary.setFilamentType(ctypes.c_char_p(str(self._settings.get(["FilamentType"]))))
+						self.sharedLibrary.setUseValidationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseValidationPreprocessor"])))
+						self.sharedLibrary.setUsePreparationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UsePreparationPreprocessor"])))
+						self.sharedLibrary.setUseWaveBondingPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseWaveBondingPreprocessor"])))
+						self.sharedLibrary.setUseThermalBondingPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseThermalBondingPreprocessor"])))
+						self.sharedLibrary.setUseBedCompensationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseBedCompensationPreprocessor"])))
+						self.sharedLibrary.setUseBacklashCompensationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseBacklashCompensationPreprocessor"])))
+						self.sharedLibrary.setUseCenterModelPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseCenterModelPreprocessor"])))
+						self.sharedLibrary.setIgnorePrintDimensionLimitations(ctypes.c_bool(self._settings.get_boolean(["IgnorePrintDimensionLimitations"])))
+						self.sharedLibrary.setUsingMicroPass(ctypes.c_bool(self.usingMicroPass))
+						self.sharedLibrary.setPrintingTestBorder(ctypes.c_bool(self.printingTestBorder))
+						self.sharedLibrary.setPrintingBacklashCalibrationCylinder(ctypes.c_bool(self.printingBacklashCalibrationCylinder))
+			
+						# Collect print information
+						printIsValid = self.sharedLibrary.collectPrintInformation(ctypes.c_char_p(payload.get("file")))
 		
-				# Otherwise
-				else :
+					# Otherwise
+					else :
 			
-					# Collect print information
-					printIsValid = self.collectPrintInformation(payload.get("file"))
+						# Collect print information
+						printIsValid = self.collectPrintInformation(payload.get("file"))
 	
-				# Check if print goes out of bounds
-				if not printIsValid :
+					# Check if print goes out of bounds
+					if not printIsValid :
 	
-					# Create error message
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create error message", title = "Print failed", text = "Could not print the file. The dimensions of the model go outside the bounds of the printer."))
+						# Create error message
+						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create error message", title = "Print failed", text = "Could not print the file. The dimensions of the model go outside the bounds of the printer."))
 				
-					# Stop printing
-					self._printer.cancel_print()
+						# Stop printing
+						self._printer.cancel_print()
 				
+						# Hide message
+						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Hide Message"))
+				
+						# Return
+						return
+			
+					# Set pre-process on the fly ready
+					self.preprocessOnTheFlyReady = True
+			
 					# Hide message
 					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Hide Message"))
-				
-					# Return
-					return
 			
-				# Set pre-process on the fly ready
-				self.preprocessOnTheFlyReady = True
+			# Otherwie
+			else :
 			
-				# Hide message
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Hide Message"))
+				# Set print ready
+				self.printReady = True
 		
 		# Otherwise check if a print is done
 		elif event == octoprint.events.Events.PRINT_DONE :
@@ -2768,8 +2783,14 @@ class M3DFioPlugin(
 				self._printer.unregister_callback(self)
 				
 				# Close connection
-				if isinstance(self._printer.get_transport(), serial.Serial) :
-					self._printer.get_transport().close()
+				if self._printer._comm is not None :
+				
+					try :
+						self._printer._comm.close(False, False)
+					except TypeError :
+						pass
+				
+				self._printer.disconnect()
 				time.sleep(1)
 				
 				# Set updated port
@@ -3113,11 +3134,11 @@ class M3DFioPlugin(
 						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Firmware is corrupt. Update to version " + self.providedFirmware + '?', response = True))
 						
 						# Wait until response is obtained
-						while self.messageResponse == None :
+						while self.messageResponse is None :
 							time.sleep(0.01)
 						
 						# Check if response was no
-						if self.messageResponse == False :
+						if not self.messageResponse :
 						
 							# Set error
 							error = True
@@ -3145,7 +3166,7 @@ class M3DFioPlugin(
 								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating firmware was successful", confirm = True))
 						
 								# Wait until response is obtained
-								while self.messageResponse == None :
+								while self.messageResponse is None :
 									time.sleep(0.01)
 						
 					# Otherwise check if firmware is outdated
@@ -3162,11 +3183,11 @@ class M3DFioPlugin(
 							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Newer firmware available. Update to version " + self.providedFirmware + '?', response = True))
 						
 						# Wait until response is obtained
-						while self.messageResponse == None :
+						while self.messageResponse is None :
 							time.sleep(0.01)
 						
 						# Check if response was no
-						if self.messageResponse == False :
+						if not self.messageResponse :
 						
 							# Set error if incompatible
 							if incompatible :
@@ -3195,7 +3216,7 @@ class M3DFioPlugin(
 								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating firmware was successful", confirm = True))
 						
 								# Wait until response is obtained
-								while self.messageResponse == None :
+								while self.messageResponse is None :
 									time.sleep(0.01)
 					
 					# Check if no errors occured
@@ -3221,7 +3242,7 @@ class M3DFioPlugin(
 					self.eeprom = None
 				
 				# Re-connect
-				self._printer.connect(port = currentPort, baudrate = currentBaudrate, profile = currentProfile)
+				self._printer.connect(currentPort, currentBaudrate, currentProfile)
 		
 				# Wait until connection is established
 				while not isinstance(self._printer.get_transport(), serial.Serial) :
@@ -3248,12 +3269,19 @@ class M3DFioPlugin(
 				if self._printer.is_closed_or_error() :
 	
 					# Re-connect to printer
-					self._printer.connect(port = currentPort, baudrate = currentBaudrate, profile = currentProfile)
+					self._printer.connect(currentPort, currentBaudrate, currentProfile)
 			
 			# Otherwise
 			else :
 			
-				# Disconnect printer
+				# Close connection
+				if self._printer._comm is not None :
+				
+					try :
+						self._printer._comm.close(False, False)
+					except TypeError :
+						pass
+				
 				self._printer.disconnect()
 		
 		# Otherwise check if a Micro 3D is connected and it is in G-code processing mode but its read and write functions are not being intercepted
@@ -3284,7 +3312,7 @@ class M3DFioPlugin(
 			if "MACHINE_TYPE:The_Micro" not in data :
 				
 				# Set write and read functions back to original
-				if self.originalWrite != None :
+				if self.originalWrite is not None :
 					self._printer.get_transport().write = self.originalWrite
 					self._printer.get_transport().readline = self.originalRead
 				
@@ -3710,7 +3738,7 @@ class M3DFioPlugin(
 			elif "PT:" + str(self.eepromOffsets["bedOrientationVersion"]["offset"]) + ' ' in data :
 			
 				# Send invalid bed orientation if calibration question hasn't already been asked
-				if data[data.find("DT:") + 3 :] == '0' and self.calibrateBedOrientation != None :
+				if data[data.find("DT:") + 3 :] == '0' and self.calibrateBedOrientation is not None :
 				
 					# Set invalid bed orientation
 					self.invalidBedOrientation = True
@@ -4427,7 +4455,7 @@ class M3DFioPlugin(
 		commands = collections.deque()
 		
 		# Check if outputting to a file
-		if output != None :
+		if output is not None :
 
 			# Open input and output
 			input = open(input, "rb")
@@ -4444,7 +4472,7 @@ class M3DFioPlugin(
 		while True:
 		
 			# Check if outputting to a file
-			if output != None :
+			if output is not None :
 
 				# Check if no more commands
 				if len(commands) == 0 :
@@ -4636,7 +4664,7 @@ class M3DFioPlugin(
 					continue
 
 				# Check if outro hasn't been added, no more commands, and at end of file
-				if not self.addedOutro and len(commands) == 0 and ((output != None and input.tell() == os.fstat(input.fileno()).st_size) or lastCommand) :
+				if not self.addedOutro and len(commands) == 0 and ((output is not None and input.tell() == os.fstat(input.fileno()).st_size) or lastCommand) :
 
 					# Set added outro
 					self.addedOutro = True
@@ -5523,7 +5551,7 @@ class M3DFioPlugin(
 			if not gcode.isEmpty() :
 	
 				# Check if outputting to a file
-				if output != None :
+				if output is not None :
 				
 					# Send ascii representation of the command to output
 					output.write(gcode.getAscii() + '\n')
@@ -5535,7 +5563,7 @@ class M3DFioPlugin(
 					value += [gcode.getAscii() + '*']
 		
 		# Check if not outputting to a file
-		if output == None :
+		if output is None :
 		
 			# Return list of commands
 			return value
@@ -5726,7 +5754,7 @@ class M3DFioPlugin(
 					return flask.jsonify(dict(value = "Error"))
 				
 				# Check if profile is invalid
-				if profile == None :
+				if profile is None :
 				
 					# Return error
 					return flask.jsonify(dict(value = "Error"))

@@ -6,7 +6,8 @@
         <string>com.octoprint.app</string>
         <key>ProgramArguments</key>
         <array> 
-            <string>/path/to/octoprint</string>
+            <string>path to octoprint</string>
+            <string>octoprint parameter</string>
 	</array>
         <key>RunAtLoad</key>
         <true/>

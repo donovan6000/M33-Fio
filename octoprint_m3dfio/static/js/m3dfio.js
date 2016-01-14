@@ -3263,7 +3263,7 @@ $(function() {
 	
 			// Set commands
 			var commands = [
-				"M65537;stop\n"
+				"M65537;stop"
 			];
 		
 			// Send request

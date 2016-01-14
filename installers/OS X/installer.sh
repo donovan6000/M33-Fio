@@ -85,9 +85,18 @@ else
 		done
 		rm master.zip
 		
+		# Get OctoPrint parameter
+		octoPrintVersion="$(octoprint --version)"
+		if [ $octoPrintVersion = "1.2.8" ] || [ $octoPrintVersion = "1.2.9" ]; then
+			octoPrintParameter=""
+		else
+			octoPrintParameter="serve"
+		fi
+		
 		# Add OctoPrint to startup programs
 		curl -O 'https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/OS%20X/com.octoprint.app.plist'
-		sed -i '' -e 's/\/path\/to\/octoprint/\/Library\/Frameworks\/Python.framework\/Versions\/'"${pythonVersion}"'\/bin\/octoprint/g' com.octoprint.app.plist
+		sed -i '' -e 's/path to octoprint/\/Library\/Frameworks\/Python.framework\/Versions\/'"${pythonVersion}"'\/bin\/octoprint/g' com.octoprint.app.plist
+		sed -i '' -e 's/octoprint parameter/'"$octoPrintParameter"'/g' com.octoprint.app.plist
 		mv com.octoprint.app.plist '/Library/LaunchAgents'
 
 		# Create URL link on desktop
@@ -95,6 +104,7 @@ else
 		ditto -x -k --sequesterRsrc --rsrc shortcut.zip '/Users/'"$SUDO_USER"'/Desktop'
 		
 		# Start OctoPrint
+		su $SUDO_USER -c 'launchctl unload /Library/LaunchAgents/com.octoprint.app.plist'
 		su $SUDO_USER -c 'launchctl load /Library/LaunchAgents/com.octoprint.app.plist'
 
 		# Display message
