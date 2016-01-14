@@ -766,7 +766,7 @@ $(function() {
 					var VIEW_ANGLE = 45, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 0.1, FAR = 20000;
 					this.camera = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
 					this.scene[0].add(this.camera);
-					this.camera.position.set(0, 50, -340);
+					this.camera.position.set(0, 40, -300);
 					this.camera.lookAt(new THREE.Vector3(0, 0, 0));
 
 					// Create renderer
@@ -778,7 +778,7 @@ $(function() {
 
 					// Create controls
 					this.orbitControls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
-					this.orbitControls.target.set(0, 54.9, 0);
+					this.orbitControls.target.set(0, 44.9, 0);
 					this.orbitControls.minDistance = 200;
 					this.orbitControls.maxDistance = 500;
 					this.orbitControls.minPolarAngle = 0;
@@ -828,8 +828,8 @@ $(function() {
 	
 						// Set printer's orientation
 						mesh.rotation.set(3 * Math.PI / 2, 0, Math.PI);
-						mesh.position.set(0, 53.35, 0);
-						mesh.scale.set(1.233333333, 1.233333333, 1.233333333);
+						mesh.position.set(0, 43.35, 0);
+						mesh.scale.set(1, 1, 1);
 						mesh.renderOrder = 3;
 		
 						// Append model to list
@@ -843,13 +843,13 @@ $(function() {
 						loader.load("/plugin/m3dfio/static/img/logo.png", function (map) {
 					
 							// Create logo
-							var mesh = new THREE.Mesh(new THREE.PlaneGeometry(51.5, 12), new THREE.MeshBasicMaterial({
+							var mesh = new THREE.Mesh(new THREE.PlaneGeometry(42.9167, 10), new THREE.MeshBasicMaterial({
 								map: map,
 								color: 0xFFFFFF,
 								side: THREE.FrontSide,
 								transparent: true
 							}));
-							mesh.position.set(0, -22.85, -92.5);
+							mesh.position.set(0, -18, -75.1);
 							mesh.rotation.set(0, -Math.PI, 0);
 							mesh.renderOrder = 4;
 						
