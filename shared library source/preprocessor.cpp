@@ -26,10 +26,10 @@ using namespace std;
 #define BED_MEDIUM_MIN_Y -6.6
 #define BED_MEDIUM_MAX_Z 73.5
 #define BED_MEDIUM_MIN_Z BED_LOW_MAX_Z
-#define BED_HIGH_MAX_X 82.0
-#define BED_HIGH_MIN_X 2.35
-#define BED_HIGH_MAX_Y 92.95
-#define BED_HIGH_MIN_Y 20.05
+#define BED_HIGH_MAX_X 98.0
+#define BED_HIGH_MIN_X 6.0
+#define BED_HIGH_MAX_Y 85.5
+#define BED_HIGH_MIN_Y 9.5
 #define BED_HIGH_MAX_Z 112.0
 #define BED_HIGH_MIN_Z BED_MEDIUM_MAX_Z
 

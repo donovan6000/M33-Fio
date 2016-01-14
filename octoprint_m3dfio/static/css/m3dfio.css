@@ -367,7 +367,7 @@ body > div.page-container > div.message > div > div > div:not(.calibrate) > butt
 	top: 3px;
 }
 
-body > div.page-container > div.message > div > div > div.calibrate {
+body > div.page-container > div.message > div > div > div.calibrate, body > div.page-container > div.message > div > div > div.printSettings {
 	visibility: hidden;
 	position: relative;
 	top: -2px;
@@ -400,6 +400,43 @@ body > div.page-container > div.message > div > div > div.calibrate > div.distan
 
 body > div.page-container > div.message > div > div > div.calibrate > div.distance > button:last-of-type {
 	border-radius: 0 4px 4px 0;
+}
+
+body > div.page-container > div.message > div > div > div.printSettings {
+	width: 100%;
+	display: block;
+	right: auto;
+	left: auto;
+	margin: 0;
+	padding: 0;
+	top: 4px;
+}
+
+body > div.page-container > div.message > div > div > div.printSettings h3 {
+	text-align: center;
+	font-size: 20px;
+	margin: 0;
+	padding: 0;
+	line-height: 20px;
+	position: relative;
+	top: -14px;
+}
+
+body > div.page-container > div.message > div > div > div.printSettings label, body > div.page-container > div.message > div > div > div.printSettings div.controls {
+	display: inline-block;
+}
+
+body > div.page-container > div.message > div > div > div.printSettings label {
+	cursor: default;
+}
+
+body > div.page-container > div.message > div > div > div.printSettings input, body > div.page-container > div.message > div > div > div.printSettings input + span {
+	position: relative;
+	top: -10px;
+}
+
+body > div.page-container > div.message > div > div > div.printSettings input {
+	width: 145px;
 }
 
 #slicing_configuration_dialog.profile, #slicing_configuration_dialog.model {

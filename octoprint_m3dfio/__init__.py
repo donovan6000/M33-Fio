@@ -87,6 +87,7 @@ class M3DFioPlugin(
 		self.allSerialPorts = []
 		self.currentSerialPort = None
 		self.providedFirmware = ''
+		self.printReady = False
 		
 		# Rom decryption and encryption tables
 		self.romDecryptionTable = [0x26, 0xE2, 0x63, 0xAC, 0x27, 0xDE, 0x0D, 0x94, 0x79, 0xAB, 0x29, 0x87, 0x14, 0x95, 0x1F, 0xAE, 0x5F, 0xED, 0x47, 0xCE, 0x60, 0xBC, 0x11, 0xC3, 0x42, 0xE3, 0x03, 0x8E, 0x6D, 0x9D, 0x6E, 0xF2, 0x4D, 0x84, 0x25, 0xFF, 0x40, 0xC0, 0x44, 0xFD, 0x0F, 0x9B, 0x67, 0x90, 0x16, 0xB4, 0x07, 0x80, 0x39, 0xFB, 0x1D, 0xF9, 0x5A, 0xCA, 0x57, 0xA9, 0x5E, 0xEF, 0x6B, 0xB6, 0x2F, 0x83, 0x65, 0x8A, 0x13, 0xF5, 0x3C, 0xDC, 0x37, 0xD3, 0x0A, 0xF4, 0x77, 0xF3, 0x20, 0xE8, 0x73, 0xDB, 0x7B, 0xBB, 0x0B, 0xFA, 0x64, 0x8F, 0x08, 0xA3, 0x7D, 0xEB, 0x5C, 0x9C, 0x3E, 0x8C, 0x30, 0xB0, 0x7F, 0xBE, 0x2A, 0xD0, 0x68, 0xA2, 0x22, 0xF7, 0x1C, 0xC2, 0x17, 0xCD, 0x78, 0xC7, 0x21, 0x9E, 0x70, 0x99, 0x1A, 0xF8, 0x58, 0xEA, 0x36, 0xB1, 0x69, 0xC9, 0x04, 0xEE, 0x3B, 0xD6, 0x34, 0xFE, 0x55, 0xE7, 0x1B, 0xA6, 0x4A, 0x9A, 0x54, 0xE6, 0x51, 0xA0, 0x4E, 0xCF, 0x32, 0x88, 0x48, 0xA4, 0x33, 0xA5, 0x5B, 0xB9, 0x62, 0xD4, 0x6F, 0x98, 0x6C, 0xE1, 0x53, 0xCB, 0x46, 0xDD, 0x01, 0xE5, 0x7A, 0x86, 0x75, 0xDF, 0x31, 0xD2, 0x02, 0x97, 0x66, 0xE4, 0x38, 0xEC, 0x12, 0xB7, 0x00, 0x93, 0x15, 0x8B, 0x6A, 0xC5, 0x71, 0x92, 0x45, 0xA1, 0x59, 0xF0, 0x06, 0xA8, 0x5D, 0x82, 0x2C, 0xC4, 0x43, 0xCC, 0x2D, 0xD5, 0x35, 0xD7, 0x3D, 0xB2, 0x74, 0xB3, 0x09, 0xC6, 0x7C, 0xBF, 0x2E, 0xB8, 0x28, 0x9F, 0x41, 0xBA, 0x10, 0xAF, 0x0C, 0xFC, 0x23, 0xD9, 0x49, 0xF6, 0x7E, 0x8D, 0x18, 0x96, 0x56, 0xD1, 0x2B, 0xAD, 0x4B, 0xC1, 0x4F, 0xC8, 0x3A, 0xF1, 0x1E, 0xBD, 0x4C, 0xDA, 0x50, 0xA7, 0x52, 0xE9, 0x76, 0xD8, 0x19, 0x91, 0x72, 0x85, 0x3F, 0x81, 0x61, 0xAA, 0x05, 0x89, 0x0E, 0xB5, 0x24, 0xE0]
@@ -314,10 +315,10 @@ class M3DFioPlugin(
 		self.bedMediumMinY = -6.6
 		self.bedMediumMaxZ = 73.5
 		self.bedMediumMinZ = self.bedLowMaxZ
-		self.bedHighMaxX = 82.0
-		self.bedHighMinX = 2.35
-		self.bedHighMaxY = 92.95
-		self.bedHighMinY = 20.05
+		self.bedHighMaxX = 98.0
+		self.bedHighMinX = 6.0
+		self.bedHighMaxY = 85.5
+		self.bedHighMinY = 9.5
 		self.bedHighMaxZ = 112.0
 		self.bedHighMinZ = self.bedMediumMaxZ
 		
@@ -1498,6 +1499,31 @@ class M3DFioPlugin(
 				
 				# Return response
 				return flask.jsonify(dict(value = "Error"))
+			
+			# Otherwise check if parameter is that print is ready
+			elif data["value"].startswith("Print Ready:") :
+			
+				# Get values
+				values = json.loads(data["value"][13 :])
+				
+				# Set filament temperature and type
+				self._settings.set_int(["FilamentTemperature"], int(values["filamentTemperature"]))
+				self._settings.set(["FilamentType"], values["filamentType"])
+				
+				# Set print ready
+				self.printReady = True
+				
+				# Return response
+				return flask.jsonify(dict(value = "Ok"))
+			
+			# Otherwise check if parameter is to cancel print
+			elif data["value"] == "Cancel Print" :
+			
+				# Stop printing
+				self._printer.cancel_print()
+				
+				# Set print ready
+				self.printReady = True
 		
 		# Otherwise check if command is a file
 		elif command == "file" :
@@ -2031,18 +2057,50 @@ class M3DFioPlugin(
 			# Send commands to printer
 			self._printer.commands(commands)
 	
+	# Empty command queue
+	def emptyCommandQueue(self) :
+	
+		# Empty command queues
+		while not self._printer._comm._send_queue.empty() :
+			self._printer._comm._send_queue.get()
+		
+		while not self._printer._comm._commandQueue.empty() :
+			self._printer._comm._commandQueue.get()
+	
 	# Process write
 	def processWrite(self, data) :
 	
-		# Check if printing and using on the fly pre-processing
-		if self._printer.is_printing() and self._settings.get_boolean(["PreprocessOnTheFly"]) :
+		# Check if printing
+		if self._printer.is_printing() :
 		
-			# Clear last response was wait
-			self.lastResponseWasWait = False
+			# Check if not ready to print
+			if not self.printReady or not self.preprocessOnTheFlyReady :
 		
-			# Wait until pre-processing on the fly is ready
-			while not self.preprocessOnTheFlyReady :
+				# Clear last response was wait
+				self.lastResponseWasWait = False
+			
+			# Wait until print is ready
+			while not self.printReady :
 				time.sleep(0.01)
+			
+			# Check if print was not canceled
+			if self._printer.is_printing() :
+			
+				# Check if using on the fly pre-processing
+				if self._settings.get_boolean(["PreprocessOnTheFly"]) :
+		
+					# Wait until pre-processing on the fly is ready
+					while not self.preprocessOnTheFlyReady :
+						time.sleep(0.01)
+			
+			# Otherwise
+			else :
+			
+				# Empty command queue
+				self.emptyCommandQueue()
+				time.sleep(1)
+				self.sendCommands("M65537\n")
+				return
 		
 		# Check if request is emergency stop
 		if "M65537" in data :
@@ -2473,33 +2531,43 @@ class M3DFioPlugin(
 		# Otherwise check if a print is starting
 		elif event == octoprint.events.Events.PRINT_STARTED :
 		
-			# Check if pre-processing on the fly
-			if self._settings.get_boolean(["PreprocessOnTheFly"]) :
+			# Clear print ready
+			self.printReady = False
+			
+			# Send message
+			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Print Not Ready"))
+			
+			# Wait until print is ready
+			while not self.printReady :
+				time.sleep(0.01)
+			
+			# Check if print wasn't canceled and is using pre-processing on the fly
+			if self._printer.is_printing() and self._settings.get_boolean(["PreprocessOnTheFly"]) :
 			
 				# Reset pre-processor settings
 				self.resetPreprocessorSettings()
-				
+			
 				# Check if printing test border
 				if payload.get("filename") == "test_border" :
-				
+			
 					# Set printing test border
 					self.printingTestBorder = True
-				
+			
 				# Otherwise check if printing backlash calibration cylinder
 				elif payload.get("filename") == "backlash_calibration_cylinder" :
-				
+			
 					# Set printing backlash calibration cylinder
 					self.printingBacklashCalibrationCylinder = True
-				
+			
 				# Display message
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Collecting print information"))
-				
+			
 				# Check if using shared library
 				if self.sharedLibrary and self._settings.get_boolean(["UseSharedLibrary"]) :
-				
+			
 					# Reset pre-processor settings
 					self.sharedLibrary.resetPreprocessorSettings()
-		
+	
 					# Set values
 					self.sharedLibrary.setBacklashX(ctypes.c_double(self._settings.get_float(["BacklashX"])))
 					self.sharedLibrary.setBacklashY(ctypes.c_double(self._settings.get_float(["BacklashY"])))
@@ -2526,34 +2594,34 @@ class M3DFioPlugin(
 					self.sharedLibrary.setUsingMicroPass(ctypes.c_bool(self.usingMicroPass))
 					self.sharedLibrary.setPrintingTestBorder(ctypes.c_bool(self.printingTestBorder))
 					self.sharedLibrary.setPrintingBacklashCalibrationCylinder(ctypes.c_bool(self.printingBacklashCalibrationCylinder))
-				
+			
 					# Collect print information
 					printIsValid = self.sharedLibrary.collectPrintInformation(ctypes.c_char_p(payload.get("file")))
-			
+		
 				# Otherwise
 				else :
-				
+			
 					# Collect print information
 					printIsValid = self.collectPrintInformation(payload.get("file"))
-		
+	
 				# Check if print goes out of bounds
 				if not printIsValid :
-		
+	
 					# Create error message
 					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create error message", title = "Print failed", text = "Could not print the file. The dimensions of the model go outside the bounds of the printer."))
-					
+				
 					# Stop printing
 					self._printer.cancel_print()
-					
+				
 					# Hide message
 					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Hide Message"))
-					
+				
 					# Return
 					return
-				
+			
 				# Set pre-process on the fly ready
 				self.preprocessOnTheFlyReady = True
-				
+			
 				# Hide message
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Hide Message"))
 		
@@ -2580,6 +2648,12 @@ class M3DFioPlugin(
 				
 				# Send pre-processed commands to the printer
 				self.sendCommands(commands)
+			
+			# Clear print ready
+			self.printReady = False
+			
+			# Clear pre-process on the fly ready
+			self.preprocessOnTheFlyReady = False
 		
 		# Otherwise check if a print is cancelled or failed
 		elif event == octoprint.events.Events.PRINT_CANCELLED or event == octoprint.events.Events.PRINT_FAILED :
@@ -2599,6 +2673,12 @@ class M3DFioPlugin(
 			# Send cancel commands
 			time.sleep(1)
 			self.sendCommands(commands)
+			
+			# Clear print ready
+			self.printReady = False
+			
+			# Clear pre-process on the fly ready
+			self.preprocessOnTheFlyReady = False
 	
 	# Is port open
 	def isPortOpen(self, port) :

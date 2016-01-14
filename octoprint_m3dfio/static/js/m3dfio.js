@@ -45,10 +45,10 @@ $(function() {
 		var bedMediumMinY = -6.6;
 		var bedMediumMaxZ = 73.5;
 		var bedMediumMinZ = bedLowMaxZ;
-		var bedHighMaxX = 82.0;
-		var bedHighMinX = 2.35;
-		var bedHighMaxY = 92.95;
-		var bedHighMinY = 20.05;
+		var bedHighMaxX = 98.0;
+		var bedHighMinX = 6.0;
+		var bedHighMaxY = 85.5;
+		var bedHighMinY = 9.5;
 		var bedHighMaxZ = 112.0;
 		var bedHighMinZ = bedMediumMaxZ
 		
@@ -539,11 +539,15 @@ $(function() {
 				$("body > div.page-container > div.message > div > div > div:not(.calibrate)").addClass("show");
 				$("body > div.page-container > div.message > div > img").removeClass("show");
 				
-				// Show calibration menu if preforming a complete calibration
+				// Show calibration menu or print settings if applicable
+				$("body > div.page-container > div.message > div > div > div.calibrate, body > div.page-container > div.message > div > div > div.printSettings").removeClass("show");
 				if(secondButton == "Done")
 					$("body > div.page-container > div.message > div > div > div.calibrate").addClass("show");
-				else
-					$("body > div.page-container > div.message > div > div > div.calibrate").removeClass("show");
+				else if(secondButton == "Print") {
+					$("body > div.page-container > div.message > div > div > div.printSettings input").val(self.settings.settings.plugins.m3dfio.FilamentTemperature());
+					$("body > div.page-container > div.message > div > div > div.printSettings select").val(self.settings.settings.plugins.m3dfio.FilamentType());
+					$("body > div.page-container > div.message > div > div > div.printSettings").addClass("show");
+				}
 			}
 	
 			// Show message
@@ -1067,7 +1071,10 @@ $(function() {
 						this.boundaries[i].position.x -= -(bedLowMaxX + bedLowMinX) / 2;
 						this.boundaries[i].position.z -= (bedLowMaxY + bedLowMinY) / 2;
 						this.boundaries[i].visible = false;
-						this.scene[0].add(this.boundaries[i]);
+						
+						// Don't add bottom boundary to scene
+						if(i)
+							this.scene[0].add(this.boundaries[i]);
 					}
 		
 					// Render
@@ -3193,6 +3200,32 @@ $(function() {
 							<button type="button" class="btn distance">0.01</button>
 							<button type="button" class="btn distance active">0.1</button>
 							<button type="button" class="btn distance">1</button>
+						</div>
+					</div>
+					<div class="printSettings">
+						<h3>Print settings</h3>
+						<div class="control-group">
+							<label class="control-label">Filament Temperature</label>
+							<div class="controls">
+								<div class="input-append degreesCelsius">
+									<input type="number" step="1" min="150" max="285" class="input-block-level">
+									<span class="add-on">°C</span>
+								</div>
+							</div>
+						</div>
+						<div class="control-group">
+							<label class="control-label">Filament Type</label>
+							<div class="controls">
+								<select class="input-block-level" data-bind="value: settings.plugins.m3dfio.FilamentType">
+									<option value="ABS">ABS (Recommended 275°C)</option>
+									<option value="PLA">PLA (Recommended 215°C)</option>
+									<option value="HIPS">HIPS (Recommended 265°C)</option>
+									<option value="FLX">FLX (Recommended 245°C)</option>
+									<option value="TGH">TGH (Recommended 245°C)</option>
+									<option value="CAM">CAM (Recommended 200°C)</option>
+									<option value="OTHER">Other</option>
+								</select> 
+							</div>
 						</div>
 					</div>
 					<div>
@@ -6516,6 +6549,58 @@ $(function() {
 			
 				// Show message
 				showMessage("Message", "No Micro 3D printer detected. Try cycling the printer's power and try again.", "Ok");
+			}
+			
+			// Otherwise check if data is to that print is not ready
+			else if(data.value == "Print Not Ready") {
+			
+				// Cancel click event
+				$("body > div.page-container > div.message").find("button.confirm").eq(0).one("click", function() {
+					
+					// Send request
+					$.ajax({
+						url: API_BASEURL + "plugin/m3dfio",
+						type: "POST",
+						dataType: "json",
+						data: JSON.stringify({command: "message", value: "Cancel Print"}),
+						contentType: "application/json; charset=UTF-8"
+					});
+					
+					// Hide message
+					hideMessage();
+				});
+			
+				// Print click event
+				$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+					
+					// Send request
+					$.ajax({
+						url: API_BASEURL + "plugin/m3dfio",
+						type: "POST",
+						dataType: "json",
+						data: JSON.stringify({
+							command: "message",
+							value: "Print Ready: " + JSON.stringify({
+								filamentTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").val(),
+								filamentType: $("body > div.page-container > div.message > div > div > div.printSettings select").val()
+							})
+						}),
+						contentType: "application/json; charset=UTF-8",
+						
+						// On success										
+						success: function() {
+					
+							// Update settings
+							self.settings.requestData();
+						}
+					});
+					
+					// Hide message
+					hideMessage();
+				});
+			
+				// Show message
+				showMessage("Message", '', "Print", "Cancel");
 			}
 			
 			// Otherwise check if data is process details
