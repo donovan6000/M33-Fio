@@ -1434,7 +1434,7 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 						else
 						
 							// Add temperature to output
-							newCommands.push(Command("M104 S" + to_string(filamentTemperature + 15), THERMAL, THERMAL));
+							newCommands.push(Command("M104 S" + to_string(filamentTemperature), THERMAL, THERMAL));
 			
 					// Increment layer counter
 					thermalBondingLayerCounter++;
