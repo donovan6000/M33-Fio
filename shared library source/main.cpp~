@@ -1,0 +1,16 @@
+#include <iostream>
+#include <cmath>
+using namespace std;
+
+int main() {
+
+	double x = 0.183394;
+	double y = 0.00405118523816;
+	double value = acos(0);
+	cout << acos(0) << endl;
+	cout << value << endl;
+	cout << (value > 0) << endl;
+	cout << (value < M_PI_2) << endl;
+	cout << isnan(value) << endl;
+	return 0;
+}

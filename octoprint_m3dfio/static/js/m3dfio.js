@@ -51,6 +51,8 @@ $(function() {
 		var bedHighMinY = 9.0;
 		var bedHighMaxZ = 112.0;
 		var bedHighMinZ = bedMediumMaxZ
+		var extruderCenterX = (bedLowMaxX + bedLowMinX) / 2;
+		var extruderCenterY = (bedLowMaxY + bedLowMinY + 14.0) / 2;
 		
 		// Set printer materials
 		var printerMaterials = {
@@ -1068,8 +1070,8 @@ $(function() {
 						// Add boundaries to scene
 						this.boundaries[i].geometry.computeFaceNormals();
 						this.boundaries[i].geometry.computeVertexNormals();
-						this.boundaries[i].position.x -= -(bedLowMaxX + bedLowMinX) / 2;
-						this.boundaries[i].position.z -= (bedLowMaxY + bedLowMinY) / 2;
+						this.boundaries[i].position.x -= -extruderCenterX;
+						this.boundaries[i].position.z -= extruderCenterY;
 						this.boundaries[i].visible = false;
 						
 						// Don't add bottom boundary to scene
@@ -2253,7 +2255,7 @@ $(function() {
 					}
 		
 					// Check if models goes out of bounds on low front
-					if(minimums[0].z < bedLowMinY - (bedLowMaxY + bedLowMinY) / 2) {
+					if(minimums[0].z < bedLowMinY - extruderCenterY) {
 		
 						// Set boundary
 						viewport.boundaries[1].material.color.setHex(0xFF0000);
@@ -2269,7 +2271,7 @@ $(function() {
 						viewport.boundaries[1].visible = viewport.showBoundaries;
 		
 					// Check if models goes out of bounds on low back
-					if(maximums[0].z > bedLowMaxY - (bedLowMaxY + bedLowMinY) / 2) {
+					if(maximums[0].z > bedLowMaxY - extruderCenterY) {
 		
 						// Set boundary
 						viewport.boundaries[2].material.color.setHex(0xFF0000);
@@ -2285,7 +2287,7 @@ $(function() {
 						viewport.boundaries[2].visible = viewport.showBoundaries;
 		
 					// Check if models goes out of bounds on low right
-					if(maximums[0].x > bedLowMaxX - (bedLowMaxX + bedLowMinX) / 2) {
+					if(maximums[0].x > bedLowMaxX - extruderCenterX) {
 		
 						// Set boundary
 						viewport.boundaries[3].material.color.setHex(0xFF0000);
@@ -2301,7 +2303,7 @@ $(function() {
 						viewport.boundaries[3].visible = viewport.showBoundaries;
 		
 					// Check if models goes out of bounds on low left
-					if(minimums[0].x < bedLowMinX - (bedLowMaxX + bedLowMinX) / 2) {
+					if(minimums[0].x < bedLowMinX - extruderCenterX) {
 		
 						// Set boundary
 						viewport.boundaries[4].material.color.setHex(0xFF0000);
@@ -2317,7 +2319,7 @@ $(function() {
 						viewport.boundaries[4].visible = viewport.showBoundaries;
 		
 					// Check if models goes out of bounds on medium front
-					if(minimums[1].z < bedMediumMinY - (bedLowMaxY + bedLowMinY) / 2) {
+					if(minimums[1].z < bedMediumMinY - extruderCenterY) {
 		
 						// Set boundary
 						viewport.boundaries[5].material.color.setHex(0xFF0000);
@@ -2333,7 +2335,7 @@ $(function() {
 						viewport.boundaries[5].visible = viewport.showBoundaries;
 		
 					// Check if models goes out of bounds on medium back
-					if(maximums[1].z > bedMediumMaxY - (bedLowMaxY + bedLowMinY) / 2) {
+					if(maximums[1].z > bedMediumMaxY - extruderCenterY) {
 		
 						// Set boundary
 						viewport.boundaries[6].material.color.setHex(0xFF0000);
@@ -2349,7 +2351,7 @@ $(function() {
 						viewport.boundaries[6].visible = viewport.showBoundaries;
 		
 					// Check if models goes out of bounds on medium right
-					if(maximums[1].x > bedMediumMaxX - (bedLowMaxX + bedLowMinX) / 2) {
+					if(maximums[1].x > bedMediumMaxX - extruderCenterX) {
 		
 						// Set boundary
 						viewport.boundaries[7].material.color.setHex(0xFF0000);
@@ -2365,7 +2367,7 @@ $(function() {
 						viewport.boundaries[7].visible = viewport.showBoundaries;
 		
 					// Check if models goes out of bounds on medium left
-					if(minimums[1].x < bedMediumMinX - (bedLowMaxX + bedLowMinX) / 2) {
+					if(minimums[1].x < bedMediumMinX - extruderCenterX) {
 		
 						// Set boundary
 						viewport.boundaries[8].material.color.setHex(0xFF0000);
@@ -2381,7 +2383,7 @@ $(function() {
 						viewport.boundaries[8].visible = viewport.showBoundaries;
 		
 					// Check if models goes out of bounds on high front
-					if(minimums[2].z < bedHighMinY - (bedLowMaxY + bedLowMinY) / 2) {
+					if(minimums[2].z < bedHighMinY - extruderCenterY) {
 		
 						// Set boundary
 						viewport.boundaries[9].material.color.setHex(0xFF0000);
@@ -2397,7 +2399,7 @@ $(function() {
 						viewport.boundaries[9].visible = viewport.showBoundaries;
 		
 					// Check if models goes out of bounds on high back
-					if(maximums[2].z > bedHighMaxY - (bedLowMaxY + bedLowMinY) / 2) {
+					if(maximums[2].z > bedHighMaxY - extruderCenterY) {
 		
 						// Set boundary
 						viewport.boundaries[10].material.color.setHex(0xFF0000);
@@ -2413,7 +2415,7 @@ $(function() {
 						viewport.boundaries[10].visible = viewport.showBoundaries;
 		
 					// Check if models goes out of bounds on high right
-					if(maximums[2].x > bedHighMaxX - (bedLowMaxX + bedLowMinX) / 2) {
+					if(maximums[2].x > bedHighMaxX - extruderCenterX) {
 		
 						// Set boundary
 						viewport.boundaries[11].material.color.setHex(0xFF0000);
@@ -2429,7 +2431,7 @@ $(function() {
 						viewport.boundaries[11].visible = viewport.showBoundaries;
 		
 					// Check if models goes out of bounds on high left
-					if(minimums[2].x < bedHighMinX - (bedLowMaxX + bedLowMinX) / 2) {
+					if(minimums[2].x < bedHighMinX - extruderCenterX) {
 		
 						// Set boundary
 						viewport.boundaries[12].material.color.setHex(0xFF0000);

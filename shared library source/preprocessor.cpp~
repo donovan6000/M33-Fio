@@ -3,7 +3,7 @@
 #include <string>
 #include <list>
 #include <stack>
-#include <cmath>
+#include <math.h>
 #include <cfloat>
 #include <cstring>
 #include "preprocessor.h"
@@ -295,7 +295,7 @@ bool isSharpCorner(const Gcode &point, const Gcode &refrence) {
 		value = acos((currentX * previousX + currentY * previousY) / denominator);
 	
 	// Check if value is not a number
-	if(std::isnan(value))
+	if(isnan(value))
 	
 		// Return false
 		return false;

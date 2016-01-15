@@ -86,7 +86,7 @@ else
 		rm master.zip
 		
 		# Get OctoPrint parameter
-		octoPrintVersion="$(octoprint --version)"
+		octoPrintVersion="$(/Library/Frameworks/Python.framework/Versions/${pythonVersion}/bin/octoprint --version | cut -d' ' -f3)"
 		if [ $octoPrintVersion = "1.2.8" ] || [ $octoPrintVersion = "1.2.9" ]; then
 			octoPrintParameter=""
 		else

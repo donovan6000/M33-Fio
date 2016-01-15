@@ -980,7 +980,7 @@ class M3DFioPlugin(
 				currentPort = self.getPort()
 				
 				# Connect to the printer
-				connection = serial.Serial(currentPort, currentBaudrate, timeout = 10000, writeTimeout = 10000, parity = serial.PARITY_NONE)
+				connection = serial.Serial(currentPort, currentBaudrate)
 						
 				# Check if getting EEPROM failed
 				if not self.getEeprom(connection) :
@@ -1012,6 +1012,14 @@ class M3DFioPlugin(
 				# Re-connect
 				self._printer.connect(currentPort, currentBaudrate, currentProfile)
 				
+				# Wait until connection is established
+				while not isinstance(self._printer.get_transport(), serial.Serial) :
+					time.sleep(1)
+				
+				# Remove serial timeout
+				self._printer.get_transport().timeout = None
+				self._printer.get_transport().writeTimeout = None
+				
 				# Send response
 				if error :
 					return flask.jsonify(dict(value = "Error"))
@@ -1041,7 +1049,7 @@ class M3DFioPlugin(
 				currentPort = self.getPort()
 				
 				# Connect to the printer
-				connection = serial.Serial(currentPort, currentBaudrate, timeout = 10000, writeTimeout = 10000, parity = serial.PARITY_NONE)
+				connection = serial.Serial(currentPort, currentBaudrate)
 				
 				# Check if getting EEPROM failed
 				if not self.getEeprom(connection) :
@@ -1072,6 +1080,14 @@ class M3DFioPlugin(
 				
 				# Re-connect
 				self._printer.connect(currentPort, currentBaudrate, currentProfile)
+				
+				# Wait until connection is established
+				while not isinstance(self._printer.get_transport(), serial.Serial) :
+					time.sleep(1)
+				
+				# Remove serial timeout
+				self._printer.get_transport().timeout = None
+				self._printer.get_transport().writeTimeout = None
 				
 				# Send response
 				if error :
@@ -1188,7 +1204,7 @@ class M3DFioPlugin(
 				currentPort = self.getPort()
 				
 				# Connect to the printer
-				connection = serial.Serial(currentPort, currentBaudrate, timeout = 10000, writeTimeout = 10000, parity = serial.PARITY_NONE)
+				connection = serial.Serial(currentPort, currentBaudrate)
 				
 				# Get EEPROM and send it
 				self.getEeprom(connection, True)
@@ -1201,6 +1217,14 @@ class M3DFioPlugin(
 				
 				# Re-connect
 				self._printer.connect(currentPort, currentBaudrate, currentProfile)
+				
+				# Wait until connection is established
+				while not isinstance(self._printer.get_transport(), serial.Serial) :
+					time.sleep(1)
+				
+				# Remove serial timeout
+				self._printer.get_transport().timeout = None
+				self._printer.get_transport().writeTimeout = None
 				
 				# Send response
 				if not self.eeprom :
@@ -1243,7 +1267,7 @@ class M3DFioPlugin(
 					currentPort = self.getPort()
 				
 					# Connect to the printer
-					connection = serial.Serial(currentPort, currentBaudrate, timeout = 10000, writeTimeout = 10000, parity = serial.PARITY_NONE)
+					connection = serial.Serial(currentPort, currentBaudrate)
 					
 					# Check if getting EEPROM failed
 					if not self.getEeprom(connection) :
@@ -1284,6 +1308,14 @@ class M3DFioPlugin(
 		
 					# Re-connect
 					self._printer.connect(currentPort, currentBaudrate, currentProfile)
+					
+					# Wait until connection is established
+					while not isinstance(self._printer.get_transport(), serial.Serial) :
+						time.sleep(1)
+				
+					# Remove serial timeout
+					self._printer.get_transport().timeout = None
+					self._printer.get_transport().writeTimeout = None
 				
 				# Send response
 				if error :
@@ -1375,7 +1407,7 @@ class M3DFioPlugin(
 				currentPort = self.getPort()
 		
 				# Connect to the printer
-				connection = serial.Serial(currentPort, currentBaudrate, timeout = 10000, writeTimeout = 10000, parity = serial.PARITY_NONE)
+				connection = serial.Serial(currentPort, currentBaudrate)
 				
 				# Check if getting EEPROM failed
 				if not self.getEeprom(connection) :
@@ -1406,6 +1438,14 @@ class M3DFioPlugin(
 			
 				# Re-connect
 				self._printer.connect(currentPort, currentBaudrate, currentProfile)
+				
+				# Wait until connection is established
+				while not isinstance(self._printer.get_transport(), serial.Serial) :
+					time.sleep(1)
+				
+				# Remove serial timeout
+				self._printer.get_transport().timeout = None
+				self._printer.get_transport().writeTimeout = None
 			
 				# Send response
 				if error :
@@ -1568,7 +1608,7 @@ class M3DFioPlugin(
 				currentPort = self.getPort()
 			
 				# Connect to the printer
-				connection = serial.Serial(currentPort, currentBaudrate, timeout = 10000, writeTimeout = 10000, parity = serial.PARITY_NONE)
+				connection = serial.Serial(currentPort, currentBaudrate)
 				
 				# Get encrypted rom from unicode content
 				for character in data["content"] :
@@ -1629,6 +1669,14 @@ class M3DFioPlugin(
 			
 			# Re-connect
 			self._printer.connect(currentPort, currentBaudrate, currentProfile)
+			
+			# Wait until connection is established
+			while not isinstance(self._printer.get_transport(), serial.Serial) :
+				time.sleep(1)
+		
+			# Remove serial timeout
+			self._printer.get_transport().timeout = None
+			self._printer.get_transport().writeTimeout = None
 			
 			# Send response
 			if error :
@@ -2770,7 +2818,7 @@ class M3DFioPlugin(
 				currentPort = self.getPort()
 			
 			# Automatic baudrate detection
-			if currentBaudrate == 0 :
+			if not currentBaudrate or currentBaudrate == 0 :
 				currentBaudrate = 115200
 			
 			# Save ports
@@ -2797,7 +2845,7 @@ class M3DFioPlugin(
 				currentPort = self.getPort()
 
 				# Connect to the printer
-				connection = serial.Serial(currentPort, currentBaudrate, timeout = 10000, writeTimeout = 10000, parity = serial.PARITY_NONE)
+				connection = serial.Serial(currentPort, currentBaudrate)
 				
 				# Check if not in bootloader mode
 				connection.write("M115")
@@ -2817,7 +2865,7 @@ class M3DFioPlugin(
 					currentPort = self.getPort()
 					
 					# Re-connect
-					connection = serial.Serial(currentPort, currentBaudrate, timeout = 10000, writeTimeout = 10000, parity = serial.PARITY_NONE)
+					connection = serial.Serial(currentPort, currentBaudrate)
 				
 				# Check if getting EEPROM was successful
 				if self.getEeprom(connection) :
@@ -3247,6 +3295,10 @@ class M3DFioPlugin(
 				# Wait until connection is established
 				while not isinstance(self._printer.get_transport(), serial.Serial) :
 					time.sleep(1)
+				
+				# Remove serial timeout
+				self._printer.get_transport().timeout = None
+				self._printer.get_transport().writeTimeout = None
 			
 				# Enable printer callbacks
 				self._printer.register_callback(self)
@@ -3270,6 +3322,14 @@ class M3DFioPlugin(
 	
 					# Re-connect to printer
 					self._printer.connect(currentPort, currentBaudrate, currentProfile)
+					
+					# Wait until connection is established
+					while not isinstance(self._printer.get_transport(), serial.Serial) :
+						time.sleep(1)
+				
+					# Remove serial timeout
+					self._printer.get_transport().timeout = None
+					self._printer.get_transport().writeTimeout = None
 			
 			# Otherwise
 			else :
@@ -3298,9 +3358,9 @@ class M3DFioPlugin(
 			# Clear invalid printer
 			self.invalidPrinter = False
 			
-			# Inrease serial timeout
-			self._printer.get_transport().timeout = 10000
-			self._printer.get_transport().writeTimeout = 10000
+			# Remove serial timeout
+			self._printer.get_transport().timeout = None
+			self._printer.get_transport().writeTimeout = None
 			
 			# Request printer information
 			self._printer.get_transport().write("M115")
@@ -3954,7 +4014,7 @@ class M3DFioPlugin(
 	def preprocessGcode(self, path, file_object, links = None, printer_profile = None, allow_overwrite = True, *args, **kwargs) :
 	
 		# Check if file is not G-code
-		if not octoprint.filemanager.valid_file_type(path, type = "gcode") :
+		if not octoprint.filemanager.valid_file_type(path, "gcode") :
 		
 			# Return unmodified file
 			return file_object
@@ -4308,11 +4368,25 @@ class M3DFioPlugin(
 		else :
 			previousY = 0
 		
-		# Calculate value
-		if (currentX == 0 and currentY == 0) or (previousX == 0 and previousY == 0) :
-			value = math.acos(0)
+		# Check if divide by zero
+		denominator = math.pow(currentX * currentX + currentY * currentY, 2) * math.pow(previousX * previousX + previousY * previousY, 2)
+		if denominator == 0 :
+		
+			# Return false
+			return False
+		
+		# Otherwise
 		else :
-			value = math.acos((currentX * previousX + currentY * previousY) / (math.pow(currentX * currentX + currentY * currentY, 2) * math.pow(previousX * previousX + previousY * previousY, 2)))
+		
+			# Calculate value
+			try :
+				value = math.acos((currentX * previousX + currentY * previousY) / denominator)
+			
+			# Check if value is not a number
+			except ValueError :
+			
+				# Return false
+				return False
 		
 		# Return if sharp corner
 		return value > 0 and value < math.pi / 2
@@ -5601,6 +5675,7 @@ class M3DFioPlugin(
 	
 			# Get file locations
 			profileLocation = self._slicing_manager.get_profile_path(flask.request.values["Slicer Name"], flask.request.values["Slicer Profile Name"])
+			
 			if flask.request.values["Model Location"] == "local" :
 				modelLocation = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, flask.request.values["Model Path"] + flask.request.values["Model Name"])
 			elif flask.request.values["Model Location"] == "sdcard" :
@@ -5779,10 +5854,10 @@ class M3DFioPlugin(
 		return flask.send_from_directory(self.get_plugin_data_folder(), file)
 	
 	# Auto connect
-	def autoConnect(self, comm_instance, port, baudrate, connection_timeout) :
+	def autoConnect(self, comm_instance, port, baudrate, read_timeout, *args, **kwargs) :
 	
 		# Set baudrate if not specified
-		if baudrate == 0 :
+		if not baudrate or baudrate == 0 :
 			baudrate = 115200
 		
 		# Check if port isn't specified
@@ -5810,7 +5885,7 @@ class M3DFioPlugin(
 		comm_instance._log("Connecting to: " + str(port))
 		
 		# Return connection
-		return serial.Serial(str(port), baudrate, timeout = 10000, writeTimeout = 10000, parity = serial.PARITY_NONE)
+		return serial.Serial(str(port), baudrate)
 
 # Plugin info
 __plugin_name__ = "M3D Fio"
