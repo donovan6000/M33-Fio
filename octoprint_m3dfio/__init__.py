@@ -1018,7 +1018,10 @@ class M3DFioPlugin(
 				
 				# Remove serial timeout
 				self._printer.get_transport().timeout = None
-				self._printer.get_transport().writeTimeout = None
+				if serial.VERSION < 3 :
+                                    self._printer.get_transport().writeTimeout = None
+				else :
+                                    self._printer.get_transport().write_timeout = None
 				
 				# Send response
 				if error :
@@ -1087,7 +1090,10 @@ class M3DFioPlugin(
 				
 				# Remove serial timeout
 				self._printer.get_transport().timeout = None
-				self._printer.get_transport().writeTimeout = None
+				if serial.VERSION < 3 :
+                                    self._printer.get_transport().writeTimeout = None
+				else :
+                                    self._printer.get_transport().write_timeout = None
 				
 				# Send response
 				if error :
@@ -1224,7 +1230,10 @@ class M3DFioPlugin(
 				
 				# Remove serial timeout
 				self._printer.get_transport().timeout = None
-				self._printer.get_transport().writeTimeout = None
+				if serial.VERSION < 3 :
+                                    self._printer.get_transport().writeTimeout = None
+				else :
+                                    self._printer.get_transport().write_timeout = None
 				
 				# Send response
 				if not self.eeprom :
@@ -1315,7 +1324,10 @@ class M3DFioPlugin(
 				
 					# Remove serial timeout
 					self._printer.get_transport().timeout = None
-					self._printer.get_transport().writeTimeout = None
+					if serial.VERSION < 3 :
+                                            self._printer.get_transport().writeTimeout = None
+					else :
+                                            self._printer.get_transport().write_timeout = None
 				
 				# Send response
 				if error :
@@ -1445,7 +1457,10 @@ class M3DFioPlugin(
 				
 				# Remove serial timeout
 				self._printer.get_transport().timeout = None
-				self._printer.get_transport().writeTimeout = None
+				if serial.VERSION < 3 :
+                                    self._printer.get_transport().writeTimeout = None
+				else :
+                                    self._printer.get_transport().write_timeout = None
 			
 				# Send response
 				if error :
@@ -1676,7 +1691,10 @@ class M3DFioPlugin(
 		
 			# Remove serial timeout
 			self._printer.get_transport().timeout = None
-			self._printer.get_transport().writeTimeout = None
+			if serial.VERSION < 3 :
+                            self._printer.get_transport().writeTimeout = None
+			else :
+                            self._printer.get_transport().write_timeout = None
 			
 			# Send response
 			if error :
@@ -3298,7 +3316,10 @@ class M3DFioPlugin(
 				
 				# Remove serial timeout
 				self._printer.get_transport().timeout = None
-				self._printer.get_transport().writeTimeout = None
+				if serial.VERSION < 3 :
+                                    self._printer.get_transport().writeTimeout = None
+				else :
+                                    self._printer.get_transport().write_timeout = None
 			
 				# Enable printer callbacks
 				self._printer.register_callback(self)
@@ -3329,7 +3350,10 @@ class M3DFioPlugin(
 				
 					# Remove serial timeout
 					self._printer.get_transport().timeout = None
-					self._printer.get_transport().writeTimeout = None
+					if serial.VERSION < 3 :
+                                            self._printer.get_transport().writeTimeout = None
+					else :
+                                            self._printer.get_transport().write_timeout = None
 			
 			# Otherwise
 			else :
@@ -3360,7 +3384,10 @@ class M3DFioPlugin(
 			
 			# Remove serial timeout
 			self._printer.get_transport().timeout = None
-			self._printer.get_transport().writeTimeout = None
+			if serial.VERSION < 3 :
+                            self._printer.get_transport().writeTimeout = None
+			else :
+                            self._printer.get_transport().write_timeout = None
 			
 			# Request printer information
 			self._printer.get_transport().write("M115")
