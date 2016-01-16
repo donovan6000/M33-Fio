@@ -9,7 +9,6 @@ __copyright__ = "Copyright (C) 2015-2016 Exploit Kings. All rights reserved."
 
 
 # Imports
-import octoprint
 import octoprint.plugin
 import octoprint.events
 import octoprint.filemanager
@@ -39,6 +38,9 @@ import psutil
 import socket
 from .gcode import Gcode
 from .vector import Vector
+
+if platform.uname()[0].startswith("Linux") :
+	import dbus
 
 
 # Command class
@@ -490,40 +492,6 @@ class M3DFioPlugin(
 	# On start
 	def on_after_startup(self) :
 	
-		# Check if Pip isn't set
-		if octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.get(["pip"]) is None :
-		
-			# Set Pip locations
-			pipLocations = []
-			if platform.uname()[0].startswith("Windows") :
-		
-				pipLocations = [
-					os.environ["SYSTEMDRIVE"] + "/python/Scripts/pip.exe"
-				]
-		
-			elif platform.uname()[0].startswith("Darwin") :
-		
-				pipLocations = [
-					"/Library/Frameworks/Python.framework/Versions/*/bin/pip"
-				]
-		
-			elif platform.uname()[0].startswith("Linux") :
-		
-				pipLocations = [
-					"/usr/bin/pip"
-				]
-		
-			# Go through all Pip location
-			for locations in pipLocations :
-				for location in glob.glob(locations) :
-	
-					# Check if location is a file
-					if os.path.isfile(location) :
-			
-						# Set Pip location
-						octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.set(["pip"], location)
-						break
-		
 		# Create and overwrite Micro 3D printer profile
 		printerProfile = dict(
 			id = "micro_3d",
@@ -833,9 +801,12 @@ class M3DFioPlugin(
 		self.restoreFiles()
 		
 		# Remove config file
-		configFile = self._settings.global_get_basefolder("base") + "/config.yaml" + str(self.getOctoPrintPort(psutil.Process(os.getpid()).connections()))
+		configFile = self._settings.global_get_basefolder("base") + "/config.yaml" + str(self.getListenPort(psutil.Process(os.getpid()).connections()))
 		if os.path.isfile(configFile) :
 			os.remove(configFile)
+		
+		# Enable sleep
+		self.enableSleep()
 	
 	# Get default settings
 	def get_settings_defaults(self) :
@@ -1019,9 +990,9 @@ class M3DFioPlugin(
 				# Remove serial timeout
 				self._printer.get_transport().timeout = None
 				if serial.VERSION < 3 :
-                                    self._printer.get_transport().writeTimeout = None
+					self._printer.get_transport().writeTimeout = None
 				else :
-                                    self._printer.get_transport().write_timeout = None
+					self._printer.get_transport().write_timeout = None
 				
 				# Send response
 				if error :
@@ -1091,9 +1062,9 @@ class M3DFioPlugin(
 				# Remove serial timeout
 				self._printer.get_transport().timeout = None
 				if serial.VERSION < 3 :
-                                    self._printer.get_transport().writeTimeout = None
+					self._printer.get_transport().writeTimeout = None
 				else :
-                                    self._printer.get_transport().write_timeout = None
+					self._printer.get_transport().write_timeout = None
 				
 				# Send response
 				if error :
@@ -1231,9 +1202,9 @@ class M3DFioPlugin(
 				# Remove serial timeout
 				self._printer.get_transport().timeout = None
 				if serial.VERSION < 3 :
-                                    self._printer.get_transport().writeTimeout = None
+					self._printer.get_transport().writeTimeout = None
 				else :
-                                    self._printer.get_transport().write_timeout = None
+					self._printer.get_transport().write_timeout = None
 				
 				# Send response
 				if not self.eeprom :
@@ -1325,9 +1296,9 @@ class M3DFioPlugin(
 					# Remove serial timeout
 					self._printer.get_transport().timeout = None
 					if serial.VERSION < 3 :
-                                            self._printer.get_transport().writeTimeout = None
+						self._printer.get_transport().writeTimeout = None
 					else :
-                                            self._printer.get_transport().write_timeout = None
+						self._printer.get_transport().write_timeout = None
 				
 				# Send response
 				if error :
@@ -1458,9 +1429,9 @@ class M3DFioPlugin(
 				# Remove serial timeout
 				self._printer.get_transport().timeout = None
 				if serial.VERSION < 3 :
-                                    self._printer.get_transport().writeTimeout = None
+					self._printer.get_transport().writeTimeout = None
 				else :
-                                    self._printer.get_transport().write_timeout = None
+					self._printer.get_transport().write_timeout = None
 			
 				# Send response
 				if error :
@@ -1474,19 +1445,20 @@ class M3DFioPlugin(
 				# Get port
 				port = int(data["value"][26 :])
 				
+				# Check if attempting to close initial OctoPrint instance
+				if port == 5000 :
+				
+					# Return error
+					return flask.jsonify(dict(value = "Error"))
+				
 				# Find all OctoPrint instances
 				for process in psutil.process_iter() :
-					if process.name() == "octoprint" or process.name() == "python" :
+					if process.name().lower().startswith("octoprint") or process.name().lower().startswith("python") :
 						
 						# Check if process has the specified port
 						processDetails = psutil.Process(process.pid)
-						if port == self.getOctoPrintPort(processDetails.connections()) :
-						
-							# Check if attempting to close initial OctoPrint instance
-							if process.name() == "octoprint" :
-							
-								# Return error
-								return flask.jsonify(dict(value = "Error"))
+						processPort = self.getListenPort(processDetails.connections())
+						if processPort is not None and port == processPort :
 						
 							# Terminate process
 							processDetails.terminate()
@@ -1523,10 +1495,7 @@ class M3DFioPlugin(
 				shutil.copyfile(self._settings.global_get_basefolder("base") + "/config.yaml", self._settings.global_get_basefolder("base") + "/config.yaml" + str(port))
 				
 				# Create instance
-				if octoprint.__version__ == "0+unknown" or tuple(map(int, (octoprint.__version__.split(".")))) >= tuple(map(int, ("1.3.0".split(".")))) :
-					instance = subprocess.Popen([sys.executable + " -c \"import octoprint;octoprint.main()\" serve --port " + str(port) + " --config " + self._settings.global_get_basefolder("base") + "/config.yaml" + str(port)], shell = True)
-				else :
-					instance = subprocess.Popen([sys.executable + " -c \"import octoprint;octoprint.main()\" --port " + str(port) + " --config " + self._settings.global_get_basefolder("base") + "/config.yaml" + str(port)], shell = True)
+				instance = subprocess.Popen([' '.join(sys.argv) + " --port " + str(port) + " --config " + self._settings.global_get_basefolder("base") + "/config.yaml" + str(port)], shell = True)
 				
 				# Send response
 				return flask.jsonify(dict(value = "Ok", port = port))
@@ -1692,9 +1661,9 @@ class M3DFioPlugin(
 			# Remove serial timeout
 			self._printer.get_transport().timeout = None
 			if serial.VERSION < 3 :
-                            self._printer.get_transport().writeTimeout = None
+				self._printer.get_transport().writeTimeout = None
 			else :
-                            self._printer.get_transport().write_timeout = None
+				self._printer.get_transport().write_timeout = None
 			
 			# Send response
 			if error :
@@ -2173,6 +2142,12 @@ class M3DFioPlugin(
 					# Wait until pre-processing on the fly is ready
 					while not self.preprocessOnTheFlyReady :
 						time.sleep(0.01)
+					
+					# Check if print was invalid
+					if not self._printer.is_printing() :
+					
+						# Set command to emergency stop
+						data = "M65537;stop"
 			
 			# Otherwise
 			else :
@@ -2472,7 +2447,7 @@ class M3DFioPlugin(
 		elif event == octoprint.events.Events.CLIENT_OPENED :
 		
 			# Send OctoPrint instances details
-			self.sendOctoPrintDetails()
+			self.sendOctoPrintProcessDetails()
 		
 			# Send provided firmware version
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Provided Firmware", version = self.providedFirmware))
@@ -2488,6 +2463,43 @@ class M3DFioPlugin(
 				
 				# Send printer details
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Printer Details", serialNumber = serialNumber, serialPort = self._printer.get_transport().port))
+			
+			# Check if Pip isn't set
+			if octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.get(["pip"]) is None :
+		
+				# Set Pip locations
+				pipLocations = []
+				if platform.uname()[0].startswith("Windows") :
+		
+					pipLocations = [
+						os.environ["SYSTEMDRIVE"] + "/python/Scripts/pip.exe"
+					]
+		
+				elif platform.uname()[0].startswith("Darwin") :
+		
+					pipLocations = [
+						"/Library/Frameworks/Python.framework/Versions/*/bin/pip"
+					]
+		
+				elif platform.uname()[0].startswith("Linux") :
+		
+					pipLocations = [
+						"/usr/bin/pip"
+					]
+		
+				# Go through all Pip location
+				for locations in pipLocations :
+					for location in glob.glob(locations) :
+	
+						# Check if location is a file
+						if os.path.isfile(location) :
+			
+							# Set Pip location
+							octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.set(["pip"], location)
+						
+							# Save software settings
+							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Save Software Settings"))
+							break
 			
 			# Check if Cura is a registered slicer
 			if "cura" in self._slicing_manager.registered_slicers :
@@ -2529,6 +2541,9 @@ class M3DFioPlugin(
 						
 								# Set Cura Engine location
 								self._slicing_manager.get_slicer("cura", False)._settings.set(["cura_engine"], location)
+								
+								# Save software settings
+								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Save Software Settings"))
 								break
 				
 				# Check if Cura is still not configured
@@ -2618,6 +2633,9 @@ class M3DFioPlugin(
 		# Otherwise check if a print is starting
 		elif event == octoprint.events.Events.PRINT_STARTED :
 		
+			# Disable sleep
+			self.disableSleep()
+		
 			# Check if pre-processing on the fly
 			if self._settings.get_boolean(["PreprocessOnTheFly"]) :
 		
@@ -2705,9 +2723,6 @@ class M3DFioPlugin(
 				
 						# Hide message
 						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Hide Message"))
-				
-						# Return
-						return
 			
 					# Set pre-process on the fly ready
 					self.preprocessOnTheFlyReady = True
@@ -2720,6 +2735,18 @@ class M3DFioPlugin(
 			
 				# Set print ready
 				self.printReady = True
+		
+		# Otherwise check if a print is paused
+		elif event == octoprint.events.Events.PRINT_PAUSED :
+		
+			# Enable sleep
+			self.enableSleep()
+		
+		# Otherwise check if a print is resumed
+		elif event == octoprint.events.Events.PRINT_RESUMED :
+		
+			# Disable sleep
+			self.disableSleep()
 		
 		# Otherwise check if a print is done
 		elif event == octoprint.events.Events.PRINT_DONE :
@@ -2750,13 +2777,15 @@ class M3DFioPlugin(
 			
 			# Clear pre-process on the fly ready
 			self.preprocessOnTheFlyReady = False
+			
+			# Enable sleep
+			self.enableSleep()
 		
 		# Otherwise check if a print is cancelled or failed
 		elif event == octoprint.events.Events.PRINT_CANCELLED or event == octoprint.events.Events.PRINT_FAILED :
 		
 			# Set commands
 			commands = [
-				"M65537;stop",
 				"M107",
 				"M104 S0",
 				"M18"
@@ -2764,6 +2793,8 @@ class M3DFioPlugin(
 			
 			if self.usingMicroPass :
 				commands += ["M140 S0"]
+			
+			commands += ["M65537;stop"]
 		
 			# Send commands
 			self.sendCommands(commands)
@@ -2773,6 +2804,9 @@ class M3DFioPlugin(
 			
 			# Clear pre-process on the fly ready
 			self.preprocessOnTheFlyReady = False
+			
+			# Enable sleep
+			self.enableSleep()
 	
 	# Is port open
 	def isPortOpen(self, port) :
@@ -2791,8 +2825,8 @@ class M3DFioPlugin(
 		# Return true
 		return True
 	
-	# Get OctoPrint port
-	def getOctoPrintPort(self, connections) :
+	# Get listen port
+	def getListenPort(self, connections) :
 	
 		# Go through all connections
 		for connection in connections :
@@ -2802,20 +2836,27 @@ class M3DFioPlugin(
 			
 				# Return port
 				return connection.laddr[1]
+		
+		# Return none
+		return None
 	
-	# Send OctoPrint details
-	def sendOctoPrintDetails(self) :
+	# Send OctoPrint process details
+	def sendOctoPrintProcessDetails(self) :
 	
 		# Initialize variables
 		processes = []
 		
 		# Find all OctoPrint instances
 		for process in psutil.process_iter() :
-			if process.name() == "octoprint" or process.name() == "python" :
+			if process.name().lower().startswith("octoprint") or process.name().lower().startswith("python") :
 			
-				# Append process to list
-				processes += [[self.getOctoPrintPort(psutil.Process(process.pid).connections()), os.getpid() == process.pid]]
+				# Check if process is listening on a port
+				processPort = self.getListenPort(psutil.Process(process.pid).connections())
+				if processPort is not None :
 			
+					# Append process to list
+					processes += [[processPort, os.getpid() == process.pid]]
+		
 		# Send OctoPrint instances
 		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Process Details", processes = processes))
 	
@@ -3317,9 +3358,9 @@ class M3DFioPlugin(
 				# Remove serial timeout
 				self._printer.get_transport().timeout = None
 				if serial.VERSION < 3 :
-                                    self._printer.get_transport().writeTimeout = None
+					self._printer.get_transport().writeTimeout = None
 				else :
-                                    self._printer.get_transport().write_timeout = None
+					self._printer.get_transport().write_timeout = None
 			
 				# Enable printer callbacks
 				self._printer.register_callback(self)
@@ -3351,9 +3392,9 @@ class M3DFioPlugin(
 					# Remove serial timeout
 					self._printer.get_transport().timeout = None
 					if serial.VERSION < 3 :
-                                            self._printer.get_transport().writeTimeout = None
+						self._printer.get_transport().writeTimeout = None
 					else :
-                                            self._printer.get_transport().write_timeout = None
+						self._printer.get_transport().write_timeout = None
 			
 			# Otherwise
 			else :
@@ -3385,9 +3426,9 @@ class M3DFioPlugin(
 			# Remove serial timeout
 			self._printer.get_transport().timeout = None
 			if serial.VERSION < 3 :
-                            self._printer.get_transport().writeTimeout = None
+				self._printer.get_transport().writeTimeout = None
 			else :
-                            self._printer.get_transport().write_timeout = None
+				self._printer.get_transport().write_timeout = None
 			
 			# Request printer information
 			self._printer.get_transport().write("M115")
@@ -5913,6 +5954,93 @@ class M3DFioPlugin(
 		
 		# Return connection
 		return serial.Serial(str(port), baudrate)
+	
+	# Disable sleep
+	def disableSleep(self) :
+	
+		# Check if using windows
+		if platform.uname()[0].startswith("Windows") :
+		
+			# Set thread execution to a working state
+			ES_CONTINUOUS = 0x80000000
+			ES_SYSTEM_REQUIRED = 0x00000001
+			ctypes.windll.kernel32.SetThreadExecutionState(ctypes.c_int(ES_CONTINUOUS | ES_SYSTEM_REQUIRED))
+		
+		# Otherwise check if using OS X
+		elif platform.uname()[0].startswith("Darwin") :
+		
+			# Create caffeinate process
+			if not hasattr(self, "osXCaffeinateProcess") or self.osXCaffeinateProcess is None :
+				self.osXCaffeinateProcess = subprocess.Popen("caffeinate")
+		
+		# Otherwise check if using Linux
+		elif platform.uname()[0].startswith("Linux") :
+		
+			if not hasattr(self, "linuxSleepService") or self.linuxSleepService is None :
+			
+				try:
+			
+					# Initialize DBus session
+					bus = dbus.SessionBus()
+				
+					# Get sleep service
+					try:
+						self.linuxSleepService = dbus.Interface(bus.get_object("org.freedesktop.ScreenSaver", "/org/freedesktop/ScreenSaver"), "org.freedesktop.ScreenSaver")
+				
+					except dbus.DBusException :
+				
+						try :
+							self.linuxSleepService = dbus.Interface(bus.get_object("org.freedesktop.ScreenSaver", "/ScreenSaver"), "org.freedesktop.ScreenSaver")
+					
+						except dbus.DBusException :
+					
+							try :
+					
+								self.linuxSleepService = dbus.Interface(bus.get_object("org.gnome.ScreenSaver", "/org/gnome/ScreenSaver"), "org.gnome.ScreenSaver")
+						
+							except dbus.DBusException :
+							
+								try :
+					
+									self.linuxSleepService = dbus.Interface(bus.get_object("org.gnome.ScreenSaver", "/ScreenSaver"), "org.gnome.ScreenSaver")
+						
+								except dbus.DBusException :
+								
+									self.linuxSleepService = None
+									return
+				
+					# Inhibit sleep service
+					self.linuxSleepPrevention = self.linuxSleepService.Inhibit("M3D Fio", "Disabled by M3D Fio")
+			
+				except Exception :
+			
+					self.linuxSleepService = None
+	
+	# Enable sleep
+	def enableSleep(self) :
+	
+		# Check if using windows
+		if platform.uname()[0].startswith("Windows") :
+		
+			# Set thread execution to an idle state
+			ES_CONTINUOUS = 0x80000000
+			ctypes.windll.kernel32.SetThreadExecutionState(ctypes.c_int(ES_CONTINUOUS))
+		
+		# Otherwise check if using OS X
+		elif platform.uname()[0].startswith("Darwin") :
+		
+			# Terminate caffeinate process
+			if hasattr(self, "osXCaffeinateProcess") and self.osXCaffeinateProcess is not None :
+				self.osXCaffeinateProcess.kill()
+				self.osXCaffeinateProcess = None
+		
+		# Otherwise check if using Linux
+		elif platform.uname()[0].startswith("Linux") :
+		
+			# Uninhibit sleep service
+			if hasattr(self, "linuxSleepService") and self.linuxSleepService is not None :
+				self.linuxSleepService.UnInhibit(self.linuxSleepPrevention)
+				self.linuxSleepService = None
 
 # Plugin info
 __plugin_name__ = "M3D Fio"

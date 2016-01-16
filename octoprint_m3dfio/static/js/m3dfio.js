@@ -3049,11 +3049,11 @@ $(function() {
 		$("#control > div.jog-panel.general").find("button:nth-of-type(5)").remove();
 		$("#control > div.jog-panel.general").find("button:nth-of-type(5)").remove();
 		
-		// Create absolute and relative controls, open settings, and emergency stop
+		// Create absolute and relative controls, print settings, and emergency stop
 		$("#control > div.jog-panel.general").find("div").append(`
 			<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'G90'}) }" title="Sets extruder to use absolute positioning">Absolute mode</button>
 			<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'G91'}) }" title="Sets extruder to use relative positioning">Relative mode</button>
-			<button class="btn btn-block control-box" data-bind="enable: loginState.isUser()">Open settings</button>
+			<button class="btn btn-block control-box" data-bind="enable: loginState.isUser()">Print settings</button>
 			<button class="btn btn-block control-box" data-bind="enable: isOperational() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M65537;stop*'}) }" title="Stop current operation">Emergency stop</button>
 		`);
 	
@@ -4728,8 +4728,8 @@ $(function() {
 			});
 		});
 		
-		// Open settings control
-		$("#control > div.jog-panel.general").find("button:nth-of-type(7)").attr("title", "Opens settings").click(function() {
+		// Print settings control
+		$("#control > div.jog-panel.general").find("button:nth-of-type(7)").attr("title", "Opens print settings").click(function() {
 		
 			// Open M3D Fio settings
 			$("#navbar_show_settings").click();
@@ -5385,7 +5385,7 @@ $(function() {
 			});
 			
 			// Show message
-			showMessage("Calibration Status", "It's recommended to print this test border after completely calibrating the bed to ensure that the calibration is accurate. The test border should print as a solid, even extruded border, and the 'Back Left Offset', 'Back Right Offset', 'Front Right Offset', and 'Front Left Offset' values can be adjusted to correct any issues with it. If the test border contains squiggly ripples, then it is too high. If the test border contains missing gaps, then it is too low. It's also recommended to print a model with a raft after this is done to see if the 'Bed Height Offset' value needs to be adjusted. If the raft does not securely stick to the bed, then it is too high. If the model isn't easily removed from the raft, then it is too low. All the referenced values can be found by clicking the 'Open settings' button in the 'General' section. Proceed?", "Yes", "No");
+			showMessage("Calibration Status", "It's recommended to print this test border after completely calibrating the bed to ensure that the calibration is accurate. The test border should print as a solid, even extruded border, and the 'Back Left Offset', 'Back Right Offset', 'Front Right Offset', and 'Front Left Offset' values can be adjusted to correct any issues with it. If the test border contains squiggly ripples, then it is too high. If the test border contains missing gaps, then it is too low. It's also recommended to print a model with a raft after this is done to see if the 'Bed Height Offset' value needs to be adjusted. If the raft does not securely stick to the bed, then it is too high. If the model isn't easily removed from the raft, then it is too low. All the referenced values can be found by clicking the 'Print settings' button in the 'General' section. Proceed?", "Yes", "No");
 		});
 		
 		// Set print backlash calibration cylinder control
@@ -5413,7 +5413,7 @@ $(function() {
 			});
 			
 			// Show message
-			showMessage("Calibration Status", "It's recommended to print this backlash calibration cylinder after the print bed has been accurately calibrated. To start this procedure, the 'Backlash X' and 'Backlash Y' values should be set to 0 so that an uncompensated cylinder can be printed. The cylinder's X backlash signature gaps are located at 2 and 8 o'clock and Y backlash signature gaps are located at 5 and 11 o'clock. The front left corner of the cylinder's base is cut off to make identifying the cylinder's orientation easier. After printing an initial cylinder, adjust the 'Backlash X' value to close the X signature gaps, print, and repeat if necessary to ensure the accuracy. 'Backlash X' values typically range within 0.2mm to 0.6mm. After the 'Backlash X' value has been calibrated, adjust the 'Backlash Y' value to close the Y signature gaps, print, and repeat if necessary to ensure the accuracy. 'Backlash Y' values typically range within 0.4mm to 1.3mm. You may need fine tune the 'Backlash X' vale again after 'Backlash Y' value has been calibrated. All the referenced values can be found by clicking the 'Open settings' button in the 'General' section. Proceed?", "Yes", "No");
+			showMessage("Calibration Status", "It's recommended to print this backlash calibration cylinder after the print bed has been accurately calibrated. To start this procedure, the 'Backlash X' and 'Backlash Y' values should be set to 0 so that an uncompensated cylinder can be printed. The cylinder's X backlash signature gaps are located at 2 and 8 o'clock and Y backlash signature gaps are located at 5 and 11 o'clock. The front left corner of the cylinder's base is cut off to make identifying the cylinder's orientation easier. After printing an initial cylinder, adjust the 'Backlash X' value to close the X signature gaps, print, and repeat if necessary to ensure the accuracy. 'Backlash X' values typically range within 0.2mm to 0.6mm. After the 'Backlash X' value has been calibrated, adjust the 'Backlash Y' value to close the Y signature gaps, print, and repeat if necessary to ensure the accuracy. 'Backlash Y' values typically range within 0.4mm to 1.3mm. You may need fine tune the 'Backlash X' vale again after 'Backlash Y' value has been calibrated. All the referenced values can be found by clicking the 'Print settings' button in the 'General' section. Proceed?", "Yes", "No");
 		});
 		
 		// Run complete bed calibration control
@@ -6509,7 +6509,7 @@ $(function() {
 				});
 			
 				// Show message
-				showMessage("Message", "It's recommended that you install the <a href=\"https://ultimaker.com/en/products/cura-software/list\" target=\"_blank\">latest Cura 15.04 release</a> to fully utilize M3D Fio's capabilities.", "Ok");
+				showMessage("Message", "It's recommended that you install the <a href=\"https://ultimaker.com/en/products/cura-software/list\" target=\"_blank\">latest Cura 15.04 release</a> on this server to fully utilize M3D Fio's capabilities.", "Ok");
 			}
 			
 			// Otherwise check if data is that a duplicate wait was received
@@ -6639,10 +6639,14 @@ $(function() {
 			}
 			
 			// Otherwise check if data is to save software settings
-			else if(data.value == "Save Software Settings")
+			else if(data.value == "Save Software Settings") {
 		
 				// Save software and printer settings
 				self.settings.saveData(undefined, savePrinterSettings);
+				
+				// Update settings
+				self.settings.requestData();
+			}
 			
 			// Otherwise check if data is EEPROM
 			else if(data.value == "EEPROM" && typeof data.eeprom !== "undefined") {
