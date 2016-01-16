@@ -85,6 +85,7 @@ class M3DFioPlugin(
 		self.slicerChanges = None
 		self.sharedLibrary = None
 		self.curaReminder = False
+		self.sleepReminder = False
 		self.lastCommandSent = None
 		self.lastResponseWasWait = False
 		self.lastResponseWasTemperatureReading = False
@@ -805,7 +806,7 @@ class M3DFioPlugin(
 		self.restoreFiles()
 		
 		# Remove config file
-		configFile = self._settings.global_get_basefolder("base") + "/config.yaml" + str(self.getListenPort(psutil.Process(os.getpid()).connections()))
+		configFile = self._settings.global_get_basefolder("base") + "/config.yaml" + str(self.getListenPort(psutil.Process(os.getpid())))
 		if os.path.isfile(configFile) :
 			os.remove(configFile)
 		
@@ -914,10 +915,11 @@ class M3DFioPlugin(
 				for command in data["value"] :
 			
 					# Send command to printer
+					self.sendCommands("G4")
 					self.sendCommands(command)
 					
 					# Delay
-					time.sleep(0.4)
+					time.sleep(0.1)
 				
 				# Check if waiting for a response
 				if data["value"][-1] == "M65536;wait" :
@@ -1481,7 +1483,7 @@ class M3DFioPlugin(
 						
 						# Check if process has the specified port
 						processDetails = psutil.Process(process.pid)
-						processPort = self.getListenPort(processDetails.connections())
+						processPort = self.getListenPort(processDetails)
 						if processPort is not None and port == processPort :
 						
 							# Terminate process
@@ -1525,7 +1527,7 @@ class M3DFioPlugin(
 					octoPrintParameter = ''
 				
 				# Create instance
-				instance = subprocess.Popen([sys.executable + " -c \"import octoprint;octoprint.main()\"" + octoPrintParameter + " --port " + str(port) + " --config \"" + self._settings.global_get_basefolder("base") + "/config.yaml" + str(port) + '"'], shell = True)
+				subprocess.Popen([sys.executable + " -c \"import octoprint;octoprint.main()\"" + octoPrintParameter + " --port " + str(port) + " --config \"" + self._settings.global_get_basefolder("base") + "/config.yaml" + str(port) + '"'], shell = True)
 				
 				# Send response
 				return flask.jsonify(dict(value = "Ok", port = port))
@@ -2577,77 +2579,92 @@ class M3DFioPlugin(
 				# Send printer details
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Printer Details", serialNumber = serialNumber, serialPort = self._printer.get_transport().port))
 			
-				# Set file locations
-				self.setFileLocations()
-				
+			# Set file locations
+			self.setFileLocations()
+			
+			# Check if a Cura reminder hasn't been sent
+			if not self.curaReminder :
+			
 				# Check if Cura is not configured
 				if not "cura" in self._slicing_manager.configured_slicers :
+			
+					# Send message
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Cura Not Installed"))
 				
-					# Check if a reminder hasn't been sent
-					if not self.curaReminder :
-				
-						# Send message
-						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Cura Not Installed"))
-					
-						# Set cura reminder
-						self.curaReminder = True
-				
-				# Otherwise
-				else :
+				# Set Cura reminder
+				self.curaReminder = True
+			
+			# Check if Cura is configured
+			if "cura" in self._slicing_manager.configured_slicers :
+	
+				# Set Cura profile location and destination
+				profileLocation = self._basefolder + "/static/profiles/"
+				profileDestination = self._slicing_manager.get_slicer_profile_path("cura") + '/'
+	
+				# Go through all Cura profiles
+				for profile in os.listdir(profileLocation) :
 		
-					# Set Cura profile location and destination
-					profileLocation = self._basefolder + "/static/profiles/"
-					profileDestination = self._slicing_manager.get_slicer_profile_path("cura") + '/'
+					# Get profile version
+					version = re.search(" V(\d+)\.+\S*$", profile)
 		
-					# Go through all Cura profiles
-					for profile in os.listdir(profileLocation) :
+					# Check if version number exists
+					if version :
 			
-						# Get profile version
-						version = re.search(" V(\d+)\.+\S*$", profile)
+						# Set profile version, identifier, and name
+						profileVersion = version.group(1)
+						profileIdentifier = profile[0 : version.start()]
+						profileName = self._slicing_manager.get_profile_path("cura", profileIdentifier)[len(profileDestination) :].lower()
 			
-						# Check if version number exists
-						if version :
-				
-							# Set profile version, identifier, and name
-							profileVersion = version.group(1)
-							profileIdentifier = profile[0 : version.start()]
-							profileName = self._slicing_manager.get_profile_path("cura", profileIdentifier)[len(profileDestination) :].lower()
-				
-							# Set to create or replace file
-							replace = True
+						# Set to create or replace file
+						replace = True
+		
+						# Check if profile already exists
+						if os.path.isfile(profileDestination + profileName) :
 			
-							# Check if profile already exists
-							if os.path.isfile(profileDestination + profileName) :
+							# Get existing profile description line
+							for line in open(profileDestination + profileName) :
 				
-								# Get existing profile description line
-								for line in open(profileDestination + profileName) :
+								# Check if profile display name exists
+								if line.startswith("_display_name:") :
+				
+									# Get current version
+									version = re.search(" V(\d+)$", line)
+							
+									# Check if newer version is available
+									if version and int(version.group(1)) < int(profileVersion) :
 					
-									# Check if profile display name exists
-									if line.startswith("_display_name:") :
-					
-										# Get current version
-										version = re.search(" V(\d+)$", line)
-								
-										# Check if newer version is available
-										if version and int(version.group(1)) < int(profileVersion) :
+										# Remove current profile
+										os.remove(profileDestination + profileName)
 						
-											# Remove current profile
-											os.remove(profileDestination + profileName)
-							
-										# Otherwise
-										else :
-							
-											# Clear replace
-											replace = False
-							
-										# Stop searching file
-										break
+									# Otherwise
+									else :
+						
+										# Clear replace
+										replace = False
+						
+									# Stop searching file
+									break
+			
+						# Check if profile is being created or replaced
+						if replace :
 				
-							# Check if profile is being created or replaced
-							if replace :
-					
-								# Save Cura profile as OctoPrint profile
-								self.convertCuraToProfile(profileLocation + profile, profileDestination + profileName, profileName, profileIdentifier + " V" + profileVersion, "Imported by M3D Fio on " + time.strftime("%Y-%m-%d %H:%M"))
+							# Save Cura profile as OctoPrint profile
+							self.convertCuraToProfile(profileLocation + profile, profileDestination + profileName, profileName, profileIdentifier + " V" + profileVersion, "Imported by M3D Fio on " + time.strftime("%Y-%m-%d %H:%M"))
+			
+			# Check if a sleep reminder hasn't been sent
+			if not self.sleepReminder :
+			
+				# Check if disabling sleep works
+				if not self.disableSleep() :
+				
+					# Send message
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Sleep Wont Disable"))
+				
+				# Enable sleep
+				self.enableSleep()
+			
+				# Set sleep reminder
+				self.sleepReminder = True
 		
 		# Otherwise check if event is slicing started
 		elif event == octoprint.events.Events.SLICING_STARTED :
@@ -2860,7 +2877,15 @@ class M3DFioPlugin(
 		return True
 	
 	# Get listen port
-	def getListenPort(self, connections) :
+	def getListenPort(self, process) :
+	
+		# Attempt to get process's connections
+		try :
+			connections = process.connections()
+		
+		# Return none if process doesn't exist
+		except Exception :
+			return None
 	
 		# Go through all connections
 		for connection in connections :
@@ -2885,7 +2910,7 @@ class M3DFioPlugin(
 			if process.name().lower().startswith("octoprint") or process.name().lower().startswith("python") :
 			
 				# Check if process is listening on a port
-				processPort = self.getListenPort(psutil.Process(process.pid).connections())
+				processPort = self.getListenPort(psutil.Process(process.pid))
 				if processPort is not None :
 			
 					# Append process to list
@@ -5999,6 +6024,9 @@ class M3DFioPlugin(
 			ES_CONTINUOUS = 0x80000000
 			ES_SYSTEM_REQUIRED = 0x00000001
 			ctypes.windll.kernel32.SetThreadExecutionState(ctypes.c_int(ES_CONTINUOUS | ES_SYSTEM_REQUIRED))
+			
+			# Return true
+			return True
 		
 		# Otherwise check if using OS X
 		elif platform.uname()[0].startswith("Darwin") :
@@ -6008,6 +6036,9 @@ class M3DFioPlugin(
 			
 				try:
 					self.osXCaffeinateProcess = subprocess.Popen("caffeinate")
+					
+					# Return true
+					return True
 				
 				except Exception :
 			
@@ -6047,14 +6078,22 @@ class M3DFioPlugin(
 								except dbus.DBusException :
 								
 									self.linuxSleepService = None
-									return
+									
+									# Return false
+									return False
 				
 					# Inhibit sleep service
 					self.linuxSleepPrevention = self.linuxSleepService.Inhibit("M3D Fio", "Disabled by M3D Fio")
+					
+					# Return true
+					return True
 			
 				except Exception :
 			
 					self.linuxSleepService = None
+		
+		# Return false
+		return False
 	
 	# Enable sleep
 	def enableSleep(self) :
@@ -6071,7 +6110,7 @@ class M3DFioPlugin(
 		
 			# Terminate caffeinate process
 			if hasattr(self, "osXCaffeinateProcess") and self.osXCaffeinateProcess is not None :
-				self.osXCaffeinateProcess.kill()
+				self.osXCaffeinateProcess.terminate()
 				self.osXCaffeinateProcess = None
 		
 		# Otherwise check if using Linux

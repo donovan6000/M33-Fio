@@ -22,6 +22,7 @@ $(function() {
 		var viewport = null;
 		var convertedModel = null;
 		var providedFirmware;
+		var messages = [];
 		var self = this;
 		
 		// Get state views
@@ -505,66 +506,105 @@ $(function() {
 		}
 
 		// Show message
-		function showMessage(header, text, secondButton, firstButton) {
+		function showMessage(header, text, secondButton, secondButtonCallback, firstButton, firstButtonCallback) {
 		
 			// Blur focused element
 			$("*:focus").blur();
 
 			// Get message
 			var message = $("body > div.page-container > div.message");
-	
-			// Set header and text
-			message.find("h4").text(header);
-			message.find("p").html(text);
-	
-			// Set first button if specified
-			var buttons = message.find("button.confirm");
-			if(typeof firstButton === "undefined")
-				buttons.eq(0).removeClass("show");
-			else
-				buttons.eq(0).text(firstButton).addClass("show");
-	
-			// Set second button if specified
-			if(typeof secondButton === "undefined")
-				buttons.eq(1).removeClass("show");
-			else
-				buttons.eq(1).text(secondButton).addClass("show");
-	
-			// Hide button area and show loading if no buttons are specified
-			if(typeof secondButton === "undefined" && typeof firstButton === "undefined") {
-				$("body > div.page-container > div.message > div > div > div").removeClass("show");
-				$("body > div.page-container > div.message > div > img").addClass("show");
+			
+			// Check if message is already being shown
+			if(message.hasClass("show") && message.find("button.confirm").eq(1).hasClass("show")) {
+			
+				// Append message to list
+				messages.push({
+					header: header,
+					text: text,
+					secondButton: secondButton,
+					firstButton: firstButton,
+					secondButtonCallback: secondButtonCallback,
+					firstButtonCallback: firstButtonCallback
+				});
 			}
 			
-			// Otherwise show button area and hide loading
+			// Otherwise
 			else {
-				$("body > div.page-container > div.message > div > div > div:not(.calibrate)").addClass("show");
-				$("body > div.page-container > div.message > div > img").removeClass("show");
-				
-				// Show calibration menu or print settings if applicable
-				$("body > div.page-container > div.message > div > div > div.calibrate, body > div.page-container > div.message > div > div > div.printSettings").removeClass("show");
-				if(secondButton == "Done")
-					$("body > div.page-container > div.message > div > div > div.calibrate").addClass("show");
-				else if(secondButton == "Print") {
-					$("body > div.page-container > div.message > div > div > div.printSettings input").val(self.settings.settings.plugins.m3dfio.FilamentTemperature());
-					$("body > div.page-container > div.message > div > div > div.printSettings select").val(self.settings.settings.plugins.m3dfio.FilamentType());
-					$("body > div.page-container > div.message > div > div > div.printSettings").addClass("show");
-				}
-			}
+			
+				// Set header and text
+				message.find("h4").text(header);
+				message.find("p").html(text);
 	
-			// Show message
-			message.addClass("show").css("z-index", "9999");
+				// Set first button if specified
+				var buttons = message.find("button.confirm");
+				if(typeof firstButton === "undefined")
+					buttons.eq(0).removeClass("show");
+				else
+					buttons.eq(0).text(firstButton).addClass("show");
+	
+				// Set second button if specified
+				if(typeof secondButton === "undefined")
+					buttons.eq(1).removeClass("show");
+				else
+					buttons.eq(1).text(secondButton).addClass("show");
+	
+				// Hide button area and show loading if no buttons are specified
+				if(typeof secondButton === "undefined" && typeof firstButton === "undefined") {
+					$("body > div.page-container > div.message > div > div > div").removeClass("show");
+					$("body > div.page-container > div.message > div > img").addClass("show");
+				}
+			
+				// Otherwise show button area and hide loading
+				else {
+					$("body > div.page-container > div.message > div > div > div:not(.calibrate)").addClass("show");
+					$("body > div.page-container > div.message > div > img").removeClass("show");
+				
+					// Show calibration menu or print settings if applicable
+					$("body > div.page-container > div.message > div > div > div.calibrate, body > div.page-container > div.message > div > div > div.printSettings").removeClass("show");
+					if(secondButton == "Done")
+						$("body > div.page-container > div.message > div > div > div.calibrate").addClass("show");
+					else if(secondButton == "Print") {
+						$("body > div.page-container > div.message > div > div > div.printSettings input").val(self.settings.settings.plugins.m3dfio.FilamentTemperature());
+						$("body > div.page-container > div.message > div > div > div.printSettings select").val(self.settings.settings.plugins.m3dfio.FilamentType());
+						$("body > div.page-container > div.message > div > div > div.printSettings").addClass("show");
+					}
+				}
+				
+				// Attach function callbacks
+				if(typeof firstButtonCallback === "function")
+					buttons.eq(0).one("click", firstButtonCallback);
+				else
+					buttons.eq(0).off("click");
+				if(typeof secondButtonCallback === "function")
+					buttons.eq(1).one("click", secondButtonCallback);
+				else
+					buttons.eq(1).off("click");
+				
+				// Show message
+				message.addClass("show").css("z-index", "9999");
+			}
 		}
 
 		// Hide message
 		function hideMessage() {
-
+		
 			// Hide message
-			$("body > div.page-container > div.message").removeClass("show");
+			$("body > div.page-container > div.message").removeClass("show").find("button.confirm").off("click");
 			
-			setTimeout(function() {
-				$("body > div.page-container > div.message").css("z-index", '');
-			}, 300);
+			// Check if more messages exist
+			if(messages.length) {
+			
+				// Show next message
+				var message = messages.shift();
+				showMessage(message.header, message.text, message.secondButton, message.secondButtonCallback, message.firstButton, message.firstButtonCallback);
+			}
+			
+			// Otherwise
+			else
+			
+				setTimeout(function() {
+					$("body > div.page-container > div.message").css("z-index", '');
+				}, 300);
 		}
 		
 		// Save file
@@ -4210,8 +4250,8 @@ $(function() {
 								// Otherwise
 								else {
 								
-									// Ok click event
-									$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+									// Show message
+									showMessage("Slicer Status", "Invalid profile", "Ok", function() {
 									
 										// Enable button
 										button.removeClass("disabled");
@@ -4219,9 +4259,6 @@ $(function() {
 										// Hide message
 										hideMessage();
 									});
-				
-									// Show message
-									showMessage("Slicer Status", "Invalid profile", "Ok");
 								}
 							}
 						});
@@ -4651,15 +4688,12 @@ $(function() {
 						// Stop displaying temperature
 						clearInterval(updateTemperature);
 					
-						// Ok click event
-						$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+						// Show message
+						showMessage("Temperature Status", "Done", "Ok", function() {
 					
 							// Hide message
 							hideMessage();
 						});
-				
-						// Show message
-						showMessage("Temperature Status", "Done", "Ok");
 					}
 				}
 			});
@@ -4714,15 +4748,12 @@ $(function() {
 						// Stop displaying temperature
 						clearInterval(updateTemperature);
 					
-						// Ok click event
-						$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+						// Show message
+						showMessage("Temperature Status", "Done", "Ok", function() {
 					
 							// Hide message
 							hideMessage();
 						});
-				
-						// Show message
-						showMessage("Temperature Status", "Done", "Ok");
 					}
 				}
 			});
@@ -4799,24 +4830,19 @@ $(function() {
 						// On success
 						success: function(data) {
 							
-							// No click event
-							$("body > div.page-container > div.message").find("button.confirm").eq(0).one("click", function() {
-							
-								// Unload filament again
-								$("body > div.page-container > div.message").find("button.confirm").off("click");
-								$("#control > div.jog-panel.filament").find("div > button:nth-of-type(1)").click();
-							});
-				
-							// Yes click event
-							$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+							// Show message
+							showMessage("Filament Status", "Was filament removed?", "Yes", function() {
 				
 								// Hide message
-								$("body > div.page-container > div.message").find("button.confirm").off("click");
+								hideMessage();
+							}, "No", function() {
+							
+								// Unload filament again
+								$("#control > div.jog-panel.filament").find("div > button:nth-of-type(1)").click();
+								
+								// Hide message
 								hideMessage();
 							});
-						
-							// Show message
-							showMessage("Filament Status", "Was filament removed?", "Yes", "No");
 						}
 					});
 				}
@@ -4885,24 +4911,19 @@ $(function() {
 						// On success
 						success: function(data) {
 					
-							// No click event
-							$("body > div.page-container > div.message").find("button.confirm").eq(0).one("click", function() {
+							// Show message
+							showMessage("Filament Status", "Was filament inserted?", "Yes", function() {
+							
+								// Hide message
+								hideMessage();
+							}, "No", function() {
 							
 								// Load filament again
-								$("body > div.page-container > div.message").find("button.confirm").off("click");
 								$("#control > div.jog-panel.filament").find("div > button:nth-of-type(2)").click();
-							});
-				
-							// Yes click event
-							$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
 				
 								// Hide message
-								$("body > div.page-container > div.message").find("button.confirm").off("click");
 								hideMessage();
 							});
-						
-							// Show message
-							showMessage("Filament Status", "Was filament inserted?", "Yes", "No");
 						}
 					});
 				}
@@ -4939,15 +4960,12 @@ $(function() {
 				// On success
 				success: function(data) {
 			
-					// Ok click event
-					$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+					// Show message
+					showMessage("Calibration Status", "Done", "Ok", function() {
 					
 						// Hide message
 						hideMessage();
 					});
-				
-					// Show message
-					showMessage("Calibration Status", "Done", "Ok");
 				}
 			});
 		});
@@ -4988,15 +5006,12 @@ $(function() {
 					// Save software and printer settings
 					self.settings.saveData(undefined, savePrinterSettings);
 			
-					// Ok click event
-					$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+					// Show message
+					showMessage("Calibration Status", "Done", "Ok", function() {
 					
 						// Hide message
 						hideMessage();
 					});
-				
-					// Show message
-					showMessage("Calibration Status", "Done", "Ok");
 				}
 			});
 		});
@@ -5129,15 +5144,12 @@ $(function() {
 							// Save software and printer settings
 							self.settings.saveData(undefined, savePrinterSettings);
 			
-							// Ok click event
-							$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+							// Show message
+							showMessage("Saving Status", "Done", "Ok", function() {
 					
 								// Hide message
 								hideMessage();
 							});
-				
-							// Show message
-							showMessage("Saving Status", "Done", "Ok");
 						}
 					});
 				}
@@ -5188,15 +5200,12 @@ $(function() {
 							// Save software and printer settings
 							self.settings.saveData(undefined, savePrinterSettings);
 			
-							// Ok click event
-							$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+							// Show message
+							showMessage("Saving Status", "Done", "Ok", function() {
 					
 								// Hide message
 								hideMessage();
 							});
-				
-							// Show message
-							showMessage("Saving Status", "Done", "Ok");
 						}
 					});
 				}
@@ -5247,15 +5256,12 @@ $(function() {
 							// Save software and printer settings
 							self.settings.saveData(undefined, savePrinterSettings);
 			
-							// Ok click event
-							$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+							// Show message
+							showMessage("Saving Status", "Done", "Ok", function() {
 					
 								// Hide message
 								hideMessage();
 							});
-				
-							// Show message
-							showMessage("Saving Status", "Done", "Ok");
 						}
 					});
 				}
@@ -5306,15 +5312,12 @@ $(function() {
 							// Save software and printer settings
 							self.settings.saveData(undefined, savePrinterSettings);
 			
-							// Ok click event
-							$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+							// Show message
+							showMessage("Saving Status", "Done", "Ok", function() {
 					
 								// Hide message
 								hideMessage();
 							});
-				
-							// Show message
-							showMessage("Saving Status", "Done", "Ok");
 						}
 					});
 				}
@@ -5347,15 +5350,12 @@ $(function() {
 				// On success
 				success: function(data) {
 	
-					// Ok click event
-					$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+					// Show message
+					showMessage("Saving Status", "Done", "Ok", function() {
 			
 						// Hide message
 						hideMessage();
 					});
-		
-					// Show message
-					showMessage("Saving Status", "Done", "Ok");
 				}
 			});
 		});
@@ -5363,17 +5363,12 @@ $(function() {
 		// Set print test border control
 		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(12)").attr("title", "Prints 0.4mm test border").click(function(event) {
 		
-			// No click event
-			$("body > div.page-container > div.message").find("button.confirm").eq(0).one("click", function() {
+			// Show message
+			showMessage("Calibration Status", "It's recommended to print this test border after completely calibrating the bed to ensure that the calibration is accurate. The test border should print as a solid, even extruded border, and the 'Back Left Offset', 'Back Right Offset', 'Front Right Offset', and 'Front Left Offset' values can be adjusted to correct any issues with it. If the test border contains squiggly ripples, then it is too high. If the test border contains missing gaps, then it is too low. It's also recommended to print a model with a raft after this is done to see if the 'Bed Height Offset' value needs to be adjusted. If the raft does not securely stick to the bed, then it is too high. If the model isn't easily removed from the raft, then it is too low. All the referenced values can be found by clicking the 'Print settings' button in the 'General' section. Proceed?", "Yes", function() {
 			
-				// Hide message
+				// Disable clicking
 				$("body > div.page-container > div.message").find("button.confirm").off("click");
-				hideMessage();
-			});
-
-			// Yes click event
-			$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
-			
+				
 				// Send request
 				$.ajax({
 					url: API_BASEURL + "plugin/m3dfio",
@@ -5382,26 +5377,22 @@ $(function() {
 					data: JSON.stringify({command: "message", value: "Print Test Border"}),
 					contentType: "application/json; charset=UTF-8"
 				});
-			});
+			}, "No", function() {
 			
-			// Show message
-			showMessage("Calibration Status", "It's recommended to print this test border after completely calibrating the bed to ensure that the calibration is accurate. The test border should print as a solid, even extruded border, and the 'Back Left Offset', 'Back Right Offset', 'Front Right Offset', and 'Front Left Offset' values can be adjusted to correct any issues with it. If the test border contains squiggly ripples, then it is too high. If the test border contains missing gaps, then it is too low. It's also recommended to print a model with a raft after this is done to see if the 'Bed Height Offset' value needs to be adjusted. If the raft does not securely stick to the bed, then it is too high. If the model isn't easily removed from the raft, then it is too low. All the referenced values can be found by clicking the 'Print settings' button in the 'General' section. Proceed?", "Yes", "No");
+				// Hide message
+				hideMessage();
+			});
 		});
 		
 		// Set print backlash calibration cylinder control
 		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(13)").attr("title", "Prints backlash calibration cylinder").click(function(event) {
 		
-			// No click event
-			$("body > div.page-container > div.message").find("button.confirm").eq(0).one("click", function() {
+			// Show message
+			showMessage("Calibration Status", "It's recommended to print this backlash calibration cylinder after the print bed has been accurately calibrated. To start this procedure, the 'Backlash X' and 'Backlash Y' values should be set to 0 so that an uncompensated cylinder can be printed. The cylinder's X backlash signature gaps are located at 2 and 8 o'clock and Y backlash signature gaps are located at 5 and 11 o'clock. The front left corner of the cylinder's base is cut off to make identifying the cylinder's orientation easier. After printing an initial cylinder, adjust the 'Backlash X' value to close the X signature gaps, print, and repeat if necessary to ensure the accuracy. 'Backlash X' values typically range within 0.2mm to 0.6mm. After the 'Backlash X' value has been calibrated, adjust the 'Backlash Y' value to close the Y signature gaps, print, and repeat if necessary to ensure the accuracy. 'Backlash Y' values typically range within 0.4mm to 1.3mm. You may need fine tune the 'Backlash X' vale again after 'Backlash Y' value has been calibrated. All the referenced values can be found by clicking the 'Print settings' button in the 'General' section. Proceed?", "Yes", function() {
 			
-				// Hide message
+				// Disable clicking
 				$("body > div.page-container > div.message").find("button.confirm").off("click");
-				hideMessage();
-			});
-
-			// Yes click event
-			$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
-			
+				
 				// Send request
 				$.ajax({
 					url: API_BASEURL + "plugin/m3dfio",
@@ -5410,28 +5401,18 @@ $(function() {
 					data: JSON.stringify({command: "message", value: "Print Backlash Calibration Cylinder"}),
 					contentType: "application/json; charset=UTF-8"
 				});
-			});
+			}, "No", function() {
 			
-			// Show message
-			showMessage("Calibration Status", "It's recommended to print this backlash calibration cylinder after the print bed has been accurately calibrated. To start this procedure, the 'Backlash X' and 'Backlash Y' values should be set to 0 so that an uncompensated cylinder can be printed. The cylinder's X backlash signature gaps are located at 2 and 8 o'clock and Y backlash signature gaps are located at 5 and 11 o'clock. The front left corner of the cylinder's base is cut off to make identifying the cylinder's orientation easier. After printing an initial cylinder, adjust the 'Backlash X' value to close the X signature gaps, print, and repeat if necessary to ensure the accuracy. 'Backlash X' values typically range within 0.2mm to 0.6mm. After the 'Backlash X' value has been calibrated, adjust the 'Backlash Y' value to close the Y signature gaps, print, and repeat if necessary to ensure the accuracy. 'Backlash Y' values typically range within 0.4mm to 1.3mm. You may need fine tune the 'Backlash X' vale again after 'Backlash Y' value has been calibrated. All the referenced values can be found by clicking the 'Print settings' button in the 'General' section. Proceed?", "Yes", "No");
+				// Hide message
+				hideMessage();
+			});
 		});
 		
 		// Run complete bed calibration control
 		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(14)").attr("title", "Automatically calibrates the bed's center's Z0, automatically calibrates the bed's orientation, and manually calibrates the Z0 values for the bed's four corners").click(function(event) {
 			
-			// No click event
-			$("body > div.page-container > div.message").find("button.confirm").eq(0).one("click", function() {
-			
-				// Hide message
-				$("body > div.page-container > div.message").find("button.confirm").off("click");
-				hideMessage();
-			});
-
-			// Yes click event
-			$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
-
-				// Disable clicking
-				$("body > div.page-container > div.message").find("button.confirm").off("click");
+			// Show message
+			showMessage("Calibration Status", "This process can take a while to complete and will require your input during some steps. Proceed?", "Yes", function() {
 				
 				// Show message
 				showMessage("Calibration Status", "Calibrating bed center Z0");
@@ -5513,8 +5494,8 @@ $(function() {
 									// On success
 									success: function(data) {
 									
-										// Done click event
-										$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+										// Show message
+										showMessage("Calibration Status", "Lower the print head until it barely touches the bed. One way to get to that point is to place a single sheet of paper on the bed under the print head, and lower the print head until the paper can no longer be moved.", "Done", function() {
 		
 											// Set commands
 											var commands = [
@@ -5573,9 +5554,9 @@ $(function() {
 			
 																// On success
 																success: function(data) {
-									
-																	// Done click event
-																	$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+																
+																	// Show message
+																	showMessage("Calibration Status", "Lower the print head until it barely touches the bed. One way to get to that point is to place a single sheet of paper on the bed under the print head, and lower the print head until the paper can no longer be moved.", "Done", function() {
 		
 																		// Set commands
 																		var commands = [
@@ -5634,9 +5615,9 @@ $(function() {
 			
 																							// On success
 																							success: function(data) {
-									
-																								// Done click event
-																								$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+																							
+																								// Show message
+																								showMessage("Calibration Status", "Lower the print head until it barely touches the bed. One way to get to that point is to place a single sheet of paper on the bed under the print head, and lower the print head until the paper can no longer be moved.", "Done", function() {
 		
 																									// Set commands
 																									var commands = [
@@ -5695,9 +5676,9 @@ $(function() {
 			
 																														// On success
 																														success: function(data) {
-									
-																															// Done click event
-																															$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+																														
+																															// Show message
+																															showMessage("Calibration Status", "Lower the print head until it barely touches the bed. One way to get to that point is to place a single sheet of paper on the bed under the print head, and lower the print head until the paper can no longer be moved.", "Done", function() {
 		
 																																// Set commands
 																																var commands = [
@@ -5756,15 +5737,12 @@ $(function() {
 																																						// Save software and printer settings
 																																						self.settings.saveData(undefined, savePrinterSettings);
 			
-																																						// Ok click event
-																																						$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+																																						// Show message
+																																						showMessage("Calibration Status", "Done", "Ok", function() {
 					
 																																							// Hide message
 																																							hideMessage();
 																																						});
-				
-																																						// Show message
-																																						showMessage("Calibration Status", "Done", "Ok");
 																																					}
 																																				});
 																																			}
@@ -5772,9 +5750,6 @@ $(function() {
 																																	}
 																																});
 																															});
-		
-																															// Show message
-																															showMessage("Calibration Status", "Lower the print head until it barely touches the bed. One way to get to that point is to place a single sheet of paper on the bed under the print head, and lower the print head until the paper can no longer be moved.", "Done");
 																														}
 																													});
 																												}
@@ -5782,9 +5757,6 @@ $(function() {
 																										}
 																									});
 																								});
-		
-																								// Show message
-																								showMessage("Calibration Status", "Lower the print head until it barely touches the bed. One way to get to that point is to place a single sheet of paper on the bed under the print head, and lower the print head until the paper can no longer be moved.", "Done");
 																							}
 																						});
 																					}
@@ -5792,9 +5764,6 @@ $(function() {
 																			}
 																		});
 																	});
-		
-																	// Show message
-																	showMessage("Calibration Status", "Lower the print head until it barely touches the bed. One way to get to that point is to place a single sheet of paper on the bed under the print head, and lower the print head until the paper can no longer be moved.", "Done");
 																}
 															});
 														}
@@ -5802,19 +5771,17 @@ $(function() {
 												}
 											});
 										});
-		
-										// Show message
-										showMessage("Calibration Status", "Lower the print head until it barely touches the bed. One way to get to that point is to place a single sheet of paper on the bed under the print head, and lower the print head until the paper can no longer be moved.", "Done");
 									}
 								});
 							}
 						});
 					}
 				});
+			}, "No", function() {
+			
+				// Hide message
+				hideMessage();
 			});
-		
-			// Show message
-			showMessage("Calibration Status", "This process can take a while to complete and will require your input during some steps. Proceed?", "Yes", "No");
 		});
 		
 		// Set HengLiXin fan control
@@ -5833,16 +5800,13 @@ $(function() {
 			
 				// On success
 				success: function(data) {
-			
-					// Ok click event
-					$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+				
+					// Show message
+					showMessage("Fan Status", data.value == "Ok" ? "Done" : "Failed", "Ok", function() {
 			
 						// Hide message
 						hideMessage();
 					});
-		
-					// Show message
-					showMessage("Fan Status", data.value == "Ok" ? "Done" : "Failed", "Ok");
 				}
 			});
 		});
@@ -5864,15 +5828,12 @@ $(function() {
 				// On success
 				success: function(data) {
 				
-					// Ok click event
-					$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+					// Show message
+					showMessage("Fan Status", data.value == "Ok" ? "Done" : "Failed", "Ok", function() {
 			
 						// Hide message
 						hideMessage();
 					});
-		
-					// Show message
-					showMessage("Fan Status", data.value == "Ok" ? "Done" : "Failed", "Ok");
 				}
 			});
 		});
@@ -5882,7 +5843,6 @@ $(function() {
 			
 			// Show message
 			showMessage("Fan Status", "Setting fan to Shenzhew");
-
 		
 			// Send request
 			$.ajax({
@@ -5895,15 +5855,12 @@ $(function() {
 				// On success
 				success: function(data) {
 			
-					// Ok click event
-					$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+					// Show message
+					showMessage("Fan Status", data.value == "Ok" ? "Done" : "Failed", "Ok", function() {
 			
 						// Hide message
 						hideMessage();
 					});
-		
-					// Show message
-					showMessage("Fan Status", data.value == "Ok" ? "Done" : "Failed", "Ok");
 				}
 			});
 		});
@@ -5925,15 +5882,12 @@ $(function() {
 				// On success
 				success: function(data) {
 			
-					// Ok click event
-					$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+					// Show message
+					showMessage("Fan Status", data.value == "Ok" ? "Done" : "Failed", "Ok", function() {
 			
 						// Hide message
 						hideMessage();
 					});
-		
-					// Show message
-					showMessage("Fan Status", data.value == "Ok" ? "Done" : "Failed", "Ok");
 				}
 			});
 		});
@@ -5955,15 +5909,12 @@ $(function() {
 				// On success
 				success: function(data) {
 			
-					// Ok click event
-					$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+					// Show message
+					showMessage("Extruder Status", data.value == "Ok" ? "Done" : "Failed", "Ok", function() {
 			
 						// Hide message
 						hideMessage();
 					});
-		
-					// Show message
-					showMessage("Extruder Status", data.value == "Ok" ? "Done" : "Failed", "Ok");
 				}
 			});
 		});
@@ -5985,15 +5936,12 @@ $(function() {
 				// On success
 				success: function(data) {
 			
-					// Ok click event
-					$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+					// Show message
+					showMessage("Extruder Status", data.value == "Ok" ? "Done" : "Failed", "Ok", function() {
 			
 						// Hide message
 						hideMessage();
 					});
-		
-					// Show message
-					showMessage("Extruder Status", data.value == "Ok" ? "Done" : "Failed", "Ok");
 				}
 			});
 		});
@@ -6015,15 +5963,12 @@ $(function() {
 				// On success
 				success: function(data) {
 	
-					// Ok click event
-					$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
-	
+					// Show message
+					showMessage("Firmware Status", data.value == "Ok" ? "Done" : "Failed", "Ok", function() {
+			
 						// Hide message
 						hideMessage();
 					});
-
-					// Show message
-					showMessage("Firmware Status", data.value == "Ok" ? "Done" : "Failed", "Ok");
 				}
 			});
 		});
@@ -6047,15 +5992,12 @@ $(function() {
 			// Check if file has no name
 			if(!file.name.length) {
 		
-				// Ok click event
-				$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
-		
+				// Show message
+				showMessage("Firmware Status", "Invalid file name", "Ok", function() {
+				
 					// Hide message
 					hideMessage();
 				});
-	
-				// Show message
-				showMessage("Firmware Status", "Invalid file name", "Ok");
 			}
 		
 			// Go through each character of the file's name
@@ -6068,15 +6010,12 @@ $(function() {
 					if(index == 10)
 						break;
 					
-					// Ok click event
-					$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+					// Show message
+					showMessage("Firmware Status", "Invalid file name", "Ok", function() {
 		
 						// Hide message
 						hideMessage();
 					});
-	
-					// Show message
-					showMessage("Firmware Status", "Invalid file name", "Ok");
 				
 					// Return
 					return;
@@ -6085,15 +6024,12 @@ $(function() {
 				// Check if current character isn't a digit or length is invalid
 				if(file.name[index] < '0' || file.name[index] > '9' || (index == file.name.length - 1 && index < 9)) {
 			
-					// Ok click event
-					$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+					// Show message
+					showMessage("Firmware Status", "Invalid file name", "Ok", function() {
 		
 						// Hide message
 						hideMessage();
 					});
-	
-					// Show message
-					showMessage("Firmware Status", "Invalid file name", "Ok");
 				
 					// Return
 					return;
@@ -6103,15 +6039,12 @@ $(function() {
 			// Check if the file is too big
 			if(file.size > 32768) {
 
-				// Ok click event
-				$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
-		
+				// Show message
+				showMessage("Firmware Status", "Invalid file size", "Ok", function() {
+				
 					// Hide message
 					hideMessage();
 				});
-	
-				// Show message
-				showMessage("Firmware Status", "Invalid file size", "Ok");
 			}
 		
 			// Otherwise
@@ -6138,15 +6071,12 @@ $(function() {
 						// On success
 						success: function(data) {
 			
-							// Ok click event
-							$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+							// Show message
+							showMessage("Firmware Status", data.value == "Ok" ? "Done" : "Failed", "Ok", function() {
 			
 								// Hide message
 								hideMessage();
 							});
-		
-							// Show message
-							showMessage("Firmware Status", data.value == "Ok" ? "Done" : "Failed", "Ok");
 						}
 					});
 				};
@@ -6183,15 +6113,12 @@ $(function() {
 				// On success
 				success: function(data) {
 			
-					// Ok click event
-					$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+					// Show message
+					showMessage("EEPROM Status", data.value == "Ok" ? "Done" : "Failed", "Ok", function() {
 	
 						// Hide message
 						hideMessage();
 					});
-
-					// Show message
-					showMessage("EEPROM Status", data.value == "Ok" ? "Done" : "Failed", "Ok");
 				}
 			});
 		});
@@ -6236,15 +6163,12 @@ $(function() {
 			// Check if a value was invalid
 			if(!eeprom.length) {
 			
-				// Ok click event
-				$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
-	
+				// Show message
+				showMessage("EEPROM Status", "Invalid EEPROM value", "Ok", function() {
+				
 					// Hide message
 					hideMessage();
 				});
-
-				// Show message
-				showMessage("EEPROM Status", "Invalid EEPROM value", "Ok");
 			}
 			
 			// Otherwise
@@ -6264,15 +6188,12 @@ $(function() {
 					// On success
 					success: function(data) {
 			
-						// Ok click event
-						$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
-	
+						// Show message
+						showMessage("EEPROM Status", data.value == "Ok" ? "Done" : "Failed", "Ok", function() {
+						
 							// Hide message
 							hideMessage();
 						});
-
-						// Show message
-						showMessage("EEPROM Status", data.value == "Ok" ? "Done" : "Failed", "Ok");
 					}
 				});
 			}
@@ -6301,15 +6222,12 @@ $(function() {
 						// Check if an error occured
 						if(data.value == "Error") {
 						
-							// Ok click event
-							$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
-				
+							// Show message
+							showMessage("Message", "Failed to create OctoPrint instance", "Ok", function() {
+							
 								// Hide message
 								hideMessage();
 							});
-			
-							// Show message
-							showMessage("Message", "Failed to create OctoPrint instance", "Ok");
 						}
 						
 						// Otherwise
@@ -6344,8 +6262,8 @@ $(function() {
 						// Check if an error occured
 						if(data.value == "Error") {
 						
-							// Ok click event
-							$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+							// Show message
+							showMessage("Message", "Initial OctoPrint instance cannot be closed", "Ok", function() {
 							
 								// Select current port
 								$("#navbar_plugin_m3dfio > select > option[value=" + window.location.port + ']').prop("selected", true);
@@ -6353,9 +6271,6 @@ $(function() {
 								// Hide message
 								hideMessage();
 							});
-			
-							// Show message
-							showMessage("Message", "Initial OctoPrint instance cannot be closed", "Ok");
 						}
 						
 						// Otherwise
@@ -6501,15 +6416,23 @@ $(function() {
 			// Otherwise check if data is that Cura isn't installed
 			else if(data.value == "Cura Not Installed") {
 			
-				// Ok click event
-				$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+				// Show message
+				showMessage("Message", "It's recommended that you install the <a href=\"https://ultimaker.com/en/products/cura-software/list\" target=\"_blank\">latest Cura 15.04 release</a> on this server to fully utilize M3D Fio's capabilities.", "Ok", function() {
 				
 					// Hide message
 					hideMessage();
 				});
+			}
+			
+			// Otherwise check if data is that sleep wont disable
+			else if(data.value == "Sleep Wont Disable") {
 			
 				// Show message
-				showMessage("Message", "It's recommended that you install the <a href=\"https://ultimaker.com/en/products/cura-software/list\" target=\"_blank\">latest Cura 15.04 release</a> on this server to fully utilize M3D Fio's capabilities.", "Ok");
+				showMessage("Message", "It's recommended that you disable this server's sleep functionality while printing", "Ok", function() {
+				
+					// Hide message
+					hideMessage();
+				});
 			}
 			
 			// Otherwise check if data is that a duplicate wait was received
@@ -6533,38 +6456,19 @@ $(function() {
 			// Otherwise check if data is to cycle power
 			else if(data.value == "Cycle Power") {
 			
-				// Ok click event
-				$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+				// Show message
+				showMessage("Message", "No Micro 3D printer detected. Try cycling the printer's power and try again.", "Ok", function() {
 				
 					// Hide message
 					hideMessage();
 				});
-			
-				// Show message
-				showMessage("Message", "No Micro 3D printer detected. Try cycling the printer's power and try again.", "Ok");
 			}
 			
 			// Otherwise check if data is to that print is not ready
 			else if(data.value == "Print Not Ready") {
 			
-				// Cancel click event
-				$("body > div.page-container > div.message").find("button.confirm").eq(0).one("click", function() {
-					
-					// Send request
-					$.ajax({
-						url: API_BASEURL + "plugin/m3dfio",
-						type: "POST",
-						dataType: "json",
-						data: JSON.stringify({command: "message", value: "Cancel Print"}),
-						contentType: "application/json; charset=UTF-8"
-					});
-					
-					// Hide message
-					hideMessage();
-				});
-			
-				// Print click event
-				$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+				// Show message
+				showMessage("Message", '', "Print", function() {
 					
 					// Send request
 					$.ajax({
@@ -6590,10 +6494,20 @@ $(function() {
 					
 					// Hide message
 					hideMessage();
+				}, "Cancel", function() {
+					
+					// Send request
+					$.ajax({
+						url: API_BASEURL + "plugin/m3dfio",
+						type: "POST",
+						dataType: "json",
+						data: JSON.stringify({command: "message", value: "Cancel Print"}),
+						contentType: "application/json; charset=UTF-8"
+					});
+					
+					// Hide message
+					hideMessage();
 				});
-			
-				// Show message
-				showMessage("Message", '', "Print", "Cancel");
 			}
 			
 			// Otherwise check if data is process details
@@ -6681,19 +6595,8 @@ $(function() {
 				// Check if bed center is invalid
 				if(data.bedCenter) {
 				
-					// No click event
-					$("body > div.page-container > div.message").find("button.confirm").eq(0).one("click", function() {
-					
-						// Hide message
-						$("body > div.page-container > div.message").find("button.confirm").off("click");
-						hideMessage();
-					});
-		
-					// Yes click event
-					$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
-		
-						// Disable clicking
-						$("body > div.page-container > div.message").find("button.confirm").off("click");
+					// Display message
+					showMessage("Error Status", "Invalid bed center Z0. Calibrate?", "Yes", function() {
 						
 						// Show message
 						showMessage("Error Status", "Calibrating bed center Z0");
@@ -6725,19 +6628,8 @@ $(function() {
 								// Check if bed orientation is invalid
 								if(data.bedOrientation) {
 				
-									// No click event
-									$("body > div.page-container > div.message").find("button.confirm").eq(0).one("click", function() {
-					
-										// Hide message
-										$("body > div.page-container > div.message").find("button.confirm").off("click");
-										hideMessage();
-									});
-		
-									// Yes click event
-									$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
-		
-										// Disable clicking
-										$("body > div.page-container > div.message").find("button.confirm").off("click");
+									// Display message
+									showMessage("Error Status", "Invalid bed orientation. Calibrate?", "Yes", function() {
 						
 										// Show message
 										showMessage("Error Status", "Calibrating bed orientation");
@@ -6772,60 +6664,45 @@ $(function() {
 												// Save software and printer settings
 												self.settings.saveData(undefined, savePrinterSettings);
 			
-												// Ok click event
-												$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+												// Show message
+												showMessage("Error Status", "Done", "Ok", function() {
 					
 													// Hide message
 													hideMessage();
 												});
-				
-												// Show message
-												showMessage("Error Status", "Done", "Ok");
 											}
 										});
-									});
+									}, "No", function() {
 					
-									// Display message
-									showMessage("Error Status", "Invalid bed orientation. Calibrate?", "Yes", "No");
+										// Hide message
+										hideMessage();
+									});
 								}
 								
 								// Otherwise
 								else {
 			
-									// Ok click event
-									$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+									// Show message
+									showMessage("Error Status", "Done", "Ok", function() {
 					
 										// Hide message
 										hideMessage();
 									});
-				
-									// Show message
-									showMessage("Error Status", "Done", "Ok");
 								}
 							}
 						});
-					});
+					}, "No", function() {
 					
-					// Display message
-					showMessage("Error Status", "Invalid bed center Z0. Calibrate?", "Yes", "No");
+						// Hide message
+						hideMessage();
+					});
 				}
 				
 				// Otherwise check if bed orientation is invalid
 				else if(data.bedOrientation) {
 				
-					// No click event
-					$("body > div.page-container > div.message").find("button.confirm").eq(0).one("click", function() {
-					
-						// Hide message
-						$("body > div.page-container > div.message").find("button.confirm").off("click");
-						hideMessage();
-					});
-					
-					// Yes click event
-					$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
-		
-						// Disable clicking
-						$("body > div.page-container > div.message").find("button.confirm").off("click");
+					// Display message
+					showMessage("Error Status", "Invalid bed orientation. Calibrate?", "Yes", function() {
 						
 						// Show message
 						showMessage("Error Status", "Calibrating bed orientation");
@@ -6860,21 +6737,19 @@ $(function() {
 								// Save software and printer settings
 								self.settings.saveData(undefined, savePrinterSettings);
 			
-								// Ok click event
-								$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+								// Show message
+								showMessage("Error Status", "Done", "Ok", function() {
 					
 									// Hide message
 									hideMessage();
 								});
-				
-								// Show message
-								showMessage("Error Status", "Done", "Ok");
 							}
 						});
-					});
+					}, "No", function() {
 					
-					// Display message
-					showMessage("Error Status", "Invalid bed orientation. Calibrate?", "Yes", "No");
+						// Hide message
+						hideMessage();
+					});
 				}
 			}
 			
@@ -6896,35 +6771,41 @@ $(function() {
 				// Check if a response is requested
 				if(typeof data.response !== "undefined") {
 				
-					// Yes or no click event
-					$("body > div.page-container > div.message").find("button.confirm").one("click", function() {
+					// Display message
+					showMessage("Error Status", htmlEncode(data.message), "Yes", function() {
 		
 						// Disable clicking
 						$("body > div.page-container > div.message").find("button.confirm").off("click");
-						
-						// Hide message is no was clicked
-						if($(this).text() == "No")
-							hideMessage();
 						
 						// Send request
 						$.ajax({
 							url: API_BASEURL + "plugin/m3dfio",
 							type: "POST",
 							dataType: "json",
-							data: JSON.stringify({command: "message", value: $(this).text()}),
+							data: JSON.stringify({command: "message", value: "Yes"}),
+							contentType: "application/json; charset=UTF-8"
+						});
+					}, "No", function() {
+						
+						// Hide message
+						hideMessage();
+						
+						// Send request
+						$.ajax({
+							url: API_BASEURL + "plugin/m3dfio",
+							type: "POST",
+							dataType: "json",
+							data: JSON.stringify({command: "message", value: "No"}),
 							contentType: "application/json; charset=UTF-8"
 						});
 					});
-					
-					// Display message
-					showMessage("Error Status", htmlEncode(data.message), "Yes", "No");
 				}
 				
 				// Otherwise check if a confirmation is requested
 				else if(typeof data.confirm !== "undefined") {
 				
-					// Ok click event
-					$("body > div.page-container > div.message").find("button.confirm").eq(1).one("click", function() {
+					// Display message
+					showMessage("Error Status", htmlEncode(data.message), "Ok", function() {
 
 						// Hide message
 						hideMessage();
@@ -6938,9 +6819,6 @@ $(function() {
 							contentType: "application/json; charset=UTF-8"
 						});
 					});
-					
-					// Display message
-					showMessage("Error Status", htmlEncode(data.message), "Ok");
 				}
 				
 				// Otherwise
