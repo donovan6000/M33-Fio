@@ -6571,14 +6571,11 @@ $(function() {
 			else if(data.value == "Save Software Settings") {
 			
 				// Update settings
-				self.settings.requestData();
-			
-				setTimeout(function() {
+				self.settings.requestData(function() {
 				
 					// Save software settings
 					self.settings.saveData();
-					
-				}, 500);
+				});
 			}
 			
 			// Otherwise check if data is EEPROM
