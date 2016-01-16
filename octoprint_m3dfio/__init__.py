@@ -534,6 +534,9 @@ class M3DFioPlugin(
 				self.providedFirmware = file[0 : 10]
 				break
 		
+		# Set file locations
+		self.setFileLocations()
+		
 		# Check if running on Linux
 		if platform.uname()[0].startswith("Linux") :
 		
@@ -1522,7 +1525,7 @@ class M3DFioPlugin(
 					octoPrintParameter = ''
 				
 				# Create instance
-				instance = subprocess.Popen([sys.executable + " -c \"import octoprint;octoprint.main()\"" + octoPrintParameter + " --port " + str(port) + " --config " + self._settings.global_get_basefolder("base") + "/config.yaml" + str(port)], shell = True)
+				instance = subprocess.Popen([sys.executable + " -c \"import octoprint;octoprint.main()\"" + octoPrintParameter + " --port " + str(port) + " --config \"" + self._settings.global_get_basefolder("base") + "/config.yaml" + str(port) + '"'], shell = True)
 				
 				# Send response
 				return flask.jsonify(dict(value = "Ok", port = port))
@@ -2450,6 +2453,85 @@ class M3DFioPlugin(
 			
 			self.slicerChanges = None
 	
+	# Set file locations
+	def setFileLocations(self) :
+	
+		# Check if Pip isn't set
+		if octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.get(["pip"]) is None :
+	
+			# Set Pip locations
+			pipLocations = []
+			if platform.uname()[0].startswith("Windows") :
+	
+				pipLocations = [
+					os.environ["SYSTEMDRIVE"] + "/python/Scripts/pip.exe"
+				]
+	
+			elif platform.uname()[0].startswith("Darwin") :
+	
+				pipLocations = [
+					"/Library/Frameworks/Python.framework/Versions/*/bin/pip"
+				]
+	
+			elif platform.uname()[0].startswith("Linux") :
+	
+				pipLocations = [
+					"/usr/bin/pip"
+				]
+	
+			# Go through all Pip location
+			for locations in pipLocations :
+				for location in glob.glob(locations) :
+
+					# Check if location is a file
+					if os.path.isfile(location) :
+		
+						# Set Pip location
+						octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.set(["pip"], location)
+						break
+		
+		# Check if Cura is a registered slicer
+		if "cura" in self._slicing_manager.registered_slicers :
+	
+			# Check if Cura is not configured
+			if not "cura" in self._slicing_manager.configured_slicers :
+			
+				# Set Cura Engine locations
+				curaEngineLocations = []
+				if platform.uname()[0].startswith("Windows") :
+				
+					curaEngineLocations = [
+						os.environ["SYSTEMDRIVE"] + "/Program Files*/Cura_*/CuraEngine.exe",
+						os.environ["SYSTEMDRIVE"] + "/Program Files*/M3D*/*/Resources/CuraEngine/CuraEngine.exe"
+					]
+				
+				elif platform.uname()[0].startswith("Darwin") :
+				
+					curaEngineLocations = [
+						"/Applications/Cura/Cura.app/Contents/Resources/CuraEngine",
+						"/Applications/M3D.app/Contents/Resources/CuraEngine/CuraEngine"
+					]
+				
+				elif platform.uname()[0].startswith("Linux") :
+				
+					curaEngineLocations = [
+						"/usr/share/cura/CuraEngine",
+						"/usr/local/bin/CuraEngine",
+						"/usr/bin/CuraEngine",
+						"/usr/local/bin/cura_engine"
+					]
+				
+				# Go through all Cura Engine location
+				for locations in curaEngineLocations :
+					for location in glob.glob(locations) :
+			
+						# Check if location is a file
+						if os.path.isfile(location) :
+					
+							# Set Cura Engine location
+							self._slicing_manager.get_slicer("cura", False)._settings.set(["cura_engine"], location)
+							break
+	
 	# Event monitor
 	def on_event(self, event, payload) :
 	
@@ -2495,89 +2577,10 @@ class M3DFioPlugin(
 				# Send printer details
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Printer Details", serialNumber = serialNumber, serialPort = self._printer.get_transport().port))
 			
-			# Check if Pip isn't set
-			if octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.get(["pip"]) is None :
-		
-				# Set Pip locations
-				pipLocations = []
-				if platform.uname()[0].startswith("Windows") :
-		
-					pipLocations = [
-						os.environ["SYSTEMDRIVE"] + "/python/Scripts/pip.exe"
-					]
-		
-				elif platform.uname()[0].startswith("Darwin") :
-		
-					pipLocations = [
-						"/Library/Frameworks/Python.framework/Versions/*/bin/pip"
-					]
-		
-				elif platform.uname()[0].startswith("Linux") :
-		
-					pipLocations = [
-						"/usr/bin/pip"
-					]
-		
-				# Go through all Pip location
-				for locations in pipLocations :
-					for location in glob.glob(locations) :
-	
-						# Check if location is a file
-						if os.path.isfile(location) :
-			
-							# Set Pip location
-							octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.set(["pip"], location)
-						
-							# Save software settings
-							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Save Software Settings"))
-							break
-			
-			# Check if Cura is a registered slicer
-			if "cura" in self._slicing_manager.registered_slicers :
-		
+				# Set file locations
+				self.setFileLocations()
+				
 				# Check if Cura is not configured
-				if not "cura" in self._slicing_manager.configured_slicers :
-				
-					# Set Cura Engine locations
-					curaEngineLocations = []
-					if platform.uname()[0].startswith("Windows") :
-					
-						curaEngineLocations = [
-							os.environ["SYSTEMDRIVE"] + "/Program Files*/Cura_*/CuraEngine.exe",
-							os.environ["SYSTEMDRIVE"] + "/Program Files*/M3D*/*/Resources/CuraEngine/CuraEngine.exe"
-						]
-					
-					elif platform.uname()[0].startswith("Darwin") :
-					
-						curaEngineLocations = [
-							"/Applications/Cura/Cura.app/Contents/Resources/CuraEngine",
-							"/Applications/M3D.app/Contents/Resources/CuraEngine/CuraEngine"
-						]
-					
-					elif platform.uname()[0].startswith("Linux") :
-					
-						curaEngineLocations = [
-							"/usr/share/cura/CuraEngine",
-							"/usr/local/bin/CuraEngine",
-							"/usr/bin/CuraEngine",
-							"/usr/local/bin/cura_engine"
-						]
-					
-					# Go through all Cura Engine location
-					for locations in curaEngineLocations :
-						for location in glob.glob(locations) :
-				
-							# Check if location is a file
-							if os.path.isfile(location) :
-						
-								# Set Cura Engine location
-								self._slicing_manager.get_slicer("cura", False)._settings.set(["cura_engine"], location)
-								
-								# Save software settings
-								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Save Software Settings"))
-								break
-				
-				# Check if Cura is still not configured
 				if not "cura" in self._slicing_manager.configured_slicers :
 				
 					# Check if a reminder hasn't been sent
@@ -6002,7 +6005,13 @@ class M3DFioPlugin(
 		
 			# Create caffeinate process
 			if not hasattr(self, "osXCaffeinateProcess") or self.osXCaffeinateProcess is None :
-				self.osXCaffeinateProcess = subprocess.Popen("caffeinate")
+			
+				try:
+					self.osXCaffeinateProcess = subprocess.Popen("caffeinate")
+				
+				except Exception :
+			
+					self.osXCaffeinateProcess = None
 		
 		# Otherwise check if using Linux
 		elif platform.uname()[0].startswith("Linux") :
