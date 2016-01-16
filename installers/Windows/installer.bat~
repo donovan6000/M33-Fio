@@ -1,0 +1,131 @@
+@ECHO OFF
+@SETLOCAL ENABLEDELAYEDEXPANSION
+
+REM Request elevated privileges
+IF "%PROCESSOR_ARCHITECTURE%" EQU "amd64" (
+	>nul 2>&1 "%SYSTEMROOT%\SysWOW64\icacls.exe" "%SYSTEMROOT%\SysWOW64\config\system"
+) ELSE (
+	>nul 2>&1 "%SYSTEMROOT%\System32\icacls.exe" "%SYSTEMROOT%\System32\config\system"
+)
+
+IF %ERRORLEVEL% NEQ 0 (
+	GOTO UACPrompt
+) ELSE (
+	GOTO gotAdmin
+)
+
+:UACPrompt
+	ECHO Set UAC = CreateObject^("Shell.Application"^) > "%TEMP%\getadmin.vbs"
+	SET params = %*:"=""
+	ECHO UAC.ShellExecute "cmd.exe", "/c %~s0 %params%", "", "runas", 1 >> "%TEMP%\getadmin.vbs"
+
+	"%TEMP%\getadmin.vbs"
+	DEL "%TEMP%\getadmin.vbs"
+	EXIT /B
+
+:gotAdmin
+	PUSHD "%CD%"
+	CD /D "%~dp0"
+
+REM Check if run as admin
+NET SESSION >nul 2>&1
+IF %ERRORLEVEL% EQU 0 (
+
+	REM Check if not connected to the internet
+	Ping www.google.com -n 1 -w 1000
+	IF ERRORLEVEL 1 (
+
+		REM Display message
+		ECHO.
+		ECHO An internet connection is required.
+
+	REM Otherwise
+	) ELSE (
+	
+		REM Move to temporary location
+		CD "%TEMP%"
+		
+		REM Install OctoPrint dependencies
+		bitsadmin.exe /transfer "Python Version" https://www.python.org/downloads/windows/ "%TEMP%\index.html"
+		FOR /f "tokens=8" %%f IN ('find "Latest Python 2 Release" "%TEMP%\index.html"') DO SET pythonVersion=%%f
+		SET pythonVersion=!pythonVersion:~0,-9!
+		bitsadmin.exe /transfer "Python" https://www.python.org/ftp/python/!pythonVersion!/python-!pythonVersion!.msi "%TEMP%\python.msi"
+		msiexec /i python.msi TARGETDIR="%SYSTEMDRIVE%\python" /quiet
+		DEL python.msi
+		DEL index.html
+
+		REM Create Wget
+		COPY /y nul wget.py
+		ECHO import sys> wget.py
+		ECHO import urllib>> wget.py
+		ECHO urllib.urlretrieve(str(sys.argv[1]^), str(sys.argv[2]^)^)>> wget.py
+		
+		REM Create unzip
+		COPY /y nul unzip.py
+		ECHO import sys> unzip.py
+		ECHO import zipfile>> unzip.py
+		ECHO with zipfile.ZipFile(str(sys.argv[1]^), 'r'^) as contents :>> unzip.py
+		ECHO 	contents.extractall(^)>> unzip.py
+		
+		REM Install OctoPrint
+		taskkill /IM pythonw.exe /T
+		"%SYSTEMDRIVE%\python\python.exe" wget.py https://github.com/foosel/OctoPrint/archive/master.zip master.zip
+		"%SYSTEMDRIVE%\python\python.exe" unzip.py master.zip
+		CD OctoPrint-master
+		"%SYSTEMDRIVE%\python\python.exe" setup.py install
+		CD ..
+		RD /s /q OctoPrint-master
+		DEL unzip.py
+		DEL master.zip
+	
+		REM Install M3D Fio
+		ECHO y | "%SYSTEMDRIVE%\python\Scripts\pip.exe" uninstall OctoPrint-M3DFio
+		"%SYSTEMDRIVE%\python\python.exe" wget.py https://github.com/donovan6000/M3D-Fio/archive/master.zip master.zip
+		:loop
+		"%SYSTEMDRIVE%\python\Scripts\pip.exe" install master.zip
+		IF ERRORLEVEL 1 GOTO loop
+		DEL master.zip
+		
+		REM Install drivers
+		"%SYSTEMDRIVE%\python\python.exe" wget.py https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/Windows/M3D.inf M3D.inf
+		"%SYSTEMDRIVE%\python\python.exe" wget.py https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/Windows/M3D.cat M3D.cat
+		PnPUtil -i -a M3D.inf
+		DEL M3D.inf
+		DEL M3D.cat
+		
+		REM Get OctoPrint parameter
+		FOR /F "tokens=3" %%f IN ('%SYSTEMDRIVE%\python\Scripts\octoprint.exe -v') DO SET octoPrintVersion=%%f
+		IF "!octoPrintVersion!" EQU "1.2.8" SET oldOctoPrintVersion=1
+		IF "!octoPrintVersion!" EQU "1.2.9" SET oldOctoPrintVersion=1
+		IF DEFINED oldOctoPrintVersion (
+			SET octoPrintParameter=
+		) ELSE (
+			SET octoPrintParameter= serve
+		)
+		
+		REM Add OctoPrint to startup programs
+		reg delete "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /V "OctoPrint" /F
+		reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /V "OctoPrint" /t REG_SZ /F /D """%SYSTEMDRIVE%\python\pythonw.exe"""" -c ""import octoprint;octoprint.main()""!octoPrintParameter!"
+		
+		REM Create URL link on desktop
+		"%SYSTEMDRIVE%\python\python.exe" wget.py https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/Windows/octoprint.ico octoprint.ico
+		MOVE octoprint.ico "%SYSTEMROOT%\System32"
+		"%SYSTEMDRIVE%\python\python.exe" wget.py https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/Windows/OctoPrint.url OctoPrint.url
+		MOVE OctoPrint.url "%SYSTEMDRIVE%\Users\%USERNAME%\Desktop"
+		DEL wget.py
+
+		REM Start OctoPrint
+		START """%SYSTEMDRIVE%\python\pythonw.exe"""" -c ""import octoprint;octoprint.main()""!octoPrintParameter!"
+		
+		REM Display message
+		ECHO.
+		ECHO OctoPrint and M3D Fio have been successfully installed. Go to http://localhost:5000 in any web browser to access OctoPrint.
+	)
+
+REM Otherwise
+) ELSE (
+
+	REM Display message
+	ECHO.
+	ECHO Admin privileges required.
+)

@@ -9,6 +9,7 @@ __copyright__ = "Copyright (C) 2015-2016 Exploit Kings. All rights reserved."
 
 
 # Imports
+import octoprint
 import octoprint.plugin
 import octoprint.events
 import octoprint.filemanager
@@ -940,6 +941,10 @@ class M3DFioPlugin(
 				# Get current printer connection state
 				currentState, currentPort, currentBaudrate, currentProfile = self._printer.get_current_connection()
 				
+				# Set baudrate if invalid
+				if not currentBaudrate or currentBaudrate == 0 :
+					currentBaudrate = 115200
+				
 				# Save ports
 				self.savePorts(currentPort)
 				
@@ -1011,6 +1016,10 @@ class M3DFioPlugin(
 				
 				# Get current printer connection state
 				currentState, currentPort, currentBaudrate, currentProfile = self._printer.get_current_connection()
+				
+				# Set baudrate if invalid
+				if not currentBaudrate or currentBaudrate == 0 :
+					currentBaudrate = 115200
 				
 				# Save ports
 				self.savePorts(currentPort)
@@ -1170,6 +1179,10 @@ class M3DFioPlugin(
 				# Get current printer connection state
 				currentState, currentPort, currentBaudrate, currentProfile = self._printer.get_current_connection()
 				
+				# Set baudrate if invalid
+				if not currentBaudrate or currentBaudrate == 0 :
+					currentBaudrate = 115200
+				
 				# Save ports
 				self.savePorts(currentPort)
 				
@@ -1235,6 +1248,10 @@ class M3DFioPlugin(
 				
 					# Get current printer connection state
 					currentState, currentPort, currentBaudrate, currentProfile = self._printer.get_current_connection()
+					
+					# Set baudrate if invalid
+					if not currentBaudrate or currentBaudrate == 0 :
+						currentBaudrate = 115200
 					
 					# Save ports
 					self.savePorts(currentPort)
@@ -1379,6 +1396,10 @@ class M3DFioPlugin(
 				# Get current printer connection state
 				currentState, currentPort, currentBaudrate, currentProfile = self._printer.get_current_connection()
 				
+				# Set baudrate if invalid
+				if not currentBaudrate or currentBaudrate == 0 :
+					currentBaudrate = 115200
+				
 				# Save ports
 				self.savePorts(currentPort)
 				
@@ -1494,8 +1515,14 @@ class M3DFioPlugin(
 				# Create config file
 				shutil.copyfile(self._settings.global_get_basefolder("base") + "/config.yaml", self._settings.global_get_basefolder("base") + "/config.yaml" + str(port))
 				
+				# Get OctoPrint parameter
+				if octoprint.__version__ == "0+unknown" or tuple(map(int, (octoprint.__version__.split(".")))) >= tuple(map(int, ("1.3.0".split(".")))) :
+					octoPrintParameter = " serve"	
+				else :
+					octoPrintParameter = ''
+				
 				# Create instance
-				instance = subprocess.Popen([' '.join(sys.argv) + " --port " + str(port) + " --config " + self._settings.global_get_basefolder("base") + "/config.yaml" + str(port)], shell = True)
+				instance = subprocess.Popen([sys.executable + " -c \"import octoprint;octoprint.main()\"" + octoPrintParameter + " --port " + str(port) + " --config " + self._settings.global_get_basefolder("base") + "/config.yaml" + str(port)], shell = True)
 				
 				# Send response
 				return flask.jsonify(dict(value = "Ok", port = port))
@@ -1577,6 +1604,10 @@ class M3DFioPlugin(
 			
 			# Get current printer connection state
 			currentState, currentPort, currentBaudrate, currentProfile = self._printer.get_current_connection()
+			
+			# Set baudrate if invalid
+			if not currentBaudrate or currentBaudrate == 0 :
+				currentBaudrate = 115200
 			
 			# Check if rom version is valid ROM version
 			if len(data["name"]) >= 10 and data["name"][0 : 10].isdigit() :
@@ -2446,7 +2477,7 @@ class M3DFioPlugin(
 		# Otherwise check if client connects
 		elif event == octoprint.events.Events.CLIENT_OPENED :
 		
-			# Send OctoPrint instances details
+			# Send OctoPrint process details
 			self.sendOctoPrintProcessDetails()
 		
 			# Send provided firmware version
