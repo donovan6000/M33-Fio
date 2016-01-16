@@ -1344,7 +1344,7 @@ class M3DFioPlugin(
 			
 				# Check if a micro 3D is connected
 				if not self.invalidPrinter :
-			
+				
 					# Save settings to the printer
 					self.sendCommands(self.getSaveCommands())
 			
@@ -3957,7 +3957,7 @@ class M3DFioPlugin(
 				
 				# Otherwise
 				else :
-				
+					
 					# Save software settings
 					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Save Software Settings"))
 				

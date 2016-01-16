@@ -602,8 +602,10 @@ $(function() {
 			// Otherwise
 			else
 			
+				// Hide message
 				setTimeout(function() {
-					$("body > div.page-container > div.message").css("z-index", '');
+					if(!messages.length)
+						$("body > div.page-container > div.message").css("z-index", '');
 				}, 300);
 		}
 		
@@ -761,7 +763,7 @@ $(function() {
 
 		// Save printer settings
 		function savePrinterSettings() {
-	
+		
 			// Send request
 			$.ajax({
 				url: API_BASEURL + "plugin/m3dfio",
@@ -6567,12 +6569,16 @@ $(function() {
 			
 			// Otherwise check if data is to save software settings
 			else if(data.value == "Save Software Settings") {
-		
-				// Save software and printer settings
-				self.settings.saveData(undefined, savePrinterSettings);
-				
+			
 				// Update settings
 				self.settings.requestData();
+			
+				setTimeout(function() {
+				
+					// Save software settings
+					self.settings.saveData();
+					
+				}, 500);
 			}
 			
 			// Otherwise check if data is EEPROM
