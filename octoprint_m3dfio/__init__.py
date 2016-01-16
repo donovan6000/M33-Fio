@@ -40,7 +40,11 @@ import socket
 from .gcode import Gcode
 from .vector import Vector
 
-if platform.uname()[0].startswith("Linux") :
+if platform.uname()[0].startswith("Darwin") :
+	import CoreFoundation
+	import objc
+
+elif platform.uname()[0].startswith("Linux") :
 	import dbus
 
 
@@ -84,8 +88,6 @@ class M3DFioPlugin(
 		self.invalidBedOrientation = False
 		self.slicerChanges = None
 		self.sharedLibrary = None
-		self.curaReminder = False
-		self.sleepReminder = False
 		self.lastCommandSent = None
 		self.lastResponseWasWait = False
 		self.lastResponseWasTemperatureReading = False
@@ -493,6 +495,15 @@ class M3DFioPlugin(
 	
 	# On start
 	def on_after_startup(self) :
+	
+		# Set reminders on initial OctoPrint instance
+		currentPort = self.getListenPort(psutil.Process(os.getpid()))
+		if currentPort is not None and self.getListenPort(psutil.Process(os.getpid())) == 5000 :
+			self.curaReminder = True
+			self.sleepReminder = True
+		else :
+			self.curaReminder = False
+			self.sleepReminder = False
 	
 		# Create and overwrite Micro 3D printer profile
 		printerProfile = dict(
@@ -1345,6 +1356,20 @@ class M3DFioPlugin(
 					self.messageResponse = False
 				else :
 					self.messageResponse = True
+			
+			# Otherwise check if parameter is to disable reminder
+			elif data["value"].startswith("Disable Reminder:") :
+			
+				# Get value
+				value = data["value"][18 :]
+				
+				# Disable Cura reminder
+				if value == "Cura" :
+					self.curaReminder = False
+				
+				# Disable sleep reminder
+				elif value == "Sleep" :
+					self.sleepReminder = False
 			
 			# Otherwise check if parameter is to view a profile
 			elif data["value"].startswith("View Profile:") :
@@ -2582,17 +2607,14 @@ class M3DFioPlugin(
 			# Set file locations
 			self.setFileLocations()
 			
-			# Check if a Cura reminder hasn't been sent
-			if not self.curaReminder :
+			# Check if sending Cura reminder
+			if self.curaReminder :
 			
 				# Check if Cura is not configured
 				if not "cura" in self._slicing_manager.configured_slicers :
 			
 					# Send message
 					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Cura Not Installed"))
-				
-				# Set Cura reminder
-				self.curaReminder = True
 			
 			# Check if Cura is configured
 			if "cura" in self._slicing_manager.configured_slicers :
@@ -2651,8 +2673,8 @@ class M3DFioPlugin(
 							# Save Cura profile as OctoPrint profile
 							self.convertCuraToProfile(profileLocation + profile, profileDestination + profileName, profileName, profileIdentifier + " V" + profileVersion, "Imported by M3D Fio on " + time.strftime("%Y-%m-%d %H:%M"))
 			
-			# Check if a sleep reminder hasn't been sent
-			if not self.sleepReminder :
+			# Check if sending sleep reminder
+			if not self._printer.is_printing() and self.sleepReminder :
 			
 				# Check if disabling sleep works
 				if not self.disableSleep() :
@@ -2662,9 +2684,6 @@ class M3DFioPlugin(
 				
 				# Enable sleep
 				self.enableSleep()
-			
-				# Set sleep reminder
-				self.sleepReminder = True
 		
 		# Otherwise check if event is slicing started
 		elif event == octoprint.events.Events.SLICING_STARTED :
@@ -6031,18 +6050,59 @@ class M3DFioPlugin(
 		# Otherwise check if using OS X
 		elif platform.uname()[0].startswith("Darwin") :
 		
-			# Create caffeinate process
-			if not hasattr(self, "osXCaffeinateProcess") or self.osXCaffeinateProcess is None :
+			# Created by jbenden
+			def setUpIOFramework() :
 			
-				try:
-					self.osXCaffeinateProcess = subprocess.Popen("caffeinate")
-					
-					# Return true
-					return True
+				# Load the IOKit framework
+				framework = ctypes.cdll.LoadLibrary("/System/Library/Frameworks/IOKit.framework/IOKit")
+
+				# Declare IOPMLib parameters
+				framework.IOPMAssertionCreateWithName.argtypes = [
+					ctypes.c_void_p,
+					ctypes.c_uint32,
+					ctypes.c_void_p,
+					ctypes.POINTER(ctypes.c_uint32)
+				]
 				
-				except Exception :
+				framework.IOPMAssertionRelease.argtypes = [
+					ctypes.c_uint32
+				]
+				
+				# Return framework
+				return framework
 			
-					self.osXCaffeinateProcess = None
+			def stringToCFString(string) :
+			
+				# Set encoding
+				try :
+					encoding = CoreFoundation.kCFStringEncodingASCII
+				except AttributeError :
+					encoding = 0x600
+				
+				# Convert string
+				return objc.pyobjc_id(CoreFoundation.CFStringCreateWithCString(None, string, encoding).nsstring())
+			
+			def assertionCreateWithName(framework, assertionType, assertionLevel, assertionReason) :
+			
+				# Create assertion
+				assertionId = ctypes.c_uint32(0)
+				assertionType = stringToCFString(assertionType)
+				assertionReason = stringToCFString(assertionReason)
+				assertionError = framework.IOPMAssertionCreateWithName(assertionType, assertionLevel, assertionReason, ctypes.byref(assertionId))
+
+				# Return error and id
+				return assertionError, assertionId
+			
+			# Initialize IOKit framework
+			if not hasattr(self, "osXSleepFramework") or self.osXSleepFramework is None :
+				self.osXSleepFramework = setUpIOFramework()
+
+			# Assert on sleep framework
+			error, self.osXSleepPrevention = assertionCreateWithName(self.osXSleepFramework, "NoIdleSleepAssertion", 255, "Disabled by M3D Fio")
+			
+			# Return true if no errors occured
+			if error == 0 :
+				return True
 		
 		# Otherwise check if using Linux
 		elif platform.uname()[0].startswith("Linux") :
@@ -6108,10 +6168,10 @@ class M3DFioPlugin(
 		# Otherwise check if using OS X
 		elif platform.uname()[0].startswith("Darwin") :
 		
-			# Terminate caffeinate process
-			if hasattr(self, "osXCaffeinateProcess") and self.osXCaffeinateProcess is not None :
-				self.osXCaffeinateProcess.terminate()
-				self.osXCaffeinateProcess = None
+			# Release assertion on sleep framework
+			if hasattr(self, "osXSleepFramework") and self.osXSleepFramework is not None :
+				self.osXSleepFramework.IOPMAssertionRelease(self.osXSleepPrevention)
+				self.osXSleepFramework = None
 		
 		# Otherwise check if using Linux
 		elif platform.uname()[0].startswith("Linux") :

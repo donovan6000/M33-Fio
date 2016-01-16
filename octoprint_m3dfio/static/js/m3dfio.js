@@ -6259,38 +6259,22 @@ $(function() {
 					// On success
 					success: function(data) {
 					
-						// Check if an error occured
-						if(data.value == "Error") {
+						// Go through all options
+						$("#navbar_plugin_m3dfio > select > option").each(function() {
 						
-							// Show message
-							showMessage("Message", "Initial OctoPrint instance cannot be closed", "Ok", function() {
+							// Check if another OctoPrint instance exists
+							if($(this).attr("value") != "new" && $(this).attr("value") != "close" && $(this).attr("value") != window.location.port) {
 							
-								// Select current port
-								$("#navbar_plugin_m3dfio > select > option[value=" + window.location.port + ']').prop("selected", true);
+								var port = $(this).attr("value")
+								setTimeout(function() {
 				
-								// Hide message
-								hideMessage();
-							});
-						}
-						
-						// Otherwise
-						else
-					
-							// Go through all options
-							$("#navbar_plugin_m3dfio > select > option").each(function() {
+									// Go to OctoPrint instance
+									window.location.port = port;
+								}, 1000);
 							
-								// Check if another OctoPrint instance exists
-								if($(this).attr("value") != "new" && $(this).attr("value") != "close" && $(this).attr("value") != window.location.port) {
-									var port = $(this).attr("value")
-									setTimeout(function() {
-					
-										// Go to OctoPrint instance
-										window.location.port = port;
-									}, 1000);
-								
-									return false;
-								}
-							});
+								return false;
+							}
+						});
 					}
 				});
 			}
@@ -6394,8 +6378,8 @@ $(function() {
 			
 				// Display error message
 				new PNotify({
-				    title: data.title,
-				    text: "<p>" + data.text + "</p><div class=\"pnotify_additional_info\"><div class=\"pnotify_more\"><a href=\"#\" onclick=\"$(this).children().toggleClass('icon-caret-right icon-caret-down').parent().parent().next().slideToggle('fast')\">More <i class=\"icon-caret-right\"></i></a></div><div class=\"pnotify_more_container hide\"><pre><!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2 Final//EN\"><title>500 Internal Server Error</title><h1>Internal Server Error</h1><p>The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.</p></pre></div></div>",
+				    title: htmlEncode(data.title),
+				    text: "<p>" + htmlEncode(data.text) + "</p>",
 				    type: "error",
 				    hide: false
 				});
@@ -6417,8 +6401,17 @@ $(function() {
 			else if(data.value == "Cura Not Installed") {
 			
 				// Show message
-				showMessage("Message", "It's recommended that you install the <a href=\"https://ultimaker.com/en/products/cura-software/list\" target=\"_blank\">latest Cura 15.04 release</a> on this server to fully utilize M3D Fio's capabilities.", "Ok", function() {
-				
+				showMessage("Message", "It's recommended that you install the <a href=\"https://ultimaker.com/en/products/cura-software/list\" target=\"_blank\">latest Cura 15.04 release</a> on this server to fully utilize M3D Fio's capabilities", "Ok", function() {
+						
+					// Send request
+					$.ajax({
+						url: API_BASEURL + "plugin/m3dfio",
+						type: "POST",
+						dataType: "json",
+						data: JSON.stringify({command: "message", value: "Disable Reminder: Cura"}),
+						contentType: "application/json; charset=UTF-8"
+					});
+					
 					// Hide message
 					hideMessage();
 				});
@@ -6430,6 +6423,15 @@ $(function() {
 				// Show message
 				showMessage("Message", "It's recommended that you disable this server's sleep functionality while printing", "Ok", function() {
 				
+					// Send request
+					$.ajax({
+						url: API_BASEURL + "plugin/m3dfio",
+						type: "POST",
+						dataType: "json",
+						data: JSON.stringify({command: "message", value: "Disable Reminder: Sleep"}),
+						contentType: "application/json; charset=UTF-8"
+					});
+					
 					// Hide message
 					hideMessage();
 				});
@@ -6524,7 +6526,7 @@ $(function() {
 					$("#navbar_plugin_m3dfio > select > option").each(function() {
 				
 						// Check if at end of options or at ordered position
-						if($(this).attr("value") == "new" || parseInt($(this).attr("value")) > parseInt(data.port)) {
+						if($(this).attr("value") == "new" || parseInt($(this).attr("value")) > parseInt(data.processes[i][0])) {
 			
 							// Insert option
 							$(this).before("<option value = \"" + data.processes[i][0] + "\">Port " + data.processes[i][0] + "</option>");
@@ -6538,8 +6540,19 @@ $(function() {
 						}
 					});
 				
-				// Select current port
-				$("#navbar_plugin_m3dfio > select > option").eq(currentPort).attr("selected", "true");	
+				// Go through all options
+				$("#navbar_plugin_m3dfio > select > option").each(function() {
+				
+					// Check if current port
+					if(parseInt($(this).attr("value")) == parseInt(data.processes[currentPort][0])) {
+				
+						// Select current port
+						$(this).attr("selected", "true");
+						
+						// Return false
+						return false;
+					}
+				});	
 			}
 			
 			// Otherwise check if data is provided firmware
@@ -6787,9 +6800,6 @@ $(function() {
 						});
 					}, "No", function() {
 						
-						// Hide message
-						hideMessage();
-						
 						// Send request
 						$.ajax({
 							url: API_BASEURL + "plugin/m3dfio",
@@ -6798,6 +6808,9 @@ $(function() {
 							data: JSON.stringify({command: "message", value: "No"}),
 							contentType: "application/json; charset=UTF-8"
 						});
+						
+						// Hide message
+						hideMessage();
 					});
 				}
 				
@@ -6806,9 +6819,6 @@ $(function() {
 				
 					// Display message
 					showMessage("Error Status", htmlEncode(data.message), "Ok", function() {
-
-						// Hide message
-						hideMessage();
 						
 						// Send request
 						$.ajax({
@@ -6818,6 +6828,9 @@ $(function() {
 							data: JSON.stringify({command: "message", value: $(this).text()}),
 							contentType: "application/json; charset=UTF-8"
 						});
+						
+						// Hide message
+						hideMessage();
 					});
 				}
 				
@@ -6834,6 +6847,10 @@ $(function() {
 		
 			// Enable managing OctoPrint instances
 			$("#navbar_plugin_m3dfio > select > option").last().prop("disabled", false).prev().prop("disabled", false);
+			
+			// Disable closing initial OctoPrint instance
+			if(window.location.port == 5000)
+				$("#navbar_plugin_m3dfio > select > option").last().prop("disabled", true)
 		}
 		
 		// User log out event
