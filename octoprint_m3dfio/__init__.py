@@ -6109,48 +6109,53 @@ class M3DFioPlugin(
 		
 			if not hasattr(self, "linuxSleepService") or self.linuxSleepService is None :
 			
-				try:
+				# Initialize DBus session
+				bus = dbus.SessionBus()
 			
-					# Initialize DBus session
-					bus = dbus.SessionBus()
-				
-					# Get sleep service
-					try:
-						self.linuxSleepService = dbus.Interface(bus.get_object("org.freedesktop.ScreenSaver", "/org/freedesktop/ScreenSaver"), "org.freedesktop.ScreenSaver")
-				
-					except dbus.DBusException :
-				
-						try :
-							self.linuxSleepService = dbus.Interface(bus.get_object("org.freedesktop.ScreenSaver", "/ScreenSaver"), "org.freedesktop.ScreenSaver")
-					
-						except dbus.DBusException :
-					
-							try :
-					
-								self.linuxSleepService = dbus.Interface(bus.get_object("org.gnome.ScreenSaver", "/org/gnome/ScreenSaver"), "org.gnome.ScreenSaver")
-						
-							except dbus.DBusException :
-							
-								try :
-					
-									self.linuxSleepService = dbus.Interface(bus.get_object("org.gnome.ScreenSaver", "/ScreenSaver"), "org.gnome.ScreenSaver")
-						
-								except dbus.DBusException :
-								
-									self.linuxSleepService = None
-									
-									# Return false
-									return False
-				
-					# Inhibit sleep service
+				# Inhibit sleep service
+				try :
+					self.linuxSleepService = dbus.Interface(bus.get_object("org.gnome.ScreenSaver", "/org/gnome/ScreenSaver"), "org.gnome.ScreenSaver")
 					self.linuxSleepPrevention = self.linuxSleepService.Inhibit("M3D Fio", "Disabled by M3D Fio")
+			
+				except dbus.DBusException :
+				
+					try :
+						self.linuxSleepService = dbus.Interface(bus.get_object("org.gnome.ScreenSaver", "/ScreenSaver"), "org.gnome.ScreenSaver")
+						self.linuxSleepPrevention = self.linuxSleepService.Inhibit("M3D Fio", "Disabled by M3D Fio")
+			
+					except dbus.DBusException :
 					
-					# Return true
-					return True
+						try:
+							self.linuxSleepService = dbus.Interface(bus.get_object("org.freedesktop.ScreenSaver", "/org/freedesktop/ScreenSaver"), "org.freedesktop.ScreenSaver")
+							self.linuxSleepPrevention = self.linuxSleepService.Inhibit("M3D Fio", "Disabled by M3D Fio")
+						
+						except dbus.DBusException :
 			
-				except Exception :
+							try :
+								self.linuxSleepService = dbus.Interface(bus.get_object("org.freedesktop.ScreenSaver", "/ScreenSaver"), "org.freedesktop.ScreenSaver")
+								self.linuxSleepPrevention = self.linuxSleepService.Inhibit("M3D Fio", "Disabled by M3D Fio")
+				
+							except dbus.DBusException :
+					
+								self.linuxSleepService = None
+						
+								# Return false
+								return False
 			
+			else :
+			
+				try :
+					self.linuxSleepPrevention = self.linuxSleepService.Inhibit("M3D Fio", "Disabled by M3D Fio")
+				
+				except dbus.DBusException :
+					
 					self.linuxSleepService = None
+			
+					# Return false
+					return False
+			
+			# Return true
+			return True
 		
 		# Return false
 		return False
