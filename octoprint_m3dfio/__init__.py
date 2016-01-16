@@ -3602,7 +3602,7 @@ class M3DFioPlugin(
 				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
-				if math.isnan(value) :
+				if math.isnan(value) or not isinstance(value, float) :
 					self.printerBacklashX = self.get_settings_defaults()["BacklashX"]
 				else :
 					self.printerBacklashX = round(value, 6)
@@ -3620,7 +3620,7 @@ class M3DFioPlugin(
 				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
-				if math.isnan(value) :
+				if math.isnan(value) or not isinstance(value, float) :
 					self.printerBacklashY = self.get_settings_defaults()["BacklashY"]
 				else :
 					self.printerBacklashY = round(value, 6)
@@ -3638,7 +3638,7 @@ class M3DFioPlugin(
 				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
-				if math.isnan(value) :
+				if math.isnan(value) or not isinstance(value, float) :
 					self.printerBackRightOrientation = self.get_settings_defaults()["BackRightOrientation"]
 				else :
 					self.printerBackRightOrientation = round(value, 6)
@@ -3656,7 +3656,7 @@ class M3DFioPlugin(
 				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
-				if math.isnan(value) :
+				if math.isnan(value) or not isinstance(value, float) :
 					self.printerBackLeftOrientation = self.get_settings_defaults()["BackLeftOrientation"]
 				else :
 					self.printerBackLeftOrientation = round(value, 6)
@@ -3674,7 +3674,7 @@ class M3DFioPlugin(
 				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
-				if math.isnan(value) :
+				if math.isnan(value) or not isinstance(value, float) :
 					self.printerFrontLeftOrientation = self.get_settings_defaults()["FrontLeftOrientation"]
 				else :
 					self.printerFrontLeftOrientation = round(value, 6)
@@ -3692,7 +3692,7 @@ class M3DFioPlugin(
 				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
-				if math.isnan(value) :
+				if math.isnan(value) or not isinstance(value, float) :
 					self.printerFrontRightOrientation = self.get_settings_defaults()["FrontRightOrientation"]
 				else :
 					self.printerFrontRightOrientation = round(value, 6)
@@ -3751,7 +3751,7 @@ class M3DFioPlugin(
 				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
-				if math.isnan(value) :
+				if math.isnan(value) or not isinstance(value, float) :
 					self.printerBackLeftOffset = self.get_settings_defaults()["BackLeftOffset"]
 				else :
 					self.printerBackLeftOffset = round(value, 6)
@@ -3769,7 +3769,7 @@ class M3DFioPlugin(
 				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
-				if math.isnan(value) :
+				if math.isnan(value) or not isinstance(value, float) :
 					self.printerBackRightOffset = self.get_settings_defaults()["BackRightOffset"]
 				else :
 					self.printerBackRightOffset = round(value, 6)
@@ -3787,7 +3787,7 @@ class M3DFioPlugin(
 				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
-				if math.isnan(value) :
+				if math.isnan(value) or not isinstance(value, float) :
 					self.printerFrontRightOffset = self.get_settings_defaults()["FrontRightOffset"]
 				else :
 					self.printerFrontRightOffset = round(value, 6)
@@ -3805,7 +3805,7 @@ class M3DFioPlugin(
 				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
-				if math.isnan(value) :
+				if math.isnan(value) or not isinstance(value, float) :
 					self.printerFrontLeftOffset = self.get_settings_defaults()["FrontLeftOffset"]
 				else :
 					self.printerFrontLeftOffset = round(value, 6)
@@ -3823,7 +3823,7 @@ class M3DFioPlugin(
 				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
-				if math.isnan(value) :
+				if math.isnan(value) or not isinstance(value, float) :
 					self.printerBedHeightOffset = self.get_settings_defaults()["BedHeightOffset"]
 				else :
 					self.printerBedHeightOffset = round(value, 6)
@@ -3841,7 +3841,7 @@ class M3DFioPlugin(
 				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
-				if math.isnan(value) :
+				if math.isnan(value) or not isinstance(value, float) :
 					self.printerBacklashSpeed = self.get_settings_defaults()["BacklashSpeed"]
 				else :
 					self.printerBacklashSpeed = round(value, 6)
@@ -3859,7 +3859,7 @@ class M3DFioPlugin(
 				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
-				if math.isnan(value) :
+				if math.isnan(value) or not isinstance(value, float) :
 					self.printerSpeedLimitX = self.get_settings_defaults()["SpeedLimitX"]
 				else :
 					self.printerSpeedLimitX = round(value, 6)
@@ -3877,7 +3877,7 @@ class M3DFioPlugin(
 				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
-				if math.isnan(value) :
+				if math.isnan(value) or not isinstance(value, float) :
 					self.printerSpeedLimitY = self.get_settings_defaults()["SpeedLimitY"]
 				else :
 					self.printerSpeedLimitY = round(value, 6)
@@ -3895,7 +3895,7 @@ class M3DFioPlugin(
 				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
-				if math.isnan(value) :
+				if math.isnan(value) or not isinstance(value, float) :
 					self.printerSpeedLimitZ = self.get_settings_defaults()["SpeedLimitZ"]
 				else :
 					self.printerSpeedLimitZ = round(value, 6)
@@ -3913,7 +3913,7 @@ class M3DFioPlugin(
 				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
-				if math.isnan(value) :
+				if math.isnan(value) or not isinstance(value, float) :
 					self.printerSpeedLimitEPositive = self.get_settings_defaults()["SpeedLimitEPositive"]
 				else :
 					self.printerSpeedLimitEPositive = round(value, 6)
@@ -3931,7 +3931,7 @@ class M3DFioPlugin(
 				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
-				if math.isnan(value) :
+				if math.isnan(value) or not isinstance(value, float) :
 					self.printerSpeedLimitENegative = self.get_settings_defaults()["SpeedLimitENegative"]
 				else :
 					self.printerSpeedLimitENegative = round(value, 6)
@@ -3969,24 +3969,80 @@ class M3DFioPlugin(
 	
 		# Get software settings
 		softwareBacklashX = self._settings.get_float(["BacklashX"])
+		if not isinstance(softwareBacklashX, float) :
+			softwareBacklashX = self.get_settings_defaults()["BacklashX"]
+		
 		softwareBacklashY = self._settings.get_float(["BacklashY"])
+		if not isinstance(softwareBacklashY, float) :
+			softwareBacklashY = self.get_settings_defaults()["BacklashY"]
+		
 		softwareBackLeftOrientation = self._settings.get_float(["BackLeftOrientation"])
+		if not isinstance(softwareBackLeftOrientation, float) :
+			softwareBackLeftOrientation = self.get_settings_defaults()["BackLeftOrientation"]
+		
 		softwareBackRightOrientation = self._settings.get_float(["BackRightOrientation"])
+		if not isinstance(softwareBackRightOrientation, float) :
+			softwareBackRightOrientation = self.get_settings_defaults()["BackRightOrientation"]
+		
 		softwareFrontRightOrientation = self._settings.get_float(["FrontRightOrientation"])
+		if not isinstance(softwareFrontRightOrientation, float) :
+			softwareFrontRightOrientation = self.get_settings_defaults()["FrontRightOrientation"]
+		
 		softwareFrontLeftOrientation = self._settings.get_float(["FrontLeftOrientation"])
+		if not isinstance(softwareFrontLeftOrientation, float) :
+			softwareFrontLeftOrientation = self.get_settings_defaults()["FrontLeftOrientation"]
+		
 		softwareBacklashSpeed = self._settings.get_float(["BacklashSpeed"])
+		if not isinstance(softwareBacklashSpeed, float) :
+			softwareBacklashSpeed = self.get_settings_defaults()["BacklashSpeed"]
+		
 		softwareBackLeftOffset = self._settings.get_float(["BackLeftOffset"])
+		if not isinstance(softwareBackLeftOffset, float) :
+			softwareBackLeftOffset = self.get_settings_defaults()["BackLeftOffset"]
+		
 		softwareBackRightOffset = self._settings.get_float(["BackRightOffset"])
+		if not isinstance(softwareBackRightOffset, float) :
+			softwareBackRightOffset = self.get_settings_defaults()["BackRightOffset"]
+		
 		softwareFrontRightOffset = self._settings.get_float(["FrontRightOffset"])
+		if not isinstance(softwareFrontRightOffset, float) :
+			softwareFrontRightOffset = self.get_settings_defaults()["FrontRightOffset"]
+		
 		softwareFrontLeftOffset = self._settings.get_float(["FrontLeftOffset"])
+		if not isinstance(softwareFrontLeftOffset, float) :
+			softwareFrontLeftOffset = self.get_settings_defaults()["FrontLeftOffset"]
+		
 		softwareBedHeightOffset = self._settings.get_float(["BedHeightOffset"])
+		if not isinstance(softwareBedHeightOffset, float) :
+			softwareBedHeightOffset = self.get_settings_defaults()["BedHeightOffset"]
+		
 		softwareFilamentTemperature = self._settings.get_int(["FilamentTemperature"])
+		if not isinstance(softwareFilamentTemperature, int) :
+			softwareFilamentTemperature = self.get_settings_defaults()["FilamentTemperature"]
+		
 		softwareFilamentType = str(self._settings.get(["FilamentType"]))
+		if not isinstance(softwareFilamentType, str) :
+			softwareFilamentType = self.get_settings_defaults()["FilamentType"]
+		
 		softwareSpeedLimitX = self._settings.get_float(["SpeedLimitX"])
+		if not isinstance(softwareSpeedLimitX, float) :
+			softwareSpeedLimitX = self.get_settings_defaults()["SpeedLimitX"]
+		
 		softwareSpeedLimitY = self._settings.get_float(["SpeedLimitY"])
+		if not isinstance(softwareSpeedLimitY, float) :
+			softwareSpeedLimitY = self.get_settings_defaults()["SpeedLimitY"]
+		
 		softwareSpeedLimitZ = self._settings.get_float(["SpeedLimitZ"])
+		if not isinstance(softwareSpeedLimitZ, float) :
+			softwareSpeedLimitZ = self.get_settings_defaults()["SpeedLimitZ"]
+		
 		softwareSpeedLimitEPositive = self._settings.get_float(["SpeedLimitEPositive"])
+		if not isinstance(softwareSpeedLimitEPositive, float) :
+			softwareSpeedLimitEPositive = self.get_settings_defaults()["SpeedLimitEPositive"]
+		
 		softwareSpeedLimitENegative = self._settings.get_float(["SpeedLimitENegative"])
+		if not isinstance(softwareSpeedLimitENegative, float) :
+			softwareSpeedLimitENegative = self.get_settings_defaults()["SpeedLimitENegative"]
 	
 		# Check if backlash Xs differ
 		commandList = []
@@ -6110,7 +6166,15 @@ class M3DFioPlugin(
 			if not hasattr(self, "linuxSleepService") or self.linuxSleepService is None :
 			
 				# Initialize DBus session
-				bus = dbus.SessionBus()
+				try :
+					bus = dbus.SessionBus()
+				
+				except dbus.DBusException :
+					
+					self.linuxSleepService = None
+			
+					# Return false
+					return False
 			
 				# Inhibit sleep service
 				try :
