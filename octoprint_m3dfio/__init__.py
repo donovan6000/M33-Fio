@@ -821,6 +821,9 @@ class M3DFioPlugin(
 		if os.path.isfile(configFile) :
 			os.remove(configFile)
 		
+		# Remove provided print files
+		self.removeProvidedPrintFiles()
+		
 		# Enable sleep
 		self.enableSleep()
 	
@@ -1103,10 +1106,10 @@ class M3DFioPlugin(
 				# Set file location and destination
 				if data["value"] == "Print Test Border" :
 					location = self._basefolder + "/static/files/test border.gcode"
-					destination = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "test border")
+					destination = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "test border.gco")
 				else :
 					location = self._basefolder + "/static/files/backlash calibration cylinder.gcode"
-					destination = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "backlash calibration cylinder")
+					destination = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "backlash calibration cylinder.gco")
 				
 				# Remove destination file if it already exists
 				if os.path.isfile(destination) :
@@ -2726,13 +2729,13 @@ class M3DFioPlugin(
 					self.resetPreprocessorSettings()
 			
 					# Check if printing test border
-					if payload.get("filename") == "test_border" :
+					if payload.get("filename") == os.path.basename(self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "test border.gco")) :
 			
 						# Set printing test border
 						self.printingTestBorder = True
 			
 					# Otherwise check if printing backlash calibration cylinder
-					elif payload.get("filename") == "backlash_calibration_cylinder" :
+					elif payload.get("filename") == os.path.basename(self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "backlash calibration cylinder.gco")) :
 			
 						# Set printing backlash calibration cylinder
 						self.printingBacklashCalibrationCylinder = True
@@ -2823,9 +2826,6 @@ class M3DFioPlugin(
 		
 			# Check if pre-processing on the fly
 			if self._settings.get_boolean(["PreprocessOnTheFly"]) :
-			
-				# Send last commands to printer
-				time.sleep(1)
 				
 				# Check if using shared library
 				if self.sharedLibrary and self._settings.get_boolean(["UseSharedLibrary"]) :
@@ -2847,6 +2847,9 @@ class M3DFioPlugin(
 			
 			# Clear pre-process on the fly ready
 			self.preprocessOnTheFlyReady = False
+			
+			# Remove provided print files
+			self.removeProvidedPrintFiles()
 			
 			# Enable sleep
 			self.enableSleep()
@@ -2875,8 +2878,30 @@ class M3DFioPlugin(
 			# Clear pre-process on the fly ready
 			self.preprocessOnTheFlyReady = False
 			
+			# Remove provided print files
+			self.removeProvidedPrintFiles()
+			
 			# Enable sleep
 			self.enableSleep()
+	
+	# Remove provided print files
+	def removeProvidedPrintFiles(self) :
+	
+		# Check if printing test border
+		if self.printingTestBorder :
+		
+			# Remove destination file if it already exists
+			location = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "test border.gco")
+			if os.path.isfile(location) :
+				os.remove(location)
+
+		# Otherwise check if printing backlash calibration cylinder
+		elif self.printingBacklashCalibrationCylinder :
+		
+			# Remove destination file if it already exists
+			location = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "backlash calibration cylinder.gco")
+			if os.path.isfile(location) :
+				os.remove(location)
 	
 	# Is port open
 	def isPortOpen(self, port) :
