@@ -1106,10 +1106,10 @@ class M3DFioPlugin(
 				# Set file location and destination
 				if data["value"] == "Print Test Border" :
 					location = self._basefolder + "/static/files/test border.gcode"
-					destination = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "test border.gco")
+					destination = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "test border.gcode")
 				else :
 					location = self._basefolder + "/static/files/backlash calibration cylinder.gcode"
-					destination = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "backlash calibration cylinder.gco")
+					destination = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "backlash calibration cylinder.gcode")
 				
 				# Remove destination file if it already exists
 				if os.path.isfile(destination) :
@@ -2729,13 +2729,13 @@ class M3DFioPlugin(
 					self.resetPreprocessorSettings()
 			
 					# Check if printing test border
-					if payload.get("filename") == os.path.basename(self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "test border.gco")) :
+					if payload.get("filename") == os.path.basename(self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "test border.gcode")) :
 			
 						# Set printing test border
 						self.printingTestBorder = True
 			
 					# Otherwise check if printing backlash calibration cylinder
-					elif payload.get("filename") == os.path.basename(self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "backlash calibration cylinder.gco")) :
+					elif payload.get("filename") == os.path.basename(self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "backlash calibration cylinder.gcode")) :
 			
 						# Set printing backlash calibration cylinder
 						self.printingBacklashCalibrationCylinder = True
@@ -2891,7 +2891,7 @@ class M3DFioPlugin(
 		if self.printingTestBorder :
 		
 			# Remove destination file if it already exists
-			location = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "test border.gco")
+			location = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "test border.gcode")
 			if os.path.isfile(location) :
 				os.remove(location)
 
@@ -2899,7 +2899,7 @@ class M3DFioPlugin(
 		elif self.printingBacklashCalibrationCylinder :
 		
 			# Remove destination file if it already exists
-			location = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "backlash calibration cylinder.gco")
+			location = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "backlash calibration cylinder.gcode")
 			if os.path.isfile(location) :
 				os.remove(location)
 	
