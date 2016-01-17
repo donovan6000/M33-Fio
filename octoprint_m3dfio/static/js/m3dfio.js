@@ -23,6 +23,7 @@ $(function() {
 		var convertedModel = null;
 		var providedFirmware;
 		var messages = [];
+		var skippedMessages = 0;
 		var self = this;
 		
 		// Get state views
@@ -508,13 +509,10 @@ $(function() {
 		// Show message
 		function showMessage(header, text, secondButton, secondButtonCallback, firstButton, firstButtonCallback) {
 		
-			// Blur focused element
-			$("*:focus").blur();
-
 			// Get message
 			var message = $("body > div.page-container > div.message");
-			
-			// Check if message is already being shown
+		
+			// Check if message is already being shown that needs confirmation
 			if(message.css("z-index") == "9999" && message.find("button.confirm").eq(1).hasClass("show")) {
 			
 				// Append message to list
@@ -527,78 +525,130 @@ $(function() {
 					firstButtonCallback: firstButtonCallback
 				});
 			}
-			
+		
 			// Otherwise
 			else {
 			
-				// Set header and text
-				message.find("h4").text(header);
-				message.find("p").html(text);
-	
-				// Set first button if specified
-				var buttons = message.find("button.confirm");
-				if(typeof firstButton === "undefined")
-					buttons.eq(0).removeClass("show");
-				else
-					buttons.eq(0).text(firstButton).addClass("show");
-	
-				// Set second button if specified
-				if(typeof secondButton === "undefined")
-					buttons.eq(1).removeClass("show");
-				else
-					buttons.eq(1).text(secondButton).addClass("show");
-	
-				// Hide button area and show loading if no buttons are specified
-				if(typeof secondButton === "undefined" && typeof firstButton === "undefined") {
-					$("body > div.page-container > div.message > div > div > div").removeClass("show");
-					$("body > div.page-container > div.message > div > img").addClass("show");
-				}
-			
-				// Otherwise show button area and hide loading
+				// Skip message
+				if(skippedMessages)
+					skippedMessages--;
+				
+				// Otherwise
 				else {
-					$("body > div.page-container > div.message > div > div > div:not(.calibrate)").addClass("show");
-					$("body > div.page-container > div.message > div > img").removeClass("show");
-				
-					// Show calibration menu or print settings if applicable
-					$("body > div.page-container > div.message > div > div > div.calibrate, body > div.page-container > div.message > div > div > div.printSettings").removeClass("show");
-					if(secondButton == "Done")
-						$("body > div.page-container > div.message > div > div > div.calibrate").addClass("show");
-					else if(secondButton == "Print") {
-						$("body > div.page-container > div.message > div > div > div.printSettings input").val(self.settings.settings.plugins.m3dfio.FilamentTemperature());
-						$("body > div.page-container > div.message > div > div > div.printSettings select").val(self.settings.settings.plugins.m3dfio.FilamentType());
-						$("body > div.page-container > div.message > div > div > div.printSettings").addClass("show");
+		
+					// Blur focused element
+					$("*:focus").blur();
+		
+					// Set header and text
+					message.find("h4").text(header);
+					message.find("p").html(text);
+
+					// Set first button if specified
+					var buttons = message.find("button.confirm");
+					if(typeof firstButton === "undefined")
+						buttons.eq(0).removeClass("show");
+					else
+						buttons.eq(0).text(firstButton).addClass("show");
+
+					// Set second button if specified
+					if(typeof secondButton === "undefined")
+						buttons.eq(1).removeClass("show");
+					else
+						buttons.eq(1).text(secondButton).addClass("show");
+
+					// Hide button area and show loading if no buttons are specified
+					if(typeof secondButton === "undefined" && typeof firstButton === "undefined") {
+						$("body > div.page-container > div.message > div > div > div").removeClass("show");
+						$("body > div.page-container > div.message > div > img").addClass("show");
 					}
+		
+					// Otherwise show button area and hide loading
+					else {
+						$("body > div.page-container > div.message > div > div > div:not(.calibrate)").addClass("show");
+						$("body > div.page-container > div.message > div > img").removeClass("show");
+			
+						// Show calibration menu or print settings if applicable
+						$("body > div.page-container > div.message > div > div > div.calibrate, body > div.page-container > div.message > div > div > div.printSettings").removeClass("show");
+						if(secondButton == "Done")
+							$("body > div.page-container > div.message > div > div > div.calibrate").addClass("show");
+						else if(secondButton == "Print") {
+							$("body > div.page-container > div.message > div > div > div.printSettings input").val(self.settings.settings.plugins.m3dfio.FilamentTemperature());
+							$("body > div.page-container > div.message > div > div > div.printSettings select").val(self.settings.settings.plugins.m3dfio.FilamentType());
+							$("body > div.page-container > div.message > div > div > div.printSettings").addClass("show");
+						}
+					}
+			
+					// Attach function callbacks
+					if(typeof firstButtonCallback === "function")
+						buttons.eq(0).one("click", firstButtonCallback);
+					else
+						buttons.eq(0).off("click");
+					if(typeof secondButtonCallback === "function")
+						buttons.eq(1).one("click", secondButtonCallback);
+					else
+						buttons.eq(1).off("click");
+			
+					// Show message
+					message.addClass("show").css("z-index", "9999");
 				}
-				
-				// Attach function callbacks
-				if(typeof firstButtonCallback === "function")
-					buttons.eq(0).one("click", firstButtonCallback);
-				else
-					buttons.eq(0).off("click");
-				if(typeof secondButtonCallback === "function")
-					buttons.eq(1).one("click", secondButtonCallback);
-				else
-					buttons.eq(1).off("click");
-				
-				// Show message
-				message.addClass("show").css("z-index", "9999");
 			}
 		}
 
 		// Hide message
 		function hideMessage() {
 		
-			// Hide message
-			$("body > div.page-container > div.message").removeClass("show").css("z-index", '').find("button.confirm").off("click");
+			// Get message
+			var message = $("body > div.page-container > div.message");
 			
-			// Check if more messages exist
-			if(messages.length) {
+			// Check if a message is shown
+			if(message.hasClass("show")) {
 			
-				// Show next message
-				var message = messages.shift();
-				showMessage(message.header, message.text, message.secondButton, message.secondButtonCallback, message.firstButton, message.firstButtonCallback);
+				// Hide message
+				message.removeClass("show").find("button.confirm").off("click");
+			
+				setTimeout(function() {
+			
+					message.css("z-index", '')
+				}, 300);
 			}
+		
+			// Otherwise
+			else
+			
+				// Increment skipped messages
+				skippedMessages++;
 		}
+		
+		// Show stored messages
+		setInterval(function() {
+		
+			// Get message
+			var message = $("body > div.page-container > div.message");
+		
+			// Check if a messages need to be skipped and a message is being displayed that doesn't need confirmation
+			if(skippedMessages && message.hasClass("show") && !message.find("button.confirm").eq(1).hasClass("show")) {
+			
+				// Hide message
+				skippedMessages--;
+				hideMessage();
+			}
+		
+			// Check if more messages exist and they can be displayed
+			if(messages.length && message.css("z-index") != "9999") {
+			
+				// Skip messages
+				while(skippedMessages && messages.length) {
+					skippedMessages--;
+					messages.shift();
+				}
+				
+				// Show next message
+				if(messages.length) {
+					var message = messages.shift();
+					showMessage(message.header, message.text, message.secondButton, message.secondButtonCallback, message.firstButton, message.firstButtonCallback);
+				}
+			}
+		}, 500);
 		
 		// Save file
 		function saveFile(blob, name) {
@@ -3493,7 +3543,7 @@ $(function() {
 		// Upload with expanded file support
 		function uploadWithExpandedFileSupport(event, file, location) {
 			
-			// Check if uploading a OBJ, M3D, AMF, VRML, or Collada file
+			// Check if uploading a OBJ, M3D, AMF, VRML, or COLLADA file
 			var extension = file.name.lastIndexOf('.');
 			if(extension != -1 && (file.name.substr(extension + 1).toLowerCase() == "obj" || file.name.substr(extension + 1).toLowerCase() == "m3d" || file.name.substr(extension + 1).toLowerCase() == "amf" || file.name.substr(extension + 1).toLowerCase() == "wrl" || file.name.substr(extension + 1).toLowerCase() == "dae")) {
 			
@@ -4735,7 +4785,6 @@ $(function() {
 				// Set commands
 				var commands = [
 					"M109 S" + parseInt($(this).text().substr(12)),
-					"G4 S2",
 					"M65536;wait"
 				];
 			
@@ -4744,9 +4793,11 @@ $(function() {
 			
 				// Display temperature
 				var updateTemperature = setInterval(function() {
-			
+				
 					// Show message
-					showMessage("Temperature Status", "Warming up: " + self.temperature.temperatures.tool0.actual[self.temperature.temperatures.tool0.actual.length - 1][1] + "°C");
+					var temperature = self.temperature.temperatures.tool0.actual[self.temperature.temperatures.tool0.actual.length - 1][1];
+					if(temperature != 0)
+						showMessage("Filament Status", "Warming up: " + temperature + "°C");
 				}, 1000);
 			}
 			
@@ -4795,7 +4846,6 @@ $(function() {
 				// Set commands
 				var commands = [
 					"M190 S" + parseInt($(this).text().substr(12)),
-					"G4 S2",
 					"M65536;wait"
 				];
 			
@@ -4804,9 +4854,11 @@ $(function() {
 			
 				// Display temperature
 				var updateTemperature = setInterval(function() {
-			
+				
 					// Show message
-					showMessage("Temperature Status", "Warming up: " + self.temperature.temperatures.bed.actual[self.temperature.temperatures.bed.actual.length - 1][1] + "°C");
+					var temperature = self.temperature.temperatures.bed.actual[self.temperature.temperatures.bed.actual.length - 1][1];
+					if(temperature != 0)
+						showMessage("Filament Status", "Warming up: " + temperature + "°C");
 				}, 1000);
 			}
 			
@@ -4865,7 +4917,6 @@ $(function() {
 			var commands = [
 				"M106",
 				"M109 S250",
-				"G4 S2",
 				"M65536;wait"
 			];
 			
@@ -4873,7 +4924,9 @@ $(function() {
 			var updateTemperature = setInterval(function() {
 			
 				// Show message
-				showMessage("Filament Status", "Warming up: " + self.temperature.temperatures.tool0.actual[self.temperature.temperatures.tool0.actual.length - 1][1] + "°C");
+				var temperature = self.temperature.temperatures.tool0.actual[self.temperature.temperatures.tool0.actual.length - 1][1];
+				if(temperature != 0)
+					showMessage("Filament Status", "Warming up: " + temperature + "°C");
 			}, 1000);
 			
 			// Send request
@@ -4899,7 +4952,7 @@ $(function() {
 						"G92"
 					];
 			
-					for(var i = 2; i <= 30; i += 2)
+					for(var i = 2; i <= 40; i += 2)
 						commands.push("G0 E-" + i + " F345");
 	
 					commands.push("M104 S0");
@@ -4946,7 +4999,6 @@ $(function() {
 			var commands = [
 				"M106",
 				"M109 S250",
-				"G4 S2",
 				"M65536;wait"
 			];
 			
@@ -4954,7 +5006,9 @@ $(function() {
 			var updateTemperature = setInterval(function() {
 			
 				// Show message
-				showMessage("Filament Status", "Warming up: " + self.temperature.temperatures.tool0.actual[self.temperature.temperatures.tool0.actual.length - 1][1] + "°C");
+				var temperature = self.temperature.temperatures.tool0.actual[self.temperature.temperatures.tool0.actual.length - 1][1];
+				if(temperature != 0)
+					showMessage("Filament Status", "Warming up: " + temperature + "°C");
 			}, 1000);
 		
 			// Send request
@@ -4980,7 +5034,7 @@ $(function() {
 						"G92"
 					];
 				
-					for(var i = 2; i <= 30; i += 2)
+					for(var i = 2; i <= 40; i += 2)
 						commands.push("G0 E" + i + " F345");
 		
 					commands.push("M104 S0");

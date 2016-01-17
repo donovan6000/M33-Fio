@@ -948,7 +948,7 @@ class M3DFioPlugin(
 				if data["value"][-1] == "M65536;wait" :
 				
 					# Wait until all commands have been sent or interrupted
-					while self.waiting :
+					while self.waiting and not self.lastResponseWasWait :
 						time.sleep(0.01)
 				
 					# Send response
@@ -2195,12 +2195,6 @@ class M3DFioPlugin(
 	
 		# Check if printing
 		if self._printer.is_printing() :
-		
-			# Check if not ready to print
-			if not self.printReady or not self.preprocessOnTheFlyReady :
-		
-				# Clear last response was wait
-				self.lastResponseWasWait = False
 			
 			# Wait until print is ready
 			while not self.printReady :
@@ -2307,7 +2301,7 @@ class M3DFioPlugin(
 				if self._printer.is_printing() and gcode.hasValue('N') :
 				
 					# Limit the amount of commands that can simultaneous be sent to the printer
-					while len(self.sentLineNumbers) >= 1 :
+					while len(self.sentLineNumbers) >= 5 :
 						time.sleep(0.01)
 					
 					# Get line number
@@ -2446,11 +2440,11 @@ class M3DFioPlugin(
 
 			# Set error response
 			if response[6 : 10] == "1000" :
-				response = "ok M110 without line number\n"
+				response = "ok M110 without a line number\n"
 			elif response[6 : 10] == "1001" :
 				response = "ok Cannot cold extrude\n"
 			elif response[6 : 10] == "1002" :
-				response = "ok Cannot calibrate in unknown state\n"
+				response = "ok Cannot calibrate in an unknown state\n"
 			elif response[6 : 10] == "1003" :
 				response = "ok Unknown G-Code\n"
 			elif response[6 : 10] == "1004" :
@@ -2471,6 +2465,9 @@ class M3DFioPlugin(
 				response = "ok An error has occured\n"
 			else :
 				response = "ok " +  response[6 :]
+			
+			# Send message
+			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = response[3 : -1], confirm = True))
 		
 		# Return response
 		return response
@@ -2817,13 +2814,10 @@ class M3DFioPlugin(
 				
 						# Stop printing
 						self._printer.cancel_print()
-				
-						# Hide message
-						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Hide Message"))
 			
 					# Set pre-process on the fly ready
 					self.preprocessOnTheFlyReady = True
-			
+					
 					# Hide message
 					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Hide Message"))
 			
