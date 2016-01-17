@@ -1168,6 +1168,8 @@ $(function() {
 						var loader = new THREE.AMFLoader();
 					else if(type == "wrl")
 						var loader = new THREE.VRMLLoader();
+					else if(type == "dae")
+						var loader = new THREE.ColladaLoader();
 					else {
 						viewport.modelLoaded = true;
 						return;
@@ -1190,8 +1192,10 @@ $(function() {
 						else if(type == "m3d")
 							mesh.rotation.set(-Math.PI / 2, 0, -Math.PI / 2);
 						else if(type == "amf")
-							mesh.rotation.set(-Math.PI / 2, 0, -Math.PI / 2);
+							mesh.rotation.set(0, 0, 0);
 						else if(type == "wrl")
+							mesh.rotation.set(0, 0, 0);
+						else if(type == "dae")
 							mesh.rotation.set(0, 0, 0);
 						mesh.updateMatrix();
 						mesh.geometry.applyMatrix(mesh.matrix);
@@ -1599,6 +1603,8 @@ $(function() {
 						else if(model.type == "amf")
 							model.mesh.rotation.set(-Math.PI / 2, 0, Math.PI);
 						else if(model.type == "wrl")
+							model.mesh.rotation.set(-Math.PI / 2, 0, Math.PI);
+						else if(model.type == "dae")
 							model.mesh.rotation.set(-Math.PI / 2, 0, Math.PI);
 						model.mesh.scale.set(1, 1, 1);
 						model.mesh.updateMatrix();
@@ -3039,6 +3045,8 @@ $(function() {
 				var loader = new THREE.AMFLoader();
 			else if(type == "wrl")
 				var loader = new THREE.VRMLLoader();
+			else if(type == "dae")
+				var loader = new THREE.ColladaLoader();
 		
 			// Load model
 			return loader.load(file, function(geometry) {
@@ -3052,8 +3060,10 @@ $(function() {
 				else if(type == "m3d")
 					mesh.rotation.set(0, 0, Math.PI / 2);
 				else if(type == "amf")
-					mesh.rotation.set(0, 0, Math.PI / 2);
+					mesh.rotation.set(-Math.PI / 2, 0, Math.PI);
 				else if(type == "wrl")
+					mesh.rotation.set(-Math.PI / 2, 0, Math.PI);
+				else if(type == "dae")
 					mesh.rotation.set(-Math.PI / 2, 0, Math.PI);
 			
 				// Set model's orientation
@@ -3483,9 +3493,9 @@ $(function() {
 		// Upload with expanded file support
 		function uploadWithExpandedFileSupport(event, file, location) {
 			
-			// Check if uploading a OBJ, M3D, AMF, or VRML
+			// Check if uploading a OBJ, M3D, AMF, VRML, or Collada file
 			var extension = file.name.lastIndexOf('.');
-			if(extension != -1 && (file.name.substr(extension + 1).toLowerCase() == "obj" || file.name.substr(extension + 1).toLowerCase() == "m3d" || file.name.substr(extension + 1).toLowerCase() == "amf" || file.name.substr(extension + 1).toLowerCase() == "wrl")) {
+			if(extension != -1 && (file.name.substr(extension + 1).toLowerCase() == "obj" || file.name.substr(extension + 1).toLowerCase() == "m3d" || file.name.substr(extension + 1).toLowerCase() == "amf" || file.name.substr(extension + 1).toLowerCase() == "wrl" || file.name.substr(extension + 1).toLowerCase() == "dae")) {
 			
 				// Stop default behavior
 				event.preventDefault();
@@ -3864,7 +3874,7 @@ $(function() {
 																	<button data-color="Black" title="Black"><span style="background-color: #404040;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
 																</div>
 																<div class="model">
-																	<input type="file" accept=".stl, .obj, .m3d, .amf, .wrl">
+																	<input type="file" accept=".stl, .obj, .m3d, .amf, .wrl, .dae">
 																	<button class="import" title="Import"><img src="/plugin/m3dfio/static/img/import.png"></button>
 																	<button class="translate disabled" title="Translate"><img src="/plugin/m3dfio/static/img/translate.png"></button>
 																	<button class="rotate" title="Rotate"><img src="/plugin/m3dfio/static/img/rotate.png"></button>
@@ -3920,6 +3930,9 @@ $(function() {
 																var extension = this.files[0].name.lastIndexOf('.');
 																var type = extension != -1 ? this.files[0].name.substr(extension + 1).toLowerCase() : "stl";
 																var url = URL.createObjectURL(this.files[0]);
+																
+																// Clear value
+																$(this).val('');
 
 																// Display cover
 																$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").text("Loading model…");

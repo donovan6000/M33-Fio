@@ -496,7 +496,18 @@ THREE.AMFLoader.prototype = {
 
 		}
 
-		return sceneObject;
+		var mergedGeometry = new THREE.Geometry();
+		
+		sceneObject.traverse( function ( object ) {
+
+			if( ( object instanceof THREE.Mesh ) ) {
+				
+				mergedGeometry.merge( new THREE.Geometry().fromBufferGeometry( object.geometry ) );
+				
+			}
+		} );
+
+		return mergedGeometry;
 
 	}
 
