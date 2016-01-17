@@ -57,6 +57,15 @@
 	width: calc(100% - 61px);
 }
 
+#settings_plugin_m3dfio div.control-group.dependant {
+	margin-left: 30px;
+}
+
+#settings_plugin_m3dfio div.control-group.disabled {
+	opacity: 0.5;
+	pointer-events: none;
+}
+
 #navbar_plugin_m3dfio {
 	display: inline;
 	position: absolute;
@@ -359,12 +368,7 @@ body > div.page-container > div.message > div > div > div:not(.calibrate) > butt
 	display: inline;
 	width: 70px;
 	visibility: hidden;
-	margin-right: 1px;
-}
-
-body > div.page-container > div.message > div > div > div:not(.calibrate) > button:first-of-type {
-	position: relative;
-	top: 3px;
+	margin:0 1px 0 0;
 }
 
 body > div.page-container > div.message > div > div > div.calibrate, body > div.page-container > div.message > div > div > div.printSettings {

@@ -23,7 +23,6 @@ $(function() {
 		var convertedModel = null;
 		var providedFirmware;
 		var messages = [];
-		var removeMessageTimeout;
 		var self = this;
 		
 		// Get state views
@@ -516,7 +515,7 @@ $(function() {
 			var message = $("body > div.page-container > div.message");
 			
 			// Check if message is already being shown
-			if(message.hasClass("show") && message.find("button.confirm").eq(1).hasClass("show")) {
+			if(message.css("z-index") == "9999" && message.find("button.confirm").eq(1).hasClass("show")) {
 			
 				// Append message to list
 				messages.push({
@@ -581,9 +580,6 @@ $(function() {
 				else
 					buttons.eq(1).off("click");
 				
-				// Clear remove message timeout
-				clearTimeout(removeMessageTimeout);
-				
 				// Show message
 				message.addClass("show").css("z-index", "9999");
 			}
@@ -593,7 +589,7 @@ $(function() {
 		function hideMessage() {
 		
 			// Hide message
-			$("body > div.page-container > div.message").removeClass("show").find("button.confirm").off("click");
+			$("body > div.page-container > div.message").removeClass("show").css("z-index", '').find("button.confirm").off("click");
 			
 			// Check if more messages exist
 			if(messages.length) {
@@ -602,14 +598,6 @@ $(function() {
 				var message = messages.shift();
 				showMessage(message.header, message.text, message.secondButton, message.secondButtonCallback, message.firstButton, message.firstButtonCallback);
 			}
-			
-			// Otherwise
-			else
-			
-				// Hide message
-				removeMessageTimeout = setTimeout(function() {
-					$("body > div.page-container > div.message").css("z-index", '');
-				}, 300);
 		}
 		
 		// Save file
@@ -1115,7 +1103,7 @@ $(function() {
 						// Add boundaries to scene
 						this.boundaries[i].geometry.computeFaceNormals();
 						this.boundaries[i].geometry.computeVertexNormals();
-						this.boundaries[i].position.x -= -extruderCenterX;
+						this.boundaries[i].position.x += extruderCenterX;
 						this.boundaries[i].position.z -= extruderCenterY;
 						this.boundaries[i].visible = false;
 						
@@ -1176,6 +1164,10 @@ $(function() {
 						var loader = new THREE.OBJLoader();
 					else if(type == "m3d")
 						var loader = new THREE.M3DLoader();
+					else if(type == "amf")
+						var loader = new THREE.AMFLoader();
+					else if(type == "wrl")
+						var loader = new THREE.VRMLLoader();
 					else {
 						viewport.modelLoaded = true;
 						return;
@@ -1197,6 +1189,10 @@ $(function() {
 							mesh.rotation.set(0, 0, 0);
 						else if(type == "m3d")
 							mesh.rotation.set(-Math.PI / 2, 0, -Math.PI / 2);
+						else if(type == "amf")
+							mesh.rotation.set(-Math.PI / 2, 0, -Math.PI / 2);
+						else if(type == "wrl")
+							mesh.rotation.set(0, 0, 0);
 						mesh.updateMatrix();
 						mesh.geometry.applyMatrix(mesh.matrix);
 						mesh.position.set(0, 0, 0);
@@ -1572,8 +1568,8 @@ $(function() {
 					viewport.sceneExported = false;
 
 					// Initialize variables
-					var centerX = 0;
-					var centerZ = 0;
+					var centerX = -(extruderCenterX - (bedLowMaxX + bedLowMinX) / 2);
+					var centerZ = extruderCenterY - (bedLowMaxY + bedLowMinY) / 2;
 					var mergedGeometry = new THREE.Geometry();
 				
 					// Go through all models
@@ -1600,6 +1596,10 @@ $(function() {
 							model.mesh.rotation.set(Math.PI / 2, Math.PI, 0);
 						else if(model.type == "m3d")
 							model.mesh.rotation.set(Math.PI / 2, Math.PI, 0);
+						else if(model.type == "amf")
+							model.mesh.rotation.set(-Math.PI / 2, 0, Math.PI);
+						else if(model.type == "wrl")
+							model.mesh.rotation.set(-Math.PI / 2, 0, Math.PI);
 						model.mesh.scale.set(1, 1, 1);
 						model.mesh.updateMatrix();
 
@@ -3035,12 +3035,14 @@ $(function() {
 				var loader = new THREE.OBJLoader();
 			else if(type == "m3d")
 				var loader = new THREE.M3DLoader();
-			else
-				var loader = new THREE.STLLoader();
+			else if(type == "amf")
+				var loader = new THREE.AMFLoader();
+			else if(type == "wrl")
+				var loader = new THREE.VRMLLoader();
 		
 			// Load model
 			return loader.load(file, function(geometry) {
-		
+				
 				// Create model's mesh
 				var mesh = new THREE.Mesh(geometry);
 			
@@ -3049,8 +3051,10 @@ $(function() {
 					mesh.rotation.set(Math.PI / 2, Math.PI, 0);
 				else if(type == "m3d")
 					mesh.rotation.set(0, 0, Math.PI / 2);
-				else
-					mesh.rotation.set(0, 0, 0);
+				else if(type == "amf")
+					mesh.rotation.set(0, 0, Math.PI / 2);
+				else if(type == "wrl")
+					mesh.rotation.set(-Math.PI / 2, 0, Math.PI);
 			
 				// Set model's orientation
 				mesh.position.set(0, 0, 0);
@@ -3397,6 +3401,71 @@ $(function() {
 			}
 		});
 		
+		// Disable settings
+		function disableSettings() {
+			
+			// Go through all settings
+			$("#settings_plugin_m3dfio div.control-group").each(function() {
+		
+				// Initialize variables
+				var parent = $(this)
+				var checked = $(this).find("input[type=\"checkbox\"]").is(":checked");
+		
+				// Go through all dependant values
+				while(parent.next().length && parent.next().hasClass("dependant")) {
+			
+					parent = parent.next();
+				
+					// Check if value is enabled
+					if(checked)
+				
+						// Allow setting dependant value
+						parent.removeClass("disabled");
+				
+					// Otherwise
+					else
+				
+						// Disable setting dependant value
+						parent.addClass("disabled");
+				}
+			});
+		}
+		
+		if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
+			self.settings.requestData(disableSettings);
+		else
+			self.settings.requestData().done(disableSettings);
+		
+		// Settings checkbox change event
+		$("#settings_plugin_m3dfio input[type=\"checkbox\"]").change(function() {
+		
+			// Initialize variables
+			var parent = $(this).closest("div.control-group");
+			var checked = $(this).is(":checked");
+			
+			// Go through all dependant values
+			while(parent.next().length && parent.next().hasClass("dependant")) {
+			
+				parent = parent.next();
+				
+				// Check if value is enabled
+				if(checked)
+				
+					// Allow setting dependant value
+					parent.removeClass("disabled");
+				
+				// Otherwise
+				else {
+				
+					// Disable setting dependant value
+					parent.addClass("disabled");
+					
+					if(parent.find("input[type=\"checkbox\"]").is(":checked"))
+						parent.find("input[type=\"checkbox\"]").trigger("click");
+				}
+			}
+		});
+		
 		// Drag and drop upload file event
 		$("#drop_locally, #drop, #drop_sd").on("drop", function(event) {
 		
@@ -3414,9 +3483,9 @@ $(function() {
 		// Upload with expanded file support
 		function uploadWithExpandedFileSupport(event, file, location) {
 			
-			// Check if uploading a Wavefront OBJ or M3D
+			// Check if uploading a OBJ, M3D, AMF, or VRML
 			var extension = file.name.lastIndexOf('.');
-			if(extension != -1 && (file.name.substr(extension + 1).toLowerCase() == "obj" || file.name.substr(extension + 1).toLowerCase() == "m3d")) {
+			if(extension != -1 && (file.name.substr(extension + 1).toLowerCase() == "obj" || file.name.substr(extension + 1).toLowerCase() == "m3d" || file.name.substr(extension + 1).toLowerCase() == "amf" || file.name.substr(extension + 1).toLowerCase() == "wrl")) {
 			
 				// Stop default behavior
 				event.preventDefault();
@@ -3795,7 +3864,7 @@ $(function() {
 																	<button data-color="Black" title="Black"><span style="background-color: #404040;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
 																</div>
 																<div class="model">
-																	<input type="file" accept=".stl, .obj, .m3d">
+																	<input type="file" accept=".stl, .obj, .m3d, .amf, .wrl">
 																	<button class="import" title="Import"><img src="/plugin/m3dfio/static/img/import.png"></button>
 																	<button class="translate disabled" title="Translate"><img src="/plugin/m3dfio/static/img/translate.png"></button>
 																	<button class="rotate" title="Rotate"><img src="/plugin/m3dfio/static/img/rotate.png"></button>
@@ -6589,12 +6658,16 @@ $(function() {
 			// Otherwise check if data is to save software settings
 			else if(data.value == "Save Software Settings") {
 			
-				// Update settings
-				self.settings.requestData(function() {
-				
-					// Save software settings
+				// Save software settings
+				function saveSoftwareSettings() {
 					self.settings.saveData();
-				});
+				}
+				
+				// Update settings
+				if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
+					self.settings.requestData(saveSoftwareSettings);
+				else
+					self.settings.requestData().done(saveSoftwareSettings);
 			}
 			
 			// Otherwise check if data is EEPROM
