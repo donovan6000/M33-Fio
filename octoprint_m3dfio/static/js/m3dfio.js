@@ -23,6 +23,7 @@ $(function() {
 		var convertedModel = null;
 		var providedFirmware;
 		var messages = [];
+		var removeMessageTimeout;
 		var self = this;
 		
 		// Get state views
@@ -580,6 +581,9 @@ $(function() {
 				else
 					buttons.eq(1).off("click");
 				
+				// Clear remove message timeout
+				clearTimeout(removeMessageTimeout);
+				
 				// Show message
 				message.addClass("show").css("z-index", "9999");
 			}
@@ -603,9 +607,8 @@ $(function() {
 			else
 			
 				// Hide message
-				setTimeout(function() {
-					if(!messages.length)
-						$("body > div.page-container > div.message").css("z-index", '');
+				removeMessageTimeout = setTimeout(function() {
+					$("body > div.page-container > div.message").css("z-index", '');
 				}, 300);
 		}
 		
@@ -4839,11 +4842,11 @@ $(function() {
 								hideMessage();
 							}, "No", function() {
 							
-								// Unload filament again
-								$("#control > div.jog-panel.filament").find("div > button:nth-of-type(1)").click();
-								
 								// Hide message
 								hideMessage();
+							
+								// Unload filament again
+								$("#control > div.jog-panel.filament").find("div > button:nth-of-type(1)").click();
 							});
 						}
 					});
@@ -4920,11 +4923,11 @@ $(function() {
 								hideMessage();
 							}, "No", function() {
 							
-								// Load filament again
-								$("#control > div.jog-panel.filament").find("div > button:nth-of-type(2)").click();
-				
 								// Hide message
 								hideMessage();
+							
+								// Load filament again
+								$("#control > div.jog-panel.filament").find("div > button:nth-of-type(2)").click();
 							});
 						}
 					});
@@ -5368,8 +5371,8 @@ $(function() {
 			// Show message
 			showMessage("Calibration Status", "It's recommended to print this test border after completely calibrating the bed to ensure that the calibration is accurate. The test border should print as a solid, even extruded border, and the 'Back Left Offset', 'Back Right Offset', 'Front Right Offset', and 'Front Left Offset' values can be adjusted to correct any issues with it. If the test border contains squiggly ripples, then it is too high. If the test border contains missing gaps, then it is too low. It's also recommended to print a model with a raft after this is done to see if the 'Bed Height Offset' value needs to be adjusted. If the raft does not securely stick to the bed, then it is too high. If the model isn't easily removed from the raft, then it is too low. All the referenced values can be found by clicking the 'Print settings' button in the 'General' section. Proceed?", "Yes", function() {
 			
-				// Disable clicking
-				$("body > div.page-container > div.message").find("button.confirm").off("click");
+				// Hide message
+				hideMessage();
 				
 				// Send request
 				$.ajax({
@@ -5379,6 +5382,7 @@ $(function() {
 					data: JSON.stringify({command: "message", value: "Print Test Border"}),
 					contentType: "application/json; charset=UTF-8"
 				});
+				
 			}, "No", function() {
 			
 				// Hide message
@@ -5392,8 +5396,8 @@ $(function() {
 			// Show message
 			showMessage("Calibration Status", "It's recommended to print this backlash calibration cylinder after the print bed has been accurately calibrated. To start this procedure, the 'Backlash X' and 'Backlash Y' values should be set to 0 so that an uncompensated cylinder can be printed. The cylinder's X backlash signature gaps are located at 2 and 8 o'clock and Y backlash signature gaps are located at 5 and 11 o'clock. The front left corner of the cylinder's base is cut off to make identifying the cylinder's orientation easier. After printing an initial cylinder, adjust the 'Backlash X' value to close the X signature gaps, print, and repeat if necessary to ensure the accuracy. 'Backlash X' values typically range within 0.2mm to 0.6mm. After the 'Backlash X' value has been calibrated, adjust the 'Backlash Y' value to close the Y signature gaps, print, and repeat if necessary to ensure the accuracy. 'Backlash Y' values typically range within 0.4mm to 1.3mm. You may need fine tune the 'Backlash X' vale again after 'Backlash Y' value has been calibrated. All the referenced values can be found by clicking the 'Print settings' button in the 'General' section. Proceed?", "Yes", function() {
 			
-				// Disable clicking
-				$("body > div.page-container > div.message").find("button.confirm").off("click");
+				// Hide message
+				hideMessage();
 				
 				// Send request
 				$.ajax({
@@ -5415,6 +5419,9 @@ $(function() {
 			
 			// Show message
 			showMessage("Calibration Status", "This process can take a while to complete and will require your input during some steps. Proceed?", "Yes", function() {
+			
+				// Hide message
+				hideMessage();
 				
 				// Show message
 				showMessage("Calibration Status", "Calibrating bed center Z0");
@@ -5499,6 +5506,9 @@ $(function() {
 										// Show message
 										showMessage("Calibration Status", "Lower the print head until it barely touches the bed. One way to get to that point is to place a single sheet of paper on the bed under the print head, and lower the print head until the paper can no longer be moved.", "Done", function() {
 		
+											// Hide message
+											hideMessage();
+											
 											// Set commands
 											var commands = [
 												"M114",
@@ -5560,6 +5570,9 @@ $(function() {
 																	// Show message
 																	showMessage("Calibration Status", "Lower the print head until it barely touches the bed. One way to get to that point is to place a single sheet of paper on the bed under the print head, and lower the print head until the paper can no longer be moved.", "Done", function() {
 		
+																		// Hide message
+																		hideMessage();
+																		
 																		// Set commands
 																		var commands = [
 																			"M114",
@@ -5621,6 +5634,9 @@ $(function() {
 																								// Show message
 																								showMessage("Calibration Status", "Lower the print head until it barely touches the bed. One way to get to that point is to place a single sheet of paper on the bed under the print head, and lower the print head until the paper can no longer be moved.", "Done", function() {
 		
+																									// Hide message
+																									hideMessage();
+																									
 																									// Set commands
 																									var commands = [
 																										"M114",
@@ -5682,6 +5698,9 @@ $(function() {
 																															// Show message
 																															showMessage("Calibration Status", "Lower the print head until it barely touches the bed. One way to get to that point is to place a single sheet of paper on the bed under the print head, and lower the print head until the paper can no longer be moved.", "Done", function() {
 		
+																																// Hide message
+																																hideMessage();
+																																
 																																// Set commands
 																																var commands = [
 																																	"M114",
@@ -6404,7 +6423,10 @@ $(function() {
 			
 				// Show message
 				showMessage("Message", "It's recommended that you install the <a href=\"https://ultimaker.com/en/products/cura-software/list\" target=\"_blank\">latest Cura 15.04 release</a> on this server to fully utilize M3D Fio's capabilities", "Ok", function() {
-						
+					
+					// Hide message
+					hideMessage();
+					
 					// Send request
 					$.ajax({
 						url: API_BASEURL + "plugin/m3dfio",
@@ -6413,9 +6435,6 @@ $(function() {
 						data: JSON.stringify({command: "message", value: "Disable Reminder: Cura"}),
 						contentType: "application/json; charset=UTF-8"
 					});
-					
-					// Hide message
-					hideMessage();
 				});
 			}
 			
@@ -6425,6 +6444,9 @@ $(function() {
 				// Show message
 				showMessage("Message", "It's recommended that you disable this server's sleep functionality while printing", "Ok", function() {
 				
+					// Hide message
+					hideMessage();
+					
 					// Send request
 					$.ajax({
 						url: API_BASEURL + "plugin/m3dfio",
@@ -6433,9 +6455,6 @@ $(function() {
 						data: JSON.stringify({command: "message", value: "Disable Reminder: Sleep"}),
 						contentType: "application/json; charset=UTF-8"
 					});
-					
-					// Hide message
-					hideMessage();
 				});
 			}
 			
@@ -6473,6 +6492,9 @@ $(function() {
 			
 				// Show message
 				showMessage("Message", '', "Print", function() {
+				
+					// Hide message
+					hideMessage();
 					
 					// Send request
 					$.ajax({
@@ -6495,10 +6517,10 @@ $(function() {
 							self.settings.requestData();
 						}
 					});
-					
+				}, "Cancel", function() {
+				
 					// Hide message
 					hideMessage();
-				}, "Cancel", function() {
 					
 					// Send request
 					$.ajax({
@@ -6508,9 +6530,6 @@ $(function() {
 						data: JSON.stringify({command: "message", value: "Cancel Print"}),
 						contentType: "application/json; charset=UTF-8"
 					});
-					
-					// Hide message
-					hideMessage();
 				});
 			}
 			
@@ -6613,6 +6632,9 @@ $(function() {
 				
 					// Display message
 					showMessage("Error Status", "Invalid bed center Z0. Calibrate?", "Yes", function() {
+					
+						// Hide message
+						hideMessage();
 						
 						// Show message
 						showMessage("Error Status", "Calibrating bed center Z0");
@@ -6646,6 +6668,9 @@ $(function() {
 				
 									// Display message
 									showMessage("Error Status", "Invalid bed orientation. Calibrate?", "Yes", function() {
+									
+										// Hide message
+										hideMessage();
 						
 										// Show message
 										showMessage("Error Status", "Calibrating bed orientation");
@@ -6719,6 +6744,9 @@ $(function() {
 				
 					// Display message
 					showMessage("Error Status", "Invalid bed orientation. Calibrate?", "Yes", function() {
+					
+						// Hide message
+						hideMessage();
 						
 						// Show message
 						showMessage("Error Status", "Calibrating bed orientation");
@@ -6790,8 +6818,8 @@ $(function() {
 					// Display message
 					showMessage("Error Status", htmlEncode(data.message), "Yes", function() {
 		
-						// Disable clicking
-						$("body > div.page-container > div.message").find("button.confirm").off("click");
+						// Hide message
+						hideMessage();
 						
 						// Send request
 						$.ajax({
@@ -6802,6 +6830,9 @@ $(function() {
 							contentType: "application/json; charset=UTF-8"
 						});
 					}, "No", function() {
+					
+						// Hide message
+						hideMessage();
 						
 						// Send request
 						$.ajax({
@@ -6811,9 +6842,6 @@ $(function() {
 							data: JSON.stringify({command: "message", value: "No"}),
 							contentType: "application/json; charset=UTF-8"
 						});
-						
-						// Hide message
-						hideMessage();
 					});
 				}
 				
@@ -6822,6 +6850,9 @@ $(function() {
 				
 					// Display message
 					showMessage("Error Status", htmlEncode(data.message), "Ok", function() {
+					
+						// Hide message
+						hideMessage();
 						
 						// Send request
 						$.ajax({
@@ -6831,9 +6862,6 @@ $(function() {
 							data: JSON.stringify({command: "message", value: $(this).text()}),
 							contentType: "application/json; charset=UTF-8"
 						});
-						
-						// Hide message
-						hideMessage();
 					});
 				}
 				
