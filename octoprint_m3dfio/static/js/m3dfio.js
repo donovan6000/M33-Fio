@@ -17,6 +17,8 @@ $(function() {
 		var slicerProfileContent;
 		var printerProfileName;
 		var afterSlicingAction;
+		var gCodeFileName;
+		var printFileAfterSlicing = null;
 		var modelCenter = [0, 0];
 		var currentZ;
 		var viewport = null;
@@ -24,6 +26,7 @@ $(function() {
 		var providedFirmware;
 		var messages = [];
 		var skippedMessages = 0;
+		var continueWithPrint = false;
 		var self = this;
 		
 		// Get state views
@@ -3163,7 +3166,7 @@ $(function() {
 			<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'G90'}) }" title="Sets extruder to use absolute positioning">Absolute mode</button>
 			<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'G91'}) }" title="Sets extruder to use relative positioning">Relative mode</button>
 			<button class="btn btn-block control-box" data-bind="enable: loginState.isUser()">Print settings</button>
-			<button class="btn btn-block control-box" data-bind="enable: isOperational() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M65537;stop*'}) }" title="Stop current operation">Emergency stop</button>
+			<button class="btn btn-block control-box" data-bind="enable: isOperational() && loginState.isUser()">Emergency stop</button>
 		`);
 	
 		// Add filament controls
@@ -3369,14 +3372,157 @@ $(function() {
 		$("div.navbar-inner div.container").css("position", "relative");
 		$("div.navbar-inner ul.nav.pull-right").css("position", "static");
 		
-		// Cancel print button click
-		$("#job_cancel").click(function() {
-	
+		// Replace load file function
+		var originalLoadFile = self.files.loadFile;
+		self.files.loadFile = function(file, printAfterLoad) {
+		
+			// Check if using on the fly pre-processing and changing settings before print
+			if(self.settings.settings.plugins.m3dfio.PreprocessOnTheFly() && self.settings.settings.plugins.m3dfio.ChangeSettingsBeforePrint()) {
+			
+				// Show message
+				showMessage("Message", '', "Print", function() {
+			
+					// Hide message
+					hideMessage();
+				
+					// Send request
+					$.ajax({
+						url: API_BASEURL + "plugin/m3dfio",
+						type: "POST",
+						dataType: "json",
+						data: JSON.stringify({
+							command: "message",
+							value: "Print Settings: " + JSON.stringify({
+								filamentTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").val(),
+								filamentType: $("body > div.page-container > div.message > div > div > div.printSettings select").val()
+							})
+						}),
+						contentType: "application/json; charset=UTF-8",
+					
+						// On success										
+						success: function() {
+					
+							// Print file
+							function printFile() {
+							
+								// Save software settings
+								self.settings.saveData();
+								
+								// Load file and print
+								originalLoadFile(file, printAfterLoad);
+							}
+						
+							// Update settings
+							if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
+								self.settings.requestData(printFile);
+							else
+								self.settings.requestData().done(printFile);
+						}
+					});
+				}, "Cancel", function() {
+			
+					// Hide message
+					hideMessage();
+				});
+			}
+			
+			// Otherwise
+			else
+			
+				// Print file
+				originalLoadFile(file, printAfterLoad);
+		}
+		
+		// Print button click event
+		$("#job_print").click(function(event) {
+		
+			// Initialize variables
+			var button = $(this);
+			
+			// Check if not continuing with print 
+			if(!continueWithPrint) {
+			
+				// Check if using on the fly pre-processing and changing settings before print
+				if(self.settings.settings.plugins.m3dfio.PreprocessOnTheFly() && self.settings.settings.plugins.m3dfio.ChangeSettingsBeforePrint()) {
+				
+					// Stop default behavior
+					event.stopImmediatePropagation();
+			
+					// Show message
+					showMessage("Message", '', "Print", function() {
+			
+						// Hide message
+						hideMessage();
+				
+						// Send request
+						$.ajax({
+							url: API_BASEURL + "plugin/m3dfio",
+							type: "POST",
+							dataType: "json",
+							data: JSON.stringify({
+								command: "message",
+								value: "Print Settings: " + JSON.stringify({
+									filamentTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").val(),
+									filamentType: $("body > div.page-container > div.message > div > div > div.printSettings select").val()
+								})
+							}),
+							contentType: "application/json; charset=UTF-8",
+					
+							// On success										
+							success: function() {
+					
+								// Print file
+								function printFile() {
+							
+									// Save software settings
+									self.settings.saveData();
+								
+									// Continue with print
+									continueWithPrint= true;
+									button.click();
+								}
+						
+								// Update settings
+								if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
+									self.settings.requestData(printFile);
+								else
+									self.settings.requestData().done(printFile);
+							}
+						});
+					}, "Cancel", function() {
+			
+						// Hide message
+						hideMessage();
+					});
+				}
+			
+				// Otherwise
+				else {
+			
+					// Continue with print
+					continueWithPrint= true;
+					button.click();
+				}
+			}
+			
+			// Otherwise
+			else
+			
+				// Clear continue with print
+				continueWithPrint = false;
+		});
+		
+		// Cancel print button click event
+		$("#job_cancel").click(function(event) {
+		
+			// Stop default behavior
+			event.stopImmediatePropagation();
+		
 			// Set commands
 			var commands = [
 				"M65537;stop"
 			];
-		
+	
 			// Send request
 			$.ajax({
 				url: API_BASEURL + "plugin/m3dfio",
@@ -3700,6 +3846,7 @@ $(function() {
 					slicerName = $("#slicing_configuration_dialog").find(".control-group:nth-of-type(1) select").val();
 					slicerProfileName = $("#slicing_configuration_dialog").find(".control-group:nth-of-type(2) select").val();
 					printerProfileName = $("#slicing_configuration_dialog").find(".control-group:nth-of-type(3) select").val();
+					gCodeFileName = $("#slicing_configuration_dialog").find(".control-group:nth-of-type(4) input").val() + ".gco";
 					
 					modelLocation = self.slicing.target;
 					
@@ -4485,6 +4632,12 @@ $(function() {
 											slicerMenu = "Done";
 									
 											// Slice
+											if(afterSlicingAction == "print") {
+												self.slicing.afterSlicing("none");
+												printFileAfterSlicing = "/api/files/" + modelLocation + modelPath + gCodeFileName;
+											}
+											else
+												printFileAfterSlicing = null;
 											button.removeClass("disabled").click();
 										}
 									});
@@ -4905,6 +5058,19 @@ $(function() {
 			$("#navbar_show_settings").click();
 			$("#settings_plugin_m3dfio").addClass("active").siblings(".active").removeClass("active");
 			$("#settings_plugin_m3dfio_link").addClass("active").siblings(".active").removeClass("active");
+		});
+		
+		// Emergency stop control
+		$("#control > div.jog-panel.general").find("button:nth-of-type(8)").attr("title", "Stop current operation").click(function() {
+		
+			// Send request
+			$.ajax({
+				url: API_BASEURL + "plugin/m3dfio",
+				type: "POST",
+				dataType: "json",
+				data: JSON.stringify({command: "message", value: "Emergency Stop"}),
+				contentType: "application/json; charset=UTF-8"
+			});
 		});
 	
 		// Set unload filament control
@@ -6623,52 +6789,6 @@ $(function() {
 				});
 			}
 			
-			// Otherwise check if data is to that print is not ready
-			else if(data.value == "Print Not Ready") {
-			
-				// Show message
-				showMessage("Message", '', "Print", function() {
-				
-					// Hide message
-					hideMessage();
-					
-					// Send request
-					$.ajax({
-						url: API_BASEURL + "plugin/m3dfio",
-						type: "POST",
-						dataType: "json",
-						data: JSON.stringify({
-							command: "message",
-							value: "Print Ready: " + JSON.stringify({
-								filamentTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").val(),
-								filamentType: $("body > div.page-container > div.message > div > div > div.printSettings select").val()
-							})
-						}),
-						contentType: "application/json; charset=UTF-8",
-						
-						// On success										
-						success: function() {
-					
-							// Update settings
-							self.settings.requestData();
-						}
-					});
-				}, "Cancel", function() {
-				
-					// Hide message
-					hideMessage();
-					
-					// Send request
-					$.ajax({
-						url: API_BASEURL + "plugin/m3dfio",
-						type: "POST",
-						dataType: "json",
-						data: JSON.stringify({command: "message", value: "Cancel Print"}),
-						contentType: "application/json; charset=UTF-8"
-					});
-				});
-			}
-			
 			// Otherwise check if data is process details
 			else if(data.value == "Process Details" && typeof data.processes !== "undefined") {
 			
@@ -7029,6 +7149,22 @@ $(function() {
 		
 			// Disable managing OctoPrint instances
 			$("#navbar_plugin_m3dfio > select > option").last().prop("disabled", true).prev().prop("disabled", true);
+		}
+		
+		// Slicing done event
+		self.onEventSlicingDone = function() {
+		
+			// Check if printing file after slicing and a printer is connected
+			if(printFileAfterSlicing !== null && self.printerState.stateString() !== "Offline") {
+			
+				// Load file and print
+				var file = {
+					refs: {
+						resource: printFileAfterSlicing 
+					}
+				}
+				self.files.loadFile(file, true);
+			}
 		}
 	}
 
