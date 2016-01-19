@@ -1227,6 +1227,10 @@ class M3DFioPlugin(
 					# Copy file to destination
 					shutil.copyfile(location, destination)
 				
+				# Set correct file location for Windows
+				if platform.uname()[0].startswith("Windows") :
+					destination = destination.replace('/', '\\')
+				
 				# Print test border
 				self._printer.select_file(destination, False, True)
 			
@@ -2504,14 +2508,21 @@ class M3DFioPlugin(
 		
 			# Move original files back
 			os.remove(self.slicerChanges.get("Slicer Profile Location"))
-			shutil.move(self.slicerChanges.get("Slicer Profile Temporary"), self.slicerChanges.get("Slicer Profile Location"))
+			shutil.copyfile(self.slicerChanges.get("Slicer Profile Temporary"), self.slicerChanges.get("Slicer Profile Location"))
 			os.remove(self.slicerChanges.get("Model Location"))
-			shutil.move(self.slicerChanges.get("Model Temporary"), self.slicerChanges.get("Model Location"))
+			shutil.copyfile(self.slicerChanges.get("Model Temporary"), self.slicerChanges.get("Model Location"))
 		
 			# Restore printer profile
 			self._printer_profile_manager.save(self.slicerChanges.get("Printer Profile Content"), True)
 			
 			self.slicerChanges = None
+			
+			# Attempt to temporary files
+			try :
+				os.remove(self.slicerChanges.get("Slicer Profile Temporary"))
+				os.remove(self.slicerChanges.get("Model Temporary"))
+			except Exception :
+				pass
 	
 	# Set file locations
 	def setFileLocations(self) :

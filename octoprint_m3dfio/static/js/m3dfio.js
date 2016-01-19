@@ -4668,9 +4668,22 @@ $(function() {
 
 									// On success										
 									success: function() {
-										
-										// Apply changes
-										applyChanges();
+									
+										// Slice file
+										function sliceFile() {
+							
+											// Save software settings
+											self.settings.saveData();
+								
+											// Apply changes
+											applyChanges();
+										}
+						
+										// Update settings
+										if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
+											self.settings.requestData(sliceFile);
+										else
+											self.settings.requestData().done(sliceFile);
 									}
 								});
 							}, "Cancel", function() {
@@ -4678,7 +4691,7 @@ $(function() {
 								// Hide message
 								hideMessage();
 								
-								// Don't clice file
+								// Don't click file
 								button.prev('a').click();
 							});
 						}
@@ -5720,14 +5733,73 @@ $(function() {
 				// Hide message
 				hideMessage();
 				
-				// Send request
-				$.ajax({
-					url: API_BASEURL + "plugin/m3dfio",
-					type: "POST",
-					dataType: "json",
-					data: JSON.stringify({command: "message", value: "Print Test Border"}),
-					contentType: "application/json; charset=UTF-8"
-				});
+				// Check if using on the fly pre-processing and changing settings before print
+				if(self.settings.settings.plugins.m3dfio.PreprocessOnTheFly() && self.settings.settings.plugins.m3dfio.ChangeSettingsBeforePrint()) {
+				
+					// Show message
+					showMessage("Message", '', "Print", function() {
+			
+						// Hide message
+						hideMessage();
+				
+						// Send request
+						$.ajax({
+							url: API_BASEURL + "plugin/m3dfio",
+							type: "POST",
+							dataType: "json",
+							data: JSON.stringify({
+								command: "message",
+								value: "Print Settings: " + JSON.stringify({
+									filamentTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").val(),
+									filamentType: $("body > div.page-container > div.message > div > div > div.printSettings select").val()
+								})
+							}),
+							contentType: "application/json; charset=UTF-8",
+					
+							// On success										
+							success: function() {
+					
+								// Print file
+								function printFile() {
+							
+									// Save software settings
+									self.settings.saveData();
+								
+									// Send request
+									$.ajax({
+										url: API_BASEURL + "plugin/m3dfio",
+										type: "POST",
+										dataType: "json",
+										data: JSON.stringify({command: "message", value: "Print Test Border"}),
+										contentType: "application/json; charset=UTF-8"
+									});
+								}
+						
+								// Update settings
+								if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
+									self.settings.requestData(printFile);
+								else
+									self.settings.requestData().done(printFile);
+							}
+						});
+					}, "Cancel", function() {
+			
+						// Hide message
+						hideMessage();
+					});
+				}
+				
+				// Otherwise
+				else
+				
+					// Send request
+					$.ajax({
+						url: API_BASEURL + "plugin/m3dfio",
+						type: "POST",
+						dataType: "json",
+						data: JSON.stringify({command: "message", value: "Print Test Border"}),
+						contentType: "application/json; charset=UTF-8"
+					});
 				
 			}, "No", function() {
 			
@@ -5745,14 +5817,74 @@ $(function() {
 				// Hide message
 				hideMessage();
 				
-				// Send request
-				$.ajax({
-					url: API_BASEURL + "plugin/m3dfio",
-					type: "POST",
-					dataType: "json",
-					data: JSON.stringify({command: "message", value: "Print Backlash Calibration Cylinder"}),
-					contentType: "application/json; charset=UTF-8"
-				});
+				// Check if using on the fly pre-processing and changing settings before print
+				if(self.settings.settings.plugins.m3dfio.PreprocessOnTheFly() && self.settings.settings.plugins.m3dfio.ChangeSettingsBeforePrint()) {
+				
+					// Show message
+					showMessage("Message", '', "Print", function() {
+			
+						// Hide message
+						hideMessage();
+				
+						// Send request
+						$.ajax({
+							url: API_BASEURL + "plugin/m3dfio",
+							type: "POST",
+							dataType: "json",
+							data: JSON.stringify({
+								command: "message",
+								value: "Print Settings: " + JSON.stringify({
+									filamentTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").val(),
+									filamentType: $("body > div.page-container > div.message > div > div > div.printSettings select").val()
+								})
+							}),
+							contentType: "application/json; charset=UTF-8",
+					
+							// On success										
+							success: function() {
+					
+								// Print file
+								function printFile() {
+							
+									// Save software settings
+									self.settings.saveData();
+								
+									// Send request
+									$.ajax({
+										url: API_BASEURL + "plugin/m3dfio",
+										type: "POST",
+										dataType: "json",
+										data: JSON.stringify({command: "message", value: "Print Backlash Calibration Cylinder"}),
+										contentType: "application/json; charset=UTF-8"
+									});
+								}
+						
+								// Update settings
+								if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
+									self.settings.requestData(printFile);
+								else
+									self.settings.requestData().done(printFile);
+							}
+						});
+					}, "Cancel", function() {
+			
+						// Hide message
+						hideMessage();
+					});
+				}
+				
+				// Otherwise
+				else
+				
+					// Send request
+					$.ajax({
+						url: API_BASEURL + "plugin/m3dfio",
+						type: "POST",
+						dataType: "json",
+						data: JSON.stringify({command: "message", value: "Print Backlash Calibration Cylinder"}),
+						contentType: "application/json; charset=UTF-8"
+					});
+			
 			}, "No", function() {
 			
 				// Hide message
