@@ -58,6 +58,8 @@ $(function() {
 		var bedHighMinZ = bedMediumMaxZ
 		var extruderCenterX = (bedLowMaxX + bedLowMinX) / 2;
 		var extruderCenterY = (bedLowMaxY + bedLowMinY + 14.0) / 2;
+		var modelCenterOffsetX = -2.0;
+		var modelCenterOffsetY = -2.0;
 		
 		// Set printer materials
 		var printerMaterials = {
@@ -1625,8 +1627,8 @@ $(function() {
 					viewport.sceneExported = false;
 
 					// Initialize variables
-					var centerX = -(extruderCenterX - (bedLowMaxX + bedLowMinX) / 2);
-					var centerZ = extruderCenterY - (bedLowMaxY + bedLowMinY) / 2;
+					var centerX = -(extruderCenterX - (bedLowMaxX + bedLowMinX) / 2) + modelCenterOffsetX;
+					var centerZ = extruderCenterY - (bedLowMaxY + bedLowMinY) / 2 + modelCenterOffsetY;
 					var mergedGeometry = new THREE.Geometry();
 				
 					// Go through all models

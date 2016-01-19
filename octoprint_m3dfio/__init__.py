@@ -327,8 +327,10 @@ class M3DFioPlugin(
 		self.bedHighMinY = 9.0
 		self.bedHighMaxZ = 112.0
 		self.bedHighMinZ = self.bedMediumMaxZ
-		self.extruderCenterX = (self.bedLowMaxX + self.bedLowMinX) / 2
-		self.extruderCenterY = (self.bedLowMaxY + self.bedLowMinY + 14.0) / 2
+		self.bedWidth = 121.0
+		self.bedDepth = 121.0
+		self.bedCenterOffsetX = 8.5
+		self.bedCenterOffsetY = 2.0
 		
 		# Chip details
 		self.chipName = "ATxmega32C4"
@@ -4375,21 +4377,21 @@ class M3DFioPlugin(
 	def collectPrintInformation(self, file) :
 	
 		# Initialize variables
-		localX = 54
-		localY = 50
-		localZ = 0.4
+		localX = None
+		localY = None
+		localZ = None
 		relativeMode = False
 		tier = "Low"
 		gcode = Gcode()
 		
 		# Reset all print values
-		self.maxXExtruderLow = 0
-		self.maxXExtruderMedium = 0
-		self.maxXExtruderHigh = 0
-		self.maxYExtruderLow = 0
-		self.maxYExtruderMedium = 0
-		self.maxYExtruderHigh = 0
-		self.maxZExtruder = 0
+		self.maxXExtruderLow = -sys.float_info.max
+		self.maxXExtruderMedium = -sys.float_info.max
+		self.maxXExtruderHigh = -sys.float_info.max
+		self.maxYExtruderLow = -sys.float_info.max
+		self.maxYExtruderMedium = -sys.float_info.max
+		self.maxYExtruderHigh = -sys.float_info.max
+		self.maxZExtruder = -sys.float_info.max
 		self.minXExtruderLow = sys.float_info.max
 		self.minXExtruderMedium = sys.float_info.max
 		self.minXExtruderHigh = sys.float_info.max
@@ -4415,6 +4417,8 @@ class M3DFioPlugin(
 			
 						# Set local X
 						if relativeMode :
+							if localX is None :
+								localX = 54
 							localX += commandX
 						else :
 							localX = commandX
@@ -4427,6 +4431,8 @@ class M3DFioPlugin(
 			
 						# Set local Y
 						if relativeMode :
+							if localY is None :
+								localY = 50
 							localY += commandY
 						else :
 							localY = commandY
@@ -4439,6 +4445,8 @@ class M3DFioPlugin(
 			
 						# Set local Z
 						if relativeMode :
+							if localZ is None :
+								localZ = 0.4
 							localZ += commandZ
 						else :
 							localZ = commandZ
@@ -4463,33 +4471,47 @@ class M3DFioPlugin(
 					if not self._settings.get_boolean(["IgnorePrintDimensionLimitations"]) and not self.printingTestBorder and not self.printingBacklashCalibrationCylinder and not self._settings.get_boolean(["UseCenterModelPreprocessor"]) :
 			
 						# Return false if X or Y are out of bounds				
-						if tier == "Low" and (localX < self.bedLowMinX or localX > self.bedLowMaxX or localY < self.bedLowMinY or localY > self.bedLowMaxY) :
+						if tier == "Low" and ((localX is not None and (localX < self.bedLowMinX or localX > self.bedLowMaxX)) or (localY is not None and (localY < self.bedLowMinY or localY > self.bedLowMaxY))) :
 							return False
 			
-						elif tier == "Medium" and (localX < self.bedMediumMinX or localX > self.bedMediumMaxX or localY < self.bedMediumMinY or localY > self.bedMediumMaxY) :
+						elif tier == "Medium" and ((localX is not None and (localX < self.bedMediumMinX or localX > self.bedMediumMaxX)) or (localY is not None and (localY < self.bedMediumMinY or localY > self.bedMediumMaxY))) :
 							return False
 
-						elif tier == "High" and (localX < self.bedHighMinX or localX > self.bedHighMaxX or localY < self.bedHighMinY or localY > self.bedHighMaxY) :
+						elif tier == "High" and ((localX is not None and (localX < self.bedHighMinX or localX > self.bedHighMaxX)) or (localY is not None and (localY < self.bedHighMinY or localY > self.bedHighMaxY))) :
 							return False
 				
 					# Update minimums and maximums dimensions of extruder
 					if tier == "Low" :
-						self.minXExtruderLow = min(self.minXExtruderLow, localX)
-						self.maxXExtruderLow = max(self.maxXExtruderLow, localX)
-						self.minYExtruderLow = min(self.minYExtruderLow, localY)
-						self.maxYExtruderLow = max(self.maxYExtruderLow, localY)
+						if localX is not None :
+							self.minXExtruderLow = min(self.minXExtruderLow, localX)
+							self.maxXExtruderLow = max(self.maxXExtruderLow, localX)
+						if localY is not None :
+							self.minYExtruderLow = min(self.minYExtruderLow, localY)
+							self.maxYExtruderLow = max(self.maxYExtruderLow, localY)
 					elif tier == "Medium" :
-						self.minXExtruderMedium = min(self.minXExtruderMedium, localX)
-						self.maxXExtruderMedium = max(self.maxXExtruderMedium, localX)
-						self.minYExtruderMedium = min(self.minYExtruderMedium, localY)
-						self.maxYExtruderMedium = max(self.maxYExtruderMedium, localY)
+						if localX is not None :
+							self.minXExtruderMedium = min(self.minXExtruderMedium, localX)
+							self.maxXExtruderMedium = max(self.maxXExtruderMedium, localX)
+						if localY is not None :
+							self.minYExtruderMedium = min(self.minYExtruderMedium, localY)
+							self.maxYExtruderMedium = max(self.maxYExtruderMedium, localY)
 					else :
-						self.minXExtruderHigh = min(self.minXExtruderHigh, localX)
-						self.maxXExtruderHigh = max(self.maxXExtruderHigh, localX)
-						self.minYExtruderHigh = min(self.minYExtruderHigh, localY)
-						self.maxYExtruderHigh = max(self.maxYExtruderHigh, localY)
-					self.minZExtruder = min(self.minZExtruder, localZ)
-					self.maxZExtruder = max(self.maxZExtruder, localZ)
+						if localX is not None :
+							self.minXExtruderHigh = min(self.minXExtruderHigh, localX)
+							self.maxXExtruderHigh = max(self.maxXExtruderHigh, localX)
+						if localY is not None :
+							self.minYExtruderHigh = min(self.minYExtruderHigh, localY)
+							self.maxYExtruderHigh = max(self.maxYExtruderHigh, localY)
+					if localZ is not None :
+						self.minZExtruder = min(self.minZExtruder, localZ)
+						self.maxZExtruder = max(self.maxZExtruder, localZ)
+				
+				# Otherwise check if command is G28
+				elif gcode.getValue('G') == "28" :
+
+					# Set X and Y to home
+					localX = 54
+					localY = 50
 		
 				# Otherwise check if command is G90
 				elif gcode.getValue('G') == "90" :
@@ -4507,26 +4529,34 @@ class M3DFioPlugin(
 		if self._settings.get_boolean(["UseCenterModelPreprocessor"]) and not self.printingTestBorder and not self.printingBacklashCalibrationCylinder :
 	
 			# Calculate adjustments
-			self.displacementX = (self.bedLowMaxX - max(self.maxXExtruderLow, max(self.maxXExtruderMedium, self.maxXExtruderHigh)) - min(self.minXExtruderLow, min(self.minXExtruderMedium, self.minXExtruderHigh)) + self.bedLowMinX) / 2
-			self.displacementY = (self.bedLowMaxY - max(self.maxYExtruderLow, max(self.maxYExtruderMedium, self.maxYExtruderHigh)) - min(self.minYExtruderLow, min(self.minYExtruderMedium, self.minYExtruderHigh)) + self.bedLowMinY) / 2
+			self.displacementX = (self.bedWidth - self.bedCenterOffsetX - max(self.maxXExtruderLow, max(self.maxXExtruderMedium, self.maxXExtruderHigh)) - min(self.minXExtruderLow, min(self.minXExtruderMedium, self.minXExtruderHigh)) - self.bedCenterOffsetX) / 2
+			self.displacementY = (self.bedDepth - self.bedCenterOffsetY - max(self.maxYExtruderLow, max(self.maxYExtruderMedium, self.maxYExtruderHigh)) - min(self.minYExtruderLow, min(self.minYExtruderMedium, self.minYExtruderHigh)) - self.bedCenterOffsetY) / 2
 			
-			# Accound for extruder's displacement
-			self.displacementX -= self.extruderCenterX - (self.bedLowMaxX + self.bedLowMinX) / 2
-			self.displacementY -= self.extruderCenterY - (self.bedLowMaxY + self.bedLowMinY) / 2
-	
 			# Adjust print values
-			self.maxXExtruderLow += self.displacementX
-			self.maxXExtruderMedium += self.displacementX
-			self.maxXExtruderHigh += self.displacementX
-			self.maxYExtruderLow += self.displacementY
-			self.maxYExtruderMedium += self.displacementY
-			self.maxYExtruderHigh += self.displacementY
-			self.minXExtruderLow += self.displacementX
-			self.minXExtruderMedium += self.displacementX
-			self.minXExtruderHigh += self.displacementX
-			self.minYExtruderLow += self.displacementY
-			self.minYExtruderMedium += self.displacementY
-			self.minYExtruderHigh += self.displacementY
+			if self.maxXExtruderLow != -sys.float_info.max :
+				self.maxXExtruderLow += self.displacementX
+			if self.maxXExtruderMedium != -sys.float_info.max :
+				self.maxXExtruderMedium += self.displacementX
+			if self.maxXExtruderHigh != -sys.float_info.max :
+				self.maxXExtruderHigh += self.displacementX
+			if self.maxYExtruderLow != -sys.float_info.max :
+				self.maxYExtruderLow += self.displacementY
+			if self.maxYExtruderMedium != -sys.float_info.max :
+				self.maxYExtruderMedium += self.displacementY
+			if self.maxYExtruderHigh != -sys.float_info.max :
+				self.maxYExtruderHigh += self.displacementY
+			if self.minXExtruderLow != sys.float_info.max :
+				self.minXExtruderLow += self.displacementX
+			if self.minXExtruderMedium != sys.float_info.max :
+				self.minXExtruderMedium += self.displacementX
+			if self.minXExtruderHigh != sys.float_info.max :
+				self.minXExtruderHigh += self.displacementX
+			if self.minYExtruderLow != sys.float_info.max :
+				self.minYExtruderLow += self.displacementY
+			if self.minYExtruderMedium != sys.float_info.max :
+				self.minYExtruderMedium += self.displacementY
+			if self.minYExtruderHigh != sys.float_info.max :
+				self.minYExtruderHigh += self.displacementY
 			
 			# Check if not ignoring print dimension limitations and adjusted print values are out of bounds
 			if not self._settings.get_boolean(["IgnorePrintDimensionLimitations"]) and (self.minZExtruder < self.bedLowMinZ or self.maxZExtruder > self.bedHighMaxZ or self.maxXExtruderLow > self.bedLowMaxX or self.maxXExtruderMedium > self.bedMediumMaxX or self.maxXExtruderHigh > self.bedHighMaxX or self.maxYExtruderLow > self.bedLowMaxY or self.maxYExtruderMedium > self.bedMediumMaxY or self.maxYExtruderHigh > self.bedHighMaxY or self.minXExtruderLow < self.bedLowMinX or self.minXExtruderMedium < self.bedMediumMinX or self.minXExtruderHigh < self.bedHighMinX or self.minYExtruderLow < self.bedLowMinY or self.minYExtruderMedium < self.bedMediumMinY or self.minYExtruderHigh < self.bedHighMinY) :
@@ -4959,7 +4989,7 @@ class M3DFioPlugin(
 						newCommands.append(Command("M109 S" + str(self._settings.get_int(["FilamentTemperature"])), "PREPARATION", "CENTER VALIDATION PREPARATION"))
 						newCommands.append(Command("M17", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 						newCommands.append(Command("G0 Z-4 F48", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G0 E7.5 F360", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G0 E10 F360", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 						newCommands.append(Command("G4 S3", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 						newCommands.append(Command("G0 X%f Y%f Z-0.999 F400" % ((cornerX * 0.1), (cornerY * 0.1)), "PREPARATION", "CENTER VALIDATION PREPARATION"))
 						newCommands.append(Command("G0 X%f Y%f F1000" % ((cornerX * 0.9), (cornerY * 0.9)), "PREPARATION", "CENTER VALIDATION PREPARATION"))
@@ -4991,24 +5021,37 @@ class M3DFioPlugin(
 					# Initialize new commands
 					newCommands = []
 					
+					# Set move Z
+					moveZ = self.maxZExtruder + 10
+					while moveZ > self.bedHighMaxZ and moveZ > self.maxZExtruder :
+						moveZ -= 1
+					
+					# Set move Y
+					startingMoveY = 0
+					maxMoveY = 0
+					if moveZ >= self.bedMediumMaxZ and self.maxYExtruderHigh != -sys.float_info.max :
+						startingMoveY = self.maxYExtruderHigh
+						maxMoveY = self.bedHighMaxY
+					elif moveZ >= self.bedLowMaxZ and self.maxYExtruderMedium != -sys.float_info.max :
+						startingMoveY = self.maxYExtruderMedium
+						maxMoveY = self.bedMediumMaxY
+					elif self.maxYExtruderLow != -sys.float_info.max :
+						startingMoveY = self.maxYExtruderLow
+						maxMoveY = self.bedLowMaxY
+					
+					moveY = startingMoveY + 20
+					while moveY > maxMoveY and moveZ > startingMoveY :
+						moveY -= 1
+					
 					# Add outro to output
+					newCommands.append(Command("G90", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G0 Y%f Z%f F1800" % ((moveY), (moveZ)), "PREPARATION", "CENTER VALIDATION PREPARATION"))
 					newCommands.append(Command("G91", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G0 X5 Y5 E-1 F1800", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 					newCommands.append(Command("G0 E-8 F360", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 					newCommands.append(Command("M104 S0", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 
 					if self.usingMicroPass :
 						newCommands.append(Command("M140 S0", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-
-					if self.maxZExtruder > 60 :
-						if self.maxZExtruder < 110 :
-							newCommands.append(Command("G0 Z3 F90", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G90", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G0 X90 Y84 F1800", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					else :
-						newCommands.append(Command("G0 Z3 F90", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G90", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G0 X95 Y95 F1800", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 
 					newCommands.append(Command("M18", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 					newCommands.append(Command("M107", "PREPARATION", "CENTER VALIDATION PREPARATION"))
