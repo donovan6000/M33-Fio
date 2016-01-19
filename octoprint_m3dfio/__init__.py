@@ -2515,14 +2515,15 @@ class M3DFioPlugin(
 			# Restore printer profile
 			self._printer_profile_manager.save(self.slicerChanges.get("Printer Profile Content"), True)
 			
-			self.slicerChanges = None
-			
-			# Attempt to temporary files
+			# Attempt to remove temporary files
 			try :
 				os.remove(self.slicerChanges.get("Slicer Profile Temporary"))
 				os.remove(self.slicerChanges.get("Model Temporary"))
 			except Exception :
 				pass
+			
+			# Clear slicer changes
+			self.slicerChanges = None
 	
 	# Set file locations
 	def setFileLocations(self) :
