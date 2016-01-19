@@ -7326,6 +7326,44 @@ $(function() {
 			// Disable managing OctoPrint instances
 			$("#navbar_plugin_m3dfio > select > option").last().prop("disabled", true).prev().prop("disabled", true);
 		}
+		
+		// On server disconnect event
+		self.onServerDisconnect = function() {
+		
+			// Get message
+			var message = $("body > div.page-container > div.message");
+		
+			// Check if a progress message is being shown
+			if(message.hasClass("show") && !message.find("button.confirm").eq(1).hasClass("show")) {
+			
+				// Reset message system
+				messages = [];
+				skippedMessages = 0;
+		
+				// Show message
+				showMessage("Server Status", "You've been disconnected from the server which caused the operation you were currently preforming to fail. This page will now be refreshed to prevent further problems.", "Ok", function() {
+
+					// Hide message
+					hideMessage();
+					
+					// Refresh the page
+					location.reload();
+				});
+			}
+			
+			// Otherwise
+			else
+			
+				// Show message
+				showMessage("Server Status", "You've been disconnected from the server. This page will now be refreshed to prevent any problems.", "Ok", function() {
+
+					// Hide message
+					hideMessage();
+					
+					// Refresh the page
+					location.reload();
+				});
+		}
 	}
 
 	// Register plugin
