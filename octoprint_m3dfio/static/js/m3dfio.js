@@ -18,7 +18,6 @@ $(function() {
 		var printerProfileName;
 		var afterSlicingAction;
 		var gCodeFileName;
-		var printFileAfterSlicing = null;
 		var modelCenter = [0, 0];
 		var currentZ;
 		var viewport = null;
@@ -4552,100 +4551,143 @@ $(function() {
 					
 					// Otherwise check if on modify model menu
 					else if(slicerMenu == "Modify Model") {
+					
+						function applyChanges() {
 						
-						// Display cover
-						$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").text("Applying changes…");
+							// Display cover
+							$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").text("Applying changes…");
 						
-						setTimeout(function() {
+							setTimeout(function() {
 						
-							// Export scene as an STL
-							var scene = viewport.exportScene();
+								// Export scene as an STL
+								var scene = viewport.exportScene();
 			
-							// Append model's center to slicer profile if slicer is Cura
-							if(slicerName == "cura")
-								slicerProfileContent += "\nobject_center_x = " + modelCenter[0] + "\nobject_center_y = " + modelCenter[1] + '\n';
+								// Append model's center to slicer profile if slicer is Cura
+								if(slicerName == "cura")
+									slicerProfileContent += "\nobject_center_x = " + modelCenter[0] + "\nobject_center_y = " + modelCenter[1] + '\n';
 		
-							// Set parameter
-							var parameter = [
-								{
-									name: "Slicer Name",
-									value: slicerName
-								},
-								{
-									name: "Slicer Profile Name",
-									value: slicerProfileName
-								},
-								{
-									name: "Slicer Profile Content",
-									value: slicerProfileContent
-								},
-								{
-									name: "Model Name",
-									value: modelName
-								},
-								{
-									name: "Model Location",
-									value: modelLocation
-								},
-								{
-									name: "Model Path",
-									value: modelPath
-								},
-								{
-									name: "Printer Profile Name",
-									value: printerProfileName
-								},
-								{
-									name: "After Slicing Action",
-									value: afterSlicingAction
-								}
-							];
+								// Set parameter
+								var parameter = [
+									{
+										name: "Slicer Name",
+										value: slicerName
+									},
+									{
+										name: "Slicer Profile Name",
+										value: slicerProfileName
+									},
+									{
+										name: "Slicer Profile Content",
+										value: slicerProfileContent
+									},
+									{
+										name: "Model Name",
+										value: modelName
+									},
+									{
+										name: "Model Location",
+										value: modelLocation
+									},
+									{
+										name: "Model Path",
+										value: modelPath
+									},
+									{
+										name: "Printer Profile Name",
+										value: printerProfileName
+									},
+									{
+										name: "After Slicing Action",
+										value: afterSlicingAction
+									}
+								];
 	
-							// Send request
-							$.ajax({
-								url: "/plugin/m3dfio/upload",
-								type: "POST",
-								data: $.param(parameter),
-								dataType: "json",
-								contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+								// Send request
+								$.ajax({
+									url: "/plugin/m3dfio/upload",
+									type: "POST",
+									data: $.param(parameter),
+									dataType: "json",
+									contentType: "application/x-www-form-urlencoded; charset=UTF-8",
 
-								// On success
-								success: function(data) {
+									// On success
+									success: function(data) {
 								
-									// Create request
-									var form = new FormData();
-									if(typeof self.files.currentPath === "undefined")
-										form.append("file", scene, modelPath.substr(1) + modelName);
-									else
-										form.append("file", scene, modelPath + modelName);
+										// Create request
+										var form = new FormData();
+										if(typeof self.files.currentPath === "undefined")
+											form.append("file", scene, modelPath.substr(1) + modelName);
+										else
+											form.append("file", scene, modelPath + modelName);
 				
-									// Send request
-									$.ajax({
-										url: "/api/files/" + modelLocation,
-										type: "POST",
-										data: form,
-										processData: false,
-										contentType: false,
+										// Send request
+										$.ajax({
+											url: "/api/files/" + modelLocation,
+											type: "POST",
+											data: form,
+											processData: false,
+											contentType: false,
 
-										// On success
-										success: function(data) {
-			
-											// Set slicer menu to done
-											slicerMenu = "Done";
-									
-											// Slice
-											if(afterSlicingAction == "print") {
-												self.slicing.afterSlicing("none");
-												printFileAfterSlicing = "/api/files/" + modelLocation + modelPath + gCodeFileName;
+											// On success
+											success: function(data) {
+										
+												// Set slicer menu to done
+												slicerMenu = "Done";
+										
+												// Slice file
+												button.removeClass("disabled").click();
 											}
-											else
-												printFileAfterSlicing = null;
-											button.removeClass("disabled").click();
-										}
-									});
-								}
+										});
+									}
+								});
+							}, 300);
+						}
+					
+						// Check if printing after slicing, using on the fly pre-processing, changing settings before print, and a printer is connected
+						if(afterSlicingAction == "print" && self.settings.settings.plugins.m3dfio.PreprocessOnTheFly() && self.settings.settings.plugins.m3dfio.ChangeSettingsBeforePrint() && self.printerState.stateString() !== "Offline") {
+
+							// Show message
+							showMessage("Message", '', "Print", function() {
+
+								// Hide message
+								hideMessage();
+
+								// Send request
+								$.ajax({
+									url: API_BASEURL + "plugin/m3dfio",
+									type: "POST",
+									dataType: "json",
+									data: JSON.stringify({
+										command: "message",
+										value: "Print Settings: " + JSON.stringify({
+											filamentTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").val(),
+											filamentType: $("body > div.page-container > div.message > div > div > div.printSettings select").val()
+										})
+									}),
+									contentType: "application/json; charset=UTF-8",
+
+									// On success										
+									success: function() {
+										
+										// Apply changes
+										applyChanges();
+									}
+								});
+							}, "Cancel", function() {
+
+								// Hide message
+								hideMessage();
+								
+								// Don't clice file
+								button.prev('a').click();
 							});
-						}, 300);
+						}
+
+						// Otherwise
+						else
+
+							// Apply changes
+							applyChanges();
 					}
 				}
 			}
@@ -7151,22 +7193,6 @@ $(function() {
 		
 			// Disable managing OctoPrint instances
 			$("#navbar_plugin_m3dfio > select > option").last().prop("disabled", true).prev().prop("disabled", true);
-		}
-		
-		// Slicing done event
-		self.onEventSlicingDone = function() {
-		
-			// Check if printing file after slicing and a printer is connected
-			if(printFileAfterSlicing !== null && self.printerState.stateString() !== "Offline") {
-			
-				// Load file and print
-				var file = {
-					refs: {
-						resource: printFileAfterSlicing 
-					}
-				}
-				self.files.loadFile(file, true);
-			}
 		}
 	}
 
