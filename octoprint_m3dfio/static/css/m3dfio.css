@@ -203,14 +203,17 @@
 	display: none;
 }
 
-#control div.jog-panel.advanced button:nth-of-type(7) {
+#control div.jog-panel.advanced button.firmware {
 	height: auto;
 }
 
-#control div.jog-panel.advanced button > span {
-	display: inline-block;
+#control div.jog-panel.advanced button.placeHolder {
+	display: none;
+}
+
+#control div.jog-panel.advanced p {
 	font-size: 12px;
-	line-height: 0;
+	max-width: 175px;
 }
 
 #control div.jog-panel.eeprom {

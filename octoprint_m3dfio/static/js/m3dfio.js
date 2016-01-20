@@ -1,5 +1,6 @@
 // On start
 $(function() {
+
 	// Create view model
 	function M3DFioViewModel(parameters) {
 		
@@ -21,7 +22,6 @@ $(function() {
 		var currentZ;
 		var viewport = null;
 		var convertedModel = null;
-		var providedFirmware;
 		var messages = [];
 		var skippedMessages = 0;
 		var continueWithPrint = false;
@@ -3216,8 +3216,10 @@ $(function() {
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="/plugin/m3dfio/static/img/Xinyujie.png">Xinyujie fan</button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">500mA extruder current</button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">660mA extruder current</button>
-					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Update firmware to provided</button>
-					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Update firmware with file</button>
+					<button class="btn btn-block control-box placeHolder" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"></button>
+					<button class="btn btn-block control-box placeHolder" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"></button>
+					<button class="btn btn-block control-box placeHolder" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"></button>
+					<p></p>
 					<input type="file" accept=".rom, .bin, .hex">
 				</div>
 			</div>
@@ -6450,143 +6452,6 @@ $(function() {
 			});
 		});
 		
-		// Set update firmware to version control
-		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(7)").click(function(event) {
-		
-			// Show message
-			showMessage("Firmware Status", "Updating firmware");
-	
-			// Send request
-			$.ajax({
-				url: API_BASEURL + "plugin/m3dfio",
-				type: "POST",
-				dataType: "json",
-				data: JSON.stringify({command: "message", value: "Update Firmware To Provided"}),
-				contentType: "application/json; charset=UTF-8",
-	
-				// On success
-				success: function(data) {
-	
-					// Show message
-					showMessage("Firmware Status", data.value == "Ok" ? "Done" : "Failed", "Ok", function() {
-			
-						// Hide message
-						hideMessage();
-					});
-				}
-			});
-		});
-	
-		// Set update firmware with file control
-		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(8)").attr("title", "Updates printer's firmware with a provided file").click(function(event) {
-	
-			// Open file input dialog
-			$("#control > div.jog-panel.advanced").find("div > input").click();
-		});
-		
-		// On update firmware with file input change
-		$("#control > div.jog-panel.advanced").find("div > input").change(function(event) {
-	
-			// Initialize variables
-			var file = this.files[0];
-		
-			// Clear input
-			$(this).val('');
-		
-			// Check if file has no name
-			if(!file.name.length) {
-		
-				// Show message
-				showMessage("Firmware Status", "Invalid file name", "Ok", function() {
-				
-					// Hide message
-					hideMessage();
-				});
-			}
-		
-			// Go through each character of the file's name
-			for(index in file.name) {
-		
-				// Check if extension is occuring
-				if(file.name[index] == '.') {
-			
-					// Break if file name beings with 10 numbers
-					if(index == 10)
-						break;
-					
-					// Show message
-					showMessage("Firmware Status", "Invalid file name", "Ok", function() {
-		
-						// Hide message
-						hideMessage();
-					});
-				
-					// Return
-					return;
-				}
-			
-				// Check if current character isn't a digit or length is invalid
-				if(file.name[index] < '0' || file.name[index] > '9' || (index == file.name.length - 1 && index < 9)) {
-			
-					// Show message
-					showMessage("Firmware Status", "Invalid file name", "Ok", function() {
-		
-						// Hide message
-						hideMessage();
-					});
-				
-					// Return
-					return;
-				}
-			}
-		
-			// Check if the file is too big
-			if(file.size > 32768) {
-
-				// Show message
-				showMessage("Firmware Status", "Invalid file size", "Ok", function() {
-				
-					// Hide message
-					hideMessage();
-				});
-			}
-		
-			// Otherwise
-			else {
-	
-				// Show message
-				showMessage("Firmware Status", "Updating firmware");
-	
-				// Read in file
-				var reader = new FileReader();
-				reader.readAsBinaryString(file);
-		
-				// On file load
-				reader.onload = function(event) {
-		
-					// Send request
-					$.ajax({
-						url: API_BASEURL + "plugin/m3dfio",
-						type: "POST",
-						dataType: "json",
-						data: JSON.stringify({command: "file", name: file.name, content: event.target.result}),
-						contentType: "application/json; charset=UTF-8",
-			
-						// On success
-						success: function(data) {
-			
-							// Show message
-							showMessage("Firmware Status", data.value == "Ok" ? "Done" : "Failed", "Ok", function() {
-			
-								// Hide message
-								hideMessage();
-							});
-						}
-					});
-				};
-			}
-		});
-		
 		// Change EEPROM display control
 		$("#control > div.jog-panel.eeprom").find("input[type=\"radio\"]").eq(0).attr("title", "Displays EEPROM as hexadecimal values");
 		$("#control > div.jog-panel.eeprom").find("input[type=\"radio\"]").eq(1).attr("title", "Displays EEPROM as decimal values");
@@ -6790,6 +6655,112 @@ $(function() {
 				window.location.port = $(this).val();
 		});
 		
+		// On update firmware with file input change
+		$("#control > div.jog-panel.advanced").find("div > input").change(function(event) {
+
+			// Initialize variables
+			var file = this.files[0];
+
+			// Clear input
+			$(this).val('');
+
+			// Check if file has no name
+			if(!file.name.length) {
+
+				// Show message
+				showMessage("Firmware Status", "Invalid file name", "Ok", function() {
+		
+					// Hide message
+					hideMessage();
+				});
+			}
+
+			// Go through each character of the file's name
+			for(var index = (file.name.indexOf(' ') != -1 ? file.name.indexOf(' ') + 1 : 0); index < file.name.length; index++) {
+
+				// Check if extension is occuring
+				if(file.name[index] == '.') {
+	
+					// Break if file name contaisn version
+					if(file.name.indexOf(' ') != -1 && index - file.name.indexOf(' ') - 1 == 10)
+						break;
+			
+					if(index == 10)
+						break;
+			
+					// Show message
+					showMessage("Firmware Status", "Invalid file name", "Ok", function() {
+
+						// Hide message
+						hideMessage();
+					});
+		
+					// Return
+					return;
+				}
+	
+				// Check if current character isn't a digit or length is invalid
+				if(file.name[index] < '0' || file.name[index] > '9' || (index == file.name.length - 1 && index < 9)) {
+	
+					// Show message
+					showMessage("Firmware Status", "Invalid file name", "Ok", function() {
+
+						// Hide message
+						hideMessage();
+					});
+		
+					// Return
+					return;
+				}
+			}
+
+			// Check if the file is too big
+			if(file.size > 32768) {
+
+				// Show message
+				showMessage("Firmware Status", "Invalid file size", "Ok", function() {
+		
+					// Hide message
+					hideMessage();
+				});
+			}
+
+			// Otherwise
+			else {
+
+				// Show message
+				showMessage("Firmware Status", "Updating firmware");
+
+				// Read in file
+				var reader = new FileReader();
+				reader.readAsBinaryString(file);
+
+				// On file load
+				reader.onload = function(event) {
+			
+					// Send request
+					$.ajax({
+						url: API_BASEURL + "plugin/m3dfio",
+						type: "POST",
+						dataType: "json",
+						data: JSON.stringify({command: "file", name: file.name, content: event.target.result}),
+						contentType: "application/json; charset=UTF-8",
+	
+						// On success
+						success: function(data) {
+	
+							// Show message
+							showMessage("Firmware Status", data.value == "Ok" ? "Done" : "Failed", "Ok", function() {
+	
+								// Hide message
+								hideMessage();
+							});
+						}
+					});
+				};
+			}
+		});
+		
 		// On data update message
 		self.onDataUpdaterPluginMessage = function(plugin, data) {
 		
@@ -6805,6 +6776,17 @@ $(function() {
 				// Set printer connected
 				printerConnected = true;
 			
+			// Check if data is current firmware
+			else if(data.value == "Current Firmware" && typeof data.name !== "undefined" && typeof data.release !== "undefined") {
+			
+				// Set name to unknown if not specified
+				if(data.name == null)
+					data.name = "an unknown"
+			
+				// Set firmware text
+				$("#control div.jog-panel.advanced p").text("Currently using " + data.name + " firmware V" + data.release);
+			}
+				
 			// Check if data is printer details
 			else if(data.value == "Printer Details" && typeof data.serialNumber !== "undefined" && typeof data.serialPort !== "undefined")
 			
@@ -6817,9 +6799,8 @@ $(function() {
 				// Clear printer connected
 				printerConnected = false;
 				$("#control > div.jog-panel.advanced").find("div > button").removeClass("current");
-				$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(7)").text("Update firmware to V" + providedFirmware);
 				$("#control > div.jog-panel.eeprom table input").val(eepromDisplayType == "ascii" ? "?" : (eepromDisplayType == "decimal" ? "???" : "??"));
-				
+				$("#control div.jog-panel.advanced p").text('');
 				$("#navbar_plugin_m3dfio > a").text('');
 			}
 			
@@ -7013,14 +6994,97 @@ $(function() {
 				});	
 			}
 			
-			// Otherwise check if data is provided firmware
-			else if(data.value == "Provided Firmware" && typeof data.version !== "undefined") {
+			// Otherwise check if data is provided firmware versions
+			else if(data.value == "Provided Firmwares" && typeof data.firmwares !== "undefined") {
 			
-				// Set provided firmware
-				providedFirmware = data.version;
+				// Go to place holder buttons
+				var currentPosition = $("#control > div.jog-panel.advanced").find("div > button:nth-of-type(7)");
 				
-				// Set button text and title
-				$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(7)").text("Update firmware to V" + providedFirmware).attr("title", "Updates printer's firmware to V" + providedFirmware);
+				// Go through all provided firmwares
+				for(firmware in data.firmwares) {
+				
+					// Add update firmware to provided button
+					currentPosition.removeClass("placeHolder").addClass("firmware").data("name", firmware).attr("title", "Updates printer's firmware to " + firmware + " V" + data.firmwares[firmware]["Release"]).text("Update firmware to " + firmware + " V" + data.firmwares[firmware]["Release"]).off("click").click(function() {
+					
+						// Set firmware name
+						var firmwareName = $(this).data("name");
+						
+						// Check if updating to functional firmware
+						if(firmwareName == "M3D") {
+						
+							// Show message
+							showMessage("Firmware Status", "Updating firmware");
+
+							// Send request
+							$.ajax({
+								url: API_BASEURL + "plugin/m3dfio",
+								type: "POST",
+								dataType: "json",
+								data: JSON.stringify({command: "message", value: "Update Firmware To Provided: " + firmwareName}),
+								contentType: "application/json; charset=UTF-8",
+
+								// On success
+								success: function(data) {
+
+									// Show message
+									showMessage("Firmware Status", data.value == "Ok" ? "Done" : "Failed", "Ok", function() {
+	
+										// Hide message
+										hideMessage();
+									});
+								}
+							});
+						}
+						
+						// Otherwise
+						else {
+		
+							// Show message
+							showMessage("Firmware Status", htmlEncode(firmwareName) + " is not a fully functional firmware. It's currently only intended to be used by developers. Continue?", "Yes", function() {
+			
+								// Hide message
+								hideMessage();
+				
+								// Show message
+								showMessage("Firmware Status", "Updating firmware");
+
+								// Send request
+								$.ajax({
+									url: API_BASEURL + "plugin/m3dfio",
+									type: "POST",
+									dataType: "json",
+									data: JSON.stringify({command: "message", value: "Update Firmware To Provided: " + firmwareName}),
+									contentType: "application/json; charset=UTF-8",
+
+									// On success
+									success: function(data) {
+
+										// Show message
+										showMessage("Firmware Status", data.value == "Ok" ? "Done" : "Failed", "Ok", function() {
+		
+											// Hide message
+											hideMessage();
+										});
+									}
+								});
+							}, "No", function() {
+			
+								// Hide message
+								hideMessage();
+							});
+						}
+					});
+					
+					// Go to next place holder
+					currentPosition = currentPosition.next("button");
+				}
+				
+				// Add update firmware with file button
+				currentPosition.removeClass("placeHolder").attr("title", "Updates printer's firmware with a provided file").text("Update firmware with file").off("click").click(function() {
+				
+					// Open file input dialog
+					$("#control > div.jog-panel.advanced").find("div > input").click();
+				});
 			}
 			
 			// Otherwise check if data is to save software settings
@@ -7058,11 +7122,6 @@ $(function() {
 					$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(5)").addClass("current");
 				else if(extruderCurrent == 660)
 					$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(6)").addClass("current");
-				
-				// Show current firmware version
-				var firmwareVersion = ((parseInt(data.eeprom[eepromOffsets["firmwareVersion"].offset], 16) << 4) | parseInt(data.eeprom[eepromOffsets["firmwareVersion"].offset + 1], 16)) | (((parseInt(data.eeprom[eepromOffsets["firmwareVersion"].offset + 2], 16) << 4) | parseInt(data.eeprom[eepromOffsets["firmwareVersion"].offset + 3], 16)) << 8) | (((parseInt(data.eeprom[eepromOffsets["firmwareVersion"].offset + 4], 16) << 4) | parseInt(data.eeprom[eepromOffsets["firmwareVersion"].offset + 5], 16)) << 16) | (((parseInt(data.eeprom[eepromOffsets["firmwareVersion"].offset + 6], 16) << 4) | parseInt(data.eeprom[eepromOffsets["firmwareVersion"].offset + 7], 16)) << 24);
-				
-				$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(7)").html("Update firmware to V" + providedFirmware + "<span>Currently Using: V" + firmwareVersion + "</span>");
 			}
 			
 			// Otherwise check if data is invalid values
