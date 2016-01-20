@@ -970,8 +970,12 @@ class M3DFioPlugin(
 				for command in data["value"] :
 					
 					# Send command to printer
-					self.sendCommands("G4")
+					self.sendCommands("G4 P1")
 					self.sendCommands(command)
+					
+					# Send absolute and relative commands twice to make sure they don't get ignored
+					if command == "G90" or command == "G91" :
+						self.sendCommands(command)
 				
 					# Delay
 					time.sleep(0.1)
@@ -2860,20 +2864,24 @@ class M3DFioPlugin(
 				if self.sharedLibrary and self._settings.get_boolean(["UseSharedLibrary"]) :
 				
 					# Pre-process command
-					commands = self.sharedLibrary.preprocess(ctypes.c_char_p("G4"), ctypes.c_char_p(None), ctypes.c_bool(True)).split(',')
+					commands = self.sharedLibrary.preprocess(ctypes.c_char_p("G4 P1"), ctypes.c_char_p(None), ctypes.c_bool(True)).split(',')
 				
 				# Otherwise
 				else :
 				
 					# Pre-process command
-					commands = self.preprocess("G4", None, True)
+					commands = self.preprocess("G4 P1", None, True)
 				
 				# Go through all commands
 				for command in commands :
 			
 					# Send command to printer
-					self.sendCommands("G4")
+					self.sendCommands("G4 P1")
 					self.sendCommands(command)
+					
+					# Send absolute and relative commands twice to make sure they don't get ignored
+					if command == "G90" or command == "G91" :
+						self.sendCommands(command)
 					
 					# Delay
 					time.sleep(0.1)
@@ -2904,7 +2912,7 @@ class M3DFioPlugin(
 			for command in commands :
 		
 				# Send command to printer
-				self.sendCommands("G4")
+				self.sendCommands("G4 P1")
 				self.sendCommands(command)
 				
 				# Delay
@@ -6099,7 +6107,7 @@ class M3DFioPlugin(
 			
 			# Apply printer profile changes
 			self._printer_profile_manager.save(printerProfile, True)
-		
+			
 			# Return ok
 			return flask.jsonify(dict(value = "Ok"))
 		

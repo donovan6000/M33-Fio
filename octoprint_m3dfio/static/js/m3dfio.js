@@ -1280,7 +1280,7 @@ $(function() {
 				keyDownEvent: function(event) {
 	
 					// Check if an input is not focused
-					if(!$("#slicing_configuration_dialog .modal-extra input:focus").length) {
+					if(!$("input:focus").length) {
 
 						// Check what key was pressed
 						switch(event.keyCode) {
@@ -4552,6 +4552,7 @@ $(function() {
 					// Otherwise check if on modify model menu
 					else if(slicerMenu == "Modify Model") {
 					
+						// Apply changes
 						function applyChanges() {
 						
 							// Display cover
@@ -4673,7 +4674,8 @@ $(function() {
 										function sliceFile() {
 							
 											// Save software settings
-											self.settings.saveData();
+											if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") == -1)
+												self.settings.saveData();
 								
 											// Apply changes
 											applyChanges();
@@ -4691,7 +4693,7 @@ $(function() {
 								// Hide message
 								hideMessage();
 								
-								// Don't click file
+								// Don't slice file
 								button.prev('a').click();
 							});
 						}
@@ -7352,7 +7354,13 @@ $(function() {
 			}
 			
 			// Otherwise
-			else
+			else {
+			
+				// Check if a message is shown
+				if(message.hasClass("show"))
+				
+					// Hide message
+					hideMessage();
 			
 				// Show message
 				showMessage("Server Status", "You've been disconnected from the server. This page will now be refreshed to prevent any problems.", "Ok", function() {
@@ -7363,6 +7371,7 @@ $(function() {
 					// Refresh the page
 					location.reload();
 				});
+			}
 		}
 	}
 
