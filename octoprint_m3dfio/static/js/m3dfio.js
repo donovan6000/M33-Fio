@@ -1,6 +1,5 @@
 // On start
 $(function() {
-
 	// Create view model
 	function M3DFioViewModel(parameters) {
 		
@@ -564,12 +563,14 @@ $(function() {
 					if(typeof secondButton === "undefined" && typeof firstButton === "undefined") {
 						$("body > div.page-container > div.message > div > div > div").removeClass("show");
 						$("body > div.page-container > div.message > div > img").addClass("show");
+						$("body > div.page-container > div.message > div > div > span").addClass("show");
 					}
 		
 					// Otherwise show button area and hide loading
 					else {
 						$("body > div.page-container > div.message > div > div > div:not(.calibrate)").addClass("show");
 						$("body > div.page-container > div.message > div > img").removeClass("show");
+						$("body > div.page-container > div.message > div > div > span").removeClass("show");
 			
 						// Show calibration menu or print settings if applicable
 						$("body > div.page-container > div.message > div > div > div.calibrate, body > div.page-container > div.message > div > div > div.printSettings").removeClass("show");
@@ -3303,50 +3304,52 @@ $(function() {
 		$("body > div.page-container").append(`
 			<div class="message">
 				<div>
-				<h4></h4>
-				<img src="/plugin/m3dfio/static/img/loading.gif">
-				<div>
-					<p></p>
-					<div class="calibrate">
-						<div class="arrows">
-							<button class="btn btn-block control-box arrow up"><i class="icon-arrow-up"></i></button>
-							<button class="btn btn-block control-box arrow down"><i class="icon-arrow-down"></i></button>
+					<h4></h4>
+					<img src="/plugin/m3dfio/static/img/loading.gif">
+					<div>
+						<p></p>
+						<div class="calibrate">
+							<div class="arrows">
+								<button class="btn btn-block control-box arrow up"><i class="icon-arrow-up"></i></button>
+								<button class="btn btn-block control-box arrow down"><i class="icon-arrow-down"></i></button>
+							</div>
+							<div class="distance">
+								<button type="button" class="btn distance">0.01</button>
+								<button type="button" class="btn distance active">0.1</button>
+								<button type="button" class="btn distance">1</button>
+							</div>
 						</div>
-						<div class="distance">
-							<button type="button" class="btn distance">0.01</button>
-							<button type="button" class="btn distance active">0.1</button>
-							<button type="button" class="btn distance">1</button>
-						</div>
-					</div>
-					<div class="printSettings">
-						<h3>Print settings</h3>
-						<div class="control-group">
-							<label class="control-label">Filament Temperature</label>
-							<div class="controls">
-								<div class="input-append degreesCelsius">
-									<input type="number" step="1" min="150" max="285" class="input-block-level">
-									<span class="add-on">°C</span>
+						<div class="printSettings">
+							<h3>Print settings</h3>
+							<div class="control-group">
+								<label class="control-label">Filament Temperature</label>
+								<div class="controls">
+									<div class="input-append degreesCelsius">
+										<input type="number" step="1" min="150" max="285" class="input-block-level">
+										<span class="add-on">°C</span>
+									</div>
+								</div>
+							</div>
+							<div class="control-group">
+								<label class="control-label">Filament Type</label>
+								<div class="controls">
+									<select class="input-block-level" data-bind="value: settings.plugins.m3dfio.FilamentType">
+										<option value="ABS">ABS (Recommended 275°C)</option>
+										<option value="PLA">PLA (Recommended 215°C)</option>
+										<option value="HIPS">HIPS (Recommended 265°C)</option>
+										<option value="FLX">FLX (Recommended 245°C)</option>
+										<option value="TGH">TGH (Recommended 245°C)</option>
+										<option value="CAM">CAM (Recommended 200°C)</option>
+										<option value="OTHER">Other</option>
+									</select> 
 								</div>
 							</div>
 						</div>
-						<div class="control-group">
-							<label class="control-label">Filament Type</label>
-							<div class="controls">
-								<select class="input-block-level" data-bind="value: settings.plugins.m3dfio.FilamentType">
-									<option value="ABS">ABS (Recommended 275°C)</option>
-									<option value="PLA">PLA (Recommended 215°C)</option>
-									<option value="HIPS">HIPS (Recommended 265°C)</option>
-									<option value="FLX">FLX (Recommended 245°C)</option>
-									<option value="TGH">TGH (Recommended 245°C)</option>
-									<option value="CAM">CAM (Recommended 200°C)</option>
-									<option value="OTHER">Other</option>
-								</select> 
-							</div>
+						<div>
+							<button class="btn btn-block confirm"></button>
+							<button class="btn btn-block confirm"></button>
 						</div>
-					</div>
-					<div>
-						<button class="btn btn-block confirm"></button>
-						<button class="btn btn-block confirm"></button>
+						<span>Do not refresh this page or disconnect from the server at this time</span>
 					</div>
 				</div>
 			</div>
@@ -7343,7 +7346,7 @@ $(function() {
 				skippedMessages = 0;
 		
 				// Show message
-				showMessage("Server Status", "You've been disconnected from the server which caused the operation you were currently preforming to fail. This page will now be refreshed to prevent further problems.", "Ok", function() {
+				showMessage("Server Status", "You've been disconnected from the server which has most likely cause the printer's current operation to fail. This page will now be refreshed to prevent further problems.", "Ok", function() {
 
 					// Hide message
 					hideMessage();

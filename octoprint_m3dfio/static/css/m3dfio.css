@@ -443,6 +443,16 @@ body > div.page-container > div.message > div > div > div.printSettings input {
 	width: 145px;
 }
 
+body > div.page-container > div.message > div > div > span {
+	font-size: 9px;
+	color: #999;
+	display: none;
+}
+
+body > div.page-container > div.message > div > div > span.show {
+	display: inline;
+}
+
 #slicing_configuration_dialog.profile, #slicing_configuration_dialog.model {
 	width: 80% !important;
 	max-width: 900px !important;
