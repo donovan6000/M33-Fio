@@ -7346,7 +7346,7 @@ $(function() {
 				skippedMessages = 0;
 		
 				// Show message
-				showMessage("Server Status", "You've been disconnected from the server which has most likely cause the printer's current operation to fail. This page will now be refreshed to prevent further problems.", "Ok", function() {
+				showMessage("Server Status", "You've been disconnected from the server which has most likely caused the printer's current operation to fail. This page will now be refreshed to prevent further problems.", "Ok", function() {
 
 					// Hide message
 					hideMessage();
