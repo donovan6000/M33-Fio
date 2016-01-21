@@ -25,6 +25,7 @@ $(function() {
 		var messages = [];
 		var skippedMessages = 0;
 		var continueWithPrint = false;
+		var waitingCallback = null;
 		var self = this;
 		
 		// Get state views
@@ -4998,7 +4999,7 @@ $(function() {
 			
 			// Check if not printing
 			if(self.printerState.isPrinting() !== true) {
-			
+				
 				// Set commands
 				var commands = [
 					"M109 S" + parseInt($(this).text().substr(12)),
@@ -5012,10 +5013,28 @@ $(function() {
 				var updateTemperature = setInterval(function() {
 				
 					// Show message
-					var temperature = self.temperature.temperatures.tool0.actual[self.temperature.temperatures.tool0.actual.length - 1][1];
-					if(temperature != 0)
-						showMessage("Filament Status", "Warming up: " + temperature + "°C");
+					if(self.temperature.temperatures.tool0.actual.length) {
+				
+						var temperature = self.temperature.temperatures.tool0.actual[self.temperature.temperatures.tool0.actual.length - 1][1];
+					
+						if(temperature != 0)
+							showMessage("Filament Status", "Warming up: " + temperature + "°C");
+					}
 				}, 1000);
+				
+				// Set waiting callback
+				waitingCallback = function() {
+				
+					// Stop displaying temperature
+					clearInterval(updateTemperature);
+				
+					// Show message
+					showMessage("Temperature Status", "Done", "Ok", function() {
+				
+						// Hide message
+						hideMessage();
+					});
+				}
 			}
 			
 			// Otherwise
@@ -5032,25 +5051,7 @@ $(function() {
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: commands}),
-				contentType: "application/json; charset=UTF-8",
-			
-				// On success
-				success: function(data) {
-				
-					// Check if not printing
-					if(self.printerState.isPrinting() !== true) {
-				
-						// Stop displaying temperature
-						clearInterval(updateTemperature);
-					
-						// Show message
-						showMessage("Temperature Status", "Done", "Ok", function() {
-					
-							// Hide message
-							hideMessage();
-						});
-					}
-				}
+				contentType: "application/json; charset=UTF-8"
 			});
 		});
 		
@@ -5073,10 +5074,28 @@ $(function() {
 				var updateTemperature = setInterval(function() {
 				
 					// Show message
-					var temperature = self.temperature.temperatures.bed.actual[self.temperature.temperatures.bed.actual.length - 1][1];
-					if(temperature != 0)
-						showMessage("Filament Status", "Warming up: " + temperature + "°C");
+					if(self.temperature.temperatures.bed.actual.length) {
+					
+						var temperature = self.temperature.temperatures.bed.actual[self.temperature.temperatures.bed.actual.length - 1][1];
+					
+						if(temperature != 0)
+							showMessage("Filament Status", "Warming up: " + temperature + "°C");
+					}		
 				}, 1000);
+				
+				// Set waiting callback
+				waitingCallback = function() {
+				
+					// Stop displaying temperature
+					clearInterval(updateTemperature);
+				
+					// Show message
+					showMessage("Temperature Status", "Done", "Ok", function() {
+				
+						// Hide message
+						hideMessage();
+					});
+				}
 			}
 			
 			// Otherwise
@@ -5093,25 +5112,7 @@ $(function() {
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: commands}),
-				contentType: "application/json; charset=UTF-8",
-			
-				// On success
-				success: function(data) {
-				
-					// Check if not printing
-					if(self.printerState.isPrinting() !== true) {
-			
-						// Stop displaying temperature
-						clearInterval(updateTemperature);
-					
-						// Show message
-						showMessage("Temperature Status", "Done", "Ok", function() {
-					
-							// Hide message
-							hideMessage();
-						});
-					}
-				}
+				contentType: "application/json; charset=UTF-8"
 			});
 		});
 		
@@ -5154,10 +5155,64 @@ $(function() {
 			var updateTemperature = setInterval(function() {
 			
 				// Show message
-				var temperature = self.temperature.temperatures.tool0.actual[self.temperature.temperatures.tool0.actual.length - 1][1];
-				if(temperature != 0)
-					showMessage("Filament Status", "Warming up: " + temperature + "°C");
+				if(self.temperature.temperatures.tool0.actual.length) {
+				
+					var temperature = self.temperature.temperatures.tool0.actual[self.temperature.temperatures.tool0.actual.length - 1][1];
+					
+					if(temperature != 0)
+						showMessage("Filament Status", "Warming up: " + temperature + "°C");
+				}
 			}, 1000);
+			
+			// Set waiting callback
+			waitingCallback = function() {
+			
+				// Stop displaying temperature
+				clearInterval(updateTemperature);
+		
+				// Show message
+				showMessage("Filament Status", "Remove filament");
+	
+				// Set commands
+				commands = [
+					"G90",
+					"G92"
+				];
+		
+				for(var i = 2; i <= 40; i += 2)
+					commands.push("G0 E-" + i + " F345");
+
+				commands.push("M104 S0");
+				commands.push("M107");
+				commands.push("M65536;wait");
+				
+				// Set waiting callback
+				waitingCallback = function() {
+				
+					// Show message
+					showMessage("Filament Status", "Was filament removed?", "Yes", function() {
+		
+						// Hide message
+						hideMessage();
+					}, "No", function() {
+					
+						// Hide message
+						hideMessage();
+					
+						// Unload filament again
+						$("#control > div.jog-panel.filament").find("div > button:nth-of-type(1)").click();
+					});
+				}
+		
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m3dfio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({command: "message", value: commands}),
+					contentType: "application/json; charset=UTF-8"
+				});
+			}
 			
 			// Send request
 			$.ajax({
@@ -5165,57 +5220,7 @@ $(function() {
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: commands}),
-				contentType: "application/json; charset=UTF-8",
-		
-				// On success
-				success: function(data) {
-		
-					// Stop displaying temperature
-					clearInterval(updateTemperature);
-			
-					// Show message
-					showMessage("Filament Status", "Remove filament");
-		
-					// Set commands
-					commands = [
-						"G90",
-						"G92"
-					];
-			
-					for(var i = 2; i <= 40; i += 2)
-						commands.push("G0 E-" + i + " F345");
-	
-					commands.push("M104 S0");
-					commands.push("M107");
-					commands.push("M65536;wait");
-			
-					// Send request
-					$.ajax({
-						url: API_BASEURL + "plugin/m3dfio",
-						type: "POST",
-						dataType: "json",
-						data: JSON.stringify({command: "message", value: commands}),
-						contentType: "application/json; charset=UTF-8",
-				
-						// On success
-						success: function(data) {
-							
-							// Show message
-							showMessage("Filament Status", "Was filament removed?", "Yes", function() {
-				
-								// Hide message
-								hideMessage();
-							}, "No", function() {
-							
-								// Hide message
-								hideMessage();
-							
-								// Unload filament again
-								$("#control > div.jog-panel.filament").find("div > button:nth-of-type(1)").click();
-							});
-						}
-					});
-				}
+				contentType: "application/json; charset=UTF-8"
 			});
 		});
 	
@@ -5236,10 +5241,64 @@ $(function() {
 			var updateTemperature = setInterval(function() {
 			
 				// Show message
-				var temperature = self.temperature.temperatures.tool0.actual[self.temperature.temperatures.tool0.actual.length - 1][1];
-				if(temperature != 0)
-					showMessage("Filament Status", "Warming up: " + temperature + "°C");
+				if(self.temperature.temperatures.tool0.actual.length) {
+			
+					var temperature = self.temperature.temperatures.tool0.actual[self.temperature.temperatures.tool0.actual.length - 1][1];
+				
+					if(temperature != 0)
+						showMessage("Filament Status", "Warming up: " + temperature + "°C");
+				}
 			}, 1000);
+			
+			// Set waiting callback
+			waitingCallback = function() {
+			
+				// Stop displaying temperature
+				clearInterval(updateTemperature);
+	
+				// Show message
+				showMessage("Filament Status", "Insert filament");
+	
+				// Set commands
+				commands = [
+					"G90",
+					"G92"
+				];
+		
+				for(var i = 2; i <= 40; i += 2)
+					commands.push("G0 E" + i + " F345");
+
+				commands.push("M104 S0");
+				commands.push("M107");
+				commands.push("M65536;wait");
+				
+				// Set waiting callback
+				waitingCallback = function() {
+				
+					// Show message
+					showMessage("Filament Status", "Was filament inserted?", "Yes", function() {
+				
+						// Hide message
+						hideMessage();
+					}, "No", function() {
+				
+						// Hide message
+						hideMessage();
+				
+						// Load filament again
+						$("#control > div.jog-panel.filament").find("div > button:nth-of-type(2)").click();
+					});
+				}
+		
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m3dfio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({command: "message", value: commands}),
+					contentType: "application/json; charset=UTF-8"
+				});
+			}
 		
 			// Send request
 			$.ajax({
@@ -5247,57 +5306,7 @@ $(function() {
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: commands}),
-				contentType: "application/json; charset=UTF-8",
-			
-				// On success
-				success: function(data) {
-			
-					// Stop displaying temperature
-					clearInterval(updateTemperature);
-			
-					// Show message
-					showMessage("Filament Status", "Insert filament");
-			
-					// Set commands
-					commands = [
-						"G90",
-						"G92"
-					];
-				
-					for(var i = 2; i <= 40; i += 2)
-						commands.push("G0 E" + i + " F345");
-		
-					commands.push("M104 S0");
-					commands.push("M107");
-					commands.push("M65536;wait");
-				
-					// Send request
-					$.ajax({
-						url: API_BASEURL + "plugin/m3dfio",
-						type: "POST",
-						dataType: "json",
-						data: JSON.stringify({command: "message", value: commands}),
-						contentType: "application/json; charset=UTF-8",
-					
-						// On success
-						success: function(data) {
-					
-							// Show message
-							showMessage("Filament Status", "Was filament inserted?", "Yes", function() {
-							
-								// Hide message
-								hideMessage();
-							}, "No", function() {
-							
-								// Hide message
-								hideMessage();
-							
-								// Load filament again
-								$("#control > div.jog-panel.filament").find("div > button:nth-of-type(2)").click();
-							});
-						}
-					});
-				}
+				contentType: "application/json; charset=UTF-8"
 			});
 		});
 	
@@ -5319,6 +5328,17 @@ $(function() {
 				"M117",
 				"M65536;wait"
 			];
+			
+			// Set waiting callback
+			waitingCallback = function() {
+			
+				// Show message
+				showMessage("Calibration Status", "Done", "Ok", function() {
+				
+					// Hide message
+					hideMessage();
+				});
+			}
 		
 			// Send request
 			$.ajax({
@@ -5326,18 +5346,7 @@ $(function() {
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: commands}),
-				contentType: "application/json; charset=UTF-8",
-			
-				// On success
-				success: function(data) {
-			
-					// Show message
-					showMessage("Calibration Status", "Done", "Ok", function() {
-					
-						// Hide message
-						hideMessage();
-					});
-				}
+				contentType: "application/json; charset=UTF-8"
 			});
 		});
 	
@@ -5362,6 +5371,20 @@ $(function() {
 				"M619 S" + eepromOffsets["bedOrientationFrontRight"]["offset"] + " T" + eepromOffsets["bedOrientationFrontRight"]["bytes"],
 				"M65536;wait"
 			];
+			
+			// Set waiting callback
+			waitingCallback = function() {
+			
+				// Save software and printer settings
+				self.settings.saveData(undefined, savePrinterSettings);
+		
+				// Show message
+				showMessage("Calibration Status", "Done", "Ok", function() {
+				
+					// Hide message
+					hideMessage();
+				});
+			}
 		
 			// Send request
 			$.ajax({
@@ -5369,21 +5392,7 @@ $(function() {
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: commands}),
-				contentType: "application/json; charset=UTF-8",
-			
-				// On success
-				success: function(data) {
-				
-					// Save software and printer settings
-					self.settings.saveData(undefined, savePrinterSettings);
-			
-					// Show message
-					showMessage("Calibration Status", "Done", "Ok", function() {
-					
-						// Hide message
-						hideMessage();
-					});
-				}
+				contentType: "application/json; charset=UTF-8"
 			});
 		});
 	
@@ -5482,6 +5491,40 @@ $(function() {
 				"M114",
 				"M65536;wait"
 			];
+			
+			// Set waiting callback
+			waitingCallback = function() {
+			
+				// Set commands
+				commands = [
+					"M618 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.FrontLeftOrientation()),
+					"M619 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"],
+					"M65536;wait"
+				];
+				
+				// Set waiting callback
+				waitingCallback = function() {
+				
+					// Save software and printer settings
+					self.settings.saveData(undefined, savePrinterSettings);
+	
+					// Show message
+					showMessage("Saving Status", "Done", "Ok", function() {
+			
+						// Hide message
+						hideMessage();
+					});
+				}
+			
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m3dfio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({command: "message", value: commands}),
+					contentType: "application/json; charset=UTF-8"
+				});
+			}
 		
 			// Send request
 			$.ajax({
@@ -5489,41 +5532,7 @@ $(function() {
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: commands}),
-				contentType: "application/json; charset=UTF-8",
-			
-				// On success
-				success: function(data) {
-			
-					// Set commands
-					commands = [
-						"M618 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.FrontLeftOrientation()),
-						"M619 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"],
-						"M65536;wait"
-					];
-				
-					// Send request
-					$.ajax({
-						url: API_BASEURL + "plugin/m3dfio",
-						type: "POST",
-						dataType: "json",
-						data: JSON.stringify({command: "message", value: commands}),
-						contentType: "application/json; charset=UTF-8",
-						
-						// On success
-						success: function(data) {
-						
-							// Save software and printer settings
-							self.settings.saveData(undefined, savePrinterSettings);
-			
-							// Show message
-							showMessage("Saving Status", "Done", "Ok", function() {
-					
-								// Hide message
-								hideMessage();
-							});
-						}
-					});
-				}
+				contentType: "application/json; charset=UTF-8"
 			});
 		});
 	
@@ -5538,6 +5547,40 @@ $(function() {
 				"M114",
 				"M65536;wait"
 			];
+			
+			// Set waiting callback
+			waitingCallback = function() {
+			
+				// Set commands
+				commands = [
+					"M618 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.FrontRightOrientation()),
+					"M619 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"],
+					"M65536;wait"
+				];
+				
+				// Set waiting callback
+				waitingCallback = function() {
+				
+					// Save software and printer settings
+					self.settings.saveData(undefined, savePrinterSettings);
+	
+					// Show message
+					showMessage("Saving Status", "Done", "Ok", function() {
+			
+						// Hide message
+						hideMessage();
+					});
+				}
+			
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m3dfio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({command: "message", value: commands}),
+					contentType: "application/json; charset=UTF-8"
+				});
+			}
 		
 			// Send request
 			$.ajax({
@@ -5545,41 +5588,7 @@ $(function() {
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: commands}),
-				contentType: "application/json; charset=UTF-8",
-			
-				// On success
-				success: function(data) {
-			
-					// Set commands
-					commands = [
-						"M618 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.FrontRightOrientation()),
-						"M619 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"],
-						"M65536;wait"
-					];
-				
-					// Send request
-					$.ajax({
-						url: API_BASEURL + "plugin/m3dfio",
-						type: "POST",
-						dataType: "json",
-						data: JSON.stringify({command: "message", value: commands}),
-						contentType: "application/json; charset=UTF-8",
-						
-						// On success
-						success: function(data) {
-						
-							// Save software and printer settings
-							self.settings.saveData(undefined, savePrinterSettings);
-			
-							// Show message
-							showMessage("Saving Status", "Done", "Ok", function() {
-					
-								// Hide message
-								hideMessage();
-							});
-						}
-					});
-				}
+				contentType: "application/json; charset=UTF-8"
 			});
 		});
 	
@@ -5594,48 +5603,48 @@ $(function() {
 				"M114",
 				"M65536;wait"
 			];
-		
+			
+			// Set waiting callback
+			waitingCallback = function() {
+			
+				// Set commands
+				commands = [
+					"M618 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.BackRightOrientation()),
+					"M619 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"],
+					"M65536;wait"
+				];
+				
+				// Set waiting callback
+				waitingCallback = function() {
+				
+					// Save software and printer settings
+					self.settings.saveData(undefined, savePrinterSettings);
+	
+					// Show message
+					showMessage("Saving Status", "Done", "Ok", function() {
+			
+						// Hide message
+						hideMessage();
+					});
+				}
+			
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m3dfio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({command: "message", value: commands}),
+					contentType: "application/json; charset=UTF-8"
+				});
+			}
+			
 			// Send request
 			$.ajax({
 				url: API_BASEURL + "plugin/m3dfio",
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: commands}),
-				contentType: "application/json; charset=UTF-8",
-			
-				// On success
-				success: function(data) {
-			
-					// Set commands
-					commands = [
-						"M618 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.BackRightOrientation()),
-						"M619 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"],
-						"M65536;wait"
-					];
-				
-					// Send request
-					$.ajax({
-						url: API_BASEURL + "plugin/m3dfio",
-						type: "POST",
-						dataType: "json",
-						data: JSON.stringify({command: "message", value: commands}),
-						contentType: "application/json; charset=UTF-8",
-						
-						// On success
-						success: function(data) {
-						
-							// Save software and printer settings
-							self.settings.saveData(undefined, savePrinterSettings);
-			
-							// Show message
-							showMessage("Saving Status", "Done", "Ok", function() {
-					
-								// Hide message
-								hideMessage();
-							});
-						}
-					});
-				}
+				contentType: "application/json; charset=UTF-8"
 			});
 		});
 	
@@ -5650,6 +5659,40 @@ $(function() {
 				"M114",
 				"M65536;wait"
 			];
+			
+			// Set waiting callback
+			waitingCallback = function() {
+			
+				// Set commands
+				commands = [
+					"M618 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.BackLeftOrientation()),
+					"M619 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"],
+					"M65536;wait"
+				];
+				
+				// Set waiting callback
+				waitingCallback = function() {
+				
+					// Save software and printer settings
+					self.settings.saveData(undefined, savePrinterSettings);
+	
+					// Show message
+					showMessage("Saving Status", "Done", "Ok", function() {
+			
+						// Hide message
+						hideMessage();
+					});
+				}
+			
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m3dfio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({command: "message", value: commands}),
+					contentType: "application/json; charset=UTF-8"
+				});
+			}
 		
 			// Send request
 			$.ajax({
@@ -5657,41 +5700,7 @@ $(function() {
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: commands}),
-				contentType: "application/json; charset=UTF-8",
-			
-				// On success
-				success: function(data) {
-			
-					// Set commands
-					commands = [
-						"M618 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.BackLeftOrientation()),
-						"M619 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"],
-						"M65536;wait"
-					];
-				
-					// Send request
-					$.ajax({
-						url: API_BASEURL + "plugin/m3dfio",
-						type: "POST",
-						dataType: "json",
-						data: JSON.stringify({command: "message", value: commands}),
-						contentType: "application/json; charset=UTF-8",
-						
-						// On success
-						success: function(data) {
-						
-							// Save software and printer settings
-							self.settings.saveData(undefined, savePrinterSettings);
-			
-							// Show message
-							showMessage("Saving Status", "Done", "Ok", function() {
-					
-								// Hide message
-								hideMessage();
-							});
-						}
-					});
-				}
+				contentType: "application/json; charset=UTF-8"
 			});
 		});
 		
@@ -5710,24 +5719,24 @@ $(function() {
 				"M65536;wait"
 			];
 			
+			// Set waiting callback
+			waitingCallback = function() {
+			
+				// Show message
+				showMessage("Saving Status", "Done", "Ok", function() {
+		
+					// Hide message
+					hideMessage();
+				});
+			}
+			
 			// Send request
 			$.ajax({
 				url: API_BASEURL + "plugin/m3dfio",
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: commands}),
-				contentType: "application/json; charset=UTF-8",
-						
-				// On success
-				success: function(data) {
-	
-					// Show message
-					showMessage("Saving Status", "Done", "Ok", function() {
-			
-						// Hide message
-						hideMessage();
-					});
-				}
+				contentType: "application/json; charset=UTF-8"
 			});
 		});
 		
@@ -5923,6 +5932,369 @@ $(function() {
 					"M117",
 					"M65536;wait"
 				];
+				
+				// Set waiting callback
+				waitingCallback = function() {
+				
+					// Show message
+					showMessage("Calibration Status", "Calibrating bed orientation");
+	
+					// Set commands
+					var commands = [
+						"M104 S0",
+						"G90",
+						"G0 Z3 F90",
+						"M109 S150",
+						"M104 S0",
+						"M107",
+						"G32",
+						"M619 S" + eepromOffsets["bedOrientationBackRight"]["offset"] + " T" + eepromOffsets["bedOrientationBackRight"]["bytes"],
+						"M619 S" + eepromOffsets["bedOrientationBackLeft"]["offset"] + " T" + eepromOffsets["bedOrientationBackLeft"]["bytes"],
+						"M619 S" + eepromOffsets["bedOrientationFrontLeft"]["offset"] + " T" + eepromOffsets["bedOrientationFrontLeft"]["bytes"],
+						"M619 S" + eepromOffsets["bedOrientationFrontRight"]["offset"] + " T" + eepromOffsets["bedOrientationFrontRight"]["bytes"],
+						"M65536;wait"
+					];
+					
+					// Set waiting callback
+					waitingCallback = function() {
+					
+						// Show message
+						showMessage("Calibration Status", "Calibrating front left offset");
+	
+						// Set commands
+						var commands = [
+							"G90",
+							"G0 Z3 F90",
+							"G28",
+							"G0 X9 Y5 Z3 F3000",
+							"M65536;wait"
+						];
+						
+						// Set waiting callback
+						waitingCallback = function() {
+						
+							// Show message
+							showMessage("Calibration Status", "Lower the print head until it barely touches the bed. One way to get to that point is to place a single sheet of paper on the bed under the print head, and lower the print head until the paper can no longer be moved.", "Done", function() {
+
+								// Hide message
+								hideMessage();
+								
+								// Show message
+								showMessage("Calibration Status", "Saving front left offset");
+								
+								// Set commands
+								var commands = [
+									"M114",
+									"M65536;wait"
+								];
+								
+								// Set waiting callback
+								waitingCallback = function() {
+								
+									// Set commands
+									commands = [
+										"M618 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.FrontLeftOrientation()),
+										"M619 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"],
+										"M65536;wait"
+									];
+									
+									// Set waiting callback
+									waitingCallback = function() {
+									
+										// Show message
+										showMessage("Calibration Status", "Calibrating front right offset");
+
+										// Set commands
+										var commands = [
+											"G90",
+											"G0 Z3 F90",
+											"G28",
+											"G0 X99 Y5 Z3 F3000",
+											"M65536;wait"
+										];
+										
+										// Set waiting callback
+										waitingCallback = function() {
+										
+											// Show message
+											showMessage("Calibration Status", "Lower the print head until it barely touches the bed. One way to get to that point is to place a single sheet of paper on the bed under the print head, and lower the print head until the paper can no longer be moved.", "Done", function() {
+
+												// Hide message
+												hideMessage();
+												
+												// Show message
+												showMessage("Calibration Status", "Saving front right offset");
+												
+												// Set commands
+												var commands = [
+													"M114",
+													"M65536;wait"
+												];
+												
+												// Set waiting callback
+												waitingCallback = function() {
+												
+													// Set commands
+													commands = [
+														"M618 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.FrontRightOrientation()),
+														"M619 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"],
+														"M65536;wait"
+													];
+													
+													// Set waiting callback
+													waitingCallback = function() {
+													
+														// Show message
+														showMessage("Calibration Status", "Calibrating back right offset");
+
+														// Set commands
+														var commands = [
+															"G90",
+															"G0 Z3 F90",
+															"G28",
+															"G0 X99 Y95 Z3 F3000",
+															"M65536;wait"
+														];
+														
+														// Set waiting callback
+														waitingCallback = function() {
+														
+															// Show message
+															showMessage("Calibration Status", "Lower the print head until it barely touches the bed. One way to get to that point is to place a single sheet of paper on the bed under the print head, and lower the print head until the paper can no longer be moved.", "Done", function() {
+
+																// Hide message
+																hideMessage();
+																
+																// Show message
+																showMessage("Calibration Status", "Saving back right offset");
+																
+																// Set commands
+																var commands = [
+																	"M114",
+																	"M65536;wait"
+																];
+																
+																// Set waiting callback
+																waitingCallback = function() {
+																
+																	// Set commands
+																	commands = [
+																		"M618 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.BackRightOrientation()),
+																		"M619 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"],
+																		"M65536;wait"
+																	];
+																	
+																	// Set waiting callback
+																	waitingCallback = function() {
+																	
+																		// Show message
+																		showMessage("Calibration Status", "Calibrating back left offset");
+
+																		// Set commands
+																		var commands = [
+																			"G90",
+																			"G0 Z3 F90",
+																			"G28",
+																			"G0 X9 Y95 Z3 F3000",
+																			"M65536;wait"
+																		];
+																		
+																		// Set waiting callback
+																		waitingCallback = function() {
+																		
+																			// Show message
+																			showMessage("Calibration Status", "Lower the print head until it barely touches the bed. One way to get to that point is to place a single sheet of paper on the bed under the print head, and lower the print head until the paper can no longer be moved.", "Done", function() {
+
+																				// Hide message
+																				hideMessage();
+																				
+																				// Show message
+																				showMessage("Calibration Status", "Saving back left offset");
+																				
+																				// Set commands
+																				var commands = [
+																					"M114",
+																					"M65536;wait"
+																				];
+																				
+																				// Set waiting callback
+																				waitingCallback = function() {
+																				
+																					// Set commands
+																					commands = [
+																						"M618 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.BackLeftOrientation()),
+																						"M619 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"],
+																						"M65536;wait"
+																					];
+																					
+																					// Set waiting callback
+																					waitingCallback = function() {
+																					
+																						// Set commands
+																						commands = [
+																							"G90",
+																							"G28",
+																							"M18",
+																							"M65536;wait"
+																						];
+																						
+																						// Set waiting callback
+																						waitingCallback = function() {
+																						
+																							// Save software and printer settings
+																							self.settings.saveData(undefined, savePrinterSettings);
+
+																							// Show message
+																							showMessage("Calibration Status", "Done", "Ok", function() {
+
+																								// Hide message
+																								hideMessage();
+																							});
+																						}
+
+																						// Send request
+																						$.ajax({
+																							url: API_BASEURL + "plugin/m3dfio",
+																							type: "POST",
+																							dataType: "json",
+																							data: JSON.stringify({command: "message", value: commands}),
+																							contentType: "application/json; charset=UTF-8"
+																						});
+																					}
+
+																					// Send request
+																					$.ajax({
+																						url: API_BASEURL + "plugin/m3dfio",
+																						type: "POST",
+																						dataType: "json",
+																						data: JSON.stringify({command: "message", value: commands}),
+																						contentType: "application/json; charset=UTF-8"
+																					});
+																				}
+
+																				// Send request
+																				$.ajax({
+																					url: API_BASEURL + "plugin/m3dfio",
+																					type: "POST",
+																					dataType: "json",
+																					data: JSON.stringify({command: "message", value: commands}),
+																					contentType: "application/json; charset=UTF-8"
+																				});
+																			});
+																		}
+
+																		// Send request
+																		$.ajax({
+																			url: API_BASEURL + "plugin/m3dfio",
+																			type: "POST",
+																			dataType: "json",
+																			data: JSON.stringify({command: "message", value: commands}),
+																			contentType: "application/json; charset=UTF-8"
+																		});
+																	}
+
+																	// Send request
+																	$.ajax({
+																		url: API_BASEURL + "plugin/m3dfio",
+																		type: "POST",
+																		dataType: "json",
+																		data: JSON.stringify({command: "message", value: commands}),
+																		contentType: "application/json; charset=UTF-8"
+																	});
+																}
+
+																// Send request
+																$.ajax({
+																	url: API_BASEURL + "plugin/m3dfio",
+																	type: "POST",
+																	dataType: "json",
+																	data: JSON.stringify({command: "message", value: commands}),
+																	contentType: "application/json; charset=UTF-8"
+																});
+															});
+														}
+
+														// Send request
+														$.ajax({
+															url: API_BASEURL + "plugin/m3dfio",
+															type: "POST",
+															dataType: "json",
+															data: JSON.stringify({command: "message", value: commands}),
+															contentType: "application/json; charset=UTF-8"
+														});
+													}
+
+													// Send request
+													$.ajax({
+														url: API_BASEURL + "plugin/m3dfio",
+														type: "POST",
+														dataType: "json",
+														data: JSON.stringify({command: "message", value: commands}),
+														contentType: "application/json; charset=UTF-8"
+													});
+												}
+
+												// Send request
+												$.ajax({
+													url: API_BASEURL + "plugin/m3dfio",
+													type: "POST",
+													dataType: "json",
+													data: JSON.stringify({command: "message", value: commands}),
+													contentType: "application/json; charset=UTF-8"
+												});
+											});
+										}
+
+										// Send request
+										$.ajax({
+											url: API_BASEURL + "plugin/m3dfio",
+											type: "POST",
+											dataType: "json",
+											data: JSON.stringify({command: "message", value: commands}),
+											contentType: "application/json; charset=UTF-8"
+										});
+									}
+
+									// Send request
+									$.ajax({
+										url: API_BASEURL + "plugin/m3dfio",
+										type: "POST",
+										dataType: "json",
+										data: JSON.stringify({command: "message", value: commands}),
+										contentType: "application/json; charset=UTF-8"
+									});
+								}
+
+								// Send request
+								$.ajax({
+									url: API_BASEURL + "plugin/m3dfio",
+									type: "POST",
+									dataType: "json",
+									data: JSON.stringify({command: "message", value: commands}),
+									contentType: "application/json; charset=UTF-8"
+								});
+							});
+						}
+
+						// Send request
+						$.ajax({
+							url: API_BASEURL + "plugin/m3dfio",
+							type: "POST",
+							dataType: "json",
+							data: JSON.stringify({command: "message", value: commands}),
+							contentType: "application/json; charset=UTF-8"
+						});
+					}
+	
+					// Send request
+					$.ajax({
+						url: API_BASEURL + "plugin/m3dfio",
+						type: "POST",
+						dataType: "json",
+						data: JSON.stringify({command: "message", value: commands}),
+						contentType: "application/json; charset=UTF-8"
+					});
+				}
 		
 				// Send request
 				$.ajax({
@@ -5930,358 +6302,7 @@ $(function() {
 					type: "POST",
 					dataType: "json",
 					data: JSON.stringify({command: "message", value: commands}),
-					contentType: "application/json; charset=UTF-8",
-			
-					// On success
-					success: function(data) {
-			
-						// Show message
-						showMessage("Calibration Status", "Calibrating bed orientation");
-		
-						// Set commands
-						var commands = [
-							"M104 S0",
-							"G90",
-							"G0 Z3 F90",
-							"M109 S150",
-							"M104 S0",
-							"M107",
-							"G32",
-							"M619 S" + eepromOffsets["bedOrientationBackRight"]["offset"] + " T" + eepromOffsets["bedOrientationBackRight"]["bytes"],
-							"M619 S" + eepromOffsets["bedOrientationBackLeft"]["offset"] + " T" + eepromOffsets["bedOrientationBackLeft"]["bytes"],
-							"M619 S" + eepromOffsets["bedOrientationFrontLeft"]["offset"] + " T" + eepromOffsets["bedOrientationFrontLeft"]["bytes"],
-							"M619 S" + eepromOffsets["bedOrientationFrontRight"]["offset"] + " T" + eepromOffsets["bedOrientationFrontRight"]["bytes"],
-							"M65536;wait"
-						];
-		
-						// Send request
-						$.ajax({
-							url: API_BASEURL + "plugin/m3dfio",
-							type: "POST",
-							dataType: "json",
-							data: JSON.stringify({command: "message", value: commands}),
-							contentType: "application/json; charset=UTF-8",
-			
-							// On success
-							success: function(data) {
-							
-								// Show message
-								showMessage("Calibration Status", "Calibrating front left offset");
-			
-								// Set commands
-								var commands = [
-									"G90",
-									"G0 Z3 F90",
-									"G28",
-									"G0 X9 Y5 Z3 F3000",
-									"M65536;wait"
-								];
-		
-								// Send request
-								$.ajax({
-									url: API_BASEURL + "plugin/m3dfio",
-									type: "POST",
-									dataType: "json",
-									data: JSON.stringify({command: "message", value: commands}),
-									contentType: "application/json; charset=UTF-8",
-			
-									// On success
-									success: function(data) {
-									
-										// Show message
-										showMessage("Calibration Status", "Lower the print head until it barely touches the bed. One way to get to that point is to place a single sheet of paper on the bed under the print head, and lower the print head until the paper can no longer be moved.", "Done", function() {
-		
-											// Hide message
-											hideMessage();
-											
-											// Set commands
-											var commands = [
-												"M114",
-												"M65536;wait"
-											];
-		
-											// Send request
-											$.ajax({
-												url: API_BASEURL + "plugin/m3dfio",
-												type: "POST",
-												dataType: "json",
-												data: JSON.stringify({command: "message", value: commands}),
-												contentType: "application/json; charset=UTF-8",
-			
-												// On success
-												success: function(data) {
-			
-													// Set commands
-													commands = [
-														"M618 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.FrontLeftOrientation()),
-														"M619 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"],
-														"M65536;wait"
-													];
-				
-													// Send request
-													$.ajax({
-														url: API_BASEURL + "plugin/m3dfio",
-														type: "POST",
-														dataType: "json",
-														data: JSON.stringify({command: "message", value: commands}),
-														contentType: "application/json; charset=UTF-8",
-						
-														// On success
-														success: function(data) {
-			
-															// Show message
-															showMessage("Calibration Status", "Calibrating front right offset");
-			
-															// Set commands
-															var commands = [
-																"G90",
-																"G0 Z3 F90",
-																"G28",
-																"G0 X99 Y5 Z3 F3000",
-																"M65536;wait"
-															];
-		
-															// Send request
-															$.ajax({
-																url: API_BASEURL + "plugin/m3dfio",
-																type: "POST",
-																dataType: "json",
-																data: JSON.stringify({command: "message", value: commands}),
-																contentType: "application/json; charset=UTF-8",
-			
-																// On success
-																success: function(data) {
-																
-																	// Show message
-																	showMessage("Calibration Status", "Lower the print head until it barely touches the bed. One way to get to that point is to place a single sheet of paper on the bed under the print head, and lower the print head until the paper can no longer be moved.", "Done", function() {
-		
-																		// Hide message
-																		hideMessage();
-																		
-																		// Set commands
-																		var commands = [
-																			"M114",
-																			"M65536;wait"
-																		];
-		
-																		// Send request
-																		$.ajax({
-																			url: API_BASEURL + "plugin/m3dfio",
-																			type: "POST",
-																			dataType: "json",
-																			data: JSON.stringify({command: "message", value: commands}),
-																			contentType: "application/json; charset=UTF-8",
-			
-																			// On success
-																			success: function(data) {
-			
-																				// Set commands
-																				commands = [
-																					"M618 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.FrontRightOrientation()),
-																					"M619 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"],
-																					"M65536;wait"
-																				];
-				
-																				// Send request
-																				$.ajax({
-																					url: API_BASEURL + "plugin/m3dfio",
-																					type: "POST",
-																					dataType: "json",
-																					data: JSON.stringify({command: "message", value: commands}),
-																					contentType: "application/json; charset=UTF-8",
-						
-																					// On success
-																					success: function(data) {
-			
-																						// Show message
-																						showMessage("Calibration Status", "Calibrating back right offset");
-			
-																						// Set commands
-																						var commands = [
-																							"G90",
-																							"G0 Z3 F90",
-																							"G28",
-																							"G0 X99 Y95 Z3 F3000",
-																							"M65536;wait"
-																						];
-		
-																						// Send request
-																						$.ajax({
-																							url: API_BASEURL + "plugin/m3dfio",
-																							type: "POST",
-																							dataType: "json",
-																							data: JSON.stringify({command: "message", value: commands}),
-																							contentType: "application/json; charset=UTF-8",
-			
-																							// On success
-																							success: function(data) {
-																							
-																								// Show message
-																								showMessage("Calibration Status", "Lower the print head until it barely touches the bed. One way to get to that point is to place a single sheet of paper on the bed under the print head, and lower the print head until the paper can no longer be moved.", "Done", function() {
-		
-																									// Hide message
-																									hideMessage();
-																									
-																									// Set commands
-																									var commands = [
-																										"M114",
-																										"M65536;wait"
-																									];
-		
-																									// Send request
-																									$.ajax({
-																										url: API_BASEURL + "plugin/m3dfio",
-																										type: "POST",
-																										dataType: "json",
-																										data: JSON.stringify({command: "message", value: commands}),
-																										contentType: "application/json; charset=UTF-8",
-			
-																										// On success
-																										success: function(data) {
-			
-																											// Set commands
-																											commands = [
-																												"M618 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.BackRightOrientation()),
-																												"M619 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"],
-																												"M65536;wait"
-																											];
-				
-																											// Send request
-																											$.ajax({
-																												url: API_BASEURL + "plugin/m3dfio",
-																												type: "POST",
-																												dataType: "json",
-																												data: JSON.stringify({command: "message", value: commands}),
-																												contentType: "application/json; charset=UTF-8",
-						
-																												// On success
-																												success: function(data) {
-			
-																													// Show message
-																													showMessage("Calibration Status", "Calibrating back left offset");
-			
-																													// Set commands
-																													var commands = [
-																														"G90",
-																														"G0 Z3 F90",
-																														"G28",
-																														"G0 X9 Y95 Z3 F3000",
-																														"M65536;wait"
-																													];
-		
-																													// Send request
-																													$.ajax({
-																														url: API_BASEURL + "plugin/m3dfio",
-																														type: "POST",
-																														dataType: "json",
-																														data: JSON.stringify({command: "message", value: commands}),
-																														contentType: "application/json; charset=UTF-8",
-			
-																														// On success
-																														success: function(data) {
-																														
-																															// Show message
-																															showMessage("Calibration Status", "Lower the print head until it barely touches the bed. One way to get to that point is to place a single sheet of paper on the bed under the print head, and lower the print head until the paper can no longer be moved.", "Done", function() {
-		
-																																// Hide message
-																																hideMessage();
-																																
-																																// Set commands
-																																var commands = [
-																																	"M114",
-																																	"M65536;wait"
-																																];
-		
-																																// Send request
-																																$.ajax({
-																																	url: API_BASEURL + "plugin/m3dfio",
-																																	type: "POST",
-																																	dataType: "json",
-																																	data: JSON.stringify({command: "message", value: commands}),
-																																	contentType: "application/json; charset=UTF-8",
-			
-																																	// On success
-																																	success: function(data) {
-			
-																																		// Set commands
-																																		commands = [
-																																			"M618 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.BackLeftOrientation()),
-																																			"M619 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"],
-																																			"M65536;wait"
-																																		];
-				
-																																		// Send request
-																																		$.ajax({
-																																			url: API_BASEURL + "plugin/m3dfio",
-																																			type: "POST",
-																																			dataType: "json",
-																																			data: JSON.stringify({command: "message", value: commands}),
-																																			contentType: "application/json; charset=UTF-8",
-						
-																																			// On success
-																																			success: function(data) {
-			
-																																				// Set commands
-																																				commands = [
-																																					"G90",
-																																					"G28",
-																																					"M18",
-																																					"M65536;wait"
-																																				];
-				
-																																				// Send request
-																																				$.ajax({
-																																					url: API_BASEURL + "plugin/m3dfio",
-																																					type: "POST",
-																																					dataType: "json",
-																																					data: JSON.stringify({command: "message", value: commands}),
-																																					contentType: "application/json; charset=UTF-8",
-						
-																																					// On success
-																																					success: function(data) {
-																																					
-																																						// Save software and printer settings
-																																						self.settings.saveData(undefined, savePrinterSettings);
-			
-																																						// Show message
-																																						showMessage("Calibration Status", "Done", "Ok", function() {
-					
-																																							// Hide message
-																																							hideMessage();
-																																						});
-																																					}
-																																				});
-																																			}
-																																		});
-																																	}
-																																});
-																															});
-																														}
-																													});
-																												}
-																											});
-																										}
-																									});
-																								});
-																							}
-																						});
-																					}
-																				});
-																			}
-																		});
-																	});
-																}
-															});
-														}
-													});
-												}
-											});
-										});
-									}
-								});
-							}
-						});
-					}
+					contentType: "application/json; charset=UTF-8"
 				});
 			}, "No", function() {
 			
@@ -6761,6 +6782,27 @@ $(function() {
 			}
 		});
 		
+		// Ping
+		function ping() {
+		
+			// Send request
+			$.ajax({
+				url: API_BASEURL + "plugin/m3dfio",
+				type: "POST",
+				dataType: "json",
+				data: JSON.stringify({command: "message", value: "Ping"}),
+				contentType: "application/json; charset=UTF-8",
+				
+				// Complete
+				complete: function() {
+					
+					// Ping again
+					setTimeout(ping, 180 * 1000);
+				}
+			});
+		}
+		setTimeout(ping, 180 * 1000);
+		
 		// On data update message
 		self.onDataUpdaterPluginMessage = function(plugin, data) {
 		
@@ -7151,6 +7193,79 @@ $(function() {
 							"M117",
 							"M65536;wait"
 						];
+						
+						// Set waiting callback
+						waitingCallback = function() {
+						
+							// Check if bed orientation is invalid
+							if(data.bedOrientation) {
+			
+								// Display message
+								showMessage("Error Status", "Invalid bed orientation. Calibrate?", "Yes", function() {
+								
+									// Hide message
+									hideMessage();
+					
+									// Show message
+									showMessage("Error Status", "Calibrating bed orientation");
+	
+									// Set commands
+									var commands = [
+										"M104 S0",
+										"G90",
+										"G0 Z3 F90",
+										"M109 S150",
+										"M104 S0",
+										"M107",
+										"G32",
+										"M619 S" + eepromOffsets["bedOrientationBackRight"]["offset"] + " T" + eepromOffsets["bedOrientationBackRight"]["bytes"],
+										"M619 S" + eepromOffsets["bedOrientationBackLeft"]["offset"] + " T" + eepromOffsets["bedOrientationBackLeft"]["bytes"],
+										"M619 S" + eepromOffsets["bedOrientationFrontLeft"]["offset"] + " T" + eepromOffsets["bedOrientationFrontLeft"]["bytes"],
+										"M619 S" + eepromOffsets["bedOrientationFrontRight"]["offset"] + " T" + eepromOffsets["bedOrientationFrontRight"]["bytes"],
+										"M65536;wait"
+									];
+									
+									// Set waiting callback
+									waitingCallback = function() {
+									
+										// Save software and printer settings
+										self.settings.saveData(undefined, savePrinterSettings);
+	
+										// Show message
+										showMessage("Error Status", "Done", "Ok", function() {
+			
+											// Hide message
+											hideMessage();
+										});
+									}
+	
+									// Send request
+									$.ajax({
+										url: API_BASEURL + "plugin/m3dfio",
+										type: "POST",
+										dataType: "json",
+										data: JSON.stringify({command: "message", value: commands}),
+										contentType: "application/json; charset=UTF-8"
+									});
+								}, "No", function() {
+				
+									// Hide message
+									hideMessage();
+								});
+							}
+							
+							// Otherwise
+							else {
+		
+								// Show message
+								showMessage("Error Status", "Done", "Ok", function() {
+				
+									// Hide message
+									hideMessage();
+								});
+							}
+						
+						}
 		
 						// Send request
 						$.ajax({
@@ -7158,79 +7273,7 @@ $(function() {
 							type: "POST",
 							dataType: "json",
 							data: JSON.stringify({command: "message", value: commands}),
-							contentType: "application/json; charset=UTF-8",
-			
-							// On success
-							success: function(data) {
-							
-								// Check if bed orientation is invalid
-								if(data.bedOrientation) {
-				
-									// Display message
-									showMessage("Error Status", "Invalid bed orientation. Calibrate?", "Yes", function() {
-									
-										// Hide message
-										hideMessage();
-						
-										// Show message
-										showMessage("Error Status", "Calibrating bed orientation");
-		
-										// Set commands
-										var commands = [
-											"M104 S0",
-											"G90",
-											"G0 Z3 F90",
-											"M109 S150",
-											"M104 S0",
-											"M107",
-											"G32",
-											"M619 S" + eepromOffsets["bedOrientationBackRight"]["offset"] + " T" + eepromOffsets["bedOrientationBackRight"]["bytes"],
-											"M619 S" + eepromOffsets["bedOrientationBackLeft"]["offset"] + " T" + eepromOffsets["bedOrientationBackLeft"]["bytes"],
-											"M619 S" + eepromOffsets["bedOrientationFrontLeft"]["offset"] + " T" + eepromOffsets["bedOrientationFrontLeft"]["bytes"],
-											"M619 S" + eepromOffsets["bedOrientationFrontRight"]["offset"] + " T" + eepromOffsets["bedOrientationFrontRight"]["bytes"],
-											"M65536;wait"
-										];
-		
-										// Send request
-										$.ajax({
-											url: API_BASEURL + "plugin/m3dfio",
-											type: "POST",
-											dataType: "json",
-											data: JSON.stringify({command: "message", value: commands}),
-											contentType: "application/json; charset=UTF-8",
-			
-											// On success
-											success: function(data) {
-											
-												// Save software and printer settings
-												self.settings.saveData(undefined, savePrinterSettings);
-			
-												// Show message
-												showMessage("Error Status", "Done", "Ok", function() {
-					
-													// Hide message
-													hideMessage();
-												});
-											}
-										});
-									}, "No", function() {
-					
-										// Hide message
-										hideMessage();
-									});
-								}
-								
-								// Otherwise
-								else {
-			
-									// Show message
-									showMessage("Error Status", "Done", "Ok", function() {
-					
-										// Hide message
-										hideMessage();
-									});
-								}
-							}
+							contentType: "application/json; charset=UTF-8"
 						});
 					}, "No", function() {
 					
@@ -7266,6 +7309,20 @@ $(function() {
 							"M619 S" + eepromOffsets["bedOrientationFrontRight"]["offset"] + " T" + eepromOffsets["bedOrientationFrontRight"]["bytes"],
 							"M65536;wait"
 						];
+						
+						// Set waiting callback
+						waitingCallback = function() {
+						
+							// Save software and printer settings
+							self.settings.saveData(undefined, savePrinterSettings);
+		
+							// Show message
+							showMessage("Error Status", "Done", "Ok", function() {
+				
+								// Hide message
+								hideMessage();
+							});
+						}
 		
 						// Send request
 						$.ajax({
@@ -7273,21 +7330,7 @@ $(function() {
 							type: "POST",
 							dataType: "json",
 							data: JSON.stringify({command: "message", value: commands}),
-							contentType: "application/json; charset=UTF-8",
-			
-							// On success
-							success: function(data) {
-							
-								// Save software and printer settings
-								self.settings.saveData(undefined, savePrinterSettings);
-			
-								// Show message
-								showMessage("Error Status", "Done", "Ok", function() {
-					
-									// Hide message
-									hideMessage();
-								});
-							}
+							contentType: "application/json; charset=UTF-8"
 						});
 					}, "No", function() {
 					
@@ -7370,6 +7413,17 @@ $(function() {
 				
 					// Display message
 					showMessage("Error Status", htmlEncode(data.message));
+			}
+			
+			// Otherwise check if data is doen waiting
+			else if(data.value == "Done Waiting" && typeof waitingCallback === "function") {
+			
+				// Clear waiting callback
+				var temp = waitingCallback;
+				waitingCallback = null;
+			
+				// Call waiting callback
+				temp();
 			}
 		}
 		

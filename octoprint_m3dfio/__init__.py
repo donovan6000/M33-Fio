@@ -79,7 +79,7 @@ class M3DFioPlugin(
 		self.originalWrite = None
 		self.originalRead = None
 		self.invalidPrinter = True
-		self.waiting = None
+		self.waiting = False
 		self.processingSlice = False
 		self.usingMicroPass = False
 		self.eeprom = None
@@ -975,7 +975,7 @@ class M3DFioPlugin(
 			# Check if parameter is a list of commands
 			if isinstance(data["value"], list) :
 			
-				# Set waiting
+				# Set waiting if last command is to wait
 				if data["value"][-1] == "M65536;wait" :
 					self.waiting = True
 				
@@ -983,7 +983,7 @@ class M3DFioPlugin(
 				for command in data["value"] :
 					
 					# Send command to printer
-					self.sendCommands("G4 P1")
+					self.sendCommands("G4")
 					self.sendCommands(command)
 					
 					# Send absolute and relative commands twice to make sure they don't get ignored
@@ -993,18 +993,8 @@ class M3DFioPlugin(
 					# Delay
 					time.sleep(0.1)
 				
-				# Check if waiting for a response
-				if data["value"][-1] == "M65536;wait" :
-				
-					# Wait until all commands have been sent or interrupted
-					while self.waiting and not self.lastResponseWasWait :
-						time.sleep(0.01)
-				
-					# Send response
-					if not self.waiting :
-						return flask.jsonify(dict(value = "Error"))
-					else :
-						return flask.jsonify(dict(value = "Ok"))
+				# Send response
+				return flask.jsonify(dict(value = "Ok"))
 			
 			# Otherwise check if parameter is to set fan
 			elif data["value"].startswith("Set Fan:") :
@@ -1689,6 +1679,12 @@ class M3DFioPlugin(
 			
 				# Send emergency stop immediately to the printer
 				self._printer.get_transport().write("M0")
+			
+			# Otherwise check if parameter is ping
+			elif data["value"] == "Ping" :
+			
+				# Return response
+				return flask.jsonify(dict(value = "Ok"))
 		
 		# Otherwise check if command is a file
 		elif command == "file" :
@@ -2317,8 +2313,9 @@ class M3DFioPlugin(
 		# Check if request ends waiting
 		if "M65536" in data :
 			
-			# Clear waiting
-			self.waiting = None
+			# Set to wait for a wait response
+			if self.waiting :
+				self.waiting = None
 			
 			# Send fake acknowledgment
 			self._printer.fake_ack()
@@ -2432,6 +2429,15 @@ class M3DFioPlugin(
 				
 					# Send message
 					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Duplicate Wait"))
+				
+				# Check if waiting for a wait response
+				if self.waiting is None :
+				
+					# Clear waiting
+					self.waiting = False
+				
+					# Send message
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Done Waiting"))
 		
 		# Otherwise
 		else :
@@ -2935,19 +2941,19 @@ class M3DFioPlugin(
 				if self.sharedLibrary and self._settings.get_boolean(["UseSharedLibrary"]) :
 				
 					# Pre-process command
-					commands = self.sharedLibrary.preprocess(ctypes.c_char_p("G4 P1"), ctypes.c_char_p(None), ctypes.c_bool(True)).split(',')
+					commands = self.sharedLibrary.preprocess(ctypes.c_char_p("G4"), ctypes.c_char_p(None), ctypes.c_bool(True)).split(',')
 				
 				# Otherwise
 				else :
 				
 					# Pre-process command
-					commands = self.preprocess("G4 P1", None, True)
+					commands = self.preprocess("G4", None, True)
 				
 				# Go through all commands
 				for command in commands :
 			
 					# Send command to printer
-					self.sendCommands("G4 P1")
+					self.sendCommands("G4")
 					self.sendCommands(command)
 					
 					# Send absolute and relative commands twice to make sure they don't get ignored
@@ -2983,7 +2989,7 @@ class M3DFioPlugin(
 			for command in commands :
 		
 				# Send command to printer
-				self.sendCommands("G4 P1")
+				self.sendCommands("G4")
 				self.sendCommands(command)
 				
 				# Delay
