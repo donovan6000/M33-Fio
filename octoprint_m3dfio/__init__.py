@@ -2587,8 +2587,8 @@ class M3DFioPlugin(
 	# Set file locations
 	def setFileLocations(self) :
 	
-		# Check if Pip isn't set
-		if octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.get(["pip"]) is None :
+		# Check if rot running in a virtual environment and Pip isn't set
+		if not hasattr(sys, "real_prefix") and octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.get(["pip"]) is None :
 	
 			# Set Pip locations
 			pipLocations = []
