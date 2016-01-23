@@ -6948,7 +6948,7 @@ $(function() {
 			else if(data.value == "Sleep Wont Disable") {
 			
 				// Show message
-				showMessage("Message", "It's recommended that you disable this server's sleep functionality while printing", "Ok", function() {
+				showMessage("Message", "It's recommended that you disable this server's sleep functionality while printing if it's not already disabled", "Ok", function() {
 				
 					// Hide message
 					hideMessage();
