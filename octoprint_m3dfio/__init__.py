@@ -939,7 +939,7 @@ class M3DFioPlugin(
 	
 		# Return asset
 		return dict(
-			js = ["js/m3dfio.js", "js/three.min.js", "js/OrbitControls.js", "js/STLLoader.js", "js/OBJLoader.js", "js/M3DLoader.js", "js/STLBinaryExporter.js", "js/TransformControls.js", "js/ThreeCSG.js", "js/AMFLoader.js", "js/VRMLLoader.js", "js/ColladaLoader.js"],
+			js = ["js/m3dfio.js", "js/three.min.js", "js/OrbitControls.js", "js/STLLoader.js", "js/OBJLoader.js", "js/M3DLoader.js", "js/STLBinaryExporter.js", "js/TransformControls.js", "js/ThreeCSG.js", "js/AMFLoader.js", "js/VRMLLoader.js", "js/ColladaLoader.js", "js/Detector.js"],
 			css = ["css/m3dfio.css"]
 		)
 	
@@ -2577,8 +2577,10 @@ class M3DFioPlugin(
 			# Move original files back
 			os.remove(self.slicerChanges.get("Slicer Profile Location"))
 			shutil.copyfile(self.slicerChanges.get("Slicer Profile Temporary"), self.slicerChanges.get("Slicer Profile Location"))
-			os.remove(self.slicerChanges.get("Model Location"))
-			shutil.copyfile(self.slicerChanges.get("Model Temporary"), self.slicerChanges.get("Model Location"))
+			
+			if "Model Temporary" in self.slicerChanges :
+				os.remove(self.slicerChanges.get("Model Location"))
+				shutil.copyfile(self.slicerChanges.get("Model Temporary"), self.slicerChanges.get("Model Location"))
 		
 			# Restore printer profile
 			self._printer_profile_manager.save(self.slicerChanges.get("Printer Profile Content"), True)
@@ -2586,7 +2588,9 @@ class M3DFioPlugin(
 			# Attempt to remove temporary files
 			try :
 				os.remove(self.slicerChanges.get("Slicer Profile Temporary"))
-				os.remove(self.slicerChanges.get("Model Temporary"))
+				
+				if "Model Temporary" in self.slicerChanges :
+					os.remove(self.slicerChanges.get("Model Temporary"))
 			except Exception :
 				pass
 			
@@ -3756,6 +3760,8 @@ class M3DFioPlugin(
 				# Lower LED brightness for clear color printers
 				if self.printerColor == "Clear" :
 					commands += ["M420 T20"]
+				else :
+					commands += ["M420 T255"]
 				
 				self.sendCommands(commands)
 		
@@ -6113,45 +6119,54 @@ class M3DFioPlugin(
 	def upload(self) :
 		
 		# Check if uploading everything
-		if "Model Name" in flask.request.values and "Model Location" in flask.request.values and "Model Path" in flask.request.values and "Slicer Profile Name" in flask.request.values and "Slicer Name" in flask.request.values and "Printer Profile Name" in flask.request.values and "Slicer Profile Content" in flask.request.values and "After Slicing Action" in flask.request.values :
+		if "Slicer Profile Name" in flask.request.values and "Slicer Name" in flask.request.values and "Printer Profile Name" in flask.request.values and "Slicer Profile Content" in flask.request.values and "After Slicing Action" in flask.request.values :
 		
 			# Check if printing after slicing and a printer isn't connected
 			if flask.request.values["After Slicing Action"] != "none" and self._printer.get_state_string() == "Offline" :
 			
 				# Return error
 				return flask.jsonify(dict(value = "Error"))
+			
+			# Set if model was modified
+			modelModified = "Model Name" in flask.request.values and "Model Location" in flask.request.values and "Model Path" in flask.request.values
 	
 			# Check if slicer profile, model name, or model path contain path traversal
-			if "../" in flask.request.values["Slicer Profile Name"] or "../" in flask.request.values["Model Name"] or "../" in flask.request.values["Model Path"] :
+			if "../" in flask.request.values["Slicer Profile Name"] or (modelModified and ("../" in flask.request.values["Model Name"] or "../" in flask.request.values["Model Path"])) :
 		
 				# Return error
 				return flask.jsonify(dict(value = "Error"))
 			
 			# Check if model location is invalid
-			if flask.request.values["Model Location"] != "local" and flask.request.values["Model Location"] != "sdcard" :
+			if modelModified and (flask.request.values["Model Location"] != "local" and flask.request.values["Model Location"] != "sdcard") :
 			
 				# Return error
 				return flask.jsonify(dict(value = "Error"))
 	
-			# Get file locations
+			# Set profile location
 			profileLocation = self._slicing_manager.get_profile_path(flask.request.values["Slicer Name"], flask.request.values["Slicer Profile Name"])
 			
-			if flask.request.values["Model Location"] == "local" :
-				modelLocation = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, flask.request.values["Model Path"] + flask.request.values["Model Name"]).replace('\\', '/')
-			elif flask.request.values["Model Location"] == "sdcard" :
-				modelLocation = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.SDCARD, flask.request.values["Model Path"] + flask.request.values["Model Name"]).replace('\\', '/')
+			# Set model location
+			if modelModified :
+			
+				if flask.request.values["Model Location"] == "local" :
+					modelLocation = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, flask.request.values["Model Path"] + flask.request.values["Model Name"]).replace('\\', '/')
+				elif flask.request.values["Model Location"] == "sdcard" :
+					modelLocation = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.SDCARD, flask.request.values["Model Path"] + flask.request.values["Model Name"]).replace('\\', '/')
 		
 			# Check if slicer profile, model, or printer profile doesn't exist
-			if not os.path.isfile(profileLocation) or not os.path.isfile(modelLocation) or not self._printer_profile_manager.exists(flask.request.values["Printer Profile Name"]) :
+			if not os.path.isfile(profileLocation) or (modelModified and not os.path.isfile(modelLocation)) or not self._printer_profile_manager.exists(flask.request.values["Printer Profile Name"]) :
 		
 				# Return error
 				return flask.jsonify(dict(value = "Error"))
 		
-			# Move original slicer profile and model to temporary locations
+			# Move original slicer profile to temporary locations
 			profileTemp = tempfile.mkstemp()[1]
 			shutil.move(profileLocation, profileTemp)
-			modelTemp = tempfile.mkstemp()[1]
-			shutil.move(modelLocation, modelTemp)
+			
+			# Move original model to temporary location
+			if modelModified :
+				modelTemp = tempfile.mkstemp()[1]
+				shutil.move(modelLocation, modelTemp)
 		
 			# Save slicer profile to original slicer profile's location
 			temp = tempfile.mkstemp()[1]
@@ -6173,10 +6188,12 @@ class M3DFioPlugin(
 			self.slicerChanges = {
 				u"Slicer Profile Location" : profileLocation,
 				u"Slicer Profile Temporary" : profileTemp,
-				u"Model Location" : modelLocation,
-				u"Model Temporary" : modelTemp,
 				u"Printer Profile Content" : copy.deepcopy(printerProfile)
 			}
+			
+			if modelModified :
+				self.slicerChanges[u"Model Location"] = modelLocation
+				self.slicerChanges[u"Model Temporary"] = modelTemp
 			
 			# Check if slicer is Cura
 			if flask.request.values["Slicer Name"] == "cura" :
