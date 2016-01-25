@@ -5318,9 +5318,7 @@ $(function() {
 		
 			// Set commands
 			var commands = [
-				"M104 S0",
 				"G90",
-				"G0 Z3 F90",
 				"M109 S150",
 				"M104 S0",
 				"M107",
@@ -5922,9 +5920,7 @@ $(function() {
 		
 				// Set commands
 				var commands = [
-					"M104 S0",
 					"G90",
-					"G0 Z3 F90",
 					"M109 S150",
 					"M104 S0",
 					"M107",
@@ -7183,9 +7179,7 @@ $(function() {
 		
 						// Set commands
 						var commands = [
-							"M104 S0",
 							"G90",
-							"G0 Z3 F90",
 							"M109 S150",
 							"M104 S0",
 							"M107",
