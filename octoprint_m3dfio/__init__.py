@@ -2602,7 +2602,7 @@ class M3DFioPlugin(
 	def setFileLocations(self) :
 	
 		# Check if rot running in a virtual environment and Pip isn't set
-		if not hasattr(sys, "real_prefix") and octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.get(["pip"]) is None :
+		if not hasattr(sys, "real_prefix") and (octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._pip_caller is None or not octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._pip_caller.available) and octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.get(["pip"]) is None :
 	
 			# Set Pip locations
 			pipLocations = []
@@ -6180,7 +6180,7 @@ class M3DFioPlugin(
 			for character in flask.request.values["Slicer Profile Content"] :
 				output.write(chr(ord(character)))
 			output.close()
-		
+			
 			if flask.request.values["Slicer Name"] == "cura" :
 				self.convertCuraToProfile(temp, profileLocation, '', '', '')
 			else :

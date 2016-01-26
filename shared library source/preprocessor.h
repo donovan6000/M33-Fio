@@ -131,6 +131,7 @@ extern "C" {
 	EXPORT void setUsingMicroPass(bool value);
 	EXPORT void setPrintingTestBorder(bool value);
 	EXPORT void setPrintingBacklashCalibrationCylinder(bool value);
+	EXPORT void setPrinterColor(const char *value);
 
 	/*
 	Name: Reset pre-processor settings

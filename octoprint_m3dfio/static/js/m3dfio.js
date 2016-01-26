@@ -4794,18 +4794,27 @@ $(function() {
 		// Save settings button event
 		$("#settings_dialog > div.modal-footer > button.btn-primary").click(function() {
 		
-			// Save software and printer settings
-			self.settings.saveData(undefined, function() {
+			setTimeout(function() {
+		
+				// Save software and printer settings
+				function saveSettings() {
 			
-				// Send request
-				$.ajax({
-					url: API_BASEURL + "plugin/m3dfio",
-					type: "POST",
-					dataType: "json",
-					data: JSON.stringify({command: "message", value: "Save Printer Settings"}),
-					contentType: "application/json; charset=UTF-8"
-				});
-			});
+					// Send request
+					$.ajax({
+						url: API_BASEURL + "plugin/m3dfio",
+						type: "POST",
+						dataType: "json",
+						data: JSON.stringify({command: "message", value: "Save Printer Settings"}),
+						contentType: "application/json; charset=UTF-8"
+					});
+				}
+			
+				// Update settings
+				if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
+					self.settings.requestData(saveSettings);
+				else
+					self.settings.requestData().done(saveSettings);
+			}, 0);
 		});
 	
 		// Override X increment control

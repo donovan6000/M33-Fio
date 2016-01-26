@@ -60,6 +60,9 @@ enum printTiers {LOW, MEDIUM, HIGH};
 // Pre-processor stages
 enum preprocessorStages {NONE, INPUT, CENTER, VALIDATION, PREPARATION, WAVE, THERMAL, BED, BACKLASH};
 
+// Printer colors
+enum printerColors {BLACK, WHITE, BLUE, GREEN, ORANGE, CLEAR, SILVER};
+
 
 // Classes
 
@@ -145,6 +148,7 @@ bool ignorePrintDimensionLimitations;
 bool usingMicroPass;
 bool printingTestBorder;
 bool printingBacklashCalibrationCylinder;
+printerColors printerColor;
 
 // Return value
 string returnValue;
@@ -598,6 +602,25 @@ EXPORT void setPrintingBacklashCalibrationCylinder(bool value) {
 
 	// Set printing backlash calibration cylinder
 	printingBacklashCalibrationCylinder = value;
+}
+
+EXPORT void setPrinterColor(const char *value) {
+
+	// Set printer color
+	if(!strcmp(value, "White"))
+		printerColor = WHITE;
+	else if(!strcmp(value, "Blue"))
+		printerColor = BLUE;
+	else if(!strcmp(value, "Green"))
+		printerColor = GREEN;
+	else if(!strcmp(value, "Orange"))
+		printerColor = ORANGE;
+	else if(!strcmp(value, "Clear"))
+		printerColor = CLEAR;
+	else if(!strcmp(value, "Silver"))
+		printerColor = SILVER;
+	else
+		printerColor = BLACK;
 }
 
 EXPORT void resetPreprocessorSettings() {
@@ -1054,6 +1077,7 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 				}
 			
 				// Add intro to output
+				newCommands.push(Command("M420 T1", PREPARATION, PREPARATION));
 				newCommands.push(Command("M106 S" + static_cast<string>(filamentType == PLA ? "255" : "50"), PREPARATION, PREPARATION));
 				newCommands.push(Command("M17", PREPARATION, PREPARATION));
 				newCommands.push(Command("G90", PREPARATION, PREPARATION));
@@ -1159,7 +1183,21 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 				
 				newCommands.push(Command("M18", PREPARATION, PREPARATION));
 				newCommands.push(Command("M107", PREPARATION, PREPARATION));
-		
+				
+				newCommands.push(Command("M420 T" + static_cast<string>(printerColor == CLEAR ? "20" : "100"), PREPARATION, PREPARATION));
+				newCommands.push(Command("G4 P500", PREPARATION, PREPARATION));
+				newCommands.push(Command("M420 T1", PREPARATION, PREPARATION));
+				newCommands.push(Command("G4 P500", PREPARATION, PREPARATION));
+				newCommands.push(Command("M420 T" + static_cast<string>(printerColor == CLEAR ? "20" : "100"), PREPARATION, PREPARATION));
+				newCommands.push(Command("G4 P500", PREPARATION, PREPARATION));
+				newCommands.push(Command("M420 T1", PREPARATION, PREPARATION));
+				newCommands.push(Command("G4 P500", PREPARATION, PREPARATION));
+				newCommands.push(Command("M420 T" + static_cast<string>(printerColor == CLEAR ? "20" : "100"), PREPARATION, PREPARATION));
+				newCommands.push(Command("G4 P500", PREPARATION, PREPARATION));
+				newCommands.push(Command("M420 T1", PREPARATION, PREPARATION));
+				newCommands.push(Command("G4 P500", PREPARATION, PREPARATION));
+				newCommands.push(Command("M420 T" + static_cast<string>(printerColor == CLEAR ? "20" : "100"), PREPARATION, PREPARATION));
+				
 				// Append new commands to commands
 				while(newCommands.size()) {
 					commands.push_front(newCommands.top());
