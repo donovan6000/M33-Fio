@@ -986,11 +986,12 @@ class M3DFioPlugin(
 				for command in data["value"] :
 					
 					# Send command to printer
+					if command != "G28" :
+						self.sendCommands("G4")
 					self.sendCommands(command)
 					
 					# Send absolute and relative commands twice to make sure they don't get ignored
 					if command == "G90" or command == "G91" :
-						self.sendCommands("G4")
 						self.sendCommands(command)
 				
 					# Delay
@@ -2966,11 +2967,12 @@ class M3DFioPlugin(
 				for command in commands :
 			
 					# Send command to printer
+					if command != "G28" :
+						self.sendCommands("G4")
 					self.sendCommands(command)
 					
 					# Send absolute and relative commands twice to make sure they don't get ignored
 					if command == "G90" or command == "G91" :
-						self.sendCommands("G4")
 						self.sendCommands(command)
 					
 					# Delay
@@ -3007,11 +3009,12 @@ class M3DFioPlugin(
 			for command in commands :
 		
 				# Send command to printer
+				if command != "G28" :
+					self.sendCommands("G4")
 				self.sendCommands(command)
 				
 				# Send absolute and relative commands twice to make sure they don't get ignored
 				if command == "G90" or command == "G91" :
-					self.sendCommands("G4")
 					self.sendCommands(command)
 				
 				# Delay
