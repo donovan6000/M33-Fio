@@ -807,19 +807,6 @@ $(function() {
 			// Return bytes
 			return bytes;
 		}
-
-		// Save printer settings
-		function savePrinterSettings() {
-		
-			// Send request
-			$.ajax({
-				url: API_BASEURL + "plugin/m3dfio",
-				type: "POST",
-				dataType: "json",
-				data: JSON.stringify({command: "message", value: "Save Printer Settings"}),
-				contentType: "application/json; charset=UTF-8"
-			});
-		}
 		
 		// Load model
 		function loadModel(file) {
@@ -3821,8 +3808,8 @@ $(function() {
 						$("#slicing_configuration_dialog .modal-body").css("display", '');
 						$("#slicing_configuration_dialog .modal-cover").removeClass("show").css("z-index", '');
 						
-						// Save software and printer settings
-						self.settings.saveData(undefined, savePrinterSettings);
+						// Save software settings
+						self.settings.saveData();
 					}, 300);
 				}
 			}
@@ -4808,7 +4795,17 @@ $(function() {
 		$("#settings_dialog > div.modal-footer > button.btn-primary").click(function() {
 		
 			// Save software and printer settings
-			self.settings.saveData(undefined, savePrinterSettings);
+			self.settings.saveData(undefined, function() {
+			
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m3dfio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({command: "message", value: "Save Printer Settings"}),
+					contentType: "application/json; charset=UTF-8"
+				});
+			});
 		});
 	
 		// Override X increment control
@@ -5410,15 +5407,25 @@ $(function() {
 			// Set waiting callback
 			waitingCallback = function() {
 			
-				// Save software and printer settings
-				self.settings.saveData(undefined, savePrinterSettings);
-		
-				// Show message
-				showMessage("Calibration Status", "Done", "Ok", function() {
+				// Save settings
+				function saveSettings() {
 				
-					// Hide message
-					hideMessage();
-				});
+					// Save software settings
+					self.settings.saveData();
+					
+					// Show message
+					showMessage("Calibration Status", "Done", "Ok", function() {
+				
+						// Hide message
+						hideMessage();
+					});
+				}
+			
+				// Update settings
+				if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
+					self.settings.requestData(saveSettings);
+				else
+					self.settings.requestData().done(saveSettings);
 			}
 		
 			// Send request
@@ -5540,15 +5547,25 @@ $(function() {
 				// Set waiting callback
 				waitingCallback = function() {
 				
-					// Save software and printer settings
-					self.settings.saveData(undefined, savePrinterSettings);
-	
-					// Show message
-					showMessage("Saving Status", "Done", "Ok", function() {
+					// Save settings
+					function saveSettings() {
+				
+						// Save software settings
+						self.settings.saveData();
+					
+						// Show message
+						showMessage("Saving Status", "Done", "Ok", function() {
+				
+							// Hide message
+							hideMessage();
+						});
+					}
 			
-						// Hide message
-						hideMessage();
-					});
+					// Update settings
+					if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
+						self.settings.requestData(saveSettings);
+					else
+						self.settings.requestData().done(saveSettings);
 				}
 			
 				// Send request
@@ -5596,15 +5613,25 @@ $(function() {
 				// Set waiting callback
 				waitingCallback = function() {
 				
-					// Save software and printer settings
-					self.settings.saveData(undefined, savePrinterSettings);
-	
-					// Show message
-					showMessage("Saving Status", "Done", "Ok", function() {
+					// Save settings
+					function saveSettings() {
+				
+						// Save software settings
+						self.settings.saveData();
+					
+						// Show message
+						showMessage("Saving Status", "Done", "Ok", function() {
+				
+							// Hide message
+							hideMessage();
+						});
+					}
 			
-						// Hide message
-						hideMessage();
-					});
+					// Update settings
+					if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
+						self.settings.requestData(saveSettings);
+					else
+						self.settings.requestData().done(saveSettings);
 				}
 			
 				// Send request
@@ -5652,15 +5679,25 @@ $(function() {
 				// Set waiting callback
 				waitingCallback = function() {
 				
-					// Save software and printer settings
-					self.settings.saveData(undefined, savePrinterSettings);
-	
-					// Show message
-					showMessage("Saving Status", "Done", "Ok", function() {
+					// Save settings
+					function saveSettings() {
+				
+						// Save software settings
+						self.settings.saveData();
+					
+						// Show message
+						showMessage("Saving Status", "Done", "Ok", function() {
+				
+							// Hide message
+							hideMessage();
+						});
+					}
 			
-						// Hide message
-						hideMessage();
-					});
+					// Update settings
+					if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
+						self.settings.requestData(saveSettings);
+					else
+						self.settings.requestData().done(saveSettings);
 				}
 			
 				// Send request
@@ -5708,15 +5745,25 @@ $(function() {
 				// Set waiting callback
 				waitingCallback = function() {
 				
-					// Save software and printer settings
-					self.settings.saveData(undefined, savePrinterSettings);
-	
-					// Show message
-					showMessage("Saving Status", "Done", "Ok", function() {
+					// Save settings
+					function saveSettings() {
+				
+						// Save software settings
+						self.settings.saveData();
+					
+						// Show message
+						showMessage("Saving Status", "Done", "Ok", function() {
+				
+							// Hide message
+							hideMessage();
+						});
+					}
 			
-						// Hide message
-						hideMessage();
-					});
+					// Update settings
+					if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
+						self.settings.requestData(saveSettings);
+					else
+						self.settings.requestData().done(saveSettings);
 				}
 			
 				// Send request
@@ -6174,15 +6221,25 @@ $(function() {
 																						// Set waiting callback
 																						waitingCallback = function() {
 																						
-																							// Save software and printer settings
-																							self.settings.saveData(undefined, savePrinterSettings);
-
-																							// Show message
-																							showMessage("Calibration Status", "Done", "Ok", function() {
-
-																								// Hide message
-																								hideMessage();
-																							});
+																							// Save settings
+																							function saveSettings() {
+				
+																								// Save software settings
+																								self.settings.saveData();
+					
+																								// Show message
+																								showMessage("Calibration Status", "Done", "Ok", function() {
+				
+																									// Hide message
+																									hideMessage();
+																								});
+																							}
+			
+																							// Update settings
+																							if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
+																								self.settings.requestData(saveSettings);
+																							else
+																								self.settings.requestData().done(saveSettings);
 																						}
 
 																						// Send request
@@ -7259,15 +7316,25 @@ $(function() {
 									// Set waiting callback
 									waitingCallback = function() {
 									
-										// Save software and printer settings
-										self.settings.saveData(undefined, savePrinterSettings);
-	
-										// Show message
-										showMessage("Error Status", "Done", "Ok", function() {
-			
-											// Hide message
-											hideMessage();
-										});
+										// Save settings
+										function saveSettings() {
+
+											// Save software settings
+											self.settings.saveData();
+
+											// Show message
+											showMessage("Error Status", "Done", "Ok", function() {
+
+												// Hide message
+												hideMessage();
+											});
+										}
+
+										// Update settings
+										if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
+											self.settings.requestData(saveSettings);
+										else
+											self.settings.requestData().done(saveSettings);
 									}
 	
 									// Send request
@@ -7344,15 +7411,25 @@ $(function() {
 						// Set waiting callback
 						waitingCallback = function() {
 						
-							// Save software and printer settings
-							self.settings.saveData(undefined, savePrinterSettings);
-		
-							// Show message
-							showMessage("Error Status", "Done", "Ok", function() {
-				
-								// Hide message
-								hideMessage();
-							});
+							// Save settings
+							function saveSettings() {
+
+								// Save software settings
+								self.settings.saveData();
+
+								// Show message
+								showMessage("Error Status", "Done", "Ok", function() {
+
+									// Hide message
+									hideMessage();
+								});
+							}
+
+							// Update settings
+							if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
+								self.settings.requestData(saveSettings);
+							else
+								self.settings.requestData().done(saveSettings);
 						}
 		
 						// Send request

@@ -986,11 +986,11 @@ class M3DFioPlugin(
 				for command in data["value"] :
 					
 					# Send command to printer
-					self.sendCommands("G4")
 					self.sendCommands(command)
 					
 					# Send absolute and relative commands twice to make sure they don't get ignored
 					if command == "G90" or command == "G91" :
+						self.sendCommands("G4")
 						self.sendCommands(command)
 				
 					# Delay
@@ -2966,11 +2966,11 @@ class M3DFioPlugin(
 				for command in commands :
 			
 					# Send command to printer
-					self.sendCommands("G4")
 					self.sendCommands(command)
 					
 					# Send absolute and relative commands twice to make sure they don't get ignored
 					if command == "G90" or command == "G91" :
+						self.sendCommands("G4")
 						self.sendCommands(command)
 					
 					# Delay
@@ -3001,14 +3001,18 @@ class M3DFioPlugin(
 			if self.printerColor == "Clear" :
 				commands += ["M420 T20"]
 			else :
-				commands += ["M420 T255"]
+				commands += ["M420 T100"]
 			
 			# Go through all commands
 			for command in commands :
 		
 				# Send command to printer
-				self.sendCommands("G4")
 				self.sendCommands(command)
+				
+				# Send absolute and relative commands twice to make sure they don't get ignored
+				if command == "G90" or command == "G91" :
+					self.sendCommands("G4")
+					self.sendCommands(command)
 				
 				# Delay
 				time.sleep(0.1)
@@ -3761,7 +3765,7 @@ class M3DFioPlugin(
 				if self.printerColor == "Clear" :
 					commands += ["M420 T20"]
 				else :
-					commands += ["M420 T255"]
+					commands += ["M420 T100"]
 				
 				self.sendCommands(commands)
 		
@@ -5101,10 +5105,7 @@ class M3DFioPlugin(
 							cornerY = -(self.bedLowMaxY - self.bedLowMinY - 10) / 2
 				
 					# Add intro to output
-					if self.printerColor == "Clear" :
-						newCommands.append(Command("M420 T5", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					else :
-						newCommands.append(Command("M420 T20", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("M420 T1", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 					if str(self._settings.get(["FilamentType"])) == "PLA" or str(self._settings.get(["FilamentType"])) == "FLX" or str(self._settings.get(["FilamentType"])) == "TGH" :
 						newCommands.append(Command("M106 S255", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 					else :
@@ -5212,27 +5213,28 @@ class M3DFioPlugin(
 					if self.printerColor == "Clear" :
 						newCommands.append(Command("M420 T20", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 					else :
-						newCommands.append(Command("M420 T255", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M420 T100", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 					newCommands.append(Command("G4 P500", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					if self.printerColor == "Clear" :
-						newCommands.append(Command("M420 T5", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					else :
-						newCommands.append(Command("M420 T20", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("M420 T1", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 					newCommands.append(Command("G4 P500", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 					if self.printerColor == "Clear" :
 						newCommands.append(Command("M420 T20", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 					else :
-						newCommands.append(Command("M420 T255", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M420 T100", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 					newCommands.append(Command("G4 P500", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					if self.printerColor == "Clear" :
-						newCommands.append(Command("M420 T5", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					else :
-						newCommands.append(Command("M420 T20", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("M420 T1", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 					newCommands.append(Command("G4 P500", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 					if self.printerColor == "Clear" :
 						newCommands.append(Command("M420 T20", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 					else :
-						newCommands.append(Command("M420 T255", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M420 T100", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G4 P500", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("M420 T1", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G4 P500", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					if self.printerColor == "Clear" :
+						newCommands.append(Command("M420 T20", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					else :
+						newCommands.append(Command("M420 T100", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 			
 					# Append new commands to commands
 					while len(newCommands) :
