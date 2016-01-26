@@ -6,11 +6,11 @@ import setuptools
 plugin_identifier = "m3dfio"
 plugin_package = "octoprint_%s" % plugin_identifier
 plugin_name = "OctoPrint-M3DFio"
-plugin_version = "0.24.3"
+plugin_version = "0.25"
 plugin_description = "Makes OctoPrint fully compatible with the Micro 3D printer"
 plugin_author = "donovan6000"
 plugin_author_email = "donovan6000@exploitkings.com"
-plugin_url = "http://www.exploitkings.com"
+plugin_url = "https://github.com/donovan6000/M3D-Fio"
 plugin_license = "GPLv3"
 plugin_additional_data = []
 

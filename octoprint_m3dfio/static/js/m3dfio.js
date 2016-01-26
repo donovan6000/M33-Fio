@@ -18,15 +18,14 @@ $(function() {
 		var printerProfileName;
 		var afterSlicingAction;
 		var gCodeFileName;
-		var printFileAfterSlicing = null;
 		var modelCenter = [0, 0];
 		var currentZ;
 		var viewport = null;
 		var convertedModel = null;
-		var providedFirmware;
 		var messages = [];
 		var skippedMessages = 0;
 		var continueWithPrint = false;
+		var waitingCallback = null;
 		var self = this;
 		
 		// Get state views
@@ -58,6 +57,8 @@ $(function() {
 		var bedHighMinZ = bedMediumMaxZ
 		var extruderCenterX = (bedLowMaxX + bedLowMinX) / 2;
 		var extruderCenterY = (bedLowMaxY + bedLowMinY + 14.0) / 2;
+		var modelCenterOffsetX = -2.0;
+		var modelCenterOffsetY = -2.0;
 		
 		// Set printer materials
 		var printerMaterials = {
@@ -563,12 +564,14 @@ $(function() {
 					if(typeof secondButton === "undefined" && typeof firstButton === "undefined") {
 						$("body > div.page-container > div.message > div > div > div").removeClass("show");
 						$("body > div.page-container > div.message > div > img").addClass("show");
+						$("body > div.page-container > div.message > div > div > span").addClass("show");
 					}
 		
 					// Otherwise show button area and hide loading
 					else {
 						$("body > div.page-container > div.message > div > div > div:not(.calibrate)").addClass("show");
 						$("body > div.page-container > div.message > div > img").removeClass("show");
+						$("body > div.page-container > div.message > div > div > span").removeClass("show");
 			
 						// Show calibration menu or print settings if applicable
 						$("body > div.page-container > div.message > div > div > div.calibrate, body > div.page-container > div.message > div > div > div.printSettings").removeClass("show");
@@ -803,19 +806,6 @@ $(function() {
 
 			// Return bytes
 			return bytes;
-		}
-
-		// Save printer settings
-		function savePrinterSettings() {
-		
-			// Send request
-			$.ajax({
-				url: API_BASEURL + "plugin/m3dfio",
-				type: "POST",
-				dataType: "json",
-				data: JSON.stringify({command: "message", value: "Save Printer Settings"}),
-				contentType: "application/json; charset=UTF-8"
-			});
 		}
 		
 		// Load model
@@ -1279,7 +1269,7 @@ $(function() {
 				keyDownEvent: function(event) {
 	
 					// Check if an input is not focused
-					if(!$("#slicing_configuration_dialog .modal-extra input:focus").length) {
+					if(!$("input:focus").length) {
 
 						// Check what key was pressed
 						switch(event.keyCode) {
@@ -1625,8 +1615,8 @@ $(function() {
 					viewport.sceneExported = false;
 
 					// Initialize variables
-					var centerX = -(extruderCenterX - (bedLowMaxX + bedLowMinX) / 2);
-					var centerZ = extruderCenterY - (bedLowMaxY + bedLowMinY) / 2;
+					var centerX = -(extruderCenterX - (bedLowMaxX + bedLowMinX) / 2) + modelCenterOffsetX;
+					var centerZ = extruderCenterY - (bedLowMaxY + bedLowMinY) / 2 + modelCenterOffsetY;
 					var mergedGeometry = new THREE.Geometry();
 				
 					// Go through all models
@@ -3214,8 +3204,10 @@ $(function() {
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="/plugin/m3dfio/static/img/Xinyujie.png">Xinyujie fan</button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">500mA extruder current</button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">660mA extruder current</button>
-					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Update firmware to provided</button>
-					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Update firmware with file</button>
+					<button class="btn btn-block control-box placeHolder" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"></button>
+					<button class="btn btn-block control-box placeHolder" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"></button>
+					<button class="btn btn-block control-box placeHolder" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"></button>
+					<p></p>
 					<input type="file" accept=".rom, .bin, .hex">
 				</div>
 			</div>
@@ -3302,50 +3294,52 @@ $(function() {
 		$("body > div.page-container").append(`
 			<div class="message">
 				<div>
-				<h4></h4>
-				<img src="/plugin/m3dfio/static/img/loading.gif">
-				<div>
-					<p></p>
-					<div class="calibrate">
-						<div class="arrows">
-							<button class="btn btn-block control-box arrow up"><i class="icon-arrow-up"></i></button>
-							<button class="btn btn-block control-box arrow down"><i class="icon-arrow-down"></i></button>
+					<h4></h4>
+					<img src="/plugin/m3dfio/static/img/loading.gif">
+					<div>
+						<p></p>
+						<div class="calibrate">
+							<div class="arrows">
+								<button class="btn btn-block control-box arrow up"><i class="icon-arrow-up"></i></button>
+								<button class="btn btn-block control-box arrow down"><i class="icon-arrow-down"></i></button>
+							</div>
+							<div class="distance">
+								<button type="button" class="btn distance">0.01</button>
+								<button type="button" class="btn distance active">0.1</button>
+								<button type="button" class="btn distance">1</button>
+							</div>
 						</div>
-						<div class="distance">
-							<button type="button" class="btn distance">0.01</button>
-							<button type="button" class="btn distance active">0.1</button>
-							<button type="button" class="btn distance">1</button>
-						</div>
-					</div>
-					<div class="printSettings">
-						<h3>Print settings</h3>
-						<div class="control-group">
-							<label class="control-label">Filament Temperature</label>
-							<div class="controls">
-								<div class="input-append degreesCelsius">
-									<input type="number" step="1" min="150" max="285" class="input-block-level">
-									<span class="add-on">°C</span>
+						<div class="printSettings">
+							<h3>Print settings</h3>
+							<div class="control-group">
+								<label class="control-label">Filament Temperature</label>
+								<div class="controls">
+									<div class="input-append degreesCelsius">
+										<input type="number" step="1" min="150" max="285" class="input-block-level">
+										<span class="add-on">°C</span>
+									</div>
+								</div>
+							</div>
+							<div class="control-group">
+								<label class="control-label">Filament Type</label>
+								<div class="controls">
+									<select class="input-block-level" data-bind="value: settings.plugins.m3dfio.FilamentType">
+										<option value="ABS">ABS (Recommended 275°C)</option>
+										<option value="PLA">PLA (Recommended 215°C)</option>
+										<option value="HIPS">HIPS (Recommended 265°C)</option>
+										<option value="FLX">FLX (Recommended 245°C)</option>
+										<option value="TGH">TGH (Recommended 245°C)</option>
+										<option value="CAM">CAM (Recommended 200°C)</option>
+										<option value="OTHER">Other</option>
+									</select> 
 								</div>
 							</div>
 						</div>
-						<div class="control-group">
-							<label class="control-label">Filament Type</label>
-							<div class="controls">
-								<select class="input-block-level" data-bind="value: settings.plugins.m3dfio.FilamentType">
-									<option value="ABS">ABS (Recommended 275°C)</option>
-									<option value="PLA">PLA (Recommended 215°C)</option>
-									<option value="HIPS">HIPS (Recommended 265°C)</option>
-									<option value="FLX">FLX (Recommended 245°C)</option>
-									<option value="TGH">TGH (Recommended 245°C)</option>
-									<option value="CAM">CAM (Recommended 200°C)</option>
-									<option value="OTHER">Other</option>
-								</select> 
-							</div>
+						<div>
+							<button class="btn btn-block confirm"></button>
+							<button class="btn btn-block confirm"></button>
 						</div>
-					</div>
-					<div>
-						<button class="btn btn-block confirm"></button>
-						<button class="btn btn-block confirm"></button>
+						<span>Do not refresh this page or disconnect from the server at this time</span>
 					</div>
 				</div>
 			</div>
@@ -3814,8 +3808,8 @@ $(function() {
 						$("#slicing_configuration_dialog .modal-body").css("display", '');
 						$("#slicing_configuration_dialog .modal-cover").removeClass("show").css("z-index", '');
 						
-						// Save software and printer settings
-						self.settings.saveData(undefined, savePrinterSettings);
+						// Save software settings
+						self.settings.saveData();
 					}, 300);
 				}
 			}
@@ -3918,12 +3912,15 @@ $(function() {
 											`);
 											$("#slicing_configuration_dialog .modal-extra textarea").val(data);
 									
-							
 											// Set slicer menu
 											slicerMenu = "Modify Profile";
 							
 											// Set button
 											button.removeClass("disabled");
+											
+											// Skip model editor it WebGL isn't supported
+											if(!Detector.webgl)
+												button.text("Slice");
 										
 											// Update line numbers
 											var previousLineCount = 0;
@@ -4015,520 +4012,534 @@ $(function() {
 								// Check if modified profile is valid
 								if(data.value == "Ok") {
 								
-									// Display cover
-									$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").text("Loading model…");
+									// Check if WebGL isn't supported
+									if(!Detector.webgl) {
 									
-									setTimeout(function() {
+										// Set slicer menu
+										slicerMenu = "Modify Model";
+										
+										// Apply changes
+										button.removeClass("disabled").click();
+									}
 									
-										// Download model
-										var xhr = new XMLHttpRequest();
-										xhr.onreadystatechange = function() {
+									// Otherwise
+									else {
+								
+										// Display cover
+										$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").text("Loading model…");
+									
+										setTimeout(function() {
+									
+											// Download model
+											var xhr = new XMLHttpRequest();
+											xhr.onreadystatechange = function() {
 						
-											// Check if model has loaded
-											if(this.readyState == 4 && this.status == 200) {
+												// Check if model has loaded
+												if(this.readyState == 4 && this.status == 200) {
 							
-												// Load model from blob
-												loadModel(URL.createObjectURL(this.response));
+													// Load model from blob
+													loadModel(URL.createObjectURL(this.response));
 			
-												// Wait until model is loaded
-												function isModelLoaded() {
+													// Wait until model is loaded
+													function isModelLoaded() {
 
-													// Check if model is loaded
-													if(viewport.modelLoaded) {
+														// Check if model is loaded
+														if(viewport.modelLoaded) {
 
-														// Hide cover
-														$("#slicing_configuration_dialog .modal-cover").addClass("noTransition").removeClass("show");
-														setTimeout(function() {
-															$("#slicing_configuration_dialog .modal-cover").css("z-index", '').removeClass("noTransition");
-														}, 200);
+															// Hide cover
+															$("#slicing_configuration_dialog .modal-cover").addClass("noTransition").removeClass("show");
+															setTimeout(function() {
+																$("#slicing_configuration_dialog .modal-cover").css("z-index", '').removeClass("noTransition");
+															}, 200);
 
-														// Display model
-														$("#slicing_configuration_dialog").addClass("noTransition").removeClass("profile");
-														setTimeout(function() {
-															$("#slicing_configuration_dialog").removeClass("noTransition").addClass("model");
-															$("#slicing_configuration_dialog p.currentMenu").text("Modify Model");
+															// Display model
+															$("#slicing_configuration_dialog").addClass("noTransition").removeClass("profile");
+															setTimeout(function() {
+																$("#slicing_configuration_dialog").removeClass("noTransition").addClass("model");
+																$("#slicing_configuration_dialog p.currentMenu").text("Modify Model");
 
-															$("#slicing_configuration_dialog .modal-extra").empty().append(`
-																<div class="printer">
-																	<button data-color="Black" title="Black"><img src="/plugin/m3dfio/static/img/black.png"></button>
-																	<button data-color="White" title="White"><img src="/plugin/m3dfio/static/img/white.png"></button>
-																	<button data-color="Blue" title="Blue"><img src="/plugin/m3dfio/static/img/blue.png"></button>
-																	<button data-color="Green" title="Green"><img src="/plugin/m3dfio/static/img/green.png"></button>
-																	<button data-color="Orange" title="Orange"><img src="/plugin/m3dfio/static/img/orange.png"></button>
-																	<button data-color="Clear" title="Clear"><img src="/plugin/m3dfio/static/img/clear.png"></button>
-																	<button data-color="Silver" title="Silver"><img src="/plugin/m3dfio/static/img/silver.png"></button>
-																</div>
-																<div class="filament">
-																	<button data-color="White" title="White"><span style="background-color: #F4F3E9;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
-																	<button data-color="Pink" title="Pink"><span style="background-color: #FF006B;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
-																	<button data-color="Red" title="Red"><span style="background-color: #EE0000;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
-																	<button data-color="Orange" title="Orange"><span style="background-color: #FE9800;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
-																	<button data-color="Yellow" title="Yellow"><span style="background-color: #FFEA00;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
-																	<button data-color="Green" title="Green"><span style="background-color: #009E60;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
-																	<button data-color="Light Blue" title="Light Blue"><span style="background-color: #00EEEE;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
-																	<button data-color="Blue" title="Blue"><span style="background-color: #236B8E;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
-																	<button data-color="Purple" title="Purple"><span style="background-color: #9A009A;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
-																	<button data-color="Black" title="Black"><span style="background-color: #404040;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
-																</div>
-																<div class="model">
-																	<input type="file" accept=".stl, .obj, .m3d, .amf, .wrl, .dae">
-																	<button class="import" title="Import"><img src="/plugin/m3dfio/static/img/import.png"></button>
-																	<button class="translate disabled" title="Translate"><img src="/plugin/m3dfio/static/img/translate.png"></button>
-																	<button class="rotate" title="Rotate"><img src="/plugin/m3dfio/static/img/rotate.png"></button>
-																	<button class="scale" title="Scale"><img src="/plugin/m3dfio/static/img/scale.png"></button>
-																	<button class="snap" title="Snap"><img src="/plugin/m3dfio/static/img/snap.png"></button>
-																	<button class="delete disabled" title="Delete"><img src="/plugin/m3dfio/static/img/delete.png"></button>
-																	<button class="clone disabled" title="Clone"><img src="/plugin/m3dfio/static/img/clone.png"></button>
-																	<button class="reset disabled" title="Reset"><img src="/plugin/m3dfio/static/img/reset.png"></button>
-																	<button class="cut" title="Cut"><img src="/plugin/m3dfio/static/img/cut.png"></button>
-																	<button class="merge" title="Merge"><img src="/plugin/m3dfio/static/img/merge.png"></button>
-																</div>
-																<div class="display">
-																	<button class="boundaries" title="Boundaries"><img src="/plugin/m3dfio/static/img/boundaries.png"></button>
-																	<button class="measurements" title="Measurements"><img src="/plugin/m3dfio/static/img/measurements.png"></button>
-																</div>
-																<div class="values translate">
-																	<div>
-																		<p>X<input type="number" step="any" name="x"><span></span></p>
-																		<p>Y<input type="number" step="any" name="y"><span></span></p>
-																		<p>Z<input type="number" step="any" name="z"><span></span></p>
-																		<span></span>
+																$("#slicing_configuration_dialog .modal-extra").empty().append(`
+																	<div class="printer">
+																		<button data-color="Black" title="Black"><img src="/plugin/m3dfio/static/img/black.png"></button>
+																		<button data-color="White" title="White"><img src="/plugin/m3dfio/static/img/white.png"></button>
+																		<button data-color="Blue" title="Blue"><img src="/plugin/m3dfio/static/img/blue.png"></button>
+																		<button data-color="Green" title="Green"><img src="/plugin/m3dfio/static/img/green.png"></button>
+																		<button data-color="Orange" title="Orange"><img src="/plugin/m3dfio/static/img/orange.png"></button>
+																		<button data-color="Clear" title="Clear"><img src="/plugin/m3dfio/static/img/clear.png"></button>
+																		<button data-color="Silver" title="Silver"><img src="/plugin/m3dfio/static/img/silver.png"></button>
 																	</div>
-																</div>
-																<div class="cutShape">
-																	<div>
-																		<button class="cube disabled" title="Cube"><img src="/plugin/m3dfio/static/img/cube.png"></button>
-																		<button class="sphere" title="Sphere"><img src="/plugin/m3dfio/static/img/sphere.png"></button>
-																		<span></span>
+																	<div class="filament">
+																		<button data-color="White" title="White"><span style="background-color: #F4F3E9;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
+																		<button data-color="Pink" title="Pink"><span style="background-color: #FF006B;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
+																		<button data-color="Red" title="Red"><span style="background-color: #EE0000;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
+																		<button data-color="Orange" title="Orange"><span style="background-color: #FE9800;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
+																		<button data-color="Yellow" title="Yellow"><span style="background-color: #FFEA00;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
+																		<button data-color="Green" title="Green"><span style="background-color: #009E60;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
+																		<button data-color="Light Blue" title="Light Blue"><span style="background-color: #00EEEE;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
+																		<button data-color="Blue" title="Blue"><span style="background-color: #236B8E;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
+																		<button data-color="Purple" title="Purple"><span style="background-color: #9A009A;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
+																		<button data-color="Black" title="Black"><span style="background-color: #404040;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
 																	</div>
-																</div>
-																<div class="measurements">
-																	<p class="width"></p>
-																	<p class="depth"></p>
-																	<p class="height"></p>
-																</div>
-															`);
+																	<div class="model">
+																		<input type="file" accept=".stl, .obj, .m3d, .amf, .wrl, .dae">
+																		<button class="import" title="Import"><img src="/plugin/m3dfio/static/img/import.png"></button>
+																		<button class="translate disabled" title="Translate"><img src="/plugin/m3dfio/static/img/translate.png"></button>
+																		<button class="rotate" title="Rotate"><img src="/plugin/m3dfio/static/img/rotate.png"></button>
+																		<button class="scale" title="Scale"><img src="/plugin/m3dfio/static/img/scale.png"></button>
+																		<button class="snap" title="Snap"><img src="/plugin/m3dfio/static/img/snap.png"></button>
+																		<button class="delete disabled" title="Delete"><img src="/plugin/m3dfio/static/img/delete.png"></button>
+																		<button class="clone disabled" title="Clone"><img src="/plugin/m3dfio/static/img/clone.png"></button>
+																		<button class="reset disabled" title="Reset"><img src="/plugin/m3dfio/static/img/reset.png"></button>
+																		<button class="cut" title="Cut"><img src="/plugin/m3dfio/static/img/cut.png"></button>
+																		<button class="merge" title="Merge"><img src="/plugin/m3dfio/static/img/merge.png"></button>
+																	</div>
+																	<div class="display">
+																		<button class="boundaries" title="Boundaries"><img src="/plugin/m3dfio/static/img/boundaries.png"></button>
+																		<button class="measurements" title="Measurements"><img src="/plugin/m3dfio/static/img/measurements.png"></button>
+																	</div>
+																	<div class="values translate">
+																		<div>
+																			<p>X<input type="number" step="any" name="x"><span></span></p>
+																			<p>Y<input type="number" step="any" name="y"><span></span></p>
+																			<p>Z<input type="number" step="any" name="z"><span></span></p>
+																			<span></span>
+																		</div>
+																	</div>
+																	<div class="cutShape">
+																		<div>
+																			<button class="cube disabled" title="Cube"><img src="/plugin/m3dfio/static/img/cube.png"></button>
+																			<button class="sphere" title="Sphere"><img src="/plugin/m3dfio/static/img/sphere.png"></button>
+																			<span></span>
+																		</div>
+																	</div>
+																	<div class="measurements">
+																		<p class="width"></p>
+																		<p class="depth"></p>
+																		<p class="height"></p>
+																	</div>
+																`);
 
-															$("#slicing_configuration_dialog .modal-extra div.printer button[data-color=\"" + self.settings.settings.plugins.m3dfio.PrinterColor() + "\"]").addClass("disabled");
-															$("#slicing_configuration_dialog .modal-extra div.filament button[data-color=\"" + self.settings.settings.plugins.m3dfio.FilamentColor() + "\"]").addClass("disabled");
-															$("#slicing_configuration_dialog .modal-extra").append(viewport.renderer.domElement);
+																$("#slicing_configuration_dialog .modal-extra div.printer button[data-color=\"" + self.settings.settings.plugins.m3dfio.PrinterColor() + "\"]").addClass("disabled");
+																$("#slicing_configuration_dialog .modal-extra div.filament button[data-color=\"" + self.settings.settings.plugins.m3dfio.FilamentColor() + "\"]").addClass("disabled");
+																$("#slicing_configuration_dialog .modal-extra").append(viewport.renderer.domElement);
 
-															// Image drag event
-															$("#slicing_configuration_dialog .modal-extra img").on("dragstart", function(event) {
+																// Image drag event
+																$("#slicing_configuration_dialog .modal-extra img").on("dragstart", function(event) {
 
-																// Prevent default
-																event.preventDefault();
-															});
+																	// Prevent default
+																	event.preventDefault();
+																});
 
-															// Input change event
-															$("#slicing_configuration_dialog .modal-extra input[type=\"file\"]").change(function(event) {
+																// Input change event
+																$("#slicing_configuration_dialog .modal-extra input[type=\"file\"]").change(function(event) {
 
-																// Set file type
-																var extension = this.files[0].name.lastIndexOf('.');
-																var type = extension != -1 ? this.files[0].name.substr(extension + 1).toLowerCase() : "stl";
-																var url = URL.createObjectURL(this.files[0]);
+																	// Set file type
+																	var extension = this.files[0].name.lastIndexOf('.');
+																	var type = extension != -1 ? this.files[0].name.substr(extension + 1).toLowerCase() : "stl";
+																	var url = URL.createObjectURL(this.files[0]);
 																
-																// Clear value
-																$(this).val('');
+																	// Clear value
+																	$(this).val('');
 
-																// Display cover
-																$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").text("Loading model…");
+																	// Display cover
+																	$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").text("Loading model…");
 
-																setTimeout(function() {
+																	setTimeout(function() {
 
-																	// Import model
-																	viewport.importModel(url, type);
+																		// Import model
+																		viewport.importModel(url, type);
 
-																	// Wait until model is loaded
-																	function isModelLoaded() {
+																		// Wait until model is loaded
+																		function isModelLoaded() {
 
-																		// Check if model is loaded
-																		if(viewport.modelLoaded) {
+																			// Check if model is loaded
+																			if(viewport.modelLoaded) {
 
-																			// Hide cover
-																			$("#slicing_configuration_dialog .modal-cover").removeClass("show");
-																			setTimeout(function() {
-																				$("#slicing_configuration_dialog .modal-cover").css("z-index", '');
-																			}, 200);
+																				// Hide cover
+																				$("#slicing_configuration_dialog .modal-cover").removeClass("show");
+																				setTimeout(function() {
+																					$("#slicing_configuration_dialog .modal-cover").css("z-index", '');
+																				}, 200);
+																			}
+
+																			// Otherwise
+																			else
+
+																				// Check if model is loaded again
+																				setTimeout(isModelLoaded, 100);
 																		}
+																		setTimeout(isModelLoaded, 100);
+																	}, 300);
+																});
 
-																		// Otherwise
-																		else
+																// Button click event
+																$("#slicing_configuration_dialog .modal-extra button").click(function() {
 
-																			// Check if model is loaded again
-																			setTimeout(isModelLoaded, 100);
-																	}
-																	setTimeout(isModelLoaded, 100);
-																}, 300);
-															});
+																	// Blur self
+																	$(this).blur();
+																});
 
-															// Button click event
-															$("#slicing_configuration_dialog .modal-extra button").click(function() {
+																// Import model button click event
+																$("#slicing_configuration_dialog .modal-extra button.import").click(function() {
 
-																// Blur self
-																$(this).blur();
-															});
+																	// Show file dialog box
+																	$("#slicing_configuration_dialog .modal-extra input[type=\"file\"]").click();
+																});
 
-															// Import model button click event
-															$("#slicing_configuration_dialog .modal-extra button.import").click(function() {
+																// Translate button click event
+																$("#slicing_configuration_dialog .modal-extra button.translate").click(function(event) {
 
-																// Show file dialog box
-																$("#slicing_configuration_dialog .modal-extra input[type=\"file\"]").click();
-															});
+																	// Set selection mode to translate
+																	viewport.setMode("translate");
+																});
 
-															// Translate button click event
-															$("#slicing_configuration_dialog .modal-extra button.translate").click(function(event) {
+																// Rotate button click event
+																$("#slicing_configuration_dialog .modal-extra button.rotate").click(function() {
 
-																// Set selection mode to translate
-																viewport.setMode("translate");
-															});
+																	// Set selection mode to rotate
+																	viewport.setMode("rotate");
+																});
 
-															// Rotate button click event
-															$("#slicing_configuration_dialog .modal-extra button.rotate").click(function() {
+																// Scale button click event
+																$("#slicing_configuration_dialog .modal-extra button.scale").click(function() {
 
-																// Set selection mode to rotate
-																viewport.setMode("rotate");
-															});
+																	// Set selection mode to scale
+																	viewport.setMode("scale");
+																});
 
-															// Scale button click event
-															$("#slicing_configuration_dialog .modal-extra button.scale").click(function() {
+																// Snap button click event
+																$("#slicing_configuration_dialog .modal-extra button.snap").click(function() {
 
-																// Set selection mode to scale
-																viewport.setMode("scale");
-															});
+																	// Check if snap controls are currently enabled
+																	if(viewport.transformControls.translationSnap)
 
-															// Snap button click event
-															$("#slicing_configuration_dialog .modal-extra button.snap").click(function() {
+																		// Disable grid and rotation snap
+																		viewport.disableSnap();
 
-																// Check if snap controls are currently enabled
-																if(viewport.transformControls.translationSnap)
+																	// Otherwise
+																	else
 
-																	// Disable grid and rotation snap
-																	viewport.disableSnap();
+																		// Enable grid and rotation snap
+																		viewport.enableSnap();
+																});
 
-																// Otherwise
-																else
+																// Delete button click event
+																$("#slicing_configuration_dialog .modal-extra button.delete").click(function() {
 
-																	// Enable grid and rotation snap
-																	viewport.enableSnap();
-															});
+																	// Delete model
+																	viewport.deleteModel();
+																});
 
-															// Delete button click event
-															$("#slicing_configuration_dialog .modal-extra button.delete").click(function() {
+																// Clone button click event
+																$("#slicing_configuration_dialog .modal-extra button.clone").click(function() {
 
-																// Delete model
-																viewport.deleteModel();
-															});
+																	// Display cover
+																	$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").text("Cloning model…");
 
-															// Clone button click event
-															$("#slicing_configuration_dialog .modal-extra button.clone").click(function() {
+																	setTimeout(function() {
 
-																// Display cover
-																$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").text("Cloning model…");
+																		// Clone model
+																		viewport.cloneModel();
 
-																setTimeout(function() {
+																		// Wait until model is loaded
+																		function isModelLoaded() {
 
-																	// Clone model
-																	viewport.cloneModel();
+																			// Check if model is loaded
+																			if(viewport.modelLoaded) {
 
-																	// Wait until model is loaded
-																	function isModelLoaded() {
+																				// Hide cover
+																				$("#slicing_configuration_dialog .modal-cover").removeClass("show");
+																				setTimeout(function() {
+																					$("#slicing_configuration_dialog .modal-cover").css("z-index", '');
+																				}, 200);
+																			}
 
-																		// Check if model is loaded
-																		if(viewport.modelLoaded) {
+																			// Otherwise
+																			else
 
-																			// Hide cover
-																			$("#slicing_configuration_dialog .modal-cover").removeClass("show");
-																			setTimeout(function() {
-																				$("#slicing_configuration_dialog .modal-cover").css("z-index", '');
-																			}, 200);
+																				// Check if model is loaded again
+																				setTimeout(isModelLoaded, 100);
 																		}
+																		setTimeout(isModelLoaded, 100);
+																	}, 300);
+																});
 
-																		// Otherwise
-																		else
+																// Reset button click event
+																$("#slicing_configuration_dialog .modal-extra button.reset").click(function() {
 
-																			// Check if model is loaded again
-																			setTimeout(isModelLoaded, 100);
-																	}
-																	setTimeout(isModelLoaded, 100);
-																}, 300);
-															});
+																	// Reset model
+																	viewport.resetModel();
+																});
 
-															// Reset button click event
-															$("#slicing_configuration_dialog .modal-extra button.reset").click(function() {
+																// Boundaries button click event
+																$("#slicing_configuration_dialog .modal-extra button.boundaries").click(function() {
 
-																// Reset model
-																viewport.resetModel();
-															});
-
-															// Boundaries button click event
-															$("#slicing_configuration_dialog .modal-extra button.boundaries").click(function() {
-
-																// Set show boundaries
-																viewport.showBoundaries = !viewport.showBoundaries;
-
-																// Go through all boundaries
-																for(var i = 0; i < viewport.boundaries.length; i++)
-
-																	// Check if boundary isn't set
-																	if(viewport.boundaries[i].material.color.getHex() != 0xFF0000)
-
-																		// Toggle visibility
-																		viewport.boundaries[i].visible = viewport.showBoundaries;
-
-																// Select button
-																if(viewport.showBoundaries)
-																	$(this).addClass("disabled");
-																else
-																	$(this).removeClass("disabled");
-
-																// Render
-																viewport.render();
-															});
-
-															// Measurements button click event
-															$("#slicing_configuration_dialog .modal-extra button.measurements").click(function() {
-
-																// Set show measurements
-																viewport.showMeasurements = !viewport.showMeasurements;
-
-																// Check if a model is currently selected
-																if(viewport.transformControls.object) {
+																	// Set show boundaries
+																	viewport.showBoundaries = !viewport.showBoundaries;
 
 																	// Go through all boundaries
-																	for(var i = 0; i < viewport.measurements.length; i++)
+																	for(var i = 0; i < viewport.boundaries.length; i++)
 
-																		// Toggle visibility
-																		viewport.measurements[i][0].visible = viewport.showMeasurements;
+																		// Check if boundary isn't set
+																		if(viewport.boundaries[i].material.color.getHex() != 0xFF0000)
 
-																	if(viewport.showMeasurements)
-																		$("div.measurements > p").addClass("show");
-																	else
-																		$("div.measurements > p").removeClass("show");
-
-																	// Update model changes
-																	viewport.updateModelChanges();
-
-																	// Render
-																	viewport.render();
-																}
-
-																// Select button
-																if(viewport.showMeasurements)
-																	$(this).addClass("disabled");
-																else
-																	$(this).removeClass("disabled");
-															});
-
-															// Cut button click event
-															$("#slicing_configuration_dialog .modal-extra button.cut").click(function() {
-
-																// Check if not cutting models
-																if(viewport.cutShape === null) {
+																			// Toggle visibility
+																			viewport.boundaries[i].visible = viewport.showBoundaries;
 
 																	// Select button
-																	$(this).addClass("disabled");
-
-																	// Disable import and clone buttons
-																	$("#slicing_configuration_dialog .modal-extra button.import, #slicing_configuration_dialog .modal-extra button.clone").prop("disabled", true);
-													
-																	// Show cut shape options
-																	$("#slicing_configuration_dialog .modal-extra div.cutShape").addClass("show");
-													
-																	// Create cut shape geometry
-																	if($("#slicing_configuration_dialog .modal-extra div.cutShape > div > button.disabled").hasClass("cube"))
-																		var cutShapeGeometry = new THREE.CubeGeometry(50, 50, 50);
-																	else if($("#slicing_configuration_dialog .modal-extra div.cutShape > div > button.disabled").hasClass("sphere"))
-																		var cutShapeGeometry = new THREE.SphereGeometry(25, 10, 10);
-													
-																	// Create cut shape
-																	viewport.cutShape = new THREE.Mesh(cutShapeGeometry, new THREE.MeshBasicMaterial({
-																		color: 0xCCCCCC,
-																		transparent: true,
-																		opacity: 0.1,
-																		side: THREE.DoubleSide,
-																		depthWrite: false
-																	}));
-																	viewport.cutShape.position.set(0, bedHighMaxZ - bedLowMinZ - viewport.models[0].mesh.position.y, 0);
-																	viewport.cutShape.rotation.set(0, 0, 0);
-													
-																	// Create cut shape outline
-																	viewport.cutShapeOutline = new THREE.LineSegments(viewport.lineGeometry(cutShapeGeometry), new THREE.LineDashedMaterial({
-																		color: 0xffaa00,
-																		dashSize: 3,
-																		gapSize: 1,
-																		linewidth: 2
-																	}));
-													
-																	// Add cut shape and outline to scene
-																	viewport.scene[0].add(viewport.cutShape);
-																	viewport.scene[0].add(viewport.cutShapeOutline);
-
-																	// Select cut shape
-																	viewport.removeSelection();
-																	viewport.transformControls.setAllowedTranslation("XYZ");
-																	viewport.transformControls.attach(viewport.cutShape);
-
-																	// Update model changes
-																	viewport.updateModelChanges();
+																	if(viewport.showBoundaries)
+																		$(this).addClass("disabled");
+																	else
+																		$(this).removeClass("disabled");
 
 																	// Render
 																	viewport.render();
-																}
+																});
 
-																// Otherwise
-																else
+																// Measurements button click event
+																$("#slicing_configuration_dialog .modal-extra button.measurements").click(function() {
+
+																	// Set show measurements
+																	viewport.showMeasurements = !viewport.showMeasurements;
+
+																	// Check if a model is currently selected
+																	if(viewport.transformControls.object) {
+
+																		// Go through all boundaries
+																		for(var i = 0; i < viewport.measurements.length; i++)
+
+																			// Toggle visibility
+																			viewport.measurements[i][0].visible = viewport.showMeasurements;
+
+																		if(viewport.showMeasurements)
+																			$("div.measurements > p").addClass("show");
+																		else
+																			$("div.measurements > p").removeClass("show");
+
+																		// Update model changes
+																		viewport.updateModelChanges();
+
+																		// Render
+																		viewport.render();
+																	}
+
+																	// Select button
+																	if(viewport.showMeasurements)
+																		$(this).addClass("disabled");
+																	else
+																		$(this).removeClass("disabled");
+																});
+
+																// Cut button click event
+																$("#slicing_configuration_dialog .modal-extra button.cut").click(function() {
+
+																	// Check if not cutting models
+																	if(viewport.cutShape === null) {
+
+																		// Select button
+																		$(this).addClass("disabled");
+
+																		// Disable import and clone buttons
+																		$("#slicing_configuration_dialog .modal-extra button.import, #slicing_configuration_dialog .modal-extra button.clone").prop("disabled", true);
+													
+																		// Show cut shape options
+																		$("#slicing_configuration_dialog .modal-extra div.cutShape").addClass("show");
+													
+																		// Create cut shape geometry
+																		if($("#slicing_configuration_dialog .modal-extra div.cutShape > div > button.disabled").hasClass("cube"))
+																			var cutShapeGeometry = new THREE.CubeGeometry(50, 50, 50);
+																		else if($("#slicing_configuration_dialog .modal-extra div.cutShape > div > button.disabled").hasClass("sphere"))
+																			var cutShapeGeometry = new THREE.SphereGeometry(25, 10, 10);
+													
+																		// Create cut shape
+																		viewport.cutShape = new THREE.Mesh(cutShapeGeometry, new THREE.MeshBasicMaterial({
+																			color: 0xCCCCCC,
+																			transparent: true,
+																			opacity: 0.1,
+																			side: THREE.DoubleSide,
+																			depthWrite: false
+																		}));
+																		viewport.cutShape.position.set(0, bedHighMaxZ - bedLowMinZ - viewport.models[0].mesh.position.y, 0);
+																		viewport.cutShape.rotation.set(0, 0, 0);
+													
+																		// Create cut shape outline
+																		viewport.cutShapeOutline = new THREE.LineSegments(viewport.lineGeometry(cutShapeGeometry), new THREE.LineDashedMaterial({
+																			color: 0xffaa00,
+																			dashSize: 3,
+																			gapSize: 1,
+																			linewidth: 2
+																		}));
+													
+																		// Add cut shape and outline to scene
+																		viewport.scene[0].add(viewport.cutShape);
+																		viewport.scene[0].add(viewport.cutShapeOutline);
+
+																		// Select cut shape
+																		viewport.removeSelection();
+																		viewport.transformControls.setAllowedTranslation("XYZ");
+																		viewport.transformControls.attach(viewport.cutShape);
+
+																		// Update model changes
+																		viewport.updateModelChanges();
+
+																		// Render
+																		viewport.render();
+																	}
+
+																	// Otherwise
+																	else
 												
-																	// Apply cut
-																	viewport.applyCut();
-															});
+																		// Apply cut
+																		viewport.applyCut();
+																});
 											
-															// Cut shape click event
-															$("#slicing_configuration_dialog .modal-extra div.cutShape button").click(function() {
+																// Cut shape click event
+																$("#slicing_configuration_dialog .modal-extra div.cutShape button").click(function() {
 												
-																// Check if button is cube
-																if($(this).hasClass("cube"))
+																	// Check if button is cube
+																	if($(this).hasClass("cube"))
 			
-																	// Change cut shape to a sube
-																	viewport.setCutShape("cube");
+																		// Change cut shape to a sube
+																		viewport.setCutShape("cube");
 												
-																// Otherwise check if button is sphere
-																else if($(this).hasClass("sphere"))
+																	// Otherwise check if button is sphere
+																	else if($(this).hasClass("sphere"))
 			
-																	// Change cut shape to a sphere
-																	viewport.setCutShape("sphere");
-															});
-
-															// Merge button click event
-															$("#slicing_configuration_dialog .modal-extra button.merge").click(function() {
-
-																// Apply merge
-																viewport.applyMerge();
-															});
-
-															// Printer color button click event
-															$("#slicing_configuration_dialog .modal-extra div.printer button").click(function() {
-															
-																// Send request
-																$.ajax({
-																	url: API_BASEURL + "plugin/m3dfio",
-																	type: "POST",
-																	dataType: "json",
-																	data: JSON.stringify({command: "message", value: "Set Printer Color: " + $(this).data("color")}),
-																	contentType: "application/json; charset=UTF-8",
-																	
-																	success: function() {
-																	
-																		// Update settings
-																		self.settings.requestData();
-																	}
+																		// Change cut shape to a sphere
+																		viewport.setCutShape("sphere");
 																});
 
-																// Set printer color
-																viewport.models[0].mesh.material = printerMaterials[$(this).data("color")];
-																$(this).addClass("disabled").siblings(".disabled").removeClass("disabled");
+																// Merge button click event
+																$("#slicing_configuration_dialog .modal-extra button.merge").click(function() {
 
-																// Render
-																viewport.render();
-															});
-
-															// Filament color button click event
-															$("#slicing_configuration_dialog .modal-extra div.filament button").click(function() {
-															
-																// Send request
-																$.ajax({
-																	url: API_BASEURL + "plugin/m3dfio",
-																	type: "POST",
-																	dataType: "json",
-																	data: JSON.stringify({command: "message", value: "Set Filament Color: " + $(this).data("color")}),
-																	contentType: "application/json; charset=UTF-8",
-																	
-																	success: function() {
-																	
-																		// Update settings
-																		self.settings.requestData();
-																	}
+																	// Apply merge
+																	viewport.applyMerge();
 																});
 
-																// Go through all models
-																for(var i = 1; i < viewport.models.length; i++)
+																// Printer color button click event
+																$("#slicing_configuration_dialog .modal-extra div.printer button").click(function() {
+															
+																	// Send request
+																	$.ajax({
+																		url: API_BASEURL + "plugin/m3dfio",
+																		type: "POST",
+																		dataType: "json",
+																		data: JSON.stringify({command: "message", value: "Set Printer Color: " + $(this).data("color")}),
+																		contentType: "application/json; charset=UTF-8",
+																	
+																		success: function() {
+																	
+																			// Update settings
+																			self.settings.requestData();
+																		}
+																	});
 
-																	// Check if model isn't currently selected
-																	if(viewport.models[i].glow === null)
+																	// Set printer color
+																	viewport.models[0].mesh.material = printerMaterials[$(this).data("color")];
+																	$(this).addClass("disabled").siblings(".disabled").removeClass("disabled");
 
-																		// Set models' color
-																		viewport.models[i].mesh.material = filamentMaterials[$(this).data("color")];
+																	// Render
+																	viewport.render();
+																});
 
-																// Select button
-																$(this).addClass("disabled").siblings(".disabled").removeClass("disabled");
+																// Filament color button click event
+																$("#slicing_configuration_dialog .modal-extra div.filament button").click(function() {
+															
+																	// Send request
+																	$.ajax({
+																		url: API_BASEURL + "plugin/m3dfio",
+																		type: "POST",
+																		dataType: "json",
+																		data: JSON.stringify({command: "message", value: "Set Filament Color: " + $(this).data("color")}),
+																		contentType: "application/json; charset=UTF-8",
+																	
+																		success: function() {
+																	
+																			// Update settings
+																			self.settings.requestData();
+																		}
+																	});
 
-																// Render
-																viewport.render();
-															});
+																	// Go through all models
+																	for(var i = 1; i < viewport.models.length; i++)
 
-															// Value change event
-															$("#slicing_configuration_dialog .modal-extra div.values input").change(function() {
+																		// Check if model isn't currently selected
+																		if(viewport.models[i].glow === null)
 
-																// Blur self
-																$(this).blur();
+																			// Set models' color
+																			viewport.models[i].mesh.material = filamentMaterials[$(this).data("color")];
 
-																// Check if value is a number
-																if(!isNaN(parseFloat($(this).val()))) {
+																	// Select button
+																	$(this).addClass("disabled").siblings(".disabled").removeClass("disabled");
 
-																	// Fix value
-																	$(this).val(parseFloat($(this).val()).toFixed(3));
+																	// Render
+																	viewport.render();
+																});
 
-																	// Apply changes
-																	viewport.applyChanges($(this).attr("name"), $(this).val());
-																}
+																// Value change event
+																$("#slicing_configuration_dialog .modal-extra div.values input").change(function() {
 
-																// Otherwise
-																else
+																	// Blur self
+																	$(this).blur();
 
-																	// Update model changes
-																	viewport.updateModelChanges();
-															});
+																	// Check if value is a number
+																	if(!isNaN(parseFloat($(this).val()))) {
 
-															// Value change event
-															$("#slicing_configuration_dialog .modal-extra div.values input").keyup(function() {
+																		// Fix value
+																		$(this).val(parseFloat($(this).val()).toFixed(3));
 
-																// Check if value is a number
-																if(!isNaN(parseFloat($(this).val())))
+																		// Apply changes
+																		viewport.applyChanges($(this).attr("name"), $(this).val());
+																	}
 
-																	// Apply changes
-																	viewport.applyChanges($(this).attr("name"), $(this).val());
-															});
+																	// Otherwise
+																	else
 
-															// Update model changes
-															viewport.updateModelChanges();
+																		// Update model changes
+																		viewport.updateModelChanges();
+																});
 
-															// Set slicer menu
-															slicerMenu = "Modify Model";
+																// Value change event
+																$("#slicing_configuration_dialog .modal-extra div.values input").keyup(function() {
 
-															// Set button
-															button.text("Slice").removeClass("disabled");
+																	// Check if value is a number
+																	if(!isNaN(parseFloat($(this).val())))
 
-															// Resize viewport and window
-															viewport.resizeEvent();
-															$(window).resize();
-														}, 10);
+																		// Apply changes
+																		viewport.applyChanges($(this).attr("name"), $(this).val());
+																});
+
+																// Update model changes
+																viewport.updateModelChanges();
+
+																// Set slicer menu
+																slicerMenu = "Modify Model";
+
+																// Set button
+																button.text("Slice").removeClass("disabled");
+
+																// Resize viewport and window
+																viewport.resizeEvent();
+																$(window).resize();
+															}, 10);
+														}
+
+														// Otherwise
+														else
+
+															// Check if model is loaded again
+															setTimeout(isModelLoaded, 100);
 													}
-
-													// Otherwise
-													else
-
-														// Check if model is loaded again
-														setTimeout(isModelLoaded, 100);
+													setTimeout(isModelLoaded, 100);
 												}
-												setTimeout(isModelLoaded, 100);
 											}
-										}
 						
-										xhr.open("GET", "/downloads/files/" + modelLocation + modelPath + modelName);
-										xhr.responseType = "blob";
-										xhr.setRequestHeader("X-Api-Key", $.ajaxSettings.headers["X-Api-Key"])
-										xhr.send();
-									}, 300);
+											xhr.open("GET", "/downloads/files/" + modelLocation + modelPath + modelName);
+											xhr.responseType = "blob";
+											xhr.setRequestHeader("X-Api-Key", $.ajaxSettings.headers["X-Api-Key"])
+											xhr.send();
+										}, 300);
+									}
 								}
 								
 								// Otherwise
@@ -4550,100 +4561,178 @@ $(function() {
 					
 					// Otherwise check if on modify model menu
 					else if(slicerMenu == "Modify Model") {
+					
+						// Apply changes
+						function applyChanges() {
 						
-						// Display cover
-						$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").text("Applying changes…");
+							// Display cover
+							$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").text("Applying changes…");
 						
-						setTimeout(function() {
-						
-							// Export scene as an STL
-							var scene = viewport.exportScene();
-			
-							// Append model's center to slicer profile if slicer is Cura
-							if(slicerName == "cura")
-								slicerProfileContent += "\nobject_center_x = " + modelCenter[0] + "\nobject_center_y = " + modelCenter[1] + '\n';
-		
-							// Set parameter
-							var parameter = [
-								{
-									name: "Slicer Name",
-									value: slicerName
-								},
-								{
-									name: "Slicer Profile Name",
-									value: slicerProfileName
-								},
-								{
-									name: "Slicer Profile Content",
-									value: slicerProfileContent
-								},
-								{
-									name: "Model Name",
-									value: modelName
-								},
-								{
-									name: "Model Location",
-									value: modelLocation
-								},
-								{
-									name: "Model Path",
-									value: modelPath
-								},
-								{
-									name: "Printer Profile Name",
-									value: printerProfileName
-								},
-								{
-									name: "After Slicing Action",
-									value: afterSlicingAction
-								}
-							];
-	
-							// Send request
-							$.ajax({
-								url: "/plugin/m3dfio/upload",
-								type: "POST",
-								data: $.param(parameter),
-								dataType: "json",
-								contentType: "application/x-www-form-urlencoded; charset=UTF-8",
-
-								// On success
-								success: function(data) {
+							setTimeout(function() {
+							
+								// Set parameter
+								var parameter = [
+									{
+										name: "Slicer Name",
+										value: slicerName
+									},
+									{
+										name: "Slicer Profile Name",
+										value: slicerProfileName
+									},
+									{
+										name: "Slicer Profile Content",
+										value: slicerProfileContent
+									},
+									{
+										name: "Printer Profile Name",
+										value: printerProfileName
+									},
+									{
+										name: "After Slicing Action",
+										value: afterSlicingAction
+									}
+								];
+							
+								// Check if WebGL is supported
+								if(Detector.webgl) {
 								
-									// Create request
-									var form = new FormData();
-									if(typeof self.files.currentPath === "undefined")
-										form.append("file", scene, modelPath.substr(1) + modelName);
-									else
-										form.append("file", scene, modelPath + modelName);
-				
-									// Send request
-									$.ajax({
-										url: "/api/files/" + modelLocation,
-										type: "POST",
-										data: form,
-										processData: false,
-										contentType: false,
-
-										// On success
-										success: function(data) {
+									// Append parameters
+									parameter.push({
+										name: "Model Name",
+										value: modelName
+									},
+									{
+										name: "Model Location",
+										value: modelLocation
+									},
+									{
+										name: "Model Path",
+										value: modelPath
+									});
+								
+									// Export scene as an STL
+									var scene = viewport.exportScene();
 			
+									// Append model's center to slicer profile if slicer is Cura
+									if(slicerName == "cura")
+										slicerProfileContent += "\nobject_center_x = " + modelCenter[0] + "\nobject_center_y = " + modelCenter[1] + '\n';
+								}
+	
+								// Send request
+								$.ajax({
+									url: "/plugin/m3dfio/upload",
+									type: "POST",
+									data: $.param(parameter),
+									dataType: "json",
+									contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+
+									// On success
+									success: function() {
+									
+										// Check if WebGL is supported
+										if(Detector.webgl) {
+								
+											// Create request
+											var form = new FormData();
+											if(typeof self.files.currentPath === "undefined")
+												form.append("file", scene, modelPath.substr(1) + modelName);
+											else
+												form.append("file", scene, modelPath + modelName);
+				
+											// Send request
+											$.ajax({
+												url: "/api/files/" + modelLocation,
+												type: "POST",
+												data: form,
+												processData: false,
+												contentType: false,
+
+												// On success
+												success: function(data) {
+										
+													// Set slicer menu to done
+													slicerMenu = "Done";
+										
+													// Slice file
+													button.removeClass("disabled").click();
+												}
+											});
+										}
+										
+										// Otherwise
+										else {
+										
 											// Set slicer menu to done
 											slicerMenu = "Done";
-									
-											// Slice
-											if(afterSlicingAction == "print") {
-												self.slicing.afterSlicing("none");
-												printFileAfterSlicing = "/api/files/" + modelLocation + modelPath + gCodeFileName;
-											}
-											else
-												printFileAfterSlicing = null;
+								
+											// Slice file
 											button.removeClass("disabled").click();
 										}
-									});
-								}
+									}
+								});
+							}, 300);
+						}
+					
+						// Check if printing after slicing, using on the fly pre-processing, changing settings before print, and a printer is connected
+						if(afterSlicingAction == "print" && self.settings.settings.plugins.m3dfio.PreprocessOnTheFly() && self.settings.settings.plugins.m3dfio.ChangeSettingsBeforePrint() && self.printerState.stateString() !== "Offline") {
+
+							// Show message
+							showMessage("Message", '', "Print", function() {
+
+								// Hide message
+								hideMessage();
+
+								// Send request
+								$.ajax({
+									url: API_BASEURL + "plugin/m3dfio",
+									type: "POST",
+									dataType: "json",
+									data: JSON.stringify({
+										command: "message",
+										value: "Print Settings: " + JSON.stringify({
+											filamentTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").val(),
+											filamentType: $("body > div.page-container > div.message > div > div > div.printSettings select").val()
+										})
+									}),
+									contentType: "application/json; charset=UTF-8",
+
+									// On success										
+									success: function() {
+									
+										// Slice file
+										function sliceFile() {
+							
+											// Save software settings
+											if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") == -1)
+												self.settings.saveData();
+								
+											// Apply changes
+											applyChanges();
+										}
+						
+										// Update settings
+										if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
+											self.settings.requestData(sliceFile);
+										else
+											self.settings.requestData().done(sliceFile);
+									}
+								});
+							}, "Cancel", function() {
+
+								// Hide message
+								hideMessage();
+								
+								// Don't slice file
+								button.prev('a').click();
 							});
-						}, 300);
+						}
+
+						// Otherwise
+						else
+
+							// Apply changes
+							applyChanges();
 					}
 				}
 			}
@@ -4705,8 +4794,27 @@ $(function() {
 		// Save settings button event
 		$("#settings_dialog > div.modal-footer > button.btn-primary").click(function() {
 		
-			// Save software and printer settings
-			self.settings.saveData(undefined, savePrinterSettings);
+			setTimeout(function() {
+		
+				// Save software and printer settings
+				function saveSettings() {
+			
+					// Send request
+					$.ajax({
+						url: API_BASEURL + "plugin/m3dfio",
+						type: "POST",
+						dataType: "json",
+						data: JSON.stringify({command: "message", value: "Save Printer Settings"}),
+						contentType: "application/json; charset=UTF-8"
+					});
+				}
+			
+				// Update settings
+				if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
+					self.settings.requestData(saveSettings);
+				else
+					self.settings.requestData().done(saveSettings);
+			}, 0);
 		});
 	
 		// Override X increment control
@@ -4934,7 +5042,7 @@ $(function() {
 			
 			// Check if not printing
 			if(self.printerState.isPrinting() !== true) {
-			
+				
 				// Set commands
 				var commands = [
 					"M109 S" + parseInt($(this).text().substr(12)),
@@ -4948,10 +5056,28 @@ $(function() {
 				var updateTemperature = setInterval(function() {
 				
 					// Show message
-					var temperature = self.temperature.temperatures.tool0.actual[self.temperature.temperatures.tool0.actual.length - 1][1];
-					if(temperature != 0)
-						showMessage("Filament Status", "Warming up: " + temperature + "°C");
+					if(self.temperature.temperatures.tool0.actual.length) {
+				
+						var temperature = self.temperature.temperatures.tool0.actual[self.temperature.temperatures.tool0.actual.length - 1][1];
+					
+						if(temperature != 0)
+							showMessage("Filament Status", "Warming up: " + temperature + "°C");
+					}
 				}, 1000);
+				
+				// Set waiting callback
+				waitingCallback = function() {
+				
+					// Stop displaying temperature
+					clearInterval(updateTemperature);
+				
+					// Show message
+					showMessage("Temperature Status", "Done", "Ok", function() {
+				
+						// Hide message
+						hideMessage();
+					});
+				}
 			}
 			
 			// Otherwise
@@ -4968,25 +5094,7 @@ $(function() {
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: commands}),
-				contentType: "application/json; charset=UTF-8",
-			
-				// On success
-				success: function(data) {
-				
-					// Check if not printing
-					if(self.printerState.isPrinting() !== true) {
-				
-						// Stop displaying temperature
-						clearInterval(updateTemperature);
-					
-						// Show message
-						showMessage("Temperature Status", "Done", "Ok", function() {
-					
-							// Hide message
-							hideMessage();
-						});
-					}
-				}
+				contentType: "application/json; charset=UTF-8"
 			});
 		});
 		
@@ -5009,10 +5117,28 @@ $(function() {
 				var updateTemperature = setInterval(function() {
 				
 					// Show message
-					var temperature = self.temperature.temperatures.bed.actual[self.temperature.temperatures.bed.actual.length - 1][1];
-					if(temperature != 0)
-						showMessage("Filament Status", "Warming up: " + temperature + "°C");
+					if(self.temperature.temperatures.bed.actual.length) {
+					
+						var temperature = self.temperature.temperatures.bed.actual[self.temperature.temperatures.bed.actual.length - 1][1];
+					
+						if(temperature != 0)
+							showMessage("Filament Status", "Warming up: " + temperature + "°C");
+					}		
 				}, 1000);
+				
+				// Set waiting callback
+				waitingCallback = function() {
+				
+					// Stop displaying temperature
+					clearInterval(updateTemperature);
+				
+					// Show message
+					showMessage("Temperature Status", "Done", "Ok", function() {
+				
+						// Hide message
+						hideMessage();
+					});
+				}
 			}
 			
 			// Otherwise
@@ -5029,25 +5155,7 @@ $(function() {
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: commands}),
-				contentType: "application/json; charset=UTF-8",
-			
-				// On success
-				success: function(data) {
-				
-					// Check if not printing
-					if(self.printerState.isPrinting() !== true) {
-			
-						// Stop displaying temperature
-						clearInterval(updateTemperature);
-					
-						// Show message
-						showMessage("Temperature Status", "Done", "Ok", function() {
-					
-							// Hide message
-							hideMessage();
-						});
-					}
-				}
+				contentType: "application/json; charset=UTF-8"
 			});
 		});
 		
@@ -5090,10 +5198,64 @@ $(function() {
 			var updateTemperature = setInterval(function() {
 			
 				// Show message
-				var temperature = self.temperature.temperatures.tool0.actual[self.temperature.temperatures.tool0.actual.length - 1][1];
-				if(temperature != 0)
-					showMessage("Filament Status", "Warming up: " + temperature + "°C");
+				if(self.temperature.temperatures.tool0.actual.length) {
+				
+					var temperature = self.temperature.temperatures.tool0.actual[self.temperature.temperatures.tool0.actual.length - 1][1];
+					
+					if(temperature != 0)
+						showMessage("Filament Status", "Warming up: " + temperature + "°C");
+				}
 			}, 1000);
+			
+			// Set waiting callback
+			waitingCallback = function() {
+			
+				// Stop displaying temperature
+				clearInterval(updateTemperature);
+		
+				// Show message
+				showMessage("Filament Status", "Remove filament");
+	
+				// Set commands
+				commands = [
+					"G90",
+					"G92"
+				];
+		
+				for(var i = 2; i <= 40; i += 2)
+					commands.push("G0 E-" + i + " F345");
+
+				commands.push("M104 S0");
+				commands.push("M107");
+				commands.push("M65536;wait");
+				
+				// Set waiting callback
+				waitingCallback = function() {
+				
+					// Show message
+					showMessage("Filament Status", "Was filament removed?", "Yes", function() {
+		
+						// Hide message
+						hideMessage();
+					}, "No", function() {
+					
+						// Hide message
+						hideMessage();
+					
+						// Unload filament again
+						$("#control > div.jog-panel.filament").find("div > button:nth-of-type(1)").click();
+					});
+				}
+		
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m3dfio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({command: "message", value: commands}),
+					contentType: "application/json; charset=UTF-8"
+				});
+			}
 			
 			// Send request
 			$.ajax({
@@ -5101,57 +5263,7 @@ $(function() {
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: commands}),
-				contentType: "application/json; charset=UTF-8",
-		
-				// On success
-				success: function(data) {
-		
-					// Stop displaying temperature
-					clearInterval(updateTemperature);
-			
-					// Show message
-					showMessage("Filament Status", "Remove filament");
-		
-					// Set commands
-					commands = [
-						"G90",
-						"G92"
-					];
-			
-					for(var i = 2; i <= 40; i += 2)
-						commands.push("G0 E-" + i + " F345");
-	
-					commands.push("M104 S0");
-					commands.push("M107");
-					commands.push("M65536;wait");
-			
-					// Send request
-					$.ajax({
-						url: API_BASEURL + "plugin/m3dfio",
-						type: "POST",
-						dataType: "json",
-						data: JSON.stringify({command: "message", value: commands}),
-						contentType: "application/json; charset=UTF-8",
-				
-						// On success
-						success: function(data) {
-							
-							// Show message
-							showMessage("Filament Status", "Was filament removed?", "Yes", function() {
-				
-								// Hide message
-								hideMessage();
-							}, "No", function() {
-							
-								// Hide message
-								hideMessage();
-							
-								// Unload filament again
-								$("#control > div.jog-panel.filament").find("div > button:nth-of-type(1)").click();
-							});
-						}
-					});
-				}
+				contentType: "application/json; charset=UTF-8"
 			});
 		});
 	
@@ -5172,10 +5284,64 @@ $(function() {
 			var updateTemperature = setInterval(function() {
 			
 				// Show message
-				var temperature = self.temperature.temperatures.tool0.actual[self.temperature.temperatures.tool0.actual.length - 1][1];
-				if(temperature != 0)
-					showMessage("Filament Status", "Warming up: " + temperature + "°C");
+				if(self.temperature.temperatures.tool0.actual.length) {
+			
+					var temperature = self.temperature.temperatures.tool0.actual[self.temperature.temperatures.tool0.actual.length - 1][1];
+				
+					if(temperature != 0)
+						showMessage("Filament Status", "Warming up: " + temperature + "°C");
+				}
 			}, 1000);
+			
+			// Set waiting callback
+			waitingCallback = function() {
+			
+				// Stop displaying temperature
+				clearInterval(updateTemperature);
+	
+				// Show message
+				showMessage("Filament Status", "Insert filament");
+	
+				// Set commands
+				commands = [
+					"G90",
+					"G92"
+				];
+		
+				for(var i = 2; i <= 40; i += 2)
+					commands.push("G0 E" + i + " F345");
+
+				commands.push("M104 S0");
+				commands.push("M107");
+				commands.push("M65536;wait");
+				
+				// Set waiting callback
+				waitingCallback = function() {
+				
+					// Show message
+					showMessage("Filament Status", "Was filament inserted?", "Yes", function() {
+				
+						// Hide message
+						hideMessage();
+					}, "No", function() {
+				
+						// Hide message
+						hideMessage();
+				
+						// Load filament again
+						$("#control > div.jog-panel.filament").find("div > button:nth-of-type(2)").click();
+					});
+				}
+		
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m3dfio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({command: "message", value: commands}),
+					contentType: "application/json; charset=UTF-8"
+				});
+			}
 		
 			// Send request
 			$.ajax({
@@ -5183,57 +5349,7 @@ $(function() {
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: commands}),
-				contentType: "application/json; charset=UTF-8",
-			
-				// On success
-				success: function(data) {
-			
-					// Stop displaying temperature
-					clearInterval(updateTemperature);
-			
-					// Show message
-					showMessage("Filament Status", "Insert filament");
-			
-					// Set commands
-					commands = [
-						"G90",
-						"G92"
-					];
-				
-					for(var i = 2; i <= 40; i += 2)
-						commands.push("G0 E" + i + " F345");
-		
-					commands.push("M104 S0");
-					commands.push("M107");
-					commands.push("M65536;wait");
-				
-					// Send request
-					$.ajax({
-						url: API_BASEURL + "plugin/m3dfio",
-						type: "POST",
-						dataType: "json",
-						data: JSON.stringify({command: "message", value: commands}),
-						contentType: "application/json; charset=UTF-8",
-					
-						// On success
-						success: function(data) {
-					
-							// Show message
-							showMessage("Filament Status", "Was filament inserted?", "Yes", function() {
-							
-								// Hide message
-								hideMessage();
-							}, "No", function() {
-							
-								// Hide message
-								hideMessage();
-							
-								// Load filament again
-								$("#control > div.jog-panel.filament").find("div > button:nth-of-type(2)").click();
-							});
-						}
-					});
-				}
+				contentType: "application/json; charset=UTF-8"
 			});
 		});
 	
@@ -5245,9 +5361,7 @@ $(function() {
 		
 			// Set commands
 			var commands = [
-				"M104 S0",
 				"G90",
-				"G0 Z3 F90",
 				"M109 S150",
 				"M104 S0",
 				"M107",
@@ -5255,6 +5369,17 @@ $(function() {
 				"M117",
 				"M65536;wait"
 			];
+			
+			// Set waiting callback
+			waitingCallback = function() {
+			
+				// Show message
+				showMessage("Calibration Status", "Done", "Ok", function() {
+				
+					// Hide message
+					hideMessage();
+				});
+			}
 		
 			// Send request
 			$.ajax({
@@ -5262,18 +5387,7 @@ $(function() {
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: commands}),
-				contentType: "application/json; charset=UTF-8",
-			
-				// On success
-				success: function(data) {
-			
-					// Show message
-					showMessage("Calibration Status", "Done", "Ok", function() {
-					
-						// Hide message
-						hideMessage();
-					});
-				}
+				contentType: "application/json; charset=UTF-8"
 			});
 		});
 	
@@ -5298,6 +5412,30 @@ $(function() {
 				"M619 S" + eepromOffsets["bedOrientationFrontRight"]["offset"] + " T" + eepromOffsets["bedOrientationFrontRight"]["bytes"],
 				"M65536;wait"
 			];
+			
+			// Set waiting callback
+			waitingCallback = function() {
+			
+				// Save settings
+				function saveSettings() {
+				
+					// Save software settings
+					self.settings.saveData();
+					
+					// Show message
+					showMessage("Calibration Status", "Done", "Ok", function() {
+				
+						// Hide message
+						hideMessage();
+					});
+				}
+			
+				// Update settings
+				if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
+					self.settings.requestData(saveSettings);
+				else
+					self.settings.requestData().done(saveSettings);
+			}
 		
 			// Send request
 			$.ajax({
@@ -5305,21 +5443,7 @@ $(function() {
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: commands}),
-				contentType: "application/json; charset=UTF-8",
-			
-				// On success
-				success: function(data) {
-				
-					// Save software and printer settings
-					self.settings.saveData(undefined, savePrinterSettings);
-			
-					// Show message
-					showMessage("Calibration Status", "Done", "Ok", function() {
-					
-						// Hide message
-						hideMessage();
-					});
-				}
+				contentType: "application/json; charset=UTF-8"
 			});
 		});
 	
@@ -5418,6 +5542,50 @@ $(function() {
 				"M114",
 				"M65536;wait"
 			];
+			
+			// Set waiting callback
+			waitingCallback = function() {
+			
+				// Set commands
+				commands = [
+					"M618 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.FrontLeftOrientation()),
+					"M619 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"],
+					"M65536;wait"
+				];
+				
+				// Set waiting callback
+				waitingCallback = function() {
+				
+					// Save settings
+					function saveSettings() {
+				
+						// Save software settings
+						self.settings.saveData();
+					
+						// Show message
+						showMessage("Saving Status", "Done", "Ok", function() {
+				
+							// Hide message
+							hideMessage();
+						});
+					}
+			
+					// Update settings
+					if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
+						self.settings.requestData(saveSettings);
+					else
+						self.settings.requestData().done(saveSettings);
+				}
+			
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m3dfio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({command: "message", value: commands}),
+					contentType: "application/json; charset=UTF-8"
+				});
+			}
 		
 			// Send request
 			$.ajax({
@@ -5425,41 +5593,7 @@ $(function() {
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: commands}),
-				contentType: "application/json; charset=UTF-8",
-			
-				// On success
-				success: function(data) {
-			
-					// Set commands
-					commands = [
-						"M618 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.FrontLeftOrientation()),
-						"M619 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"],
-						"M65536;wait"
-					];
-				
-					// Send request
-					$.ajax({
-						url: API_BASEURL + "plugin/m3dfio",
-						type: "POST",
-						dataType: "json",
-						data: JSON.stringify({command: "message", value: commands}),
-						contentType: "application/json; charset=UTF-8",
-						
-						// On success
-						success: function(data) {
-						
-							// Save software and printer settings
-							self.settings.saveData(undefined, savePrinterSettings);
-			
-							// Show message
-							showMessage("Saving Status", "Done", "Ok", function() {
-					
-								// Hide message
-								hideMessage();
-							});
-						}
-					});
-				}
+				contentType: "application/json; charset=UTF-8"
 			});
 		});
 	
@@ -5474,6 +5608,50 @@ $(function() {
 				"M114",
 				"M65536;wait"
 			];
+			
+			// Set waiting callback
+			waitingCallback = function() {
+			
+				// Set commands
+				commands = [
+					"M618 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.FrontRightOrientation()),
+					"M619 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"],
+					"M65536;wait"
+				];
+				
+				// Set waiting callback
+				waitingCallback = function() {
+				
+					// Save settings
+					function saveSettings() {
+				
+						// Save software settings
+						self.settings.saveData();
+					
+						// Show message
+						showMessage("Saving Status", "Done", "Ok", function() {
+				
+							// Hide message
+							hideMessage();
+						});
+					}
+			
+					// Update settings
+					if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
+						self.settings.requestData(saveSettings);
+					else
+						self.settings.requestData().done(saveSettings);
+				}
+			
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m3dfio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({command: "message", value: commands}),
+					contentType: "application/json; charset=UTF-8"
+				});
+			}
 		
 			// Send request
 			$.ajax({
@@ -5481,41 +5659,7 @@ $(function() {
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: commands}),
-				contentType: "application/json; charset=UTF-8",
-			
-				// On success
-				success: function(data) {
-			
-					// Set commands
-					commands = [
-						"M618 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.FrontRightOrientation()),
-						"M619 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"],
-						"M65536;wait"
-					];
-				
-					// Send request
-					$.ajax({
-						url: API_BASEURL + "plugin/m3dfio",
-						type: "POST",
-						dataType: "json",
-						data: JSON.stringify({command: "message", value: commands}),
-						contentType: "application/json; charset=UTF-8",
-						
-						// On success
-						success: function(data) {
-						
-							// Save software and printer settings
-							self.settings.saveData(undefined, savePrinterSettings);
-			
-							// Show message
-							showMessage("Saving Status", "Done", "Ok", function() {
-					
-								// Hide message
-								hideMessage();
-							});
-						}
-					});
-				}
+				contentType: "application/json; charset=UTF-8"
 			});
 		});
 	
@@ -5530,48 +5674,58 @@ $(function() {
 				"M114",
 				"M65536;wait"
 			];
-		
+			
+			// Set waiting callback
+			waitingCallback = function() {
+			
+				// Set commands
+				commands = [
+					"M618 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.BackRightOrientation()),
+					"M619 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"],
+					"M65536;wait"
+				];
+				
+				// Set waiting callback
+				waitingCallback = function() {
+				
+					// Save settings
+					function saveSettings() {
+				
+						// Save software settings
+						self.settings.saveData();
+					
+						// Show message
+						showMessage("Saving Status", "Done", "Ok", function() {
+				
+							// Hide message
+							hideMessage();
+						});
+					}
+			
+					// Update settings
+					if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
+						self.settings.requestData(saveSettings);
+					else
+						self.settings.requestData().done(saveSettings);
+				}
+			
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m3dfio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({command: "message", value: commands}),
+					contentType: "application/json; charset=UTF-8"
+				});
+			}
+			
 			// Send request
 			$.ajax({
 				url: API_BASEURL + "plugin/m3dfio",
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: commands}),
-				contentType: "application/json; charset=UTF-8",
-			
-				// On success
-				success: function(data) {
-			
-					// Set commands
-					commands = [
-						"M618 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.BackRightOrientation()),
-						"M619 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"],
-						"M65536;wait"
-					];
-				
-					// Send request
-					$.ajax({
-						url: API_BASEURL + "plugin/m3dfio",
-						type: "POST",
-						dataType: "json",
-						data: JSON.stringify({command: "message", value: commands}),
-						contentType: "application/json; charset=UTF-8",
-						
-						// On success
-						success: function(data) {
-						
-							// Save software and printer settings
-							self.settings.saveData(undefined, savePrinterSettings);
-			
-							// Show message
-							showMessage("Saving Status", "Done", "Ok", function() {
-					
-								// Hide message
-								hideMessage();
-							});
-						}
-					});
-				}
+				contentType: "application/json; charset=UTF-8"
 			});
 		});
 	
@@ -5586,6 +5740,50 @@ $(function() {
 				"M114",
 				"M65536;wait"
 			];
+			
+			// Set waiting callback
+			waitingCallback = function() {
+			
+				// Set commands
+				commands = [
+					"M618 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.BackLeftOrientation()),
+					"M619 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"],
+					"M65536;wait"
+				];
+				
+				// Set waiting callback
+				waitingCallback = function() {
+				
+					// Save settings
+					function saveSettings() {
+				
+						// Save software settings
+						self.settings.saveData();
+					
+						// Show message
+						showMessage("Saving Status", "Done", "Ok", function() {
+				
+							// Hide message
+							hideMessage();
+						});
+					}
+			
+					// Update settings
+					if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
+						self.settings.requestData(saveSettings);
+					else
+						self.settings.requestData().done(saveSettings);
+				}
+			
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m3dfio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({command: "message", value: commands}),
+					contentType: "application/json; charset=UTF-8"
+				});
+			}
 		
 			// Send request
 			$.ajax({
@@ -5593,41 +5791,7 @@ $(function() {
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: commands}),
-				contentType: "application/json; charset=UTF-8",
-			
-				// On success
-				success: function(data) {
-			
-					// Set commands
-					commands = [
-						"M618 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.BackLeftOrientation()),
-						"M619 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"],
-						"M65536;wait"
-					];
-				
-					// Send request
-					$.ajax({
-						url: API_BASEURL + "plugin/m3dfio",
-						type: "POST",
-						dataType: "json",
-						data: JSON.stringify({command: "message", value: commands}),
-						contentType: "application/json; charset=UTF-8",
-						
-						// On success
-						success: function(data) {
-						
-							// Save software and printer settings
-							self.settings.saveData(undefined, savePrinterSettings);
-			
-							// Show message
-							showMessage("Saving Status", "Done", "Ok", function() {
-					
-								// Hide message
-								hideMessage();
-							});
-						}
-					});
-				}
+				contentType: "application/json; charset=UTF-8"
 			});
 		});
 		
@@ -5646,24 +5810,24 @@ $(function() {
 				"M65536;wait"
 			];
 			
+			// Set waiting callback
+			waitingCallback = function() {
+			
+				// Show message
+				showMessage("Saving Status", "Done", "Ok", function() {
+		
+					// Hide message
+					hideMessage();
+				});
+			}
+			
 			// Send request
 			$.ajax({
 				url: API_BASEURL + "plugin/m3dfio",
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({command: "message", value: commands}),
-				contentType: "application/json; charset=UTF-8",
-						
-				// On success
-				success: function(data) {
-	
-					// Show message
-					showMessage("Saving Status", "Done", "Ok", function() {
-			
-						// Hide message
-						hideMessage();
-					});
-				}
+				contentType: "application/json; charset=UTF-8"
 			});
 		});
 		
@@ -5676,14 +5840,73 @@ $(function() {
 				// Hide message
 				hideMessage();
 				
-				// Send request
-				$.ajax({
-					url: API_BASEURL + "plugin/m3dfio",
-					type: "POST",
-					dataType: "json",
-					data: JSON.stringify({command: "message", value: "Print Test Border"}),
-					contentType: "application/json; charset=UTF-8"
-				});
+				// Check if using on the fly pre-processing and changing settings before print
+				if(self.settings.settings.plugins.m3dfio.PreprocessOnTheFly() && self.settings.settings.plugins.m3dfio.ChangeSettingsBeforePrint()) {
+				
+					// Show message
+					showMessage("Message", '', "Print", function() {
+			
+						// Hide message
+						hideMessage();
+				
+						// Send request
+						$.ajax({
+							url: API_BASEURL + "plugin/m3dfio",
+							type: "POST",
+							dataType: "json",
+							data: JSON.stringify({
+								command: "message",
+								value: "Print Settings: " + JSON.stringify({
+									filamentTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").val(),
+									filamentType: $("body > div.page-container > div.message > div > div > div.printSettings select").val()
+								})
+							}),
+							contentType: "application/json; charset=UTF-8",
+					
+							// On success										
+							success: function() {
+					
+								// Print file
+								function printFile() {
+							
+									// Save software settings
+									self.settings.saveData();
+								
+									// Send request
+									$.ajax({
+										url: API_BASEURL + "plugin/m3dfio",
+										type: "POST",
+										dataType: "json",
+										data: JSON.stringify({command: "message", value: "Print Test Border"}),
+										contentType: "application/json; charset=UTF-8"
+									});
+								}
+						
+								// Update settings
+								if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
+									self.settings.requestData(printFile);
+								else
+									self.settings.requestData().done(printFile);
+							}
+						});
+					}, "Cancel", function() {
+			
+						// Hide message
+						hideMessage();
+					});
+				}
+				
+				// Otherwise
+				else
+				
+					// Send request
+					$.ajax({
+						url: API_BASEURL + "plugin/m3dfio",
+						type: "POST",
+						dataType: "json",
+						data: JSON.stringify({command: "message", value: "Print Test Border"}),
+						contentType: "application/json; charset=UTF-8"
+					});
 				
 			}, "No", function() {
 			
@@ -5701,14 +5924,74 @@ $(function() {
 				// Hide message
 				hideMessage();
 				
-				// Send request
-				$.ajax({
-					url: API_BASEURL + "plugin/m3dfio",
-					type: "POST",
-					dataType: "json",
-					data: JSON.stringify({command: "message", value: "Print Backlash Calibration Cylinder"}),
-					contentType: "application/json; charset=UTF-8"
-				});
+				// Check if using on the fly pre-processing and changing settings before print
+				if(self.settings.settings.plugins.m3dfio.PreprocessOnTheFly() && self.settings.settings.plugins.m3dfio.ChangeSettingsBeforePrint()) {
+				
+					// Show message
+					showMessage("Message", '', "Print", function() {
+			
+						// Hide message
+						hideMessage();
+				
+						// Send request
+						$.ajax({
+							url: API_BASEURL + "plugin/m3dfio",
+							type: "POST",
+							dataType: "json",
+							data: JSON.stringify({
+								command: "message",
+								value: "Print Settings: " + JSON.stringify({
+									filamentTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").val(),
+									filamentType: $("body > div.page-container > div.message > div > div > div.printSettings select").val()
+								})
+							}),
+							contentType: "application/json; charset=UTF-8",
+					
+							// On success										
+							success: function() {
+					
+								// Print file
+								function printFile() {
+							
+									// Save software settings
+									self.settings.saveData();
+								
+									// Send request
+									$.ajax({
+										url: API_BASEURL + "plugin/m3dfio",
+										type: "POST",
+										dataType: "json",
+										data: JSON.stringify({command: "message", value: "Print Backlash Calibration Cylinder"}),
+										contentType: "application/json; charset=UTF-8"
+									});
+								}
+						
+								// Update settings
+								if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
+									self.settings.requestData(printFile);
+								else
+									self.settings.requestData().done(printFile);
+							}
+						});
+					}, "Cancel", function() {
+			
+						// Hide message
+						hideMessage();
+					});
+				}
+				
+				// Otherwise
+				else
+				
+					// Send request
+					$.ajax({
+						url: API_BASEURL + "plugin/m3dfio",
+						type: "POST",
+						dataType: "json",
+						data: JSON.stringify({command: "message", value: "Print Backlash Calibration Cylinder"}),
+						contentType: "application/json; charset=UTF-8"
+					});
+			
 			}, "No", function() {
 			
 				// Hide message
@@ -5730,9 +6013,7 @@ $(function() {
 		
 				// Set commands
 				var commands = [
-					"M104 S0",
 					"G90",
-					"G0 Z3 F90",
 					"M109 S150",
 					"M104 S0",
 					"M107",
@@ -5740,6 +6021,379 @@ $(function() {
 					"M117",
 					"M65536;wait"
 				];
+				
+				// Set waiting callback
+				waitingCallback = function() {
+				
+					// Show message
+					showMessage("Calibration Status", "Calibrating bed orientation");
+	
+					// Set commands
+					var commands = [
+						"M104 S0",
+						"G90",
+						"G0 Z3 F90",
+						"M109 S150",
+						"M104 S0",
+						"M107",
+						"G32",
+						"M619 S" + eepromOffsets["bedOrientationBackRight"]["offset"] + " T" + eepromOffsets["bedOrientationBackRight"]["bytes"],
+						"M619 S" + eepromOffsets["bedOrientationBackLeft"]["offset"] + " T" + eepromOffsets["bedOrientationBackLeft"]["bytes"],
+						"M619 S" + eepromOffsets["bedOrientationFrontLeft"]["offset"] + " T" + eepromOffsets["bedOrientationFrontLeft"]["bytes"],
+						"M619 S" + eepromOffsets["bedOrientationFrontRight"]["offset"] + " T" + eepromOffsets["bedOrientationFrontRight"]["bytes"],
+						"M65536;wait"
+					];
+					
+					// Set waiting callback
+					waitingCallback = function() {
+					
+						// Show message
+						showMessage("Calibration Status", "Calibrating front left offset");
+	
+						// Set commands
+						var commands = [
+							"G90",
+							"G0 Z3 F90",
+							"G28",
+							"G0 X9 Y5 Z3 F3000",
+							"M65536;wait"
+						];
+						
+						// Set waiting callback
+						waitingCallback = function() {
+						
+							// Show message
+							showMessage("Calibration Status", "Lower the print head until it barely touches the bed. One way to get to that point is to place a single sheet of paper on the bed under the print head, and lower the print head until the paper can no longer be moved.", "Done", function() {
+
+								// Hide message
+								hideMessage();
+								
+								// Show message
+								showMessage("Calibration Status", "Saving front left offset");
+								
+								// Set commands
+								var commands = [
+									"M114",
+									"M65536;wait"
+								];
+								
+								// Set waiting callback
+								waitingCallback = function() {
+								
+									// Set commands
+									commands = [
+										"M618 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.FrontLeftOrientation()),
+										"M619 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"],
+										"M65536;wait"
+									];
+									
+									// Set waiting callback
+									waitingCallback = function() {
+									
+										// Show message
+										showMessage("Calibration Status", "Calibrating front right offset");
+
+										// Set commands
+										var commands = [
+											"G90",
+											"G0 Z3 F90",
+											"G28",
+											"G0 X99 Y5 Z3 F3000",
+											"M65536;wait"
+										];
+										
+										// Set waiting callback
+										waitingCallback = function() {
+										
+											// Show message
+											showMessage("Calibration Status", "Lower the print head until it barely touches the bed. One way to get to that point is to place a single sheet of paper on the bed under the print head, and lower the print head until the paper can no longer be moved.", "Done", function() {
+
+												// Hide message
+												hideMessage();
+												
+												// Show message
+												showMessage("Calibration Status", "Saving front right offset");
+												
+												// Set commands
+												var commands = [
+													"M114",
+													"M65536;wait"
+												];
+												
+												// Set waiting callback
+												waitingCallback = function() {
+												
+													// Set commands
+													commands = [
+														"M618 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.FrontRightOrientation()),
+														"M619 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"],
+														"M65536;wait"
+													];
+													
+													// Set waiting callback
+													waitingCallback = function() {
+													
+														// Show message
+														showMessage("Calibration Status", "Calibrating back right offset");
+
+														// Set commands
+														var commands = [
+															"G90",
+															"G0 Z3 F90",
+															"G28",
+															"G0 X99 Y95 Z3 F3000",
+															"M65536;wait"
+														];
+														
+														// Set waiting callback
+														waitingCallback = function() {
+														
+															// Show message
+															showMessage("Calibration Status", "Lower the print head until it barely touches the bed. One way to get to that point is to place a single sheet of paper on the bed under the print head, and lower the print head until the paper can no longer be moved.", "Done", function() {
+
+																// Hide message
+																hideMessage();
+																
+																// Show message
+																showMessage("Calibration Status", "Saving back right offset");
+																
+																// Set commands
+																var commands = [
+																	"M114",
+																	"M65536;wait"
+																];
+																
+																// Set waiting callback
+																waitingCallback = function() {
+																
+																	// Set commands
+																	commands = [
+																		"M618 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.BackRightOrientation()),
+																		"M619 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"],
+																		"M65536;wait"
+																	];
+																	
+																	// Set waiting callback
+																	waitingCallback = function() {
+																	
+																		// Show message
+																		showMessage("Calibration Status", "Calibrating back left offset");
+
+																		// Set commands
+																		var commands = [
+																			"G90",
+																			"G0 Z3 F90",
+																			"G28",
+																			"G0 X9 Y95 Z3 F3000",
+																			"M65536;wait"
+																		];
+																		
+																		// Set waiting callback
+																		waitingCallback = function() {
+																		
+																			// Show message
+																			showMessage("Calibration Status", "Lower the print head until it barely touches the bed. One way to get to that point is to place a single sheet of paper on the bed under the print head, and lower the print head until the paper can no longer be moved.", "Done", function() {
+
+																				// Hide message
+																				hideMessage();
+																				
+																				// Show message
+																				showMessage("Calibration Status", "Saving back left offset");
+																				
+																				// Set commands
+																				var commands = [
+																					"M114",
+																					"M65536;wait"
+																				];
+																				
+																				// Set waiting callback
+																				waitingCallback = function() {
+																				
+																					// Set commands
+																					commands = [
+																						"M618 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.BackLeftOrientation()),
+																						"M619 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"],
+																						"M65536;wait"
+																					];
+																					
+																					// Set waiting callback
+																					waitingCallback = function() {
+																					
+																						// Set commands
+																						commands = [
+																							"G90",
+																							"G28",
+																							"M18",
+																							"M65536;wait"
+																						];
+																						
+																						// Set waiting callback
+																						waitingCallback = function() {
+																						
+																							// Save settings
+																							function saveSettings() {
+				
+																								// Save software settings
+																								self.settings.saveData();
+					
+																								// Show message
+																								showMessage("Calibration Status", "Done", "Ok", function() {
+				
+																									// Hide message
+																									hideMessage();
+																								});
+																							}
+			
+																							// Update settings
+																							if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
+																								self.settings.requestData(saveSettings);
+																							else
+																								self.settings.requestData().done(saveSettings);
+																						}
+
+																						// Send request
+																						$.ajax({
+																							url: API_BASEURL + "plugin/m3dfio",
+																							type: "POST",
+																							dataType: "json",
+																							data: JSON.stringify({command: "message", value: commands}),
+																							contentType: "application/json; charset=UTF-8"
+																						});
+																					}
+
+																					// Send request
+																					$.ajax({
+																						url: API_BASEURL + "plugin/m3dfio",
+																						type: "POST",
+																						dataType: "json",
+																						data: JSON.stringify({command: "message", value: commands}),
+																						contentType: "application/json; charset=UTF-8"
+																					});
+																				}
+
+																				// Send request
+																				$.ajax({
+																					url: API_BASEURL + "plugin/m3dfio",
+																					type: "POST",
+																					dataType: "json",
+																					data: JSON.stringify({command: "message", value: commands}),
+																					contentType: "application/json; charset=UTF-8"
+																				});
+																			});
+																		}
+
+																		// Send request
+																		$.ajax({
+																			url: API_BASEURL + "plugin/m3dfio",
+																			type: "POST",
+																			dataType: "json",
+																			data: JSON.stringify({command: "message", value: commands}),
+																			contentType: "application/json; charset=UTF-8"
+																		});
+																	}
+
+																	// Send request
+																	$.ajax({
+																		url: API_BASEURL + "plugin/m3dfio",
+																		type: "POST",
+																		dataType: "json",
+																		data: JSON.stringify({command: "message", value: commands}),
+																		contentType: "application/json; charset=UTF-8"
+																	});
+																}
+
+																// Send request
+																$.ajax({
+																	url: API_BASEURL + "plugin/m3dfio",
+																	type: "POST",
+																	dataType: "json",
+																	data: JSON.stringify({command: "message", value: commands}),
+																	contentType: "application/json; charset=UTF-8"
+																});
+															});
+														}
+
+														// Send request
+														$.ajax({
+															url: API_BASEURL + "plugin/m3dfio",
+															type: "POST",
+															dataType: "json",
+															data: JSON.stringify({command: "message", value: commands}),
+															contentType: "application/json; charset=UTF-8"
+														});
+													}
+
+													// Send request
+													$.ajax({
+														url: API_BASEURL + "plugin/m3dfio",
+														type: "POST",
+														dataType: "json",
+														data: JSON.stringify({command: "message", value: commands}),
+														contentType: "application/json; charset=UTF-8"
+													});
+												}
+
+												// Send request
+												$.ajax({
+													url: API_BASEURL + "plugin/m3dfio",
+													type: "POST",
+													dataType: "json",
+													data: JSON.stringify({command: "message", value: commands}),
+													contentType: "application/json; charset=UTF-8"
+												});
+											});
+										}
+
+										// Send request
+										$.ajax({
+											url: API_BASEURL + "plugin/m3dfio",
+											type: "POST",
+											dataType: "json",
+											data: JSON.stringify({command: "message", value: commands}),
+											contentType: "application/json; charset=UTF-8"
+										});
+									}
+
+									// Send request
+									$.ajax({
+										url: API_BASEURL + "plugin/m3dfio",
+										type: "POST",
+										dataType: "json",
+										data: JSON.stringify({command: "message", value: commands}),
+										contentType: "application/json; charset=UTF-8"
+									});
+								}
+
+								// Send request
+								$.ajax({
+									url: API_BASEURL + "plugin/m3dfio",
+									type: "POST",
+									dataType: "json",
+									data: JSON.stringify({command: "message", value: commands}),
+									contentType: "application/json; charset=UTF-8"
+								});
+							});
+						}
+
+						// Send request
+						$.ajax({
+							url: API_BASEURL + "plugin/m3dfio",
+							type: "POST",
+							dataType: "json",
+							data: JSON.stringify({command: "message", value: commands}),
+							contentType: "application/json; charset=UTF-8"
+						});
+					}
+	
+					// Send request
+					$.ajax({
+						url: API_BASEURL + "plugin/m3dfio",
+						type: "POST",
+						dataType: "json",
+						data: JSON.stringify({command: "message", value: commands}),
+						contentType: "application/json; charset=UTF-8"
+					});
+				}
 		
 				// Send request
 				$.ajax({
@@ -5747,358 +6401,7 @@ $(function() {
 					type: "POST",
 					dataType: "json",
 					data: JSON.stringify({command: "message", value: commands}),
-					contentType: "application/json; charset=UTF-8",
-			
-					// On success
-					success: function(data) {
-			
-						// Show message
-						showMessage("Calibration Status", "Calibrating bed orientation");
-		
-						// Set commands
-						var commands = [
-							"M104 S0",
-							"G90",
-							"G0 Z3 F90",
-							"M109 S150",
-							"M104 S0",
-							"M107",
-							"G32",
-							"M619 S" + eepromOffsets["bedOrientationBackRight"]["offset"] + " T" + eepromOffsets["bedOrientationBackRight"]["bytes"],
-							"M619 S" + eepromOffsets["bedOrientationBackLeft"]["offset"] + " T" + eepromOffsets["bedOrientationBackLeft"]["bytes"],
-							"M619 S" + eepromOffsets["bedOrientationFrontLeft"]["offset"] + " T" + eepromOffsets["bedOrientationFrontLeft"]["bytes"],
-							"M619 S" + eepromOffsets["bedOrientationFrontRight"]["offset"] + " T" + eepromOffsets["bedOrientationFrontRight"]["bytes"],
-							"M65536;wait"
-						];
-		
-						// Send request
-						$.ajax({
-							url: API_BASEURL + "plugin/m3dfio",
-							type: "POST",
-							dataType: "json",
-							data: JSON.stringify({command: "message", value: commands}),
-							contentType: "application/json; charset=UTF-8",
-			
-							// On success
-							success: function(data) {
-							
-								// Show message
-								showMessage("Calibration Status", "Calibrating front left offset");
-			
-								// Set commands
-								var commands = [
-									"G90",
-									"G0 Z3 F90",
-									"G28",
-									"G0 X9 Y5 Z3 F3000",
-									"M65536;wait"
-								];
-		
-								// Send request
-								$.ajax({
-									url: API_BASEURL + "plugin/m3dfio",
-									type: "POST",
-									dataType: "json",
-									data: JSON.stringify({command: "message", value: commands}),
-									contentType: "application/json; charset=UTF-8",
-			
-									// On success
-									success: function(data) {
-									
-										// Show message
-										showMessage("Calibration Status", "Lower the print head until it barely touches the bed. One way to get to that point is to place a single sheet of paper on the bed under the print head, and lower the print head until the paper can no longer be moved.", "Done", function() {
-		
-											// Hide message
-											hideMessage();
-											
-											// Set commands
-											var commands = [
-												"M114",
-												"M65536;wait"
-											];
-		
-											// Send request
-											$.ajax({
-												url: API_BASEURL + "plugin/m3dfio",
-												type: "POST",
-												dataType: "json",
-												data: JSON.stringify({command: "message", value: commands}),
-												contentType: "application/json; charset=UTF-8",
-			
-												// On success
-												success: function(data) {
-			
-													// Set commands
-													commands = [
-														"M618 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.FrontLeftOrientation()),
-														"M619 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"],
-														"M65536;wait"
-													];
-				
-													// Send request
-													$.ajax({
-														url: API_BASEURL + "plugin/m3dfio",
-														type: "POST",
-														dataType: "json",
-														data: JSON.stringify({command: "message", value: commands}),
-														contentType: "application/json; charset=UTF-8",
-						
-														// On success
-														success: function(data) {
-			
-															// Show message
-															showMessage("Calibration Status", "Calibrating front right offset");
-			
-															// Set commands
-															var commands = [
-																"G90",
-																"G0 Z3 F90",
-																"G28",
-																"G0 X99 Y5 Z3 F3000",
-																"M65536;wait"
-															];
-		
-															// Send request
-															$.ajax({
-																url: API_BASEURL + "plugin/m3dfio",
-																type: "POST",
-																dataType: "json",
-																data: JSON.stringify({command: "message", value: commands}),
-																contentType: "application/json; charset=UTF-8",
-			
-																// On success
-																success: function(data) {
-																
-																	// Show message
-																	showMessage("Calibration Status", "Lower the print head until it barely touches the bed. One way to get to that point is to place a single sheet of paper on the bed under the print head, and lower the print head until the paper can no longer be moved.", "Done", function() {
-		
-																		// Hide message
-																		hideMessage();
-																		
-																		// Set commands
-																		var commands = [
-																			"M114",
-																			"M65536;wait"
-																		];
-		
-																		// Send request
-																		$.ajax({
-																			url: API_BASEURL + "plugin/m3dfio",
-																			type: "POST",
-																			dataType: "json",
-																			data: JSON.stringify({command: "message", value: commands}),
-																			contentType: "application/json; charset=UTF-8",
-			
-																			// On success
-																			success: function(data) {
-			
-																				// Set commands
-																				commands = [
-																					"M618 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.FrontRightOrientation()),
-																					"M619 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"],
-																					"M65536;wait"
-																				];
-				
-																				// Send request
-																				$.ajax({
-																					url: API_BASEURL + "plugin/m3dfio",
-																					type: "POST",
-																					dataType: "json",
-																					data: JSON.stringify({command: "message", value: commands}),
-																					contentType: "application/json; charset=UTF-8",
-						
-																					// On success
-																					success: function(data) {
-			
-																						// Show message
-																						showMessage("Calibration Status", "Calibrating back right offset");
-			
-																						// Set commands
-																						var commands = [
-																							"G90",
-																							"G0 Z3 F90",
-																							"G28",
-																							"G0 X99 Y95 Z3 F3000",
-																							"M65536;wait"
-																						];
-		
-																						// Send request
-																						$.ajax({
-																							url: API_BASEURL + "plugin/m3dfio",
-																							type: "POST",
-																							dataType: "json",
-																							data: JSON.stringify({command: "message", value: commands}),
-																							contentType: "application/json; charset=UTF-8",
-			
-																							// On success
-																							success: function(data) {
-																							
-																								// Show message
-																								showMessage("Calibration Status", "Lower the print head until it barely touches the bed. One way to get to that point is to place a single sheet of paper on the bed under the print head, and lower the print head until the paper can no longer be moved.", "Done", function() {
-		
-																									// Hide message
-																									hideMessage();
-																									
-																									// Set commands
-																									var commands = [
-																										"M114",
-																										"M65536;wait"
-																									];
-		
-																									// Send request
-																									$.ajax({
-																										url: API_BASEURL + "plugin/m3dfio",
-																										type: "POST",
-																										dataType: "json",
-																										data: JSON.stringify({command: "message", value: commands}),
-																										contentType: "application/json; charset=UTF-8",
-			
-																										// On success
-																										success: function(data) {
-			
-																											// Set commands
-																											commands = [
-																												"M618 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.BackRightOrientation()),
-																												"M619 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"],
-																												"M65536;wait"
-																											];
-				
-																											// Send request
-																											$.ajax({
-																												url: API_BASEURL + "plugin/m3dfio",
-																												type: "POST",
-																												dataType: "json",
-																												data: JSON.stringify({command: "message", value: commands}),
-																												contentType: "application/json; charset=UTF-8",
-						
-																												// On success
-																												success: function(data) {
-			
-																													// Show message
-																													showMessage("Calibration Status", "Calibrating back left offset");
-			
-																													// Set commands
-																													var commands = [
-																														"G90",
-																														"G0 Z3 F90",
-																														"G28",
-																														"G0 X9 Y95 Z3 F3000",
-																														"M65536;wait"
-																													];
-		
-																													// Send request
-																													$.ajax({
-																														url: API_BASEURL + "plugin/m3dfio",
-																														type: "POST",
-																														dataType: "json",
-																														data: JSON.stringify({command: "message", value: commands}),
-																														contentType: "application/json; charset=UTF-8",
-			
-																														// On success
-																														success: function(data) {
-																														
-																															// Show message
-																															showMessage("Calibration Status", "Lower the print head until it barely touches the bed. One way to get to that point is to place a single sheet of paper on the bed under the print head, and lower the print head until the paper can no longer be moved.", "Done", function() {
-		
-																																// Hide message
-																																hideMessage();
-																																
-																																// Set commands
-																																var commands = [
-																																	"M114",
-																																	"M65536;wait"
-																																];
-		
-																																// Send request
-																																$.ajax({
-																																	url: API_BASEURL + "plugin/m3dfio",
-																																	type: "POST",
-																																	dataType: "json",
-																																	data: JSON.stringify({command: "message", value: commands}),
-																																	contentType: "application/json; charset=UTF-8",
-			
-																																	// On success
-																																	success: function(data) {
-			
-																																		// Set commands
-																																		commands = [
-																																			"M618 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.BackLeftOrientation()),
-																																			"M619 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"],
-																																			"M65536;wait"
-																																		];
-				
-																																		// Send request
-																																		$.ajax({
-																																			url: API_BASEURL + "plugin/m3dfio",
-																																			type: "POST",
-																																			dataType: "json",
-																																			data: JSON.stringify({command: "message", value: commands}),
-																																			contentType: "application/json; charset=UTF-8",
-						
-																																			// On success
-																																			success: function(data) {
-			
-																																				// Set commands
-																																				commands = [
-																																					"G90",
-																																					"G28",
-																																					"M18",
-																																					"M65536;wait"
-																																				];
-				
-																																				// Send request
-																																				$.ajax({
-																																					url: API_BASEURL + "plugin/m3dfio",
-																																					type: "POST",
-																																					dataType: "json",
-																																					data: JSON.stringify({command: "message", value: commands}),
-																																					contentType: "application/json; charset=UTF-8",
-						
-																																					// On success
-																																					success: function(data) {
-																																					
-																																						// Save software and printer settings
-																																						self.settings.saveData(undefined, savePrinterSettings);
-			
-																																						// Show message
-																																						showMessage("Calibration Status", "Done", "Ok", function() {
-					
-																																							// Hide message
-																																							hideMessage();
-																																						});
-																																					}
-																																				});
-																																			}
-																																		});
-																																	}
-																																});
-																															});
-																														}
-																													});
-																												}
-																											});
-																										}
-																									});
-																								});
-																							}
-																						});
-																					}
-																				});
-																			}
-																		});
-																	});
-																}
-															});
-														}
-													});
-												}
-											});
-										});
-									}
-								});
-							}
-						});
-					}
+					contentType: "application/json; charset=UTF-8"
 				});
 			}, "No", function() {
 			
@@ -6267,143 +6570,6 @@ $(function() {
 					});
 				}
 			});
-		});
-		
-		// Set update firmware to version control
-		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(7)").click(function(event) {
-		
-			// Show message
-			showMessage("Firmware Status", "Updating firmware");
-	
-			// Send request
-			$.ajax({
-				url: API_BASEURL + "plugin/m3dfio",
-				type: "POST",
-				dataType: "json",
-				data: JSON.stringify({command: "message", value: "Update Firmware To Provided"}),
-				contentType: "application/json; charset=UTF-8",
-	
-				// On success
-				success: function(data) {
-	
-					// Show message
-					showMessage("Firmware Status", data.value == "Ok" ? "Done" : "Failed", "Ok", function() {
-			
-						// Hide message
-						hideMessage();
-					});
-				}
-			});
-		});
-	
-		// Set update firmware with file control
-		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(8)").attr("title", "Updates printer's firmware with a provided file").click(function(event) {
-	
-			// Open file input dialog
-			$("#control > div.jog-panel.advanced").find("div > input").click();
-		});
-		
-		// On update firmware with file input change
-		$("#control > div.jog-panel.advanced").find("div > input").change(function(event) {
-	
-			// Initialize variables
-			var file = this.files[0];
-		
-			// Clear input
-			$(this).val('');
-		
-			// Check if file has no name
-			if(!file.name.length) {
-		
-				// Show message
-				showMessage("Firmware Status", "Invalid file name", "Ok", function() {
-				
-					// Hide message
-					hideMessage();
-				});
-			}
-		
-			// Go through each character of the file's name
-			for(index in file.name) {
-		
-				// Check if extension is occuring
-				if(file.name[index] == '.') {
-			
-					// Break if file name beings with 10 numbers
-					if(index == 10)
-						break;
-					
-					// Show message
-					showMessage("Firmware Status", "Invalid file name", "Ok", function() {
-		
-						// Hide message
-						hideMessage();
-					});
-				
-					// Return
-					return;
-				}
-			
-				// Check if current character isn't a digit or length is invalid
-				if(file.name[index] < '0' || file.name[index] > '9' || (index == file.name.length - 1 && index < 9)) {
-			
-					// Show message
-					showMessage("Firmware Status", "Invalid file name", "Ok", function() {
-		
-						// Hide message
-						hideMessage();
-					});
-				
-					// Return
-					return;
-				}
-			}
-		
-			// Check if the file is too big
-			if(file.size > 32768) {
-
-				// Show message
-				showMessage("Firmware Status", "Invalid file size", "Ok", function() {
-				
-					// Hide message
-					hideMessage();
-				});
-			}
-		
-			// Otherwise
-			else {
-	
-				// Show message
-				showMessage("Firmware Status", "Updating firmware");
-	
-				// Read in file
-				var reader = new FileReader();
-				reader.readAsBinaryString(file);
-		
-				// On file load
-				reader.onload = function(event) {
-		
-					// Send request
-					$.ajax({
-						url: API_BASEURL + "plugin/m3dfio",
-						type: "POST",
-						dataType: "json",
-						data: JSON.stringify({command: "file", name: file.name, content: event.target.result}),
-						contentType: "application/json; charset=UTF-8",
-			
-						// On success
-						success: function(data) {
-			
-							// Show message
-							showMessage("Firmware Status", data.value == "Ok" ? "Done" : "Failed", "Ok", function() {
-			
-								// Hide message
-								hideMessage();
-							});
-						}
-					});
-				};
-			}
 		});
 		
 		// Change EEPROM display control
@@ -6609,6 +6775,133 @@ $(function() {
 				window.location.port = $(this).val();
 		});
 		
+		// On update firmware with file input change
+		$("#control > div.jog-panel.advanced").find("div > input").change(function(event) {
+
+			// Initialize variables
+			var file = this.files[0];
+
+			// Clear input
+			$(this).val('');
+
+			// Check if file has no name
+			if(!file.name.length) {
+
+				// Show message
+				showMessage("Firmware Status", "Invalid file name", "Ok", function() {
+		
+					// Hide message
+					hideMessage();
+				});
+			}
+
+			// Go through each character of the file's name
+			for(var index = (file.name.indexOf(' ') != -1 ? file.name.indexOf(' ') + 1 : 0); index < file.name.length; index++) {
+
+				// Check if extension is occuring
+				if(file.name[index] == '.') {
+	
+					// Break if file name contaisn version
+					if(file.name.indexOf(' ') != -1 && index - file.name.indexOf(' ') - 1 == 10)
+						break;
+			
+					if(index == 10)
+						break;
+			
+					// Show message
+					showMessage("Firmware Status", "Invalid file name", "Ok", function() {
+
+						// Hide message
+						hideMessage();
+					});
+		
+					// Return
+					return;
+				}
+	
+				// Check if current character isn't a digit or length is invalid
+				if(file.name[index] < '0' || file.name[index] > '9' || (index == file.name.length - 1 && index < 9)) {
+	
+					// Show message
+					showMessage("Firmware Status", "Invalid file name", "Ok", function() {
+
+						// Hide message
+						hideMessage();
+					});
+		
+					// Return
+					return;
+				}
+			}
+
+			// Check if the file is too big
+			if(file.size > 32768) {
+
+				// Show message
+				showMessage("Firmware Status", "Invalid file size", "Ok", function() {
+		
+					// Hide message
+					hideMessage();
+				});
+			}
+
+			// Otherwise
+			else {
+
+				// Show message
+				showMessage("Firmware Status", "Updating firmware");
+
+				// Read in file
+				var reader = new FileReader();
+				reader.readAsBinaryString(file);
+
+				// On file load
+				reader.onload = function(event) {
+			
+					// Send request
+					$.ajax({
+						url: API_BASEURL + "plugin/m3dfio",
+						type: "POST",
+						dataType: "json",
+						data: JSON.stringify({command: "file", name: file.name, content: event.target.result}),
+						contentType: "application/json; charset=UTF-8",
+	
+						// On success
+						success: function(data) {
+	
+							// Show message
+							showMessage("Firmware Status", data.value == "Ok" ? "Done" : "Failed", "Ok", function() {
+	
+								// Hide message
+								hideMessage();
+							});
+						}
+					});
+				};
+			}
+		});
+		
+		// Ping
+		function ping() {
+		
+			// Send request
+			$.ajax({
+				url: API_BASEURL + "plugin/m3dfio",
+				type: "POST",
+				dataType: "json",
+				data: JSON.stringify({command: "message", value: "Ping"}),
+				contentType: "application/json; charset=UTF-8",
+				
+				// Complete
+				complete: function() {
+					
+					// Ping again
+					setTimeout(ping, 180 * 1000);
+				}
+			});
+		}
+		setTimeout(ping, 180 * 1000);
+		
 		// On data update message
 		self.onDataUpdaterPluginMessage = function(plugin, data) {
 		
@@ -6624,6 +6917,17 @@ $(function() {
 				// Set printer connected
 				printerConnected = true;
 			
+			// Check if data is current firmware
+			else if(data.value == "Current Firmware" && typeof data.name !== "undefined" && typeof data.release !== "undefined") {
+			
+				// Set name to unknown if not specified
+				if(data.name == null)
+					data.name = "an unknown"
+			
+				// Set firmware text
+				$("#control div.jog-panel.advanced p").text("Currently using " + data.name + " firmware V" + data.release);
+			}
+				
 			// Check if data is printer details
 			else if(data.value == "Printer Details" && typeof data.serialNumber !== "undefined" && typeof data.serialPort !== "undefined")
 			
@@ -6636,9 +6940,8 @@ $(function() {
 				// Clear printer connected
 				printerConnected = false;
 				$("#control > div.jog-panel.advanced").find("div > button").removeClass("current");
-				$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(7)").text("Update firmware to V" + providedFirmware);
 				$("#control > div.jog-panel.eeprom table input").val(eepromDisplayType == "ascii" ? "?" : (eepromDisplayType == "decimal" ? "???" : "??"));
-				
+				$("#control div.jog-panel.advanced p").text('');
 				$("#navbar_plugin_m3dfio > a").text('');
 			}
 			
@@ -6744,7 +7047,7 @@ $(function() {
 			else if(data.value == "Sleep Wont Disable") {
 			
 				// Show message
-				showMessage("Message", "It's recommended that you disable this server's sleep functionality while printing", "Ok", function() {
+				showMessage("Message", "It's recommended that you disable this server's sleep functionality while printing if it's not already disabled", "Ok", function() {
 				
 					// Hide message
 					hideMessage();
@@ -6832,14 +7135,97 @@ $(function() {
 				});	
 			}
 			
-			// Otherwise check if data is provided firmware
-			else if(data.value == "Provided Firmware" && typeof data.version !== "undefined") {
+			// Otherwise check if data is provided firmware versions
+			else if(data.value == "Provided Firmwares" && typeof data.firmwares !== "undefined") {
 			
-				// Set provided firmware
-				providedFirmware = data.version;
+				// Go to place holder buttons
+				var currentPosition = $("#control > div.jog-panel.advanced").find("div > button:nth-of-type(7)");
 				
-				// Set button text and title
-				$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(7)").text("Update firmware to V" + providedFirmware).attr("title", "Updates printer's firmware to V" + providedFirmware);
+				// Go through all provided firmwares
+				for(firmware in data.firmwares) {
+				
+					// Add update firmware to provided button
+					currentPosition.removeClass("placeHolder").addClass("firmware").data("name", firmware).attr("title", "Updates printer's firmware to " + firmware + " V" + data.firmwares[firmware]["Release"]).text("Update firmware to " + firmware + " V" + data.firmwares[firmware]["Release"]).off("click").click(function() {
+					
+						// Set firmware name
+						var firmwareName = $(this).data("name");
+						
+						// Check if updating to functional firmware
+						if(firmwareName == "M3D") {
+						
+							// Show message
+							showMessage("Firmware Status", "Updating firmware");
+
+							// Send request
+							$.ajax({
+								url: API_BASEURL + "plugin/m3dfio",
+								type: "POST",
+								dataType: "json",
+								data: JSON.stringify({command: "message", value: "Update Firmware To Provided: " + firmwareName}),
+								contentType: "application/json; charset=UTF-8",
+
+								// On success
+								success: function(data) {
+
+									// Show message
+									showMessage("Firmware Status", data.value == "Ok" ? "Done" : "Failed", "Ok", function() {
+	
+										// Hide message
+										hideMessage();
+									});
+								}
+							});
+						}
+						
+						// Otherwise
+						else {
+		
+							// Show message
+							showMessage("Firmware Status", htmlEncode(firmwareName) + " is not a fully functional firmware. It's currently only intended to be used by developers. Continue?", "Yes", function() {
+			
+								// Hide message
+								hideMessage();
+				
+								// Show message
+								showMessage("Firmware Status", "Updating firmware");
+
+								// Send request
+								$.ajax({
+									url: API_BASEURL + "plugin/m3dfio",
+									type: "POST",
+									dataType: "json",
+									data: JSON.stringify({command: "message", value: "Update Firmware To Provided: " + firmwareName}),
+									contentType: "application/json; charset=UTF-8",
+
+									// On success
+									success: function(data) {
+
+										// Show message
+										showMessage("Firmware Status", data.value == "Ok" ? "Done" : "Failed", "Ok", function() {
+		
+											// Hide message
+											hideMessage();
+										});
+									}
+								});
+							}, "No", function() {
+			
+								// Hide message
+								hideMessage();
+							});
+						}
+					});
+					
+					// Go to next place holder
+					currentPosition = currentPosition.next("button");
+				}
+				
+				// Add update firmware with file button
+				currentPosition.removeClass("placeHolder").attr("title", "Updates printer's firmware with a provided file").text("Update firmware with file").off("click").click(function() {
+				
+					// Open file input dialog
+					$("#control > div.jog-panel.advanced").find("div > input").click();
+				});
 			}
 			
 			// Otherwise check if data is to save software settings
@@ -6877,11 +7263,6 @@ $(function() {
 					$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(5)").addClass("current");
 				else if(extruderCurrent == 660)
 					$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(6)").addClass("current");
-				
-				// Show current firmware version
-				var firmwareVersion = ((parseInt(data.eeprom[eepromOffsets["firmwareVersion"].offset], 16) << 4) | parseInt(data.eeprom[eepromOffsets["firmwareVersion"].offset + 1], 16)) | (((parseInt(data.eeprom[eepromOffsets["firmwareVersion"].offset + 2], 16) << 4) | parseInt(data.eeprom[eepromOffsets["firmwareVersion"].offset + 3], 16)) << 8) | (((parseInt(data.eeprom[eepromOffsets["firmwareVersion"].offset + 4], 16) << 4) | parseInt(data.eeprom[eepromOffsets["firmwareVersion"].offset + 5], 16)) << 16) | (((parseInt(data.eeprom[eepromOffsets["firmwareVersion"].offset + 6], 16) << 4) | parseInt(data.eeprom[eepromOffsets["firmwareVersion"].offset + 7], 16)) << 24);
-				
-				$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(7)").html("Update firmware to V" + providedFirmware + "<span>Currently Using: V" + firmwareVersion + "</span>");
 			}
 			
 			// Otherwise check if data is invalid values
@@ -6901,9 +7282,7 @@ $(function() {
 		
 						// Set commands
 						var commands = [
-							"M104 S0",
 							"G90",
-							"G0 Z3 F90",
 							"M109 S150",
 							"M104 S0",
 							"M107",
@@ -6911,6 +7290,89 @@ $(function() {
 							"M117",
 							"M65536;wait"
 						];
+						
+						// Set waiting callback
+						waitingCallback = function() {
+						
+							// Check if bed orientation is invalid
+							if(data.bedOrientation) {
+			
+								// Display message
+								showMessage("Error Status", "Invalid bed orientation. Calibrate?", "Yes", function() {
+								
+									// Hide message
+									hideMessage();
+					
+									// Show message
+									showMessage("Error Status", "Calibrating bed orientation");
+	
+									// Set commands
+									var commands = [
+										"M104 S0",
+										"G90",
+										"G0 Z3 F90",
+										"M109 S150",
+										"M104 S0",
+										"M107",
+										"G32",
+										"M619 S" + eepromOffsets["bedOrientationBackRight"]["offset"] + " T" + eepromOffsets["bedOrientationBackRight"]["bytes"],
+										"M619 S" + eepromOffsets["bedOrientationBackLeft"]["offset"] + " T" + eepromOffsets["bedOrientationBackLeft"]["bytes"],
+										"M619 S" + eepromOffsets["bedOrientationFrontLeft"]["offset"] + " T" + eepromOffsets["bedOrientationFrontLeft"]["bytes"],
+										"M619 S" + eepromOffsets["bedOrientationFrontRight"]["offset"] + " T" + eepromOffsets["bedOrientationFrontRight"]["bytes"],
+										"M65536;wait"
+									];
+									
+									// Set waiting callback
+									waitingCallback = function() {
+									
+										// Save settings
+										function saveSettings() {
+
+											// Save software settings
+											self.settings.saveData();
+
+											// Show message
+											showMessage("Error Status", "Done", "Ok", function() {
+
+												// Hide message
+												hideMessage();
+											});
+										}
+
+										// Update settings
+										if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
+											self.settings.requestData(saveSettings);
+										else
+											self.settings.requestData().done(saveSettings);
+									}
+	
+									// Send request
+									$.ajax({
+										url: API_BASEURL + "plugin/m3dfio",
+										type: "POST",
+										dataType: "json",
+										data: JSON.stringify({command: "message", value: commands}),
+										contentType: "application/json; charset=UTF-8"
+									});
+								}, "No", function() {
+				
+									// Hide message
+									hideMessage();
+								});
+							}
+							
+							// Otherwise
+							else {
+		
+								// Show message
+								showMessage("Error Status", "Done", "Ok", function() {
+				
+									// Hide message
+									hideMessage();
+								});
+							}
+						
+						}
 		
 						// Send request
 						$.ajax({
@@ -6918,79 +7380,7 @@ $(function() {
 							type: "POST",
 							dataType: "json",
 							data: JSON.stringify({command: "message", value: commands}),
-							contentType: "application/json; charset=UTF-8",
-			
-							// On success
-							success: function(data) {
-							
-								// Check if bed orientation is invalid
-								if(data.bedOrientation) {
-				
-									// Display message
-									showMessage("Error Status", "Invalid bed orientation. Calibrate?", "Yes", function() {
-									
-										// Hide message
-										hideMessage();
-						
-										// Show message
-										showMessage("Error Status", "Calibrating bed orientation");
-		
-										// Set commands
-										var commands = [
-											"M104 S0",
-											"G90",
-											"G0 Z3 F90",
-											"M109 S150",
-											"M104 S0",
-											"M107",
-											"G32",
-											"M619 S" + eepromOffsets["bedOrientationBackRight"]["offset"] + " T" + eepromOffsets["bedOrientationBackRight"]["bytes"],
-											"M619 S" + eepromOffsets["bedOrientationBackLeft"]["offset"] + " T" + eepromOffsets["bedOrientationBackLeft"]["bytes"],
-											"M619 S" + eepromOffsets["bedOrientationFrontLeft"]["offset"] + " T" + eepromOffsets["bedOrientationFrontLeft"]["bytes"],
-											"M619 S" + eepromOffsets["bedOrientationFrontRight"]["offset"] + " T" + eepromOffsets["bedOrientationFrontRight"]["bytes"],
-											"M65536;wait"
-										];
-		
-										// Send request
-										$.ajax({
-											url: API_BASEURL + "plugin/m3dfio",
-											type: "POST",
-											dataType: "json",
-											data: JSON.stringify({command: "message", value: commands}),
-											contentType: "application/json; charset=UTF-8",
-			
-											// On success
-											success: function(data) {
-											
-												// Save software and printer settings
-												self.settings.saveData(undefined, savePrinterSettings);
-			
-												// Show message
-												showMessage("Error Status", "Done", "Ok", function() {
-					
-													// Hide message
-													hideMessage();
-												});
-											}
-										});
-									}, "No", function() {
-					
-										// Hide message
-										hideMessage();
-									});
-								}
-								
-								// Otherwise
-								else {
-			
-									// Show message
-									showMessage("Error Status", "Done", "Ok", function() {
-					
-										// Hide message
-										hideMessage();
-									});
-								}
-							}
+							contentType: "application/json; charset=UTF-8"
 						});
 					}, "No", function() {
 					
@@ -7026,6 +7416,30 @@ $(function() {
 							"M619 S" + eepromOffsets["bedOrientationFrontRight"]["offset"] + " T" + eepromOffsets["bedOrientationFrontRight"]["bytes"],
 							"M65536;wait"
 						];
+						
+						// Set waiting callback
+						waitingCallback = function() {
+						
+							// Save settings
+							function saveSettings() {
+
+								// Save software settings
+								self.settings.saveData();
+
+								// Show message
+								showMessage("Error Status", "Done", "Ok", function() {
+
+									// Hide message
+									hideMessage();
+								});
+							}
+
+							// Update settings
+							if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
+								self.settings.requestData(saveSettings);
+							else
+								self.settings.requestData().done(saveSettings);
+						}
 		
 						// Send request
 						$.ajax({
@@ -7033,21 +7447,7 @@ $(function() {
 							type: "POST",
 							dataType: "json",
 							data: JSON.stringify({command: "message", value: commands}),
-							contentType: "application/json; charset=UTF-8",
-			
-							// On success
-							success: function(data) {
-							
-								// Save software and printer settings
-								self.settings.saveData(undefined, savePrinterSettings);
-			
-								// Show message
-								showMessage("Error Status", "Done", "Ok", function() {
-					
-									// Hide message
-									hideMessage();
-								});
-							}
+							contentType: "application/json; charset=UTF-8"
 						});
 					}, "No", function() {
 					
@@ -7131,6 +7531,17 @@ $(function() {
 					// Display message
 					showMessage("Error Status", htmlEncode(data.message));
 			}
+			
+			// Otherwise check if data is doen waiting
+			else if(data.value == "Done Waiting" && typeof waitingCallback === "function") {
+			
+				// Clear waiting callback
+				var temp = waitingCallback;
+				waitingCallback = null;
+			
+				// Call waiting callback
+				temp();
+			}
 		}
 		
 		// User log in event
@@ -7151,19 +7562,48 @@ $(function() {
 			$("#navbar_plugin_m3dfio > select > option").last().prop("disabled", true).prev().prop("disabled", true);
 		}
 		
-		// Slicing done event
-		self.onEventSlicingDone = function() {
+		// On server disconnect event
+		self.onServerDisconnect = function() {
 		
-			// Check if printing file after slicing and a printer is connected
-			if(printFileAfterSlicing !== null && self.printerState.stateString() !== "Offline") {
+			// Get message
+			var message = $("body > div.page-container > div.message");
+		
+			// Check if a progress message is being shown
+			if(message.hasClass("show") && !message.find("button.confirm").eq(1).hasClass("show")) {
 			
-				// Load file and print
-				var file = {
-					refs: {
-						resource: printFileAfterSlicing 
-					}
-				}
-				self.files.loadFile(file, true);
+				// Reset message system
+				messages = [];
+				skippedMessages = 0;
+		
+				// Show message
+				showMessage("Server Status", "You've been disconnected from the server which has most likely caused the printer's current operation to fail. This page will now be refreshed to prevent further problems.", "Ok", function() {
+
+					// Hide message
+					hideMessage();
+					
+					// Refresh the page
+					location.reload();
+				});
+			}
+			
+			// Otherwise
+			else {
+			
+				// Check if a message is shown
+				if(message.hasClass("show"))
+				
+					// Hide message
+					hideMessage();
+			
+				// Show message
+				showMessage("Server Status", "You've been disconnected from the server. This page will now be refreshed to prevent any problems.", "Ok", function() {
+
+					// Hide message
+					hideMessage();
+					
+					// Refresh the page
+					location.reload();
+				});
 			}
 		}
 	}

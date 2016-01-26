@@ -203,14 +203,17 @@
 	display: none;
 }
 
-#control div.jog-panel.advanced button:nth-of-type(7) {
+#control div.jog-panel.advanced button.firmware {
 	height: auto;
 }
 
-#control div.jog-panel.advanced button > span {
-	display: inline-block;
+#control div.jog-panel.advanced button.placeHolder {
+	display: none;
+}
+
+#control div.jog-panel.advanced p {
 	font-size: 12px;
-	line-height: 0;
+	max-width: 175px;
 }
 
 #control div.jog-panel.eeprom {
@@ -441,6 +444,16 @@ body > div.page-container > div.message > div > div > div.printSettings input, b
 
 body > div.page-container > div.message > div > div > div.printSettings input {
 	width: 145px;
+}
+
+body > div.page-container > div.message > div > div > span {
+	font-size: 9px;
+	color: #999;
+	display: none;
+}
+
+body > div.page-container > div.message > div > div > span.show {
+	display: inline;
 }
 
 #slicing_configuration_dialog.profile, #slicing_configuration_dialog.model {
