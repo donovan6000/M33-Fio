@@ -916,11 +916,12 @@ class M3DFioPlugin(
 			UseSharedLibrary = True,
 			SpeedLimitX = 1500,
 			SpeedLimitY = 1500,
-			SpeedLimitZ = 90,
+			SpeedLimitZ = 60,
 			SpeedLimitEPositive = 102,
 			SpeedLimitENegative = 360,
 			ChangeSettingsBeforePrint = True,
-			UsingADifferentPrinter = False
+			UsingADifferentPrinter = False,
+			CalibrateBeforePrint = False
 		)
 	
 	# Template manager
@@ -1215,6 +1216,8 @@ class M3DFioPlugin(
 						self.sharedLibrary.setUsingMicroPass(ctypes.c_bool(self.usingMicroPass))
 						self.sharedLibrary.setPrintingTestBorder(ctypes.c_bool(self.printingTestBorder))
 						self.sharedLibrary.setPrintingBacklashCalibrationCylinder(ctypes.c_bool(self.printingBacklashCalibrationCylinder))
+						self.sharedLibrary.setPrinterColor(ctypes.c_char_p(self.printerColor))
+						self.sharedLibrary.setCalibrateBeforePrint(ctypes.c_bool(self._settings.get_boolean(["CalibrateBeforePrint"])))
 						
 						# Collect print information
 						self.sharedLibrary.collectPrintInformation(ctypes.c_char_p(location))
@@ -2908,6 +2911,8 @@ class M3DFioPlugin(
 					self.sharedLibrary.setUsingMicroPass(ctypes.c_bool(self.usingMicroPass))
 					self.sharedLibrary.setPrintingTestBorder(ctypes.c_bool(self.printingTestBorder))
 					self.sharedLibrary.setPrintingBacklashCalibrationCylinder(ctypes.c_bool(self.printingBacklashCalibrationCylinder))
+					self.sharedLibrary.setPrinterColor(ctypes.c_char_p(self.printerColor))
+					self.sharedLibrary.setCalibrateBeforePrint(ctypes.c_bool(self._settings.get_boolean(["CalibrateBeforePrint"])))
 		
 					# Collect print information
 					printIsValid = self.sharedLibrary.collectPrintInformation(ctypes.c_char_p(payload.get("file")))
@@ -3415,10 +3420,10 @@ class M3DFioPlugin(
 								speedLimitZ = round(struct.unpack('f', bytes)[0], 6)
 					
 								# Check if speed limit Z is invalid
-								if math.isnan(speedLimitZ) or speedLimitZ < 30 or speedLimitZ > 90 :
-					
+								if math.isnan(speedLimitZ) or speedLimitZ < 30 or speedLimitZ > 60 :
+								
 									# Convert default speed limit Z to binary
-									packed = struct.pack('f', 90)
+									packed = struct.pack('f', 60)
 									speedLimitZ = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
 					
 									# Go through bytes of speed limit Z
@@ -4467,6 +4472,8 @@ class M3DFioPlugin(
 				self.sharedLibrary.setUsingMicroPass(ctypes.c_bool(self.usingMicroPass))
 				self.sharedLibrary.setPrintingTestBorder(ctypes.c_bool(self.printingTestBorder))
 				self.sharedLibrary.setPrintingBacklashCalibrationCylinder(ctypes.c_bool(self.printingBacklashCalibrationCylinder))
+				self.sharedLibrary.setPrinterColor(ctypes.c_char_p(self.printerColor))
+				self.sharedLibrary.setCalibrateBeforePrint(ctypes.c_bool(self._settings.get_boolean(["CalibrateBeforePrint"])))
 						
 				# Collect print information
 				printIsValid = self.sharedLibrary.collectPrintInformation(ctypes.c_char_p(input))
@@ -5109,6 +5116,8 @@ class M3DFioPlugin(
 				
 					# Add intro to output
 					newCommands.append(Command("M420 T1", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					if self._settings.get_boolean(["CalibrateBeforePrint"]) :
+						newCommands.append(Command("G30", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 					if str(self._settings.get(["FilamentType"])) == "PLA" or str(self._settings.get(["FilamentType"])) == "FLX" or str(self._settings.get(["FilamentType"])) == "TGH" :
 						newCommands.append(Command("M106 S255", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 					else :

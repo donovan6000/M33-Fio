@@ -4571,29 +4571,8 @@ $(function() {
 							setTimeout(function() {
 							
 								// Set parameter
-								var parameter = [
-									{
-										name: "Slicer Name",
-										value: slicerName
-									},
-									{
-										name: "Slicer Profile Name",
-										value: slicerProfileName
-									},
-									{
-										name: "Slicer Profile Content",
-										value: slicerProfileContent
-									},
-									{
-										name: "Printer Profile Name",
-										value: printerProfileName
-									},
-									{
-										name: "After Slicing Action",
-										value: afterSlicingAction
-									}
-								];
-							
+								var parameter = [];
+								
 								// Check if WebGL is supported
 								if(Detector.webgl) {
 								
@@ -4618,7 +4597,29 @@ $(function() {
 									if(slicerName == "cura")
 										slicerProfileContent += "\nobject_center_x = " + modelCenter[0] + "\nobject_center_y = " + modelCenter[1] + '\n';
 								}
-	
+							
+								// Append parameters
+								parameter.push({
+									name: "Slicer Name",
+									value: slicerName
+								},
+								{
+									name: "Slicer Profile Name",
+									value: slicerProfileName
+								},
+								{
+									name: "Slicer Profile Content",
+									value: slicerProfileContent
+								},
+								{
+									name: "Printer Profile Name",
+									value: printerProfileName
+								},
+								{
+									name: "After Slicing Action",
+									value: afterSlicingAction
+								});
+								
 								// Send request
 								$.ajax({
 									url: "/plugin/m3dfio/upload",

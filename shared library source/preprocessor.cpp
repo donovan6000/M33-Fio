@@ -149,6 +149,7 @@ bool usingMicroPass;
 bool printingTestBorder;
 bool printingBacklashCalibrationCylinder;
 printerColors printerColor;
+bool calibrateBeforePrint;
 
 // Return value
 string returnValue;
@@ -623,11 +624,18 @@ EXPORT void setPrinterColor(const char *value) {
 		printerColor = BLACK;
 }
 
+EXPORT void setCalibrateBeforePrint(bool value) {
+
+	// Set calibrate before print
+	calibrateBeforePrint = value;
+}
+
 EXPORT void resetPreprocessorSettings() {
 
 	// General settings
 	printingTestBorder = false;
 	printingBacklashCalibrationCylinder = false;
+	printerColor = BLACK;
 
 	// Center model pre-processor settings
 	displacementX = 0;
@@ -636,6 +644,7 @@ EXPORT void resetPreprocessorSettings() {
 	// Preparation pre-processor settings
 	addedIntro = false;
 	addedOutro = false;
+	calibrateBeforePrint = false;
 
 	// Wave bonding pre-processor settings
 	waveStep = 0;
@@ -698,7 +707,7 @@ EXPORT bool collectPrintInformation(const char *file) {
 		Gcode gcode;
 		printTiers tier = LOW;
 		bool relativeMode = false;
-		double localX = std::nan(""), localY = std::nan(""), localZ = std::nan("");
+		double localX = NAN, localY = NAN, localZ = NAN;
 	
 		// Reset all print values
 		maxXExtruderLow = -DBL_MAX;
@@ -763,7 +772,7 @@ EXPORT bool collectPrintInformation(const char *file) {
 							
 							// Check if not ignoring print dimension limitations, not printing a test border or backlash calibration cylinder, and Z is out of bounds
 							if(!ignorePrintDimensionLimitations && !printingTestBorder && !printingBacklashCalibrationCylinder && (localZ < BED_LOW_MIN_Z || localZ > BED_HIGH_MAX_Z))
-					
+							
 								// Return false
 								return false;
 						
@@ -906,7 +915,7 @@ EXPORT bool collectPrintInformation(const char *file) {
 				// Return false
 				return false;
 		}
-	
+		
 		// Return true
 		return true;
 	}
@@ -1078,6 +1087,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			
 				// Add intro to output
 				newCommands.push(Command("M420 T1", PREPARATION, PREPARATION));
+				if(calibrateBeforePrint)
+					newCommands.push(Command("G30", PREPARATION, PREPARATION));
 				newCommands.push(Command("M106 S" + static_cast<string>(filamentType == PLA ? "255" : "50"), PREPARATION, PREPARATION));
 				newCommands.push(Command("M17", PREPARATION, PREPARATION));
 				newCommands.push(Command("G90", PREPARATION, PREPARATION));

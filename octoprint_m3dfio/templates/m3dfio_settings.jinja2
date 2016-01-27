@@ -64,6 +64,13 @@
 			</label>
 		</div>
 	</div>
+	<div class="control-group dependant">
+		<div class="controls">
+			<label class="checkbox sharedLibrary" title="Performs the bed center Z0 calibration procedure before printing">
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.CalibrateBeforePrint"><span>Calibrate before print</span>
+			</label>
+		</div>
+	</div>
 	<div class="control-group">
 		<div class="controls">
 			<label class="checkbox" title="Removes all existing temperature and fan G-code commands, and adds dwell times and higher temperatures to the first few layers">
@@ -246,7 +253,7 @@
 		<label class="control-label">Speed Limit Z</label>
 		<div class="controls">
 			<div class="input-append mmPerMinute">
-				<input type="number" step="1" min="30" max="90" class="input-block-level" data-bind="value: settings.plugins.m3dfio.SpeedLimitZ">
+				<input type="number" step="1" min="30" max="60" class="input-block-level" data-bind="value: settings.plugins.m3dfio.SpeedLimitZ">
 				<span class="add-on">mm/min</span>
 			</div>
 		</div>
