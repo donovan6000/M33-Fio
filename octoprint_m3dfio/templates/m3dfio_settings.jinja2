@@ -57,6 +57,20 @@
 			</label>
 		</div>
 	</div>
+	<div class="control-group dependant">
+		<div class="controls">
+			<label class="checkbox title="Removes all fan commands">
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.RemoveFanCommands"><span>Remove fan commands</span>
+			</label>
+		</div>
+	</div>
+	<div class="control-group dependant">
+		<div class="controls">
+			<label class="checkbox" title="Removes all temperature commands">
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.RemoveTemperatureCommands"><span>Remove temperature commands</span>
+			</label>
+		</div>
+	</div>
 	<div class="control-group">
 		<div class="controls">
 			<label class="checkbox" title="Adds in G-code intro and outro">
@@ -66,14 +80,22 @@
 	</div>
 	<div class="control-group dependant">
 		<div class="controls">
-			<label class="checkbox sharedLibrary" title="Performs the bed center Z0 calibration procedure before printing">
+			<label class="checkbox" title="Performs the bed center Z0 calibration procedure before printing">
 				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.CalibrateBeforePrint"><span>Calibrate before print</span>
+			</label>
+		</div>
+	</div>
+	<div class="control-group dependant">
+		<div class="controls">
+			<label class="checkbox" title="Turns on an external fan at the start of the 4th layer and turns it off when the print is done">
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.UseExternalFan"><span>Use external fan</span>
+				<input type="number" step="1" min="0" max="99" class="input-block-level short" data-bind="value: settings.plugins.m3dfio.ExternalFanPin" placeholder="GPIO pin number">
 			</label>
 		</div>
 	</div>
 	<div class="control-group">
 		<div class="controls">
-			<label class="checkbox" title="Removes all existing temperature and fan G-code commands, and adds dwell times and higher temperatures to the first few layers">
+			<label class="checkbox" title="Adds dwell times and higher temperatures to the first few layers">
 				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.UseThermalBondingPreprocessor"><span>Thermal Bonding</span>
 			</label>
 		</div>

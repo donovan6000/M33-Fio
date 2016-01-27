@@ -150,6 +150,10 @@ bool printingTestBorder;
 bool printingBacklashCalibrationCylinder;
 printerColors printerColor;
 bool calibrateBeforePrint;
+bool removeFanCommands;
+bool removeTemperatureCommands;
+bool useExternalFan;
+int16_t detectedFanSpeed;
 
 // Return value
 string returnValue;
@@ -161,6 +165,7 @@ double displacementY;
 // Preparation pre-processor settings
 bool addedIntro;
 bool addedOutro;
+uint8_t preparationLayerCounter;
 
 // Wave bonding pre-processor settings
 uint8_t waveStep;
@@ -630,6 +635,24 @@ EXPORT void setCalibrateBeforePrint(bool value) {
 	calibrateBeforePrint = value;
 }
 
+EXPORT void setRemoveFanCommands(bool value) {
+
+	// Set remove fan commands
+	removeFanCommands = value;
+}
+
+EXPORT void setRemoveTemperatureCommands(bool value) {
+
+	// Set remove temperature commands
+	removeTemperatureCommands = value;
+}
+
+EXPORT void setUseExternalFan(bool value) {
+
+	// Set use external fan
+	useExternalFan = value;
+}
+
 EXPORT void resetPreprocessorSettings() {
 
 	// General settings
@@ -644,6 +667,7 @@ EXPORT void resetPreprocessorSettings() {
 	// Preparation pre-processor settings
 	addedIntro = false;
 	addedOutro = false;
+	preparationLayerCounter = 0;
 	calibrateBeforePrint = false;
 
 	// Wave bonding pre-processor settings
@@ -708,6 +732,9 @@ EXPORT bool collectPrintInformation(const char *file) {
 		printTiers tier = LOW;
 		bool relativeMode = false;
 		double localX = NAN, localY = NAN, localZ = NAN;
+		
+		// Reset detected fan speed
+		detectedFanSpeed = -1;
 	
 		// Reset all print values
 		maxXExtruderLow = -DBL_MAX;
@@ -731,147 +758,157 @@ EXPORT bool collectPrintInformation(const char *file) {
 			// Read in a line
 			getline(input, line);
 			
-			// Check if line was parsed successfully and it's a G command
-			if(gcode.parseLine(line) && gcode.hasValue('G')) {
+			// Check if line was parsed successfully
+			if(gcode.parseLine(line)) {
+			
+				// Check if command is the first fan command
+				if(detectedFanSpeed == -1 && gcode.hasValue('M') && gcode.getValue('M') == "106")
+				
+					// Get fan speed
+					detectedFanSpeed = stoi(gcode.getValue('S'));
+			
+				// Otherwise check if command is a G command
+				else if(gcode.hasValue('G')) {
 		
-				// Check what parameter is associated with the command
-				switch(stoi(gcode.getValue('G'))) {
+					// Check what parameter is associated with the command
+					switch(stoi(gcode.getValue('G'))) {
 				
-					// G0 or G1
-					case 0:
-					case 1:
+						// G0 or G1
+						case 0:
+						case 1:
 					
-						// Check if command has an X value
-						if(gcode.hasValue('X')) {
+							// Check if command has an X value
+							if(gcode.hasValue('X')) {
 					
-							// Get X value of the command
-							double commandX = stod(gcode.getValue('X'));
+								// Get X value of the command
+								double commandX = stod(gcode.getValue('X'));
 						
-							// Set local X
-							localX = relativeMode ? (std::isnan(localX) ? 54 : localX) + commandX : commandX;
-						}
+								// Set local X
+								localX = relativeMode ? (std::isnan(localX) ? 54 : localX) + commandX : commandX;
+							}
 					
-						// Check if command has a Y value
-						if(gcode.hasValue('Y')) {
+							// Check if command has a Y value
+							if(gcode.hasValue('Y')) {
 					
-							// Get Y value of the command
-							double commandY = stod(gcode.getValue('Y'));
+								// Get Y value of the command
+								double commandY = stod(gcode.getValue('Y'));
 						
-							// Set local Y
-							localY = relativeMode ? (std::isnan(localY) ? 50 : localY) + commandY : commandY;
-						}
+								// Set local Y
+								localY = relativeMode ? (std::isnan(localY) ? 50 : localY) + commandY : commandY;
+							}
 					
-						// Check if command has a X value
-						if(gcode.hasValue('Z')) {
+							// Check if command has a X value
+							if(gcode.hasValue('Z')) {
 					
-							// Get X value of the command
-							double commandZ = stod(gcode.getValue('Z'));
+								// Get X value of the command
+								double commandZ = stod(gcode.getValue('Z'));
 						
-							// Set local Z
-							localZ = relativeMode ? (std::isnan(localZ) ? 0.4 : localZ) + commandZ : commandZ;
+								// Set local Z
+								localZ = relativeMode ? (std::isnan(localZ) ? 0.4 : localZ) + commandZ : commandZ;
 							
-							// Check if not ignoring print dimension limitations, not printing a test border or backlash calibration cylinder, and Z is out of bounds
-							if(!ignorePrintDimensionLimitations && !printingTestBorder && !printingBacklashCalibrationCylinder && (localZ < BED_LOW_MIN_Z || localZ > BED_HIGH_MAX_Z))
+								// Check if not ignoring print dimension limitations, not printing a test border or backlash calibration cylinder, and Z is out of bounds
+								if(!ignorePrintDimensionLimitations && !printingTestBorder && !printingBacklashCalibrationCylinder && (localZ < BED_LOW_MIN_Z || localZ > BED_HIGH_MAX_Z))
 							
-								// Return false
-								return false;
-						
-							// Set print tier
-							if(localZ < BED_LOW_MAX_Z)
-								tier = LOW;
-							
-							else if(localZ < BED_MEDIUM_MAX_Z)
-								tier = MEDIUM;
-							
-							else
-								tier = HIGH;
-						}
-					
-						// Update minimums and maximums dimensions of extruder			
-						switch(tier) {
-					
-							case LOW:
-							
-								// Check if not ignoring print dimension limitations, not printing a test border or backlash calibration cylinder, centering model pre-processor isn't used, and X or Y is out of bounds
-								if(!ignorePrintDimensionLimitations && !printingTestBorder && !printingBacklashCalibrationCylinder && !useCenterModelPreprocessor && ((!std::isnan(localX) && (localX < BED_LOW_MIN_X || localX > BED_LOW_MAX_X)) || (!std::isnan(localY) && (localY < BED_LOW_MIN_Y || localY > BED_LOW_MAX_Y))))
-								
 									// Return false
 									return false;
-								
-								if(!std::isnan(localX)) {
-									minXExtruderLow = min(minXExtruderLow, localX);
-									maxXExtruderLow = max(maxXExtruderLow, localX);
-								}
-								if(!std::isnan(localY)) {
-									minYExtruderLow = min(minYExtruderLow, localY);
-									maxYExtruderLow = max(maxYExtruderLow, localY);
-								}
-							break;
 						
-							case MEDIUM:
+								// Set print tier
+								if(localZ < BED_LOW_MAX_Z)
+									tier = LOW;
 							
-								// Check if not ignoring print dimension limitations, not printing a test border or backlash calibration cylinder, centering model pre-processor isn't used, and X or Y is out of bounds
-								if(!ignorePrintDimensionLimitations && !printingTestBorder && !printingBacklashCalibrationCylinder && !useCenterModelPreprocessor && ((!std::isnan(localX) && (localX < BED_MEDIUM_MIN_X || localX > BED_MEDIUM_MAX_X)) || (!std::isnan(localY) && (localY < BED_MEDIUM_MIN_Y || localY > BED_MEDIUM_MAX_Y))))
+								else if(localZ < BED_MEDIUM_MAX_Z)
+									tier = MEDIUM;
+							
+								else
+									tier = HIGH;
+							}
+					
+							// Update minimums and maximums dimensions of extruder			
+							switch(tier) {
+					
+								case LOW:
+							
+									// Check if not ignoring print dimension limitations, not printing a test border or backlash calibration cylinder, centering model pre-processor isn't used, and X or Y is out of bounds
+									if(!ignorePrintDimensionLimitations && !printingTestBorder && !printingBacklashCalibrationCylinder && !useCenterModelPreprocessor && ((!std::isnan(localX) && (localX < BED_LOW_MIN_X || localX > BED_LOW_MAX_X)) || (!std::isnan(localY) && (localY < BED_LOW_MIN_Y || localY > BED_LOW_MAX_Y))))
 								
-									// Return false
-									return false;
+										// Return false
+										return false;
 								
-								if(!std::isnan(localX)) {
-									minXExtruderMedium = min(minXExtruderMedium, localX);
-									maxXExtruderMedium = max(maxXExtruderMedium, localX);
-								}
-								if(!std::isnan(localY)) {
-									minYExtruderMedium = min(minYExtruderMedium, localY);
-									maxYExtruderMedium = max(maxYExtruderMedium, localY);
-								}
-							break;
+									if(!std::isnan(localX)) {
+										minXExtruderLow = min(minXExtruderLow, localX);
+										maxXExtruderLow = max(maxXExtruderLow, localX);
+									}
+									if(!std::isnan(localY)) {
+										minYExtruderLow = min(minYExtruderLow, localY);
+										maxYExtruderLow = max(maxYExtruderLow, localY);
+									}
+								break;
+						
+								case MEDIUM:
+							
+									// Check if not ignoring print dimension limitations, not printing a test border or backlash calibration cylinder, centering model pre-processor isn't used, and X or Y is out of bounds
+									if(!ignorePrintDimensionLimitations && !printingTestBorder && !printingBacklashCalibrationCylinder && !useCenterModelPreprocessor && ((!std::isnan(localX) && (localX < BED_MEDIUM_MIN_X || localX > BED_MEDIUM_MAX_X)) || (!std::isnan(localY) && (localY < BED_MEDIUM_MIN_Y || localY > BED_MEDIUM_MAX_Y))))
+								
+										// Return false
+										return false;
+								
+									if(!std::isnan(localX)) {
+										minXExtruderMedium = min(minXExtruderMedium, localX);
+										maxXExtruderMedium = max(maxXExtruderMedium, localX);
+									}
+									if(!std::isnan(localY)) {
+										minYExtruderMedium = min(minYExtruderMedium, localY);
+										maxYExtruderMedium = max(maxYExtruderMedium, localY);
+									}
+								break;
 
-							case HIGH:
+								case HIGH:
 							
-								// Check if not ignoring print dimension limitations, not printing a test border or backlash calibration cylinder, centering model pre-processor isn't used, and X or Y is out of bounds
-								if(!ignorePrintDimensionLimitations && !printingTestBorder && !printingBacklashCalibrationCylinder && !useCenterModelPreprocessor && ((!std::isnan(localX) && (localX < BED_HIGH_MIN_X || localX > BED_HIGH_MAX_X)) || (!std::isnan(localY) && (localY < BED_HIGH_MIN_Y || localY > BED_HIGH_MAX_Y))))
+									// Check if not ignoring print dimension limitations, not printing a test border or backlash calibration cylinder, centering model pre-processor isn't used, and X or Y is out of bounds
+									if(!ignorePrintDimensionLimitations && !printingTestBorder && !printingBacklashCalibrationCylinder && !useCenterModelPreprocessor && ((!std::isnan(localX) && (localX < BED_HIGH_MIN_X || localX > BED_HIGH_MAX_X)) || (!std::isnan(localY) && (localY < BED_HIGH_MIN_Y || localY > BED_HIGH_MAX_Y))))
 								
-									// Return false
-									return false;
+										// Return false
+										return false;
 								
-								if(!std::isnan(localX)) {
-									minXExtruderHigh = min(minXExtruderHigh, localX);
-									maxXExtruderHigh = max(maxXExtruderHigh, localX);
-								}
-								if(!std::isnan(localY)) {
-									minYExtruderHigh = min(minYExtruderHigh, localY);
-									maxYExtruderHigh = max(maxYExtruderHigh, localY);
-								}
-							break;
-						}
+									if(!std::isnan(localX)) {
+										minXExtruderHigh = min(minXExtruderHigh, localX);
+										maxXExtruderHigh = max(maxXExtruderHigh, localX);
+									}
+									if(!std::isnan(localY)) {
+										minYExtruderHigh = min(minYExtruderHigh, localY);
+										maxYExtruderHigh = max(maxYExtruderHigh, localY);
+									}
+								break;
+							}
 						
-						if(!std::isnan(localZ)) {
-							minZExtruder = min(minZExtruder, localZ);
-							maxZExtruder = max(maxZExtruder, localZ);
-						}
-					break;
+							if(!std::isnan(localZ)) {
+								minZExtruder = min(minZExtruder, localZ);
+								maxZExtruder = max(maxZExtruder, localZ);
+							}
+						break;
 					
-					// G28
-					case 28 :
+						// G28
+						case 28 :
 					
-						// Set X and Y to home
-						localX = 54;
-						localY = 50;
-					break;
+							// Set X and Y to home
+							localX = 54;
+							localY = 50;
+						break;
 					
-					// G90
-					case 90:
+						// G90
+						case 90:
 				
-						// Clear relative mode
-						relativeMode = false;
-					break;
+							// Clear relative mode
+							relativeMode = false;
+						break;
 					
-					// G91
-					case 91:
+						// G91
+						case 91:
 				
-						// Set relative mode
-						relativeMode = true;
-					break;
+							// Set relative mode
+							relativeMode = true;
+						break;
+					}
 				}
 			}
 		}
@@ -915,6 +952,12 @@ EXPORT bool collectPrintInformation(const char *file) {
 				// Return false
 				return false;
 		}
+		
+		// Check if all fan commands are being removed
+		if(detectedFanSpeed == -1 || (removeFanCommands && !usePreparationPreprocessor))
+		
+			// Set detected fan speed
+			detectedFanSpeed = 0;
 		
 		// Return true
 		return true;
@@ -1053,6 +1096,18 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 					if(gcode.isEmpty())
 						continue;
 				}
+				
+				// Check if command is a fan command and set to remove fan commands
+				if(removeFanCommands && gcode.hasValue('M') && (gcode.getValue('M') == "106" || gcode.getValue('M') == "107"))
+				
+					// Get next line
+					continue;
+				
+				// Check if command is a temperature command and set to remove temperature commands
+				if(removeTemperatureCommands && gcode.hasValue('M') && (gcode.getValue('M') == "104" || gcode.getValue('M') == "109" || gcode.getValue('M') == "140" || gcode.getValue('M') == "190"))
+				
+					// Get next line
+					continue;
 			}
 		}
 
@@ -1159,8 +1214,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 				
 				// Set move Z
 				double moveZ = maxZExtruder + 10;
-				while(moveZ > BED_HIGH_MAX_Z and moveZ > maxZExtruder)
-					moveZ--;
+				if(moveZ > BED_HIGH_MAX_Z)
+					moveZ = BED_HIGH_MAX_Z;
 				
 				// Set move Y
 				double startingMoveY = 0;
@@ -1179,8 +1234,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 				}
 				
 				double moveY = startingMoveY + 20;
-				while(moveY > maxMoveY && moveZ > startingMoveY)
-					moveY--;
+				if(moveY > maxMoveY)
+					moveY = maxMoveY;
 				
 				// Add outro to output
 				newCommands.push(Command("G90", PREPARATION, PREPARATION));
@@ -1213,6 +1268,42 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 				while(newCommands.size()) {
 					commands.push_front(newCommands.top());
 					newCommands.pop();
+				}
+			}
+			
+			// Otherwise check if command is at a new layer
+			else if(preparationLayerCounter < 4 && !gcode.isEmpty() && gcode.hasValue('G') && gcode.hasValue('Z')) {
+				
+				// Increment layer counter
+				preparationLayerCounter++;
+				
+				// Check if at the start of the first layer and using an external fan
+				if(preparationLayerCounter == 4 && useExternalFan) {
+				
+					// Initialize new commands
+					stack<Command> newCommands;
+					
+					// Add command to turn on external fan
+					newCommands.push(Command("M106 T1", PREPARATION, PREPARATION));
+				
+					// Check if new commands exist
+					if(newCommands.size()) {
+			
+						// Finish processing command later
+						if(!gcode.isEmpty())
+							commands.push_front(Command(gcode.getAscii(), command.origin, WAVE));
+						else
+							commands.push_front(Command(command.line, command.origin, WAVE));
+	
+						// Append new commands to commands
+						while(newCommands.size()) {
+							commands.push_front(newCommands.top());
+							newCommands.pop();
+						}
+		
+						// Get next command
+						continue;
+					}
 				}
 			}
 		}
@@ -1540,15 +1631,9 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 					// Increment layer counter
 					thermalBondingLayerCounter++;
 				}
-
-				// Check if command contains temperature or fan controls outside of the intro and outro
-				if(command.origin != PREPARATION && gcode.hasValue('M') && (gcode.getValue('M') == "104" || gcode.getValue('M') == "106" || gcode.getValue('M') == "107" || gcode.getValue('M') == "109" || gcode.getValue('M') == "140" || gcode.getValue('M') == "190"))
-
-					// Get next line
-					continue;
-
-				// Otherwise check if on first counted layer
-				else if(thermalBondingLayerCounter == 1) {
+				
+				// Check if on first counted layer
+				if(thermalBondingLayerCounter == 1) {
 
 					// Check if printing test border or wave bonding isn't being used, and line is a G command
 					if((printingTestBorder || !useWaveBondingPreprocessor) && gcode.hasValue('G')) {
@@ -2082,4 +2167,10 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 	
 	// Return list of commands
 	return returnValue.c_str();
+}
+
+EXPORT unsigned char getDetectedFanSpeed() {
+
+	// Return detected fan speed
+	return detectedFanSpeed;
 }

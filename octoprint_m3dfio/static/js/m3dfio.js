@@ -3604,8 +3604,8 @@ $(function() {
 		// Disable settings
 		function disableSettings() {
 			
-			// Go through all settings
-			$("#settings_plugin_m3dfio div.control-group").each(function() {
+			// Go through all settings that aren't dependant
+			$("#settings_plugin_m3dfio div.control-group:not(.dependant)").each(function() {
 		
 				// Initialize variables
 				var parent = $(this)
@@ -3643,25 +3643,29 @@ $(function() {
 			var parent = $(this).closest("div.control-group");
 			var checked = $(this).is(":checked");
 			
-			// Go through all dependant values
-			while(parent.next().length && parent.next().hasClass("dependant")) {
+			// Check if parent isn't dependant
+			if(!parent.hasClass("dependant")) {
 			
-				parent = parent.next();
+				// Go through all dependant values
+				while(parent.next().length && parent.next().hasClass("dependant")) {
+			
+					parent = parent.next();
 				
-				// Check if value is enabled
-				if(checked)
+					// Check if value is enabled
+					if(checked)
 				
-					// Allow setting dependant value
-					parent.removeClass("disabled");
+						// Allow setting dependant value
+						parent.removeClass("disabled");
 				
-				// Otherwise
-				else {
+					// Otherwise
+					else {
 				
-					// Disable setting dependant value
-					parent.addClass("disabled");
+						// Disable setting dependant value
+						parent.addClass("disabled");
 					
-					if(parent.find("input[type=\"checkbox\"]").is(":checked"))
-						parent.find("input[type=\"checkbox\"]").trigger("click");
+						if(parent.find("input[type=\"checkbox\"]").is(":checked"))
+							parent.find("input[type=\"checkbox\"]").trigger("click");
+					}
 				}
 			}
 		});
@@ -4809,13 +4813,7 @@ $(function() {
 						contentType: "application/json; charset=UTF-8"
 					});
 				}
-			
-				// Update settings
-				if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
-					self.settings.requestData(saveSettings);
-				else
-					self.settings.requestData().done(saveSettings);
-			}, 0);
+			}, 1000);
 		});
 	
 		// Override X increment control
@@ -7008,6 +7006,18 @@ $(function() {
 				    title: htmlEncode(data.title),
 				    text: "<p>" + htmlEncode(data.text) + "</p>",
 				    type: "error",
+				    hide: false
+				});
+			}
+			
+			// Otherwise check if data is to create an notice message
+			else if(data.value == "Create notice message" && typeof data.title !== "undefined" && typeof data.text !== "undefined") {
+			
+				// Display error message
+				new PNotify({
+				    title: htmlEncode(data.title),
+				    text: "<p>" + htmlEncode(data.text) + "</p>",
+				    type: "notice",
 				    hide: false
 				});
 			}

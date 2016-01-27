@@ -46,6 +46,9 @@ if platform.uname()[0].startswith("Darwin") :
 
 elif platform.uname()[0].startswith("Linux") :
 	import dbus
+	
+	if (platform.uname()[4].startswith("armv6l") and self.getCpuHardware() == "BCM2708") or (platform.uname()[4].startswith("armv7l") and self.getCpuHardware() == "BCM2709") :
+		import RPi.GPIO
 
 
 # Command class
@@ -378,6 +381,7 @@ class M3DFioPlugin(
 		# Preparation pre-processor settings
 		self.addedIntro = False
 		self.addedOutro = False
+		self.preparationLayerCounter = 0
 
 		# Wave bonding pre-processor settings
 		self.waveStep = 0
@@ -678,6 +682,7 @@ class M3DFioPlugin(
 			# Set output types of shared library functions
 			self.sharedLibrary.collectPrintInformation.restype = ctypes.c_bool
 	  		self.sharedLibrary.preprocess.restype = ctypes.c_char_p
+	  		self.sharedLibrary.getDetectedFanSpeed.restype = ctypes.c_ubyte
 	    	
 	    	# Enable printer callbacks if using a Micro 3D printer
 	    	if not self._settings.get_boolean(["UsingADifferentPrinter"]) :
@@ -921,7 +926,11 @@ class M3DFioPlugin(
 			SpeedLimitENegative = 360,
 			ChangeSettingsBeforePrint = True,
 			UsingADifferentPrinter = False,
-			CalibrateBeforePrint = False
+			CalibrateBeforePrint = False,
+			RemoveFanCommands = True,
+			RemoveTemperatureCommands = True,
+			UseExternalFan = False,
+			ExternalFanPin = None
 		)
 	
 	# Template manager
@@ -1218,6 +1227,9 @@ class M3DFioPlugin(
 						self.sharedLibrary.setPrintingBacklashCalibrationCylinder(ctypes.c_bool(self.printingBacklashCalibrationCylinder))
 						self.sharedLibrary.setPrinterColor(ctypes.c_char_p(self.printerColor))
 						self.sharedLibrary.setCalibrateBeforePrint(ctypes.c_bool(self._settings.get_boolean(["CalibrateBeforePrint"])))
+						self.sharedLibrary.setRemoveFanCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveFanCommands"])))
+						self.sharedLibrary.setRemoveTemperatureCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveTemperatureCommands"])))
+						self.sharedLibrary.setUseExternalFan(ctypes.c_bool(self._settings.get_boolean(["UseExternalFan"])))
 						
 						# Collect print information
 						self.sharedLibrary.collectPrintInformation(ctypes.c_char_p(location))
@@ -2379,6 +2391,26 @@ class M3DFioPlugin(
 			gcode = Gcode()
 			if gcode.parseLine(data) :
 			
+				# Check if using an external fan
+				if self._settings.get_boolean(["UseExternalFan"]) :
+			
+					# Check if command is to turn on external fan
+					if gcode.getValue('M') == "106" and gcode.getValue('T') == '1' :
+				
+						# Turn on external fan
+						self.turnOnExternalFan()
+					
+						# Set command to nothing
+						gcode.removeParameter('M')
+						gcode.removeParameter('T')
+						gcode.setValue('G', '4')
+				
+					# Check if command is to turn off fans
+					elif gcode.getValue('M') == "107" :
+				
+						# Turn off external fan
+						self.turnOffExternalFan()
+			
 				# Get the command's binary representation
 				data = gcode.getBinary()
 				
@@ -2913,9 +2945,15 @@ class M3DFioPlugin(
 					self.sharedLibrary.setPrintingBacklashCalibrationCylinder(ctypes.c_bool(self.printingBacklashCalibrationCylinder))
 					self.sharedLibrary.setPrinterColor(ctypes.c_char_p(self.printerColor))
 					self.sharedLibrary.setCalibrateBeforePrint(ctypes.c_bool(self._settings.get_boolean(["CalibrateBeforePrint"])))
+					self.sharedLibrary.setRemoveFanCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveFanCommands"])))
+					self.sharedLibrary.setRemoveTemperatureCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveTemperatureCommands"])))
+					self.sharedLibrary.setUseExternalFan(ctypes.c_bool(self._settings.get_boolean(["UseExternalFan"])))
 		
 					# Collect print information
 					printIsValid = self.sharedLibrary.collectPrintInformation(ctypes.c_char_p(payload.get("file")))
+					
+					# Get detected fan speed
+					self.detectedFanSpeed = self.sharedLibrary.getDetectedFanSpeed()
 	
 				# Otherwise
 				else :
@@ -2931,6 +2969,12 @@ class M3DFioPlugin(
 			
 					# Stop printing
 					self._printer.cancel_print()
+				
+				# Otherwise check if detected fan speed is 0
+				elif self.detectedFanSpeed == 0 :
+				
+					# Create error message
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create notice message", title = "Print warning", text = "No fan speed has been detected in this file which could cause the print to fail"))
 		
 				# Set pre-process on the fly ready
 				self.preprocessOnTheFlyReady = True
@@ -4474,9 +4518,15 @@ class M3DFioPlugin(
 				self.sharedLibrary.setPrintingBacklashCalibrationCylinder(ctypes.c_bool(self.printingBacklashCalibrationCylinder))
 				self.sharedLibrary.setPrinterColor(ctypes.c_char_p(self.printerColor))
 				self.sharedLibrary.setCalibrateBeforePrint(ctypes.c_bool(self._settings.get_boolean(["CalibrateBeforePrint"])))
+				self.sharedLibrary.setRemoveFanCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveFanCommands"])))
+				self.sharedLibrary.setRemoveTemperatureCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveTemperatureCommands"])))
+				self.sharedLibrary.setUseExternalFan(ctypes.c_bool(self._settings.get_boolean(["UseExternalFan"])))
 						
 				# Collect print information
 				printIsValid = self.sharedLibrary.collectPrintInformation(ctypes.c_char_p(input))
+				
+				# Get detected fan speed
+				self.detectedFanSpeed = self.sharedLibrary.getDetectedFanSpeed()
 			
 			# Otherwise
 			else :
@@ -4510,6 +4560,12 @@ class M3DFioPlugin(
 				
 				# Return false
 				return False
+			
+			# Otherwise check if detected fan speed is 0
+			elif self.detectedFanSpeed == 0 :
+			
+				# Create error message
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create notice message", title = "Print warning", text = "No fan speed has been detected in this file which could cause the print to fail"))
 			
 			# Move the input file to a temporary file
 			temp = tempfile.mkstemp()[1]
@@ -4547,6 +4603,9 @@ class M3DFioPlugin(
 		tier = "Low"
 		gcode = Gcode()
 		
+		# Reset detected fan speed
+		self.detectedFanSpeed = None
+		
 		# Reset all print values
 		self.maxXExtruderLow = -sys.float_info.max
 		self.maxXExtruderMedium = -sys.float_info.max
@@ -4567,126 +4626,135 @@ class M3DFioPlugin(
 		for line in open(file) :
 
 			# Check if line was parsed successfully and it's a G command
-			if gcode.parseLine(line) and gcode.hasValue('G') :
+			if gcode.parseLine(line) :
+			
+				# Check if command is the first fan command
+				if self.detectedFanSpeed is None and gcode.hasValue('M') and gcode.getValue('M') == "106" :
+				
+					# Get fan speed
+					self.detectedFanSpeed = int(gcode.getValue('S'))
+			
+				# Otherwise check if command is a G command
+				elif gcode.hasValue('G') :
 		
-				# Check if command is G0 or G1
-				if gcode.getValue('G') == "0" or gcode.getValue('G') == "1" :
+					# Check if command is G0 or G1
+					if gcode.getValue('G') == "0" or gcode.getValue('G') == "1" :
 		
-					# Check if command has an X value
-					if gcode.hasValue('X') :
+						# Check if command has an X value
+						if gcode.hasValue('X') :
 			
-						# Get X value of the command
-						commandX = float(gcode.getValue('X'))
+							# Get X value of the command
+							commandX = float(gcode.getValue('X'))
 			
-						# Set local X
-						if relativeMode :
-							if localX is None :
-								localX = 54
-							localX += commandX
-						else :
-							localX = commandX
+							# Set local X
+							if relativeMode :
+								if localX is None :
+									localX = 54
+								localX += commandX
+							else :
+								localX = commandX
 			
-					# Check if command has an Y value
-					if gcode.hasValue('Y') :
+						# Check if command has an Y value
+						if gcode.hasValue('Y') :
 			
-						# Get Y value of the command
-						commandY = float(gcode.getValue('Y'))
+							# Get Y value of the command
+							commandY = float(gcode.getValue('Y'))
 			
-						# Set local Y
-						if relativeMode :
-							if localY is None :
-								localY = 50
-							localY += commandY
-						else :
-							localY = commandY
+							# Set local Y
+							if relativeMode :
+								if localY is None :
+									localY = 50
+								localY += commandY
+							else :
+								localY = commandY
 		
-					# Check if command has an Z value
-					if gcode.hasValue('Z') :
+						# Check if command has an Z value
+						if gcode.hasValue('Z') :
 			
-						# Get Z value of the command
-						commandZ = float(gcode.getValue('Z'))
+							# Get Z value of the command
+							commandZ = float(gcode.getValue('Z'))
 			
-						# Set local Z
-						if relativeMode :
-							if localZ is None :
-								localZ = 0.4
-							localZ += commandZ
-						else :
-							localZ = commandZ
+							# Set local Z
+							if relativeMode :
+								if localZ is None :
+									localZ = 0.4
+								localZ += commandZ
+							else :
+								localZ = commandZ
 			
-						# Check if not ignoring print dimension limitations, not printing a test border or backlash calibration cylinder, and Z is out of bounds
-						if not self._settings.get_boolean(["IgnorePrintDimensionLimitations"]) and not self.printingTestBorder and not self.printingBacklashCalibrationCylinder and (localZ < self.bedLowMinZ or localZ > self.bedHighMaxZ) :
+							# Check if not ignoring print dimension limitations, not printing a test border or backlash calibration cylinder, and Z is out of bounds
+							if not self._settings.get_boolean(["IgnorePrintDimensionLimitations"]) and not self.printingTestBorder and not self.printingBacklashCalibrationCylinder and (localZ < self.bedLowMinZ or localZ > self.bedHighMaxZ) :
 				
-							# Return false
-							return False
+								# Return false
+								return False
 			
-						# Set print tier
-						if localZ < self.bedLowMaxZ :
-							tier = "Low"
+							# Set print tier
+							if localZ < self.bedLowMaxZ :
+								tier = "Low"
 				
-						elif localZ < self.bedMediumMaxZ :
-							tier = "Medium"
+							elif localZ < self.bedMediumMaxZ :
+								tier = "Medium"
 				
-						else :
-							tier = "High"
+							else :
+								tier = "High"
 				
-					# Check if not ignoring print dimension limitations, not printing a test border or backlash calibration cylinder, and centering model pre-processor isn't used
-					if not self._settings.get_boolean(["IgnorePrintDimensionLimitations"]) and not self.printingTestBorder and not self.printingBacklashCalibrationCylinder and not self._settings.get_boolean(["UseCenterModelPreprocessor"]) :
+						# Check if not ignoring print dimension limitations, not printing a test border or backlash calibration cylinder, and centering model pre-processor isn't used
+						if not self._settings.get_boolean(["IgnorePrintDimensionLimitations"]) and not self.printingTestBorder and not self.printingBacklashCalibrationCylinder and not self._settings.get_boolean(["UseCenterModelPreprocessor"]) :
 			
-						# Return false if X or Y are out of bounds				
-						if tier == "Low" and ((localX is not None and (localX < self.bedLowMinX or localX > self.bedLowMaxX)) or (localY is not None and (localY < self.bedLowMinY or localY > self.bedLowMaxY))) :
-							return False
+							# Return false if X or Y are out of bounds				
+							if tier == "Low" and ((localX is not None and (localX < self.bedLowMinX or localX > self.bedLowMaxX)) or (localY is not None and (localY < self.bedLowMinY or localY > self.bedLowMaxY))) :
+								return False
 			
-						elif tier == "Medium" and ((localX is not None and (localX < self.bedMediumMinX or localX > self.bedMediumMaxX)) or (localY is not None and (localY < self.bedMediumMinY or localY > self.bedMediumMaxY))) :
-							return False
+							elif tier == "Medium" and ((localX is not None and (localX < self.bedMediumMinX or localX > self.bedMediumMaxX)) or (localY is not None and (localY < self.bedMediumMinY or localY > self.bedMediumMaxY))) :
+								return False
 
-						elif tier == "High" and ((localX is not None and (localX < self.bedHighMinX or localX > self.bedHighMaxX)) or (localY is not None and (localY < self.bedHighMinY or localY > self.bedHighMaxY))) :
-							return False
+							elif tier == "High" and ((localX is not None and (localX < self.bedHighMinX or localX > self.bedHighMaxX)) or (localY is not None and (localY < self.bedHighMinY or localY > self.bedHighMaxY))) :
+								return False
 				
-					# Update minimums and maximums dimensions of extruder
-					if tier == "Low" :
-						if localX is not None :
-							self.minXExtruderLow = min(self.minXExtruderLow, localX)
-							self.maxXExtruderLow = max(self.maxXExtruderLow, localX)
-						if localY is not None :
-							self.minYExtruderLow = min(self.minYExtruderLow, localY)
-							self.maxYExtruderLow = max(self.maxYExtruderLow, localY)
-					elif tier == "Medium" :
-						if localX is not None :
-							self.minXExtruderMedium = min(self.minXExtruderMedium, localX)
-							self.maxXExtruderMedium = max(self.maxXExtruderMedium, localX)
-						if localY is not None :
-							self.minYExtruderMedium = min(self.minYExtruderMedium, localY)
-							self.maxYExtruderMedium = max(self.maxYExtruderMedium, localY)
-					else :
-						if localX is not None :
-							self.minXExtruderHigh = min(self.minXExtruderHigh, localX)
-							self.maxXExtruderHigh = max(self.maxXExtruderHigh, localX)
-						if localY is not None :
-							self.minYExtruderHigh = min(self.minYExtruderHigh, localY)
-							self.maxYExtruderHigh = max(self.maxYExtruderHigh, localY)
-					if localZ is not None :
-						self.minZExtruder = min(self.minZExtruder, localZ)
-						self.maxZExtruder = max(self.maxZExtruder, localZ)
+						# Update minimums and maximums dimensions of extruder
+						if tier == "Low" :
+							if localX is not None :
+								self.minXExtruderLow = min(self.minXExtruderLow, localX)
+								self.maxXExtruderLow = max(self.maxXExtruderLow, localX)
+							if localY is not None :
+								self.minYExtruderLow = min(self.minYExtruderLow, localY)
+								self.maxYExtruderLow = max(self.maxYExtruderLow, localY)
+						elif tier == "Medium" :
+							if localX is not None :
+								self.minXExtruderMedium = min(self.minXExtruderMedium, localX)
+								self.maxXExtruderMedium = max(self.maxXExtruderMedium, localX)
+							if localY is not None :
+								self.minYExtruderMedium = min(self.minYExtruderMedium, localY)
+								self.maxYExtruderMedium = max(self.maxYExtruderMedium, localY)
+						else :
+							if localX is not None :
+								self.minXExtruderHigh = min(self.minXExtruderHigh, localX)
+								self.maxXExtruderHigh = max(self.maxXExtruderHigh, localX)
+							if localY is not None :
+								self.minYExtruderHigh = min(self.minYExtruderHigh, localY)
+								self.maxYExtruderHigh = max(self.maxYExtruderHigh, localY)
+						if localZ is not None :
+							self.minZExtruder = min(self.minZExtruder, localZ)
+							self.maxZExtruder = max(self.maxZExtruder, localZ)
 				
-				# Otherwise check if command is G28
-				elif gcode.getValue('G') == "28" :
+					# Otherwise check if command is G28
+					elif gcode.getValue('G') == "28" :
 
-					# Set X and Y to home
-					localX = 54
-					localY = 50
+						# Set X and Y to home
+						localX = 54
+						localY = 50
 		
-				# Otherwise check if command is G90
-				elif gcode.getValue('G') == "90" :
+					# Otherwise check if command is G90
+					elif gcode.getValue('G') == "90" :
 		
-					# Clear relative mode
-					relativeMode = False
+						# Clear relative mode
+						relativeMode = False
 		
-				# Otherwise check if command is G91
-				elif gcode.getValue('G') == "91" :
+					# Otherwise check if command is G91
+					elif gcode.getValue('G') == "91" :
 		
-					# Set relative mode
-					relativeMode = True
+						# Set relative mode
+						relativeMode = True
 	
 		# Check if center model pre-processor is set and not printing a test border or backlash calibration cylinder
 		if self._settings.get_boolean(["UseCenterModelPreprocessor"]) and not self.printingTestBorder and not self.printingBacklashCalibrationCylinder :
@@ -4726,6 +4794,12 @@ class M3DFioPlugin(
 	
 				# Return false
 				return False
+		
+		# Check if all fan commands are being removed
+		if self.detectedFanSpeed is None or (self._settings.get_boolean(["RemoveFanCommands"]) and not self._settings.get_boolean(["UsePreparationPreprocessor"])) :
+		
+			# Set detected fan speed
+			self.detectedFanSpeed = 0
 		
 		# Return true
 		return True
@@ -5085,6 +5159,18 @@ class M3DFioPlugin(
 						# Get next line if empty
 						if gcode.isEmpty() :
 							continue
+					
+					# Check if command is a fan command and set to remove fan commands
+					if self._settings.get_boolean(["RemoveFanCommands"]) and gcode.hasValue('M') and (gcode.getValue('M') == "106" or gcode.getValue('M') == "107") :
+
+						# Get next line
+						continue
+					
+					# Check if command is a temperature command and set to remove temperature commands
+					if self._settings.get_boolean(["RemoveTemperatureCommands"]) and gcode.hasValue('M') and (gcode.getValue('M') == "104" or gcode.getValue('M') == "109" or gcode.getValue('M') == "140" or gcode.getValue('M') == "190") :
+
+						# Get next line
+						continue
 			
 			# Check if printing test border or backlash calibration cylinder or using preparation pre-processor
 			if (self.printingTestBorder or self.printingBacklashCalibrationCylinder or self._settings.get_boolean(["UsePreparationPreprocessor"])) and "PREPARATION" not in command.skip :
@@ -5189,8 +5275,8 @@ class M3DFioPlugin(
 					
 					# Set move Z
 					moveZ = self.maxZExtruder + 10
-					while moveZ > self.bedHighMaxZ and moveZ > self.maxZExtruder :
-						moveZ -= 1
+					if moveZ > self.bedHighMaxZ :
+						moveZ = self.bedHighMaxZ
 					
 					# Set move Y
 					startingMoveY = 0
@@ -5206,8 +5292,8 @@ class M3DFioPlugin(
 						maxMoveY = self.bedLowMaxY
 					
 					moveY = startingMoveY + 20
-					while moveY > maxMoveY and moveZ > startingMoveY :
-						moveY -= 1
+					if moveY > maxMoveY :
+						moveY = maxMoveY
 					
 					# Add outro to output
 					newCommands.append(Command("G90", "PREPARATION", "CENTER VALIDATION PREPARATION"))
@@ -5251,7 +5337,38 @@ class M3DFioPlugin(
 					# Append new commands to commands
 					while len(newCommands) :
 						commands.append(newCommands.pop())
-
+				
+				# Otherwise check if command is at a new layer
+				elif self.preparationLayerCounter < 4 and not gcode.isEmpty() and gcode.hasValue('G') and gcode.hasValue('Z') :
+					
+					# Increment layer counter
+					self.preparationLayerCounter += 1
+					
+					# Check if at the start of the first layer and using an external fan
+					if self.preparationLayerCounter == 4 and self._settings.get_boolean(["UseExternalFan"]) :
+					
+						# Initialize new commands
+						newCommands = []
+						
+						# Add command to turn on external fan
+						newCommands.append(Command("M106 T1", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					
+						# Check if new commands exist
+						if len(newCommands) :
+		
+							# Finish processing command later
+							if not gcode.isEmpty() :
+								commands.append(Command(gcode.getAscii(), command.origin, "CENTER VALIDATION PREPARATION WAVE"))
+							else :
+								commands.append(Command(command.line, command.origin, "CENTER VALIDATION PREPARATION WAVE"))
+		
+							# Append new commands to commands
+							while len(newCommands) :
+								commands.append(newCommands.pop())
+			
+							# Get next command
+							continue
+			
 			# Check if not printing test border or backlash calibration cylinder and using wave bonding pre-processor
 			if not self.printingTestBorder and not self.printingBacklashCalibrationCylinder and self._settings.get_boolean(["UseWaveBondingPreprocessor"]) and "WAVE" not in command.skip :
 	
@@ -5571,14 +5688,8 @@ class M3DFioPlugin(
 						# Increment layer counter
 						self.thermalBondingLayerCounter += 1
 
-					# Check if command contains temperature or fan controls outside of the intro and outro
-					if command.origin != "PREPARATION" and gcode.hasValue('M') and (gcode.getValue('M') == "104" or gcode.getValue('M') == "106" or gcode.getValue('M') == "107" or gcode.getValue('M') == "109" or gcode.getValue('M') == "140" or gcode.getValue('M') == "190") :
-
-						# Get next line
-						continue
-
-					# Otherwise check if on first counted layer
-					elif self.thermalBondingLayerCounter == 1 :
+					# Check if on first counted layer
+					if self.thermalBondingLayerCounter == 1 :
 
 						# Check if printing test border or wave bonding isn't being used, and line is a G command
 						if (self.printingTestBorder or not self._settings.get_boolean(["UseWaveBondingPreprocessor"])) and gcode.hasValue('G') :
@@ -6538,6 +6649,38 @@ class M3DFioPlugin(
 			if hasattr(self, "linuxSleepService") and self.linuxSleepService is not None :
 				self.linuxSleepService.UnInhibit(self.linuxSleepPrevention)
 				self.linuxSleepService = None
+	
+	# Turn on external fan
+	def turnOnExternalFan(self) :
+	
+		# Check if fan pin is set
+		fanPin = self._settings.get_int(["ExternalFanPin"])
+		if fanPin is not None :
+	
+			# Check if running on a Raspberry Pi
+			if platform.uname()[0].startswith("Linux") and ((platform.uname()[4].startswith("armv6l") and self.getCpuHardware() == "BCM2708") or (platform.uname()[4].startswith("armv7l") and self.getCpuHardware() == "BCM2709")) :
+		
+				# Turn on external fan
+				RPi.GPIO.setwarnings(False)
+				RPi.GPIO.setmode(GPIO.BCM)
+				RPi.GPIO.setup(fanPin, RPi.GPIO.OUT)
+				RPi.GPIO.output(fanPin, True)
+	
+	# Turn off external fan
+	def turnOffExternalFan(self) :
+	
+		# Check if fan pin is set
+		fanPin = self._settings.get_int(["ExternalFanPin"])
+		if fanPin is not None :
+	
+			# Check if running on a Raspberry Pi
+			if platform.uname()[0].startswith("Linux") and ((platform.uname()[4].startswith("armv6l") and self.getCpuHardware() == "BCM2708") or (platform.uname()[4].startswith("armv7l") and self.getCpuHardware() == "BCM2709")) :
+		
+				# Turn off external fan
+				RPi.GPIO.setwarnings(False)
+				RPi.GPIO.setmode(GPIO.BCM)
+				RPi.GPIO.setup(fanPin, RPi.GPIO.OUT)
+				RPi.GPIO.output(fanPin, False)
 
 # Plugin info
 __plugin_name__ = "M3D Fio"
