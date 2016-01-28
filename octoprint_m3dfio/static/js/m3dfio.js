@@ -5101,11 +5101,12 @@ $(function() {
 		// Save settings button event
 		$("#settings_dialog > div.modal-footer > button.btn-primary").click(function() {
 		
-			setTimeout(function() {
-		
-				// Save software and printer settings
-				function saveSettings() {
+			// Save printer settings
+			function savePrinterSettings() {
 			
+				// Check if settings were saved
+				if(!$("#settings_dialog").hasClass("in")) {
+				
 					// Send request
 					$.ajax({
 						url: API_BASEURL + "plugin/m3dfio",
@@ -5115,7 +5116,14 @@ $(function() {
 						contentType: "application/json; charset=UTF-8"
 					});
 				}
-			}, 1000);
+				
+				// Otherwise
+				else
+				
+					// Check if settings were saved again
+					setTimeout(savePrinterSettings, 100);
+			}
+			setTimeout(savePrinterSettings, 100);
 		});
 	
 		// Override X increment control
