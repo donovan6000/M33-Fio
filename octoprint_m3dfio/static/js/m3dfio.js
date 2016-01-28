@@ -656,6 +656,15 @@ $(function() {
 			}
 		}, 500);
 		
+		// Capitalize
+		function capitalize(string) {
+		
+			// Return capitalized string
+			return string.toLowerCase().replace(/\b./g, function(character) {
+				return character.toUpperCase();
+			});
+		}
+		
 		// Save file
 		function saveFile(blob, name) {
 		
@@ -3198,10 +3207,10 @@ $(function() {
 			<div class="jog-panel advanced" data-bind="visible: loginState.isUser">
 				<h1>Advanced</h1>
 				<div>
-					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="/plugin/m3dfio/static/img/HengLiXin.png">HengLiXin fan</button>
-					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="/plugin/m3dfio/static/img/Listener.png">Listener fan</button>
-					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="/plugin/m3dfio/static/img/Shenzhew.png">Shenzhew fan</button>
-					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="/plugin/m3dfio/static/img/Xinyujie.png">Xinyujie fan</button>
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="/plugin/m3dfio/static/img/hengLiXin.png">HengLiXin fan</button>
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="/plugin/m3dfio/static/img/listener.png">Listener fan</button>
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="/plugin/m3dfio/static/img/shenzhew.png">Shenzhew fan</button>
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="/plugin/m3dfio/static/img/xinyujie.png">Xinyujie fan</button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">500mA extruder current</button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">660mA extruder current</button>
 					<button class="btn btn-block control-box placeHolder" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"></button>
@@ -3894,7 +3903,7 @@ $(function() {
 
 										// On success
 										success: function(data) {
-								
+											
 											// Hide cover
 											$("#slicing_configuration_dialog .modal-cover").addClass("noTransition").removeClass("show");
 											setTimeout(function() {
@@ -3907,6 +3916,30 @@ $(function() {
 											$("#slicing_configuration_dialog .modal-body").css("display", "none");
 											$("#slicing_configuration_dialog .modal-body").after(`
 												<div class="modal-extra">
+													<div class="templates">
+														<p class="quality">Medium Quality</p>
+														<div class="quality">
+															<button title="Extra low quality"><img src="/plugin/m3dfio/static/img/extra%20low%20quality.png"></button>
+															<button title="Low quality"><img src="/plugin/m3dfio/static/img/low%20quality.png"></button>
+															<button title="Medium quality" class="disabled"><img src="/plugin/m3dfio/static/img/medium%20quality.png"></button>
+															<button title="High quality"><img src="/plugin/m3dfio/static/img/high%20quality.png"></button>
+															<button title="Extra high quality"><img src="/plugin/m3dfio/static/img/extra%20high%20quality.png"></button>
+														</div>
+														<p class="fill">Medium Fill</p>
+														<div class="fill">
+															<button title="Hollow thin fill"><img src="/plugin/m3dfio/static/img/hollow%20thin%20fill.png"></button>
+															<button title="Hollow thick fill"><img src="/plugin/m3dfio/static/img/hollow%20thick%20fill.png"></button>
+															<button title="Low fill"><img src="/plugin/m3dfio/static/img/low%20fill.png"></button>
+															<button title="Medium fill" class="disabled"><img src="/plugin/m3dfio/static/img/medium%20fill.png"></button>
+															<button title="High fill"><img src="/plugin/m3dfio/static/img/high%20fill.png"></button>
+															<button title="Extra high fill"><img src="/plugin/m3dfio/static/img/extra%20high%20fill.png"></button>
+														</div>
+														<div class="settings">
+															<label title="Prints a breakaway support underneath overhanging parts of the model"><input type="checkbox" checked>Use support material</label>
+															<label title="Allows support material to be created on top of models"><input type="checkbox" checked>Use model on model support</label>
+															<label title="Prints a raft underneath the model"><input type="checkbox" checked>Use raft</label>
+														</div>
+													</div>
 													<div>
 														<aside></aside>
 														<textarea spellcheck="false"></textarea>
@@ -3915,7 +3948,19 @@ $(function() {
 												</div
 											`);
 											$("#slicing_configuration_dialog .modal-extra textarea").val(data);
-									
+											
+											// Check if using one of the provided profiles
+											if(slicerName == "cura" && (slicerProfileName == "m3d_pla" || slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips" || slicerProfileName == "m3d_flx" || slicerProfileName == "m3d_tgh"))
+											
+												// Show templates
+												$("#slicing_configuration_dialog .modal-extra div.templates").addClass("show");
+											
+											// Otherwise
+											else
+											
+												// Grow text area
+												$("#slicing_configuration_dialog.profile .modal-extra div").addClass("fullSpace");
+											
 											// Set slicer menu
 											slicerMenu = "Modify Profile";
 							
@@ -3973,6 +4018,263 @@ $(function() {
 										
 												// Scroll line numbers to match text area
 												$(this).siblings("aside").scrollTop($(this).scrollTop());
+											});
+											
+											// Template checkbox change event
+											$("#slicing_configuration_dialog .modal-extra div.templates > div input[type=\"checkbox\"]").change(function() {
+											
+												// Initialize changed settings
+												var changedSettings = [];
+											
+												// Set if checked
+												var checked = $(this).is(":checked");
+												
+												// Set changed settings if changing use support material
+												if($(this).parent().text() == "Use support material") {
+												
+													if(checked)
+														changedSettings.push({
+															support: $("#slicing_configuration_dialog .modal-extra div.templates > div input").eq(1).is(":checked") ? "Everywhere; None, Touching buildplate, Everywhere" : "Touching buildplate; None, Touching buildplate, Everywhere"
+														});
+													else {
+														$("#slicing_configuration_dialog .modal-extra div.templates > div input").eq(1).prop("checked", false);
+														changedSettings.push({
+															support: "None; None, Touching buildplate, Everywhere"
+														});
+													}
+												}
+												
+												// Otherwise set changed settings if changing use model on model support
+												else if($(this).parent().text() == "Use model on model support") {
+												
+													if(checked) {
+														$("#slicing_configuration_dialog .modal-extra div.templates > div input").eq(0).prop("checked", true);
+														changedSettings.push({
+															support: "Everywhere; None, Touching buildplate, Everywhere"
+														});
+													}
+													else
+														changedSettings.push({
+															support: $("#slicing_configuration_dialog .modal-extra div.templates > div input").eq(0).is(":checked") ? "Touching buildplate; None, Touching buildplate, Everywhere" : "None; None, Touching buildplate, Everywhere"
+														});
+												}
+												
+												// Otherwise set changed settings if changing use raft
+												else if($(this).parent().text() == "Use raft") {
+												
+													if(checked)
+														changedSettings.push({
+															platform_adhesion: "Raft; None, Brim, Raft"
+														});
+													else
+														changedSettings.push({
+															platform_adhesion: "None; None, Brim, Raft"
+														});
+												}
+												
+												// Get current profile contents
+												slicerProfileContent = $("#slicing_configuration_dialog .modal-extra textarea").val();
+												
+												// Go through all changes settings
+												for(var setting in changedSettings[0]) {
+												
+													// Remove setting
+													var expression = new RegExp("(^|\n)" + setting + ".*\n?", 'g');
+													slicerProfileContent = slicerProfileContent.replace(expression, "$1");
+													
+													// Check if setting exists
+													if(changedSettings[0][setting] !== null) {
+													
+														// Add setting
+														if(slicerProfileContent.match(/(^|\n)\[profile\].*\n?/) === null)
+															slicerProfileContent = "[profile]\n" + setting + " = " + changedSettings[0][setting] + '\n';
+														else
+															slicerProfileContent = slicerProfileContent.replace(/(^|\n)\[profile\].*\n?/, "$1[profile]\n" + setting + " = " + changedSettings[0][setting] + '\n');
+													}
+												}
+												
+												// Update profile contents
+												$("#slicing_configuration_dialog .modal-extra textarea").val(slicerProfileContent);
+											});
+											
+											// Template drag image event
+											$("#slicing_configuration_dialog .modal-extra div.templates > div button img").on("dragstart", function(event) {
+
+												// Prevent default
+												event.preventDefault();
+											});
+											
+											// Template button click event
+											$("#slicing_configuration_dialog .modal-extra div.templates > div button").click(function() {
+											
+												// Select button
+												$(this).blur();
+												$(this).addClass("disabled").siblings("button").removeClass("disabled");
+												
+												// Initialize changed settings
+												var changedSettings = [];
+												
+												// Check if changing quality
+												if($(this).parent().hasClass("quality")) {
+												
+													// Set text
+													$("#slicing_configuration_dialog .modal-extra div.templates > p.quality").text(capitalize($(this).attr("title")));
+												
+													// Set changed settings if extra low quality
+													if($(this).attr("title") == "Extra low quality") {
+													
+														changedSettings.push({
+															layer_height: 0.35,
+															bottom_thickness: 0.3,
+															fan_full_height: 0.301,
+															solid_layer_thickness: 2.799
+														});
+														
+														if(slicerProfileName.substr(4, 3) == "abs" || slicerProfileName.substr(4, 4) == "hips")
+															changedSettings[0]["fan_full_height"] = 0.651;
+													}
+													
+													// Otherwise set changed settings if low quality
+													else if($(this).attr("title") == "Low quality") {
+													
+														changedSettings.push({
+															layer_height: 0.25,
+															bottom_thickness: 0.3,
+															fan_full_height: 0.301,
+															solid_layer_thickness: 1.999
+														});
+														
+														if(slicerProfileName.substr(4, 3) == "abs" || slicerProfileName.substr(4, 4) == "hips")
+															changedSettings[0]["fan_full_height"] = 0.551;
+													}
+													
+													// Otherwise set changed settings if medium quality
+													else if($(this).attr("title") == "Medium quality") {
+													
+														changedSettings.push({
+															layer_height: 0.15,
+															bottom_thickness: 0.3,
+															fan_full_height: 0.301,
+															solid_layer_thickness: 1.199
+														});
+														
+														if(slicerProfileName.substr(4, 3) == "abs" || slicerProfileName.substr(4, 4) == "hips")
+															changedSettings[0]["fan_full_height"] = 0.451;
+													}
+													
+													// Otherwise set changed settings if high quality
+													else if($(this).attr("title") == "High quality") {
+													
+														changedSettings.push({
+															layer_height: 0.1,
+															bottom_thickness: 0.3,
+															fan_full_height: 0.301,
+															solid_layer_thickness: 0.799
+														});
+														
+														if(slicerProfileName.substr(4, 3) == "abs" || slicerProfileName.substr(4, 4) == "hips")
+															changedSettings[0]["fan_full_height"] = 0.401;
+													}
+													
+													// Otherwise set changed settings if extra high quality
+													else if($(this).attr("title") == "Extra high quality") {
+													
+														changedSettings.push({
+															layer_height: 0.05,
+															bottom_thickness: 0.1,
+															fan_full_height: 0.101,
+															solid_layer_thickness: 0.399
+														});
+														
+														if(slicerProfileName.substr(4, 3) == "abs" || slicerProfileName.substr(4, 4) == "hips")
+															changedSettings[0]["fan_full_height"] = 0.151;
+													}
+												}
+												
+												// Otherwise assume changing fill
+												else {
+												
+													// Set text
+													$("#slicing_configuration_dialog .modal-extra div.templates > p.fill").text(capitalize($(this).attr("title")));
+												
+													// Set changed settings if hollow thin fill
+													if($(this).attr("title") == "Hollow thin fill")
+													
+														changedSettings.push({
+															fill_density: 0,
+															solid_layer_thickness: 0.149,
+															infill_speed: 15
+														});
+													
+													// Otherwise set changed settings if hollow thick fill
+													else if($(this).attr("title") == "Hollow thick fill")
+													
+														changedSettings.push({
+															fill_density: 0,
+															solid_layer_thickness: 0.249,
+															infill_speed: 15
+														});
+													
+													// Otherwise set changed settings if low fill
+													else if($(this).attr("title") == "Low fill")
+													
+														changedSettings.push({
+															fill_density: 6.36363636364,
+															solid_layer_thickness: 0.299,
+															infill_speed: null
+														});
+													
+													// Otherwise set changed settings if medium fill
+													else if($(this).attr("title") == "Medium fill")
+													
+														changedSettings.push({
+															fill_density: 8.75,
+															solid_layer_thickness: 0.399,
+															infill_speed: null
+														});
+													
+													// Otherwise set changed settings if high fill
+													else if($(this).attr("title") == "High fill")
+													
+														changedSettings.push({
+															fill_density: 14.0,
+															solid_layer_thickness: 0.399,
+															infill_speed: null
+														});
+													
+													// Otherwise set changed settings if extra high fill
+													else if($(this).attr("title") == "Extra high fill")
+													
+														changedSettings.push({
+															fill_density: 23.3333333333,
+															solid_layer_thickness: 0.399,
+															infill_speed: null
+														});
+												}
+												
+												// Get current profile contents
+												slicerProfileContent = $("#slicing_configuration_dialog .modal-extra textarea").val();
+												
+												// Go through all changes settings
+												for(var setting in changedSettings[0]) {
+												
+													// Remove setting
+													var expression = new RegExp("(^|\n)" + setting + ".*\n?", 'g');
+													slicerProfileContent = slicerProfileContent.replace(expression, "$1");
+													
+													// Check if setting exists
+													if(changedSettings[0][setting] !== null) {
+													
+														// Add setting
+														if(slicerProfileContent.match(/(^|\n)\[profile\].*\n?/) === null)
+															slicerProfileContent = "[profile]\n" + setting + " = " + changedSettings[0][setting] + '\n';
+														else
+															slicerProfileContent = slicerProfileContent.replace(/(^|\n)\[profile\].*\n?/, "$1[profile]\n" + setting + " = " + changedSettings[0][setting] + '\n');
+													}
+												}
+												
+												// Update profile contents
+												$("#slicing_configuration_dialog .modal-extra textarea").val(slicerProfileContent);
 											});
 							
 											// Resize window

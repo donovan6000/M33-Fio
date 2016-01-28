@@ -22,6 +22,9 @@ M3D Fio expands the capabilities of OctoPrint to make it fully compatible with t
 Controls are added which allow calibrating the print bed, loading/unloading filament, updating the firmware, managing the EEPROM, etc.
 ![alt text](https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/images/controls.png "Controls")
 
+Slicing profiles can be customized before slicing a model.
+![alt text](https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/images/profile%20editor.png "Profile Editor")
+
 Any model sliced in OctoPrint can be modified before hand.
 ![alt text](https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/images/model%20editor.png "Model Editor")
 

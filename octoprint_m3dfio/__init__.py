@@ -2794,56 +2794,20 @@ class M3DFioPlugin(
 				# Set Cura profile location and destination
 				profileLocation = self._basefolder.replace('\\', '/') + "/static/profiles/"
 				profileDestination = self._slicing_manager.get_slicer_profile_path("cura").replace('\\', '/') + '/'
+				
+				# Remove deprecated profiles
+				for profile in glob.glob(profileDestination + "m3d_*mm.profile") :
+					os.remove(profile)
 	
 				# Go through all Cura profiles
 				for profile in os.listdir(profileLocation) :
 		
-					# Get profile version
-					version = re.search(" V(\d+)\.+\S*$", profile)
+					# Set profile version, identifier, and name
+					profileIdentifier = profile[0 : profile.find('.')]
+					profileName = self._slicing_manager.get_profile_path("cura", profileIdentifier)[len(profileDestination) :].lower()
 		
-					# Check if version number exists
-					if version :
-			
-						# Set profile version, identifier, and name
-						profileVersion = version.group(1)
-						profileIdentifier = profile[0 : version.start()]
-						profileName = self._slicing_manager.get_profile_path("cura", profileIdentifier)[len(profileDestination) :].lower()
-			
-						# Set to create or replace file
-						replace = True
-		
-						# Check if profile already exists
-						if os.path.isfile(profileDestination + profileName) :
-			
-							# Get existing profile description line
-							for line in open(profileDestination + profileName) :
-				
-								# Check if profile display name exists
-								if line.startswith("_display_name:") :
-				
-									# Get current version
-									version = re.search(" V(\d+)$", line)
-							
-									# Check if newer version is available
-									if version and int(version.group(1)) < int(profileVersion) :
-					
-										# Remove current profile
-										os.remove(profileDestination + profileName)
-						
-									# Otherwise
-									else :
-						
-										# Clear replace
-										replace = False
-						
-									# Stop searching file
-									break
-			
-						# Check if profile is being created or replaced
-						if replace :
-				
-							# Save Cura profile as OctoPrint profile
-							self.convertCuraToProfile(profileLocation + profile, profileDestination + profileName, profileName, profileIdentifier + " V" + profileVersion, "Imported by M3D Fio on " + time.strftime("%Y-%m-%d %H:%M"))
+					# Save Cura profile as OctoPrint profile
+					self.convertCuraToProfile(profileLocation + profile, profileDestination + profileName, profileName, profileIdentifier, "Imported by M3D Fio on " + time.strftime("%Y-%m-%d %H:%M"))
 			
 			# Check if sending sleep reminder
 			if not self._printer.is_printing() and self.sleepReminder :
