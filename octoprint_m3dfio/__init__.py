@@ -46,9 +46,6 @@ if platform.uname()[0].startswith("Darwin") :
 
 elif platform.uname()[0].startswith("Linux") :
 	import dbus
-	
-	if (platform.uname()[4].startswith("armv6l") and self.getCpuHardware() == "BCM2708") or (platform.uname()[4].startswith("armv7l") and self.getCpuHardware() == "BCM2709") :
-		import RPi.GPIO
 
 
 # Command class
@@ -6661,6 +6658,7 @@ class M3DFioPlugin(
 			if platform.uname()[0].startswith("Linux") and ((platform.uname()[4].startswith("armv6l") and self.getCpuHardware() == "BCM2708") or (platform.uname()[4].startswith("armv7l") and self.getCpuHardware() == "BCM2709")) :
 		
 				# Turn on external fan
+				import RPi.GPIO
 				RPi.GPIO.setwarnings(False)
 				RPi.GPIO.setmode(GPIO.BCM)
 				RPi.GPIO.setup(fanPin, RPi.GPIO.OUT)
@@ -6677,6 +6675,7 @@ class M3DFioPlugin(
 			if platform.uname()[0].startswith("Linux") and ((platform.uname()[4].startswith("armv6l") and self.getCpuHardware() == "BCM2708") or (platform.uname()[4].startswith("armv7l") and self.getCpuHardware() == "BCM2709")) :
 		
 				# Turn off external fan
+				import RPi.GPIO
 				RPi.GPIO.setwarnings(False)
 				RPi.GPIO.setmode(GPIO.BCM)
 				RPi.GPIO.setup(fanPin, RPi.GPIO.OUT)
