@@ -576,6 +576,12 @@ class M3DFioPlugin(
 					# Close heatbed connection
 					self.heatbedConnection.close()
 					self.heatbedConnection = None
+					
+					# Set heated bed to false in printer profile
+					if self._printer_profile_manager.exists("micro_3d") :
+						printerProfile = self._printer_profile_manager.get("micro_3d")
+						printerProfile["heatedBed"] = False
+						self._printer_profile_manager.save(printerProfile, True)
 				
 					# Send message
 					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Heatbed Disconnected"))
@@ -599,6 +605,12 @@ class M3DFioPlugin(
 				# Put heatbed into temperature mode
 				self.heatbedConnection.write("i\n")
 				
+				# Set heated bed to true in printer profile
+				if self._printer_profile_manager.exists("micro_3d") :
+					printerProfile = self._printer_profile_manager.get("micro_3d")
+					printerProfile["heatedBed"] = True
+					self._printer_profile_manager.save(printerProfile, True)
+				
 				# Send message
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Heatbed Connected"))
 			
@@ -607,11 +619,6 @@ class M3DFioPlugin(
 	
 	# On start
 	def on_after_startup(self) :
-	
-		# Monitor heatbed
-		monitorHeatbedThread = threading.Thread(target=self.monitorHeatbed)
-		monitorHeatbedThread.daemon = True
-		monitorHeatbedThread.start()
 	
 		# Set reminders on initial OctoPrint instance
 		currentPort = self.getListenPort(psutil.Process(os.getpid()))
@@ -756,6 +763,11 @@ class M3DFioPlugin(
 	    	# Enable printer callbacks if using a Micro 3D printer
 	    	if not self._settings.get_boolean(["UsingADifferentPrinter"]) :
 			self._printer.register_callback(self)
+		
+		# Monitor heatbed
+		monitorHeatbedThread = threading.Thread(target=self.monitorHeatbed)
+		monitorHeatbedThread.daemon = True
+		monitorHeatbedThread.start()
 	
 	# Covert Cura to profile
 	def convertCuraToProfile(self, input, output, name, displayName, description) :
