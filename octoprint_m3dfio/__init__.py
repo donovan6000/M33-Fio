@@ -37,6 +37,7 @@ import platform
 import subprocess
 import psutil
 import socket
+import threading
 from .gcode import Gcode
 from .vector import Vector
 
@@ -81,7 +82,8 @@ class M3DFioPlugin(
 		self.invalidPrinter = True
 		self.waiting = False
 		self.processingSlice = False
-		self.usingMicroPass = False
+		self.heatbedConnection = None
+		self.heatbedTemperature = 0
 		self.eeprom = None
 		self.messageResponse = None
 		self.invalidBedCenter = False
@@ -538,8 +540,78 @@ class M3DFioPlugin(
 		# Return none
 		return None
 	
+	# Get heatbed port
+	def getHeatbedPort(self) :
+	
+		# Go through all connected serial ports
+		for port in list(serial.tools.list_ports.comports()) :
+		
+			# Get device
+			device = port[2].upper()
+			
+			# Check if port contains the correct VID and PID
+			if device.startswith("USB VID:PID=1A86:7523") :
+			
+				# Return serial port
+				return port[0]
+		
+		# Return none
+		return None
+	
+	# Monitor heatbed
+	def monitorHeatbed(self) :
+		
+		# Loop forever
+		while True :
+		
+			# Get heatbed port
+			heatbedPort = self.getHeatbedPort()
+		
+			# Check if a heatbed is connected
+			if self.heatbedConnection is not None :
+			
+				# Check if heatbed has been disconnected
+				if heatbedPort is None :
+			
+					# Close heatbed connection
+					self.heatbedConnection.close()
+					self.heatbedConnection = None
+				
+					# Send message
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Heatbed Disconnected"))
+				
+				# Otherwise
+				else :
+				
+					# Read heatbed temperature
+					self.heatbedTemperature.write("t\n")
+					self.heatbedTemperature = self.heatbedTemperature.readline()
+			
+			# Otherwise check if a heatbed has been connected
+			elif self.heatbedConnection is None and heatbedPort is not None :
+			
+				# Wait for heatbed to initialize
+				time.sleep(4)
+			
+				# Connect to heatbed
+				self.heatbedConnection = serial.Serial(heatbedPort, 115200)
+				
+				# Put heatbed into temperature mode
+				self.heatbedConnection.write("i\n")
+				
+				# Send message
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Heatbed Connected"))
+			
+			# Delay
+			time.sleep(1)
+	
 	# On start
 	def on_after_startup(self) :
+	
+		# Monitor heatbed
+		monitorHeatbedThread = threading.Thread(target=self.monitorHeatbed)
+		monitorHeatbedThread.daemon = True
+		monitorHeatbedThread.start()
 	
 		# Set reminders on initial OctoPrint instance
 		currentPort = self.getListenPort(psutil.Process(os.getpid()))
@@ -1219,7 +1291,7 @@ class M3DFioPlugin(
 						self.sharedLibrary.setUseBacklashCompensationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseBacklashCompensationPreprocessor"])))
 						self.sharedLibrary.setUseCenterModelPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseCenterModelPreprocessor"])))
 						self.sharedLibrary.setIgnorePrintDimensionLimitations(ctypes.c_bool(self._settings.get_boolean(["IgnorePrintDimensionLimitations"])))
-						self.sharedLibrary.setUsingMicroPass(ctypes.c_bool(self.usingMicroPass))
+						self.sharedLibrary.setUsingHeatbed(ctypes.c_bool(self.heatbedConnection is not None))
 						self.sharedLibrary.setPrintingTestBorder(ctypes.c_bool(self.printingTestBorder))
 						self.sharedLibrary.setPrintingBacklashCalibrationCylinder(ctypes.c_bool(self.printingBacklashCalibrationCylinder))
 						self.sharedLibrary.setPrinterColor(ctypes.c_char_p(self.printerColor))
@@ -2388,6 +2460,37 @@ class M3DFioPlugin(
 			gcode = Gcode()
 			if gcode.parseLine(data) :
 			
+				# Check if using a heatbed
+				if self.heatbedConnection is not None :
+				
+					# Check if command is to set heatbed temperature
+					if gcode.getValue('M') == "140" :
+					
+						# Send heatbed the specified temperature
+						if gcode.hasValue('S') :
+							self.heatbedConnection.write("s " + gcode.hasValue('S') + '\n')
+						else :
+							self.heatbedConnection.write("s 0\n");
+						
+						# Set command to nothing
+						gcode.removeParameter('M')
+						gcode.removeParameter('S')
+						gcode.setValue('G', '4')
+					
+					# Otherwise check if command is to set heatbed temperature and wait
+					elif gcode.getValue('M') == "190" :
+					
+						# Send heatbed the specified temperature
+						if gcode.hasValue('S') :
+							self.heatbedConnection.write("w " + gcode.hasValue('S') + '\n')
+						else :
+							self.heatbedConnection.write("w 0\n");
+						
+						# Set command to nothing
+						gcode.removeParameter('M')
+						gcode.removeParameter('S')
+						gcode.setValue('G', '4')
+			
 				# Check if using an external fan
 				if self._settings.get_boolean(["UseExternalFan"]) :
 			
@@ -2492,6 +2595,12 @@ class M3DFioPlugin(
 		
 			# Set last response was temperature reading
 			self.lastResponseWasTemperatureReading = True
+			
+			# Check if using a heatbed
+			if self.heatbedConnection is not None :
+			
+				# Append heatbed temperature to to response
+				response = response.rstrip() + " B:" + self.heatbedTemperature + '\n'
 		
 		# Otherwise
 		else :
@@ -2728,10 +2837,8 @@ class M3DFioPlugin(
 				self.originalWrite = None
 				self.originalRead = None
 			
-				# Send printer and Micro Pass status
+				# Send printer status
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Micro 3D Not Connected"))
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Micro Pass Not Connected"))
-				self.usingMicroPass = False
 		
 		# Otherwise check if client connects
 		elif event == octoprint.events.Events.CLIENT_OPENED :
@@ -2775,6 +2882,12 @@ class M3DFioPlugin(
 				
 				# Send printer details
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Printer Details", serialNumber = serialNumber, serialPort = self._printer.get_transport().port))
+			
+			# Send message if a heatbed is detected
+			if self.heatbedConnection is None :
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Heatbed Not Detected"))
+			else :
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Heatbed Detected"))
 			
 			# Set file locations
 			self.setFileLocations()
@@ -2901,7 +3014,7 @@ class M3DFioPlugin(
 					self.sharedLibrary.setUseBacklashCompensationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseBacklashCompensationPreprocessor"])))
 					self.sharedLibrary.setUseCenterModelPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseCenterModelPreprocessor"])))
 					self.sharedLibrary.setIgnorePrintDimensionLimitations(ctypes.c_bool(self._settings.get_boolean(["IgnorePrintDimensionLimitations"])))
-					self.sharedLibrary.setUsingMicroPass(ctypes.c_bool(self.usingMicroPass))
+					self.sharedLibrary.setUsingHeatbed(ctypes.c_bool(self.heatbedConnection is not None))
 					self.sharedLibrary.setPrintingTestBorder(ctypes.c_bool(self.printingTestBorder))
 					self.sharedLibrary.setPrintingBacklashCalibrationCylinder(ctypes.c_bool(self.printingBacklashCalibrationCylinder))
 					self.sharedLibrary.setPrinterColor(ctypes.c_char_p(self.printerColor))
@@ -3007,7 +3120,7 @@ class M3DFioPlugin(
 				"M18"
 			]
 			
-			if self.usingMicroPass :
+			if self.heatbedConnection is not None :
 				commands += ["M140 S0"]
 				
 			if self.printerColor == "Clear" :
@@ -3729,14 +3842,6 @@ class M3DFioPlugin(
 			
 				# Send printer status
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Micro 3D Connected"))
-				
-				# Send Micro Pass status
-				if "MACHINE_TYPE:The_Micro_Pass" in data :
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Micro Pass Connected"))
-					self.usingMicroPass = True
-				else :
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Micro Pass Not Connected"))
-					self.usingMicroPass = False
 		
 		# Otherwise check if printer's data is requested
 		elif "Send: M21" in data :
@@ -4474,7 +4579,7 @@ class M3DFioPlugin(
 				self.sharedLibrary.setUseBacklashCompensationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseBacklashCompensationPreprocessor"])))
 				self.sharedLibrary.setUseCenterModelPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseCenterModelPreprocessor"])))
 				self.sharedLibrary.setIgnorePrintDimensionLimitations(ctypes.c_bool(self._settings.get_boolean(["IgnorePrintDimensionLimitations"])))
-				self.sharedLibrary.setUsingMicroPass(ctypes.c_bool(self.usingMicroPass))
+				self.sharedLibrary.setUsingHeatbed(ctypes.c_bool(self.heatbedConnection is not None))
 				self.sharedLibrary.setPrintingTestBorder(ctypes.c_bool(self.printingTestBorder))
 				self.sharedLibrary.setPrintingBacklashCalibrationCylinder(ctypes.c_bool(self.printingBacklashCalibrationCylinder))
 				self.sharedLibrary.setPrinterColor(ctypes.c_char_p(self.printerColor))
@@ -5175,8 +5280,8 @@ class M3DFioPlugin(
 					newCommands.append(Command("G0 Z5 F48", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 					newCommands.append(Command("G28", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 
-					# Add heat bed command if using Micro Pass
-					if self.usingMicroPass :
+					# Add heatbed command if using a heatbed
+					if self.heatbedConnection is not None :
 						if str(self._settings.get(["FilamentType"])) == "PLA" :
 							newCommands.append(Command("M190 S70", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 						else :
@@ -5263,7 +5368,7 @@ class M3DFioPlugin(
 					newCommands.append(Command("G0 E-8 F360", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 					newCommands.append(Command("M104 S0", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 
-					if self.usingMicroPass :
+					if self.heatbedConnection is not None :
 						newCommands.append(Command("M140 S0", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 
 					newCommands.append(Command("M18", "PREPARATION", "CENTER VALIDATION PREPARATION"))

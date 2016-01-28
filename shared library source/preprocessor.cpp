@@ -145,7 +145,7 @@ bool useBedCompensationPreprocessor;
 bool useBacklashCompensationPreprocessor;
 bool useCenterModelPreprocessor;
 bool ignorePrintDimensionLimitations;
-bool usingMicroPass;
+bool usingHeatbed;
 bool printingTestBorder;
 bool printingBacklashCalibrationCylinder;
 printerColors printerColor;
@@ -592,10 +592,10 @@ EXPORT void setIgnorePrintDimensionLimitations(bool value) {
 	ignorePrintDimensionLimitations = value;
 }
 
-EXPORT void setUsingMicroPass(bool value) {
+EXPORT void setUsingHeatbed(bool value) {
 
-	// Set using Micro Pass
-	usingMicroPass = value;
+	// Set using heatbed
+	usingHeatbed = value;
 }
 
 EXPORT void setPrintingTestBorder(bool value) {
@@ -1151,8 +1151,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 				newCommands.push(Command("G0 Z5 F48", PREPARATION, PREPARATION));
 				newCommands.push(Command("G28", PREPARATION, PREPARATION));
 
-				// Add heat bed command if using Micro Pass
-				if(usingMicroPass)
+				// Add heatbed command if using a heatbed
+				if(usingHeatbed)
 					newCommands.push(Command("M190 S" + static_cast<string>(filamentType == PLA ? "70" : "80"), PREPARATION, PREPARATION));
 
 				// Check if one of the corners wasn't set
@@ -1244,7 +1244,7 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 				newCommands.push(Command("G0 E-8 F360", PREPARATION, PREPARATION));
 				newCommands.push(Command("M104 S0", PREPARATION, PREPARATION));
 
-				if(usingMicroPass)
+				if(usingHeatbed)
 					newCommands.push(Command("M140 S0", PREPARATION, PREPARATION));
 				
 				newCommands.push(Command("M18", PREPARATION, PREPARATION));

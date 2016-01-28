@@ -3143,7 +3143,7 @@ $(function() {
 	
 		// Change tool section text
 		$("#control > div.jog-panel").eq(1).addClass("extruder").find("h1").text("Extruder").after(`
-			<h1 class="microPass">Extruder</h1>
+			<h1 class="heatbed">Extruder</h1>
 		`);
 
 		// Create motor on control
@@ -3280,8 +3280,8 @@ $(function() {
 			</div>
 			<button class="btn btn-block control-box" data-bind="enable: isOperational() && loginState.isUser()">Temperature:<span data-bind="text: flowRate() + 50 + '°C'"></span></button>
 			<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M104 S0'}) }" title="Turns off extruder's heater">Heater off</button>
-			<div class="microPass">
-				<h1 class="microPass">Heat Bed</h1>
+			<div class="heatbed">
+				<h1 class="heatbed">Heatbed</h1>
 				<div style="width: 114px;" class="slider slider-horizontal">
 					<div class="slider-track">
 						<div style="left: 0%; width: 0%;" class="slider-selection"></div>
@@ -5407,8 +5407,8 @@ $(function() {
 			});
 		});
 		
-		// Set heat bed temperature control
-		$("#control > div.jog-panel.extruder").find("div > div.microPass > button:first-of-type").attr("title", "Sets heat bed's temperature to the specified amount").click(function(event) {
+		// Set heatbed temperature control
+		$("#control > div.jog-panel.extruder").find("div > div.heatbed > button:first-of-type").attr("title", "Sets heatbed's temperature to the specified amount").click(function(event) {
 			
 			// Check if not printing
 			if(self.printerState.isPrinting() !== true) {
@@ -7254,20 +7254,42 @@ $(function() {
 				$("#navbar_plugin_m3dfio > a").text('');
 			}
 			
-			// Otherwise check if data is that a Micro Pass is connected
-			else if(data.value == "Micro Pass Connected" && printerConnected) {
+			// Otherwise check if data is that a heatbed is connected
+			else if(data.value == "Heatbed Connected")
 			
-				// Display heat bed controls
-				$("#control .microPass").css("display", "block");
-				$("#control > div.jog-panel.extruder").find("h1:not(.microPass)").text("Tools");
+				// Display message
+				new PNotify({
+				    title: "Heatbed detected",
+				    text: "<p>Heatbed has been connected</p>",
+				    type: "success",
+				    hide: false
+				});
+			
+			// Otherwise check if data is that a heatbed is disconnected
+			else if(data.value == "Heatbed Disconnected")
+			
+				// Display message
+				new PNotify({
+				    title: "Heatbed removed",
+				    text: "<p>Heatbed has been disconnected</p>",
+				    type: "notice",
+				    hide: false
+				});
+			
+			// Otherwise check if data is that a heatbed is detected
+			else if(data.value == "Heatbed Detected") {
+			
+				// Display heatbed controls
+				$("#control .heatbed").css("display", "block");
+				$("#control > div.jog-panel.extruder").find("h1:not(.heatbed)").text("Tools");
 			}
 			
-			// Otherwise check if data is that a Micro Pass isn't connected
-			else if(data.value == "Micro Pass Not Connected") {
+			// Otherwise check if data is that a heatbed is not detected
+			else if(data.value == "Heatbed Not Detected") {
 			
-				// Hide heat bed controls
-				$("#control .microPass").css("display", "none");
-				$("#control > div.jog-panel.extruder").find("h1:not(.microPass)").text("Extruder");
+				// Hide heatbed controls
+				$("#control .heatbed").css("display", "none");
+				$("#control > div.jog-panel.extruder").find("h1:not(.heatbed)").text("Extruder");
 			}
 			
 			// Otherwise check if data is current Z

@@ -128,7 +128,7 @@ extern "C" {
 	EXPORT void setUseBacklashCompensationPreprocessor(bool value);
 	EXPORT void setUseCenterModelPreprocessor(bool value);
 	EXPORT void setIgnorePrintDimensionLimitations(bool value);
-	EXPORT void setUsingMicroPass(bool value);
+	EXPORT void setUsingHeatbed(bool value);
 	EXPORT void setPrintingTestBorder(bool value);
 	EXPORT void setPrintingBacklashCalibrationCylinder(bool value);
 	EXPORT void setPrinterColor(const char *value);
