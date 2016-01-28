@@ -334,6 +334,7 @@ class M3DFioPlugin(
 		self.bedDepth = 121.0
 		self.bedCenterOffsetX = 8.5
 		self.bedCenterOffsetY = 2.0
+		self.heatbedHeight = 10.0
 		
 		# Chip details
 		self.chipName = "ATxmega32C4"
@@ -4680,6 +4681,22 @@ class M3DFioPlugin(
 		relativeMode = False
 		tier = "Low"
 		gcode = Gcode()
+		
+		# Check if using a heatbed
+		if self.heatbedConnection is not None :
+		
+			# Adjust bed Z values
+			self.bedMediumMaxZ = 73.5 - self.heatbedHeight
+			self.bedHighMaxZ = 112.0 - self.heatbedHeight
+			self.bedHighMinZ = self.bedMediumMaxZ
+		
+		# Otherwise
+		else :
+		
+			# Set bed Z values to defaults
+			self.bedMediumMaxZ = 73.5
+			self.bedHighMaxZ = 112.0
+			self.bedHighMinZ = self.bedMediumMaxZ
 		
 		# Reset detected fan speed
 		self.detectedFanSpeed = None

@@ -24,14 +24,14 @@ using namespace std;
 #define BED_MEDIUM_MIN_X -2.0
 #define BED_MEDIUM_MAX_Y 105.0
 #define BED_MEDIUM_MIN_Y -9.0
-#define BED_MEDIUM_MAX_Z 73.5
+double bedMediumMaxZ = 73.5;
 #define BED_MEDIUM_MIN_Z BED_LOW_MAX_Z
 #define BED_HIGH_MAX_X 97.0
 #define BED_HIGH_MIN_X 7.0
 #define BED_HIGH_MAX_Y 85.0
 #define BED_HIGH_MIN_Y 9.0
-#define BED_HIGH_MAX_Z 112.0
-#define BED_HIGH_MIN_Z BED_MEDIUM_MAX_Z
+double bedHighMaxZ = 112.0;
+double bedHighMinZ = bedMediumMaxZ;
 #define BED_WIDTH 121.0
 #define BED_DEPTH 121.0
 #define BED_CENTER_OFFSET_X 8.5
@@ -229,6 +229,7 @@ double minYExtruderLow;
 double minYExtruderMedium;
 double minYExtruderHigh;
 double minZExtruder;
+double heatbedHeight = 10.0;
 
 
 // Private function implementation
@@ -733,6 +734,24 @@ EXPORT bool collectPrintInformation(const char *file) {
 		bool relativeMode = false;
 		double localX = NAN, localY = NAN, localZ = NAN;
 		
+		// Check if using a heatbed
+		if(usingHeatbed) {
+		
+			// Adjust bed Z values
+			bedMediumMaxZ = 73.5 - heatbedHeight;
+			bedHighMaxZ = 112.0 - heatbedHeight;
+			bedHighMinZ = bedMediumMaxZ;
+		}
+		
+		// Otherwise
+		else {
+		
+			// Set bed Z values to defaults
+			bedMediumMaxZ = 73.5;
+			bedHighMaxZ = 112.0;
+			bedHighMinZ = bedMediumMaxZ;
+		}
+		
 		// Reset detected fan speed
 		detectedFanSpeed = -1;
 	
@@ -807,7 +826,7 @@ EXPORT bool collectPrintInformation(const char *file) {
 								localZ = relativeMode ? (std::isnan(localZ) ? 0.4 : localZ) + commandZ : commandZ;
 							
 								// Check if not ignoring print dimension limitations, not printing a test border or backlash calibration cylinder, and Z is out of bounds
-								if(!ignorePrintDimensionLimitations && !printingTestBorder && !printingBacklashCalibrationCylinder && (localZ < BED_LOW_MIN_Z || localZ > BED_HIGH_MAX_Z))
+								if(!ignorePrintDimensionLimitations && !printingTestBorder && !printingBacklashCalibrationCylinder && (localZ < BED_LOW_MIN_Z || localZ > bedHighMaxZ))
 							
 									// Return false
 									return false;
@@ -816,7 +835,7 @@ EXPORT bool collectPrintInformation(const char *file) {
 								if(localZ < BED_LOW_MAX_Z)
 									tier = LOW;
 							
-								else if(localZ < BED_MEDIUM_MAX_Z)
+								else if(localZ < bedMediumMaxZ)
 									tier = MEDIUM;
 							
 								else
@@ -947,7 +966,7 @@ EXPORT bool collectPrintInformation(const char *file) {
 				minYExtruderHigh += displacementY;
 			
 			// Check if not ignoring print dimension limitations and adjusted print values are out of bounds
-			if(!ignorePrintDimensionLimitations && (minZExtruder < BED_LOW_MIN_Z || maxZExtruder > BED_HIGH_MAX_Z || maxXExtruderLow > BED_LOW_MAX_X || maxXExtruderMedium > BED_MEDIUM_MAX_X || maxXExtruderHigh > BED_HIGH_MAX_X || maxYExtruderLow > BED_LOW_MAX_Y || maxYExtruderMedium > BED_MEDIUM_MAX_Y || maxYExtruderHigh > BED_HIGH_MAX_Y || minXExtruderLow < BED_LOW_MIN_X || minXExtruderMedium < BED_MEDIUM_MIN_X || minXExtruderHigh < BED_HIGH_MIN_X || minYExtruderLow < BED_LOW_MIN_Y || minYExtruderMedium < BED_MEDIUM_MIN_Y || minYExtruderHigh < BED_HIGH_MIN_Y))
+			if(!ignorePrintDimensionLimitations && (minZExtruder < BED_LOW_MIN_Z || maxZExtruder > bedHighMaxZ || maxXExtruderLow > BED_LOW_MAX_X || maxXExtruderMedium > BED_MEDIUM_MAX_X || maxXExtruderHigh > BED_HIGH_MAX_X || maxYExtruderLow > BED_LOW_MAX_Y || maxYExtruderMedium > BED_MEDIUM_MAX_Y || maxYExtruderHigh > BED_HIGH_MAX_Y || minXExtruderLow < BED_LOW_MIN_X || minXExtruderMedium < BED_MEDIUM_MIN_X || minXExtruderHigh < BED_HIGH_MIN_X || minYExtruderLow < BED_LOW_MIN_Y || minYExtruderMedium < BED_MEDIUM_MIN_Y || minYExtruderHigh < BED_HIGH_MIN_Y))
 			
 				// Return false
 				return false;
@@ -1214,13 +1233,13 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 				
 				// Set move Z
 				double moveZ = maxZExtruder + 10;
-				if(moveZ > BED_HIGH_MAX_Z)
-					moveZ = BED_HIGH_MAX_Z;
+				if(moveZ > bedHighMaxZ)
+					moveZ = bedHighMaxZ;
 				
 				// Set move Y
 				double startingMoveY = 0;
 				double maxMoveY = 0;
-				if(moveZ >= BED_MEDIUM_MAX_Z && maxYExtruderHigh != -DBL_MAX) {
+				if(moveZ >= bedMediumMaxZ && maxYExtruderHigh != -DBL_MAX) {
 					startingMoveY = maxYExtruderHigh;
 					maxMoveY = BED_HIGH_MAX_Y;
 				}

@@ -26,6 +26,7 @@ $(function() {
 		var skippedMessages = 0;
 		var continueWithPrint = false;
 		var waitingCallback = null;
+		var usingHeatbed = false;
 		var self = this;
 		
 		// Get state views
@@ -59,6 +60,7 @@ $(function() {
 		var extruderCenterY = (bedLowMaxY + bedLowMinY + 14.0) / 2;
 		var modelCenterOffsetX = -2.0;
 		var modelCenterOffsetY = -2.0;
+		var heatbedHeight = 10.0
 		
 		// Set printer materials
 		var printerMaterials = {
@@ -843,6 +845,24 @@ $(function() {
 
 				// Initialize
 				init: function() {
+				
+					// Check if using a heatbed
+					if(usingHeatbed) {
+					
+						// Adjust bed Z values
+						bedLowMaxZ = 5.0 + heatbedHeight;
+						bedLowMinZ = 0.0 + heatbedHeight;
+						bedMediumMinZ = bedLowMaxZ;
+					}
+					
+					// otherwise
+					else {
+					
+						// Set bed Z values to defaults
+						bedLowMaxZ = 5.0;
+						bedLowMinZ = 0.0;
+						bedMediumMinZ = bedLowMaxZ;
+					}
 
 					// Create scene
 					for(var i = 0; i < 2; i++)
@@ -895,11 +915,11 @@ $(function() {
 					this.scene[0].add(skyBox);
 				
 					// Create print bed
-					var mesh = new THREE.Mesh(new THREE.PlaneGeometry(121, 121), new THREE.MeshBasicMaterial({
+					var mesh = new THREE.Mesh(new THREE.CubeGeometry(121, 121, bedLowMinZ), new THREE.MeshBasicMaterial({
 						color: 0x000000,
 						side: THREE.DoubleSide
 					}));
-					mesh.position.set(0, -0.25, 0);
+					mesh.position.set(0, -0.25 + bedLowMinZ / 2, 0);
 					mesh.rotation.set(Math.PI / 2, 0, 0);
 					mesh.renderOrder = 4;
 				
@@ -1716,8 +1736,8 @@ $(function() {
 							boundaryBox.min.sub(viewport.models[i].mesh.position);
 							boundaryBox.max.sub(viewport.models[i].mesh.position);
 
-							// Set model's lowest Y value to be at 0
-							viewport.models[i].mesh.position.y -= viewport.models[i].mesh.position.y + boundaryBox.min.y;
+							// Set model's lowest Y value to be on the bed
+							viewport.models[i].mesh.position.y -= viewport.models[i].mesh.position.y + boundaryBox.min.y - bedLowMinZ;
 						}
 				
 					// Check if cutting models
@@ -7255,7 +7275,7 @@ $(function() {
 			}
 			
 			// Otherwise check if data is that a heatbed is connected
-			else if(data.value == "Heatbed Connected")
+			else if(data.value == "Heatbed Connected") {
 			
 				// Display message
 				new PNotify({
@@ -7264,9 +7284,17 @@ $(function() {
 				    type: "success",
 				    hide: false
 				});
+				
+				// Display heatbed controls
+				$("#control .heatbed").css("display", "block");
+				$("#control > div.jog-panel.extruder").find("h1:not(.heatbed)").text("Tools");
+				
+				// Set using heatbed
+				usingHeatbed = true;
+			}
 			
 			// Otherwise check if data is that a heatbed is disconnected
-			else if(data.value == "Heatbed Disconnected")
+			else if(data.value == "Heatbed Disconnected") {
 			
 				// Display message
 				new PNotify({
@@ -7275,6 +7303,14 @@ $(function() {
 				    type: "notice",
 				    hide: false
 				});
+				
+				// Hide heatbed controls
+				$("#control .heatbed").css("display", "none");
+				$("#control > div.jog-panel.extruder").find("h1:not(.heatbed)").text("Extruder");
+				
+				// Clear using heatbed
+				usingHeatbed = false;
+			}
 			
 			// Otherwise check if data is that a heatbed is detected
 			else if(data.value == "Heatbed Detected") {
@@ -7282,6 +7318,9 @@ $(function() {
 				// Display heatbed controls
 				$("#control .heatbed").css("display", "block");
 				$("#control > div.jog-panel.extruder").find("h1:not(.heatbed)").text("Tools");
+				
+				// Set using heatbed
+				usingHeatbed = true;
 			}
 			
 			// Otherwise check if data is that a heatbed is not detected
@@ -7290,6 +7329,9 @@ $(function() {
 				// Hide heatbed controls
 				$("#control .heatbed").css("display", "none");
 				$("#control > div.jog-panel.extruder").find("h1:not(.heatbed)").text("Extruder");
+				
+				// Clear using heatbed
+				usingHeatbed = false;
 			}
 			
 			// Otherwise check if data is current Z
