@@ -89,10 +89,7 @@ elif platform.uname()[0].startswith("Linux") :
 	if usingARaspberryPi() :
 	
 		# Import RPi GPIO
-		try :
-			import RPi.GPIO
-		except ImportError :
-			pass
+		import RPi.GPIO
 
 # Command class
 class Command(object) :
@@ -128,7 +125,6 @@ class M3DFioPlugin(
 		self.waiting = False
 		self.processingSlice = False
 		self.heatbedConnection = None
-		self.heatbedTemperature = 0
 		self.eeprom = None
 		self.messageResponse = None
 		self.invalidBedCenter = False
@@ -588,6 +584,9 @@ class M3DFioPlugin(
 	
 	# Monitor heatbed
 	def monitorHeatbed(self) :
+	
+		# Initialize variables
+		previousHeatbedPort = None
 		
 		# Loop forever
 		while True :
@@ -595,31 +594,21 @@ class M3DFioPlugin(
 			# Get heatbed port
 			heatbedPort = self.getHeatbedPort()
 		
-			# Check if a heatbed is connected
-			if self.heatbedConnection is not None :
+			# Check if a heatbed has been disconnected
+			if self.heatbedConnection is not None and heatbedPort is None :
 			
-				# Check if heatbed has been disconnected
-				if heatbedPort is None :
+				# Close heatbed connection
+				self.heatbedConnection.close()
+				self.heatbedConnection = None
+				
+				# Set heated bed to false in printer profile
+				if self._printer_profile_manager.exists("micro_3d") :
+					printerProfile = self._printer_profile_manager.get("micro_3d")
+					printerProfile["heatedBed"] = False
+					self._printer_profile_manager.save(printerProfile, True)
 			
-					# Close heatbed connection
-					self.heatbedConnection.close()
-					self.heatbedConnection = None
-					
-					# Set heated bed to false in printer profile
-					if self._printer_profile_manager.exists("micro_3d") :
-						printerProfile = self._printer_profile_manager.get("micro_3d")
-						printerProfile["heatedBed"] = False
-						self._printer_profile_manager.save(printerProfile, True)
-				
-					# Send message
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Heatbed Disconnected"))
-				
-				# Otherwise
-				else :
-				
-					# Read heatbed temperature
-					self.heatbedConnection.write("t\r")
-					self.heatbedTemperature = self.heatbedTemperature.readline()
+				# Send message
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Heatbed Disconnected"))
 			
 			# Otherwise check if a heatbed has been connected
 			elif self.heatbedConnection is None and heatbedPort is not None :
@@ -628,22 +617,48 @@ class M3DFioPlugin(
 				time.sleep(4)
 			
 				# Connect to heatbed
-				self.heatbedConnection = serial.Serial(heatbedPort, 115200)
+				error = False
+				try :
+					self.heatbedConnection = serial.Serial(heatbedPort, 115200, timeout = 1)
+					if serial.VERSION < 3 :
+						self.heatbedConnection.writeTimeout = 1
+					else :
+						self.heatbedConnection.write_timeout = 1
+				except Exception :
+					error = True
 				
-				# Put heatbed into temperature mode
-				self.heatbedConnection.write("i\r")
+				# Check if no errors occured
+				if not error :
 				
-				# Set heated bed to true in printer profile
-				if self._printer_profile_manager.exists("micro_3d") :
-					printerProfile = self._printer_profile_manager.get("micro_3d")
-					printerProfile["heatedBed"] = True
-					self._printer_profile_manager.save(printerProfile, True)
+					# Put heatbed into temperature mode
+					try :
+						self.heatbedConnection.write("i\r")
+					except Exception :
+						error = True
+					
+					# Check if no errors occured
+					if not error :
 				
-				# Send message
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Heatbed Connected"))
+						# Set heated bed to true in printer profile
+						if self._printer_profile_manager.exists("micro_3d") :
+							printerProfile = self._printer_profile_manager.get("micro_3d")
+							printerProfile["heatedBed"] = True
+							self._printer_profile_manager.save(printerProfile, True)
+				
+						# Send message
+						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Heatbed Connected"))
+				
+				# Otherwise check if an error occured and it hasn't been show yet
+				if error and previousHeatbedPort != heatbedPort :
+				
+					# Create error message
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create error message", title = "Heatbed error", text = "Failed to connect to heatbed"))
+			
+			# Set previous heatbed port
+			previousHeatbedPort = heatbedPort
 			
 			# Delay
-			time.sleep(1)
+			time.sleep(0.5)
 	
 	# On start
 	def on_after_startup(self) :
@@ -2503,10 +2518,13 @@ class M3DFioPlugin(
 					if gcode.getValue('M') == "140" :
 					
 						# Send heatbed the specified temperature
-						if gcode.hasValue('S') :
-							self.heatbedConnection.write("s " + gcode.getValue('S') + '\r')
-						else :
-							self.heatbedConnection.write("s 0\r")
+						try :
+							if gcode.hasValue('S') :
+								self.heatbedConnection.write("s " + gcode.getValue('S') + '\r')
+							else :
+								self.heatbedConnection.write("s 0\r")
+						except Exception :
+							pass
 						
 						# Set command to nothing
 						gcode.removeParameter('M')
@@ -2517,10 +2535,13 @@ class M3DFioPlugin(
 					elif gcode.getValue('M') == "190" :
 					
 						# Send heatbed the specified temperature
-						if gcode.hasValue('S') :
-							self.heatbedConnection.write("w " + gcode.getValue('S') + '\r')
-						else :
-							self.heatbedConnection.write("w 0\r")
+						try :
+							if gcode.hasValue('S') :
+								self.heatbedConnection.write("w " + gcode.getValue('S') + '\r')
+							else :
+								self.heatbedConnection.write("w 0\r")
+						except Exception :
+							pass
 						
 						# Set command to nothing
 						gcode.removeParameter('M')
@@ -2635,8 +2656,17 @@ class M3DFioPlugin(
 			# Check if using a heatbed
 			if self.heatbedConnection is not None :
 			
+				# Read heatbed temperature
+				try :
+					self.heatbedConnection.write("t\r")
+					heatbedTemperature = str(self.heatbedConnection.read())
+					heatbedTemperature += str(self.heatbedConnection.read(self.heatbedConnection.inWaiting()))
+				
+				except Exception :
+					heatbedTemperature = "0"
+			
 				# Append heatbed temperature to to response
-				response = response.rstrip() + " B:" + str(self.heatbedTemperature) + '\n'
+				response = response.rstrip() + " B:" + heatbedTemperature + '\n'
 		
 		# Otherwise
 		else :
