@@ -161,6 +161,12 @@ extern "C" {
 	Purpose: Returns the speed of the fan that the print uses
 	*/
 	EXPORT unsigned char getDetectedFanSpeed();
+	
+	/*
+	Name: Get object successfully centered
+	Purpose: Returns if the object has been centered
+	*/
+	EXPORT bool getObjectSuccessfullyCentered();
 }
 
 

@@ -760,6 +760,7 @@ class M3DFioPlugin(
 			self.sharedLibrary.collectPrintInformation.restype = ctypes.c_bool
 	  		self.sharedLibrary.preprocess.restype = ctypes.c_char_p
 	  		self.sharedLibrary.getDetectedFanSpeed.restype = ctypes.c_ubyte
+	  		self.sharedLibrary.getObjectSuccessfullyCentered.restype = ctypes.c_bool
 	    	
 	    	# Enable printer callbacks if using a Micro 3D printer
 	    	if not self._settings.get_boolean(["UsingADifferentPrinter"]) :
@@ -3039,6 +3040,9 @@ class M3DFioPlugin(
 					
 					# Get detected fan speed
 					self.detectedFanSpeed = self.sharedLibrary.getDetectedFanSpeed()
+					
+					# Get object successfully centered
+					self.objectSuccessfullyCentered = self.sharedLibrary.getObjectSuccessfullyCentered()
 	
 				# Otherwise
 				else :
@@ -3055,11 +3059,20 @@ class M3DFioPlugin(
 					# Stop printing
 					self._printer.cancel_print()
 				
-				# Otherwise check if detected fan speed is 0
-				elif self.detectedFanSpeed == 0 :
+				# Otherwise
+				else :
 				
-					# Create error message
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create notice message", title = "Print warning", text = "No fan speed has been detected in this file which could cause the print to fail"))
+					# Check if detected fan speed is 0
+					if self.detectedFanSpeed == 0 :
+				
+						# Create error message
+						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create notice message", title = "Print warning", text = "No fan speed has been detected in this file which could cause the print to fail"))
+					
+					# Check if objected couldn't be centered
+					if self._settings.get_boolean(["UseCenterModelPreprocessor"]) and self._settings.get_boolean(["AttemptToKeepInBounds"]) and not self.objectSuccessfullyCentered :
+			
+						# Create error message
+						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create notice message", title = "Print warning", text = "Object too large to center on print bed"))
 		
 				# Set pre-process on the fly ready
 				self.preprocessOnTheFlyReady = True
@@ -4605,6 +4618,9 @@ class M3DFioPlugin(
 				
 				# Get detected fan speed
 				self.detectedFanSpeed = self.sharedLibrary.getDetectedFanSpeed()
+				
+				# Get object successfully centered
+				self.objectSuccessfullyCentered = self.sharedLibrary.getObjectSuccessfullyCentered()
 			
 			# Otherwise
 			else :
@@ -4639,11 +4655,20 @@ class M3DFioPlugin(
 				# Return false
 				return False
 			
-			# Otherwise check if detected fan speed is 0
-			elif self.detectedFanSpeed == 0 :
+			# Otherwise
+			else :
 			
-				# Create error message
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create notice message", title = "Print warning", text = "No fan speed has been detected in this file which could cause the print to fail"))
+				# Check if detected fan speed is 0
+				if self.detectedFanSpeed == 0 :
+			
+					# Create error message
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create notice message", title = "Print warning", text = "No fan speed has been detected in this file which could cause the print to fail"))
+				
+				# Check if objected couldn't be centered
+				if self._settings.get_boolean(["UseCenterModelPreprocessor"]) and self._settings.get_boolean(["AttemptToKeepInBounds"]) and not self.objectSuccessfullyCentered :
+			
+					# Create error message
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create notice message", title = "Print warning", text = "Object too large to center on print bed"))
 			
 			# Move the input file to a temporary file
 			temp = tempfile.mkstemp()[1]
@@ -4699,6 +4724,9 @@ class M3DFioPlugin(
 		
 		# Reset detected fan speed
 		self.detectedFanSpeed = None
+		
+		# Reset object successfully centered
+		self.objectSuccessfullyCentered = True
 		
 		# Reset all print values
 		self.maxXExtruderLow = -sys.float_info.max
@@ -4936,33 +4964,39 @@ class M3DFioPlugin(
 					# Set additional displacement Y to positive displacement Y
 					additionalDisplacementY = positiveDisplacementY
 				
-				# Adjust print values
-				self.displacementX += additionalDisplacementX
-				self.displacementY += additionalDisplacementY
-				if self.maxXExtruderLow != -sys.float_info.max :
-					self.maxXExtruderLow += additionalDisplacementX
-				if self.maxXExtruderMedium != -sys.float_info.max :
-					self.maxXExtruderMedium += additionalDisplacementX
-				if self.maxXExtruderHigh != -sys.float_info.max :
-					self.maxXExtruderHigh += additionalDisplacementX
-				if self.maxYExtruderLow != -sys.float_info.max :
-					self.maxYExtruderLow += additionalDisplacementY
-				if self.maxYExtruderMedium != -sys.float_info.max :
-					self.maxYExtruderMedium += additionalDisplacementY
-				if self.maxYExtruderHigh != -sys.float_info.max :
-					self.maxYExtruderHigh += additionalDisplacementY
-				if self.minXExtruderLow != sys.float_info.max :
-					self.minXExtruderLow += additionalDisplacementX
-				if self.minXExtruderMedium != sys.float_info.max :
-					self.minXExtruderMedium += additionalDisplacementX
-				if self.minXExtruderHigh != sys.float_info.max :
-					self.minXExtruderHigh += additionalDisplacementX
-				if self.minYExtruderLow != sys.float_info.max :
-					self.minYExtruderLow += additionalDisplacementY
-				if self.minYExtruderMedium != sys.float_info.max :
-					self.minYExtruderMedium += additionalDisplacementY
-				if self.minYExtruderHigh != sys.float_info.max :
-					self.minYExtruderHigh += additionalDisplacementY
+				# Check if an additional displacement is necessary
+				if additionalDisplacementX != 0 or additionalDisplacementY != 0 :
+				
+					# Clear object successfully centered
+					self.objectSuccessfullyCentered = False
+				
+					# Adjust print values
+					self.displacementX += additionalDisplacementX
+					self.displacementY += additionalDisplacementY
+					if self.maxXExtruderLow != -sys.float_info.max :
+						self.maxXExtruderLow += additionalDisplacementX
+					if self.maxXExtruderMedium != -sys.float_info.max :
+						self.maxXExtruderMedium += additionalDisplacementX
+					if self.maxXExtruderHigh != -sys.float_info.max :
+						self.maxXExtruderHigh += additionalDisplacementX
+					if self.maxYExtruderLow != -sys.float_info.max :
+						self.maxYExtruderLow += additionalDisplacementY
+					if self.maxYExtruderMedium != -sys.float_info.max :
+						self.maxYExtruderMedium += additionalDisplacementY
+					if self.maxYExtruderHigh != -sys.float_info.max :
+						self.maxYExtruderHigh += additionalDisplacementY
+					if self.minXExtruderLow != sys.float_info.max :
+						self.minXExtruderLow += additionalDisplacementX
+					if self.minXExtruderMedium != sys.float_info.max :
+						self.minXExtruderMedium += additionalDisplacementX
+					if self.minXExtruderHigh != sys.float_info.max :
+						self.minXExtruderHigh += additionalDisplacementX
+					if self.minYExtruderLow != sys.float_info.max :
+						self.minYExtruderLow += additionalDisplacementY
+					if self.minYExtruderMedium != sys.float_info.max :
+						self.minYExtruderMedium += additionalDisplacementY
+					if self.minYExtruderHigh != sys.float_info.max :
+						self.minYExtruderHigh += additionalDisplacementY
 			
 			# Check if not ignoring print dimension limitations and adjusted print values are out of bounds
 			if not self._settings.get_boolean(["IgnorePrintDimensionLimitations"]) and (self.minZExtruder < self.bedLowMinZ or self.maxZExtruder > self.bedHighMaxZ or self.maxXExtruderLow > self.bedLowMaxX or self.maxXExtruderMedium > self.bedMediumMaxX or self.maxXExtruderHigh > self.bedHighMaxX or self.maxYExtruderLow > self.bedLowMaxY or self.maxYExtruderMedium > self.bedMediumMaxY or self.maxYExtruderHigh > self.bedHighMaxY or self.minXExtruderLow < self.bedLowMinX or self.minXExtruderMedium < self.bedMediumMinX or self.minXExtruderHigh < self.bedHighMinX or self.minYExtruderLow < self.bedLowMinY or self.minYExtruderMedium < self.bedMediumMinY or self.minYExtruderHigh < self.bedHighMinY) :

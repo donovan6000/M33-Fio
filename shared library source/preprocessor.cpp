@@ -155,6 +155,7 @@ bool removeTemperatureCommands;
 bool useExternalFan;
 bool attemptToKeepInBounds;
 int16_t detectedFanSpeed;
+bool objectSuccessfullyCentered;
 
 // Return value
 string returnValue;
@@ -761,6 +762,9 @@ EXPORT bool collectPrintInformation(const char *file) {
 		
 		// Reset detected fan speed
 		detectedFanSpeed = -1;
+		
+		// Reset object successfully centered
+		objectSuccessfullyCentered = true;
 	
 		// Reset all print values
 		maxXExtruderLow = -DBL_MAX;
@@ -1025,33 +1029,40 @@ EXPORT bool collectPrintInformation(const char *file) {
 					// Set additional displacement Y to positive displacement Y
 					additionalDisplacementY = positiveDisplacementY;
 				
-				// Adjust print values
-				displacementX += additionalDisplacementX;
-				displacementY += additionalDisplacementY;
-				if(maxXExtruderLow != -DBL_MAX)
-					maxXExtruderLow += additionalDisplacementX;
-				if(maxXExtruderMedium != -DBL_MAX)
-					maxXExtruderMedium += additionalDisplacementX;
-				if(maxXExtruderHigh != -DBL_MAX)
-					maxXExtruderHigh += additionalDisplacementX;
-				if(maxYExtruderLow != -DBL_MAX)
-					maxYExtruderLow += additionalDisplacementY;
-				if(maxYExtruderMedium != -DBL_MAX)
-					maxYExtruderMedium += additionalDisplacementY;
-				if(maxYExtruderHigh != -DBL_MAX)
-					maxYExtruderHigh += additionalDisplacementY;
-				if(minXExtruderLow != DBL_MAX)
-					minXExtruderLow += additionalDisplacementX;
-				if(minXExtruderMedium != DBL_MAX)
-					minXExtruderMedium += additionalDisplacementX;
-				if(minXExtruderHigh != DBL_MAX)
-					minXExtruderHigh += additionalDisplacementX;
-				if(minYExtruderLow != DBL_MAX)
-					minYExtruderLow += additionalDisplacementY;
-				if(minYExtruderMedium != DBL_MAX)
-					minYExtruderMedium += additionalDisplacementY;
-				if(minYExtruderHigh != DBL_MAX)
-					minYExtruderHigh += additionalDisplacementY;
+				// Check if an additional displacement is necessary
+				if(additionalDisplacementX != 0 || additionalDisplacementY != 0) {
+				
+					// Clear object successfully centered
+					objectSuccessfullyCentered = false;
+					
+					// Adjust print values
+					displacementX += additionalDisplacementX;
+					displacementY += additionalDisplacementY;
+					if(maxXExtruderLow != -DBL_MAX)
+						maxXExtruderLow += additionalDisplacementX;
+					if(maxXExtruderMedium != -DBL_MAX)
+						maxXExtruderMedium += additionalDisplacementX;
+					if(maxXExtruderHigh != -DBL_MAX)
+						maxXExtruderHigh += additionalDisplacementX;
+					if(maxYExtruderLow != -DBL_MAX)
+						maxYExtruderLow += additionalDisplacementY;
+					if(maxYExtruderMedium != -DBL_MAX)
+						maxYExtruderMedium += additionalDisplacementY;
+					if(maxYExtruderHigh != -DBL_MAX)
+						maxYExtruderHigh += additionalDisplacementY;
+					if(minXExtruderLow != DBL_MAX)
+						minXExtruderLow += additionalDisplacementX;
+					if(minXExtruderMedium != DBL_MAX)
+						minXExtruderMedium += additionalDisplacementX;
+					if(minXExtruderHigh != DBL_MAX)
+						minXExtruderHigh += additionalDisplacementX;
+					if(minYExtruderLow != DBL_MAX)
+						minYExtruderLow += additionalDisplacementY;
+					if(minYExtruderMedium != DBL_MAX)
+						minYExtruderMedium += additionalDisplacementY;
+					if(minYExtruderHigh != DBL_MAX)
+						minYExtruderHigh += additionalDisplacementY;
+				}
 			}
 			
 			// Check if not ignoring print dimension limitations and adjusted print values are out of bounds
@@ -2291,4 +2302,10 @@ EXPORT unsigned char getDetectedFanSpeed() {
 
 	// Return detected fan speed
 	return detectedFanSpeed;
+}
+
+EXPORT bool getObjectSuccessfullyCentered() {
+
+	// Return object successfully centered
+	return objectSuccessfullyCentered;
 }
