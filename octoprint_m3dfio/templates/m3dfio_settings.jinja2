@@ -45,8 +45,15 @@
 	<div class="control-group">
 		<h4>Pre-Processor Stages</h4>
 		<div class="controls">
-			<label class="checkbox" title="Positions the printed object in the middle of the print bed according to the object's maximum and minimum dimensions">
+			<label class="checkbox" title="Positions the printed object in the middle of the print bed">
 				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.UseCenterModelPreprocessor"><span>Center Model</span>
+			</label>
+		</div>
+	</div>
+	<div class="control-group dependant">
+		<div class="controls">
+			<label class="checkbox" title="The centered object will be repositioned to stay within the printable region if possible">
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.AttemptToKeepInBounds"><span>Attempt to keep in bounds</span>
 			</label>
 		</div>
 	</div>

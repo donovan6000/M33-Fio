@@ -1012,7 +1012,8 @@ class M3DFioPlugin(
 			RemoveFanCommands = True,
 			RemoveTemperatureCommands = True,
 			UseExternalFan = False,
-			ExternalFanPin = None
+			ExternalFanPin = None,
+			AttemptToKeepInBounds = False
 		)
 	
 	# Template manager
@@ -1312,6 +1313,7 @@ class M3DFioPlugin(
 						self.sharedLibrary.setRemoveFanCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveFanCommands"])))
 						self.sharedLibrary.setRemoveTemperatureCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveTemperatureCommands"])))
 						self.sharedLibrary.setUseExternalFan(ctypes.c_bool(self._settings.get_boolean(["UseExternalFan"])))
+						self.sharedLibrary.setAttemptToKeepInBounds(ctypes.c_bool(self._settings.get_boolean(["AttemptToKeepInBounds"])))
 						
 						# Collect print information
 						self.sharedLibrary.collectPrintInformation(ctypes.c_char_p(location))
@@ -2478,7 +2480,7 @@ class M3DFioPlugin(
 						if gcode.hasValue('S') :
 							self.heatbedConnection.write("s " + gcode.getValue('S') + '\r')
 						else :
-							self.heatbedConnection.write("s 0\r");
+							self.heatbedConnection.write("s 0\r")
 						
 						# Set command to nothing
 						gcode.removeParameter('M')
@@ -2492,7 +2494,7 @@ class M3DFioPlugin(
 						if gcode.hasValue('S') :
 							self.heatbedConnection.write("w " + gcode.getValue('S') + '\r')
 						else :
-							self.heatbedConnection.write("w 0\r");
+							self.heatbedConnection.write("w 0\r")
 						
 						# Set command to nothing
 						gcode.removeParameter('M')
@@ -3030,6 +3032,7 @@ class M3DFioPlugin(
 					self.sharedLibrary.setRemoveFanCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveFanCommands"])))
 					self.sharedLibrary.setRemoveTemperatureCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveTemperatureCommands"])))
 					self.sharedLibrary.setUseExternalFan(ctypes.c_bool(self._settings.get_boolean(["UseExternalFan"])))
+					self.sharedLibrary.setAttemptToKeepInBounds(ctypes.c_bool(self._settings.get_boolean(["AttemptToKeepInBounds"])))
 		
 					# Collect print information
 					printIsValid = self.sharedLibrary.collectPrintInformation(ctypes.c_char_p(payload.get("file")))
@@ -4595,6 +4598,7 @@ class M3DFioPlugin(
 				self.sharedLibrary.setRemoveFanCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveFanCommands"])))
 				self.sharedLibrary.setRemoveTemperatureCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveTemperatureCommands"])))
 				self.sharedLibrary.setUseExternalFan(ctypes.c_bool(self._settings.get_boolean(["UseExternalFan"])))
+				self.sharedLibrary.setAttemptToKeepInBounds(ctypes.c_bool(self._settings.get_boolean(["AttemptToKeepInBounds"])))
 						
 				# Collect print information
 				printIsValid = self.sharedLibrary.collectPrintInformation(ctypes.c_char_p(input))
@@ -4878,6 +4882,87 @@ class M3DFioPlugin(
 				self.minYExtruderMedium += self.displacementY
 			if self.minYExtruderHigh != sys.float_info.max :
 				self.minYExtruderHigh += self.displacementY
+			
+			# Check if attempting to keep in bounds
+			if self._settings.get_boolean(["AttemptToKeepInBounds"]) :
+			
+				# Get negative displacement X
+				negativeDisplacementX = 0
+				negativeDisplacementX = max(self.maxXExtruderLow - self.bedLowMaxX, negativeDisplacementX)
+				negativeDisplacementX = max(self.maxXExtruderMedium - self.bedMediumMaxX, negativeDisplacementX)
+				negativeDisplacementX = max(self.maxXExtruderHigh - self.bedHighMaxX, negativeDisplacementX)
+				
+				# Get positive displacement X
+				positiveDisplacementX = 0
+				positiveDisplacementX = max(self.bedLowMinX - self.minXExtruderLow, positiveDisplacementX)
+				positiveDisplacementX = max(self.bedMediumMinX - self.minXExtruderMedium, positiveDisplacementX)
+				positiveDisplacementX = max(self.bedHighMinX - self.minXExtruderHigh, positiveDisplacementX)
+				
+				# Check if a negative displacement X is possible
+				additionalDisplacementX = 0
+				if negativeDisplacementX > 0 and positiveDisplacementX <= 0 :
+				
+					# Set additional displacement X to negative displacement X
+					additionalDisplacementX = -negativeDisplacementX
+				
+				# Otherwise check if a positive displacement X is possible
+				elif positiveDisplacementX > 0 and negativeDisplacementX <= 0 :
+				
+					# Set additional displacement X to positive displacement X
+					additionalDisplacementX = positiveDisplacementX
+				
+				# Get negative displacement Y
+				negativeDisplacementY = 0
+				negativeDisplacementY = max(self.maxYExtruderLow - self.bedLowMaxY, negativeDisplacementY)
+				negativeDisplacementY = max(self.maxYExtruderMedium - self.bedMediumMaxY, negativeDisplacementY)
+				negativeDisplacementY = max(self.maxYExtruderHigh - self.bedHighMaxY, negativeDisplacementY)
+				
+				# Get positive displacement Y
+				positiveDisplacementY = 0
+				positiveDisplacementY = max(self.bedLowMinY - self.minYExtruderLow, positiveDisplacementY)
+				positiveDisplacementY = max(self.bedMediumMinY - self.minYExtruderMedium, positiveDisplacementY)
+				positiveDisplacementY = max(self.bedHighMinY - self.minYExtruderHigh, positiveDisplacementY)
+				
+				# Check if a negative displacement Y is possible
+				additionalDisplacementY = 0
+				if negativeDisplacementY > 0 and positiveDisplacementY <= 0 :
+				
+					# Set additional displacement Y to negative displacement Y
+					additionalDisplacementY = -negativeDisplacementY
+				
+				# Otherwise check if a positive displacement Y is possible
+				elif positiveDisplacementY > 0 and negativeDisplacementY <= 0 :
+				
+					# Set additional displacement Y to positive displacement Y
+					additionalDisplacementY = positiveDisplacementY
+				
+				# Adjust print values
+				self.displacementX += additionalDisplacementX
+				self.displacementY += additionalDisplacementY
+				if self.maxXExtruderLow != -sys.float_info.max :
+					self.maxXExtruderLow += additionalDisplacementX
+				if self.maxXExtruderMedium != -sys.float_info.max :
+					self.maxXExtruderMedium += additionalDisplacementX
+				if self.maxXExtruderHigh != -sys.float_info.max :
+					self.maxXExtruderHigh += additionalDisplacementX
+				if self.maxYExtruderLow != -sys.float_info.max :
+					self.maxYExtruderLow += additionalDisplacementY
+				if self.maxYExtruderMedium != -sys.float_info.max :
+					self.maxYExtruderMedium += additionalDisplacementY
+				if self.maxYExtruderHigh != -sys.float_info.max :
+					self.maxYExtruderHigh += additionalDisplacementY
+				if self.minXExtruderLow != sys.float_info.max :
+					self.minXExtruderLow += additionalDisplacementX
+				if self.minXExtruderMedium != sys.float_info.max :
+					self.minXExtruderMedium += additionalDisplacementX
+				if self.minXExtruderHigh != sys.float_info.max :
+					self.minXExtruderHigh += additionalDisplacementX
+				if self.minYExtruderLow != sys.float_info.max :
+					self.minYExtruderLow += additionalDisplacementY
+				if self.minYExtruderMedium != sys.float_info.max :
+					self.minYExtruderMedium += additionalDisplacementY
+				if self.minYExtruderHigh != sys.float_info.max :
+					self.minYExtruderHigh += additionalDisplacementY
 			
 			# Check if not ignoring print dimension limitations and adjusted print values are out of bounds
 			if not self._settings.get_boolean(["IgnorePrintDimensionLimitations"]) and (self.minZExtruder < self.bedLowMinZ or self.maxZExtruder > self.bedHighMaxZ or self.maxXExtruderLow > self.bedLowMaxX or self.maxXExtruderMedium > self.bedMediumMaxX or self.maxXExtruderHigh > self.bedHighMaxX or self.maxYExtruderLow > self.bedLowMaxY or self.maxYExtruderMedium > self.bedMediumMaxY or self.maxYExtruderHigh > self.bedHighMaxY or self.minXExtruderLow < self.bedLowMinX or self.minXExtruderMedium < self.bedMediumMinX or self.minXExtruderHigh < self.bedHighMinX or self.minYExtruderLow < self.bedLowMinY or self.minYExtruderMedium < self.bedMediumMinY or self.minYExtruderHigh < self.bedHighMinY) :

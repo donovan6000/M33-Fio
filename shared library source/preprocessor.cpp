@@ -153,6 +153,7 @@ bool calibrateBeforePrint;
 bool removeFanCommands;
 bool removeTemperatureCommands;
 bool useExternalFan;
+bool attemptToKeepInBounds;
 int16_t detectedFanSpeed;
 
 // Return value
@@ -654,6 +655,12 @@ EXPORT void setUseExternalFan(bool value) {
 	useExternalFan = value;
 }
 
+EXPORT void setAttemptToKeepInBounds(bool value) {
+
+	// Set attempt to keep in bounds
+	attemptToKeepInBounds = value;
+}
+
 EXPORT void resetPreprocessorSettings() {
 
 	// General settings
@@ -964,6 +971,88 @@ EXPORT bool collectPrintInformation(const char *file) {
 				minYExtruderMedium += displacementY;
 			if(minYExtruderHigh != DBL_MAX)
 				minYExtruderHigh += displacementY;
+			
+			// Check if attempting to keep in bounds
+			if(attemptToKeepInBounds) {
+			
+				// Get negative displacement X
+				double negativeDisplacementX = 0;
+				negativeDisplacementX = max(maxXExtruderLow - BED_LOW_MAX_X, negativeDisplacementX);
+				negativeDisplacementX = max(maxXExtruderMedium - BED_MEDIUM_MAX_X, negativeDisplacementX);
+				negativeDisplacementX = max(maxXExtruderHigh - BED_HIGH_MAX_X, negativeDisplacementX);
+				
+				// Get positive displacement X
+				double positiveDisplacementX = 0;
+				positiveDisplacementX = max(BED_LOW_MIN_X - minXExtruderLow, positiveDisplacementX);
+				positiveDisplacementX = max(BED_MEDIUM_MIN_X - minXExtruderMedium, positiveDisplacementX);
+				positiveDisplacementX = max(BED_HIGH_MIN_X - minXExtruderHigh, positiveDisplacementX);
+				
+				// Check if a negative displacement X is possible
+				double additionalDisplacementX = 0;
+				if(negativeDisplacementX > 0 && positiveDisplacementX <= 0)
+				
+					// Set additional displacement X to negative displacement X
+					additionalDisplacementX = -negativeDisplacementX;
+				
+				// Otherwise check if a positive displacement X is possible
+				else if(positiveDisplacementX > 0 && negativeDisplacementX <= 0)
+				
+					// Set additional displacement X to positive displacement X
+					additionalDisplacementX = positiveDisplacementX;
+				
+				// Get negative displacement Y
+				double negativeDisplacementY = 0;
+				negativeDisplacementY = max(maxYExtruderLow - BED_LOW_MAX_Y, negativeDisplacementY);
+				negativeDisplacementY = max(maxYExtruderMedium - BED_MEDIUM_MAX_Y, negativeDisplacementY);
+				negativeDisplacementY = max(maxYExtruderHigh - BED_HIGH_MAX_Y, negativeDisplacementY);
+				
+				// Get positive displacement Y
+				double positiveDisplacementY = 0;
+				positiveDisplacementY = max(BED_LOW_MIN_Y - minYExtruderLow, positiveDisplacementY);
+				positiveDisplacementY = max(BED_MEDIUM_MIN_Y - minYExtruderMedium, positiveDisplacementY);
+				positiveDisplacementY = max(BED_HIGH_MIN_Y - minYExtruderHigh, positiveDisplacementY);
+				
+				// Check if a negative displacement Y is possibl
+				double additionalDisplacementY = 0;
+				if(negativeDisplacementY > 0 && positiveDisplacementY <= 0)
+				
+					// Set additional displacement Y to negative displacement Y
+					additionalDisplacementY = -negativeDisplacementY;
+				
+				// Otherwise check if a positive displacement Y is possible
+				else if(positiveDisplacementY > 0 && negativeDisplacementY <= 0)
+				
+					// Set additional displacement Y to positive displacement Y
+					additionalDisplacementY = positiveDisplacementY;
+				
+				// Adjust print values
+				displacementX += additionalDisplacementX;
+				displacementY += additionalDisplacementY;
+				if(maxXExtruderLow != -DBL_MAX)
+					maxXExtruderLow += additionalDisplacementX;
+				if(maxXExtruderMedium != -DBL_MAX)
+					maxXExtruderMedium += additionalDisplacementX;
+				if(maxXExtruderHigh != -DBL_MAX)
+					maxXExtruderHigh += additionalDisplacementX;
+				if(maxYExtruderLow != -DBL_MAX)
+					maxYExtruderLow += additionalDisplacementY;
+				if(maxYExtruderMedium != -DBL_MAX)
+					maxYExtruderMedium += additionalDisplacementY;
+				if(maxYExtruderHigh != -DBL_MAX)
+					maxYExtruderHigh += additionalDisplacementY;
+				if(minXExtruderLow != DBL_MAX)
+					minXExtruderLow += additionalDisplacementX;
+				if(minXExtruderMedium != DBL_MAX)
+					minXExtruderMedium += additionalDisplacementX;
+				if(minXExtruderHigh != DBL_MAX)
+					minXExtruderHigh += additionalDisplacementX;
+				if(minYExtruderLow != DBL_MAX)
+					minYExtruderLow += additionalDisplacementY;
+				if(minYExtruderMedium != DBL_MAX)
+					minYExtruderMedium += additionalDisplacementY;
+				if(minYExtruderHigh != DBL_MAX)
+					minYExtruderHigh += additionalDisplacementY;
+			}
 			
 			// Check if not ignoring print dimension limitations and adjusted print values are out of bounds
 			if(!ignorePrintDimensionLimitations && (minZExtruder < BED_LOW_MIN_Z || maxZExtruder > bedHighMaxZ || maxXExtruderLow > BED_LOW_MAX_X || maxXExtruderMedium > BED_MEDIUM_MAX_X || maxXExtruderHigh > BED_HIGH_MAX_X || maxYExtruderLow > BED_LOW_MAX_Y || maxYExtruderMedium > BED_MEDIUM_MAX_Y || maxYExtruderHigh > BED_HIGH_MAX_Y || minXExtruderLow < BED_LOW_MIN_X || minXExtruderMedium < BED_MEDIUM_MIN_X || minXExtruderHigh < BED_HIGH_MIN_X || minYExtruderLow < BED_LOW_MIN_Y || minYExtruderMedium < BED_MEDIUM_MIN_Y || minYExtruderHigh < BED_HIGH_MIN_Y))
