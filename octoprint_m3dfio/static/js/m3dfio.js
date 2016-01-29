@@ -5782,8 +5782,10 @@ $(function() {
 			// Set commands
 			var commands = [
 				"G90",
+				"G90",
 				"G0 Z3 F90",
 				"G28",
+				"G0 X9 Y5 Z3 F3000",
 				"G0 X9 Y5 Z3 F3000"
 			];
 		
@@ -5803,8 +5805,10 @@ $(function() {
 			// Set commands
 			var commands = [
 				"G90",
+				"G90",
 				"G0 Z3 F90",
 				"G28",
+				"G0 X99 Y5 Z3 F3000",
 				"G0 X99 Y5 Z3 F3000"
 			];
 		
@@ -5824,8 +5828,10 @@ $(function() {
 			// Set commands
 			var commands = [
 				"G90",
+				"G90",
 				"G0 Z3 F90",
 				"G28",
+				"G0 X99 Y95 Z3 F3000",
 				"G0 X99 Y95 Z3 F3000"
 			];
 		
@@ -5845,8 +5851,10 @@ $(function() {
 			// Set commands
 			var commands = [
 				"G90",
+				"G90",
 				"G0 Z3 F90",
 				"G28",
+				"G0 X9 Y95 Z3 F3000",
 				"G0 X9 Y95 Z3 F3000"
 			];
 		
@@ -6382,8 +6390,10 @@ $(function() {
 						// Set commands
 						var commands = [
 							"G90",
+							"G90",
 							"G0 Z3 F90",
 							"G28",
+							"G0 X9 Y5 Z3 F3000",
 							"G0 X9 Y5 Z3 F3000",
 							"M65536;wait"
 						];
@@ -6425,8 +6435,10 @@ $(function() {
 										// Set commands
 										var commands = [
 											"G90",
+											"G90",
 											"G0 Z3 F90",
 											"G28",
+											"G0 X99 Y5 Z3 F3000",
 											"G0 X99 Y5 Z3 F3000",
 											"M65536;wait"
 										];
@@ -6468,8 +6480,10 @@ $(function() {
 														// Set commands
 														var commands = [
 															"G90",
+															"G90",
 															"G0 Z3 F90",
 															"G28",
+															"G0 X99 Y95 Z3 F3000",
 															"G0 X99 Y95 Z3 F3000",
 															"M65536;wait"
 														];
@@ -6511,8 +6525,10 @@ $(function() {
 																		// Set commands
 																		var commands = [
 																			"G90",
+																			"G90",
 																			"G0 Z3 F90",
 																			"G28",
+																			"G0 X9 Y95 Z3 F3000",
 																			"G0 X9 Y95 Z3 F3000",
 																			"M65536;wait"
 																		];
