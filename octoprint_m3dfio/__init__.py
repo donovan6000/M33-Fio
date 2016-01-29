@@ -1469,29 +1469,20 @@ class M3DFioPlugin(
 						# Check if an error hasn't occured
 						if not error :
 					
-							# Send new EEPROM
-							self.getEeprom(connection, True)
+							# Clear EEPROM
+							self.eeprom = None
 				
 					# Close connection
 					connection.close()
-		
+					
+					# Save connection
+					self.savedCurrentPort = currentPort
+					self.savedCurrentBaudrate = currentBaudrate
+					self.savedCurrentProfile = currentProfile
+					
 					# Enable printer callbacks if using a Micro 3D printer
 		    			if not self._settings.get_boolean(["UsingADifferentPrinter"]) :
 						self._printer.register_callback(self)
-		
-					# Re-connect
-					self._printer.connect(currentPort, currentBaudrate, currentProfile)
-					
-					# Wait until connection is established
-					while not isinstance(self._printer.get_transport(), serial.Serial) :
-						time.sleep(1)
-				
-					# Remove serial timeout
-					self._printer.get_transport().timeout = None
-					if serial.VERSION < 3 :
-						self._printer.get_transport().writeTimeout = None
-					else :
-						self._printer.get_transport().write_timeout = None
 				
 				# Send response
 				if error :
@@ -1509,13 +1500,19 @@ class M3DFioPlugin(
 					self.sendCommands(self.getSaveCommands())
 			
 			# Otherwise check if parameter is a response to a message
-			elif self.messageResponse is None and (data["value"] == "Ok" or data["value"] == "Yes" or data["value"] == "No") :
+			elif data["value"] == "Ok" or data["value"] == "Yes" or data["value"] == "No" :
 			
-				# Set response
-				if data["value"] == "No" :
-					self.messageResponse = False
-				else :
-					self.messageResponse = True
+				# Check if waiting for a response
+				if self.messageResponse is None :
+			
+					# Set response
+					if data["value"] == "No" :
+						self.messageResponse = False
+					else :
+						self.messageResponse = True
+				
+				# Send response
+				return flask.jsonify(dict(value = "Ok"))
 			
 			# Otherwise check if parameter is to disable reminder
 			elif data["value"].startswith("Disable Reminder:") :
@@ -1628,29 +1625,20 @@ class M3DFioPlugin(
 					# Otherwise
 					else :
 				
-						# Send new EEPROM
-						self.getEeprom(connection, True)
+						# Clear EEPROM
+						self.eeprom = None
 			
 				# Close connection
 				connection.close()
+				
+				# Save connection
+				self.savedCurrentPort = currentPort
+				self.savedCurrentBaudrate = currentBaudrate
+				self.savedCurrentProfile = currentProfile
 			
 				# Enable printer callbacks if using a Micro 3D printer
 		    		if not self._settings.get_boolean(["UsingADifferentPrinter"]) :
 					self._printer.register_callback(self)
-			
-				# Re-connect
-				self._printer.connect(currentPort, currentBaudrate, currentProfile)
-				
-				# Wait until connection is established
-				while not isinstance(self._printer.get_transport(), serial.Serial) :
-					time.sleep(1)
-				
-				# Remove serial timeout
-				self._printer.get_transport().timeout = None
-				if serial.VERSION < 3 :
-					self._printer.get_transport().writeTimeout = None
-				else :
-					self._printer.get_transport().write_timeout = None
 			
 				# Send response
 				if error :
@@ -1791,6 +1779,20 @@ class M3DFioPlugin(
 			
 				# Return response
 				return flask.jsonify(dict(value = "Ok"))
+			
+			# Otherwise check if parameter is to reconnect
+			elif data["value"] == "Reconnect" :
+			
+				# Check if connection was saved
+				if hasattr(self, "savedCurrentPort") and self.savedCurrentPort is not None and hasattr(self, "savedCurrentBaudrate") and self.savedCurrentBaudrate is not None and hasattr(self, "savedCurrentProfile") and self.savedCurrentProfile is not None :
+				
+					# Re-connect
+					self._printer.connect(self.savedCurrentPort, self.savedCurrentBaudrate, self.savedCurrentProfile)
+					
+					# Remove saved connection
+					self.savedCurrentPort = None
+					self.savedCurrentBaudrate = None
+					self.savedCurrentProfile = None
 		
 		# Otherwise check if command is a file
 		elif command == "file" :
@@ -1851,11 +1853,16 @@ class M3DFioPlugin(
 					# Otherwise
 					else :
 					
-						# Send new EEPROM
-						self.getEeprom(connection, True)
+						# Clear EEPROM
+						self.eeprom = None
 				
 				# Close connection
 				connection.close()
+				
+				# Save connection
+				self.savedCurrentPort = currentPort
+				self.savedCurrentBaudrate = currentBaudrate
+				self.savedCurrentProfile = currentProfile
 			
 			# Otherwise
 			else :
@@ -1866,20 +1873,6 @@ class M3DFioPlugin(
 			# Enable printer callbacks if using a Micro 3D printer
 		    	if not self._settings.get_boolean(["UsingADifferentPrinter"]) :
 				self._printer.register_callback(self)
-			
-			# Re-connect
-			self._printer.connect(currentPort, currentBaudrate, currentProfile)
-			
-			# Wait until connection is established
-			while not isinstance(self._printer.get_transport(), serial.Serial) :
-				time.sleep(1)
-		
-			# Remove serial timeout
-			self._printer.get_transport().timeout = None
-			if serial.VERSION < 3 :
-				self._printer.get_transport().writeTimeout = None
-			else :
-				self._printer.get_transport().write_timeout = None
 			
 			# Send response
 			if error :
@@ -1925,31 +1918,33 @@ class M3DFioPlugin(
 		# Remove newline character from end of EEPROM
 		self.eeprom = self.eeprom[:-1]
 		
-		# Send EEPROM if set
+		# Check if sending
 		if send :
+		
+			# Send EEPROM
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "EEPROM", eeprom = self.eeprom.encode("hex").upper()))
 		
-		# Get firmware version from EEPROM
-		index = 3
-		firmwareVersion = 0
-		while index >= 0 :
-			firmwareVersion <<= 8
-			firmwareVersion += int(ord(self.eeprom[self.eepromOffsets["firmwareVersion"]["offset"] + index]))
-			index -= 1
+			# Get firmware version from EEPROM
+			index = 3
+			firmwareVersion = 0
+			while index >= 0 :
+				firmwareVersion <<= 8
+				firmwareVersion += int(ord(self.eeprom[self.eepromOffsets["firmwareVersion"]["offset"] + index]))
+				index -= 1
 		
-		# Get firmware name
-		firmwareName = None
-		firmwareRelease = None
-		for firmware in self.providedFirmwares :
-			if int(self.providedFirmwares[firmware]["Version"]) / 100000000 == firmwareVersion / 100000000 :
-				firmwareName = firmware
+			# Get firmware name
+			firmwareName = None
+			firmwareRelease = None
+			for firmware in self.providedFirmwares :
+				if int(self.providedFirmwares[firmware]["Version"]) / 100000000 == firmwareVersion / 100000000 :
+					firmwareName = firmware
 		
-		# Get firmware release
-		firmwareRelease = format(firmwareVersion, "010")
-		if firmwareName is None or firmwareName != "M3D" :
-			firmwareRelease = firmwareRelease[2 : 4] + '.' + firmwareRelease[4 : 6] + '.' + firmwareRelease[6 : 8] + '.' + firmwareRelease[8 : 10]
+			# Get firmware release
+			firmwareRelease = format(firmwareVersion, "010")
+			if firmwareName is None or firmwareName != "M3D" :
+				firmwareRelease = firmwareRelease[2 : 4] + '.' + firmwareRelease[4 : 6] + '.' + firmwareRelease[6 : 8] + '.' + firmwareRelease[8 : 10]
 		
-		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Current Firmware", name = firmwareName, release = firmwareRelease))
+			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Current Firmware", name = firmwareName, release = firmwareRelease))
 		
 		# Get serial number from EEPROM
 		serialNumber = self.eeprom[self.eepromOffsets["serialNumber"]["offset"] : self.eepromOffsets["serialNumber"]["offset"] + self.eepromOffsets["serialNumber"]["bytes"] - 1]
@@ -2481,7 +2476,7 @@ class M3DFioPlugin(
 					
 						# Send heatbed the specified temperature
 						if gcode.hasValue('S') :
-							self.heatbedConnection.write("s " + gcode.hasValue('S') + '\r')
+							self.heatbedConnection.write("s " + gcode.getValue('S') + '\r')
 						else :
 							self.heatbedConnection.write("s 0\r");
 						
@@ -2495,7 +2490,7 @@ class M3DFioPlugin(
 					
 						# Send heatbed the specified temperature
 						if gcode.hasValue('S') :
-							self.heatbedConnection.write("w " + gcode.hasValue('S') + '\r')
+							self.heatbedConnection.write("w " + gcode.getValue('S') + '\r')
 						else :
 							self.heatbedConnection.write("w 0\r");
 						
@@ -2613,7 +2608,7 @@ class M3DFioPlugin(
 			if self.heatbedConnection is not None :
 			
 				# Append heatbed temperature to to response
-				response = response.rstrip() + " B:" + self.heatbedTemperature + '\n'
+				response = response.rstrip() + " B:" + str(self.heatbedTemperature) + '\n'
 		
 		# Otherwise
 		else :
@@ -3707,7 +3702,7 @@ class M3DFioPlugin(
 						
 								# Send message
 								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating firmware"))
-						
+								
 								# Check if updating firmware failed
 								if not self.updateToProvidedFirmware(connection, firmwareName) :
 						
