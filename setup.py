@@ -56,6 +56,12 @@ def params():
 	# Read the requirements from our requirements.txt file
 	install_requires = open("requirements.txt").read().split("\n")
 	
+	# Add requirements for using a Raspberry Pi
+	import platform
+	if platform.uname()[0].startswith("Linux") and ((platform.uname()[4].startswith("armv6l") and getCpuHardware() == "BCM2708") or (platform.uname()[4].startswith("armv7l") and getCpuHardware() == "BCM2709")) :
+		install_requires.pop()
+		install_requires += ["RPi.GPIO>=0.6.1", '']
+	
 	# Hook the plugin into the "octoprint.plugin" entry point, mapping the plugin_identifier to the plugin_package.
 	# That way OctoPrint will be able to find the plugin and load it.
 	entry_points = {

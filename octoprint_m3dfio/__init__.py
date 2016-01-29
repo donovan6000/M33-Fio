@@ -41,13 +41,58 @@ import threading
 from .gcode import Gcode
 from .vector import Vector
 
+
+# Get cpu hardware
+def getCpuHardware() :
+
+	# Check if CPU info exists
+	if os.path.isfile("/proc/cpuinfo") :
+
+		# Read in CPU info
+		for line in open("/proc/cpuinfo") :
+	
+			# Check if line contains hardware information
+			if line.startswith("Hardware") and ':' in line :
+		
+				# Return CPU hardware
+				return line[line.index(':') + 2 : -1]
+	
+	# Return empty string
+	return ''
+
+# Using a Raspberry Pi
+def usingARaspberryPi() :
+
+	# Return if using a Raspberry Pi
+	return platform.uname()[0].startswith("Linux") and ((platform.uname()[4].startswith("armv6l") and getCpuHardware() == "BCM2708") or (platform.uname()[4].startswith("armv7l") and getCpuHardware() == "BCM2709"))
+
+# Check if using OS X
 if platform.uname()[0].startswith("Darwin") :
-	import CoreFoundation
-	import objc
 
+	# Import Core Foundations and ObjC
+	try :
+		import CoreFoundation
+		import objc
+	except ImportError :
+		pass
+
+# Otherwise check if using Linux
 elif platform.uname()[0].startswith("Linux") :
-	import dbus
 
+	# Import DBus
+	try :
+		import dbus
+	except ImportError :
+		pass
+	
+	# Check if using a Raspberry Pi
+	if usingARaspberryPi() :
+	
+		# Import RPi GPIO
+		try :
+			import RPi.GPIO
+		except ImportError :
+			pass
 
 # Command class
 class Command(object) :
@@ -430,24 +475,6 @@ class M3DFioPlugin(
 		self.backlashPositionRelativeE = 0
 		self.backlashCompensationExtraGcode = Gcode()
 	
-	# Get cpu hardware
-	def getCpuHardware(self) :
-	
-		# Check if CPU info exists
-		if os.path.isfile("/proc/cpuinfo") :
-	
-			# Read in CPU info
-			for line in open("/proc/cpuinfo") :
-		
-				# Check if line contains hardware information
-				if line.startswith("Hardware") and ':' in line :
-			
-					# Return CPU hardware
-					return line[line.index(':') + 2 : -1]
-		
-		# Return empty string
-		return ''
-	
 	# Save ports
 	def savePorts(self, currentPort) :
 	
@@ -691,13 +718,13 @@ class M3DFioPlugin(
 		if platform.uname()[0].startswith("Linux") :
 		
 			# Check if running on a Raspberry Pi
-			if platform.uname()[4].startswith("armv6l") and self.getCpuHardware() == "BCM2708" :
+			if platform.uname()[4].startswith("armv6l") and getCpuHardware() == "BCM2708" :
 			
 				# Set shared library
 				self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace('\\', '/') + "/static/libraries/preprocessor_arm1176jzf-s.so")
 			
 			# Otherwise check if running on a Raspberry Pi 2
-			elif platform.uname()[4].startswith("armv7l") and self.getCpuHardware() == "BCM2709" :
+			elif platform.uname()[4].startswith("armv7l") and getCpuHardware() == "BCM2709" :
 			
 				# Set shared library
 				self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace('\\', '/') + "/static/libraries/preprocessor_arm_cortex-a7.so")
@@ -6714,8 +6741,8 @@ class M3DFioPlugin(
 			# Return true
 			return True
 		
-		# Otherwise check if using OS X
-		elif platform.uname()[0].startswith("Darwin") :
+		# Otherwise check if using OS X and Core Foundations and ObjC are usable
+		elif platform.uname()[0].startswith("Darwin") and "CoreFoundation" in sys.modules and "objc" in sys.modules :
 		
 			# Created by jbenden
 			def setUpIOFramework() :
@@ -6771,9 +6798,10 @@ class M3DFioPlugin(
 			if error == 0 :
 				return True
 		
-		# Otherwise check if using Linux
-		elif platform.uname()[0].startswith("Linux") :
-		
+		# Otherwise check if using Linux and DBus is usable
+		elif platform.uname()[0].startswith("Linux") and "dbus" in sys.modules :
+			
+			# Check if sleep service doesn't exist
 			if not hasattr(self, "linuxSleepService") or self.linuxSleepService is None :
 			
 				# Initialize DBus session
@@ -6817,6 +6845,7 @@ class M3DFioPlugin(
 								# Return false
 								return False
 			
+			# Otherwise
 			else :
 			
 				try :
@@ -6845,19 +6874,23 @@ class M3DFioPlugin(
 			ES_CONTINUOUS = 0x80000000
 			ctypes.windll.kernel32.SetThreadExecutionState(ctypes.c_int(ES_CONTINUOUS))
 		
-		# Otherwise check if using OS X
-		elif platform.uname()[0].startswith("Darwin") :
+		# Otherwise check if using OS X and Core Foundations and ObjC are usable
+		elif platform.uname()[0].startswith("Darwin") and "CoreFoundation" in sys.modules and "objc" in sys.modules :
 		
-			# Release assertion on sleep framework
+			# Check if sleep framework exists
 			if hasattr(self, "osXSleepFramework") and self.osXSleepFramework is not None :
+			
+				# Release assertion on sleep framework
 				self.osXSleepFramework.IOPMAssertionRelease(self.osXSleepPrevention)
 				self.osXSleepFramework = None
 		
-		# Otherwise check if using Linux
-		elif platform.uname()[0].startswith("Linux") :
+		# Otherwise check if using Linux and DBus is usable
+		elif platform.uname()[0].startswith("Linux") and "dbus" in sys.modules :
 		
-			# Uninhibit sleep service
+			# Check if sleep service exists
 			if hasattr(self, "linuxSleepService") and self.linuxSleepService is not None :
+					
+				# Uninhibit sleep service
 				self.linuxSleepService.UnInhibit(self.linuxSleepPrevention)
 				self.linuxSleepService = None
 	
@@ -6869,10 +6902,9 @@ class M3DFioPlugin(
 		if fanPin is not None :
 	
 			# Check if running on a Raspberry Pi
-			if platform.uname()[0].startswith("Linux") and ((platform.uname()[4].startswith("armv6l") and self.getCpuHardware() == "BCM2708") or (platform.uname()[4].startswith("armv7l") and self.getCpuHardware() == "BCM2709")) :
+			if usingARaspberryPi() :
 		
 				# Turn on external fan
-				import RPi.GPIO
 				RPi.GPIO.setwarnings(False)
 				RPi.GPIO.setmode(GPIO.BCM)
 				RPi.GPIO.setup(fanPin, RPi.GPIO.OUT)
@@ -6886,17 +6918,18 @@ class M3DFioPlugin(
 		if fanPin is not None :
 	
 			# Check if running on a Raspberry Pi
-			if platform.uname()[0].startswith("Linux") and ((platform.uname()[4].startswith("armv6l") and self.getCpuHardware() == "BCM2708") or (platform.uname()[4].startswith("armv7l") and self.getCpuHardware() == "BCM2709")) :
+			if usingARaspberryPi() :
 		
 				# Turn off external fan
-				import RPi.GPIO
 				RPi.GPIO.setwarnings(False)
 				RPi.GPIO.setmode(GPIO.BCM)
 				RPi.GPIO.setup(fanPin, RPi.GPIO.OUT)
 				RPi.GPIO.output(fanPin, False)
 
+
 # Plugin info
 __plugin_name__ = "M3D Fio"
+
 
 # Plugin load
 def __plugin_load__() :
