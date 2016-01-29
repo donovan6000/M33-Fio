@@ -591,7 +591,7 @@ class M3DFioPlugin(
 				else :
 				
 					# Read heatbed temperature
-					self.heatbedTemperature.write("t\n")
+					self.heatbedConnection.write("t\r")
 					self.heatbedTemperature = self.heatbedTemperature.readline()
 			
 			# Otherwise check if a heatbed has been connected
@@ -604,7 +604,7 @@ class M3DFioPlugin(
 				self.heatbedConnection = serial.Serial(heatbedPort, 115200)
 				
 				# Put heatbed into temperature mode
-				self.heatbedConnection.write("i\n")
+				self.heatbedConnection.write("i\r")
 				
 				# Set heated bed to true in printer profile
 				if self._printer_profile_manager.exists("micro_3d") :
@@ -2481,9 +2481,9 @@ class M3DFioPlugin(
 					
 						# Send heatbed the specified temperature
 						if gcode.hasValue('S') :
-							self.heatbedConnection.write("s " + gcode.hasValue('S') + '\n')
+							self.heatbedConnection.write("s " + gcode.hasValue('S') + '\r')
 						else :
-							self.heatbedConnection.write("s 0\n");
+							self.heatbedConnection.write("s 0\r");
 						
 						# Set command to nothing
 						gcode.removeParameter('M')
@@ -2495,9 +2495,9 @@ class M3DFioPlugin(
 					
 						# Send heatbed the specified temperature
 						if gcode.hasValue('S') :
-							self.heatbedConnection.write("w " + gcode.hasValue('S') + '\n')
+							self.heatbedConnection.write("w " + gcode.hasValue('S') + '\r')
 						else :
-							self.heatbedConnection.write("w 0\n");
+							self.heatbedConnection.write("w 0\r");
 						
 						# Set command to nothing
 						gcode.removeParameter('M')
@@ -4895,6 +4895,15 @@ class M3DFioPlugin(
 		
 			# Set detected fan speed
 			self.detectedFanSpeed = 0
+		
+		# Otherwise check if using preparation pre-processor
+		elif self._settings.get_boolean(["UsePreparationPreprocessor"]) :
+		
+			# Set detected fan speed
+			if str(self._settings.get(["FilamentType"])) == "PLA" or str(self._settings.get(["FilamentType"])) == "FLX" or str(self._settings.get(["FilamentType"])) == "TGH" :
+				self.detectedFanSpeed = 255
+			else :
+				self.detectedFanSpeed = 50
 		
 		# Return true
 		return True

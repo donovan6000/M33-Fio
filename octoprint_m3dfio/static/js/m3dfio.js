@@ -4150,7 +4150,7 @@ $(function() {
 															solid_layer_thickness: 2.799
 														});
 														
-														if(slicerProfileName.substr(4, 3) == "abs" || slicerProfileName.substr(4, 4) == "hips")
+														if(slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips")
 															changedSettings[0]["fan_full_height"] = 0.651;
 													}
 													
@@ -4164,7 +4164,7 @@ $(function() {
 															solid_layer_thickness: 1.999
 														});
 														
-														if(slicerProfileName.substr(4, 3) == "abs" || slicerProfileName.substr(4, 4) == "hips")
+														if(slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips")
 															changedSettings[0]["fan_full_height"] = 0.551;
 													}
 													
@@ -4178,7 +4178,7 @@ $(function() {
 															solid_layer_thickness: 1.199
 														});
 														
-														if(slicerProfileName.substr(4, 3) == "abs" || slicerProfileName.substr(4, 4) == "hips")
+														if(slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips")
 															changedSettings[0]["fan_full_height"] = 0.451;
 													}
 													
@@ -4192,7 +4192,7 @@ $(function() {
 															solid_layer_thickness: 0.799
 														});
 														
-														if(slicerProfileName.substr(4, 3) == "abs" || slicerProfileName.substr(4, 4) == "hips")
+														if(slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips")
 															changedSettings[0]["fan_full_height"] = 0.401;
 													}
 													
@@ -4206,7 +4206,7 @@ $(function() {
 															solid_layer_thickness: 0.399
 														});
 														
-														if(slicerProfileName.substr(4, 3) == "abs" || slicerProfileName.substr(4, 4) == "hips")
+														if(slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips")
 															changedSettings[0]["fan_full_height"] = 0.151;
 													}
 												}

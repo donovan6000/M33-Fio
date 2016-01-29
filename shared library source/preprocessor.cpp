@@ -978,6 +978,16 @@ EXPORT bool collectPrintInformation(const char *file) {
 			// Set detected fan speed
 			detectedFanSpeed = 0;
 		
+		// Otherwise check if using preparation pre-processor
+		else if(usePreparationPreprocessor) {
+		
+			// Set detected fan speed
+			if(filamentType == PLA || filamentType == FLX || filamentType == TGH)
+				detectedFanSpeed = 255;
+			else
+				detectedFanSpeed = 50;
+		}
+		
 		// Return true
 		return true;
 	}
