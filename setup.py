@@ -36,6 +36,7 @@ def package_data_dirs(source, sub_folders):
 def getCpuHardware() :
 
 	# Check if CPU info exists
+	import os
 	if os.path.isfile("/proc/cpuinfo") :
 
 		# Read in CPU info
@@ -76,7 +77,6 @@ def params():
 	
 	# Add requirements for using a Raspberry Pi
 	import platform
-	import os
 	if platform.uname()[0].startswith("Linux") and ((platform.uname()[4].startswith("armv6l") and getCpuHardware() == "BCM2708") or (platform.uname()[4].startswith("armv7l") and getCpuHardware() == "BCM2709")) :
 		install_requires.pop()
 		install_requires += ["RPi.GPIO>=0.6.1", '']

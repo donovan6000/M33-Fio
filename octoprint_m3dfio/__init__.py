@@ -2535,13 +2535,27 @@ class M3DFioPlugin(
 					elif gcode.getValue('M') == "190" :
 					
 						# Send heatbed the specified temperature
+						error = False
 						try :
 							if gcode.hasValue('S') :
 								self.heatbedConnection.write("w " + gcode.getValue('S') + '\r')
 							else :
 								self.heatbedConnection.write("w 0\r")
 						except Exception :
-							pass
+							error = True
+						
+						# Check if no errors occured
+						if not error :
+						
+							# Loop forever
+							while True :
+						
+								# Read heatbed temperature until it stops
+								try :
+									heatbedTemperature = str(self.heatbedConnection.read())
+									heatbedTemperature += str(self.heatbedConnection.read(self.heatbedConnection.inWaiting()))
+								except Exception :
+									break;
 						
 						# Set command to nothing
 						gcode.removeParameter('M')
