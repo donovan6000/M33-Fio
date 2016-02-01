@@ -617,7 +617,7 @@ class M3DFioPlugin(
 				error = False
 				try :
 					self.heatbedConnection = serial.Serial(heatbedPort, 115200, timeout = 5)
-					if serial.VERSION < 3 :
+					if float(serial.VERSION) < 3 :
 						self.heatbedConnection.writeTimeout = 1
 					else :
 						self.heatbedConnection.write_timeout = 1
@@ -644,7 +644,7 @@ class M3DFioPlugin(
 				
 						# Put heatbed into temperature mode
 						try :
-							if serial.VERSION < 3 :
+							if float(serial.VERSION) < 3 :
 								self.heatbedConnection.flushInput()
 								self.heatbedConnection.flushOutput()
 							else :
@@ -1136,20 +1136,18 @@ class M3DFioPlugin(
 				if data["value"][-1] == "M65536;wait" :
 					self.waiting = True
 				
+				# Initialize line number
+				lineNumber = 1
+				self.sendCommands("N0 M110")
+				
 				# Go through all commands
 				for command in data["value"] :
 					
-					# Send command to printer
-					if command != "G28" :
-						self.sendCommands("G4")
-					self.sendCommands(command)
+					# Send command with line number to printer
+					self.sendCommands('N' + str(lineNumber) + ' ' + command)
 					
-					# Send absolute and relative commands twice to make sure they don't get ignored
-					if command == "G90" or command == "G91" :
-						self.sendCommands(command)
-				
-					# Delay
-					time.sleep(0.1)
+					# Increment line number
+					lineNumber += 1
 				
 				# Send response
 				return flask.jsonify(dict(value = "Ok"))
@@ -1220,7 +1218,7 @@ class M3DFioPlugin(
 				
 				# Remove serial timeout
 				self._printer.get_transport().timeout = None
-				if serial.VERSION < 3 :
+				if float(serial.VERSION) < 3 :
 					self._printer.get_transport().writeTimeout = None
 				else :
 					self._printer.get_transport().write_timeout = None
@@ -1297,7 +1295,7 @@ class M3DFioPlugin(
 				
 				# Remove serial timeout
 				self._printer.get_transport().timeout = None
-				if serial.VERSION < 3 :
+				if float(serial.VERSION) < 3 :
 					self._printer.get_transport().writeTimeout = None
 				else :
 					self._printer.get_transport().write_timeout = None
@@ -1451,7 +1449,7 @@ class M3DFioPlugin(
 				
 				# Remove serial timeout
 				self._printer.get_transport().timeout = None
-				if serial.VERSION < 3 :
+				if float(serial.VERSION) < 3 :
 					self._printer.get_transport().writeTimeout = None
 				else :
 					self._printer.get_transport().write_timeout = None
@@ -2485,7 +2483,7 @@ class M3DFioPlugin(
 			self._printer.fake_ack()
 		
 		# Otherwise check if request is invalid
-		elif ("M110" in data and not self._printer.is_printing()) or data == "M21\n" or data == "M84\n" :
+		elif (not self._printer.is_printing() and (data.startswith("N0 M110 N0") or data.startswith("M110"))) or data == "M21\n" or data == "M84\n" :
 		
 			# Send fake acknowledgment
 			self._printer.fake_ack()
@@ -2573,7 +2571,7 @@ class M3DFioPlugin(
 								try :
 									heatbedTemperature = str(self.heatbedConnection.read())
 									
-									if serial.VERSION < 3 :
+									if float(serial.VERSION) < 3 :
 										heatbedTemperature += str(self.heatbedConnection.read(self.heatbedConnection.inWaiting()))
 									else :
 										heatbedTemperature += str(self.heatbedConnection.read(self.heatbedConnection.in_waiting()))
@@ -2604,12 +2602,12 @@ class M3DFioPlugin(
 				
 						# Turn off external fan
 						self.turnOffExternalFan()
-			
+				
 				# Get the command's binary representation
 				data = gcode.getBinary()
 				
-				# Check if printing and command has a line number
-				if self._printer.is_printing() and gcode.hasValue('N') :
+				# Check if command has a line number
+				if gcode.hasValue('N') :
 				
 					# Limit the amount of commands that can simultaneous be sent to the printer
 					while len(self.sentLineNumbers) >= 1 :
@@ -2645,8 +2643,8 @@ class M3DFioPlugin(
 		# Check if response is wait
 		if response.startswith("wait") :
 		
-			# Check if printing and a command hasn't been confirmed
-			if self._printer.is_printing() and self.lastResponseWasTemperatureReading and len(self.sentLineNumbers) :
+			# Check if a command hasn't been confirmed
+			if self.lastResponseWasTemperatureReading and len(self.sentLineNumbers) :
 			
 				# Set response to confirm command
 				response = "ok " + str(self.sentLineNumbers[0]) + '\n'
@@ -2698,7 +2696,7 @@ class M3DFioPlugin(
 					self.heatbedConnection.write("t\r")
 					heatbedTemperature = str(self.heatbedConnection.read())
 					
-					if serial.VERSION < 3 :
+					if float(serial.VERSION) < 3 :
 						heatbedTemperature += str(self.heatbedConnection.read(self.heatbedConnection.inWaiting()))
 					else :
 						heatbedTemperature += str(self.heatbedConnection.read(self.heatbedConnection.in_waiting()))
@@ -3205,20 +3203,18 @@ class M3DFioPlugin(
 					# Pre-process command
 					commands = self.preprocess("G4", None, True)
 				
+				# Initialize line number
+				lineNumber = 1
+				self.sendCommands("N0 M110")
+				
 				# Go through all commands
 				for command in commands :
-			
-					# Send command to printer
-					if command != "G28" :
-						self.sendCommands("G4")
-					self.sendCommands(command)
 					
-					# Send absolute and relative commands twice to make sure they don't get ignored
-					if command == "G90" or command == "G91" :
-						self.sendCommands(command)
+					# Send command with line number to printer
+					self.sendCommands('N' + str(lineNumber) + ' ' + command)
 					
-					# Delay
-					time.sleep(0.1)
+					# Increment line number
+					lineNumber += 1
 			
 			# Reset print settings
 			self.resetPrintSettings()
@@ -3247,20 +3243,18 @@ class M3DFioPlugin(
 			else :
 				commands += ["M420 T100"]
 			
+			# Initialize line number
+			lineNumber = 1
+			self.sendCommands("N0 M110")
+			
 			# Go through all commands
 			for command in commands :
-		
-				# Send command to printer
-				if command != "G28" :
-					self.sendCommands("G4")
-				self.sendCommands(command)
 				
-				# Send absolute and relative commands twice to make sure they don't get ignored
-				if command == "G90" or command == "G91" :
-					self.sendCommands(command)
+				# Send command with line number to printer
+				self.sendCommands('N' + str(lineNumber) + ' ' + command)
 				
-				# Delay
-				time.sleep(0.1)
+				# Increment line number
+				lineNumber += 1
 			
 			# Reset print settings
 			self.resetPrintSettings()
@@ -3382,7 +3376,7 @@ class M3DFioPlugin(
 					connection.write("M115")
 					firstByte = connection.read()
 					
-					if serial.VERSION < 3 :
+					if float(serial.VERSION) < 3 :
 						connection.read(connection.inWaiting())
 					else :
 						connection.read(connection.in_waiting())
@@ -3869,7 +3863,7 @@ class M3DFioPlugin(
 				
 				# Remove serial timeout
 				self._printer.get_transport().timeout = None
-				if serial.VERSION < 3 :
+				if float(serial.VERSION) < 3 :
 					self._printer.get_transport().writeTimeout = None
 				else :
 					self._printer.get_transport().write_timeout = None
@@ -3904,7 +3898,7 @@ class M3DFioPlugin(
 				
 					# Remove serial timeout
 					self._printer.get_transport().timeout = None
-					if serial.VERSION < 3 :
+					if float(serial.VERSION) < 3 :
 						self._printer.get_transport().writeTimeout = None
 					else :
 						self._printer.get_transport().write_timeout = None
@@ -3938,7 +3932,7 @@ class M3DFioPlugin(
 			
 			# Remove serial timeout
 			self._printer.get_transport().timeout = None
-			if serial.VERSION < 3 :
+			if float(serial.VERSION) < 3 :
 				self._printer.get_transport().writeTimeout = None
 			else :
 				self._printer.get_transport().write_timeout = None
