@@ -1142,12 +1142,21 @@ class M3DFioPlugin(
 				
 				# Go through all commands
 				for command in data["value"] :
+				
+					# Check if command wont receive a normal confirmation
+					if command.startswith("M618 ") or command.startswith("M619 ") :
 					
-					# Send command with line number to printer
-					self.sendCommands('N' + str(lineNumber) + ' ' + command)
+						# Send command to printer
+						self.sendCommands(command)
 					
-					# Increment line number
-					lineNumber += 1
+					# Otherwise
+					else :
+					
+						# Send command with line number to printer
+						self.sendCommands('N' + str(lineNumber) + ' ' + command)
+					
+						# Increment line number
+						lineNumber += 1
 				
 				# Send response
 				return flask.jsonify(dict(value = "Ok"))
@@ -2718,9 +2727,9 @@ class M3DFioPlugin(
 	
 			# Get line number
 			if response.startswith("ok ") : 
-				lineNumber = int(response[3 :]) % 0x10000
+				lineNumber = int(response[3 :].split()[0]) % 0x10000
 			else :
-				lineNumber = int(response[5 :]) % 0x10000
+				lineNumber = int(response[5 :].split()[0]) % 0x10000
 			
 			# Check if processing an unprocessed command
 			if len(self.sentLineNumbers) and lineNumber == self.sentLineNumbers[0] :
@@ -2761,7 +2770,7 @@ class M3DFioPlugin(
 			if response.startswith("rs ") :
 	
 				# Get line number
-				lineNumber = int(response[3 :]) % 0x10000
+				lineNumber = int(response[3 :].split()[0]) % 0x10000
 				
 				# Check if command hasn't been processed
 				if lineNumber in self.sentCommands :
@@ -3210,11 +3219,20 @@ class M3DFioPlugin(
 				# Go through all commands
 				for command in commands :
 					
-					# Send command with line number to printer
-					self.sendCommands('N' + str(lineNumber) + ' ' + command)
+					# Check if command wont receive a normal confirmation
+					if command.startswith("M618 ") or command.startswith("M619 ") :
 					
-					# Increment line number
-					lineNumber += 1
+						# Send command to printer
+						self.sendCommands(command)
+					
+					# Otherwise
+					else :
+					
+						# Send command with line number to printer
+						self.sendCommands('N' + str(lineNumber) + ' ' + command)
+					
+						# Increment line number
+						lineNumber += 1
 			
 			# Reset print settings
 			self.resetPrintSettings()
@@ -3250,11 +3268,20 @@ class M3DFioPlugin(
 			# Go through all commands
 			for command in commands :
 				
-				# Send command with line number to printer
-				self.sendCommands('N' + str(lineNumber) + ' ' + command)
+				# Check if command wont receive a normal confirmation
+				if command.startswith("M618 ") or command.startswith("M619 ") :
 				
-				# Increment line number
-				lineNumber += 1
+					# Send command to printer
+					self.sendCommands(command)
+				
+				# Otherwise
+				else :
+				
+					# Send command with line number to printer
+					self.sendCommands('N' + str(lineNumber) + ' ' + command)
+				
+					# Increment line number
+					lineNumber += 1
 			
 			# Reset print settings
 			self.resetPrintSettings()
