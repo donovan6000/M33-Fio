@@ -6564,6 +6564,9 @@ $(function() {
 																					// Set waiting callback
 																					waitingCallback = function() {
 																					
+																						// Show message
+																					showMessage("Calibration Status", "Finishing calibration");
+																					
 																						// Set commands
 																						commands = [
 																							"G90",

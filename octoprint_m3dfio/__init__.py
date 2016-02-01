@@ -613,13 +613,10 @@ class M3DFioPlugin(
 			# Otherwise check if a heatbed has been connected
 			elif self.heatbedConnection is None and heatbedPort is not None :
 			
-				# Wait for heatbed to initialize
-				time.sleep(4)
-			
 				# Connect to heatbed
 				error = False
 				try :
-					self.heatbedConnection = serial.Serial(heatbedPort, 115200, timeout = 1)
+					self.heatbedConnection = serial.Serial(heatbedPort, 115200, timeout = 5)
 					if serial.VERSION < 3 :
 						self.heatbedConnection.writeTimeout = 1
 					else :
@@ -630,23 +627,45 @@ class M3DFioPlugin(
 				# Check if no errors occured
 				if not error :
 				
-					# Put heatbed into temperature mode
-					try :
-						self.heatbedConnection.write("i\r")
-					except Exception :
-						error = True
+					# Loop forever
+					while True :
+					
+						# Wait for heatbed to initialize
+						try :
+							if self.heatbedConnection.read() == '\x1B' :
+								self.heatbedConnection.timeout = 1
+								break;
+						except Exception :
+							error = True
+							break;
 					
 					# Check if no errors occured
 					if not error :
 				
-						# Set heated bed to true in printer profile
-						if self._printer_profile_manager.exists("micro_3d") :
-							printerProfile = self._printer_profile_manager.get("micro_3d")
-							printerProfile["heatedBed"] = True
-							self._printer_profile_manager.save(printerProfile, True)
+						# Put heatbed into temperature mode
+						try :
+							if serial.VERSION < 3 :
+								self.heatbedConnection.flushInput()
+								self.heatbedConnection.flushOutput()
+							else :
+								self.heatbedConnection.reset_input_buffer()
+								self.heatbedConnection.reset_output_buffer()
+							
+							self.heatbedConnection.write("i\r")
+						except Exception :
+							error = True
+					
+						# Check if no errors occured
+						if not error :
 				
-						# Send message
-						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Heatbed Connected"))
+							# Set heated bed to true in printer profile
+							if self._printer_profile_manager.exists("micro_3d") :
+								printerProfile = self._printer_profile_manager.get("micro_3d")
+								printerProfile["heatedBed"] = True
+								self._printer_profile_manager.save(printerProfile, True)
+				
+							# Send message
+							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Heatbed Connected"))
 				
 				# Otherwise check if an error occured and it hasn't been show yet
 				if error and previousHeatbedPort != heatbedPort :
@@ -2553,7 +2572,11 @@ class M3DFioPlugin(
 								# Read heatbed temperature until it stops
 								try :
 									heatbedTemperature = str(self.heatbedConnection.read())
-									heatbedTemperature += str(self.heatbedConnection.read(self.heatbedConnection.inWaiting()))
+									
+									if serial.VERSION < 3 :
+										heatbedTemperature += str(self.heatbedConnection.read(self.heatbedConnection.inWaiting()))
+									else :
+										heatbedTemperature += str(self.heatbedConnection.read(self.heatbedConnection.in_waiting()))
 								except Exception :
 									break;
 						
@@ -2674,7 +2697,11 @@ class M3DFioPlugin(
 				try :
 					self.heatbedConnection.write("t\r")
 					heatbedTemperature = str(self.heatbedConnection.read())
-					heatbedTemperature += str(self.heatbedConnection.read(self.heatbedConnection.inWaiting()))
+					
+					if serial.VERSION < 3 :
+						heatbedTemperature += str(self.heatbedConnection.read(self.heatbedConnection.inWaiting()))
+					else :
+						heatbedTemperature += str(self.heatbedConnection.read(self.heatbedConnection.in_waiting()))
 				
 				except Exception :
 					heatbedTemperature = "0"
@@ -3354,7 +3381,11 @@ class M3DFioPlugin(
 				try :
 					connection.write("M115")
 					firstByte = connection.read()
-					connection.read(connection.inWaiting())
+					
+					if serial.VERSION < 3 :
+						connection.read(connection.inWaiting())
+					else :
+						connection.read(connection.in_waiting())
 				
 				# Check if an error occured
 				except serial.SerialException :
