@@ -580,7 +580,8 @@ $(function() {
 						if(secondButton == "Done")
 							$("body > div.page-container > div.message > div > div > div.calibrate").addClass("show");
 						else if(secondButton == "Print") {
-							$("body > div.page-container > div.message > div > div > div.printSettings input").val(self.settings.settings.plugins.m3dfio.FilamentTemperature());
+							$("body > div.page-container > div.message > div > div > div.printSettings input").eq(0).val(self.settings.settings.plugins.m3dfio.FilamentTemperature());
+							$("body > div.page-container > div.message > div > div > div.printSettings input").eq(1).val(self.settings.settings.plugins.m3dfio.HeatbedTemperature());
 							$("body > div.page-container > div.message > div > div > div.printSettings select").val(self.settings.settings.plugins.m3dfio.FilamentType());
 							$("body > div.page-container > div.message > div > div > div.printSettings").addClass("show");
 						}
@@ -3349,6 +3350,15 @@ $(function() {
 									</div>
 								</div>
 							</div>
+							<div class="control-group heatbed">
+								<label class="control-label">Heatbed Temperature</label>
+								<div class="controls">
+									<div class="input-append degreesCelsius">
+										<input type="number" step="1" min="40" max="110" class="input-block-level" data-bind="value: settings.plugins.m3dfio.HeatbedTemperature">
+										<span class="add-on">°C</span>
+									</div>
+								</div>
+							</div>
 							<div class="control-group">
 								<label class="control-label">Filament Type</label>
 								<div class="controls">
@@ -3416,7 +3426,8 @@ $(function() {
 						data: JSON.stringify({
 							command: "message",
 							value: "Print Settings: " + JSON.stringify({
-								filamentTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").val(),
+								filamentTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").eq(0).val(),
+								heatbedTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").eq(1).val(),
 								filamentType: $("body > div.page-container > div.message > div > div > div.printSettings select").val()
 							})
 						}),
@@ -3485,7 +3496,8 @@ $(function() {
 							data: JSON.stringify({
 								command: "message",
 								value: "Print Settings: " + JSON.stringify({
-									filamentTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").val(),
+									filamentTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").eq(0).val(),
+									heatbedTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").eq(1).val(),
 									filamentType: $("body > div.page-container > div.message > div > div > div.printSettings select").val()
 								})
 							}),
@@ -5018,7 +5030,8 @@ $(function() {
 									data: JSON.stringify({
 										command: "message",
 										value: "Print Settings: " + JSON.stringify({
-											filamentTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").val(),
+											filamentTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").eq(0).val(),
+											heatbedTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").eq(1).val(),
 											filamentType: $("body > div.page-container > div.message > div > div > div.printSettings select").val()
 										})
 									}),
@@ -6186,7 +6199,8 @@ $(function() {
 							data: JSON.stringify({
 								command: "message",
 								value: "Print Settings: " + JSON.stringify({
-									filamentTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").val(),
+									filamentTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").eq(0).val(),
+									heatbedTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").eq(1).val(),
 									filamentType: $("body > div.page-container > div.message > div > div > div.printSettings select").val()
 								})
 							}),
@@ -6270,7 +6284,8 @@ $(function() {
 							data: JSON.stringify({
 								command: "message",
 								value: "Print Settings: " + JSON.stringify({
-									filamentTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").val(),
+									filamentTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").eq(0).val(),
+									heatbedTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").eq(1).val(),
 									filamentType: $("body > div.page-container > div.message > div > div > div.printSettings select").val()
 								})
 							}),
@@ -7307,7 +7322,7 @@ $(function() {
 				});
 				
 				// Display heatbed controls
-				$("#control .heatbed").css("display", "block");
+				$("#control .heatbed, #settings_plugin_m3dfio .heatbed, body > div.page-container > div.message .heatbed").css("display", "block");
 				$("#control > div.jog-panel.extruder").find("h1:not(.heatbed)").text("Tools");
 				
 				// Set using heatbed
@@ -7326,7 +7341,7 @@ $(function() {
 				});
 				
 				// Hide heatbed controls
-				$("#control .heatbed").css("display", "none");
+				$("#control .heatbed, #settings_plugin_m3dfio .heatbed, body > div.page-container > div.message .heatbed").css("display", "none");
 				$("#control > div.jog-panel.extruder").find("h1:not(.heatbed)").text("Extruder");
 				
 				// Clear using heatbed
@@ -7337,7 +7352,7 @@ $(function() {
 			else if(data.value == "Heatbed Detected") {
 			
 				// Display heatbed controls
-				$("#control .heatbed").css("display", "block");
+				$("#control .heatbed, #settings_plugin_m3dfio .heatbed, body > div.page-container > div.message .heatbed").css("display", "block");
 				$("#control > div.jog-panel.extruder").find("h1:not(.heatbed)").text("Tools");
 				
 				// Set using heatbed
@@ -7348,7 +7363,7 @@ $(function() {
 			else if(data.value == "Heatbed Not Detected") {
 			
 				// Hide heatbed controls
-				$("#control .heatbed").css("display", "none");
+				$("#control .heatbed, #settings_plugin_m3dfio .heatbed, body > div.page-container > div.message .heatbed").css("display", "none");
 				$("#control > div.jog-panel.extruder").find("h1:not(.heatbed)").text("Extruder");
 				
 				// Clear using heatbed

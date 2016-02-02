@@ -1074,7 +1074,8 @@ class M3DFioPlugin(
 			RemoveFanCommands = True,
 			RemoveTemperatureCommands = True,
 			UseExternalFan = False,
-			ExternalFanPin = None
+			ExternalFanPin = None,
+			HeatbedTemperature = 70
 		)
 	
 	# Template manager
@@ -1381,6 +1382,7 @@ class M3DFioPlugin(
 						self.sharedLibrary.setRemoveFanCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveFanCommands"])))
 						self.sharedLibrary.setRemoveTemperatureCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveTemperatureCommands"])))
 						self.sharedLibrary.setUseExternalFan(ctypes.c_bool(self._settings.get_boolean(["UseExternalFan"])))
+						self.sharedLibrary.setHeatbedTemperature(ctypes.c_ushort(self._settings.get_int(["HeatbedTemperature"])))
 									
 						# Collect print information
 						self.sharedLibrary.collectPrintInformation(ctypes.c_char_p(location))
@@ -1821,9 +1823,10 @@ class M3DFioPlugin(
 				# Get values
 				values = json.loads(data["value"][16 :])
 				
-				# Set filament temperature and type
+				# Set filament temperature, heatbed temperature, and type
 				self._settings.set_int(["FilamentTemperature"], int(values["filamentTemperature"]))
-				self._settings.set(["FilamentType"], values["filamentType"])
+				self._settings.set_int(["HeatbedTemperature"], int(values["heatbedTemperature"]))
+				self._settings.set(["FilamentType"], str(values["filamentType"]))
 				
 				# Return response
 				return flask.jsonify(dict(value = "Ok"))
@@ -2729,7 +2732,7 @@ class M3DFioPlugin(
 			if response.startswith("ok ") : 
 				lineNumber = int(response[3 :].split()[0]) % 0x10000
 			else :
-				lineNumber = int(response[5 :].split()[0]) % 0x10000
+				lineNumber = int(response[5 :]) % 0x10000
 			
 			# Check if processing an unprocessed command
 			if len(self.sentLineNumbers) and lineNumber == self.sentLineNumbers[0] :
@@ -2770,7 +2773,7 @@ class M3DFioPlugin(
 			if response.startswith("rs ") :
 	
 				# Get line number
-				lineNumber = int(response[3 :].split()[0]) % 0x10000
+				lineNumber = int(response[3 :]) % 0x10000
 				
 				# Check if command hasn't been processed
 				if lineNumber in self.sentCommands :
@@ -3039,7 +3042,7 @@ class M3DFioPlugin(
 			# Check if sending sleep reminder
 			if not self._printer.is_printing() and self.sleepReminder :
 			
-				# Check if disabling sleep works
+				# Check if disabling sleep doesn't works
 				if not self.disableSleep() :
 				
 					# Send message
@@ -3136,6 +3139,7 @@ class M3DFioPlugin(
 					self.sharedLibrary.setRemoveFanCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveFanCommands"])))
 					self.sharedLibrary.setRemoveTemperatureCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveTemperatureCommands"])))
 					self.sharedLibrary.setUseExternalFan(ctypes.c_bool(self._settings.get_boolean(["UseExternalFan"])))
+					self.sharedLibrary.setHeatbedTemperature(ctypes.c_ushort(self._settings.get_int(["HeatbedTemperature"])))
 					
 					# Collect print information
 					printIsValid = self.sharedLibrary.collectPrintInformation(ctypes.c_char_p(payload.get("file")))
@@ -4731,6 +4735,7 @@ class M3DFioPlugin(
 				self.sharedLibrary.setRemoveFanCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveFanCommands"])))
 				self.sharedLibrary.setRemoveTemperatureCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveTemperatureCommands"])))
 				self.sharedLibrary.setUseExternalFan(ctypes.c_bool(self._settings.get_boolean(["UseExternalFan"])))
+				self.sharedLibrary.setHeatbedTemperature(ctypes.c_ushort(self._settings.get_int(["HeatbedTemperature"])))
 				
 				# Collect print information
 				printIsValid = self.sharedLibrary.collectPrintInformation(ctypes.c_char_p(input))
@@ -5550,10 +5555,7 @@ class M3DFioPlugin(
 
 					# Add heatbed command if using a heatbed
 					if self.heatbedConnection is not None :
-						if str(self._settings.get(["FilamentType"])) == "PLA" :
-							newCommands.append(Command("M190 S70", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						else :
-							newCommands.append(Command("M190 S80", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M190 S" + str(self._settings.get_int(["HeatbedTemperature"])), "PREPARATION", "CENTER VALIDATION PREPARATION"))
 
 					# Check if one of the corners wasn't set
 					if cornerX == 0 or cornerY == 0 :

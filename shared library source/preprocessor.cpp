@@ -153,6 +153,7 @@ bool calibrateBeforePrint;
 bool removeFanCommands;
 bool removeTemperatureCommands;
 bool useExternalFan;
+uint16_t heatbedTemperature;
 int16_t detectedFanSpeed;
 bool objectSuccessfullyCentered;
 
@@ -653,6 +654,12 @@ EXPORT void setUseExternalFan(bool value) {
 
 	// Set use external fan
 	useExternalFan = value;
+}
+
+EXPORT void setHeatbedTemperature(unsigned short value) {
+
+	// Set heatbed temperature
+	heatbedTemperature = value;
 }
 
 EXPORT void resetPreprocessorSettings() {
@@ -1271,7 +1278,7 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 
 				// Add heatbed command if using a heatbed
 				if(usingHeatbed)
-					newCommands.push(Command("M190 S" + static_cast<string>(filamentType == PLA ? "70" : "80"), PREPARATION, PREPARATION));
+					newCommands.push(Command("M190 S" + to_string(heatbedTemperature), PREPARATION, PREPARATION));
 
 				// Check if one of the corners wasn't set
 				if(!cornerX || !cornerY) {
