@@ -8,7 +8,7 @@ M3D Fio can be installed with OctoPrint's built in plugin manager.
 
 It works in conjunction with OctoPrint's autodetect serial port and baudrate feature, so neither of those values need to be specified in order to successfully connect to the Micro 3D printer.
 
-Installers were made for Windows, OS X, and Linux to simplify installing OctoPrint, M3D Fio, and all their dependencies. If your using Windows, you can run [this file](https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/Windows/installer.zip) to install everything. If your using OS X, you can run [this file](https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/OS%20X/installer.zip) to install everything. If your using Linux, you can run [this file](https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/Linux/installer.zip) or run the following commands to install everything.
+Installers were made for Windows, OS X, and Linux to simplify installing OctoPrint, M3D Fio, and all their dependencies like any device drivers. If your using Windows, you can run [this file](https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/Windows/installer.zip) to install everything. If your using OS X, you can run [this file](https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/OS%20X/installer.zip) to install everything. If your using Linux, you can run [this file](https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/Linux/installer.zip) or run the following commands to install everything.
 
 ```shell
 wget https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/Linux/installer.zip
@@ -21,6 +21,9 @@ M3D Fio expands the capabilities of OctoPrint to make it fully compatible with t
 
 Controls are added which allow calibrating the print bed, loading/unloading filament, updating the firmware, managing the EEPROM, etc.
 ![alt text](https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/images/controls.png "Controls")
+
+Slicing profiles can be customized before slicing a model.
+![alt text](https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/images/profile%20editor.png "Profile Editor")
 
 Any model sliced in OctoPrint can be modified before hand.
 ![alt text](https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/images/model%20editor.png "Model Editor")

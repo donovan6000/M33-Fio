@@ -37,9 +37,59 @@ import platform
 import subprocess
 import psutil
 import socket
+import threading
 from .gcode import Gcode
 from .vector import Vector
 
+
+# Get cpu hardware
+def getCpuHardware() :
+
+	# Check if CPU info exists
+	if os.path.isfile("/proc/cpuinfo") :
+
+		# Read in CPU info
+		for line in open("/proc/cpuinfo") :
+	
+			# Check if line contains hardware information
+			if line.startswith("Hardware") and ':' in line :
+		
+				# Return CPU hardware
+				return line[line.index(':') + 2 : -1]
+	
+	# Return empty string
+	return ''
+
+# Using a Raspberry Pi
+def usingARaspberryPi() :
+
+	# Return if using a Raspberry Pi
+	return platform.uname()[0].startswith("Linux") and ((platform.uname()[4].startswith("armv6l") and getCpuHardware() == "BCM2708") or (platform.uname()[4].startswith("armv7l") and getCpuHardware() == "BCM2709"))
+
+# Check if using OS X
+if platform.uname()[0].startswith("Darwin") :
+
+	# Import Core Foundations and ObjC
+	try :
+		import CoreFoundation
+		import objc
+	except ImportError :
+		pass
+
+# Otherwise check if using Linux
+elif platform.uname()[0].startswith("Linux") :
+
+	# Import DBus
+	try :
+		import dbus
+	except ImportError :
+		pass
+	
+	# Check if using a Raspberry Pi
+	if usingARaspberryPi() :
+	
+		# Import RPi GPIO
+		import RPi.GPIO
 
 # Command class
 class Command(object) :
@@ -72,23 +122,22 @@ class M3DFioPlugin(
 		self.originalWrite = None
 		self.originalRead = None
 		self.invalidPrinter = True
-		self.waiting = None
+		self.waiting = False
 		self.processingSlice = False
-		self.usingMicroPass = False
+		self.heatbedConnection = None
 		self.eeprom = None
 		self.messageResponse = None
 		self.invalidBedCenter = False
 		self.invalidBedOrientation = False
 		self.slicerChanges = None
 		self.sharedLibrary = None
-		self.curaReminder = False
 		self.lastCommandSent = None
 		self.lastResponseWasWait = False
 		self.lastResponseWasTemperatureReading = False
 		self.allSerialPorts = []
 		self.currentSerialPort = None
-		self.providedFirmware = ''
-		self.printReady = False
+		self.providedFirmwares = {}
+		self.printerColor = "Black"
 		
 		# Rom decryption and encryption tables
 		self.romDecryptionTable = [0x26, 0xE2, 0x63, 0xAC, 0x27, 0xDE, 0x0D, 0x94, 0x79, 0xAB, 0x29, 0x87, 0x14, 0x95, 0x1F, 0xAE, 0x5F, 0xED, 0x47, 0xCE, 0x60, 0xBC, 0x11, 0xC3, 0x42, 0xE3, 0x03, 0x8E, 0x6D, 0x9D, 0x6E, 0xF2, 0x4D, 0x84, 0x25, 0xFF, 0x40, 0xC0, 0x44, 0xFD, 0x0F, 0x9B, 0x67, 0x90, 0x16, 0xB4, 0x07, 0x80, 0x39, 0xFB, 0x1D, 0xF9, 0x5A, 0xCA, 0x57, 0xA9, 0x5E, 0xEF, 0x6B, 0xB6, 0x2F, 0x83, 0x65, 0x8A, 0x13, 0xF5, 0x3C, 0xDC, 0x37, 0xD3, 0x0A, 0xF4, 0x77, 0xF3, 0x20, 0xE8, 0x73, 0xDB, 0x7B, 0xBB, 0x0B, 0xFA, 0x64, 0x8F, 0x08, 0xA3, 0x7D, 0xEB, 0x5C, 0x9C, 0x3E, 0x8C, 0x30, 0xB0, 0x7F, 0xBE, 0x2A, 0xD0, 0x68, 0xA2, 0x22, 0xF7, 0x1C, 0xC2, 0x17, 0xCD, 0x78, 0xC7, 0x21, 0x9E, 0x70, 0x99, 0x1A, 0xF8, 0x58, 0xEA, 0x36, 0xB1, 0x69, 0xC9, 0x04, 0xEE, 0x3B, 0xD6, 0x34, 0xFE, 0x55, 0xE7, 0x1B, 0xA6, 0x4A, 0x9A, 0x54, 0xE6, 0x51, 0xA0, 0x4E, 0xCF, 0x32, 0x88, 0x48, 0xA4, 0x33, 0xA5, 0x5B, 0xB9, 0x62, 0xD4, 0x6F, 0x98, 0x6C, 0xE1, 0x53, 0xCB, 0x46, 0xDD, 0x01, 0xE5, 0x7A, 0x86, 0x75, 0xDF, 0x31, 0xD2, 0x02, 0x97, 0x66, 0xE4, 0x38, 0xEC, 0x12, 0xB7, 0x00, 0x93, 0x15, 0x8B, 0x6A, 0xC5, 0x71, 0x92, 0x45, 0xA1, 0x59, 0xF0, 0x06, 0xA8, 0x5D, 0x82, 0x2C, 0xC4, 0x43, 0xCC, 0x2D, 0xD5, 0x35, 0xD7, 0x3D, 0xB2, 0x74, 0xB3, 0x09, 0xC6, 0x7C, 0xBF, 0x2E, 0xB8, 0x28, 0x9F, 0x41, 0xBA, 0x10, 0xAF, 0x0C, 0xFC, 0x23, 0xD9, 0x49, 0xF6, 0x7E, 0x8D, 0x18, 0x96, 0x56, 0xD1, 0x2B, 0xAD, 0x4B, 0xC1, 0x4F, 0xC8, 0x3A, 0xF1, 0x1E, 0xBD, 0x4C, 0xDA, 0x50, 0xA7, 0x52, 0xE9, 0x76, 0xD8, 0x19, 0x91, 0x72, 0x85, 0x3F, 0x81, 0x61, 0xAA, 0x05, 0x89, 0x0E, 0xB5, 0x24, 0xE0]
@@ -322,6 +371,11 @@ class M3DFioPlugin(
 		self.bedHighMinY = 9.0
 		self.bedHighMaxZ = 112.0
 		self.bedHighMinZ = self.bedMediumMaxZ
+		self.bedWidth = 121.0
+		self.bedDepth = 121.0
+		self.bedCenterOffsetX = 8.5
+		self.bedCenterOffsetY = 2.0
+		self.heatbedHeight = 10.0
 		
 		# Chip details
 		self.chipName = "ATxmega32C4"
@@ -338,20 +392,28 @@ class M3DFioPlugin(
 		# Bed compensation pre-processor settings
 		self.segmentLength = 2.0
 		
-		# Reset pre-processor settings
+		# Reset print and pre-processor settings
 		self.resetPreprocessorSettings()
 	
-	# Reset pre-processor settings
-	def resetPreprocessorSettings(self) :
+	# Reset print settings
+	def resetPrintSettings(self) :
 	
 		# General settings
-		self.preprocessOnTheFlyReady = False
 		self.printingTestBorder = False
 		self.printingBacklashCalibrationCylinder = False
 		self.sentCommands = {}
 		self.sentLineNumbers = []
 		self.resetLineNumberCommandSent = False
 		self.numberWrapCounter = 0
+	
+	# Reset pre-processor settings
+	def resetPreprocessorSettings(self) :
+	
+		# General settings
+		self.preprocessOnTheFlyReady = False
+		
+		# Print settings
+		self.resetPrintSettings()
 		
 		# Center model pre-processor settings
 		self.displacementX = 0
@@ -360,6 +422,7 @@ class M3DFioPlugin(
 		# Preparation pre-processor settings
 		self.addedIntro = False
 		self.addedOutro = False
+		self.preparationLayerCounter = 0
 
 		# Wave bonding pre-processor settings
 		self.waveStep = 0
@@ -408,24 +471,6 @@ class M3DFioPlugin(
 		self.backlashPositionRelativeE = 0
 		self.backlashCompensationExtraGcode = Gcode()
 	
-	# Get cpu hardware
-	def getCpuHardware(self) :
-	
-		# Check if CPU info exists
-		if os.path.isfile("/proc/cpuinfo") :
-	
-			# Read in CPU info
-			for line in open("/proc/cpuinfo") :
-		
-				# Check if line contains hardware information
-				if line.startswith("Hardware") and ':' in line :
-			
-					# Return CPU hardware
-					return line[line.index(':') + 2 : -1]
-		
-		# Return empty string
-		return ''
-	
 	# Save ports
 	def savePorts(self, currentPort) :
 	
@@ -453,6 +498,8 @@ class M3DFioPlugin(
 		# Initialize variables
 		searchForCurrent = True
 		serialPorts = list(serial.tools.list_ports.comports())
+		firstUninitializedPrinter = None
+		firstInitializedPrinter = None
 		
 		# Loop forever
 		while(True) :
@@ -469,11 +516,41 @@ class M3DFioPlugin(
 					# Check if port contains the correct VID and PID
 					if device.startswith("USB VID:PID=03EB:2404") or device.startswith("USB VID:PID=3EB:2404") :
 					
-						# Return port
-						return port[0]
+						# Check if first time connecting 
+						if searchForCurrent and self.currentSerialPort is None :
+						
+							# Check if printer is initialized
+							if "SNR" in device :
+							
+								# Save port
+								firstInitializedPrinter = port[0]
+							
+							# Otherwise
+							else :
+						
+								# Save port
+								firstUninitializedPrinter = port[0]
+						
+						# Otherwise
+						else :
+					
+							# Return port
+							return port[0]
 			
 			# Check if current port has changed
 			if searchForCurrent :
+			
+				# Check if an uninitialized printer was found
+				if firstUninitializedPrinter is not None :
+				
+					# Return port
+					return firstUninitializedPrinter
+				
+				# Check if an initialized printer was found
+				if firstInitializedPrinter is not None :
+				
+					# Return port
+					return firstInitializedPrinter
 			
 				# Clear search for current
 				searchForCurrent = False
@@ -487,43 +564,133 @@ class M3DFioPlugin(
 		# Return none
 		return None
 	
+	# Get heatbed port
+	def getHeatbedPort(self) :
+	
+		# Go through all connected serial ports
+		for port in list(serial.tools.list_ports.comports()) :
+		
+			# Get device
+			device = port[2].upper()
+			
+			# Check if port contains the correct VID and PID
+			if device.startswith("USB VID:PID=1A86:7523") :
+			
+				# Return serial port
+				return port[0]
+		
+		# Return none
+		return None
+	
+	# Monitor heatbed
+	def monitorHeatbed(self) :
+	
+		# Initialize variables
+		previousHeatbedPort = None
+		
+		# Loop forever
+		while True :
+		
+			# Get heatbed port
+			heatbedPort = self.getHeatbedPort()
+		
+			# Check if a heatbed has been disconnected
+			if self.heatbedConnection is not None and heatbedPort is None :
+			
+				# Close heatbed connection
+				self.heatbedConnection.close()
+				self.heatbedConnection = None
+				
+				# Set heated bed to false in printer profile
+				if self._printer_profile_manager.exists("micro_3d") :
+					printerProfile = self._printer_profile_manager.get("micro_3d")
+					printerProfile["heatedBed"] = False
+					self._printer_profile_manager.save(printerProfile, True)
+			
+				# Send message
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Heatbed Disconnected"))
+			
+			# Otherwise check if a heatbed has been connected
+			elif self.heatbedConnection is None and heatbedPort is not None :
+			
+				# Connect to heatbed
+				error = False
+				try :
+					self.heatbedConnection = serial.Serial(heatbedPort, 115200, timeout = 5)
+					if float(serial.VERSION) < 3 :
+						self.heatbedConnection.writeTimeout = 1
+					else :
+						self.heatbedConnection.write_timeout = 1
+				except Exception :
+					error = True
+				
+				# Check if no errors occured
+				if not error :
+				
+					# Loop forever
+					while True :
+					
+						# Wait for heatbed to initialize
+						try :
+							if self.heatbedConnection.read() == '\x1B' :
+								self.heatbedConnection.timeout = 1
+								break;
+						except Exception :
+							error = True
+							break;
+					
+					# Check if no errors occured
+					if not error :
+				
+						# Put heatbed into temperature mode
+						try :
+							if float(serial.VERSION) < 3 :
+								self.heatbedConnection.flushInput()
+								self.heatbedConnection.flushOutput()
+							else :
+								self.heatbedConnection.reset_input_buffer()
+								self.heatbedConnection.reset_output_buffer()
+							
+							self.heatbedConnection.write("i\r")
+						except Exception :
+							error = True
+					
+						# Check if no errors occured
+						if not error :
+				
+							# Set heated bed to true in printer profile
+							if self._printer_profile_manager.exists("micro_3d") :
+								printerProfile = self._printer_profile_manager.get("micro_3d")
+								printerProfile["heatedBed"] = True
+								self._printer_profile_manager.save(printerProfile, True)
+				
+							# Send message
+							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Heatbed Connected"))
+				
+				# Otherwise check if an error occured and it hasn't been show yet
+				if error and previousHeatbedPort != heatbedPort :
+				
+					# Create error message
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create error message", title = "Heatbed error", text = "Failed to connect to heatbed"))
+			
+			# Set previous heatbed port
+			previousHeatbedPort = heatbedPort
+			
+			# Delay
+			time.sleep(0.5)
+	
 	# On start
 	def on_after_startup(self) :
 	
-		# Check if Pip isn't set
-		if octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.get(["pip"]) is None :
-		
-			# Set Pip locations
-			pipLocations = []
-			if platform.uname()[0].startswith("Windows") :
-		
-				pipLocations = [
-					os.environ["SYSTEMDRIVE"] + "/python/Scripts/pip.exe"
-				]
-		
-			elif platform.uname()[0].startswith("Darwin") :
-		
-				pipLocations = [
-					"/Library/Frameworks/Python.framework/Versions/*/bin/pip"
-				]
-		
-			elif platform.uname()[0].startswith("Linux") :
-		
-				pipLocations = [
-					"/usr/bin/pip"
-				]
-		
-			# Go through all Pip location
-			for locations in pipLocations :
-				for location in glob.glob(locations) :
+		# Set reminders on initial OctoPrint instance
+		currentPort = self.getListenPort(psutil.Process(os.getpid()))
+		if currentPort is not None and self.getListenPort(psutil.Process(os.getpid())) == 5000 :
+			self.curaReminder = True
+			self.sleepReminder = True
+		else :
+			self.curaReminder = False
+			self.sleepReminder = False
 	
-					# Check if location is a file
-					if os.path.isfile(location) :
-			
-						# Set Pip location
-						octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.set(["pip"], location)
-						break
-		
 		# Create and overwrite Micro 3D printer profile
 		printerProfile = dict(
 			id = "micro_3d",
@@ -557,34 +724,50 @@ class M3DFioPlugin(
 		# Select Micro 3D printer profile
 		self._printer_profile_manager.select("micro_3d")
 		
-		# Find provided firmware
-		for file in os.listdir(self._basefolder + "/static/files/") :
+		# Find provided firmwares
+		for file in os.listdir(self._basefolder.replace('\\', '/') + "/static/files/") :
 			if file.endswith(".hex") :
+			
+				# Get version number
+				version = file[file.find(' ') + 1 :]
+				version = version[0 : version.find('.')]
 				
-				# Set provided firmware
-				self.providedFirmware = file[0 : 10]
-				break
+				# Set release
+				if file[0 : file.find(' ')] == "M3D" :
+					release = version
+				else :
+					release = version[2 : 4] + '.' + version[4 : 6] + '.' + version[6 : 8] + '.' + version[8 : 10]
+				
+				# Append provided firmware to list
+				self.providedFirmwares[file[0 : file.find(' ')]] = {
+					"Version" : version,
+					"Release" : release,
+					"File" : file
+				}
+		
+		# Set file locations
+		self.setFileLocations()
 		
 		# Check if running on Linux
 		if platform.uname()[0].startswith("Linux") :
 		
 			# Check if running on a Raspberry Pi
-			if platform.uname()[4].startswith("armv6l") and self.getCpuHardware() == "BCM2708" :
+			if platform.uname()[4].startswith("armv6l") and getCpuHardware() == "BCM2708" :
 			
 				# Set shared library
-				self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder + "/static/libraries/preprocessor_arm1176jzf-s.so")
+				self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace('\\', '/') + "/static/libraries/preprocessor_arm1176jzf-s.so")
 			
 			# Otherwise check if running on a Raspberry Pi 2
-			elif platform.uname()[4].startswith("armv7l") and self.getCpuHardware() == "BCM2709" :
+			elif platform.uname()[4].startswith("armv7l") and getCpuHardware() == "BCM2709" :
 			
 				# Set shared library
-				self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder + "/static/libraries/preprocessor_arm_cortex-a7.so")
+				self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace('\\', '/') + "/static/libraries/preprocessor_arm_cortex-a7.so")
 			
 			# Otherwise check if running on an ARM7 device
 			elif platform.uname()[4].startswith("armv7") :
 			
 				# Set shared library
-				self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder + "/static/libraries/preprocessor_arm7.so")
+				self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace('\\', '/') + "/static/libraries/preprocessor_arm7.so")
 			
 			# Otherwise check if using an i386 or x86-64 device
 			elif platform.uname()[4].endswith("86") or platform.uname()[4].endswith("64") :
@@ -593,13 +776,13 @@ class M3DFioPlugin(
 				if platform.architecture()[0].startswith("32") :
 				
 					# Set shared library
-					self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder + "/static/libraries/preprocessor_i386.so")
+					self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace('\\', '/') + "/static/libraries/preprocessor_i386.so")
 			
 				# Otherwise check if Python is running as 64-bit
 				elif platform.architecture()[0].startswith("64") :
 				
 					# Set shared library
-					self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder + "/static/libraries/preprocessor_x86-64.so")
+					self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace('\\', '/') + "/static/libraries/preprocessor_x86-64.so")
 		
 		# Otherwise check if running on Windows and using an i386 or x86-64 device
 		elif platform.uname()[0].startswith("Windows") and (platform.uname()[4].endswith("86") or platform.uname()[4].endswith("64")) :
@@ -608,13 +791,13 @@ class M3DFioPlugin(
 			if platform.architecture()[0].startswith("32") :
 			
 				# Set shared library
-				self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder + "/static/libraries/preprocessor_i386.dll")
+				self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace('\\', '/') + "/static/libraries/preprocessor_i386.dll")
 		
 			# Otherwise check if Python is running as 64-bit
 			elif platform.architecture()[0].startswith("64") :
 			
 				# Set shared library
-				self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder + "/static/libraries/preprocessor_x86-64.dll")
+				self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace('\\', '/') + "/static/libraries/preprocessor_x86-64.dll")
 		
 		# Otherwise check if running on OS X and using an i386 or x86-64 device
 		elif platform.uname()[0].startswith("Darwin") and (platform.uname()[4].endswith("86") or platform.uname()[4].endswith("64")) :
@@ -623,13 +806,13 @@ class M3DFioPlugin(
 			if platform.architecture()[0].startswith("32") :
 			
 				# Set shared library
-				self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder + "/static/libraries/preprocessor_i386.dylib")
+				self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace('\\', '/') + "/static/libraries/preprocessor_i386.dylib")
 		
 			# Otherwise check if Python is running as 64-bit
 			elif platform.architecture()[0].startswith("64") :
 			
 				# Set shared library
-				self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder + "/static/libraries/preprocessor_x86-64.dylib")
+				self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace('\\', '/') + "/static/libraries/preprocessor_x86-64.dylib")
 		
 		# Check if shared library was set
 		if self.sharedLibrary :
@@ -637,9 +820,17 @@ class M3DFioPlugin(
 			# Set output types of shared library functions
 			self.sharedLibrary.collectPrintInformation.restype = ctypes.c_bool
 	  		self.sharedLibrary.preprocess.restype = ctypes.c_char_p
+	  		self.sharedLibrary.getDetectedFanSpeed.restype = ctypes.c_ubyte
+	  		self.sharedLibrary.getObjectSuccessfullyCentered.restype = ctypes.c_bool
 	    	
-	    	# Enable printer callbacks
-		self._printer.register_callback(self)
+	    	# Enable printer callbacks if using a Micro 3D printer
+	    	if not self._settings.get_boolean(["UsingADifferentPrinter"]) :
+			self._printer.register_callback(self)
+		
+		# Monitor heatbed
+		monitorHeatbedThread = threading.Thread(target=self.monitorHeatbed)
+		monitorHeatbedThread.daemon = True
+		monitorHeatbedThread.start()
 	
 	# Covert Cura to profile
 	def convertCuraToProfile(self, input, output, name, displayName, description) :
@@ -656,7 +847,7 @@ class M3DFioPlugin(
 		os.close(fd)
 			
 		# Import profile manager
-		profileManager = imp.load_source("Profile", self._slicing_manager.get_slicer("cura")._basefolder + "/profile.py")
+		profileManager = imp.load_source("Profile", self._slicing_manager.get_slicer("cura")._basefolder.replace('\\', '/') + "/profile.py")
 		
 		# Create profile
 		profile = octoprint.slicing.SlicingProfile("cura", name, profileManager.Profile.from_cura_ini(curaProfile), displayName, description)
@@ -713,7 +904,7 @@ class M3DFioPlugin(
 		output = open(output, "wb")
 		
 		# Import profile manager
-		profileManager = imp.load_source("Profile", self._slicing_manager.get_slicer("cura")._basefolder + "/profile.py")
+		profileManager = imp.load_source("Profile", self._slicing_manager.get_slicer("cura")._basefolder.replace('\\', '/') + "/profile.py")
 		
 		# Create profile
 		profile = profileManager.Profile(self._slicing_manager.get_slicer("cura")._load_profile(input), printerProfile, None, None)
@@ -825,7 +1016,7 @@ class M3DFioPlugin(
 	def on_shutdown(self) :
 	
 		# Delete all temporary files
-		path = self.get_plugin_data_folder() + '/'
+		path = self.get_plugin_data_folder().replace('\\', '/') + '/'
 		for file in os.listdir(path) :
 			os.remove(path + file)
 		
@@ -833,9 +1024,12 @@ class M3DFioPlugin(
 		self.restoreFiles()
 		
 		# Remove config file
-		configFile = self._settings.global_get_basefolder("base") + "/config.yaml" + str(self.getOctoPrintPort(psutil.Process(os.getpid()).connections()))
+		configFile = self._settings.global_get_basefolder("base").replace('\\', '/') + "/config.yaml" + str(self.getListenPort(psutil.Process(os.getpid())))
 		if os.path.isfile(configFile) :
 			os.remove(configFile)
+		
+		# Enable sleep
+		self.enableSleep()
 	
 	# Get default settings
 	def get_settings_defaults(self) :
@@ -871,9 +1065,17 @@ class M3DFioPlugin(
 			UseSharedLibrary = True,
 			SpeedLimitX = 1500,
 			SpeedLimitY = 1500,
-			SpeedLimitZ = 90,
+			SpeedLimitZ = 60,
 			SpeedLimitEPositive = 102,
-			SpeedLimitENegative = 360
+			SpeedLimitENegative = 360,
+			ChangeSettingsBeforePrint = True,
+			UsingADifferentPrinter = False,
+			CalibrateBeforePrint = False,
+			RemoveFanCommands = True,
+			RemoveTemperatureCommands = True,
+			UseExternalFan = False,
+			ExternalFanPin = None,
+			HeatbedTemperature = 70
 		)
 	
 	# Template manager
@@ -892,7 +1094,7 @@ class M3DFioPlugin(
 	
 		# Return asset
 		return dict(
-			js = ["js/m3dfio.js", "js/three.min.js", "js/OrbitControls.js", "js/STLLoader.js", "js/OBJLoader.js", "js/M3DLoader.js", "js/STLBinaryExporter.js", "js/TransformControls.js", "js/ThreeCSG.js"],
+			js = ["js/m3dfio.js", "js/three.min.js", "js/OrbitControls.js", "js/STLLoader.js", "js/OBJLoader.js", "js/M3DLoader.js", "js/STLBinaryExporter.js", "js/TransformControls.js", "js/ThreeCSG.js", "js/AMFLoader.js", "js/VRMLLoader.js", "js/ColladaLoader.js", "js/Detector.js"],
 			css = ["css/m3dfio.css"]
 		)
 	
@@ -931,31 +1133,34 @@ class M3DFioPlugin(
 			# Check if parameter is a list of commands
 			if isinstance(data["value"], list) :
 			
-				# Set waiting
+				# Set waiting if last command is to wait
 				if data["value"][-1] == "M65536;wait" :
 					self.waiting = True
 				
+				# Initialize line number
+				lineNumber = 1
+				self.sendCommands("N0 M110")
+				
 				# Go through all commands
 				for command in data["value"] :
-			
-					# Send command to printer
-					self.sendCommands(command)
+				
+					# Check if command wont receive a normal confirmation
+					if command.startswith("M618 ") or command.startswith("M619 ") :
 					
-					# Delay
-					time.sleep(0.4)
-				
-				# Check if waiting for a response
-				if data["value"][-1] == "M65536;wait" :
-				
-					# Wait until all commands have been sent or interrupted
-					while self.waiting :
-						time.sleep(0.01)
-				
-					# Send response
-					if not self.waiting :
-						return flask.jsonify(dict(value = "Error"))
+						# Send command to printer
+						self.sendCommands(command)
+					
+					# Otherwise
 					else :
-						return flask.jsonify(dict(value = "Ok"))
+					
+						# Send command with line number to printer
+						self.sendCommands('N' + str(lineNumber) + ' ' + command)
+					
+						# Increment line number
+						lineNumber += 1
+				
+				# Send response
+				return flask.jsonify(dict(value = "Ok"))
 			
 			# Otherwise check if parameter is to set fan
 			elif data["value"].startswith("Set Fan:") :
@@ -968,6 +1173,10 @@ class M3DFioPlugin(
 				
 				# Get current printer connection state
 				currentState, currentPort, currentBaudrate, currentProfile = self._printer.get_current_connection()
+				
+				# Set baudrate if invalid
+				if not currentBaudrate or currentBaudrate == 0 :
+					currentBaudrate = 115200
 				
 				# Save ports
 				self.savePorts(currentPort)
@@ -1006,8 +1215,9 @@ class M3DFioPlugin(
 				# Close connection
 				connection.close()
 				
-				# Enable printer callbacks
-				self._printer.register_callback(self)
+				# Enable printer callbacks if using a Micro 3D printer
+			    	if not self._settings.get_boolean(["UsingADifferentPrinter"]) :
+					self._printer.register_callback(self)
 			
 				# Re-connect
 				self._printer.connect(currentPort, currentBaudrate, currentProfile)
@@ -1018,10 +1228,10 @@ class M3DFioPlugin(
 				
 				# Remove serial timeout
 				self._printer.get_transport().timeout = None
-				if serial.VERSION < 3 :
-                                    self._printer.get_transport().writeTimeout = None
+				if float(serial.VERSION) < 3 :
+					self._printer.get_transport().writeTimeout = None
 				else :
-                                    self._printer.get_transport().write_timeout = None
+					self._printer.get_transport().write_timeout = None
 				
 				# Send response
 				if error :
@@ -1040,6 +1250,10 @@ class M3DFioPlugin(
 				
 				# Get current printer connection state
 				currentState, currentPort, currentBaudrate, currentProfile = self._printer.get_current_connection()
+				
+				# Set baudrate if invalid
+				if not currentBaudrate or currentBaudrate == 0 :
+					currentBaudrate = 115200
 				
 				# Save ports
 				self.savePorts(currentPort)
@@ -1078,8 +1292,9 @@ class M3DFioPlugin(
 				# Close connection
 				connection.close()
 				
-				# Enable printer callbacks
-				self._printer.register_callback(self)
+				# Enable printer callbacks if using a Micro 3D printer
+		    		if not self._settings.get_boolean(["UsingADifferentPrinter"]) :
+					self._printer.register_callback(self)
 				
 				# Re-connect
 				self._printer.connect(currentPort, currentBaudrate, currentProfile)
@@ -1090,10 +1305,10 @@ class M3DFioPlugin(
 				
 				# Remove serial timeout
 				self._printer.get_transport().timeout = None
-				if serial.VERSION < 3 :
-                                    self._printer.get_transport().writeTimeout = None
+				if float(serial.VERSION) < 3 :
+					self._printer.get_transport().writeTimeout = None
 				else :
-                                    self._printer.get_transport().write_timeout = None
+					self._printer.get_transport().write_timeout = None
 				
 				# Send response
 				if error :
@@ -1106,11 +1321,11 @@ class M3DFioPlugin(
 			
 				# Set file location and destination
 				if data["value"] == "Print Test Border" :
-					location = self._basefolder + "/static/files/test border.gcode"
-					destination = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "test border")
+					location = self._basefolder.replace('\\', '/') + "/static/files/test border.gcode"
+					destination = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "test border.gcode").replace('\\', '/')
 				else :
-					location = self._basefolder + "/static/files/backlash calibration cylinder.gcode"
-					destination = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "backlash calibration cylinder")
+					location = self._basefolder.replace('\\', '/') + "/static/files/backlash calibration cylinder.gcode"
+					destination = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "backlash calibration cylinder.gcode").replace('\\', '/')
 				
 				# Remove destination file if it already exists
 				if os.path.isfile(destination) :
@@ -1159,10 +1374,16 @@ class M3DFioPlugin(
 						self.sharedLibrary.setUseBacklashCompensationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseBacklashCompensationPreprocessor"])))
 						self.sharedLibrary.setUseCenterModelPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseCenterModelPreprocessor"])))
 						self.sharedLibrary.setIgnorePrintDimensionLimitations(ctypes.c_bool(self._settings.get_boolean(["IgnorePrintDimensionLimitations"])))
-						self.sharedLibrary.setUsingMicroPass(ctypes.c_bool(self.usingMicroPass))
+						self.sharedLibrary.setUsingHeatbed(ctypes.c_bool(self.heatbedConnection is not None))
 						self.sharedLibrary.setPrintingTestBorder(ctypes.c_bool(self.printingTestBorder))
 						self.sharedLibrary.setPrintingBacklashCalibrationCylinder(ctypes.c_bool(self.printingBacklashCalibrationCylinder))
-						
+						self.sharedLibrary.setPrinterColor(ctypes.c_char_p(self.printerColor))
+						self.sharedLibrary.setCalibrateBeforePrint(ctypes.c_bool(self._settings.get_boolean(["CalibrateBeforePrint"])))
+						self.sharedLibrary.setRemoveFanCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveFanCommands"])))
+						self.sharedLibrary.setRemoveTemperatureCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveTemperatureCommands"])))
+						self.sharedLibrary.setUseExternalFan(ctypes.c_bool(self._settings.get_boolean(["UseExternalFan"])))
+						self.sharedLibrary.setHeatbedTemperature(ctypes.c_ushort(self._settings.get_int(["HeatbedTemperature"])))
+									
 						# Collect print information
 						self.sharedLibrary.collectPrintInformation(ctypes.c_char_p(location))
 					
@@ -1187,6 +1408,10 @@ class M3DFioPlugin(
 					# Copy file to destination
 					shutil.copyfile(location, destination)
 				
+				# Set correct file location for Windows
+				if platform.uname()[0].startswith("Windows") :
+					destination = destination.replace('/', '\\')
+				
 				# Print test border
 				self._printer.select_file(destination, False, True)
 			
@@ -1198,6 +1423,10 @@ class M3DFioPlugin(
 				
 				# Get current printer connection state
 				currentState, currentPort, currentBaudrate, currentProfile = self._printer.get_current_connection()
+				
+				# Set baudrate if invalid
+				if not currentBaudrate or currentBaudrate == 0 :
+					currentBaudrate = 115200
 				
 				# Save ports
 				self.savePorts(currentPort)
@@ -1218,8 +1447,9 @@ class M3DFioPlugin(
 				# Close connection
 				connection.close()
 				
-				# Enable printer callbacks
-				self._printer.register_callback(self)
+				# Enable printer callbacks if using a Micro 3D printer
+		    		if not self._settings.get_boolean(["UsingADifferentPrinter"]) :
+					self._printer.register_callback(self)
 				
 				# Re-connect
 				self._printer.connect(currentPort, currentBaudrate, currentProfile)
@@ -1230,10 +1460,10 @@ class M3DFioPlugin(
 				
 				# Remove serial timeout
 				self._printer.get_transport().timeout = None
-				if serial.VERSION < 3 :
-                                    self._printer.get_transport().writeTimeout = None
+				if float(serial.VERSION) < 3 :
+					self._printer.get_transport().writeTimeout = None
 				else :
-                                    self._printer.get_transport().write_timeout = None
+					self._printer.get_transport().write_timeout = None
 				
 				# Send response
 				if not self.eeprom :
@@ -1264,6 +1494,10 @@ class M3DFioPlugin(
 				
 					# Get current printer connection state
 					currentState, currentPort, currentBaudrate, currentProfile = self._printer.get_current_connection()
+					
+					# Set baudrate if invalid
+					if not currentBaudrate or currentBaudrate == 0 :
+						currentBaudrate = 115200
 					
 					# Save ports
 					self.savePorts(currentPort)
@@ -1306,28 +1540,20 @@ class M3DFioPlugin(
 						# Check if an error hasn't occured
 						if not error :
 					
-							# Send new EEPROM
-							self.getEeprom(connection, True)
+							# Clear EEPROM
+							self.eeprom = None
 				
 					# Close connection
 					connection.close()
-		
-					# Enable printer callbacks
-					self._printer.register_callback(self)
-		
-					# Re-connect
-					self._printer.connect(currentPort, currentBaudrate, currentProfile)
 					
-					# Wait until connection is established
-					while not isinstance(self._printer.get_transport(), serial.Serial) :
-						time.sleep(1)
-				
-					# Remove serial timeout
-					self._printer.get_transport().timeout = None
-					if serial.VERSION < 3 :
-                                            self._printer.get_transport().writeTimeout = None
-					else :
-                                            self._printer.get_transport().write_timeout = None
+					# Save connection
+					self.savedCurrentPort = currentPort
+					self.savedCurrentBaudrate = currentBaudrate
+					self.savedCurrentProfile = currentProfile
+					
+					# Enable printer callbacks if using a Micro 3D printer
+		    			if not self._settings.get_boolean(["UsingADifferentPrinter"]) :
+						self._printer.register_callback(self)
 				
 				# Send response
 				if error :
@@ -1340,18 +1566,38 @@ class M3DFioPlugin(
 			
 				# Check if a micro 3D is connected
 				if not self.invalidPrinter :
-			
+				
 					# Save settings to the printer
 					self.sendCommands(self.getSaveCommands())
 			
 			# Otherwise check if parameter is a response to a message
-			elif self.messageResponse is None and (data["value"] == "Ok" or data["value"] == "Yes" or data["value"] == "No") :
+			elif data["value"] == "Ok" or data["value"] == "Yes" or data["value"] == "No" :
 			
-				# Set response
-				if data["value"] == "No" :
-					self.messageResponse = False
-				else :
-					self.messageResponse = True
+				# Check if waiting for a response
+				if self.messageResponse is None :
+			
+					# Set response
+					if data["value"] == "No" :
+						self.messageResponse = False
+					else :
+						self.messageResponse = True
+				
+				# Send response
+				return flask.jsonify(dict(value = "Ok"))
+			
+			# Otherwise check if parameter is to disable reminder
+			elif data["value"].startswith("Disable Reminder:") :
+			
+				# Get value
+				value = data["value"][18 :]
+				
+				# Disable Cura reminder
+				if value == "Cura" :
+					self.curaReminder = False
+				
+				# Disable sleep reminder
+				elif value == "Sleep" :
+					self.sleepReminder = False
 			
 			# Otherwise check if parameter is to view a profile
 			elif data["value"].startswith("View Profile:") :
@@ -1370,7 +1616,7 @@ class M3DFioPlugin(
 				
 				# Set file's destination
 				destinationName = "profile_" + str(random.randint(0, 1000000)) +  values["slicerProfileName"]
-				fileDestination = self.get_plugin_data_folder() + '/' + destinationName
+				fileDestination = self.get_plugin_data_folder().replace('\\', '/') + '/' + destinationName
 				
 				# Remove file in destination if it already exists
 				if os.path.isfile(fileDestination) :
@@ -1392,12 +1638,19 @@ class M3DFioPlugin(
 			elif data["value"] == "Remove Temp" :
 			
 				# Delete all temporary files
-				path = self.get_plugin_data_folder() + '/'
+				path = self.get_plugin_data_folder().replace('\\', '/') + '/'
 				for file in os.listdir(path) :
 					os.remove(path + file)
 			
 			# Otherwise check if parameter is to update firmware to provided
-			elif data["value"] == "Update Firmware To Provided" :
+			elif data["value"].startswith("Update Firmware To Provided:") :
+				
+				# Get firmware name
+				firmwareName = data["value"][29 :]
+				
+				# Return error if firmware name isn't provided
+				if firmwareName not in self.providedFirmwares :
+					return flask.jsonify(dict(value = "Error"))
 			
 				# Initialize variables
 				error = False
@@ -1407,6 +1660,10 @@ class M3DFioPlugin(
 			
 				# Get current printer connection state
 				currentState, currentPort, currentBaudrate, currentProfile = self._printer.get_current_connection()
+				
+				# Set baudrate if invalid
+				if not currentBaudrate or currentBaudrate == 0 :
+					currentBaudrate = 115200
 				
 				# Save ports
 				self.savePorts(currentPort)
@@ -1431,7 +1688,7 @@ class M3DFioPlugin(
 				else :
 			
 					# Check if updating firmware failed
-					if not self.updateToProvidedFirmware(connection) :
+					if not self.updateToProvidedFirmware(connection, firmwareName) :
 			
 						# Set error
 						error = True
@@ -1439,28 +1696,20 @@ class M3DFioPlugin(
 					# Otherwise
 					else :
 				
-						# Send new EEPROM
-						self.getEeprom(connection, True)
+						# Clear EEPROM
+						self.eeprom = None
 			
 				# Close connection
 				connection.close()
-			
-				# Enable printer callbacks
-				self._printer.register_callback(self)
-			
-				# Re-connect
-				self._printer.connect(currentPort, currentBaudrate, currentProfile)
 				
-				# Wait until connection is established
-				while not isinstance(self._printer.get_transport(), serial.Serial) :
-					time.sleep(1)
-				
-				# Remove serial timeout
-				self._printer.get_transport().timeout = None
-				if serial.VERSION < 3 :
-                                    self._printer.get_transport().writeTimeout = None
-				else :
-                                    self._printer.get_transport().write_timeout = None
+				# Save connection
+				self.savedCurrentPort = currentPort
+				self.savedCurrentBaudrate = currentBaudrate
+				self.savedCurrentProfile = currentProfile
+			
+				# Enable printer callbacks if using a Micro 3D printer
+		    		if not self._settings.get_boolean(["UsingADifferentPrinter"]) :
+					self._printer.register_callback(self)
 			
 				# Send response
 				if error :
@@ -1474,19 +1723,20 @@ class M3DFioPlugin(
 				# Get port
 				port = int(data["value"][26 :])
 				
+				# Check if attempting to close initial OctoPrint instance
+				if port == 5000 :
+				
+					# Return error
+					return flask.jsonify(dict(value = "Error"))
+				
 				# Find all OctoPrint instances
 				for process in psutil.process_iter() :
-					if process.name() == "octoprint" or process.name() == "python" :
+					if process.name().lower().startswith("octoprint") or process.name().lower().startswith("python") :
 						
 						# Check if process has the specified port
 						processDetails = psutil.Process(process.pid)
-						if port == self.getOctoPrintPort(processDetails.connections()) :
-						
-							# Check if attempting to close initial OctoPrint instance
-							if process.name() == "octoprint" :
-							
-								# Return error
-								return flask.jsonify(dict(value = "Error"))
+						processPort = self.getListenPort(processDetails)
+						if processPort is not None and port == processPort :
 						
 							# Terminate process
 							processDetails.terminate()
@@ -1520,13 +1770,13 @@ class M3DFioPlugin(
 					port += 1
 			
 				# Create config file
-				shutil.copyfile(self._settings.global_get_basefolder("base") + "/config.yaml", self._settings.global_get_basefolder("base") + "/config.yaml" + str(port))
+				shutil.copyfile(self._settings.global_get_basefolder("base").replace('\\', '/') + "/config.yaml", self._settings.global_get_basefolder("base").replace('\\', '/') + "/config.yaml" + str(port))
 				
 				# Create instance
 				if octoprint.__version__ == "0+unknown" or tuple(map(int, (octoprint.__version__.split(".")))) >= tuple(map(int, ("1.3.0".split(".")))) :
-					instance = subprocess.Popen([sys.executable + " -c \"import octoprint;octoprint.main()\" serve --port " + str(port) + " --config " + self._settings.global_get_basefolder("base") + "/config.yaml" + str(port)], shell = True)
+					subprocess.Popen([sys.executable.replace('\\', '/'), "-c", "import octoprint;octoprint.main()", "serve", "--port", str(port), "--config", self._settings.global_get_basefolder("base").replace('\\', '/') + "/config.yaml" + str(port)])
 				else :
-					instance = subprocess.Popen([sys.executable + " -c \"import octoprint;octoprint.main()\" --port " + str(port) + " --config " + self._settings.global_get_basefolder("base") + "/config.yaml" + str(port)], shell = True)
+					subprocess.Popen([sys.executable.replace('\\', '/'), "-c", "import octoprint;octoprint.main()", "--port", str(port), "--config", self._settings.global_get_basefolder("base").replace('\\', '/') + "/config.yaml" + str(port)])
 				
 				# Send response
 				return flask.jsonify(dict(value = "Ok", port = port))
@@ -1567,33 +1817,54 @@ class M3DFioPlugin(
 				# Return response
 				return flask.jsonify(dict(value = "Error"))
 			
-			# Otherwise check if parameter is that print is ready
-			elif data["value"].startswith("Print Ready:") :
+			# Otherwise check if parameter is print settings
+			elif data["value"].startswith("Print Settings:") :
 			
 				# Get values
-				values = json.loads(data["value"][13 :])
+				values = json.loads(data["value"][16 :])
 				
-				# Set filament temperature and type
+				# Set filament temperature, heatbed temperature, and type
 				self._settings.set_int(["FilamentTemperature"], int(values["filamentTemperature"]))
-				self._settings.set(["FilamentType"], values["filamentType"])
-				
-				# Set print ready
-				self.printReady = True
+				self._settings.set_int(["HeatbedTemperature"], int(values["heatbedTemperature"]))
+				self._settings.set(["FilamentType"], str(values["filamentType"]))
 				
 				# Return response
 				return flask.jsonify(dict(value = "Ok"))
 			
-			# Otherwise check if parameter is to cancel print
-			elif data["value"] == "Cancel Print" :
+			# Otherwise check if parameter is emergency stop
+			elif data["value"] == "Emergency Stop" :
+			
+				# Empty command queue
+				self.emptyCommandQueue()
 			
 				# Check if printing
 				if self._printer.is_printing() :
 			
 					# Stop printing
 					self._printer.cancel_print()
+			
+				# Send emergency stop immediately to the printer
+				self._printer.get_transport().write("M0")
+			
+			# Otherwise check if parameter is ping
+			elif data["value"] == "Ping" :
+			
+				# Return response
+				return flask.jsonify(dict(value = "Ok"))
+			
+			# Otherwise check if parameter is to reconnect
+			elif data["value"] == "Reconnect" :
+			
+				# Check if connection was saved
+				if hasattr(self, "savedCurrentPort") and self.savedCurrentPort is not None and hasattr(self, "savedCurrentBaudrate") and self.savedCurrentBaudrate is not None and hasattr(self, "savedCurrentProfile") and self.savedCurrentProfile is not None :
 				
-				# Set print ready
-				self.printReady = True
+					# Re-connect
+					self._printer.connect(self.savedCurrentPort, self.savedCurrentBaudrate, self.savedCurrentProfile)
+					
+					# Remove saved connection
+					self.savedCurrentPort = None
+					self.savedCurrentBaudrate = None
+					self.savedCurrentProfile = None
 		
 		# Otherwise check if command is a file
 		elif command == "file" :
@@ -1601,13 +1872,20 @@ class M3DFioPlugin(
 			# Initialize variables
 			error = False
 			encryptedRom = ''
-			temp = ''
 			
 			# Disable printer callbacks
 			self._printer.unregister_callback(self)
 			
 			# Get current printer connection state
 			currentState, currentPort, currentBaudrate, currentProfile = self._printer.get_current_connection()
+			
+			# Set baudrate if invalid
+			if not currentBaudrate or currentBaudrate == 0 :
+				currentBaudrate = 115200
+			
+			# Remove firmware name
+			if ' ' in data["name"] :
+				data["name"] = data["name"][data["name"].find(' ') + 1 :]
 			
 			# Check if rom version is valid ROM version
 			if len(data["name"]) >= 10 and data["name"][0 : 10].isdigit() :
@@ -1629,26 +1907,6 @@ class M3DFioPlugin(
 				for character in data["content"] :
 					encryptedRom += chr(ord(character))
 				
-				# Check if rom isn't encrypted
-				if encryptedRom[0] == 0x0C or encryptedRom[0] == 0xFD :
-				
-					# Go through the ROM
-					index = 0
-					while index < len(encryptedRom) :
-					
-						# Check if padding wasn't required
-						if index % 2 != 0 or index != len(encryptedRom) - 1 :
-						
-							# Encrypt the ROM
-							if i % 2 :
-								temp += chr(self.romEncryptionTable[int(ord(encryptedRom[index - 1]))])
-							else :
-							
-								temp += chr(self.romEncryptionTable[int(ord(encryptedRom[index + 1]))])
-					
-					# Set encrypted ROM
-					encryptedRom = temp
-				
 				# Check if getting EEPROM failed
 				if not self.getEeprom(connection) :
 			
@@ -1667,8 +1925,16 @@ class M3DFioPlugin(
 					# Otherwise
 					else :
 					
-						# Send new EEPROM
-						self.getEeprom(connection, True)
+						# Clear EEPROM
+						self.eeprom = None
+				
+				# Close connection
+				connection.close()
+				
+				# Save connection
+				self.savedCurrentPort = currentPort
+				self.savedCurrentBaudrate = currentBaudrate
+				self.savedCurrentProfile = currentProfile
 			
 			# Otherwise
 			else :
@@ -1676,25 +1942,9 @@ class M3DFioPlugin(
 				# Set error
 				error = True
 			
-			# Close connection
-			connection.close()
-			
-			# Enable printer callbacks
-			self._printer.register_callback(self)
-			
-			# Re-connect
-			self._printer.connect(currentPort, currentBaudrate, currentProfile)
-			
-			# Wait until connection is established
-			while not isinstance(self._printer.get_transport(), serial.Serial) :
-				time.sleep(1)
-		
-			# Remove serial timeout
-			self._printer.get_transport().timeout = None
-			if serial.VERSION < 3 :
-                            self._printer.get_transport().writeTimeout = None
-			else :
-                            self._printer.get_transport().write_timeout = None
+			# Enable printer callbacks if using a Micro 3D printer
+		    	if not self._settings.get_boolean(["UsingADifferentPrinter"]) :
+				self._printer.register_callback(self)
 			
 			# Send response
 			if error :
@@ -1740,9 +1990,33 @@ class M3DFioPlugin(
 		# Remove newline character from end of EEPROM
 		self.eeprom = self.eeprom[:-1]
 		
-		# Send EEPROM if set
+		# Check if sending
 		if send :
+		
+			# Send EEPROM
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "EEPROM", eeprom = self.eeprom.encode("hex").upper()))
+		
+			# Get firmware version from EEPROM
+			index = 3
+			firmwareVersion = 0
+			while index >= 0 :
+				firmwareVersion <<= 8
+				firmwareVersion += int(ord(self.eeprom[self.eepromOffsets["firmwareVersion"]["offset"] + index]))
+				index -= 1
+		
+			# Get firmware name
+			firmwareName = None
+			firmwareRelease = None
+			for firmware in self.providedFirmwares :
+				if int(self.providedFirmwares[firmware]["Version"]) / 100000000 == firmwareVersion / 100000000 :
+					firmwareName = firmware
+		
+			# Get firmware release
+			firmwareRelease = format(firmwareVersion, "010")
+			if firmwareName is None or firmwareName != "M3D" :
+				firmwareRelease = firmwareRelease[2 : 4] + '.' + firmwareRelease[4 : 6] + '.' + firmwareRelease[6 : 8] + '.' + firmwareRelease[8 : 10]
+		
+			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Current Firmware", name = firmwareName, release = firmwareRelease))
 		
 		# Get serial number from EEPROM
 		serialNumber = self.eeprom[self.eepromOffsets["serialNumber"]["offset"] : self.eepromOffsets["serialNumber"]["offset"] + self.eepromOffsets["serialNumber"]["bytes"] - 1]
@@ -1754,21 +2028,45 @@ class M3DFioPlugin(
 		return True
 	
 	# Update to provided firmware
-	def updateToProvidedFirmware(self, connection) :
+	def updateToProvidedFirmware(self, connection, firmwareName) :
 	
 		# Return if firmware was updated successfully
-		encryptedRom = open(self._basefolder + "/static/files/" + self.providedFirmware + ".hex", "rb")
-		return self.updateFirmware(connection, encryptedRom.read(), int(self.providedFirmware))
+		encryptedRom = open(self._basefolder.replace('\\', '/') + "/static/files/" + self.providedFirmwares[firmwareName]["File"], "rb")
+		return self.updateFirmware(connection, encryptedRom.read(), int(self.providedFirmwares[firmwareName]["Version"]))
 	
 	# Update firmware
 	def updateFirmware(self, connection, encryptedRom, romVersion) :
 	
 		# Initialize variables
 		error = False
+		temp = ''
 		decryptedRom = ''
 		oldChipCrc = 0
 		newChipCrc = 0
 		eepromCrc = 0
+		
+		# Check if rom isn't encrypted
+		if encryptedRom[0] == '\x0C' or encryptedRom[0] == '\xFD' :
+	
+			# Go through the ROM
+			index = 0
+			while index < len(encryptedRom) :
+		
+				# Check if padding wasn't required
+				if index % 2 != 0 or index != len(encryptedRom) - 1 :
+			
+					# Encrypt the ROM
+					if index % 2 :
+						temp += chr(self.romEncryptionTable[int(ord(encryptedRom[index - 1]))])
+					else :
+				
+						temp += chr(self.romEncryptionTable[int(ord(encryptedRom[index + 1]))])
+				
+				# Increment index
+				index += 1
+		
+			# Set encrypted ROM
+			encryptedRom = temp
 	
 		# Check if rom isn't too big
 		if len(encryptedRom) <= self.chipTotalMemory :
@@ -2153,32 +2451,19 @@ class M3DFioPlugin(
 	
 		# Check if printing
 		if self._printer.is_printing() :
-		
-			# Check if not ready to print
-			if not self.printReady or not self.preprocessOnTheFlyReady :
-		
-				# Clear last response was wait
-				self.lastResponseWasWait = False
 			
-			# Wait until print is ready
-			while not self.printReady :
-				time.sleep(0.01)
-			
-			# Check if print was not canceled
-			if self._printer.is_printing() :
-			
-				# Check if using on the fly pre-processing
-				if self._settings.get_boolean(["PreprocessOnTheFly"]) :
-		
-					# Wait until pre-processing on the fly is ready
-					while not self.preprocessOnTheFlyReady :
-						time.sleep(0.01)
-			
-			# Otherwise
-			else :
+			# Check if using on the fly pre-processing
+			if self._settings.get_boolean(["PreprocessOnTheFly"]) :
+	
+				# Wait until pre-processing on the fly is ready
+				while not self.preprocessOnTheFlyReady :
+					time.sleep(0.01)
 				
-				# Set command to emergency stop
-				data = "M65537;stop"
+				# Check if print was invalid
+				if not self._printer.is_printing() :
+				
+					# Set command to emergency stop
+					data = "M65537;stop"
 		
 		# Check if request is emergency stop
 		if "M65537" in data :
@@ -2192,20 +2477,25 @@ class M3DFioPlugin(
 			# Check if printing
 			if self._printer.is_printing() :
 			
+				# Wait until all sent commands have been processed
+				while len(self.sentLineNumbers) :
+					time.sleep(0.01)
+			
 				# Stop printing
 				self._printer.cancel_print()
 		
 		# Check if request ends waiting
 		if "M65536" in data :
 			
-			# Clear waiting
-			self.waiting = None
+			# Set to wait for a wait response
+			if self.waiting :
+				self.waiting = None
 			
 			# Send fake acknowledgment
 			self._printer.fake_ack()
 		
 		# Otherwise check if request is invalid
-		elif ("M110" in data and not self._printer.is_printing()) or data == "M21\n" or data == "M84\n" :
+		elif (not self._printer.is_printing() and (data.startswith("N0 M110 N0") or data.startswith("M110"))) or data == "M21\n" or data == "M84\n" :
 		
 			# Send fake acknowledgment
 			self._printer.fake_ack()
@@ -2213,9 +2503,6 @@ class M3DFioPlugin(
 		# Otherwise
 		else :
 		
-			# Initialize variables
-			gcode = Gcode()
-			
 			# Check if pre-processing on the fly and command is not a starting line number and wasn't added on the fly
 			if self._printer.is_printing() and self._settings.get_boolean(["PreprocessOnTheFly"]) and not data.startswith("N0 M110") and "**" not in data :
 			
@@ -2250,16 +2537,92 @@ class M3DFioPlugin(
 					data = 'N' + str(lineNumber) + " G4\n"
 			
 			# Check if command contains valid G-code
+			gcode = Gcode()
 			if gcode.parseLine(data) :
 			
+				# Check if using a heatbed
+				if self.heatbedConnection is not None :
+				
+					# Check if command is to set heatbed temperature
+					if gcode.getValue('M') == "140" :
+					
+						# Send heatbed the specified temperature
+						try :
+							if gcode.hasValue('S') :
+								self.heatbedConnection.write("s " + gcode.getValue('S') + '\r')
+							else :
+								self.heatbedConnection.write("s 0\r")
+						except Exception :
+							pass
+						
+						# Set command to nothing
+						gcode.removeParameter('M')
+						gcode.removeParameter('S')
+						gcode.setValue('G', '4')
+					
+					# Otherwise check if command is to set heatbed temperature and wait
+					elif gcode.getValue('M') == "190" :
+					
+						# Send heatbed the specified temperature
+						error = False
+						try :
+							if gcode.hasValue('S') :
+								self.heatbedConnection.write("w " + gcode.getValue('S') + '\r')
+							else :
+								self.heatbedConnection.write("w 0\r")
+						except Exception :
+							error = True
+						
+						# Check if no errors occured
+						if not error :
+						
+							# Loop forever
+							while True :
+						
+								# Read heatbed temperature until it stops
+								try :
+									heatbedTemperature = str(self.heatbedConnection.read())
+									
+									if float(serial.VERSION) < 3 :
+										heatbedTemperature += str(self.heatbedConnection.read(self.heatbedConnection.inWaiting()))
+									else :
+										heatbedTemperature += str(self.heatbedConnection.read(self.heatbedConnection.in_waiting()))
+								except Exception :
+									break;
+						
+						# Set command to nothing
+						gcode.removeParameter('M')
+						gcode.removeParameter('S')
+						gcode.setValue('G', '4')
+			
+				# Check if using an external fan
+				if self._settings.get_boolean(["UseExternalFan"]) :
+			
+					# Check if command is to turn on external fan
+					if gcode.getValue('M') == "106" and gcode.getValue('T') == '1' :
+				
+						# Turn on external fan
+						self.turnOnExternalFan()
+					
+						# Set command to nothing
+						gcode.removeParameter('M')
+						gcode.removeParameter('T')
+						gcode.setValue('G', '4')
+				
+					# Check if command is to turn off fans
+					elif gcode.getValue('M') == "107" :
+				
+						# Turn off external fan
+						self.turnOffExternalFan()
+				
 				# Get the command's binary representation
 				data = gcode.getBinary()
 				
-				# Check if printing and command has a line number
-				if self._printer.is_printing() and gcode.hasValue('N') :
+				# Check if command has a line number
+				if gcode.hasValue('N') :
 				
 					# Limit the amount of commands that can simultaneous be sent to the printer
-					while len(self.sentLineNumbers) >= 5 :
+					while len(self.sentLineNumbers) >= 1 :
 						time.sleep(0.01)
 					
 					# Get line number
@@ -2292,8 +2655,8 @@ class M3DFioPlugin(
 		# Check if response is wait
 		if response.startswith("wait") :
 		
-			# Check if printing and a command hasn't been confirmed
-			if self._printer.is_printing() and self.lastResponseWasTemperatureReading and len(self.sentLineNumbers) :
+			# Check if a command hasn't been confirmed
+			if self.lastResponseWasTemperatureReading and len(self.sentLineNumbers) :
 			
 				# Set response to confirm command
 				response = "ok " + str(self.sentLineNumbers[0]) + '\n'
@@ -2315,6 +2678,15 @@ class M3DFioPlugin(
 				
 					# Send message
 					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Duplicate Wait"))
+				
+				# Check if waiting for a wait response
+				if self.waiting is None :
+				
+					# Clear waiting
+					self.waiting = False
+				
+					# Send message
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Done Waiting"))
 		
 		# Otherwise
 		else :
@@ -2327,6 +2699,25 @@ class M3DFioPlugin(
 		
 			# Set last response was temperature reading
 			self.lastResponseWasTemperatureReading = True
+			
+			# Check if using a heatbed
+			if self.heatbedConnection is not None :
+			
+				# Read heatbed temperature
+				try :
+					self.heatbedConnection.write("t\r")
+					heatbedTemperature = str(self.heatbedConnection.read())
+					
+					if float(serial.VERSION) < 3 :
+						heatbedTemperature += str(self.heatbedConnection.read(self.heatbedConnection.inWaiting()))
+					else :
+						heatbedTemperature += str(self.heatbedConnection.read(self.heatbedConnection.in_waiting()))
+				
+				except Exception :
+					heatbedTemperature = "0"
+			
+				# Append heatbed temperature to to response
+				response = response.rstrip() + " B:" + heatbedTemperature + '\n'
 		
 		# Otherwise
 		else :
@@ -2339,36 +2730,42 @@ class M3DFioPlugin(
 	
 			# Get line number
 			if response.startswith("ok ") : 
-				lineNumber = int(response[3 :]) % 0x10000
+				lineNumber = int(response[3 :].split()[0]) % 0x10000
 			else :
 				lineNumber = int(response[5 :]) % 0x10000
 			
-			# Check if processing a reset line number command
-			if self.resetLineNumberCommandSent and lineNumber == 0 :
-			
-				# Clear reset line number command sent
-				self.resetLineNumberCommandSent = False
-				
-				# Reset number wrap counter
-				self.numberWrapCounter = 0
-			
-			# Check if processing command
+			# Check if processing an unprocessed command
 			if len(self.sentLineNumbers) and lineNumber == self.sentLineNumbers[0] :
 			
 				# Remove stored line number
 				self.sentLineNumbers.pop(0)
 			
-			# Remove stored value
-			if lineNumber in self.sentCommands :
-				self.sentCommands.pop(lineNumber)
+				# Check if processing a reset line number command
+				if self.resetLineNumberCommandSent and lineNumber == 0 :
 			
-			# Set response to contain adjusted line number
-			response = "ok " + str(lineNumber + self.numberWrapCounter * 0x10000) + '\n'
+					# Clear reset line number command sent
+					self.resetLineNumberCommandSent = False
+				
+					# Reset number wrap counter
+					self.numberWrapCounter = 0
+			
+				# Remove stored value
+				if lineNumber in self.sentCommands :
+					self.sentCommands.pop(lineNumber)
+				
+				# Set response to contain adjusted line number
+				response = "ok " + str(lineNumber + self.numberWrapCounter * 0x10000) + '\n'
 	
-			# Increment number wrap counter if applicable
-			if lineNumber == 0xFFFF :
-				self.numberWrapCounter += 1
-
+				# Increment number wrap counter if applicable
+				if lineNumber == 0xFFFF :
+					self.numberWrapCounter += 1
+			
+			# Otherwise
+			else :
+			
+				# Clear response
+				response = ''
+		
 		# Otherwise check if response was a resend value
 		elif response.startswith("rs") :
 		
@@ -2390,19 +2787,19 @@ class M3DFioPlugin(
 				# Send last command
 				self.originalWrite(self.lastCommandSent)
 			
-			# Return nothing
-			return ''
+			# Clear response
+			response = ''
 		
 		# Otherwise check if response was an error code
 		elif response.startswith("Error:") :
 
 			# Set error response
 			if response[6 : 10] == "1000" :
-				response = "ok M110 without line number\n"
+				response = "ok M110 without a line number\n"
 			elif response[6 : 10] == "1001" :
 				response = "ok Cannot cold extrude\n"
 			elif response[6 : 10] == "1002" :
-				response = "ok Cannot calibrate in unknown state\n"
+				response = "ok Cannot calibrate in an unknown state\n"
 			elif response[6 : 10] == "1003" :
 				response = "ok Unknown G-Code\n"
 			elif response[6 : 10] == "1004" :
@@ -2423,6 +2820,9 @@ class M3DFioPlugin(
 				response = "ok An error has occured\n"
 			else :
 				response = "ok " +  response[6 :]
+			
+			# Send message
+			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = response[3 : -1], confirm = True))
 		
 		# Return response
 		return response
@@ -2435,14 +2835,105 @@ class M3DFioPlugin(
 		
 			# Move original files back
 			os.remove(self.slicerChanges.get("Slicer Profile Location"))
-			shutil.move(self.slicerChanges.get("Slicer Profile Temporary"), self.slicerChanges.get("Slicer Profile Location"))
-			os.remove(self.slicerChanges.get("Model Location"))
-			shutil.move(self.slicerChanges.get("Model Temporary"), self.slicerChanges.get("Model Location"))
+			shutil.copyfile(self.slicerChanges.get("Slicer Profile Temporary"), self.slicerChanges.get("Slicer Profile Location"))
+			
+			if "Model Temporary" in self.slicerChanges :
+				os.remove(self.slicerChanges.get("Model Location"))
+				shutil.copyfile(self.slicerChanges.get("Model Temporary"), self.slicerChanges.get("Model Location"))
 		
 			# Restore printer profile
 			self._printer_profile_manager.save(self.slicerChanges.get("Printer Profile Content"), True)
 			
+			# Attempt to remove temporary files
+			try :
+				os.remove(self.slicerChanges.get("Slicer Profile Temporary"))
+				
+				if "Model Temporary" in self.slicerChanges :
+					os.remove(self.slicerChanges.get("Model Temporary"))
+			except Exception :
+				pass
+			
+			# Clear slicer changes
 			self.slicerChanges = None
+	
+	# Set file locations
+	def setFileLocations(self) :
+	
+		# Check if rot running in a virtual environment and Pip isn't set
+		if not hasattr(sys, "real_prefix") and (octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._pip_caller is None or not octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._pip_caller.available) and octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.get(["pip"]) is None :
+	
+			# Set Pip locations
+			pipLocations = []
+			if platform.uname()[0].startswith("Windows") :
+	
+				pipLocations = [
+					os.environ["SYSTEMDRIVE"] + "/python/Scripts/pip.exe"
+				]
+	
+			elif platform.uname()[0].startswith("Darwin") :
+	
+				pipLocations = [
+					"/Library/Frameworks/Python.framework/Versions/*/bin/pip"
+				]
+	
+			elif platform.uname()[0].startswith("Linux") :
+	
+				pipLocations = [
+					"/usr/bin/pip"
+				]
+	
+			# Go through all Pip location
+			for locations in pipLocations :
+				for location in glob.glob(locations) :
+
+					# Check if location is a file
+					if os.path.isfile(location) :
+		
+						# Set Pip location
+						octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.set(["pip"], location)
+						break
+		
+		# Check if Cura is a registered slicer
+		if "cura" in self._slicing_manager.registered_slicers :
+	
+			# Check if Cura is not configured
+			if not "cura" in self._slicing_manager.configured_slicers :
+			
+				# Set Cura Engine locations
+				curaEngineLocations = []
+				if platform.uname()[0].startswith("Windows") :
+				
+					curaEngineLocations = [
+						os.environ["SYSTEMDRIVE"] + "/Program Files*/Cura_*/CuraEngine.exe",
+						os.environ["SYSTEMDRIVE"] + "/Program Files*/M3D*/*/Resources/CuraEngine/CuraEngine.exe"
+					]
+				
+				elif platform.uname()[0].startswith("Darwin") :
+				
+					curaEngineLocations = [
+						"/Applications/Cura/Cura.app/Contents/Resources/CuraEngine",
+						"/Applications/M3D.app/Contents/Resources/CuraEngine/CuraEngine"
+					]
+				
+				elif platform.uname()[0].startswith("Linux") :
+				
+					curaEngineLocations = [
+						"/usr/share/cura/CuraEngine",
+						"/usr/local/bin/CuraEngine",
+						"/usr/bin/CuraEngine",
+						"/usr/local/bin/cura_engine"
+					]
+				
+				# Go through all Cura Engine location
+				for locations in curaEngineLocations :
+					for location in glob.glob(locations) :
+			
+						# Check if location is a file
+						if os.path.isfile(location) :
+					
+							# Set Cura Engine location
+							self._slicing_manager.get_slicer("cura", False)._settings.set(["cura_engine"], location)
+							break
 	
 	# Event monitor
 	def on_event(self, event, payload) :
@@ -2463,19 +2954,17 @@ class M3DFioPlugin(
 				self.originalWrite = None
 				self.originalRead = None
 			
-				# Send printer and Micro Pass status
+				# Send printer status
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Micro 3D Not Connected"))
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Micro Pass Not Connected"))
-				self.usingMicroPass = False
 		
 		# Otherwise check if client connects
 		elif event == octoprint.events.Events.CLIENT_OPENED :
 		
-			# Send OctoPrint instances details
-			self.sendOctoPrintDetails()
+			# Send OctoPrint process details
+			self.sendOctoPrintProcessDetails()
 		
-			# Send provided firmware version
-			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Provided Firmware", version = self.providedFirmware))
+			# Send provided firmware versions
+			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Provided Firmwares", firmwares = self.providedFirmwares))
 			
 			# Check if EEPROM was read
 			if self.eeprom :
@@ -2483,122 +2972,84 @@ class M3DFioPlugin(
 				# Send eeprom
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "EEPROM", eeprom = self.eeprom.encode("hex").upper()))
 				
+				# Get firmware version from EEPROM
+				index = 3
+				firmwareVersion = 0
+				while index >= 0 :
+					firmwareVersion <<= 8
+					firmwareVersion += int(ord(self.eeprom[self.eepromOffsets["firmwareVersion"]["offset"] + index]))
+					index -= 1
+				
+				# Get firmware name
+				firmwareName = None
+				firmwareRelease = None
+				for firmware in self.providedFirmwares :
+					if int(self.providedFirmwares[firmware]["Version"]) / 100000000 == firmwareVersion / 100000000 :
+						firmwareName = firmware
+				
+				# Get firmware release
+				firmwareRelease = format(firmwareVersion, "010")
+				if firmwareName is None or firmwareName != "M3D" :
+					firmwareRelease = firmwareRelease[2 : 4] + '.' + firmwareRelease[4 : 6] + '.' + firmwareRelease[6 : 8] + '.' + firmwareRelease[8 : 10]
+				
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Current Firmware", name = firmwareName, release = firmwareRelease))
+				
 				# Get serial number from EEPROM
 				serialNumber = self.eeprom[self.eepromOffsets["serialNumber"]["offset"] : self.eepromOffsets["serialNumber"]["offset"] + self.eepromOffsets["serialNumber"]["bytes"] - 1]
 				
 				# Send printer details
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Printer Details", serialNumber = serialNumber, serialPort = self._printer.get_transport().port))
 			
-			# Check if Cura is a registered slicer
-			if "cura" in self._slicing_manager.registered_slicers :
-		
+			# Send message if a heatbed is detected
+			if self.heatbedConnection is None :
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Heatbed Not Detected"))
+			else :
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Heatbed Detected"))
+			
+			# Set file locations
+			self.setFileLocations()
+			
+			# Check if sending Cura reminder
+			if self.curaReminder :
+			
 				# Check if Cura is not configured
 				if not "cura" in self._slicing_manager.configured_slicers :
+			
+					# Send message
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Cura Not Installed"))
+			
+			# Check if Cura is configured
+			if "cura" in self._slicing_manager.configured_slicers :
+	
+				# Set Cura profile location and destination
+				profileLocation = self._basefolder.replace('\\', '/') + "/static/profiles/"
+				profileDestination = self._slicing_manager.get_slicer_profile_path("cura").replace('\\', '/') + '/'
 				
-					# Set Cura Engine locations
-					curaEngineLocations = []
-					if platform.uname()[0].startswith("Windows") :
-					
-						curaEngineLocations = [
-							os.environ["SYSTEMDRIVE"] + "/Program Files*/Cura_*/CuraEngine.exe",
-							os.environ["SYSTEMDRIVE"] + "/Program Files*/M3D*/*/Resources/CuraEngine/CuraEngine.exe"
-						]
-					
-					elif platform.uname()[0].startswith("Darwin") :
-					
-						curaEngineLocations = [
-							"/Applications/Cura/Cura.app/Contents/Resources/CuraEngine",
-							"/Applications/M3D.app/Contents/Resources/CuraEngine/CuraEngine"
-						]
-					
-					elif platform.uname()[0].startswith("Linux") :
-					
-						curaEngineLocations = [
-							"/usr/share/cura/CuraEngine",
-							"/usr/local/bin/CuraEngine",
-							"/usr/bin/CuraEngine",
-							"/usr/local/bin/cura_engine"
-						]
-					
-					# Go through all Cura Engine location
-					for locations in curaEngineLocations :
-						for location in glob.glob(locations) :
-				
-							# Check if location is a file
-							if os.path.isfile(location) :
-						
-								# Set Cura Engine location
-								self._slicing_manager.get_slicer("cura", False)._settings.set(["cura_engine"], location)
-								break
-				
-				# Check if Cura is still not configured
-				if not "cura" in self._slicing_manager.configured_slicers :
-				
-					# Check if a reminder hasn't been sent
-					if not self.curaReminder :
-				
-						# Send message
-						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Cura Not Installed"))
-					
-						# Set cura reminder
-						self.curaReminder = True
-				
-				# Otherwise
-				else :
+				# Remove deprecated profiles
+				for profile in glob.glob(profileDestination + "m3d_*mm.profile") :
+					os.remove(profile)
+	
+				# Go through all Cura profiles
+				for profile in os.listdir(profileLocation) :
 		
-					# Set Cura profile location and destination
-					profileLocation = self._basefolder + "/static/profiles/"
-					profileDestination = self._slicing_manager.get_slicer_profile_path("cura") + '/'
+					# Set profile version, identifier, and name
+					profileIdentifier = profile[0 : profile.find('.')]
+					profileName = self._slicing_manager.get_profile_path("cura", profileIdentifier)[len(profileDestination) :].lower()
 		
-					# Go through all Cura profiles
-					for profile in os.listdir(profileLocation) :
+					# Save Cura profile as OctoPrint profile
+					self.convertCuraToProfile(profileLocation + profile, profileDestination + profileName, profileName, profileIdentifier, "Imported by M3D Fio on " + time.strftime("%Y-%m-%d %H:%M"))
 			
-						# Get profile version
-						version = re.search(" V(\d+)\.+\S*$", profile)
+			# Check if sending sleep reminder
+			if not self._printer.is_printing() and self.sleepReminder :
 			
-						# Check if version number exists
-						if version :
+				# Check if disabling sleep doesn't works
+				if not self.disableSleep() :
 				
-							# Set profile version, identifier, and name
-							profileVersion = version.group(1)
-							profileIdentifier = profile[0 : version.start()]
-							profileName = self._slicing_manager.get_profile_path("cura", profileIdentifier)[len(profileDestination) :].lower()
+					# Send message
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Sleep Wont Disable"))
 				
-							# Set to create or replace file
-							replace = True
-			
-							# Check if profile already exists
-							if os.path.isfile(profileDestination + profileName) :
-				
-								# Get existing profile description line
-								for line in open(profileDestination + profileName) :
-					
-									# Check if profile display name exists
-									if line.startswith("_display_name:") :
-					
-										# Get current version
-										version = re.search(" V(\d+)$", line)
-								
-										# Check if newer version is available
-										if version and int(version.group(1)) < int(profileVersion) :
-						
-											# Remove current profile
-											os.remove(profileDestination + profileName)
-							
-										# Otherwise
-										else :
-							
-											# Clear replace
-											replace = False
-							
-										# Stop searching file
-										break
-				
-							# Check if profile is being created or replaced
-							if replace :
-					
-								# Save Cura profile as OctoPrint profile
-								self.convertCuraToProfile(profileLocation + profile, profileDestination + profileName, profileName, profileIdentifier + " V" + profileVersion, "Imported by M3D Fio on " + time.strftime("%Y-%m-%d %H:%M"))
+				# Enable sleep
+				self.enableSleep()
 		
 		# Otherwise check if event is slicing started
 		elif event == octoprint.events.Events.SLICING_STARTED :
@@ -2618,117 +3069,140 @@ class M3DFioPlugin(
 		# Otherwise check if a print is starting
 		elif event == octoprint.events.Events.PRINT_STARTED :
 		
+			# Disable sleep
+			self.disableSleep()
+		
 			# Check if pre-processing on the fly
 			if self._settings.get_boolean(["PreprocessOnTheFly"]) :
-		
-				# Clear print ready
-				self.printReady = False
 			
-				# Send message
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Print Not Ready"))
+				# Reset pre-processor settings
+				self.resetPreprocessorSettings()
 			
-				# Wait until print is ready
-				while not self.printReady :
-					time.sleep(0.01)
-			
-				# Check if print wasn't canceled
-				if self._printer.is_printing() :
-			
-					# Reset pre-processor settings
-					self.resetPreprocessorSettings()
-			
-					# Check if printing test border
-					if payload.get("filename") == "test_border" :
-			
-						# Set printing test border
-						self.printingTestBorder = True
-			
-					# Otherwise check if printing backlash calibration cylinder
-					elif payload.get("filename") == "backlash_calibration_cylinder" :
-			
-						# Set printing backlash calibration cylinder
-						self.printingBacklashCalibrationCylinder = True
-			
-					# Display message
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Collecting print information"))
-			
-					# Check if using shared library
-					if self.sharedLibrary and self._settings.get_boolean(["UseSharedLibrary"]) :
-			
-						# Reset pre-processor settings
-						self.sharedLibrary.resetPreprocessorSettings()
-	
-						# Set values
-						self.sharedLibrary.setBacklashX(ctypes.c_double(self._settings.get_float(["BacklashX"])))
-						self.sharedLibrary.setBacklashY(ctypes.c_double(self._settings.get_float(["BacklashY"])))
-						self.sharedLibrary.setBacklashSpeed(ctypes.c_double(self._settings.get_float(["BacklashSpeed"])))
-						self.sharedLibrary.setBackRightOrientation(ctypes.c_double(self._settings.get_float(["BackRightOrientation"])))
-						self.sharedLibrary.setBackLeftOrientation(ctypes.c_double(self._settings.get_float(["BackLeftOrientation"])))
-						self.sharedLibrary.setFrontLeftOrientation(ctypes.c_double(self._settings.get_float(["FrontLeftOrientation"])))
-						self.sharedLibrary.setFrontRightOrientation(ctypes.c_double(self._settings.get_float(["FrontRightOrientation"])))
-						self.sharedLibrary.setBedHeightOffset(ctypes.c_double(self._settings.get_float(["BedHeightOffset"])))
-						self.sharedLibrary.setBackRightOffset(ctypes.c_double(self._settings.get_float(["BackRightOffset"])))
-						self.sharedLibrary.setBackLeftOffset(ctypes.c_double(self._settings.get_float(["BackLeftOffset"])))
-						self.sharedLibrary.setFrontLeftOffset(ctypes.c_double(self._settings.get_float(["FrontLeftOffset"])))
-						self.sharedLibrary.setFrontRightOffset(ctypes.c_double(self._settings.get_float(["FrontRightOffset"])))
-						self.sharedLibrary.setFilamentTemperature(ctypes.c_ushort(self._settings.get_int(["FilamentTemperature"])))
-						self.sharedLibrary.setFilamentType(ctypes.c_char_p(str(self._settings.get(["FilamentType"]))))
-						self.sharedLibrary.setUseValidationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseValidationPreprocessor"])))
-						self.sharedLibrary.setUsePreparationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UsePreparationPreprocessor"])))
-						self.sharedLibrary.setUseWaveBondingPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseWaveBondingPreprocessor"])))
-						self.sharedLibrary.setUseThermalBondingPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseThermalBondingPreprocessor"])))
-						self.sharedLibrary.setUseBedCompensationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseBedCompensationPreprocessor"])))
-						self.sharedLibrary.setUseBacklashCompensationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseBacklashCompensationPreprocessor"])))
-						self.sharedLibrary.setUseCenterModelPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseCenterModelPreprocessor"])))
-						self.sharedLibrary.setIgnorePrintDimensionLimitations(ctypes.c_bool(self._settings.get_boolean(["IgnorePrintDimensionLimitations"])))
-						self.sharedLibrary.setUsingMicroPass(ctypes.c_bool(self.usingMicroPass))
-						self.sharedLibrary.setPrintingTestBorder(ctypes.c_bool(self.printingTestBorder))
-						self.sharedLibrary.setPrintingBacklashCalibrationCylinder(ctypes.c_bool(self.printingBacklashCalibrationCylinder))
-			
-						# Collect print information
-						printIsValid = self.sharedLibrary.collectPrintInformation(ctypes.c_char_p(payload.get("file")))
-		
-					# Otherwise
-					else :
-			
-						# Collect print information
-						printIsValid = self.collectPrintInformation(payload.get("file"))
-	
-					# Check if print goes out of bounds
-					if not printIsValid :
-	
-						# Create error message
-						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create error message", title = "Print failed", text = "Could not print the file. The dimensions of the model go outside the bounds of the printer."))
-				
-						# Stop printing
-						self._printer.cancel_print()
-				
-						# Hide message
-						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Hide Message"))
-				
-						# Return
-						return
-			
-					# Set pre-process on the fly ready
-					self.preprocessOnTheFlyReady = True
-			
-					# Hide message
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Hide Message"))
-			
-			# Otherwie
+			# Otherwise
 			else :
+		
+				# Reset print settings
+				self.resetPrintSettings()
 			
-				# Set print ready
-				self.printReady = True
+			# Check if printing test border
+			if payload.get("filename") == os.path.basename(self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "test border.gcode").replace('\\', '/')) :
+	
+				# Set printing test border
+				self.printingTestBorder = True
+	
+			# Otherwise check if printing backlash calibration cylinder
+			elif payload.get("filename") == os.path.basename(self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "backlash calibration cylinder.gcode").replace('\\', '/')) :
+	
+				# Set printing backlash calibration cylinder
+				self.printingBacklashCalibrationCylinder = True
+		
+			# Check if pre-processing on the fly
+			if self._settings.get_boolean(["PreprocessOnTheFly"]) :
+			
+				# Display message
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Collecting print information"))
+		
+				# Check if using shared library
+				if self.sharedLibrary and self._settings.get_boolean(["UseSharedLibrary"]) :
+		
+					# Reset pre-processor settings
+					self.sharedLibrary.resetPreprocessorSettings()
+
+					# Set values
+					self.sharedLibrary.setBacklashX(ctypes.c_double(self._settings.get_float(["BacklashX"])))
+					self.sharedLibrary.setBacklashY(ctypes.c_double(self._settings.get_float(["BacklashY"])))
+					self.sharedLibrary.setBacklashSpeed(ctypes.c_double(self._settings.get_float(["BacklashSpeed"])))
+					self.sharedLibrary.setBackRightOrientation(ctypes.c_double(self._settings.get_float(["BackRightOrientation"])))
+					self.sharedLibrary.setBackLeftOrientation(ctypes.c_double(self._settings.get_float(["BackLeftOrientation"])))
+					self.sharedLibrary.setFrontLeftOrientation(ctypes.c_double(self._settings.get_float(["FrontLeftOrientation"])))
+					self.sharedLibrary.setFrontRightOrientation(ctypes.c_double(self._settings.get_float(["FrontRightOrientation"])))
+					self.sharedLibrary.setBedHeightOffset(ctypes.c_double(self._settings.get_float(["BedHeightOffset"])))
+					self.sharedLibrary.setBackRightOffset(ctypes.c_double(self._settings.get_float(["BackRightOffset"])))
+					self.sharedLibrary.setBackLeftOffset(ctypes.c_double(self._settings.get_float(["BackLeftOffset"])))
+					self.sharedLibrary.setFrontLeftOffset(ctypes.c_double(self._settings.get_float(["FrontLeftOffset"])))
+					self.sharedLibrary.setFrontRightOffset(ctypes.c_double(self._settings.get_float(["FrontRightOffset"])))
+					self.sharedLibrary.setFilamentTemperature(ctypes.c_ushort(self._settings.get_int(["FilamentTemperature"])))
+					self.sharedLibrary.setFilamentType(ctypes.c_char_p(str(self._settings.get(["FilamentType"]))))
+					self.sharedLibrary.setUseValidationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseValidationPreprocessor"])))
+					self.sharedLibrary.setUsePreparationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UsePreparationPreprocessor"])))
+					self.sharedLibrary.setUseWaveBondingPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseWaveBondingPreprocessor"])))
+					self.sharedLibrary.setUseThermalBondingPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseThermalBondingPreprocessor"])))
+					self.sharedLibrary.setUseBedCompensationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseBedCompensationPreprocessor"])))
+					self.sharedLibrary.setUseBacklashCompensationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseBacklashCompensationPreprocessor"])))
+					self.sharedLibrary.setUseCenterModelPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseCenterModelPreprocessor"])))
+					self.sharedLibrary.setIgnorePrintDimensionLimitations(ctypes.c_bool(self._settings.get_boolean(["IgnorePrintDimensionLimitations"])))
+					self.sharedLibrary.setUsingHeatbed(ctypes.c_bool(self.heatbedConnection is not None))
+					self.sharedLibrary.setPrintingTestBorder(ctypes.c_bool(self.printingTestBorder))
+					self.sharedLibrary.setPrintingBacklashCalibrationCylinder(ctypes.c_bool(self.printingBacklashCalibrationCylinder))
+					self.sharedLibrary.setPrinterColor(ctypes.c_char_p(self.printerColor))
+					self.sharedLibrary.setCalibrateBeforePrint(ctypes.c_bool(self._settings.get_boolean(["CalibrateBeforePrint"])))
+					self.sharedLibrary.setRemoveFanCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveFanCommands"])))
+					self.sharedLibrary.setRemoveTemperatureCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveTemperatureCommands"])))
+					self.sharedLibrary.setUseExternalFan(ctypes.c_bool(self._settings.get_boolean(["UseExternalFan"])))
+					self.sharedLibrary.setHeatbedTemperature(ctypes.c_ushort(self._settings.get_int(["HeatbedTemperature"])))
+					
+					# Collect print information
+					printIsValid = self.sharedLibrary.collectPrintInformation(ctypes.c_char_p(payload.get("file")))
+					
+					# Get detected fan speed
+					self.detectedFanSpeed = self.sharedLibrary.getDetectedFanSpeed()
+					
+					# Get object successfully centered
+					self.objectSuccessfullyCentered = self.sharedLibrary.getObjectSuccessfullyCentered()
+	
+				# Otherwise
+				else :
+		
+					# Collect print information
+					printIsValid = self.collectPrintInformation(payload.get("file"))
+
+				# Check if print goes out of bounds
+				if not printIsValid :
+
+					# Create error message
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create error message", title = "Print failed", text = "Could not print the file. The dimensions of the model go outside the bounds of the printer."))
+			
+					# Stop printing
+					self._printer.cancel_print()
+				
+				# Otherwise
+				else :
+				
+					# Check if detected fan speed is 0
+					if self.detectedFanSpeed == 0 :
+				
+						# Create error message
+						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create notice message", title = "Print warning", text = "No fan speed has been detected in this file which could cause the print to fail"))
+					
+					# Check if objected couldn't be centered
+					if self._settings.get_boolean(["UseCenterModelPreprocessor"]) and not self.objectSuccessfullyCentered :
+			
+						# Create error message
+						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create notice message", title = "Print warning", text = "Object too large to center on print bed"))
+		
+				# Set pre-process on the fly ready
+				self.preprocessOnTheFlyReady = True
+				
+				# Hide message
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Hide Message"))
+		
+		# Otherwise check if a print is paused
+		elif event == octoprint.events.Events.PRINT_PAUSED :
+		
+			# Enable sleep
+			self.enableSleep()
+		
+		# Otherwise check if a print is resumed
+		elif event == octoprint.events.Events.PRINT_RESUMED :
+		
+			# Disable sleep
+			self.disableSleep()
 		
 		# Otherwise check if a print is done
 		elif event == octoprint.events.Events.PRINT_DONE :
 		
 			# Check if pre-processing on the fly
 			if self._settings.get_boolean(["PreprocessOnTheFly"]) :
-			
-				# Send last commands to printer
-				time.sleep(1)
 				
 				# Check if using shared library
 				if self.sharedLibrary and self._settings.get_boolean(["UseSharedLibrary"]) :
@@ -2742,37 +3216,85 @@ class M3DFioPlugin(
 					# Pre-process command
 					commands = self.preprocess("G4", None, True)
 				
-				# Send pre-processed commands to the printer
-				self.sendCommands(commands)
+				# Initialize line number
+				lineNumber = 1
+				self.sendCommands("N0 M110")
+				
+				# Go through all commands
+				for command in commands :
+					
+					# Check if command wont receive a normal confirmation
+					if command.startswith("M618 ") or command.startswith("M619 ") :
+					
+						# Send command to printer
+						self.sendCommands(command)
+					
+					# Otherwise
+					else :
+					
+						# Send command with line number to printer
+						self.sendCommands('N' + str(lineNumber) + ' ' + command)
+					
+						# Increment line number
+						lineNumber += 1
 			
-			# Clear print ready
-			self.printReady = False
+			# Reset print settings
+			self.resetPrintSettings()
 			
 			# Clear pre-process on the fly ready
 			self.preprocessOnTheFlyReady = False
+			
+			# Enable sleep
+			self.enableSleep()
 		
 		# Otherwise check if a print is cancelled or failed
 		elif event == octoprint.events.Events.PRINT_CANCELLED or event == octoprint.events.Events.PRINT_FAILED :
-		
+			
 			# Set commands
 			commands = [
-				"M65537;stop",
 				"M107",
 				"M104 S0",
 				"M18"
 			]
 			
-			if self.usingMicroPass :
+			if self.heatbedConnection is not None :
 				commands += ["M140 S0"]
-		
-			# Send commands
-			self.sendCommands(commands)
+				
+			if self.printerColor == "Clear" :
+				commands += ["M420 T20"]
+			else :
+				commands += ["M420 T100"]
 			
-			# Clear print ready
-			self.printReady = False
+			# Initialize line number
+			lineNumber = 1
+			self.sendCommands("N0 M110")
+			
+			# Go through all commands
+			for command in commands :
+				
+				# Check if command wont receive a normal confirmation
+				if command.startswith("M618 ") or command.startswith("M619 ") :
+				
+					# Send command to printer
+					self.sendCommands(command)
+				
+				# Otherwise
+				else :
+				
+					# Send command with line number to printer
+					self.sendCommands('N' + str(lineNumber) + ' ' + command)
+				
+					# Increment line number
+					lineNumber += 1
+			
+			# Reset print settings
+			self.resetPrintSettings()
 			
 			# Clear pre-process on the fly ready
 			self.preprocessOnTheFlyReady = False
+			
+			# Enable sleep
+			self.enableSleep()
 	
 	# Is port open
 	def isPortOpen(self, port) :
@@ -2791,8 +3313,16 @@ class M3DFioPlugin(
 		# Return true
 		return True
 	
-	# Get OctoPrint port
-	def getOctoPrintPort(self, connections) :
+	# Get listen port
+	def getListenPort(self, process) :
+	
+		# Attempt to get process's connections
+		try :
+			connections = process.connections()
+		
+		# Return none if process doesn't exist
+		except Exception :
+			return None
 	
 		# Go through all connections
 		for connection in connections :
@@ -2802,20 +3332,27 @@ class M3DFioPlugin(
 			
 				# Return port
 				return connection.laddr[1]
+		
+		# Return none
+		return None
 	
-	# Send OctoPrint details
-	def sendOctoPrintDetails(self) :
+	# Send OctoPrint process details
+	def sendOctoPrintProcessDetails(self) :
 	
 		# Initialize variables
 		processes = []
 		
 		# Find all OctoPrint instances
 		for process in psutil.process_iter() :
-			if process.name() == "octoprint" or process.name() == "python" :
+			if process.name().lower().startswith("octoprint") or process.name().lower().startswith("python") :
 			
-				# Append process to list
-				processes += [[self.getOctoPrintPort(psutil.Process(process.pid).connections()), os.getpid() == process.pid]]
+				# Check if process is listening on a port
+				processPort = self.getListenPort(psutil.Process(process.pid))
+				if processPort is not None :
 			
+					# Append process to list
+					processes += [[processPort, os.getpid() == process.pid]]
+		
 		# Send OctoPrint instances
 		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Process Details", processes = processes))
 	
@@ -2865,437 +3402,478 @@ class M3DFioPlugin(
 				# Connect to the printer
 				connection = serial.Serial(currentPort, currentBaudrate)
 				
-				# Check if not in bootloader mode
-				connection.write("M115")
-				firstByte = connection.read()
-				connection.read(connection.inWaiting())
-				if firstByte != 'B' :
-				
-					# Save ports
-					self.savePorts(currentPort)
+				# Attempt to get current printer mode
+				try :
+					connection.write("M115")
+					firstByte = connection.read()
 					
-					# Switch to bootloader mode
-					gcode = Gcode("M115 S628")
-					connection.write(gcode.getBinary())
-					time.sleep(1)
-				
-					# Set updated port
-					currentPort = self.getPort()
-					
-					# Re-connect
-					connection = serial.Serial(currentPort, currentBaudrate)
-				
-				# Check if getting EEPROM was successful
-				if self.getEeprom(connection) :
-					
-					# Get firmware CRC from EEPROM
-					index = 0
-					eepromCrc = 0
-					while index < 4 :
-						eepromCrc <<= 8
-						eepromCrc += int(ord(self.eeprom[self.eepromOffsets["firmwareCrc"]["offset"] + index]))
-						index += 1
-					
-					# Request firmware CRC from chip
-					connection.write('C')
-					connection.write('A')
-
-					# Get response
-					response = connection.read(4)
-
-					# Get chip CRC
-					index = 0
-					chipCrc = 0
-					while index < 4 :
-						chipCrc <<= 8
-						chipCrc += int(ord(response[index]))
-						index += 1
-					
-					# Get firmware version from EEPROM
-					index = 3
-					firmwareVersion = 0
-					while index >= 0 :
-						firmwareVersion <<= 8
-						firmwareVersion += int(ord(self.eeprom[self.eepromOffsets["firmwareVersion"]["offset"] + index]))
-						index -= 1
-					
-					# Get serial number from EEPROM
-					serialNumber = self.eeprom[self.eepromOffsets["serialNumber"]["offset"] : self.eepromOffsets["serialNumber"]["offset"] + self.eepromOffsets["serialNumber"]["bytes"] - 1]
-					
-					# Set printer color
-					color = serialNumber[0 : 2]
-					if color == "BK" :
-						self._settings.set(["PrinterColor"], "Black")
-					elif color == "WH" :
-						self._settings.set(["PrinterColor"], "White")
-					elif color == "BL" :
-						self._settings.set(["PrinterColor"], "Blue")
-					elif color == "GR" :
-						self._settings.set(["PrinterColor"], "Green")
-					elif color == "OR" :
-						self._settings.set(["PrinterColor"], "Orange")
-					elif color == "CL" :
-						self._settings.set(["PrinterColor"], "Clear")
-					elif color == "SL" :
-						self._settings.set(["PrinterColor"], "Silver")
-					
-					# Get fan type from EEPROM
-					fanType = int(ord(self.eeprom[self.eepromOffsets["fanType"]["offset"]]))
-					
-					# Check if fan hasn't been set yet
-					if fanType == 0 or fanType == 0xFF :
-			
-						# Check if device is newer
-						if int(serialNumber[2 : 8]) >= 150602 :
-			
-							# Set default newer fan
-							fanName = "Shenzhew"
-						
-						# Otherwise
-						else :
-						
-							# Set default older fan
-							fanName = "HengLiXin"
-						
-						# Check if setting fan failed
-						if not self.setFan(connection, fanName) :
-				
-							# Set error
-							error = True
-						
-						# Check if an error occured
-						if error :
-						
-							# Display error
-							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Setting fan failed", confirm = True))
-					
-					# Otherwise
+					if float(serial.VERSION) < 3 :
+						connection.read(connection.inWaiting())
 					else :
-					
-						# Set fan name
-						if fanType == 1 :
-							fanName = "HengLiXin"
-						elif fanType == 2 :
-							fanName = "Listener"
-						elif fanType == 3 :
-							fanName = "Shenzhew"
-						elif fanType == 4 :
-							fanName = "Xinyujie"
-						
-						# Check if updating fan failed
-						if not self.setFan(connection, fanName) :
-						
-							# Set error
-							error = True
-						
-							# Display error
-							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating fan settings failed", confirm = True))
-					
-					# Check if printer uses 500mA extruder current
-					shortSerialNumber = serialNumber[0 : 13]
-					if not error and (shortSerialNumber == "BK15033001100" or shortSerialNumber == "BK15040201050" or shortSerialNumber == "BK15040301050" or shortSerialNumber == "BK15040602050" or shortSerialNumber == "BK15040801050" or shortSerialNumber == "BK15040802100" or shortSerialNumber == "GR15032702100" or shortSerialNumber == "GR15033101100" or shortSerialNumber == "GR15040601100" or shortSerialNumber == "GR15040701100" or shortSerialNumber == "OR15032701100" or shortSerialNumber == "SL15032601050") :
-					
-						# Check if setting extruder current failed
-						if not self.setExtruderCurrent(connection, 500) :
-						
-							# Set error
-							error = True
-						
-							# Display error
-							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating extruder current failed", confirm = True))
-					
-					# Check if firmware is from before new bed orientation and adjustable backlash speed
-					if not error and firmwareVersion < 2015080402 :
-						
-						# Go through bytes of bed offsets
-						index = 0
-						while index < 19 :
-
-							# Check if zeroing out all bed offets in EEPROM failed
-							if not error and not self.writeToEeprom(connection, self.eepromOffsets["bedOffsetBackLeft"]["offset"] + index, '\x00') :
-					
-								# Set error
-								error = True
+						connection.read(connection.in_waiting())
 				
-							# Increment index
-							index += 1
-						
-						# Check if an error hasn't occured
-						if not error :
-						
-							# Convert default backlash speed to binary
-							packed = struct.pack('f', 1500)
-							backlashSpeed = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
-			
-							# Go through bytes of backlash speed
-							index = 0
-							while index < 4 :
-			
-								# Check if saving backlash speed failed
-								if not error and not self.writeToEeprom(connection, self.eepromOffsets["backlashSpeed"]["offset"] + index, chr((backlashSpeed >> 8 * index) & 0xFF)) :
-			
-									# Set error
-									error = True
-				
-								# Increment index
-								index += 1
-							
-						# Check if an error has occured
-						if error :
-						
-							# Display error
-							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating version changes failed", confirm = True))
-					
-					# Check if an error hasn't occured
-					if not error :
-					
-						# Get speed limit X
-						data = [int(ord(self.eeprom[self.eepromOffsets["speedLimitX"]["offset"]])), int(ord(self.eeprom[self.eepromOffsets["speedLimitX"]["offset"] + 1])), int(ord(self.eeprom[self.eepromOffsets["speedLimitX"]["offset"] + 2])), int(ord(self.eeprom[self.eepromOffsets["speedLimitX"]["offset"] + 3]))]
-						bytes = struct.pack("4B", *data)
-						speedLimitX = round(struct.unpack('f', bytes)[0], 6)
-					
-						# Check if speed limit X is invalid
-						if math.isnan(speedLimitX) or speedLimitX < 120 or speedLimitX > 4800 :
-					
-							# Convert default speed limit X to binary
-							packed = struct.pack('f', 1500)
-							speedLimitX = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
-					
-							# Go through bytes of speed limit X
-							index = 0
-							while index < 4 :
-					
-								# Check if saving speed limit X failed
-								if not error and not self.writeToEeprom(connection, self.eepromOffsets["speedLimitX"]["offset"] + index, chr((speedLimitX >> 8 * index) & 0xFF)) :
-					
-									# Set error
-									error = True
-					
-								# Increment index
-								index += 1
-						
-						# Check if an error hasn't occured
-						if not error :
-						
-							# Get speed limit Y
-							data = [int(ord(self.eeprom[self.eepromOffsets["speedLimitY"]["offset"]])), int(ord(self.eeprom[self.eepromOffsets["speedLimitY"]["offset"] + 1])), int(ord(self.eeprom[self.eepromOffsets["speedLimitY"]["offset"] + 2])), int(ord(self.eeprom[self.eepromOffsets["speedLimitY"]["offset"] + 3]))]
-							bytes = struct.pack("4B", *data)
-							speedLimitY = round(struct.unpack('f', bytes)[0], 6)
-					
-							# Check if speed limit Y is invalid
-							if math.isnan(speedLimitY) or speedLimitY < 120 or speedLimitY > 4800 :
-					
-								# Convert default speed limit Y to binary
-								packed = struct.pack('f', 1500)
-								speedLimitY = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
-					
-								# Go through bytes of speed limit Y
-								index = 0
-								while index < 4 :
-					
-									# Check if saving speed limit Y failed
-									if not error and not self.writeToEeprom(connection, self.eepromOffsets["speedLimitY"]["offset"] + index, chr((speedLimitY >> 8 * index) & 0xFF)) :
-					
-										# Set error
-										error = True
-					
-									# Increment index
-									index += 1
-						
-						# Check if an error hasn't occured
-						if not error :
-						
-							# Get speed limit Z
-							data = [int(ord(self.eeprom[self.eepromOffsets["speedLimitZ"]["offset"]])), int(ord(self.eeprom[self.eepromOffsets["speedLimitZ"]["offset"] + 1])), int(ord(self.eeprom[self.eepromOffsets["speedLimitZ"]["offset"] + 2])), int(ord(self.eeprom[self.eepromOffsets["speedLimitZ"]["offset"] + 3]))]
-							bytes = struct.pack("4B", *data)
-							speedLimitZ = round(struct.unpack('f', bytes)[0], 6)
-					
-							# Check if speed limit Z is invalid
-							if math.isnan(speedLimitZ) or speedLimitZ < 30 or speedLimitZ > 90 :
-					
-								# Convert default speed limit Z to binary
-								packed = struct.pack('f', 90)
-								speedLimitZ = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
-					
-								# Go through bytes of speed limit Z
-								index = 0
-								while index < 4 :
-					
-									# Check if saving speed limit Z failed
-									if not error and not self.writeToEeprom(connection, self.eepromOffsets["speedLimitZ"]["offset"] + index, chr((speedLimitZ >> 8 * index) & 0xFF)) :
-					
-										# Set error
-										error = True
-					
-									# Increment index
-									index += 1
-					
-						# Check if an error hasn't occured
-						if not error :
-						
-							# Get speed limit E positive
-							data = [int(ord(self.eeprom[self.eepromOffsets["speedLimitEPositive"]["offset"]])), int(ord(self.eeprom[self.eepromOffsets["speedLimitEPositive"]["offset"] + 1])), int(ord(self.eeprom[self.eepromOffsets["speedLimitEPositive"]["offset"] + 2])), int(ord(self.eeprom[self.eepromOffsets["speedLimitEPositive"]["offset"] + 3]))]
-							bytes = struct.pack("4B", *data)
-							speedLimitEPositive = round(struct.unpack('f', bytes)[0], 6)
-					
-							# Check if speed limit E positive is invalid
-							if math.isnan(speedLimitEPositive) or speedLimitEPositive < 60 or speedLimitEPositive > 600 :
-					
-								# Convert default speed limit E positive to binary
-								packed = struct.pack('f', 102)
-								speedLimitEPositive = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
-					
-								# Go through bytes of speed limit E positive
-								index = 0
-								while index < 4 :
-					
-									# Check if saving speed limit E positive failed
-									if not error and not self.writeToEeprom(connection, self.eepromOffsets["speedLimitEPositive"]["offset"] + index, chr((speedLimitEPositive >> 8 * index) & 0xFF)) :
-					
-										# Set error
-										error = True
-					
-									# Increment index
-									index += 1
-						
-						# Check if an error hasn't occured
-						if not error :
-						
-							# Get speed limit E negative
-							data = [int(ord(self.eeprom[self.eepromOffsets["speedLimitENegative"]["offset"]])), int(ord(self.eeprom[self.eepromOffsets["speedLimitENegative"]["offset"] + 1])), int(ord(self.eeprom[self.eepromOffsets["speedLimitENegative"]["offset"] + 2])), int(ord(self.eeprom[self.eepromOffsets["speedLimitENegative"]["offset"] + 3]))]
-							bytes = struct.pack("4B", *data)
-							speedLimitENegative = round(struct.unpack('f', bytes)[0], 6)
-					
-							# Check if speed limit E negative is invalid
-							if math.isnan(speedLimitENegative) or speedLimitENegative < 60 or speedLimitENegative > 720 :
-					
-								# Convert default speed limit E negative to binary
-								packed = struct.pack('f', 360)
-								speedLimitENegative = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
-					
-								# Go through bytes of speed limit E negative
-								index = 0
-								while index < 4 :
-					
-									# Check if saving speed limit E negative failed
-									if not error and not self.writeToEeprom(connection, self.eepromOffsets["speedLimitENegative"]["offset"] + index, chr((speedLimitENegative >> 8 * index) & 0xFF)) :
-					
-										# Set error
-										error = True
-					
-									# Increment index
-									index += 1
-					
-						# Check if an error has occured
-						if error :
-					
-							# Display error
-							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating speed limits failed", confirm = True))
-					
-					# Check if firmware is corrupt
-					if not error and eepromCrc != chipCrc :
-					
-						# Display message
-						self.messageResponse = None
-						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Firmware is corrupt. Update to version " + self.providedFirmware + '?', response = True))
-						
-						# Wait until response is obtained
-						while self.messageResponse is None :
-							time.sleep(0.01)
-						
-						# Check if response was no
-						if not self.messageResponse :
-						
-							# Set error
-							error = True
-					
-						# Otherwise
-						else :
-						
-							# Send message
-							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating firmware"))
-						
-							# Check if updating firmware failed
-							if not self.updateToProvidedFirmware(connection) :
-						
-								# Send message
-								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating firmware failed", confirm = True))
-								
-								# Set error
-								error = True
-							
-							# Otherwise
-							else :
-						
-								# Send message
-								self.messageResponse = None
-								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating firmware was successful", confirm = True))
-						
-								# Wait until response is obtained
-								while self.messageResponse is None :
-									time.sleep(0.01)
-						
-					# Otherwise check if firmware is outdated
-					elif not error and firmwareVersion < int(self.providedFirmware) :
-					
-						# Set if firmware is incompatible
-						incompatible = firmwareVersion < 2015122112
-						
-						# Display message
-						self.messageResponse = None
-						if incompatible :
-							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Firmware is incompatible. Update to version " + self.providedFirmware + '?', response = True))
-						else :
-							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Newer firmware available. Update to version " + self.providedFirmware + '?', response = True))
-						
-						# Wait until response is obtained
-						while self.messageResponse is None :
-							time.sleep(0.01)
-						
-						# Check if response was no
-						if not self.messageResponse :
-						
-							# Set error if incompatible
-							if incompatible :
-								error = True
-					
-						# Otherwise
-						else :
-						
-							# Send message
-							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating firmware"))
-						
-							# Check if updating firmware failed
-							if not self.updateToProvidedFirmware(connection) :
-						
-								# Send message
-								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating firmware failed", confirm = True))
-								
-								# Set error
-								error = True
-							
-							# Otherwise
-							else :
-						
-								# Send message
-								self.messageResponse = None
-								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating firmware was successful", confirm = True))
-						
-								# Wait until response is obtained
-								while self.messageResponse is None :
-									time.sleep(0.01)
-					
-					# Check if no errors occured
-					if not error :
-					
-						# Send new EEPROM
-						self.getEeprom(connection, True)
-				
-				# Otherwise
-				else :
+				# Check if an error occured
+				except serial.SerialException :
 				
 					# Set error
 					error = True
+				
+				# Check if no errors occured
+				if not error :
+				
+					# Check if not in bootloader mode
+					if firstByte != 'B' :
+				
+						# Save ports
+						self.savePorts(currentPort)
+						
+						# Switch to bootloader mode
+						connection.write("M115 S628")
+						time.sleep(1)
+						
+						try :
+							gcode = Gcode("M115 S628")
+							connection.write(gcode.getBinary())
+							time.sleep(1)
+						
+						# Check if an error occured
+						except serial.SerialException :	
+							pass
+						
+						# Set updated port
+						currentPort = self.getPort()
+					
+						# Re-connect
+						connection = serial.Serial(currentPort, currentBaudrate)
+				
+					# Check if getting EEPROM was successful
+					if self.getEeprom(connection) :
+					
+						# Get firmware CRC from EEPROM
+						index = 0
+						eepromCrc = 0
+						while index < 4 :
+							eepromCrc <<= 8
+							eepromCrc += int(ord(self.eeprom[self.eepromOffsets["firmwareCrc"]["offset"] + index]))
+							index += 1
+					
+						# Request firmware CRC from chip
+						connection.write('C')
+						connection.write('A')
+
+						# Get response
+						response = connection.read(4)
+
+						# Get chip CRC
+						index = 0
+						chipCrc = 0
+						while index < 4 :
+							chipCrc <<= 8
+							chipCrc += int(ord(response[index]))
+							index += 1
+					
+						# Get firmware version from EEPROM
+						index = 3
+						firmwareVersion = 0
+						while index >= 0 :
+							firmwareVersion <<= 8
+							firmwareVersion += int(ord(self.eeprom[self.eepromOffsets["firmwareVersion"]["offset"] + index]))
+							index -= 1
+						
+						# Get firmware name
+						firmwareName = None
+						for firmware in self.providedFirmwares :
+							if int(self.providedFirmwares[firmware]["Version"]) / 100000000 == firmwareVersion / 100000000 :
+								firmwareName = firmware
+								break
+						
+						# Get serial number from EEPROM
+						serialNumber = self.eeprom[self.eepromOffsets["serialNumber"]["offset"] : self.eepromOffsets["serialNumber"]["offset"] + self.eepromOffsets["serialNumber"]["bytes"] - 1]
+					
+						# Set printer color
+						color = serialNumber[0 : 2]
+						if color == "BK" :
+							self.printerColor = "Black"
+							self._settings.set(["PrinterColor"], "Black")
+						elif color == "WH" :
+							self.printerColor = "White"
+							self._settings.set(["PrinterColor"], "White")
+						elif color == "BL" :
+							self.printerColor = "Blue"
+							self._settings.set(["PrinterColor"], "Blue")
+						elif color == "GR" :
+							self.printerColor = "Green"
+							self._settings.set(["PrinterColor"], "Green")
+						elif color == "OR" :
+							self.printerColor = "Orange"
+							self._settings.set(["PrinterColor"], "Orange")
+						elif color == "CL" :
+							self.printerColor = "Clear"
+							self._settings.set(["PrinterColor"], "Clear")
+						elif color == "SL" :
+							self.printerColor = "Silver"
+							self._settings.set(["PrinterColor"], "Silver")
+					
+						# Get fan type from EEPROM
+						fanType = int(ord(self.eeprom[self.eepromOffsets["fanType"]["offset"]]))
+					
+						# Check if fan hasn't been set yet
+						if fanType == 0 or fanType == 0xFF :
+			
+							# Check if device is newer
+							if int(serialNumber[2 : 8]) >= 150602 :
+			
+								# Set default newer fan
+								fanName = "Shenzhew"
+						
+							# Otherwise
+							else :
+						
+								# Set default older fan
+								fanName = "HengLiXin"
+						
+							# Check if setting fan failed
+							if not self.setFan(connection, fanName) :
+				
+								# Set error
+								error = True
+						
+							# Check if an error occured
+							if error :
+						
+								# Display error
+								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Setting fan failed", confirm = True))
+					
+						# Otherwise
+						else :
+					
+							# Set fan name
+							if fanType == 1 :
+								fanName = "HengLiXin"
+							elif fanType == 2 :
+								fanName = "Listener"
+							elif fanType == 3 :
+								fanName = "Shenzhew"
+							elif fanType == 4 :
+								fanName = "Xinyujie"
+						
+							# Check if updating fan failed
+							if not self.setFan(connection, fanName) :
+						
+								# Set error
+								error = True
+						
+								# Display error
+								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating fan settings failed", confirm = True))
+					
+						# Check if printer uses 500mA extruder current
+						shortSerialNumber = serialNumber[0 : 13]
+						if not error and (shortSerialNumber == "BK15033001100" or shortSerialNumber == "BK15040201050" or shortSerialNumber == "BK15040301050" or shortSerialNumber == "BK15040602050" or shortSerialNumber == "BK15040801050" or shortSerialNumber == "BK15040802100" or shortSerialNumber == "GR15032702100" or shortSerialNumber == "GR15033101100" or shortSerialNumber == "GR15040601100" or shortSerialNumber == "GR15040701100" or shortSerialNumber == "OR15032701100" or shortSerialNumber == "SL15032601050") :
+					
+							# Check if setting extruder current failed
+							if not self.setExtruderCurrent(connection, 500) :
+						
+								# Set error
+								error = True
+						
+								# Display error
+								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating extruder current failed", confirm = True))
+					
+						# Check if using M3D firmware and it's from before new bed orientation and adjustable backlash speed
+						if not error and firmwareName is not None and firmwareName == "M3D" and firmwareVersion < 2015080402 :
+						
+							# Go through bytes of bed offsets
+							index = 0
+							while index < 19 :
+
+								# Check if zeroing out all bed offets in EEPROM failed
+								if not error and not self.writeToEeprom(connection, self.eepromOffsets["bedOffsetBackLeft"]["offset"] + index, '\x00') :
+					
+									# Set error
+									error = True
+				
+								# Increment index
+								index += 1
+						
+							# Check if an error hasn't occured
+							if not error :
+						
+								# Convert default backlash speed to binary
+								packed = struct.pack('f', 1500)
+								backlashSpeed = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
+			
+								# Go through bytes of backlash speed
+								index = 0
+								while index < 4 :
+			
+									# Check if saving backlash speed failed
+									if not error and not self.writeToEeprom(connection, self.eepromOffsets["backlashSpeed"]["offset"] + index, chr((backlashSpeed >> 8 * index) & 0xFF)) :
+			
+										# Set error
+										error = True
+				
+									# Increment index
+									index += 1
+							
+							# Check if an error has occured
+							if error :
+						
+								# Display error
+								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating version changes failed", confirm = True))
+					
+						# Check if an error hasn't occured
+						if not error :
+					
+							# Get speed limit X
+							data = [int(ord(self.eeprom[self.eepromOffsets["speedLimitX"]["offset"]])), int(ord(self.eeprom[self.eepromOffsets["speedLimitX"]["offset"] + 1])), int(ord(self.eeprom[self.eepromOffsets["speedLimitX"]["offset"] + 2])), int(ord(self.eeprom[self.eepromOffsets["speedLimitX"]["offset"] + 3]))]
+							bytes = struct.pack("4B", *data)
+							speedLimitX = round(struct.unpack('f', bytes)[0], 6)
+					
+							# Check if speed limit X is invalid
+							if math.isnan(speedLimitX) or speedLimitX < 120 or speedLimitX > 4800 :
+					
+								# Convert default speed limit X to binary
+								packed = struct.pack('f', 1500)
+								speedLimitX = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
+					
+								# Go through bytes of speed limit X
+								index = 0
+								while index < 4 :
+					
+									# Check if saving speed limit X failed
+									if not error and not self.writeToEeprom(connection, self.eepromOffsets["speedLimitX"]["offset"] + index, chr((speedLimitX >> 8 * index) & 0xFF)) :
+					
+										# Set error
+										error = True
+					
+									# Increment index
+									index += 1
+						
+							# Check if an error hasn't occured
+							if not error :
+						
+								# Get speed limit Y
+								data = [int(ord(self.eeprom[self.eepromOffsets["speedLimitY"]["offset"]])), int(ord(self.eeprom[self.eepromOffsets["speedLimitY"]["offset"] + 1])), int(ord(self.eeprom[self.eepromOffsets["speedLimitY"]["offset"] + 2])), int(ord(self.eeprom[self.eepromOffsets["speedLimitY"]["offset"] + 3]))]
+								bytes = struct.pack("4B", *data)
+								speedLimitY = round(struct.unpack('f', bytes)[0], 6)
+					
+								# Check if speed limit Y is invalid
+								if math.isnan(speedLimitY) or speedLimitY < 120 or speedLimitY > 4800 :
+					
+									# Convert default speed limit Y to binary
+									packed = struct.pack('f', 1500)
+									speedLimitY = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
+					
+									# Go through bytes of speed limit Y
+									index = 0
+									while index < 4 :
+					
+										# Check if saving speed limit Y failed
+										if not error and not self.writeToEeprom(connection, self.eepromOffsets["speedLimitY"]["offset"] + index, chr((speedLimitY >> 8 * index) & 0xFF)) :
+					
+											# Set error
+											error = True
+					
+										# Increment index
+										index += 1
+						
+							# Check if an error hasn't occured
+							if not error :
+						
+								# Get speed limit Z
+								data = [int(ord(self.eeprom[self.eepromOffsets["speedLimitZ"]["offset"]])), int(ord(self.eeprom[self.eepromOffsets["speedLimitZ"]["offset"] + 1])), int(ord(self.eeprom[self.eepromOffsets["speedLimitZ"]["offset"] + 2])), int(ord(self.eeprom[self.eepromOffsets["speedLimitZ"]["offset"] + 3]))]
+								bytes = struct.pack("4B", *data)
+								speedLimitZ = round(struct.unpack('f', bytes)[0], 6)
+					
+								# Check if speed limit Z is invalid
+								if math.isnan(speedLimitZ) or speedLimitZ < 30 or speedLimitZ > 60 :
+								
+									# Convert default speed limit Z to binary
+									packed = struct.pack('f', 60)
+									speedLimitZ = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
+					
+									# Go through bytes of speed limit Z
+									index = 0
+									while index < 4 :
+					
+										# Check if saving speed limit Z failed
+										if not error and not self.writeToEeprom(connection, self.eepromOffsets["speedLimitZ"]["offset"] + index, chr((speedLimitZ >> 8 * index) & 0xFF)) :
+					
+											# Set error
+											error = True
+					
+										# Increment index
+										index += 1
+					
+							# Check if an error hasn't occured
+							if not error :
+						
+								# Get speed limit E positive
+								data = [int(ord(self.eeprom[self.eepromOffsets["speedLimitEPositive"]["offset"]])), int(ord(self.eeprom[self.eepromOffsets["speedLimitEPositive"]["offset"] + 1])), int(ord(self.eeprom[self.eepromOffsets["speedLimitEPositive"]["offset"] + 2])), int(ord(self.eeprom[self.eepromOffsets["speedLimitEPositive"]["offset"] + 3]))]
+								bytes = struct.pack("4B", *data)
+								speedLimitEPositive = round(struct.unpack('f', bytes)[0], 6)
+					
+								# Check if speed limit E positive is invalid
+								if math.isnan(speedLimitEPositive) or speedLimitEPositive < 60 or speedLimitEPositive > 600 :
+					
+									# Convert default speed limit E positive to binary
+									packed = struct.pack('f', 102)
+									speedLimitEPositive = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
+					
+									# Go through bytes of speed limit E positive
+									index = 0
+									while index < 4 :
+					
+										# Check if saving speed limit E positive failed
+										if not error and not self.writeToEeprom(connection, self.eepromOffsets["speedLimitEPositive"]["offset"] + index, chr((speedLimitEPositive >> 8 * index) & 0xFF)) :
+					
+											# Set error
+											error = True
+					
+										# Increment index
+										index += 1
+						
+							# Check if an error hasn't occured
+							if not error :
+						
+								# Get speed limit E negative
+								data = [int(ord(self.eeprom[self.eepromOffsets["speedLimitENegative"]["offset"]])), int(ord(self.eeprom[self.eepromOffsets["speedLimitENegative"]["offset"] + 1])), int(ord(self.eeprom[self.eepromOffsets["speedLimitENegative"]["offset"] + 2])), int(ord(self.eeprom[self.eepromOffsets["speedLimitENegative"]["offset"] + 3]))]
+								bytes = struct.pack("4B", *data)
+								speedLimitENegative = round(struct.unpack('f', bytes)[0], 6)
+					
+								# Check if speed limit E negative is invalid
+								if math.isnan(speedLimitENegative) or speedLimitENegative < 60 or speedLimitENegative > 720 :
+					
+									# Convert default speed limit E negative to binary
+									packed = struct.pack('f', 360)
+									speedLimitENegative = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
+					
+									# Go through bytes of speed limit E negative
+									index = 0
+									while index < 4 :
+					
+										# Check if saving speed limit E negative failed
+										if not error and not self.writeToEeprom(connection, self.eepromOffsets["speedLimitENegative"]["offset"] + index, chr((speedLimitENegative >> 8 * index) & 0xFF)) :
+					
+											# Set error
+											error = True
+					
+										# Increment index
+										index += 1
+					
+							# Check if an error has occured
+							if error :
+					
+								# Display error
+								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating speed limits failed", confirm = True))
+					
+						# Check if firmware is corrupt
+						if not error and eepromCrc != chipCrc :
+					
+							# Display message
+							self.messageResponse = None
+							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Firmware is corrupt. Update to M3D firmware version " + self.providedFirmwares["M3D"]["Release"] + '?', response = True))
+						
+							# Wait until response is obtained
+							while self.messageResponse is None :
+								time.sleep(0.01)
+						
+							# Check if response was no
+							if not self.messageResponse :
+						
+								# Set error
+								error = True
+					
+							# Otherwise
+							else :
+						
+								# Send message
+								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating firmware"))
+						
+								# Check if updating firmware failed
+								if not self.updateToProvidedFirmware(connection, "M3D") :
+						
+									# Send message
+									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating firmware failed", confirm = True))
+								
+									# Set error
+									error = True
+							
+								# Otherwise
+								else :
+						
+									# Send message
+									self.messageResponse = None
+									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating firmware was successful", confirm = True))
+						
+									# Wait until response is obtained
+									while self.messageResponse is None :
+										time.sleep(0.01)
+						
+						# Otherwise check if firmware is outdated
+						elif not error and firmwareName is not None and firmwareVersion < int(self.providedFirmwares[firmwareName]["Version"]) :
+					
+							# Set if firmware is incompatible
+							if firmwareName == "M3D" :
+								incompatible = firmwareVersion < 2015122112
+							elif firmwareName == "iMe" :
+								incompatible = firmwareVersion < 1900000001
+							
+							# Display message
+							self.messageResponse = None
+							if incompatible :
+								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Firmware is incompatible. Update to " + firmwareName + " firmware version " + self.providedFirmwares[firmwareName]["Release"] + '?', response = True))
+							else :
+								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Newer firmware available. Update to " + firmwareName + " firmware version " + self.providedFirmwares[firmwareName]["Release"] + '?', response = True))
+						
+							# Wait until response is obtained
+							while self.messageResponse is None :
+								time.sleep(0.01)
+						
+							# Check if response was no
+							if not self.messageResponse :
+						
+								# Set error if incompatible
+								if incompatible :
+									error = True
+					
+							# Otherwise
+							else :
+						
+								# Send message
+								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating firmware"))
+								
+								# Check if updating firmware failed
+								if not self.updateToProvidedFirmware(connection, firmwareName) :
+						
+									# Send message
+									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating firmware failed", confirm = True))
+								
+									# Set error
+									error = True
+							
+								# Otherwise
+								else :
+						
+									# Send message
+									self.messageResponse = None
+									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating firmware was successful", confirm = True))
+						
+									# Wait until response is obtained
+									while self.messageResponse is None :
+										time.sleep(0.01)
+					
+						# Check if no errors occured
+						if not error :
+					
+							# Send new EEPROM
+							self.getEeprom(connection, True)
+				
+					# Otherwise
+					else :
+				
+						# Set error
+						error = True
 				
 				# Close connection
 				connection.close()
@@ -3316,13 +3894,14 @@ class M3DFioPlugin(
 				
 				# Remove serial timeout
 				self._printer.get_transport().timeout = None
-				if serial.VERSION < 3 :
-                                    self._printer.get_transport().writeTimeout = None
+				if float(serial.VERSION) < 3 :
+					self._printer.get_transport().writeTimeout = None
 				else :
-                                    self._printer.get_transport().write_timeout = None
+					self._printer.get_transport().write_timeout = None
 			
-				# Enable printer callbacks
-				self._printer.register_callback(self)
+				# Enable printer callbacks if using a Micro 3D printer
+		    		if not self._settings.get_boolean(["UsingADifferentPrinter"]) :
+					self._printer.register_callback(self)
 			
 			# Check if an error didn't occur
 			if not error :
@@ -3350,10 +3929,10 @@ class M3DFioPlugin(
 				
 					# Remove serial timeout
 					self._printer.get_transport().timeout = None
-					if serial.VERSION < 3 :
-                                            self._printer.get_transport().writeTimeout = None
+					if float(serial.VERSION) < 3 :
+						self._printer.get_transport().writeTimeout = None
 					else :
-                                            self._printer.get_transport().write_timeout = None
+						self._printer.get_transport().write_timeout = None
 			
 			# Otherwise
 			else :
@@ -3384,10 +3963,10 @@ class M3DFioPlugin(
 			
 			# Remove serial timeout
 			self._printer.get_transport().timeout = None
-			if serial.VERSION < 3 :
-                            self._printer.get_transport().writeTimeout = None
+			if float(serial.VERSION) < 3 :
+				self._printer.get_transport().writeTimeout = None
 			else :
-                            self._printer.get_transport().write_timeout = None
+				self._printer.get_transport().write_timeout = None
 			
 			# Request printer information
 			self._printer.get_transport().write("M115")
@@ -3411,14 +3990,6 @@ class M3DFioPlugin(
 			
 				# Send printer status
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Micro 3D Connected"))
-				
-				# Send Micro Pass status
-				if "MACHINE_TYPE:The_Micro_Pass" in data :
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Micro Pass Connected"))
-					self.usingMicroPass = True
-				else :
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Micro Pass Not Connected"))
-					self.usingMicroPass = False
 		
 		# Otherwise check if printer's data is requested
 		elif "Send: M21" in data :
@@ -3429,9 +4000,9 @@ class M3DFioPlugin(
 				# Clear invalid values
 				self.invalidBedCenter = None
 				self.invalidBedOrientation = None
-			
+				
 				# Request printer settings
-				self.sendCommands([
+				commands = [
 					"M117",
 					"M114",
 					"M619 S" + str(self.eepromOffsets["backlashX"]["offset"]) + " T" + str(self.eepromOffsets["backlashX"]["bytes"]),
@@ -3453,8 +4024,16 @@ class M3DFioPlugin(
 					"M619 S" + str(self.eepromOffsets["speedLimitZ"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitZ"]["bytes"]),
 					"M619 S" + str(self.eepromOffsets["speedLimitEPositive"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitEPositive"]["bytes"]),
 					"M619 S" + str(self.eepromOffsets["speedLimitENegative"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitENegative"]["bytes"]),
-					"M619 S" + str(self.eepromOffsets["bedOrientationVersion"]["offset"]) + " T" + str(self.eepromOffsets["bedOrientationVersion"]["bytes"]),
-				])
+					"M619 S" + str(self.eepromOffsets["bedOrientationVersion"]["offset"]) + " T" + str(self.eepromOffsets["bedOrientationVersion"]["bytes"])
+				]
+			
+				# Lower LED brightness for clear color printers
+				if self.printerColor == "Clear" :
+					commands += ["M420 T20"]
+				else :
+					commands += ["M420 T100"]
+				
+				self.sendCommands(commands)
 		
 		# Otherwise check if data contains valid Z information
 		elif "ZV:" in data :
@@ -3483,7 +4062,7 @@ class M3DFioPlugin(
 				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
-				if math.isnan(value) :
+				if math.isnan(value) or not isinstance(value, float) :
 					self.printerBacklashX = self.get_settings_defaults()["BacklashX"]
 				else :
 					self.printerBacklashX = round(value, 6)
@@ -3501,7 +4080,7 @@ class M3DFioPlugin(
 				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
-				if math.isnan(value) :
+				if math.isnan(value) or not isinstance(value, float) :
 					self.printerBacklashY = self.get_settings_defaults()["BacklashY"]
 				else :
 					self.printerBacklashY = round(value, 6)
@@ -3519,7 +4098,7 @@ class M3DFioPlugin(
 				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
-				if math.isnan(value) :
+				if math.isnan(value) or not isinstance(value, float) :
 					self.printerBackRightOrientation = self.get_settings_defaults()["BackRightOrientation"]
 				else :
 					self.printerBackRightOrientation = round(value, 6)
@@ -3537,7 +4116,7 @@ class M3DFioPlugin(
 				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
-				if math.isnan(value) :
+				if math.isnan(value) or not isinstance(value, float) :
 					self.printerBackLeftOrientation = self.get_settings_defaults()["BackLeftOrientation"]
 				else :
 					self.printerBackLeftOrientation = round(value, 6)
@@ -3555,7 +4134,7 @@ class M3DFioPlugin(
 				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
-				if math.isnan(value) :
+				if math.isnan(value) or not isinstance(value, float) :
 					self.printerFrontLeftOrientation = self.get_settings_defaults()["FrontLeftOrientation"]
 				else :
 					self.printerFrontLeftOrientation = round(value, 6)
@@ -3573,7 +4152,7 @@ class M3DFioPlugin(
 				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
-				if math.isnan(value) :
+				if math.isnan(value) or not isinstance(value, float) :
 					self.printerFrontRightOrientation = self.get_settings_defaults()["FrontRightOrientation"]
 				else :
 					self.printerFrontRightOrientation = round(value, 6)
@@ -3632,7 +4211,7 @@ class M3DFioPlugin(
 				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
-				if math.isnan(value) :
+				if math.isnan(value) or not isinstance(value, float) :
 					self.printerBackLeftOffset = self.get_settings_defaults()["BackLeftOffset"]
 				else :
 					self.printerBackLeftOffset = round(value, 6)
@@ -3650,7 +4229,7 @@ class M3DFioPlugin(
 				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
-				if math.isnan(value) :
+				if math.isnan(value) or not isinstance(value, float) :
 					self.printerBackRightOffset = self.get_settings_defaults()["BackRightOffset"]
 				else :
 					self.printerBackRightOffset = round(value, 6)
@@ -3668,7 +4247,7 @@ class M3DFioPlugin(
 				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
-				if math.isnan(value) :
+				if math.isnan(value) or not isinstance(value, float) :
 					self.printerFrontRightOffset = self.get_settings_defaults()["FrontRightOffset"]
 				else :
 					self.printerFrontRightOffset = round(value, 6)
@@ -3686,7 +4265,7 @@ class M3DFioPlugin(
 				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
-				if math.isnan(value) :
+				if math.isnan(value) or not isinstance(value, float) :
 					self.printerFrontLeftOffset = self.get_settings_defaults()["FrontLeftOffset"]
 				else :
 					self.printerFrontLeftOffset = round(value, 6)
@@ -3704,7 +4283,7 @@ class M3DFioPlugin(
 				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
-				if math.isnan(value) :
+				if math.isnan(value) or not isinstance(value, float) :
 					self.printerBedHeightOffset = self.get_settings_defaults()["BedHeightOffset"]
 				else :
 					self.printerBedHeightOffset = round(value, 6)
@@ -3722,7 +4301,7 @@ class M3DFioPlugin(
 				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
-				if math.isnan(value) :
+				if math.isnan(value) or not isinstance(value, float) :
 					self.printerBacklashSpeed = self.get_settings_defaults()["BacklashSpeed"]
 				else :
 					self.printerBacklashSpeed = round(value, 6)
@@ -3740,7 +4319,7 @@ class M3DFioPlugin(
 				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
-				if math.isnan(value) :
+				if math.isnan(value) or not isinstance(value, float) :
 					self.printerSpeedLimitX = self.get_settings_defaults()["SpeedLimitX"]
 				else :
 					self.printerSpeedLimitX = round(value, 6)
@@ -3758,7 +4337,7 @@ class M3DFioPlugin(
 				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
-				if math.isnan(value) :
+				if math.isnan(value) or not isinstance(value, float) :
 					self.printerSpeedLimitY = self.get_settings_defaults()["SpeedLimitY"]
 				else :
 					self.printerSpeedLimitY = round(value, 6)
@@ -3776,7 +4355,7 @@ class M3DFioPlugin(
 				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
-				if math.isnan(value) :
+				if math.isnan(value) or not isinstance(value, float) :
 					self.printerSpeedLimitZ = self.get_settings_defaults()["SpeedLimitZ"]
 				else :
 					self.printerSpeedLimitZ = round(value, 6)
@@ -3794,7 +4373,7 @@ class M3DFioPlugin(
 				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
-				if math.isnan(value) :
+				if math.isnan(value) or not isinstance(value, float) :
 					self.printerSpeedLimitEPositive = self.get_settings_defaults()["SpeedLimitEPositive"]
 				else :
 					self.printerSpeedLimitEPositive = round(value, 6)
@@ -3812,7 +4391,7 @@ class M3DFioPlugin(
 				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
-				if math.isnan(value) :
+				if math.isnan(value) or not isinstance(value, float) :
 					self.printerSpeedLimitENegative = self.get_settings_defaults()["SpeedLimitENegative"]
 				else :
 					self.printerSpeedLimitENegative = round(value, 6)
@@ -3825,7 +4404,7 @@ class M3DFioPlugin(
 			elif "PT:" + str(self.eepromOffsets["bedOrientationVersion"]["offset"]) + ' ' in data :
 			
 				# Send invalid bed orientation if calibration question hasn't already been asked
-				if data[data.find("DT:") + 3 :] == '0' and self.calibrateBedOrientation is not None :
+				if data[data.find("DT:") + 3 :] == '0' and self.invalidBedOrientation is not None :
 				
 					# Set invalid bed orientation
 					self.invalidBedOrientation = True
@@ -3838,7 +4417,7 @@ class M3DFioPlugin(
 				
 				# Otherwise
 				else :
-				
+					
 					# Save software settings
 					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Save Software Settings"))
 				
@@ -3850,24 +4429,80 @@ class M3DFioPlugin(
 	
 		# Get software settings
 		softwareBacklashX = self._settings.get_float(["BacklashX"])
+		if not isinstance(softwareBacklashX, float) :
+			softwareBacklashX = self.get_settings_defaults()["BacklashX"]
+		
 		softwareBacklashY = self._settings.get_float(["BacklashY"])
+		if not isinstance(softwareBacklashY, float) :
+			softwareBacklashY = self.get_settings_defaults()["BacklashY"]
+		
 		softwareBackLeftOrientation = self._settings.get_float(["BackLeftOrientation"])
+		if not isinstance(softwareBackLeftOrientation, float) :
+			softwareBackLeftOrientation = self.get_settings_defaults()["BackLeftOrientation"]
+		
 		softwareBackRightOrientation = self._settings.get_float(["BackRightOrientation"])
+		if not isinstance(softwareBackRightOrientation, float) :
+			softwareBackRightOrientation = self.get_settings_defaults()["BackRightOrientation"]
+		
 		softwareFrontRightOrientation = self._settings.get_float(["FrontRightOrientation"])
+		if not isinstance(softwareFrontRightOrientation, float) :
+			softwareFrontRightOrientation = self.get_settings_defaults()["FrontRightOrientation"]
+		
 		softwareFrontLeftOrientation = self._settings.get_float(["FrontLeftOrientation"])
+		if not isinstance(softwareFrontLeftOrientation, float) :
+			softwareFrontLeftOrientation = self.get_settings_defaults()["FrontLeftOrientation"]
+		
 		softwareBacklashSpeed = self._settings.get_float(["BacklashSpeed"])
+		if not isinstance(softwareBacklashSpeed, float) :
+			softwareBacklashSpeed = self.get_settings_defaults()["BacklashSpeed"]
+		
 		softwareBackLeftOffset = self._settings.get_float(["BackLeftOffset"])
+		if not isinstance(softwareBackLeftOffset, float) :
+			softwareBackLeftOffset = self.get_settings_defaults()["BackLeftOffset"]
+		
 		softwareBackRightOffset = self._settings.get_float(["BackRightOffset"])
+		if not isinstance(softwareBackRightOffset, float) :
+			softwareBackRightOffset = self.get_settings_defaults()["BackRightOffset"]
+		
 		softwareFrontRightOffset = self._settings.get_float(["FrontRightOffset"])
+		if not isinstance(softwareFrontRightOffset, float) :
+			softwareFrontRightOffset = self.get_settings_defaults()["FrontRightOffset"]
+		
 		softwareFrontLeftOffset = self._settings.get_float(["FrontLeftOffset"])
+		if not isinstance(softwareFrontLeftOffset, float) :
+			softwareFrontLeftOffset = self.get_settings_defaults()["FrontLeftOffset"]
+		
 		softwareBedHeightOffset = self._settings.get_float(["BedHeightOffset"])
+		if not isinstance(softwareBedHeightOffset, float) :
+			softwareBedHeightOffset = self.get_settings_defaults()["BedHeightOffset"]
+		
 		softwareFilamentTemperature = self._settings.get_int(["FilamentTemperature"])
+		if not isinstance(softwareFilamentTemperature, int) :
+			softwareFilamentTemperature = self.get_settings_defaults()["FilamentTemperature"]
+		
 		softwareFilamentType = str(self._settings.get(["FilamentType"]))
+		if not isinstance(softwareFilamentType, str) :
+			softwareFilamentType = self.get_settings_defaults()["FilamentType"]
+		
 		softwareSpeedLimitX = self._settings.get_float(["SpeedLimitX"])
+		if not isinstance(softwareSpeedLimitX, float) :
+			softwareSpeedLimitX = self.get_settings_defaults()["SpeedLimitX"]
+		
 		softwareSpeedLimitY = self._settings.get_float(["SpeedLimitY"])
+		if not isinstance(softwareSpeedLimitY, float) :
+			softwareSpeedLimitY = self.get_settings_defaults()["SpeedLimitY"]
+		
 		softwareSpeedLimitZ = self._settings.get_float(["SpeedLimitZ"])
+		if not isinstance(softwareSpeedLimitZ, float) :
+			softwareSpeedLimitZ = self.get_settings_defaults()["SpeedLimitZ"]
+		
 		softwareSpeedLimitEPositive = self._settings.get_float(["SpeedLimitEPositive"])
+		if not isinstance(softwareSpeedLimitEPositive, float) :
+			softwareSpeedLimitEPositive = self.get_settings_defaults()["SpeedLimitEPositive"]
+		
 		softwareSpeedLimitENegative = self._settings.get_float(["SpeedLimitENegative"])
+		if not isinstance(softwareSpeedLimitENegative, float) :
+			softwareSpeedLimitENegative = self.get_settings_defaults()["SpeedLimitENegative"]
 	
 		# Check if backlash Xs differ
 		commandList = []
@@ -4092,12 +4727,24 @@ class M3DFioPlugin(
 				self.sharedLibrary.setUseBacklashCompensationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseBacklashCompensationPreprocessor"])))
 				self.sharedLibrary.setUseCenterModelPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseCenterModelPreprocessor"])))
 				self.sharedLibrary.setIgnorePrintDimensionLimitations(ctypes.c_bool(self._settings.get_boolean(["IgnorePrintDimensionLimitations"])))
-				self.sharedLibrary.setUsingMicroPass(ctypes.c_bool(self.usingMicroPass))
+				self.sharedLibrary.setUsingHeatbed(ctypes.c_bool(self.heatbedConnection is not None))
 				self.sharedLibrary.setPrintingTestBorder(ctypes.c_bool(self.printingTestBorder))
 				self.sharedLibrary.setPrintingBacklashCalibrationCylinder(ctypes.c_bool(self.printingBacklashCalibrationCylinder))
-						
+				self.sharedLibrary.setPrinterColor(ctypes.c_char_p(self.printerColor))
+				self.sharedLibrary.setCalibrateBeforePrint(ctypes.c_bool(self._settings.get_boolean(["CalibrateBeforePrint"])))
+				self.sharedLibrary.setRemoveFanCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveFanCommands"])))
+				self.sharedLibrary.setRemoveTemperatureCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveTemperatureCommands"])))
+				self.sharedLibrary.setUseExternalFan(ctypes.c_bool(self._settings.get_boolean(["UseExternalFan"])))
+				self.sharedLibrary.setHeatbedTemperature(ctypes.c_ushort(self._settings.get_int(["HeatbedTemperature"])))
+				
 				# Collect print information
 				printIsValid = self.sharedLibrary.collectPrintInformation(ctypes.c_char_p(input))
+				
+				# Get detected fan speed
+				self.detectedFanSpeed = self.sharedLibrary.getDetectedFanSpeed()
+				
+				# Get object successfully centered
+				self.objectSuccessfullyCentered = self.sharedLibrary.getObjectSuccessfullyCentered()
 			
 			# Otherwise
 			else :
@@ -4132,6 +4779,21 @@ class M3DFioPlugin(
 				# Return false
 				return False
 			
+			# Otherwise
+			else :
+			
+				# Check if detected fan speed is 0
+				if self.detectedFanSpeed == 0 :
+			
+					# Create error message
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create notice message", title = "Print warning", text = "No fan speed has been detected in this file which could cause the print to fail"))
+				
+				# Check if objected couldn't be centered
+				if self._settings.get_boolean(["UseCenterModelPreprocessor"]) and not self.objectSuccessfullyCentered :
+			
+					# Create error message
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create notice message", title = "Print warning", text = "Object too large to center on print bed"))
+			
 			# Move the input file to a temporary file
 			temp = tempfile.mkstemp()[1]
 			shutil.move(input, temp)
@@ -4161,21 +4823,43 @@ class M3DFioPlugin(
 	def collectPrintInformation(self, file) :
 	
 		# Initialize variables
-		localX = 54
-		localY = 50
-		localZ = 0.4
+		localX = None
+		localY = None
+		localZ = None
 		relativeMode = False
 		tier = "Low"
 		gcode = Gcode()
 		
+		# Check if using a heatbed
+		if self.heatbedConnection is not None :
+		
+			# Adjust bed Z values
+			self.bedMediumMaxZ = 73.5 - self.heatbedHeight
+			self.bedHighMaxZ = 112.0 - self.heatbedHeight
+			self.bedHighMinZ = self.bedMediumMaxZ
+		
+		# Otherwise
+		else :
+		
+			# Set bed Z values to defaults
+			self.bedMediumMaxZ = 73.5
+			self.bedHighMaxZ = 112.0
+			self.bedHighMinZ = self.bedMediumMaxZ
+		
+		# Reset detected fan speed
+		self.detectedFanSpeed = None
+		
+		# Reset object successfully centered
+		self.objectSuccessfullyCentered = True
+		
 		# Reset all print values
-		self.maxXExtruderLow = 0
-		self.maxXExtruderMedium = 0
-		self.maxXExtruderHigh = 0
-		self.maxYExtruderLow = 0
-		self.maxYExtruderMedium = 0
-		self.maxYExtruderHigh = 0
-		self.maxZExtruder = 0
+		self.maxXExtruderLow = -sys.float_info.max
+		self.maxXExtruderMedium = -sys.float_info.max
+		self.maxXExtruderHigh = -sys.float_info.max
+		self.maxYExtruderLow = -sys.float_info.max
+		self.maxYExtruderMedium = -sys.float_info.max
+		self.maxYExtruderHigh = -sys.float_info.max
+		self.maxZExtruder = -sys.float_info.max
 		self.minXExtruderLow = sys.float_info.max
 		self.minXExtruderMedium = sys.float_info.max
 		self.minXExtruderHigh = sys.float_info.max
@@ -4188,133 +4872,273 @@ class M3DFioPlugin(
 		for line in open(file) :
 
 			# Check if line was parsed successfully and it's a G command
-			if gcode.parseLine(line) and gcode.hasValue('G') :
+			if gcode.parseLine(line) :
+			
+				# Check if command is the first fan command
+				if self.detectedFanSpeed is None and gcode.hasValue('M') and gcode.getValue('M') == "106" :
+				
+					# Get fan speed
+					self.detectedFanSpeed = int(gcode.getValue('S'))
+			
+				# Otherwise check if command is a G command
+				elif gcode.hasValue('G') :
 		
-				# Check if command is G0 or G1
-				if gcode.getValue('G') == "0" or gcode.getValue('G') == "1" :
+					# Check if command is G0 or G1
+					if gcode.getValue('G') == "0" or gcode.getValue('G') == "1" :
 		
-					# Check if command has an X value
-					if gcode.hasValue('X') :
+						# Check if command has an X value
+						if gcode.hasValue('X') :
 			
-						# Get X value of the command
-						commandX = float(gcode.getValue('X'))
+							# Get X value of the command
+							commandX = float(gcode.getValue('X'))
 			
-						# Set local X
-						if relativeMode :
-							localX += commandX
-						else :
-							localX = commandX
+							# Set local X
+							if relativeMode :
+								if localX is None :
+									localX = 54
+								localX += commandX
+							else :
+								localX = commandX
 			
-					# Check if command has an Y value
-					if gcode.hasValue('Y') :
+						# Check if command has an Y value
+						if gcode.hasValue('Y') :
 			
-						# Get Y value of the command
-						commandY = float(gcode.getValue('Y'))
+							# Get Y value of the command
+							commandY = float(gcode.getValue('Y'))
 			
-						# Set local Y
-						if relativeMode :
-							localY += commandY
-						else :
-							localY = commandY
+							# Set local Y
+							if relativeMode :
+								if localY is None :
+									localY = 50
+								localY += commandY
+							else :
+								localY = commandY
 		
-					# Check if command has an Z value
-					if gcode.hasValue('Z') :
+						# Check if command has an Z value
+						if gcode.hasValue('Z') :
 			
-						# Get Z value of the command
-						commandZ = float(gcode.getValue('Z'))
+							# Get Z value of the command
+							commandZ = float(gcode.getValue('Z'))
 			
-						# Set local Z
-						if relativeMode :
-							localZ += commandZ
-						else :
-							localZ = commandZ
+							# Set local Z
+							if relativeMode :
+								if localZ is None :
+									localZ = 0.4
+								localZ += commandZ
+							else :
+								localZ = commandZ
 			
-						# Check if not ignoring print dimension limitations, not printing a test border or backlash calibration cylinder, and Z is out of bounds
-						if not self._settings.get_boolean(["IgnorePrintDimensionLimitations"]) and not self.printingTestBorder and not self.printingBacklashCalibrationCylinder and (localZ < self.bedLowMinZ or localZ > self.bedHighMaxZ) :
+							# Check if not ignoring print dimension limitations, not printing a test border or backlash calibration cylinder, and Z is out of bounds
+							if not self._settings.get_boolean(["IgnorePrintDimensionLimitations"]) and not self.printingTestBorder and not self.printingBacklashCalibrationCylinder and (localZ < self.bedLowMinZ or localZ > self.bedHighMaxZ) :
 				
-							# Return false
-							return False
+								# Return false
+								return False
 			
-						# Set print tier
-						if localZ < self.bedLowMaxZ :
-							tier = "Low"
+							# Set print tier
+							if localZ < self.bedLowMaxZ :
+								tier = "Low"
 				
-						elif localZ < self.bedMediumMaxZ :
-							tier = "Medium"
+							elif localZ < self.bedMediumMaxZ :
+								tier = "Medium"
 				
-						else :
-							tier = "High"
+							else :
+								tier = "High"
 				
-					# Check if not ignoring print dimension limitations, not printing a test border or backlash calibration cylinder, and centering model pre-processor isn't used
-					if not self._settings.get_boolean(["IgnorePrintDimensionLimitations"]) and not self.printingTestBorder and not self.printingBacklashCalibrationCylinder and not self._settings.get_boolean(["UseCenterModelPreprocessor"]) :
+						# Check if not ignoring print dimension limitations, not printing a test border or backlash calibration cylinder, and centering model pre-processor isn't used
+						if not self._settings.get_boolean(["IgnorePrintDimensionLimitations"]) and not self.printingTestBorder and not self.printingBacklashCalibrationCylinder and not self._settings.get_boolean(["UseCenterModelPreprocessor"]) :
 			
-						# Return false if X or Y are out of bounds				
-						if tier == "Low" and (localX < self.bedLowMinX or localX > self.bedLowMaxX or localY < self.bedLowMinY or localY > self.bedLowMaxY) :
-							return False
+							# Return false if X or Y are out of bounds				
+							if tier == "Low" and ((localX is not None and (localX < self.bedLowMinX or localX > self.bedLowMaxX)) or (localY is not None and (localY < self.bedLowMinY or localY > self.bedLowMaxY))) :
+								return False
 			
-						elif tier == "Medium" and (localX < self.bedMediumMinX or localX > self.bedMediumMaxX or localY < self.bedMediumMinY or localY > self.bedMediumMaxY) :
-							return False
+							elif tier == "Medium" and ((localX is not None and (localX < self.bedMediumMinX or localX > self.bedMediumMaxX)) or (localY is not None and (localY < self.bedMediumMinY or localY > self.bedMediumMaxY))) :
+								return False
 
-						elif tier == "High" and (localX < self.bedHighMinX or localX > self.bedHighMaxX or localY < self.bedHighMinY or localY > self.bedHighMaxY) :
-							return False
+							elif tier == "High" and ((localX is not None and (localX < self.bedHighMinX or localX > self.bedHighMaxX)) or (localY is not None and (localY < self.bedHighMinY or localY > self.bedHighMaxY))) :
+								return False
 				
-					# Update minimums and maximums dimensions of extruder
-					if tier == "Low" :
-						self.minXExtruderLow = min(self.minXExtruderLow, localX)
-						self.maxXExtruderLow = max(self.maxXExtruderLow, localX)
-						self.minYExtruderLow = min(self.minYExtruderLow, localY)
-						self.maxYExtruderLow = max(self.maxYExtruderLow, localY)
-					elif tier == "Medium" :
-						self.minXExtruderMedium = min(self.minXExtruderMedium, localX)
-						self.maxXExtruderMedium = max(self.maxXExtruderMedium, localX)
-						self.minYExtruderMedium = min(self.minYExtruderMedium, localY)
-						self.maxYExtruderMedium = max(self.maxYExtruderMedium, localY)
-					else :
-						self.minXExtruderHigh = min(self.minXExtruderHigh, localX)
-						self.maxXExtruderHigh = max(self.maxXExtruderHigh, localX)
-						self.minYExtruderHigh = min(self.minYExtruderHigh, localY)
-						self.maxYExtruderHigh = max(self.maxYExtruderHigh, localY)
-					self.minZExtruder = min(self.minZExtruder, localZ)
-					self.maxZExtruder = max(self.maxZExtruder, localZ)
+						# Update minimums and maximums dimensions of extruder
+						if tier == "Low" :
+							if localX is not None :
+								self.minXExtruderLow = min(self.minXExtruderLow, localX)
+								self.maxXExtruderLow = max(self.maxXExtruderLow, localX)
+							if localY is not None :
+								self.minYExtruderLow = min(self.minYExtruderLow, localY)
+								self.maxYExtruderLow = max(self.maxYExtruderLow, localY)
+						elif tier == "Medium" :
+							if localX is not None :
+								self.minXExtruderMedium = min(self.minXExtruderMedium, localX)
+								self.maxXExtruderMedium = max(self.maxXExtruderMedium, localX)
+							if localY is not None :
+								self.minYExtruderMedium = min(self.minYExtruderMedium, localY)
+								self.maxYExtruderMedium = max(self.maxYExtruderMedium, localY)
+						else :
+							if localX is not None :
+								self.minXExtruderHigh = min(self.minXExtruderHigh, localX)
+								self.maxXExtruderHigh = max(self.maxXExtruderHigh, localX)
+							if localY is not None :
+								self.minYExtruderHigh = min(self.minYExtruderHigh, localY)
+								self.maxYExtruderHigh = max(self.maxYExtruderHigh, localY)
+						if localZ is not None :
+							self.minZExtruder = min(self.minZExtruder, localZ)
+							self.maxZExtruder = max(self.maxZExtruder, localZ)
+				
+					# Otherwise check if command is G28
+					elif gcode.getValue('G') == "28" :
+
+						# Set X and Y to home
+						localX = 54
+						localY = 50
 		
-				# Otherwise check if command is G90
-				elif gcode.getValue('G') == "90" :
+					# Otherwise check if command is G90
+					elif gcode.getValue('G') == "90" :
 		
-					# Clear relative mode
-					relativeMode = False
+						# Clear relative mode
+						relativeMode = False
 		
-				# Otherwise check if command is G91
-				elif gcode.getValue('G') == "91" :
+					# Otherwise check if command is G91
+					elif gcode.getValue('G') == "91" :
 		
-					# Set relative mode
-					relativeMode = True
+						# Set relative mode
+						relativeMode = True
 	
 		# Check if center model pre-processor is set and not printing a test border or backlash calibration cylinder
 		if self._settings.get_boolean(["UseCenterModelPreprocessor"]) and not self.printingTestBorder and not self.printingBacklashCalibrationCylinder :
 	
 			# Calculate adjustments
-			self.displacementX = (self.bedLowMaxX - max(self.maxXExtruderLow, max(self.maxXExtruderMedium, self.maxXExtruderHigh)) - min(self.minXExtruderLow, min(self.minXExtruderMedium, self.minXExtruderHigh)) + self.bedLowMinX) / 2
-			self.displacementY = (self.bedLowMaxY - max(self.maxYExtruderLow, max(self.maxYExtruderMedium, self.maxYExtruderHigh)) - min(self.minYExtruderLow, min(self.minYExtruderMedium, self.minYExtruderHigh)) + self.bedLowMinY) / 2
-	
+			self.displacementX = (self.bedWidth - self.bedCenterOffsetX - max(self.maxXExtruderLow, max(self.maxXExtruderMedium, self.maxXExtruderHigh)) - min(self.minXExtruderLow, min(self.minXExtruderMedium, self.minXExtruderHigh)) - self.bedCenterOffsetX) / 2
+			self.displacementY = (self.bedDepth - self.bedCenterOffsetY - max(self.maxYExtruderLow, max(self.maxYExtruderMedium, self.maxYExtruderHigh)) - min(self.minYExtruderLow, min(self.minYExtruderMedium, self.minYExtruderHigh)) - self.bedCenterOffsetY) / 2
+			
 			# Adjust print values
-			self.maxXExtruderLow += self.displacementX
-			self.maxXExtruderMedium += self.displacementX
-			self.maxXExtruderHigh += self.displacementX
-			self.maxYExtruderLow += self.displacementY
-			self.maxYExtruderMedium += self.displacementY
-			self.maxYExtruderHigh += self.displacementY
-			self.minXExtruderLow += self.displacementX
-			self.minXExtruderMedium += self.displacementX
-			self.minXExtruderHigh += self.displacementX
-			self.minYExtruderLow += self.displacementY
-			self.minYExtruderMedium += self.displacementY
-			self.minYExtruderHigh += self.displacementY
+			if self.maxXExtruderLow != -sys.float_info.max :
+				self.maxXExtruderLow += self.displacementX
+			if self.maxXExtruderMedium != -sys.float_info.max :
+				self.maxXExtruderMedium += self.displacementX
+			if self.maxXExtruderHigh != -sys.float_info.max :
+				self.maxXExtruderHigh += self.displacementX
+			if self.maxYExtruderLow != -sys.float_info.max :
+				self.maxYExtruderLow += self.displacementY
+			if self.maxYExtruderMedium != -sys.float_info.max :
+				self.maxYExtruderMedium += self.displacementY
+			if self.maxYExtruderHigh != -sys.float_info.max :
+				self.maxYExtruderHigh += self.displacementY
+			if self.minXExtruderLow != sys.float_info.max :
+				self.minXExtruderLow += self.displacementX
+			if self.minXExtruderMedium != sys.float_info.max :
+				self.minXExtruderMedium += self.displacementX
+			if self.minXExtruderHigh != sys.float_info.max :
+				self.minXExtruderHigh += self.displacementX
+			if self.minYExtruderLow != sys.float_info.max :
+				self.minYExtruderLow += self.displacementY
+			if self.minYExtruderMedium != sys.float_info.max :
+				self.minYExtruderMedium += self.displacementY
+			if self.minYExtruderHigh != sys.float_info.max :
+				self.minYExtruderHigh += self.displacementY
+			
+			# Get negative displacement X
+			negativeDisplacementX = 0
+			negativeDisplacementX = max(self.maxXExtruderLow - self.bedLowMaxX, negativeDisplacementX)
+			negativeDisplacementX = max(self.maxXExtruderMedium - self.bedMediumMaxX, negativeDisplacementX)
+			negativeDisplacementX = max(self.maxXExtruderHigh - self.bedHighMaxX, negativeDisplacementX)
+			
+			# Get positive displacement X
+			positiveDisplacementX = 0
+			positiveDisplacementX = max(self.bedLowMinX - self.minXExtruderLow, positiveDisplacementX)
+			positiveDisplacementX = max(self.bedMediumMinX - self.minXExtruderMedium, positiveDisplacementX)
+			positiveDisplacementX = max(self.bedHighMinX - self.minXExtruderHigh, positiveDisplacementX)
+			
+			# Check if a negative displacement X is possible
+			additionalDisplacementX = 0
+			if negativeDisplacementX > 0 and positiveDisplacementX <= 0 :
+			
+				# Set additional displacement X to negative displacement X
+				additionalDisplacementX = -negativeDisplacementX
+			
+			# Otherwise check if a positive displacement X is possible
+			elif positiveDisplacementX > 0 and negativeDisplacementX <= 0 :
+			
+				# Set additional displacement X to positive displacement X
+				additionalDisplacementX = positiveDisplacementX
+			
+			# Get negative displacement Y
+			negativeDisplacementY = 0
+			negativeDisplacementY = max(self.maxYExtruderLow - self.bedLowMaxY, negativeDisplacementY)
+			negativeDisplacementY = max(self.maxYExtruderMedium - self.bedMediumMaxY, negativeDisplacementY)
+			negativeDisplacementY = max(self.maxYExtruderHigh - self.bedHighMaxY, negativeDisplacementY)
+			
+			# Get positive displacement Y
+			positiveDisplacementY = 0
+			positiveDisplacementY = max(self.bedLowMinY - self.minYExtruderLow, positiveDisplacementY)
+			positiveDisplacementY = max(self.bedMediumMinY - self.minYExtruderMedium, positiveDisplacementY)
+			positiveDisplacementY = max(self.bedHighMinY - self.minYExtruderHigh, positiveDisplacementY)
+			
+			# Check if a negative displacement Y is possible
+			additionalDisplacementY = 0
+			if negativeDisplacementY > 0 and positiveDisplacementY <= 0 :
+			
+				# Set additional displacement Y to negative displacement Y
+				additionalDisplacementY = -negativeDisplacementY
+			
+			# Otherwise check if a positive displacement Y is possible
+			elif positiveDisplacementY > 0 and negativeDisplacementY <= 0 :
+			
+				# Set additional displacement Y to positive displacement Y
+				additionalDisplacementY = positiveDisplacementY
+			
+			# Check if an additional displacement is necessary
+			if additionalDisplacementX != 0 or additionalDisplacementY != 0 :
+			
+				# Clear object successfully centered
+				self.objectSuccessfullyCentered = False
+			
+				# Adjust print values
+				self.displacementX += additionalDisplacementX
+				self.displacementY += additionalDisplacementY
+				if self.maxXExtruderLow != -sys.float_info.max :
+					self.maxXExtruderLow += additionalDisplacementX
+				if self.maxXExtruderMedium != -sys.float_info.max :
+					self.maxXExtruderMedium += additionalDisplacementX
+				if self.maxXExtruderHigh != -sys.float_info.max :
+					self.maxXExtruderHigh += additionalDisplacementX
+				if self.maxYExtruderLow != -sys.float_info.max :
+					self.maxYExtruderLow += additionalDisplacementY
+				if self.maxYExtruderMedium != -sys.float_info.max :
+					self.maxYExtruderMedium += additionalDisplacementY
+				if self.maxYExtruderHigh != -sys.float_info.max :
+					self.maxYExtruderHigh += additionalDisplacementY
+				if self.minXExtruderLow != sys.float_info.max :
+					self.minXExtruderLow += additionalDisplacementX
+				if self.minXExtruderMedium != sys.float_info.max :
+					self.minXExtruderMedium += additionalDisplacementX
+				if self.minXExtruderHigh != sys.float_info.max :
+					self.minXExtruderHigh += additionalDisplacementX
+				if self.minYExtruderLow != sys.float_info.max :
+					self.minYExtruderLow += additionalDisplacementY
+				if self.minYExtruderMedium != sys.float_info.max :
+					self.minYExtruderMedium += additionalDisplacementY
+				if self.minYExtruderHigh != sys.float_info.max :
+					self.minYExtruderHigh += additionalDisplacementY
 			
 			# Check if not ignoring print dimension limitations and adjusted print values are out of bounds
 			if not self._settings.get_boolean(["IgnorePrintDimensionLimitations"]) and (self.minZExtruder < self.bedLowMinZ or self.maxZExtruder > self.bedHighMaxZ or self.maxXExtruderLow > self.bedLowMaxX or self.maxXExtruderMedium > self.bedMediumMaxX or self.maxXExtruderHigh > self.bedHighMaxX or self.maxYExtruderLow > self.bedLowMaxY or self.maxYExtruderMedium > self.bedMediumMaxY or self.maxYExtruderHigh > self.bedHighMaxY or self.minXExtruderLow < self.bedLowMinX or self.minXExtruderMedium < self.bedMediumMinX or self.minXExtruderHigh < self.bedHighMinX or self.minYExtruderLow < self.bedLowMinY or self.minYExtruderMedium < self.bedMediumMinY or self.minYExtruderHigh < self.bedHighMinY) :
 	
 				# Return false
 				return False
+		
+		# Check if all fan commands are being removed
+		if self.detectedFanSpeed is None or (self._settings.get_boolean(["RemoveFanCommands"]) and not self._settings.get_boolean(["UsePreparationPreprocessor"])) :
+		
+			# Set detected fan speed
+			self.detectedFanSpeed = 0
+		
+		# Otherwise check if using preparation pre-processor
+		elif self._settings.get_boolean(["UsePreparationPreprocessor"]) :
+		
+			# Set detected fan speed
+			if str(self._settings.get(["FilamentType"])) == "PLA" or str(self._settings.get(["FilamentType"])) == "FLX" or str(self._settings.get(["FilamentType"])) == "TGH" :
+				self.detectedFanSpeed = 255
+			else :
+				self.detectedFanSpeed = 50
 		
 		# Return true
 		return True
@@ -4674,6 +5498,18 @@ class M3DFioPlugin(
 						# Get next line if empty
 						if gcode.isEmpty() :
 							continue
+					
+					# Check if command is a fan command and set to remove fan commands
+					if self._settings.get_boolean(["RemoveFanCommands"]) and gcode.hasValue('M') and (gcode.getValue('M') == "106" or gcode.getValue('M') == "107") :
+
+						# Get next line
+						continue
+					
+					# Check if command is a temperature command and set to remove temperature commands
+					if self._settings.get_boolean(["RemoveTemperatureCommands"]) and gcode.hasValue('M') and (gcode.getValue('M') == "104" or gcode.getValue('M') == "109" or gcode.getValue('M') == "140" or gcode.getValue('M') == "190") :
+
+						# Get next line
+						continue
 			
 			# Check if printing test border or backlash calibration cylinder or using preparation pre-processor
 			if (self.printingTestBorder or self.printingBacklashCalibrationCylinder or self._settings.get_boolean(["UsePreparationPreprocessor"])) and "PREPARATION" not in command.skip :
@@ -4704,6 +5540,9 @@ class M3DFioPlugin(
 							cornerY = -(self.bedLowMaxY - self.bedLowMinY - 10) / 2
 				
 					# Add intro to output
+					newCommands.append(Command("M420 T1", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					if self._settings.get_boolean(["CalibrateBeforePrint"]) :
+						newCommands.append(Command("G30", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 					if str(self._settings.get(["FilamentType"])) == "PLA" or str(self._settings.get(["FilamentType"])) == "FLX" or str(self._settings.get(["FilamentType"])) == "TGH" :
 						newCommands.append(Command("M106 S255", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 					else :
@@ -4714,12 +5553,9 @@ class M3DFioPlugin(
 					newCommands.append(Command("G0 Z5 F48", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 					newCommands.append(Command("G28", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 
-					# Add heat bed command if using Micro Pass
-					if self.usingMicroPass :
-						if str(self._settings.get(["FilamentType"])) == "PLA" :
-							newCommands.append(Command("M190 S70", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						else :
-							newCommands.append(Command("M190 S80", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					# Add heatbed command if using a heatbed
+					if self.heatbedConnection is not None :
+						newCommands.append(Command("M190 S" + str(self._settings.get_int(["HeatbedTemperature"])), "PREPARATION", "CENTER VALIDATION PREPARATION"))
 
 					# Check if one of the corners wasn't set
 					if cornerX == 0 or cornerY == 0 :
@@ -4741,7 +5577,7 @@ class M3DFioPlugin(
 						newCommands.append(Command("M109 S" + str(self._settings.get_int(["FilamentTemperature"])), "PREPARATION", "CENTER VALIDATION PREPARATION"))
 						newCommands.append(Command("M17", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 						newCommands.append(Command("G0 Z-4 F48", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G0 E7.5 F360", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G0 E10 F360", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 						newCommands.append(Command("G4 S3", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 						newCommands.append(Command("G0 X%f Y%f Z-0.999 F400" % ((cornerX * 0.1), (cornerY * 0.1)), "PREPARATION", "CENTER VALIDATION PREPARATION"))
 						newCommands.append(Command("G0 X%f Y%f F1000" % ((cornerX * 0.9), (cornerY * 0.9)), "PREPARATION", "CENTER VALIDATION PREPARATION"))
@@ -4773,32 +5609,102 @@ class M3DFioPlugin(
 					# Initialize new commands
 					newCommands = []
 					
+					# Set move Z
+					moveZ = self.maxZExtruder + 10
+					if moveZ > self.bedHighMaxZ :
+						moveZ = self.bedHighMaxZ
+					
+					# Set move Y
+					startingMoveY = 0
+					maxMoveY = 0
+					if moveZ >= self.bedMediumMaxZ and self.maxYExtruderHigh != -sys.float_info.max :
+						startingMoveY = self.maxYExtruderHigh
+						maxMoveY = self.bedHighMaxY
+					elif moveZ >= self.bedLowMaxZ and self.maxYExtruderMedium != -sys.float_info.max :
+						startingMoveY = self.maxYExtruderMedium
+						maxMoveY = self.bedMediumMaxY
+					elif self.maxYExtruderLow != -sys.float_info.max :
+						startingMoveY = self.maxYExtruderLow
+						maxMoveY = self.bedLowMaxY
+					
+					moveY = startingMoveY + 20
+					if moveY > maxMoveY :
+						moveY = maxMoveY
+					
 					# Add outro to output
+					newCommands.append(Command("G90", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G0 Y%f Z%f F1800" % ((moveY), (moveZ)), "PREPARATION", "CENTER VALIDATION PREPARATION"))
 					newCommands.append(Command("G91", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G0 X5 Y5 E-1 F1800", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 					newCommands.append(Command("G0 E-8 F360", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 					newCommands.append(Command("M104 S0", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 
-					if self.usingMicroPass :
+					if self.heatbedConnection is not None :
 						newCommands.append(Command("M140 S0", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-
-					if self.maxZExtruder > 60 :
-						if self.maxZExtruder < 110 :
-							newCommands.append(Command("G0 Z3 F90", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G90", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G0 X90 Y84 F1800", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					else :
-						newCommands.append(Command("G0 Z3 F90", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G90", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G0 X95 Y95 F1800", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 
 					newCommands.append(Command("M18", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 					newCommands.append(Command("M107", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					
+					if self.printerColor == "Clear" :
+						newCommands.append(Command("M420 T20", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					else :
+						newCommands.append(Command("M420 T100", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G4 P500", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("M420 T1", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G4 P500", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					if self.printerColor == "Clear" :
+						newCommands.append(Command("M420 T20", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					else :
+						newCommands.append(Command("M420 T100", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G4 P500", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("M420 T1", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G4 P500", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					if self.printerColor == "Clear" :
+						newCommands.append(Command("M420 T20", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					else :
+						newCommands.append(Command("M420 T100", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G4 P500", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("M420 T1", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G4 P500", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					if self.printerColor == "Clear" :
+						newCommands.append(Command("M420 T20", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					else :
+						newCommands.append(Command("M420 T100", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 			
 					# Append new commands to commands
 					while len(newCommands) :
 						commands.append(newCommands.pop())
-
+				
+				# Otherwise check if command is at a new layer
+				elif self.preparationLayerCounter < 4 and not gcode.isEmpty() and gcode.hasValue('G') and gcode.hasValue('Z') :
+					
+					# Increment layer counter
+					self.preparationLayerCounter += 1
+					
+					# Check if at the start of the first layer and using an external fan
+					if self.preparationLayerCounter == 4 and self._settings.get_boolean(["UseExternalFan"]) :
+					
+						# Initialize new commands
+						newCommands = []
+						
+						# Add command to turn on external fan
+						newCommands.append(Command("M106 T1", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					
+						# Check if new commands exist
+						if len(newCommands) :
+		
+							# Finish processing command later
+							if not gcode.isEmpty() :
+								commands.append(Command(gcode.getAscii(), command.origin, "CENTER VALIDATION PREPARATION WAVE"))
+							else :
+								commands.append(Command(command.line, command.origin, "CENTER VALIDATION PREPARATION WAVE"))
+		
+							# Append new commands to commands
+							while len(newCommands) :
+								commands.append(newCommands.pop())
+			
+							# Get next command
+							continue
+			
 			# Check if not printing test border or backlash calibration cylinder and using wave bonding pre-processor
 			if not self.printingTestBorder and not self.printingBacklashCalibrationCylinder and self._settings.get_boolean(["UseWaveBondingPreprocessor"]) and "WAVE" not in command.skip :
 	
@@ -5118,14 +6024,8 @@ class M3DFioPlugin(
 						# Increment layer counter
 						self.thermalBondingLayerCounter += 1
 
-					# Check if command contains temperature or fan controls outside of the intro and outro
-					if command.origin != "PREPARATION" and gcode.hasValue('M') and (gcode.getValue('M') == "104" or gcode.getValue('M') == "106" or gcode.getValue('M') == "107" or gcode.getValue('M') == "109" or gcode.getValue('M') == "140" or gcode.getValue('M') == "190") :
-
-						# Get next line
-						continue
-
-					# Otherwise check if on first counted layer
-					elif self.thermalBondingLayerCounter == 1 :
+					# Check if on first counted layer
+					if self.thermalBondingLayerCounter == 1 :
 
 						# Check if printing test border or wave bonding isn't being used, and line is a G command
 						if (self.printingTestBorder or not self._settings.get_boolean(["UseWaveBondingPreprocessor"])) and gcode.hasValue('G') :
@@ -5680,45 +6580,54 @@ class M3DFioPlugin(
 	def upload(self) :
 		
 		# Check if uploading everything
-		if "Model Name" in flask.request.values and "Model Location" in flask.request.values and "Model Path" in flask.request.values and "Slicer Profile Name" in flask.request.values and "Slicer Name" in flask.request.values and "Printer Profile Name" in flask.request.values and "Slicer Profile Content" in flask.request.values and "After Slicing Action" in flask.request.values :
+		if "Slicer Profile Name" in flask.request.values and "Slicer Name" in flask.request.values and "Printer Profile Name" in flask.request.values and "Slicer Profile Content" in flask.request.values and "After Slicing Action" in flask.request.values :
 		
 			# Check if printing after slicing and a printer isn't connected
 			if flask.request.values["After Slicing Action"] != "none" and self._printer.get_state_string() == "Offline" :
 			
 				# Return error
 				return flask.jsonify(dict(value = "Error"))
+			
+			# Set if model was modified
+			modelModified = "Model Name" in flask.request.values and "Model Location" in flask.request.values and "Model Path" in flask.request.values
 	
 			# Check if slicer profile, model name, or model path contain path traversal
-			if "../" in flask.request.values["Slicer Profile Name"] or "../" in flask.request.values["Model Name"] or "../" in flask.request.values["Model Path"] :
+			if "../" in flask.request.values["Slicer Profile Name"] or (modelModified and ("../" in flask.request.values["Model Name"] or "../" in flask.request.values["Model Path"])) :
 		
 				# Return error
 				return flask.jsonify(dict(value = "Error"))
 			
 			# Check if model location is invalid
-			if flask.request.values["Model Location"] != "local" and flask.request.values["Model Location"] != "sdcard" :
+			if modelModified and (flask.request.values["Model Location"] != "local" and flask.request.values["Model Location"] != "sdcard") :
 			
 				# Return error
 				return flask.jsonify(dict(value = "Error"))
 	
-			# Get file locations
+			# Set profile location
 			profileLocation = self._slicing_manager.get_profile_path(flask.request.values["Slicer Name"], flask.request.values["Slicer Profile Name"])
 			
-			if flask.request.values["Model Location"] == "local" :
-				modelLocation = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, flask.request.values["Model Path"] + flask.request.values["Model Name"])
-			elif flask.request.values["Model Location"] == "sdcard" :
-				modelLocation = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.SDCARD, flask.request.values["Model Path"] + flask.request.values["Model Name"])
+			# Set model location
+			if modelModified :
+			
+				if flask.request.values["Model Location"] == "local" :
+					modelLocation = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, flask.request.values["Model Path"] + flask.request.values["Model Name"]).replace('\\', '/')
+				elif flask.request.values["Model Location"] == "sdcard" :
+					modelLocation = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.SDCARD, flask.request.values["Model Path"] + flask.request.values["Model Name"]).replace('\\', '/')
 		
 			# Check if slicer profile, model, or printer profile doesn't exist
-			if not os.path.isfile(profileLocation) or not os.path.isfile(modelLocation) or not self._printer_profile_manager.exists(flask.request.values["Printer Profile Name"]) :
+			if not os.path.isfile(profileLocation) or (modelModified and not os.path.isfile(modelLocation)) or not self._printer_profile_manager.exists(flask.request.values["Printer Profile Name"]) :
 		
 				# Return error
 				return flask.jsonify(dict(value = "Error"))
 		
-			# Move original slicer profile and model to temporary locations
+			# Move original slicer profile to temporary locations
 			profileTemp = tempfile.mkstemp()[1]
 			shutil.move(profileLocation, profileTemp)
-			modelTemp = tempfile.mkstemp()[1]
-			shutil.move(modelLocation, modelTemp)
+			
+			# Move original model to temporary location
+			if modelModified :
+				modelTemp = tempfile.mkstemp()[1]
+				shutil.move(modelLocation, modelTemp)
 		
 			# Save slicer profile to original slicer profile's location
 			temp = tempfile.mkstemp()[1]
@@ -5727,7 +6636,7 @@ class M3DFioPlugin(
 			for character in flask.request.values["Slicer Profile Content"] :
 				output.write(chr(ord(character)))
 			output.close()
-		
+			
 			if flask.request.values["Slicer Name"] == "cura" :
 				self.convertCuraToProfile(temp, profileLocation, '', '', '')
 			else :
@@ -5740,10 +6649,12 @@ class M3DFioPlugin(
 			self.slicerChanges = {
 				u"Slicer Profile Location" : profileLocation,
 				u"Slicer Profile Temporary" : profileTemp,
-				u"Model Location" : modelLocation,
-				u"Model Temporary" : modelTemp,
 				u"Printer Profile Content" : copy.deepcopy(printerProfile)
 			}
+			
+			if modelModified :
+				self.slicerChanges[u"Model Location"] = modelLocation
+				self.slicerChanges[u"Model Temporary"] = modelTemp
 			
 			# Check if slicer is Cura
 			if flask.request.values["Slicer Name"] == "cura" :
@@ -5826,7 +6737,7 @@ class M3DFioPlugin(
 			
 			# Apply printer profile changes
 			self._printer_profile_manager.save(printerProfile, True)
-		
+			
 			# Return ok
 			return flask.jsonify(dict(value = "Ok"))
 		
@@ -5837,7 +6748,7 @@ class M3DFioPlugin(
 			if flask.request.values["Slicer Name"] == "cura" :
 			
 				# Import profile manager
-				profileManager = imp.load_source("Profile", self._slicing_manager.get_slicer("cura")._basefolder + "/profile.py")
+				profileManager = imp.load_source("Profile", self._slicing_manager.get_slicer("cura")._basefolder.replace('\\', '/') + "/profile.py")
 					
 				# Save profile to temporary file
 				temp = tempfile.mkstemp()[1]
@@ -5872,13 +6783,13 @@ class M3DFioPlugin(
 	def download(self, file) :
 	
 		# Check if file contains path traversal or file doesn't exist
-		if "../" in file or not os.path.isfile(self.get_plugin_data_folder() + '/' + file) :
+		if "../" in file or not os.path.isfile(self.get_plugin_data_folder().replace('\\', '/') + '/' + file) :
 		
 			# Return file not found
 			return flask.make_response(404)
 	
 		# Return file
-		return flask.send_from_directory(self.get_plugin_data_folder(), file)
+		return flask.send_from_directory(self.get_plugin_data_folder().replace('\\', '/'), file)
 	
 	# Auto connect
 	def autoConnect(self, comm_instance, port, baudrate, read_timeout, *args, **kwargs) :
@@ -5913,9 +6824,210 @@ class M3DFioPlugin(
 		
 		# Return connection
 		return serial.Serial(str(port), baudrate)
+	
+	# Disable sleep
+	def disableSleep(self) :
+	
+		# Check if using windows
+		if platform.uname()[0].startswith("Windows") :
+		
+			# Set thread execution to a working state
+			ES_CONTINUOUS = 0x80000000
+			ES_SYSTEM_REQUIRED = 0x00000001
+			ctypes.windll.kernel32.SetThreadExecutionState(ctypes.c_int(ES_CONTINUOUS | ES_SYSTEM_REQUIRED))
+			
+			# Return true
+			return True
+		
+		# Otherwise check if using OS X and Core Foundations and ObjC are usable
+		elif platform.uname()[0].startswith("Darwin") and "CoreFoundation" in sys.modules and "objc" in sys.modules :
+		
+			# Created by jbenden
+			def setUpIOFramework() :
+			
+				# Load the IOKit framework
+				framework = ctypes.cdll.LoadLibrary("/System/Library/Frameworks/IOKit.framework/IOKit")
+
+				# Declare IOPMLib parameters
+				framework.IOPMAssertionCreateWithName.argtypes = [
+					ctypes.c_void_p,
+					ctypes.c_uint32,
+					ctypes.c_void_p,
+					ctypes.POINTER(ctypes.c_uint32)
+				]
+				
+				framework.IOPMAssertionRelease.argtypes = [
+					ctypes.c_uint32
+				]
+				
+				# Return framework
+				return framework
+			
+			def stringToCFString(string) :
+			
+				# Set encoding
+				try :
+					encoding = CoreFoundation.kCFStringEncodingASCII
+				except AttributeError :
+					encoding = 0x600
+				
+				# Convert string
+				return objc.pyobjc_id(CoreFoundation.CFStringCreateWithCString(None, string, encoding).nsstring())
+			
+			def assertionCreateWithName(framework, assertionType, assertionLevel, assertionReason) :
+			
+				# Create assertion
+				assertionId = ctypes.c_uint32(0)
+				assertionType = stringToCFString(assertionType)
+				assertionReason = stringToCFString(assertionReason)
+				assertionError = framework.IOPMAssertionCreateWithName(assertionType, assertionLevel, assertionReason, ctypes.byref(assertionId))
+
+				# Return error and id
+				return assertionError, assertionId
+			
+			# Initialize IOKit framework
+			if not hasattr(self, "osXSleepFramework") or self.osXSleepFramework is None :
+				self.osXSleepFramework = setUpIOFramework()
+
+			# Assert on sleep framework
+			error, self.osXSleepPrevention = assertionCreateWithName(self.osXSleepFramework, "NoIdleSleepAssertion", 255, "Disabled by M3D Fio")
+			
+			# Return true if no errors occured
+			if error == 0 :
+				return True
+		
+		# Otherwise check if using Linux and DBus is usable
+		elif platform.uname()[0].startswith("Linux") and "dbus" in sys.modules :
+			
+			# Check if sleep service doesn't exist
+			if not hasattr(self, "linuxSleepService") or self.linuxSleepService is None :
+			
+				# Initialize DBus session
+				try :
+					bus = dbus.SessionBus()
+				
+				except dbus.DBusException :
+					
+					self.linuxSleepService = None
+			
+					# Return false
+					return False
+			
+				# Inhibit sleep service
+				try :
+					self.linuxSleepService = dbus.Interface(bus.get_object("org.gnome.ScreenSaver", "/org/gnome/ScreenSaver"), "org.gnome.ScreenSaver")
+					self.linuxSleepPrevention = self.linuxSleepService.Inhibit("M3D Fio", "Disabled by M3D Fio")
+			
+				except dbus.DBusException :
+				
+					try :
+						self.linuxSleepService = dbus.Interface(bus.get_object("org.gnome.ScreenSaver", "/ScreenSaver"), "org.gnome.ScreenSaver")
+						self.linuxSleepPrevention = self.linuxSleepService.Inhibit("M3D Fio", "Disabled by M3D Fio")
+			
+					except dbus.DBusException :
+					
+						try:
+							self.linuxSleepService = dbus.Interface(bus.get_object("org.freedesktop.ScreenSaver", "/org/freedesktop/ScreenSaver"), "org.freedesktop.ScreenSaver")
+							self.linuxSleepPrevention = self.linuxSleepService.Inhibit("M3D Fio", "Disabled by M3D Fio")
+						
+						except dbus.DBusException :
+			
+							try :
+								self.linuxSleepService = dbus.Interface(bus.get_object("org.freedesktop.ScreenSaver", "/ScreenSaver"), "org.freedesktop.ScreenSaver")
+								self.linuxSleepPrevention = self.linuxSleepService.Inhibit("M3D Fio", "Disabled by M3D Fio")
+				
+							except dbus.DBusException :
+					
+								self.linuxSleepService = None
+						
+								# Return false
+								return False
+			
+			# Otherwise
+			else :
+			
+				try :
+					self.linuxSleepPrevention = self.linuxSleepService.Inhibit("M3D Fio", "Disabled by M3D Fio")
+				
+				except dbus.DBusException :
+					
+					self.linuxSleepService = None
+			
+					# Return false
+					return False
+			
+			# Return true
+			return True
+		
+		# Return false
+		return False
+	
+	# Enable sleep
+	def enableSleep(self) :
+	
+		# Check if using windows
+		if platform.uname()[0].startswith("Windows") :
+		
+			# Set thread execution to an idle state
+			ES_CONTINUOUS = 0x80000000
+			ctypes.windll.kernel32.SetThreadExecutionState(ctypes.c_int(ES_CONTINUOUS))
+		
+		# Otherwise check if using OS X and Core Foundations and ObjC are usable
+		elif platform.uname()[0].startswith("Darwin") and "CoreFoundation" in sys.modules and "objc" in sys.modules :
+		
+			# Check if sleep framework exists
+			if hasattr(self, "osXSleepFramework") and self.osXSleepFramework is not None :
+			
+				# Release assertion on sleep framework
+				self.osXSleepFramework.IOPMAssertionRelease(self.osXSleepPrevention)
+				self.osXSleepFramework = None
+		
+		# Otherwise check if using Linux and DBus is usable
+		elif platform.uname()[0].startswith("Linux") and "dbus" in sys.modules :
+		
+			# Check if sleep service exists
+			if hasattr(self, "linuxSleepService") and self.linuxSleepService is not None :
+					
+				# Uninhibit sleep service
+				self.linuxSleepService.UnInhibit(self.linuxSleepPrevention)
+				self.linuxSleepService = None
+	
+	# Turn on external fan
+	def turnOnExternalFan(self) :
+	
+		# Check if fan pin is set
+		fanPin = self._settings.get_int(["ExternalFanPin"])
+		if fanPin is not None :
+	
+			# Check if running on a Raspberry Pi
+			if usingARaspberryPi() :
+		
+				# Turn on external fan
+				RPi.GPIO.setwarnings(False)
+				RPi.GPIO.setmode(GPIO.BCM)
+				RPi.GPIO.setup(fanPin, RPi.GPIO.OUT)
+				RPi.GPIO.output(fanPin, True)
+	
+	# Turn off external fan
+	def turnOffExternalFan(self) :
+	
+		# Check if fan pin is set
+		fanPin = self._settings.get_int(["ExternalFanPin"])
+		if fanPin is not None :
+	
+			# Check if running on a Raspberry Pi
+			if usingARaspberryPi() :
+		
+				# Turn off external fan
+				RPi.GPIO.setwarnings(False)
+				RPi.GPIO.setmode(GPIO.BCM)
+				RPi.GPIO.setup(fanPin, RPi.GPIO.OUT)
+				RPi.GPIO.output(fanPin, False)
+
 
 # Plugin info
 __plugin_name__ = "M3D Fio"
+
 
 # Plugin load
 def __plugin_load__() :

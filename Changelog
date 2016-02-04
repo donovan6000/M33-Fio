@@ -1,5 +1,17 @@
 Changelog:
 
+V0.25 January 25, 2016
+
+	* Added support for AMF, COLLADA, and VRML files
+	* Made model editor's positioning more accurate when compared to the actual printer
+	* Centering model pre-processor now centers model in the middle of the bed and not in the middle of the printable region
+	* Preparation pre-processor now dims the front LED when a print starts and flashes it several times when a print finishes
+	* It'll attempt to disable sleep on Windows, OS X, and Linux while printing, and it'll inform the user if it cannot disable sleep
+	* Allows changing the filament temperature and type right before a print
+	* Fixed creating and terminating OctoPrint instances on Windows, OS X, and Linux
+	* Added option to allow using M3D Fio with printers other than the Micro 3D printer
+	* Made supporting different firmwares for the printer simplier
+
 V0.24.3 January 11, 2016
 
 	* Fixed issue with resending commands that have line numbers which have rolled over

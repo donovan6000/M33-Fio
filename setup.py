@@ -6,11 +6,11 @@ import setuptools
 plugin_identifier = "m3dfio"
 plugin_package = "octoprint_%s" % plugin_identifier
 plugin_name = "OctoPrint-M3DFio"
-plugin_version = "0.24.3"
+plugin_version = "0.25"
 plugin_description = "Makes OctoPrint fully compatible with the Micro 3D printer"
 plugin_author = "donovan6000"
 plugin_author_email = "donovan6000@exploitkings.com"
-plugin_url = "http://www.exploitkings.com"
+plugin_url = "https://github.com/donovan6000/M3D-Fio"
 plugin_license = "GPLv3"
 plugin_additional_data = []
 
@@ -31,6 +31,25 @@ def package_data_dirs(source, sub_folders):
 				dirs.append(os.path.join(dirname, f))
 
 	return dirs
+
+# Get cpu hardware
+def getCpuHardware() :
+
+	# Check if CPU info exists
+	import os
+	if os.path.isfile("/proc/cpuinfo") :
+
+		# Read in CPU info
+		for line in open("/proc/cpuinfo") :
+
+			# Check if line contains hardware information
+			if line.startswith("Hardware") and ':' in line :
+
+				# Return CPU hardware
+				return line[line.index(':') + 2 : -1]
+	
+	# Return empty string
+	return ''
 
 def params():
 	# Our metadata, as defined above
@@ -55,7 +74,13 @@ def params():
 
 	# Read the requirements from our requirements.txt file
 	install_requires = open("requirements.txt").read().split("\n")
-
+	
+	# Add requirements for using a Raspberry Pi
+	import platform
+	if platform.uname()[0].startswith("Linux") and ((platform.uname()[4].startswith("armv6l") and getCpuHardware() == "BCM2708") or (platform.uname()[4].startswith("armv7l") and getCpuHardware() == "BCM2709")) :
+		install_requires.pop()
+		install_requires += ["RPi.GPIO>=0.6.1", '']
+	
 	# Hook the plugin into the "octoprint.plugin" entry point, mapping the plugin_identifier to the plugin_package.
 	# That way OctoPrint will be able to find the plugin and load it.
 	entry_points = {

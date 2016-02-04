@@ -68,6 +68,7 @@ else
 		rm -rf pyobjc-framework-Cocoa-${version}
 		
 		# Install OctoPrint
+		su $SUDO_USER -c 'launchctl unload /Library/LaunchAgents/com.octoprint.app.plist'
 		curl -LOk https://github.com/foosel/OctoPrint/archive/master.zip
 		unzip master.zip
 		cd OctoPrint-master
@@ -85,6 +86,11 @@ else
 		done
 		rm master.zip
 		
+		# Install heatbed drivers
+		curl -O 'https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/OS%20X/CH34x_Install.pkg'
+		installer -pkg CH34x_Install.pkg -target /
+		rm CH34x_Install.pkg
+		
 		# Get OctoPrint parameter
 		octoPrintVersion="$(/Library/Frameworks/Python.framework/Versions/${pythonVersion}/bin/octoprint --version | cut -d' ' -f3)"
 		if [ $octoPrintVersion = "1.2.8" ] || [ $octoPrintVersion = "1.2.9" ]; then
@@ -98,15 +104,14 @@ else
 		sed -i '' -e 's/path to octoprint/\/Library\/Frameworks\/Python.framework\/Versions\/'"${pythonVersion}"'\/bin\/octoprint/g' com.octoprint.app.plist
 		sed -i '' -e 's/<string>octoprint parameter<\/string>/'"$octoPrintParameter"'/g' com.octoprint.app.plist
 		mv com.octoprint.app.plist '/Library/LaunchAgents'
-
+		
 		# Create URL link on desktop
 		curl -O 'https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/OS%20X/shortcut.zip'
 		ditto -x -k --sequesterRsrc --rsrc shortcut.zip '/Users/'"$SUDO_USER"'/Desktop'
 		
 		# Start OctoPrint
-		su $SUDO_USER -c 'launchctl unload /Library/LaunchAgents/com.octoprint.app.plist'
 		su $SUDO_USER -c 'launchctl load /Library/LaunchAgents/com.octoprint.app.plist'
-
+		
 		# Display message
 		echo
 		echo 'OctoPrint and M3D Fio have been successfully installed. Go to http://localhost:5000 in any web browser to access OctoPrint.'
