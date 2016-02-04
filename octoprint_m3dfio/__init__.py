@@ -7004,7 +7004,7 @@ class M3DFioPlugin(
 		
 				# Turn on external fan
 				RPi.GPIO.setwarnings(False)
-				RPi.GPIO.setmode(GPIO.BCM)
+				RPi.GPIO.setmode(RPi.GPIO.BCM)
 				RPi.GPIO.setup(fanPin, RPi.GPIO.OUT)
 				RPi.GPIO.output(fanPin, True)
 	
@@ -7020,7 +7020,7 @@ class M3DFioPlugin(
 		
 				# Turn off external fan
 				RPi.GPIO.setwarnings(False)
-				RPi.GPIO.setmode(GPIO.BCM)
+				RPi.GPIO.setmode(RPi.GPIO.BCM)
 				RPi.GPIO.setup(fanPin, RPi.GPIO.OUT)
 				RPi.GPIO.output(fanPin, False)
 
