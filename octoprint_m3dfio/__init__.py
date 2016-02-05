@@ -837,7 +837,7 @@ class M3DFioPlugin(
 	
 		# Create input file
 		fd, curaProfile = tempfile.mkstemp()
-		
+			
 		# Remove comments from input
 		for line in open(input) :
 			if ';' in line and ".gcode" not in line and line[0] != '\t' :
@@ -1136,28 +1136,37 @@ class M3DFioPlugin(
 				# Set waiting if last command is to wait
 				if data["value"][-1] == "M65536;wait" :
 					self.waiting = True
+			
+				# Check if printing or paused
+				if self._printer.is_printing() or self._printer.is_paused() :
 				
-				# Initialize line number
-				lineNumber = 1
-				self.sendCommands("N0 M110")
+					# Send commands to printer
+					self._printer.commands(data["value"])
 				
-				# Go through all commands
-				for command in data["value"] :
+				# Otherwise
+				else :
 				
-					# Check if command wont receive a normal confirmation
-					if command.startswith("M618 ") or command.startswith("M619 ") :
+					# Initialize line number
+					lineNumber = 1
+					self.sendCommands("N0 M110")
+				
+					# Go through all commands
+					for command in data["value"] :
+				
+						# Check if command wont receive a normal confirmation
+						if command.startswith("M618 ") or command.startswith("M619 ") :
 					
-						# Send command to printer
-						self.sendCommands(command)
+							# Send command to printer
+							self.sendCommands(command)
 					
-					# Otherwise
-					else :
+						# Otherwise
+						else :
 					
-						# Send command with line number to printer
-						self.sendCommands('N' + str(lineNumber) + ' ' + command)
+							# Send command with line number to printer
+							self.sendCommands('N' + str(lineNumber) + ' ' + command)
 					
-						# Increment line number
-						lineNumber += 1
+							# Increment line number
+							lineNumber += 1
 				
 				# Send response
 				return flask.jsonify(dict(value = "Ok"))
@@ -1837,8 +1846,8 @@ class M3DFioPlugin(
 				# Empty command queue
 				self.emptyCommandQueue()
 			
-				# Check if printing
-				if self._printer.is_printing() :
+				# Check if printing or paused
+				if self._printer.is_printing() or self._printer.is_paused() :
 			
 					# Stop printing
 					self._printer.cancel_print()
@@ -2457,6 +2466,11 @@ class M3DFioPlugin(
 	
 				# Wait until pre-processing on the fly is ready
 				while not self.preprocessOnTheFlyReady :
+				
+					# Update communication timeout to prevent other commands from being sent
+					if self._printer._comm is not None :
+						self._printer._comm._gcode_G4_sent("G4")
+					
 					time.sleep(0.01)
 				
 				# Check if print was invalid
@@ -2479,6 +2493,11 @@ class M3DFioPlugin(
 			
 				# Wait until all sent commands have been processed
 				while len(self.sentLineNumbers) :
+				
+					# Update communication timeout to prevent other commands from being sent
+					if self._printer._comm is not None :
+						self._printer._comm._gcode_G4_sent("G4")
+					
 					time.sleep(0.01)
 			
 				# Stop printing
@@ -2589,6 +2608,10 @@ class M3DFioPlugin(
 										heatbedTemperature += str(self.heatbedConnection.read(self.heatbedConnection.in_waiting))
 								except Exception :
 									break;
+							
+								# Update communication timeout to prevent other commands from being sent
+								if self._printer._comm is not None :
+									self._printer._comm._gcode_G4_sent("G4")
 						
 						# Set command to nothing
 						gcode.removeParameter('M')
@@ -2623,6 +2646,11 @@ class M3DFioPlugin(
 				
 					# Limit the amount of commands that can simultaneous be sent to the printer
 					while len(self.sentLineNumbers) >= 1 :
+					
+						# Update communication timeout to prevent other commands from being sent
+						if self._printer._comm is not None :
+							self._printer._comm._gcode_G4_sent("G4")
+						
 						time.sleep(0.01)
 					
 					# Get line number
@@ -3040,7 +3068,7 @@ class M3DFioPlugin(
 					self.convertCuraToProfile(profileLocation + profile, profileDestination + profileName, profileName, profileIdentifier, "Imported by M3D Fio on " + time.strftime("%Y-%m-%d %H:%M"))
 			
 			# Check if sending sleep reminder
-			if not self._printer.is_printing() and self.sleepReminder :
+			if not self._printer.is_printing() and not self._printer.is_paused() and self.sleepReminder :
 			
 				# Check if disabling sleep doesn't works
 				if not self.disableSleep() :
