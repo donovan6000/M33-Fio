@@ -2586,7 +2586,7 @@ class M3DFioPlugin(
 									if float(serial.VERSION) < 3 :
 										heatbedTemperature += str(self.heatbedConnection.read(self.heatbedConnection.inWaiting()))
 									else :
-										heatbedTemperature += str(self.heatbedConnection.read(self.heatbedConnection.in_waiting()))
+										heatbedTemperature += str(self.heatbedConnection.read(self.heatbedConnection.in_waiting))
 								except Exception :
 									break;
 						
@@ -2711,7 +2711,7 @@ class M3DFioPlugin(
 					if float(serial.VERSION) < 3 :
 						heatbedTemperature += str(self.heatbedConnection.read(self.heatbedConnection.inWaiting()))
 					else :
-						heatbedTemperature += str(self.heatbedConnection.read(self.heatbedConnection.in_waiting()))
+						heatbedTemperature += str(self.heatbedConnection.read(self.heatbedConnection.in_waiting))
 				
 				except Exception :
 					heatbedTemperature = "0"
@@ -3410,7 +3410,7 @@ class M3DFioPlugin(
 					if float(serial.VERSION) < 3 :
 						connection.read(connection.inWaiting())
 					else :
-						connection.read(connection.in_waiting())
+						connection.read(connection.in_waiting)
 				
 				# Check if an error occured
 				except serial.SerialException :
