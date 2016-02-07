@@ -608,7 +608,10 @@ class M3DFioPlugin(
 					self._printer_profile_manager.save(printerProfile, True)
 			
 				# Send message
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Heatbed Disconnected"))
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Heatbed Not Detected"))
+										
+				# Create message
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "notice", title = "Heatbed removed", text = "Heatbed has been disconnected"))
 			
 			# Otherwise check if a heatbed has been connected
 			elif self.heatbedConnection is None and heatbedPort is not None :
@@ -634,10 +637,10 @@ class M3DFioPlugin(
 						try :
 							if self.heatbedConnection.read() == '\x1B' :
 								self.heatbedConnection.timeout = 1
-								break;
+								break
 						except Exception :
 							error = True
-							break;
+							break
 					
 					# Check if no errors occured
 					if not error :
@@ -665,13 +668,16 @@ class M3DFioPlugin(
 								self._printer_profile_manager.save(printerProfile, True)
 				
 							# Send message
-							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Heatbed Connected"))
+							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Heatbed Detected"))
+													
+							# Create message
+							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "success", title = "Heatbed detected", text = "Heatbed has been connected"))
 				
 				# Otherwise check if an error occured and it hasn't been show yet
 				if error and previousHeatbedPort != heatbedPort :
 				
-					# Create error message
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create error message", title = "Heatbed error", text = "Failed to connect to heatbed"))
+					# Create message
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "error", title = "Heatbed error", text = "Failed to connect to heatbed"))
 			
 			# Set previous heatbed port
 			previousHeatbedPort = heatbedPort
@@ -1153,8 +1159,8 @@ class M3DFioPlugin(
 					# Go through all commands
 					for command in data["value"] :
 				
-						# Check if command wont receive a normal confirmation
-						if command.startswith("M618 ") or command.startswith("M619 ") :
+						# Check if command provides feedback
+						if command == "M114" or command == "M117" or command.startswith("M618 ") or command.startswith("M619 ") :
 					
 							# Send command to printer
 							self.sendCommands(command)
@@ -2607,7 +2613,7 @@ class M3DFioPlugin(
 									else :
 										heatbedTemperature += str(self.heatbedConnection.read(self.heatbedConnection.in_waiting))
 								except Exception :
-									break;
+									break
 							
 								# Update communication timeout to prevent other commands from being sent
 								if self._printer._comm is not None :
@@ -3187,8 +3193,8 @@ class M3DFioPlugin(
 				# Check if print goes out of bounds
 				if not printIsValid :
 
-					# Create error message
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create error message", title = "Print failed", text = "Could not print the file. The dimensions of the model go outside the bounds of the printer."))
+					# Create message
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "error", title = "Print failed", text = "Could not print the file. The dimensions of the model go outside the bounds of the printer."))
 			
 					# Stop printing
 					self._printer.cancel_print()
@@ -3199,14 +3205,14 @@ class M3DFioPlugin(
 					# Check if detected fan speed is 0
 					if self.detectedFanSpeed == 0 :
 				
-						# Create error message
-						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create notice message", title = "Print warning", text = "No fan speed has been detected in this file which could cause the print to fail"))
+						# Create message
+						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "notice", title = "Print warning", text = "No fan speed has been detected in this file which could cause the print to fail"))
 					
 					# Check if objected couldn't be centered
 					if self._settings.get_boolean(["UseCenterModelPreprocessor"]) and not self.objectSuccessfullyCentered :
 			
-						# Create error message
-						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create notice message", title = "Print warning", text = "Object too large to center on print bed"))
+						# Create message
+						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "notice", title = "Print warning", text = "Object too large to center on print bed"))
 		
 				# Set pre-process on the fly ready
 				self.preprocessOnTheFlyReady = True
@@ -3251,8 +3257,8 @@ class M3DFioPlugin(
 				# Go through all commands
 				for command in commands :
 					
-					# Check if command wont receive a normal confirmation
-					if command.startswith("M618 ") or command.startswith("M619 ") :
+					# Check if command provides feedback
+					if command == "M114" or command == "M117" or command.startswith("M618 ") or command.startswith("M619 ") :
 					
 						# Send command to printer
 						self.sendCommands(command)
@@ -3300,8 +3306,8 @@ class M3DFioPlugin(
 			# Go through all commands
 			for command in commands :
 				
-				# Check if command wont receive a normal confirmation
-				if command.startswith("M618 ") or command.startswith("M619 ") :
+				# Check if command provides feedback
+				if command == "M114" or command == "M117" or command.startswith("M618 ") or command.startswith("M619 ") :
 				
 					# Send command to printer
 					self.sendCommands(command)
@@ -3797,10 +3803,16 @@ class M3DFioPlugin(
 					
 						# Check if firmware is corrupt
 						if not error and eepromCrc != chipCrc :
+						
+							# Set temp firmware name
+							if firmwareName is None :
+								tempFirmwareName = "M3D"
+							else :
+								tempFirmwareName = firmwareName
 					
 							# Display message
 							self.messageResponse = None
-							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Firmware is corrupt. Update to M3D firmware version " + self.providedFirmwares["M3D"]["Release"] + '?', response = True))
+							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Firmware is corrupt. Update to " + tempFirmwareName + " firmware version " + self.providedFirmwares[tempFirmwareName]["Release"] + '?', response = True))
 						
 							# Wait until response is obtained
 							while self.messageResponse is None :
@@ -3819,7 +3831,7 @@ class M3DFioPlugin(
 								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating firmware"))
 						
 								# Check if updating firmware failed
-								if not self.updateToProvidedFirmware(connection, "M3D") :
+								if not self.updateToProvidedFirmware(connection, tempFirmwareName) :
 						
 									# Send message
 									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating firmware failed", confirm = True))
@@ -4792,14 +4804,14 @@ class M3DFioPlugin(
 					# Set progress bar percent
 					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar percent", percent = "0"))
 				
-					# Create error message
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create error message", title = "Slicing failed", text = "Could not slice the file. The dimensions of the model go outside the bounds of the printer."))
+					# Create message
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "error", title = "Slicing failed", text = "Could not slice the file. The dimensions of the model go outside the bounds of the printer."))
 			
 				# Otherwise
 				else :
 		
 					# Set error message
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Set error message", text = "Could not upload the file. The dimensions of the model go outside the bounds of the printer."))
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Change last message", text = "Could not upload the file. The dimensions of the model go outside the bounds of the printer."))
 				
 				# Restore files
 				self.restoreFiles()
@@ -4813,14 +4825,14 @@ class M3DFioPlugin(
 				# Check if detected fan speed is 0
 				if self.detectedFanSpeed == 0 :
 			
-					# Create error message
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create notice message", title = "Print warning", text = "No fan speed has been detected in this file which could cause the print to fail"))
+					# Create message
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "notice", title = "Print warning", text = "No fan speed has been detected in this file which could cause the print to fail"))
 				
 				# Check if objected couldn't be centered
 				if self._settings.get_boolean(["UseCenterModelPreprocessor"]) and not self.objectSuccessfullyCentered :
 			
-					# Create error message
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create notice message", title = "Print warning", text = "Object too large to center on print bed"))
+					# Create message
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "notice", title = "Print warning", text = "Object too large to center on print bed"))
 			
 			# Move the input file to a temporary file
 			temp = tempfile.mkstemp()[1]

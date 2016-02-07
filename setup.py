@@ -36,20 +36,25 @@ def package_data_dirs(source, sub_folders):
 def getCpuHardware() :
 
 	# Check if CPU info exists
-	import os
 	if os.path.isfile("/proc/cpuinfo") :
 
 		# Read in CPU info
 		for line in open("/proc/cpuinfo") :
-
+	
 			# Check if line contains hardware information
 			if line.startswith("Hardware") and ':' in line :
-
+		
 				# Return CPU hardware
 				return line[line.index(':') + 2 : -1]
 	
 	# Return empty string
 	return ''
+
+# Using a Raspberry Pi
+def usingARaspberryPi() :
+
+	# Return if using a Raspberry Pi
+	return platform.uname()[0].startswith("Linux") and ((platform.uname()[4].startswith("armv6l") and getCpuHardware() == "BCM2708") or (platform.uname()[4].startswith("armv7l") and getCpuHardware() == "BCM2709"))
 
 def params():
 	# Our metadata, as defined above
@@ -77,7 +82,7 @@ def params():
 	
 	# Add requirements for using a Raspberry Pi
 	import platform
-	if platform.uname()[0].startswith("Linux") and ((platform.uname()[4].startswith("armv6l") and getCpuHardware() == "BCM2708") or (platform.uname()[4].startswith("armv7l") and getCpuHardware() == "BCM2709")) :
+	if usingARaspberryPi() :
 		install_requires.pop()
 		install_requires += ["RPi.GPIO>=0.6.1", '']
 	

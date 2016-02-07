@@ -5878,7 +5878,7 @@ $(function() {
 			
 			// Show message
 			showMessage("Saving Status", "Saving Z as front left Z0");
-		
+			
 			// Set commands
 			var commands = [
 				"M114",
@@ -7310,44 +7310,6 @@ $(function() {
 				$("#navbar_plugin_m3dfio > a").text('');
 			}
 			
-			// Otherwise check if data is that a heatbed is connected
-			else if(data.value == "Heatbed Connected") {
-			
-				// Display message
-				new PNotify({
-				    title: "Heatbed detected",
-				    text: "<p>Heatbed has been connected</p>",
-				    type: "success",
-				    hide: false
-				});
-				
-				// Display heatbed controls
-				$("#control .heatbed, #settings_plugin_m3dfio .heatbed, body > div.page-container > div.message .heatbed").css("display", "block");
-				$("#control > div.jog-panel.extruder").find("h1:not(.heatbed)").text("Tools");
-				
-				// Set using heatbed
-				usingHeatbed = true;
-			}
-			
-			// Otherwise check if data is that a heatbed is disconnected
-			else if(data.value == "Heatbed Disconnected") {
-			
-				// Display message
-				new PNotify({
-				    title: "Heatbed removed",
-				    text: "<p>Heatbed has been disconnected</p>",
-				    type: "notice",
-				    hide: false
-				});
-				
-				// Hide heatbed controls
-				$("#control .heatbed, #settings_plugin_m3dfio .heatbed, body > div.page-container > div.message .heatbed").css("display", "none");
-				$("#control > div.jog-panel.extruder").find("h1:not(.heatbed)").text("Extruder");
-				
-				// Clear using heatbed
-				usingHeatbed = false;
-			}
-			
 			// Otherwise check if data is that a heatbed is detected
 			else if(data.value == "Heatbed Detected") {
 			
@@ -7400,37 +7362,24 @@ $(function() {
 				// Set progress bar text
 				$("#gcode_upload_progress > div.bar").text(data.text);
 			
-			// Otherwise check if data is to set popup error message
-			else if(data.value == "Set error message" && typeof data.text !== "undefined")
+			// Otherwise check if data is to change last message
+			else if(data.value == "Change last message" && typeof data.text !== "undefined")
 			
 				// Set error message text
 				setTimeout(function() {
 					$("div.ui-pnotify:last-of-type > div > div.ui-pnotify-text > p").text(data.text);
 				}, 100);
 			
-			// Otherwise check if data is to create an error message
-			else if(data.value == "Create error message" && typeof data.title !== "undefined" && typeof data.text !== "undefined") {
+			// Otherwise check if data is to create a message
+			else if(data.value == "Create message" && typeof data.type !== "undefined" && typeof data.title !== "undefined" && typeof data.text !== "undefined")
 			
 				// Display error message
 				new PNotify({
-				    title: htmlEncode(data.title),
-				    text: "<p>" + htmlEncode(data.text) + "</p>",
-				    type: "error",
-				    hide: false
+					title: htmlEncode(data.title),
+					text: "<p>" + htmlEncode(data.text) + "</p>",
+					type: data.type,
+					hide: false
 				});
-			}
-			
-			// Otherwise check if data is to create an notice message
-			else if(data.value == "Create notice message" && typeof data.title !== "undefined" && typeof data.text !== "undefined") {
-			
-				// Display error message
-				new PNotify({
-				    title: htmlEncode(data.title),
-				    text: "<p>" + htmlEncode(data.text) + "</p>",
-				    type: "notice",
-				    hide: false
-				});
-			}
 			
 			// Otherwise check if data is to enable shared library options
 			else if(data.value == "Enable Shared Library")
