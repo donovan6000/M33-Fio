@@ -87,7 +87,6 @@ def params():
 	install_requires = open("requirements.txt").read().split("\n")
 	
 	# Add requirements for using a Raspberry Pi
-	import platform
 	if usingARaspberryPi() :
 		install_requires.pop()
 		install_requires += ["RPi.GPIO>=0.6.1", '']
