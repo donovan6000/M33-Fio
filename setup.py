@@ -35,6 +35,9 @@ def package_data_dirs(source, sub_folders):
 # Get cpu hardware
 def getCpuHardware() :
 
+	# Imports
+	import os
+
 	# Check if CPU info exists
 	if os.path.isfile("/proc/cpuinfo") :
 
@@ -52,6 +55,9 @@ def getCpuHardware() :
 
 # Using a Raspberry Pi
 def usingARaspberryPi() :
+
+	# Imports
+	import platform
 
 	# Return if using a Raspberry Pi
 	return platform.uname()[0].startswith("Linux") and ((platform.uname()[4].startswith("armv6l") and getCpuHardware() == "BCM2708") or (platform.uname()[4].startswith("armv7l") and getCpuHardware() == "BCM2709"))
