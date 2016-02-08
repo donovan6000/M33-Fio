@@ -4348,7 +4348,7 @@ $(function() {
 							success: function(data) {
 							
 								// Check if modified profile is valid
-								if(data.value == "Ok") {
+								if(data.value == "OK") {
 								
 									// Check if WebGL isn't supported
 									if(!Detector.webgl) {
@@ -4884,7 +4884,7 @@ $(function() {
 								else {
 								
 									// Show message
-									showMessage("Slicer Status", "Invalid profile", "Ok", function() {
+									showMessage("Slicer Status", "Invalid profile", "OK", function() {
 									
 										// Enable button
 										button.removeClass("disabled");
@@ -5414,7 +5414,7 @@ $(function() {
 					clearInterval(updateTemperature);
 				
 					// Show message
-					showMessage("Temperature Status", "Done", "Ok", function() {
+					showMessage("Temperature Status", "Done", "OK", function() {
 				
 						// Hide message
 						hideMessage();
@@ -5475,7 +5475,7 @@ $(function() {
 					clearInterval(updateTemperature);
 				
 					// Show message
-					showMessage("Temperature Status", "Done", "Ok", function() {
+					showMessage("Temperature Status", "Done", "OK", function() {
 				
 						// Hide message
 						hideMessage();
@@ -5716,7 +5716,7 @@ $(function() {
 			waitingCallback = function() {
 			
 				// Show message
-				showMessage("Calibration Status", "Done", "Ok", function() {
+				showMessage("Calibration Status", "Done", "OK", function() {
 				
 					// Hide message
 					hideMessage();
@@ -5765,7 +5765,7 @@ $(function() {
 					self.settings.saveData();
 					
 					// Show message
-					showMessage("Calibration Status", "Done", "Ok", function() {
+					showMessage("Calibration Status", "Done", "OK", function() {
 				
 						// Hide message
 						hideMessage();
@@ -5905,7 +5905,7 @@ $(function() {
 						self.settings.saveData();
 					
 						// Show message
-						showMessage("Saving Status", "Done", "Ok", function() {
+						showMessage("Saving Status", "Done", "OK", function() {
 				
 							// Hide message
 							hideMessage();
@@ -5971,7 +5971,7 @@ $(function() {
 						self.settings.saveData();
 					
 						// Show message
-						showMessage("Saving Status", "Done", "Ok", function() {
+						showMessage("Saving Status", "Done", "OK", function() {
 				
 							// Hide message
 							hideMessage();
@@ -6037,7 +6037,7 @@ $(function() {
 						self.settings.saveData();
 					
 						// Show message
-						showMessage("Saving Status", "Done", "Ok", function() {
+						showMessage("Saving Status", "Done", "OK", function() {
 				
 							// Hide message
 							hideMessage();
@@ -6103,7 +6103,7 @@ $(function() {
 						self.settings.saveData();
 					
 						// Show message
-						showMessage("Saving Status", "Done", "Ok", function() {
+						showMessage("Saving Status", "Done", "OK", function() {
 				
 							// Hide message
 							hideMessage();
@@ -6156,7 +6156,7 @@ $(function() {
 			waitingCallback = function() {
 			
 				// Show message
-				showMessage("Saving Status", "Done", "Ok", function() {
+				showMessage("Saving Status", "Done", "OK", function() {
 		
 					// Hide message
 					hideMessage();
@@ -6391,211 +6391,224 @@ $(function() {
 					// Set waiting callback
 					waitingCallback = function() {
 					
-						// Show message
-						showMessage("Calibration Status", "Calibrating front left offset");
-	
-						// Set commands
-						var commands = [
-							"G90",
-							"G0 Z3 F90",
-							"G28",
-							"G0 X9 Y5 Z3 F3000",
-							"M65536;wait"
-						];
-						
-						// Set waiting callback
-						waitingCallback = function() {
-						
+						// Calibrate bed offsets
+						function calibrateBedOffsets() {
+				
 							// Show message
-							showMessage("Calibration Status", "Lower the print head until it barely touches the bed. One way to get to that point is to place a single sheet of paper on the bed under the print head, and lower the print head until the paper can no longer be moved.", "Done", function() {
-
-								// Hide message
-								hideMessage();
-								
+							showMessage("Calibration Status", "Calibrating front left offset");
+	
+							// Set commands
+							var commands = [
+								"G90",
+								"G0 Z3 F90",
+								"G28",
+								"G0 X9 Y5 Z3 F3000",
+								"M65536;wait"
+							];
+						
+							// Set waiting callback
+							waitingCallback = function() {
+						
 								// Show message
-								showMessage("Calibration Status", "Saving front left offset");
+								showMessage("Calibration Status", "Lower the print head until it barely touches the bed. One way to get to that point is to place a single sheet of paper on the bed under the print head, and lower the print head until the paper can no longer be moved.", "Done", function() {
+
+									// Hide message
+									hideMessage();
 								
-								// Set commands
-								var commands = [
-									"M114",
-									"M65536;wait"
-								];
-								
-								// Set waiting callback
-								waitingCallback = function() {
+									// Show message
+									showMessage("Calibration Status", "Saving front left offset");
 								
 									// Set commands
-									commands = [
-										"M618 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.FrontLeftOrientation()),
-										"M619 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"],
+									var commands = [
+										"M114",
 										"M65536;wait"
 									];
-									
+								
 									// Set waiting callback
 									waitingCallback = function() {
-									
-										// Show message
-										showMessage("Calibration Status", "Calibrating front right offset");
-
+								
 										// Set commands
-										var commands = [
-											"G90",
-											"G0 Z3 F90",
-											"G28",
-											"G0 X99 Y5 Z3 F3000",
+										commands = [
+											"M618 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.FrontLeftOrientation()),
+											"M619 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"],
 											"M65536;wait"
 										];
-										
+									
 										// Set waiting callback
 										waitingCallback = function() {
-										
+									
 											// Show message
-											showMessage("Calibration Status", "Lower the print head until it barely touches the bed. One way to get to that point is to place a single sheet of paper on the bed under the print head, and lower the print head until the paper can no longer be moved.", "Done", function() {
+											showMessage("Calibration Status", "Calibrating front right offset");
 
-												// Hide message
-												hideMessage();
-												
+											// Set commands
+											var commands = [
+												"G90",
+												"G0 Z3 F90",
+												"G28",
+												"G0 X99 Y5 Z3 F3000",
+												"M65536;wait"
+											];
+										
+											// Set waiting callback
+											waitingCallback = function() {
+										
 												// Show message
-												showMessage("Calibration Status", "Saving front right offset");
+												showMessage("Calibration Status", "Lower the print head until it barely touches the bed. One way to get to that point is to place a single sheet of paper on the bed under the print head, and lower the print head until the paper can no longer be moved.", "Done", function() {
+
+													// Hide message
+													hideMessage();
 												
-												// Set commands
-												var commands = [
-													"M114",
-													"M65536;wait"
-												];
-												
-												// Set waiting callback
-												waitingCallback = function() {
+													// Show message
+													showMessage("Calibration Status", "Saving front right offset");
 												
 													// Set commands
-													commands = [
-														"M618 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.FrontRightOrientation()),
-														"M619 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"],
+													var commands = [
+														"M114",
 														"M65536;wait"
 													];
-													
+												
 													// Set waiting callback
 													waitingCallback = function() {
-													
-														// Show message
-														showMessage("Calibration Status", "Calibrating back right offset");
-
+												
 														// Set commands
-														var commands = [
-															"G90",
-															"G0 Z3 F90",
-															"G28",
-															"G0 X99 Y95 Z3 F3000",
+														commands = [
+															"M618 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.FrontRightOrientation()),
+															"M619 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"],
 															"M65536;wait"
 														];
-														
+													
 														// Set waiting callback
 														waitingCallback = function() {
-														
+													
 															// Show message
-															showMessage("Calibration Status", "Lower the print head until it barely touches the bed. One way to get to that point is to place a single sheet of paper on the bed under the print head, and lower the print head until the paper can no longer be moved.", "Done", function() {
+															showMessage("Calibration Status", "Calibrating back right offset");
 
-																// Hide message
-																hideMessage();
-																
+															// Set commands
+															var commands = [
+																"G90",
+																"G0 Z3 F90",
+																"G28",
+																"G0 X99 Y95 Z3 F3000",
+																"M65536;wait"
+															];
+														
+															// Set waiting callback
+															waitingCallback = function() {
+														
 																// Show message
-																showMessage("Calibration Status", "Saving back right offset");
+																showMessage("Calibration Status", "Lower the print head until it barely touches the bed. One way to get to that point is to place a single sheet of paper on the bed under the print head, and lower the print head until the paper can no longer be moved.", "Done", function() {
+
+																	// Hide message
+																	hideMessage();
 																
-																// Set commands
-																var commands = [
-																	"M114",
-																	"M65536;wait"
-																];
-																
-																// Set waiting callback
-																waitingCallback = function() {
+																	// Show message
+																	showMessage("Calibration Status", "Saving back right offset");
 																
 																	// Set commands
-																	commands = [
-																		"M618 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.BackRightOrientation()),
-																		"M619 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"],
+																	var commands = [
+																		"M114",
 																		"M65536;wait"
 																	];
-																	
+																
 																	// Set waiting callback
 																	waitingCallback = function() {
-																	
-																		// Show message
-																		showMessage("Calibration Status", "Calibrating back left offset");
-
+																
 																		// Set commands
-																		var commands = [
-																			"G90",
-																			"G0 Z3 F90",
-																			"G28",
-																			"G0 X9 Y95 Z3 F3000",
+																		commands = [
+																			"M618 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.BackRightOrientation()),
+																			"M619 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"],
 																			"M65536;wait"
 																		];
-																		
+																	
 																		// Set waiting callback
 																		waitingCallback = function() {
-																		
+																	
 																			// Show message
-																			showMessage("Calibration Status", "Lower the print head until it barely touches the bed. One way to get to that point is to place a single sheet of paper on the bed under the print head, and lower the print head until the paper can no longer be moved.", "Done", function() {
+																			showMessage("Calibration Status", "Calibrating back left offset");
 
-																				// Hide message
-																				hideMessage();
-																				
+																			// Set commands
+																			var commands = [
+																				"G90",
+																				"G0 Z3 F90",
+																				"G28",
+																				"G0 X9 Y95 Z3 F3000",
+																				"M65536;wait"
+																			];
+																		
+																			// Set waiting callback
+																			waitingCallback = function() {
+																		
 																				// Show message
-																				showMessage("Calibration Status", "Saving back left offset");
+																				showMessage("Calibration Status", "Lower the print head until it barely touches the bed. One way to get to that point is to place a single sheet of paper on the bed under the print head, and lower the print head until the paper can no longer be moved.", "Done", function() {
+
+																					// Hide message
+																					hideMessage();
 																				
-																				// Set commands
-																				var commands = [
-																					"M114",
-																					"M65536;wait"
-																				];
-																				
-																				// Set waiting callback
-																				waitingCallback = function() {
+																					// Show message
+																					showMessage("Calibration Status", "Saving back left offset");
 																				
 																					// Set commands
-																					commands = [
-																						"M618 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.BackLeftOrientation()),
-																						"M619 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"],
+																					var commands = [
+																						"M114",
 																						"M65536;wait"
 																					];
-																					
+																				
 																					// Set waiting callback
 																					waitingCallback = function() {
-																					
-																						// Show message
-																					showMessage("Calibration Status", "Finishing calibration");
-																					
+																				
 																						// Set commands
 																						commands = [
-																							"G90",
-																							"G28",
-																							"M18",
+																							"M618 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"] + " P" + floatToBinary(currentZ - self.settings.settings.plugins.m3dfio.BackLeftOrientation()),
+																							"M619 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"],
 																							"M65536;wait"
 																						];
-																						
+																					
 																						// Set waiting callback
 																						waitingCallback = function() {
+																					
+																							// Show message
+																						showMessage("Calibration Status", "Finishing calibration");
+																					
+																							// Set commands
+																							commands = [
+																								"G90",
+																								"G28",
+																								"M18",
+																								"M65536;wait"
+																							];
 																						
-																							// Save settings
-																							function saveSettings() {
+																							// Set waiting callback
+																							waitingCallback = function() {
+																						
+																								// Save settings
+																								function saveSettings() {
 				
-																								// Save software settings
-																								self.settings.saveData();
+																									// Save software settings
+																									self.settings.saveData();
 					
-																								// Show message
-																								showMessage("Calibration Status", "Done", "Ok", function() {
+																									// Show message
+																									showMessage("Calibration Status", "Done", "OK", function() {
 				
-																									// Hide message
-																									hideMessage();
-																								});
-																							}
+																										// Hide message
+																										hideMessage();
+																									});
+																								}
 			
-																							// Update settings
-																							if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
-																								self.settings.requestData(saveSettings);
-																							else
-																								self.settings.requestData().done(saveSettings);
+																								// Update settings
+																								if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
+																									self.settings.requestData(saveSettings);
+																								else
+																									self.settings.requestData().done(saveSettings);
+																							}
+
+																							// Send request
+																							$.ajax({
+																								url: API_BASEURL + "plugin/m3dfio",
+																								type: "POST",
+																								dataType: "json",
+																								data: JSON.stringify({command: "message", value: commands}),
+																								contentType: "application/json; charset=UTF-8"
+																							});
 																						}
 
 																						// Send request
@@ -6616,16 +6629,16 @@ $(function() {
 																						data: JSON.stringify({command: "message", value: commands}),
 																						contentType: "application/json; charset=UTF-8"
 																					});
-																				}
-
-																				// Send request
-																				$.ajax({
-																					url: API_BASEURL + "plugin/m3dfio",
-																					type: "POST",
-																					dataType: "json",
-																					data: JSON.stringify({command: "message", value: commands}),
-																					contentType: "application/json; charset=UTF-8"
 																				});
+																			}
+
+																			// Send request
+																			$.ajax({
+																				url: API_BASEURL + "plugin/m3dfio",
+																				type: "POST",
+																				dataType: "json",
+																				data: JSON.stringify({command: "message", value: commands}),
+																				contentType: "application/json; charset=UTF-8"
 																			});
 																		}
 
@@ -6647,16 +6660,16 @@ $(function() {
 																		data: JSON.stringify({command: "message", value: commands}),
 																		contentType: "application/json; charset=UTF-8"
 																	});
-																}
-
-																// Send request
-																$.ajax({
-																	url: API_BASEURL + "plugin/m3dfio",
-																	type: "POST",
-																	dataType: "json",
-																	data: JSON.stringify({command: "message", value: commands}),
-																	contentType: "application/json; charset=UTF-8"
 																});
+															}
+
+															// Send request
+															$.ajax({
+																url: API_BASEURL + "plugin/m3dfio",
+																type: "POST",
+																dataType: "json",
+																data: JSON.stringify({command: "message", value: commands}),
+																contentType: "application/json; charset=UTF-8"
 															});
 														}
 
@@ -6678,16 +6691,16 @@ $(function() {
 														data: JSON.stringify({command: "message", value: commands}),
 														contentType: "application/json; charset=UTF-8"
 													});
-												}
-
-												// Send request
-												$.ajax({
-													url: API_BASEURL + "plugin/m3dfio",
-													type: "POST",
-													dataType: "json",
-													data: JSON.stringify({command: "message", value: commands}),
-													contentType: "application/json; charset=UTF-8"
 												});
+											}
+
+											// Send request
+											$.ajax({
+												url: API_BASEURL + "plugin/m3dfio",
+												type: "POST",
+												dataType: "json",
+												data: JSON.stringify({command: "message", value: commands}),
+												contentType: "application/json; charset=UTF-8"
 											});
 										}
 
@@ -6709,27 +6722,24 @@ $(function() {
 										data: JSON.stringify({command: "message", value: commands}),
 										contentType: "application/json; charset=UTF-8"
 									});
-								}
-
-								// Send request
-								$.ajax({
-									url: API_BASEURL + "plugin/m3dfio",
-									type: "POST",
-									dataType: "json",
-									data: JSON.stringify({command: "message", value: commands}),
-									contentType: "application/json; charset=UTF-8"
 								});
+							}
+
+							// Send request
+							$.ajax({
+								url: API_BASEURL + "plugin/m3dfio",
+								type: "POST",
+								dataType: "json",
+								data: JSON.stringify({command: "message", value: commands}),
+								contentType: "application/json; charset=UTF-8"
 							});
 						}
-
-						// Send request
-						$.ajax({
-							url: API_BASEURL + "plugin/m3dfio",
-							type: "POST",
-							dataType: "json",
-							data: JSON.stringify({command: "message", value: commands}),
-							contentType: "application/json; charset=UTF-8"
-						});
+			
+						// Update settings
+						if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
+							self.settings.requestData(calibrateBedOffsets);
+						else
+							self.settings.requestData().done(calibrateBedOffsets);
 					}
 	
 					// Send request
@@ -6775,7 +6785,7 @@ $(function() {
 				success: function(data) {
 				
 					// Show message
-					showMessage("Fan Status", data.value == "Ok" ? "Done" : "Failed", "Ok", function() {
+					showMessage("Fan Status", data.value == "OK" ? "Done" : "Failed", "OK", function() {
 			
 						// Hide message
 						hideMessage();
@@ -6802,7 +6812,7 @@ $(function() {
 				success: function(data) {
 				
 					// Show message
-					showMessage("Fan Status", data.value == "Ok" ? "Done" : "Failed", "Ok", function() {
+					showMessage("Fan Status", data.value == "OK" ? "Done" : "Failed", "OK", function() {
 			
 						// Hide message
 						hideMessage();
@@ -6829,7 +6839,7 @@ $(function() {
 				success: function(data) {
 			
 					// Show message
-					showMessage("Fan Status", data.value == "Ok" ? "Done" : "Failed", "Ok", function() {
+					showMessage("Fan Status", data.value == "OK" ? "Done" : "Failed", "OK", function() {
 			
 						// Hide message
 						hideMessage();
@@ -6856,7 +6866,7 @@ $(function() {
 				success: function(data) {
 			
 					// Show message
-					showMessage("Fan Status", data.value == "Ok" ? "Done" : "Failed", "Ok", function() {
+					showMessage("Fan Status", data.value == "OK" ? "Done" : "Failed", "OK", function() {
 			
 						// Hide message
 						hideMessage();
@@ -6883,7 +6893,7 @@ $(function() {
 				success: function(data) {
 			
 					// Show message
-					showMessage("Extruder Status", data.value == "Ok" ? "Done" : "Failed", "Ok", function() {
+					showMessage("Extruder Status", data.value == "OK" ? "Done" : "Failed", "OK", function() {
 			
 						// Hide message
 						hideMessage();
@@ -6910,7 +6920,7 @@ $(function() {
 				success: function(data) {
 			
 					// Show message
-					showMessage("Extruder Status", data.value == "Ok" ? "Done" : "Failed", "Ok", function() {
+					showMessage("Extruder Status", data.value == "OK" ? "Done" : "Failed", "OK", function() {
 			
 						// Hide message
 						hideMessage();
@@ -6950,7 +6960,7 @@ $(function() {
 				success: function(data) {
 			
 					// Show message
-					showMessage("EEPROM Status", data.value == "Ok" ? "Done" : "Failed", "Ok", function() {
+					showMessage("EEPROM Status", data.value == "OK" ? "Done" : "Failed", "OK", function() {
 	
 						// Hide message
 						hideMessage();
@@ -7000,7 +7010,7 @@ $(function() {
 			if(!eeprom.length) {
 			
 				// Show message
-				showMessage("EEPROM Status", "Invalid EEPROM value", "Ok", function() {
+				showMessage("EEPROM Status", "Invalid EEPROM value", "OK", function() {
 				
 					// Hide message
 					hideMessage();
@@ -7025,7 +7035,7 @@ $(function() {
 					success: function(data) {
 			
 						// Show message
-						showMessage("EEPROM Status", data.value == "Ok" ? "Done" : "Failed", "Ok", function() {
+						showMessage("EEPROM Status", data.value == "OK" ? "Done" : "Failed", "OK", function() {
 						
 							// Hide message
 							hideMessage();
@@ -7068,7 +7078,7 @@ $(function() {
 						if(data.value == "Error") {
 						
 							// Show message
-							showMessage("Message", "Failed to create OctoPrint instance", "Ok", function() {
+							showMessage("Message", "Failed to create OctoPrint instance", "OK", function() {
 							
 								// Hide message
 								hideMessage();
@@ -7144,7 +7154,7 @@ $(function() {
 			if(!file.name.length) {
 
 				// Show message
-				showMessage("Firmware Status", "Invalid file name", "Ok", function() {
+				showMessage("Firmware Status", "Invalid file name", "OK", function() {
 		
 					// Hide message
 					hideMessage();
@@ -7165,7 +7175,7 @@ $(function() {
 						break;
 			
 					// Show message
-					showMessage("Firmware Status", "Invalid file name", "Ok", function() {
+					showMessage("Firmware Status", "Invalid file name", "OK", function() {
 
 						// Hide message
 						hideMessage();
@@ -7179,7 +7189,7 @@ $(function() {
 				if(file.name[index] < '0' || file.name[index] > '9' || (index == file.name.length - 1 && index < 9)) {
 	
 					// Show message
-					showMessage("Firmware Status", "Invalid file name", "Ok", function() {
+					showMessage("Firmware Status", "Invalid file name", "OK", function() {
 
 						// Hide message
 						hideMessage();
@@ -7194,7 +7204,7 @@ $(function() {
 			if(file.size > 32768) {
 
 				// Show message
-				showMessage("Firmware Status", "Invalid file size", "Ok", function() {
+				showMessage("Firmware Status", "Invalid file size", "OK", function() {
 		
 					// Hide message
 					hideMessage();
@@ -7226,7 +7236,7 @@ $(function() {
 						success: function(data) {
 	
 							// Show message
-							showMessage("Firmware Status", data.value == "Ok" ? "Done" : "Failed", "Ok", function() {
+							showMessage("Firmware Status", data.value == "OK" ? "Done" : "Failed", "OK", function() {
 	
 								// Hide message
 								hideMessage();
@@ -7297,7 +7307,7 @@ $(function() {
 			else if(data.value == "Printer Details" && typeof data.serialNumber !== "undefined" && typeof data.serialPort !== "undefined")
 			
 				// Update connected printer details
-				$("#navbar_plugin_m3dfio > a").text(data.serialNumber + " at " + data.serialPort);
+				$("#navbar_plugin_m3dfio > a").text((data.serialNumber.match(/^[0-9a-z]+$/i) ? data.serialNumber : "Printer") + " at " + data.serialPort);
 			
 			// Otherwise check if data is that a Micro 3D isn't connected
 			else if(data.value == "Micro 3D Not Connected" && printerConnected) {
@@ -7397,7 +7407,7 @@ $(function() {
 			else if(data.value == "Cura Not Installed") {
 			
 				// Show message
-				showMessage("Message", "It's recommended that you install the <a href=\"https://ultimaker.com/en/products/cura-software/list\" target=\"_blank\">latest Cura 15.04 release</a> on this server to fully utilize M3D Fio's capabilities", "Ok", function() {
+				showMessage("Message", "It's recommended that you install the <a href=\"https://ultimaker.com/en/products/cura-software/list\" target=\"_blank\">latest Cura 15.04 release</a> on this server to fully utilize M3D Fio's capabilities", "OK", function() {
 					
 					// Hide message
 					hideMessage();
@@ -7417,7 +7427,7 @@ $(function() {
 			else if(data.value == "Sleep Wont Disable") {
 			
 				// Show message
-				showMessage("Message", "It's recommended that you disable this server's sleep functionality while printing if it's not already disabled", "Ok", function() {
+				showMessage("Message", "It's recommended that you disable this server's sleep functionality while printing if it's not already disabled", "OK", function() {
 				
 					// Hide message
 					hideMessage();
@@ -7461,7 +7471,7 @@ $(function() {
 				if(message.css("z-index") != "9999" || !message.find("button.confirm").eq(1).hasClass("show"))
 			
 					// Show message
-					showMessage("Message", "No Micro 3D printer detected. Try cycling the printer's power and try again.", "Ok", function() {
+					showMessage("Message", "No Micro 3D printer detected. Try cycling the printer's power and try again.", "OK", function() {
 				
 						// Hide message
 						hideMessage();
@@ -7544,7 +7554,7 @@ $(function() {
 								success: function(data) {
 
 									// Show message
-									showMessage("Firmware Status", data.value == "Ok" ? "Done" : "Failed", "Ok", function() {
+									showMessage("Firmware Status", data.value == "OK" ? "Done" : "Failed", "OK", function() {
 	
 										// Hide message
 										hideMessage();
@@ -7586,7 +7596,7 @@ $(function() {
 									success: function(data) {
 
 										// Show message
-										showMessage("Firmware Status", data.value == "Ok" ? "Done" : "Failed", "Ok", function() {
+										showMessage("Firmware Status", data.value == "OK" ? "Done" : "Failed", "OK", function() {
 		
 											// Hide message
 											hideMessage();
@@ -7726,7 +7736,7 @@ $(function() {
 											self.settings.saveData();
 
 											// Show message
-											showMessage("Error Status", "Done", "Ok", function() {
+											showMessage("Error Status", "Done", "OK", function() {
 
 												// Hide message
 												hideMessage();
@@ -7759,7 +7769,7 @@ $(function() {
 							else {
 		
 								// Show message
-								showMessage("Error Status", "Done", "Ok", function() {
+								showMessage("Error Status", "Done", "OK", function() {
 				
 									// Hide message
 									hideMessage();
@@ -7821,7 +7831,7 @@ $(function() {
 								self.settings.saveData();
 
 								// Show message
-								showMessage("Error Status", "Done", "Ok", function() {
+								showMessage("Error Status", "Done", "OK", function() {
 
 									// Hide message
 									hideMessage();
@@ -7903,7 +7913,7 @@ $(function() {
 				else if(typeof data.confirm !== "undefined") {
 				
 					// Display message
-					showMessage("Error Status", htmlEncode(data.message), "Ok", function() {
+					showMessage("Error Status", htmlEncode(data.message), "OK", function() {
 					
 						// Hide message
 						hideMessage();
@@ -7970,7 +7980,7 @@ $(function() {
 				skippedMessages = 0;
 		
 				// Show message
-				showMessage("Server Status", "You've been disconnected from the server which has most likely caused the printer's current operation to fail. This page will now be refreshed to prevent further problems.", "Ok", function() {
+				showMessage("Server Status", "You've been disconnected from the server which has most likely caused the printer's current operation to fail. This page will now be refreshed to prevent further problems.", "OK", function() {
 
 					// Hide message
 					hideMessage();
@@ -7990,7 +8000,7 @@ $(function() {
 					hideMessage();
 			
 				// Show message
-				showMessage("Server Status", "You've been disconnected from the server. This page will now be refreshed to prevent any problems.", "Ok", function() {
+				showMessage("Server Status", "You've been disconnected from the server. This page will now be refreshed to prevent any problems.", "OK", function() {
 
 					// Hide message
 					hideMessage();

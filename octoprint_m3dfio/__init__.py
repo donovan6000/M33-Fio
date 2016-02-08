@@ -838,6 +838,38 @@ class M3DFioPlugin(
 		monitorHeatbedThread.daemon = True
 		monitorHeatbedThread.start()
 	
+	# Get firmware details
+	def getFirmwareDetails(self) :
+	
+		# Check if EEPROM was read
+		if self.eeprom :
+		
+			# Get firmware version from EEPROM
+			index = 3
+			firmwareVersion = 0
+			while index >= 0 :
+				firmwareVersion <<= 8
+				firmwareVersion += int(ord(self.eeprom[self.eepromOffsets["firmwareVersion"]["offset"] + index]))
+				index -= 1
+		
+			# Get firmware name
+			firmwareName = None
+			firmwareRelease = None
+			for firmware in self.providedFirmwares :
+				if int(self.providedFirmwares[firmware]["Version"]) / 100000000 == firmwareVersion / 100000000 :
+					firmwareName = firmware
+		
+			# Get firmware release
+			firmwareRelease = format(firmwareVersion, "010")
+			if firmwareName is None or firmwareName != "M3D" :
+				firmwareRelease = firmwareRelease[2 : 4] + '.' + firmwareRelease[4 : 6] + '.' + firmwareRelease[6 : 8] + '.' + firmwareRelease[8 : 10]
+			
+			# Return values
+			return firmwareName, firmwareVersion, firmwareRelease
+		
+		# Return none
+		return None, None, None
+	
 	# Covert Cura to profile
 	def convertCuraToProfile(self, input, output, name, displayName, description) :
 	
@@ -1147,35 +1179,16 @@ class M3DFioPlugin(
 				if self._printer.is_printing() or self._printer.is_paused() :
 				
 					# Send commands to printer
-					self._printer.commands(data["value"])
+					self.sendCommands(data["value"])
 				
 				# Otherwise
 				else :
 				
-					# Initialize line number
-					lineNumber = 1
-					self.sendCommands("N0 M110")
-				
-					# Go through all commands
-					for command in data["value"] :
-				
-						# Check if command provides feedback
-						if command == "M114" or command == "M117" or command.startswith("M618 ") or command.startswith("M619 ") :
-					
-							# Send command to printer
-							self.sendCommands(command)
-					
-						# Otherwise
-						else :
-					
-							# Send command with line number to printer
-							self.sendCommands('N' + str(lineNumber) + ' ' + command)
-					
-							# Increment line number
-							lineNumber += 1
+					# Send commands with line numbers
+					self.sendCommandsWithLineNumbers(data["value"])
 				
 				# Send response
-				return flask.jsonify(dict(value = "Ok"))
+				return flask.jsonify(dict(value = "OK"))
 			
 			# Otherwise check if parameter is to set fan
 			elif data["value"].startswith("Set Fan:") :
@@ -1252,7 +1265,7 @@ class M3DFioPlugin(
 				if error :
 					return flask.jsonify(dict(value = "Error"))
 				else :
-					return flask.jsonify(dict(value = "Ok"))
+					return flask.jsonify(dict(value = "OK"))
 			
 			# Otherwise check if parameter is to set extruder current
 			elif data["value"].startswith("Set Extruder Current:") :
@@ -1329,7 +1342,7 @@ class M3DFioPlugin(
 				if error :
 					return flask.jsonify(dict(value = "Error"))
 				else :
-					return flask.jsonify(dict(value = "Ok"))
+					return flask.jsonify(dict(value = "OK"))
 			
 			# Otherwise check if parameter is to print test border or backlash calibration cylinder
 			elif data["value"] == "Print Test Border" or data["value"] == "Print Backlash Calibration Cylinder" :
@@ -1484,7 +1497,7 @@ class M3DFioPlugin(
 				if not self.eeprom :
 					return flask.jsonify(dict(value = "Error"))
 				else :
-					return flask.jsonify(dict(value = "Ok"))
+					return flask.jsonify(dict(value = "OK"))
 			
 			# Otherwise check if parameter is to write EEPROM
 			elif data["value"].startswith("Write EEPROM:") :
@@ -1574,7 +1587,7 @@ class M3DFioPlugin(
 				if error :
 					return flask.jsonify(dict(value = "Error"))
 				else :
-					return flask.jsonify(dict(value = "Ok"))
+					return flask.jsonify(dict(value = "OK"))
 			
 			# Otherwise check if parameter is to save printer settings
 			elif data["value"] == "Save Printer Settings" :
@@ -1586,7 +1599,7 @@ class M3DFioPlugin(
 					self.sendCommands(self.getSaveCommands())
 			
 			# Otherwise check if parameter is a response to a message
-			elif data["value"] == "Ok" or data["value"] == "Yes" or data["value"] == "No" :
+			elif data["value"] == "OK" or data["value"] == "Yes" or data["value"] == "No" :
 			
 				# Check if waiting for a response
 				if self.messageResponse is None :
@@ -1598,7 +1611,7 @@ class M3DFioPlugin(
 						self.messageResponse = True
 				
 				# Send response
-				return flask.jsonify(dict(value = "Ok"))
+				return flask.jsonify(dict(value = "OK"))
 			
 			# Otherwise check if parameter is to disable reminder
 			elif data["value"].startswith("Disable Reminder:") :
@@ -1647,7 +1660,7 @@ class M3DFioPlugin(
 					shutil.move(temp, fileDestination)
 				
 				# Return location
-				return flask.jsonify(dict(value = "Ok", path = "/plugin/m3dfio/download/" + destinationName))
+				return flask.jsonify(dict(value = "OK", path = "/plugin/m3dfio/download/" + destinationName))
 			
 			# Otherwise check if parameter is to remove temporary files
 			elif data["value"] == "Remove Temp" :
@@ -1730,7 +1743,7 @@ class M3DFioPlugin(
 				if error :
 					return flask.jsonify(dict(value = "Error"))
 				else :
-					return flask.jsonify(dict(value = "Ok"))
+					return flask.jsonify(dict(value = "OK"))
 			
 			# Otherwise check if value is to close an OctoPrint instance
 			elif data["value"].startswith("Close OctoPrint Instance:") :
@@ -1760,7 +1773,7 @@ class M3DFioPlugin(
 							break
 				
 				# Return response
-				return flask.jsonify(dict(value = "Ok"))
+				return flask.jsonify(dict(value = "OK"))
 			
 			# Otherwise check if value is to create an OctoPrint instance
 			elif data["value"] == "Create OctoPrint Instance" :
@@ -1794,7 +1807,7 @@ class M3DFioPlugin(
 					subprocess.Popen([sys.executable.replace('\\', '/'), "-c", "import octoprint;octoprint.main()", "--port", str(port), "--config", self._settings.global_get_basefolder("base").replace('\\', '/') + "/config.yaml" + str(port)])
 				
 				# Send response
-				return flask.jsonify(dict(value = "Ok", port = port))
+				return flask.jsonify(dict(value = "OK", port = port))
 			
 			# Otherwise check if value is to set printer color
 			elif data["value"].startswith("Set Printer Color:") :
@@ -1809,7 +1822,7 @@ class M3DFioPlugin(
 					self._settings.set(["PrinterColor"], color)
 					
 					# Return response
-					return flask.jsonify(dict(value = "Ok"))
+					return flask.jsonify(dict(value = "OK"))
 				
 				# Return response
 				return flask.jsonify(dict(value = "Error"))
@@ -1827,7 +1840,7 @@ class M3DFioPlugin(
 					self._settings.set(["FilamentColor"], color)
 					
 					# Return response
-					return flask.jsonify(dict(value = "Ok"))
+					return flask.jsonify(dict(value = "OK"))
 				
 				# Return response
 				return flask.jsonify(dict(value = "Error"))
@@ -1844,7 +1857,7 @@ class M3DFioPlugin(
 				self._settings.set(["FilamentType"], str(values["filamentType"]))
 				
 				# Return response
-				return flask.jsonify(dict(value = "Ok"))
+				return flask.jsonify(dict(value = "OK"))
 			
 			# Otherwise check if parameter is emergency stop
 			elif data["value"] == "Emergency Stop" :
@@ -1865,7 +1878,7 @@ class M3DFioPlugin(
 			elif data["value"] == "Ping" :
 			
 				# Return response
-				return flask.jsonify(dict(value = "Ok"))
+				return flask.jsonify(dict(value = "OK"))
 			
 			# Otherwise check if parameter is to reconnect
 			elif data["value"] == "Reconnect" :
@@ -1965,7 +1978,7 @@ class M3DFioPlugin(
 			if error :
 				return flask.jsonify(dict(value = "Error"))
 			else :
-				return flask.jsonify(dict(value = "Ok"))
+				return flask.jsonify(dict(value = "OK"))
 	
 	# Write to EEPROM
 	def writeToEeprom(self, connection, address, data) :
@@ -2010,27 +2023,11 @@ class M3DFioPlugin(
 		
 			# Send EEPROM
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "EEPROM", eeprom = self.eeprom.encode("hex").upper()))
-		
-			# Get firmware version from EEPROM
-			index = 3
-			firmwareVersion = 0
-			while index >= 0 :
-				firmwareVersion <<= 8
-				firmwareVersion += int(ord(self.eeprom[self.eepromOffsets["firmwareVersion"]["offset"] + index]))
-				index -= 1
-		
-			# Get firmware name
-			firmwareName = None
-			firmwareRelease = None
-			for firmware in self.providedFirmwares :
-				if int(self.providedFirmwares[firmware]["Version"]) / 100000000 == firmwareVersion / 100000000 :
-					firmwareName = firmware
-		
-			# Get firmware release
-			firmwareRelease = format(firmwareVersion, "010")
-			if firmwareName is None or firmwareName != "M3D" :
-				firmwareRelease = firmwareRelease[2 : 4] + '.' + firmwareRelease[4 : 6] + '.' + firmwareRelease[6 : 8] + '.' + firmwareRelease[8 : 10]
-		
+			
+			# Get firmware details
+			firmwareName, firmwareVersion, firmwareRelease = self.getFirmwareDetails()
+			
+			# Send firmware details
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Current Firmware", name = firmwareName, release = firmwareRelease))
 		
 		# Get serial number from EEPROM
@@ -2450,6 +2447,31 @@ class M3DFioPlugin(
 		
 			# Send commands to printer
 			self._printer.commands(commands)
+	
+	# Send commands with line numbers
+	def sendCommandsWithLineNumbers(self, commands) :
+	
+		# Initialize line number
+		lineNumber = 1
+		self.sendCommands("N0 M110")
+	
+		# Go through all commands
+		for command in commands :
+	
+			# Check if command provides feedback
+			if command == "M114" or command == "M117" or command.startswith("M618 ") or command.startswith("M619 ") :
+		
+				# Send command to printer
+				self.sendCommands(command)
+		
+			# Otherwise
+			else :
+		
+				# Send command with line number to printer
+				self.sendCommands('N' + str(lineNumber) + ' ' + command)
+		
+				# Increment line number
+				lineNumber += 1
 	
 	# Empty command queue
 	def emptyCommandQueue(self) :
@@ -3006,26 +3028,10 @@ class M3DFioPlugin(
 				# Send eeprom
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "EEPROM", eeprom = self.eeprom.encode("hex").upper()))
 				
-				# Get firmware version from EEPROM
-				index = 3
-				firmwareVersion = 0
-				while index >= 0 :
-					firmwareVersion <<= 8
-					firmwareVersion += int(ord(self.eeprom[self.eepromOffsets["firmwareVersion"]["offset"] + index]))
-					index -= 1
+				# Get firmware details
+				firmwareName, firmwareVersion, firmwareRelease = self.getFirmwareDetails()
 				
-				# Get firmware name
-				firmwareName = None
-				firmwareRelease = None
-				for firmware in self.providedFirmwares :
-					if int(self.providedFirmwares[firmware]["Version"]) / 100000000 == firmwareVersion / 100000000 :
-						firmwareName = firmware
-				
-				# Get firmware release
-				firmwareRelease = format(firmwareVersion, "010")
-				if firmwareName is None or firmwareName != "M3D" :
-					firmwareRelease = firmwareRelease[2 : 4] + '.' + firmwareRelease[4 : 6] + '.' + firmwareRelease[6 : 8] + '.' + firmwareRelease[8 : 10]
-				
+				# Send firmware details
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Current Firmware", name = firmwareName, release = firmwareRelease))
 				
 				# Get serial number from EEPROM
@@ -3250,27 +3256,8 @@ class M3DFioPlugin(
 					# Pre-process command
 					commands = self.preprocess("G4", None, True)
 				
-				# Initialize line number
-				lineNumber = 1
-				self.sendCommands("N0 M110")
-				
-				# Go through all commands
-				for command in commands :
-					
-					# Check if command provides feedback
-					if command == "M114" or command == "M117" or command.startswith("M618 ") or command.startswith("M619 ") :
-					
-						# Send command to printer
-						self.sendCommands(command)
-					
-					# Otherwise
-					else :
-					
-						# Send command with line number to printer
-						self.sendCommands('N' + str(lineNumber) + ' ' + command)
-					
-						# Increment line number
-						lineNumber += 1
+				# Send commands with line numbers
+				self.sendCommandsWithLineNumbers(commands)
 			
 			# Reset print settings
 			self.resetPrintSettings()
@@ -3299,27 +3286,8 @@ class M3DFioPlugin(
 			else :
 				commands += ["M420 T100"]
 			
-			# Initialize line number
-			lineNumber = 1
-			self.sendCommands("N0 M110")
-			
-			# Go through all commands
-			for command in commands :
-				
-				# Check if command provides feedback
-				if command == "M114" or command == "M117" or command.startswith("M618 ") or command.startswith("M619 ") :
-				
-					# Send command to printer
-					self.sendCommands(command)
-				
-				# Otherwise
-				else :
-				
-					# Send command with line number to printer
-					self.sendCommands('N' + str(lineNumber) + ' ' + command)
-				
-					# Increment line number
-					lineNumber += 1
+			# Send commands with line numbers
+			self.sendCommandsWithLineNumbers(commands)
 			
 			# Reset print settings
 			self.resetPrintSettings()
@@ -3505,21 +3473,9 @@ class M3DFioPlugin(
 							chipCrc <<= 8
 							chipCrc += int(ord(response[index]))
 							index += 1
-					
-						# Get firmware version from EEPROM
-						index = 3
-						firmwareVersion = 0
-						while index >= 0 :
-							firmwareVersion <<= 8
-							firmwareVersion += int(ord(self.eeprom[self.eepromOffsets["firmwareVersion"]["offset"] + index]))
-							index -= 1
 						
-						# Get firmware name
-						firmwareName = None
-						for firmware in self.providedFirmwares :
-							if int(self.providedFirmwares[firmware]["Version"]) / 100000000 == firmwareVersion / 100000000 :
-								firmwareName = firmware
-								break
+						# Get firmware details
+						firmwareName, firmwareVersion, firmwareRelease = self.getFirmwareDetails()
 						
 						# Get serial number from EEPROM
 						serialNumber = self.eeprom[self.eepromOffsets["serialNumber"]["offset"] : self.eepromOffsets["serialNumber"]["offset"] + self.eepromOffsets["serialNumber"]["bytes"] - 1]
@@ -3806,13 +3762,13 @@ class M3DFioPlugin(
 						
 							# Set temp firmware name
 							if firmwareName is None :
-								tempFirmwareName = "M3D"
+								currentFirmwareName = "M3D"
 							else :
-								tempFirmwareName = firmwareName
+								currentFirmwareName = firmwareName
 					
 							# Display message
 							self.messageResponse = None
-							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Firmware is corrupt. Update to " + tempFirmwareName + " firmware version " + self.providedFirmwares[tempFirmwareName]["Release"] + '?', response = True))
+							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Firmware is corrupt. Update to " + currentFirmwareName + " firmware version " + self.providedFirmwares[currentFirmwareName]["Release"] + '?', response = True))
 						
 							# Wait until response is obtained
 							while self.messageResponse is None :
@@ -3831,7 +3787,7 @@ class M3DFioPlugin(
 								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating firmware"))
 						
 								# Check if updating firmware failed
-								if not self.updateToProvidedFirmware(connection, tempFirmwareName) :
+								if not self.updateToProvidedFirmware(connection, currentFirmwareName) :
 						
 									# Send message
 									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating firmware failed", confirm = True))
@@ -3987,16 +3943,19 @@ class M3DFioPlugin(
 				
 				self._printer.disconnect()
 		
-		# Otherwise check if a Micro 3D is connected and it is in G-code processing mode but its read and write functions are not being intercepted
-		elif data == "Recv: e1" and not self.originalWrite :
+		# Otherwise check if a printer is connected and processing G-code commands, but settings haven't been obtained yet
+		elif (data == "Recv: e1" or data == "Recv: ok Error: Unknown G-code command") and self.eeprom and self.invalidPrinter :
+			
+			# Check if using M3D firmware
+			if self.getFirmwareDetails()[0] == "M3D" :
 		
-			# Save original write and read functions
-			self.originalWrite = self._printer.get_transport().write
-			self.originalRead = self._printer.get_transport().readline
+				# Save original write and read functions
+				self.originalWrite = self._printer.get_transport().write
+				self.originalRead = self._printer.get_transport().readline
 		
-			# Overwrite write and read functions to process write and read functions
-			self._printer.get_transport().write = self.processWrite
-			self._printer.get_transport().readline = self.processRead
+				# Overwrite write and read functions to process write and read functions
+				self._printer.get_transport().write = self.processWrite
+				self._printer.get_transport().readline = self.processRead
 			
 			# Clear invalid printer
 			self.invalidPrinter = False
@@ -4073,6 +4032,7 @@ class M3DFioPlugin(
 				else :
 					commands += ["M420 T100"]
 				
+				# Send commands
 				self.sendCommands(commands)
 		
 		# Otherwise check if data contains valid Z information
@@ -6779,7 +6739,7 @@ class M3DFioPlugin(
 			self._printer_profile_manager.save(printerProfile, True)
 			
 			# Return ok
-			return flask.jsonify(dict(value = "Ok"))
+			return flask.jsonify(dict(value = "OK"))
 		
 		# Otherwise check if verifying profile
 		elif "Slicer Profile Content" in flask.request.values and "Slicer Name" in flask.request.values :
@@ -6813,7 +6773,7 @@ class M3DFioPlugin(
 					return flask.jsonify(dict(value = "Error"))
 			
 			# Return ok
-			return flask.jsonify(dict(value = "Ok"))
+			return flask.jsonify(dict(value = "OK"))
 		
 		# Return error
 		return flask.jsonify(dict(value = "Error"))
