@@ -125,6 +125,9 @@ class M3DFioPlugin(
 		self.waiting = False
 		self.processingSlice = False
 		self.heatbedConnection = None
+		self.heatbedConnected = False
+		self.showHeatbedTemperature = False
+		self.settingHeatbedTemperature = False
 		self.eeprom = None
 		self.messageResponse = None
 		self.invalidBedCenter = False
@@ -595,7 +598,10 @@ class M3DFioPlugin(
 			heatbedPort = self.getHeatbedPort()
 		
 			# Check if a heatbed has been disconnected
-			if self.heatbedConnection is not None and heatbedPort is None :
+			if self.heatbedConnected and heatbedPort is None :
+			
+				# Clear heatbed connected
+				self.heatbedConnected = False
 			
 				# Close heatbed connection
 				self.heatbedConnection.close()
@@ -614,7 +620,7 @@ class M3DFioPlugin(
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "notice", title = "Heatbed removed", text = "Heatbed has been disconnected"))
 			
 			# Otherwise check if a heatbed has been connected
-			elif self.heatbedConnection is None and heatbedPort is not None :
+			elif not self.heatbedConnected and heatbedPort is not None :
 			
 				# Connect to heatbed
 				error = False
@@ -655,6 +661,16 @@ class M3DFioPlugin(
 								self.heatbedConnection.reset_output_buffer()
 							
 							self.heatbedConnection.write("i\r")
+							
+							time.sleep(0.5)
+							
+							if float(serial.VERSION) < 3 :
+								self.heatbedConnection.flushInput()
+								self.heatbedConnection.flushOutput()
+							else :
+								self.heatbedConnection.reset_input_buffer()
+								self.heatbedConnection.reset_output_buffer()
+							
 						except Exception :
 							error = True
 					
@@ -666,6 +682,9 @@ class M3DFioPlugin(
 								printerProfile = self._printer_profile_manager.get("micro_3d")
 								printerProfile["heatedBed"] = True
 								self._printer_profile_manager.save(printerProfile, True)
+							
+							# Set heatbed connected
+							self.heatbedConnected = True
 				
 							# Send message
 							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Heatbed Detected"))
@@ -1402,7 +1421,7 @@ class M3DFioPlugin(
 						self.sharedLibrary.setUseBacklashCompensationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseBacklashCompensationPreprocessor"])))
 						self.sharedLibrary.setUseCenterModelPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseCenterModelPreprocessor"])))
 						self.sharedLibrary.setIgnorePrintDimensionLimitations(ctypes.c_bool(self._settings.get_boolean(["IgnorePrintDimensionLimitations"])))
-						self.sharedLibrary.setUsingHeatbed(ctypes.c_bool(self.heatbedConnection is not None))
+						self.sharedLibrary.setUsingHeatbed(ctypes.c_bool(self.heatbedConnected))
 						self.sharedLibrary.setPrintingTestBorder(ctypes.c_bool(self.printingTestBorder))
 						self.sharedLibrary.setPrintingBacklashCalibrationCylinder(ctypes.c_bool(self.printingBacklashCalibrationCylinder))
 						self.sharedLibrary.setPrinterColor(ctypes.c_char_p(self.printerColor))
@@ -2588,7 +2607,7 @@ class M3DFioPlugin(
 			if gcode.parseLine(data) :
 			
 				# Check if using a heatbed
-				if self.heatbedConnection is not None :
+				if self.heatbedConnected :
 				
 					# Check if command is to set heatbed temperature
 					if gcode.getValue('M') == "140" :
@@ -2596,9 +2615,13 @@ class M3DFioPlugin(
 						# Send heatbed the specified temperature
 						try :
 							if gcode.hasValue('S') :
-								self.heatbedConnection.write("s " + gcode.getValue('S') + '\r')
+								temperature = gcode.getValue('S')
 							else :
-								self.heatbedConnection.write("s 0\r")
+								temperature = "0"
+							
+							self.heatbedConnection.write("s " + temperature + '\r')
+							self.showHeatbedTemperature = temperature != "0"
+						
 						except Exception :
 							pass
 						
@@ -2614,32 +2637,66 @@ class M3DFioPlugin(
 						error = False
 						try :
 							if gcode.hasValue('S') :
-								self.heatbedConnection.write("w " + gcode.getValue('S') + '\r')
+								temperature = gcode.getValue('S')
 							else :
-								self.heatbedConnection.write("w 0\r")
+								temperature = "0"
+							
+							self.heatbedConnection.write("w " + temperature + '\r')
+							self.showHeatbedTemperature = temperature != "0"
+						
 						except Exception :
 							error = True
 						
 						# Check if no errors occured
 						if not error :
 						
-							# Loop forever
-							while True :
+							# Set setting heatbed temperature
+							self.settingHeatbedTemperature = True
 						
-								# Read heatbed temperature until it stops
-								try :
-									heatbedTemperature = str(self.heatbedConnection.read())
-									
-									if float(serial.VERSION) < 3 :
-										heatbedTemperature += str(self.heatbedConnection.read(self.heatbedConnection.inWaiting()))
-									else :
-										heatbedTemperature += str(self.heatbedConnection.read(self.heatbedConnection.in_waiting))
-								except Exception :
-									break
+							# Start processing temperature
+							self._printer._comm._heating = True
+							self._printer._comm._heatupWaitStartTime = time.time()
 							
-								# Update communication timeout to prevent other commands from being sent
-								if self._printer._comm is not None :
-									self._printer._comm._gcode_G4_sent("G4")
+							# Loop forever
+							readingTemperature = True
+							while readingTemperature :
+							
+								# Read heatbed temperature
+								heatbedTemperature = ''
+								while len(heatbedTemperature) == 0 :
+								
+									# Read heatbed temperature until it stops
+									try :
+										heatbedTemperature = self.heatbedConnection.readline().rstrip()
+										
+										if heatbedTemperature == "ok" :
+											readingTemperature = False
+									except Exception :
+										readingTemperature = False
+										break
+								
+								# Check it not done
+								if readingTemperature :
+								
+									# Display heatbed temperature
+									if len(self._printer._comm.getTemp()) :
+										command = "T:" + str(self._printer._comm.getTemp()[0][0]) + " B:" + heatbedTemperature
+									else :
+										command = "T:0.0 B:" + heatbedTemperature
+								
+									self._printer._comm._processTemperatures(command)
+									self._printer._comm._callback.on_comm_temperature_update(self._printer._comm._temp, self._printer._comm._bedTemp)
+									self._printer._addLog("Recv: " + command)
+								
+									# Update communication timeout to prevent other commands from being sent
+									if self._printer._comm is not None :
+										self._printer._comm._gcode_G4_sent("G4")
+								
+									# Delay
+									time.sleep(1)
+							
+							# Clear setting heatbed temperature
+							self.settingHeatbedTemperature = False
 						
 						# Set command to nothing
 						gcode.removeParameter('M')
@@ -2708,8 +2765,14 @@ class M3DFioPlugin(
 		# Get response
 		response = self.originalRead()
 		
-		# Check if response is wait
-		if response.startswith("wait") :
+		# Check if setting heatbed temperature
+		if self.settingHeatbedTemperature :
+	
+			# Clear response
+			response = ''
+		
+		# Otherwise check if response is wait
+		elif response.startswith("wait") :
 		
 			# Check if a command hasn't been confirmed
 			if self.lastResponseWasTemperatureReading and len(self.sentLineNumbers) :
@@ -2753,25 +2816,34 @@ class M3DFioPlugin(
 		# Check if response is a temperature reading
 		if response.startswith("T:") :
 		
+			# Isolate temperature
+			response = response.split(' ')[0]
+		
 			# Set last response was temperature reading
 			self.lastResponseWasTemperatureReading = True
 			
 			# Check if using a heatbed
-			if self.heatbedConnection is not None :
+			if self.heatbedConnected :
 			
-				# Read heatbed temperature
-				try :
-					self.heatbedConnection.write("t\r")
-					heatbedTemperature = str(self.heatbedConnection.read())
-					
-					if float(serial.VERSION) < 3 :
-						heatbedTemperature += str(self.heatbedConnection.read(self.heatbedConnection.inWaiting()))
-					else :
-						heatbedTemperature += str(self.heatbedConnection.read(self.heatbedConnection.in_waiting))
+				# Check if heatbed temperature isn't set
+				if not self.showHeatbedTemperature :
 				
-				except Exception :
+					# Set temperature to 0
 					heatbedTemperature = "0"
-			
+				
+				else :
+					
+					# Read heatbed temperature
+					heatbedTemperature = ''
+					while len(heatbedTemperature) == 0 :
+					
+						try :
+							self.heatbedConnection.write("t\r")
+							heatbedTemperature = self.heatbedConnection.readline().rstrip()
+		
+						except Exception :
+							heatbedTemperature = "0"
+				
 				# Append heatbed temperature to to response
 				response = response.rstrip() + " B:" + heatbedTemperature + '\n'
 		
@@ -3041,7 +3113,7 @@ class M3DFioPlugin(
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Printer Details", serialNumber = serialNumber, serialPort = self._printer.get_transport().port))
 			
 			# Send message if a heatbed is detected
-			if self.heatbedConnection is None :
+			if not self.heatbedConnected :
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Heatbed Not Detected"))
 			else :
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Heatbed Detected"))
@@ -3171,7 +3243,7 @@ class M3DFioPlugin(
 					self.sharedLibrary.setUseBacklashCompensationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseBacklashCompensationPreprocessor"])))
 					self.sharedLibrary.setUseCenterModelPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseCenterModelPreprocessor"])))
 					self.sharedLibrary.setIgnorePrintDimensionLimitations(ctypes.c_bool(self._settings.get_boolean(["IgnorePrintDimensionLimitations"])))
-					self.sharedLibrary.setUsingHeatbed(ctypes.c_bool(self.heatbedConnection is not None))
+					self.sharedLibrary.setUsingHeatbed(ctypes.c_bool(self.heatbedConnected))
 					self.sharedLibrary.setPrintingTestBorder(ctypes.c_bool(self.printingTestBorder))
 					self.sharedLibrary.setPrintingBacklashCalibrationCylinder(ctypes.c_bool(self.printingBacklashCalibrationCylinder))
 					self.sharedLibrary.setPrinterColor(ctypes.c_char_p(self.printerColor))
@@ -3278,7 +3350,7 @@ class M3DFioPlugin(
 				"M18"
 			]
 			
-			if self.heatbedConnection is not None :
+			if self.heatbedConnected :
 				commands += ["M140 S0"]
 				
 			if self.printerColor == "Clear" :
@@ -4727,7 +4799,7 @@ class M3DFioPlugin(
 				self.sharedLibrary.setUseBacklashCompensationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseBacklashCompensationPreprocessor"])))
 				self.sharedLibrary.setUseCenterModelPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseCenterModelPreprocessor"])))
 				self.sharedLibrary.setIgnorePrintDimensionLimitations(ctypes.c_bool(self._settings.get_boolean(["IgnorePrintDimensionLimitations"])))
-				self.sharedLibrary.setUsingHeatbed(ctypes.c_bool(self.heatbedConnection is not None))
+				self.sharedLibrary.setUsingHeatbed(ctypes.c_bool(self.heatbedConnected))
 				self.sharedLibrary.setPrintingTestBorder(ctypes.c_bool(self.printingTestBorder))
 				self.sharedLibrary.setPrintingBacklashCalibrationCylinder(ctypes.c_bool(self.printingBacklashCalibrationCylinder))
 				self.sharedLibrary.setPrinterColor(ctypes.c_char_p(self.printerColor))
@@ -4831,7 +4903,7 @@ class M3DFioPlugin(
 		gcode = Gcode()
 		
 		# Check if using a heatbed
-		if self.heatbedConnection is not None :
+		if self.heatbedConnected :
 		
 			# Adjust bed Z values
 			self.bedMediumMaxZ = 73.5 - self.heatbedHeight
@@ -5554,7 +5626,7 @@ class M3DFioPlugin(
 					newCommands.append(Command("G28", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 
 					# Add heatbed command if using a heatbed
-					if self.heatbedConnection is not None :
+					if self.heatbedConnected :
 						newCommands.append(Command("M190 S" + str(self._settings.get_int(["HeatbedTemperature"])), "PREPARATION", "CENTER VALIDATION PREPARATION"))
 
 					# Check if one of the corners wasn't set
@@ -5638,7 +5710,7 @@ class M3DFioPlugin(
 					newCommands.append(Command("G0 E-8 F360", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 					newCommands.append(Command("M104 S0", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 
-					if self.heatbedConnection is not None :
+					if self.heatbedConnected :
 						newCommands.append(Command("M140 S0", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 
 					newCommands.append(Command("M18", "PREPARATION", "CENTER VALIDATION PREPARATION"))

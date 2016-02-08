@@ -3316,7 +3316,7 @@ $(function() {
 					<input style="width: 100px;" data-bind="slider: {min: 100, max: 170, step: 1, value: feedRate, tooltip: 'hide'}" type="number">
 				</div>
 				<button class="btn btn-block control-box" data-bind="enable: isOperational() && loginState.isUser()">Temperature:<span data-bind="text: feedRate() -60 + '°C'"></span></button>
-				<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M140 S0'}) }">Heater off</button>
+				<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M140 S0'}) }" title="Turns off heatbed's heater">Heater off</button>
 			<div>
 		`);
 		
@@ -5336,7 +5336,7 @@ $(function() {
 		});
 	
 		// Override extrude control
-		$("#control > div.jog-panel.extruder").find("div > button:first-of-type").attr("title", "Extrudes the specified amount of filament").click(function(event) {
+		$("#control > div.jog-panel.extruder > div > button:first-of-type").attr("title", "Extrudes the specified amount of filament").click(function(event) {
 	
 			// Stop default behavior
 			event.stopImmediatePropagation();
@@ -5344,7 +5344,7 @@ $(function() {
 			// Set commands
 			var commands = [
 				"G91",
-				"G0 E" + ($("#control > div.jog-panel.extruder").find("div > div:nth-of-type(2) >input").val().length ? $("#control > div.jog-panel.extruder").find("div > div:nth-of-type(2) >input").val() : '5' ) + " F345"
+				"G0 E" + ($("#control > div.jog-panel.extruder > div > div:nth-of-type(2) > input").val().length ? $("#control > div.jog-panel.extruder > div > div:nth-of-type(2) > input").val() : '5' ) + " F345"
 			];
 		
 			// Send request
@@ -5358,7 +5358,7 @@ $(function() {
 		});
 	
 		// Override retract control
-		$("#control > div.jog-panel.extruder").find("div > button:nth-of-type(2)").attr("title", "Retracts the specified amount of filament").click(function(event) {
+		$("#control > div.jog-panel.extruder > div > button:nth-of-type(2)").attr("title", "Retracts the specified amount of filament").click(function(event) {
 	
 			// Stop default behavior
 			event.stopImmediatePropagation();
@@ -5366,7 +5366,7 @@ $(function() {
 			// Set commands
 			var commands = [
 				"G91",
-				"G0 E-" + ($("#control > div.jog-panel.extruder").find("div > div:nth-of-type(2) >input").val().length ? $("#control > div.jog-panel.extruder").find("div > div:nth-of-type(2) >input").val() : '5' ) + " F345"
+				"G0 E-" + ($("#control > div.jog-panel.extruder > div > div:nth-of-type(2) > input").val().length ? $("#control > div.jog-panel.extruder > div > div:nth-of-type(2) > input").val() : '5' ) + " F345"
 			];
 		
 			// Send request
@@ -5380,7 +5380,7 @@ $(function() {
 		});
 	
 		// Set extruder temperature control
-		$("#control > div.jog-panel.extruder").find("div > button:nth-of-type(4)").attr("title", "Sets extruder's temperature to the specified amount").click(function(event) {
+		$("#control > div.jog-panel.extruder > div > button:nth-of-type(4)").attr("title", "Sets extruder's temperature to the specified amount").click(function(event) {
 			
 			// Check if not printing
 			if(self.printerState.isPrinting() !== true) {
