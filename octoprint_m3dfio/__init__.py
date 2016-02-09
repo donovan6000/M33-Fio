@@ -136,7 +136,6 @@ class M3DFioPlugin(
 		self.sharedLibrary = None
 		self.lastCommandSent = None
 		self.lastResponseWasWait = False
-		self.lastResponseWasTemperatureReading = False
 		self.allSerialPorts = []
 		self.currentSerialPort = None
 		self.providedFirmwares = {}
@@ -404,7 +403,6 @@ class M3DFioPlugin(
 		self.printingTestBorder = False
 		self.printingBacklashCalibrationCylinder = False
 		self.sentCommands = {}
-		self.sentLineNumbers = []
 		self.resetLineNumberCommandSent = False
 		self.numberWrapCounter = 0
 	
@@ -2540,7 +2538,7 @@ class M3DFioPlugin(
 			if self._printer.is_printing() :
 			
 				# Wait until all sent commands have been processed
-				while len(self.sentLineNumbers) :
+				while len(self.sentCommands) :
 				
 					# Update communication timeout to prevent other commands from being sent
 					if self._printer._comm is not None :
@@ -2731,7 +2729,7 @@ class M3DFioPlugin(
 				if gcode.hasValue('N') :
 				
 					# Limit the amount of commands that can simultaneous be sent to the printer
-					while len(self.sentLineNumbers) >= 1 :
+					while len(self.sentCommands) >= 1 :
 					
 						# Update communication timeout to prevent other commands from being sent
 						if self._printer._comm is not None :
@@ -2748,9 +2746,6 @@ class M3DFioPlugin(
 						# Set reset line number command sent
 						self.resetLineNumberCommandSent = True
 					
-					# Store line number
-					self.sentLineNumbers.append(lineNumber % 0x10000)
-			
 					# Store command
 					self.sentCommands[lineNumber % 0x10000] = data
 			
@@ -2772,41 +2767,32 @@ class M3DFioPlugin(
 			# Clear response
 			response = ''
 		
-		# Otherwise check if response is wait
-		elif response.startswith("wait") :
+		# Check if response is wait
+		if response.startswith("wait") :
 		
-			# Check if a command hasn't been confirmed
-			if self.lastResponseWasTemperatureReading and len(self.sentLineNumbers) :
-			
-				# Set response to confirm command
-				response = "ok " + str(self.sentLineNumbers[0]) + '\n'
-			
+			# Check if last response wasn't wait
+			if not self.lastResponseWasWait :
+		
+				# Set last response was wait
+				self.lastResponseWasWait = True
+		
 			# Otherwise
 			else :
 		
-				# Check if last response wasn't wait
-				if not self.lastResponseWasWait :
+				# Clear response
+				response = ''
 			
-					# Set last response was wait
-					self.lastResponseWasWait = True
+				# Send message
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Duplicate Wait"))
 			
-				# Otherwise
-				else :
+			# Check if waiting for a wait response
+			if self.waiting is None :
 			
-					# Clear response
-					response = ''
-				
-					# Send message
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Duplicate Wait"))
-				
-				# Check if waiting for a wait response
-				if self.waiting is None :
-				
-					# Clear waiting
-					self.waiting = False
-				
-					# Send message
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Done Waiting"))
+				# Clear waiting
+				self.waiting = False
+			
+				# Send message
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Done Waiting"))
 		
 		# Otherwise
 		else :
@@ -2819,9 +2805,6 @@ class M3DFioPlugin(
 		
 			# Isolate temperature
 			response = response.split(' ')[0]
-		
-			# Set last response was temperature reading
-			self.lastResponseWasTemperatureReading = True
 			
 			# Check if using a heatbed
 			if self.heatbedConnected :
@@ -2848,14 +2831,8 @@ class M3DFioPlugin(
 				# Append heatbed temperature to to response
 				response = response.rstrip() + " B:" + heatbedTemperature + '\n'
 		
-		# Otherwise
-		else :
-		
-			# Clear last response was temperature reading
-			self.lastResponseWasTemperatureReading = False
-		
-		# Check if response was a processed or skipped value
-		if (response.startswith("ok ") and response[3].isdigit()) or response.startswith("skip ") :
+		# Otherwise check if response was a processed or skipped value
+		elif (response.startswith("ok ") and response[3].isdigit()) or response.startswith("skip ") :
 	
 			# Get line number
 			if response.startswith("ok ") : 
@@ -2864,10 +2841,10 @@ class M3DFioPlugin(
 				lineNumber = int(response[5 :]) % 0x10000
 			
 			# Check if processing an unprocessed command
-			if len(self.sentLineNumbers) and lineNumber == self.sentLineNumbers[0] :
+			if lineNumber in self.sentCommands :
 			
-				# Remove stored line number
-				self.sentLineNumbers.pop(0)
+				# Remove stored command
+				self.sentCommands.pop(lineNumber)
 			
 				# Check if processing a reset line number command
 				if self.resetLineNumberCommandSent and lineNumber == 0 :
@@ -2877,10 +2854,6 @@ class M3DFioPlugin(
 				
 					# Reset number wrap counter
 					self.numberWrapCounter = 0
-			
-				# Remove stored value
-				if lineNumber in self.sentCommands :
-					self.sentCommands.pop(lineNumber)
 				
 				# Set response to contain adjusted line number
 				response = "ok " + str(lineNumber + self.numberWrapCounter * 0x10000) + '\n'
@@ -5552,8 +5525,8 @@ class M3DFioPlugin(
 				# Check if command contains valid G-code
 				if not gcode.isEmpty() :
 
-					# Check if extruder absolute mode, extruder relative mode, or stop idle hold command
-					if gcode.hasValue('M') and (gcode.getValue('M') == "82" or gcode.getValue('M') == "83" or gcode.getValue('M') == "84") :
+					# Check if extruder absolute mode, extruder relative mode, stop idle hold, or request temperature command
+					if gcode.hasValue('M') and (gcode.getValue('M') == "82" or gcode.getValue('M') == "83" or gcode.getValue('M') == "84" or gcode.getValue('M') == "105") :
 
 						# Get next line
 						continue
