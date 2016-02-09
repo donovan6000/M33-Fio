@@ -32,37 +32,8 @@ def package_data_dirs(source, sub_folders):
 
 	return dirs
 
-# Get cpu hardware
-def getCpuHardware() :
-
-	# Imports
-	import os
-
-	# Check if CPU info exists
-	if os.path.isfile("/proc/cpuinfo") :
-
-		# Read in CPU info
-		for line in open("/proc/cpuinfo") :
-	
-			# Check if line contains hardware information
-			if line.startswith("Hardware") and ':' in line :
-		
-				# Return CPU hardware
-				return line[line.index(':') + 2 : -1]
-	
-	# Return empty string
-	return ''
-
-# Using a Raspberry Pi
-def usingARaspberryPi() :
-
-	# Imports
-	import platform
-
-	# Return if using a Raspberry Pi
-	return platform.uname()[0].startswith("Linux") and ((platform.uname()[4].startswith("armv6l") and getCpuHardware() == "BCM2708") or (platform.uname()[4].startswith("armv7l") and getCpuHardware() == "BCM2709"))
-
 def params():
+
 	# Our metadata, as defined above
 	name = plugin_name
 	version = plugin_version
@@ -85,11 +56,6 @@ def params():
 
 	# Read the requirements from our requirements.txt file
 	install_requires = open("requirements.txt").read().split("\n")
-	
-	# Add requirements for using a Raspberry Pi
-	if usingARaspberryPi() :
-		install_requires.pop()
-		install_requires += ["RPi.GPIO>=0.6.1", '']
 	
 	# Hook the plugin into the "octoprint.plugin" entry point, mapping the plugin_identifier to the plugin_package.
 	# That way OctoPrint will be able to find the plugin and load it.

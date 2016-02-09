@@ -41,31 +41,6 @@ import threading
 from .gcode import Gcode
 from .vector import Vector
 
-
-# Get cpu hardware
-def getCpuHardware() :
-
-	# Check if CPU info exists
-	if os.path.isfile("/proc/cpuinfo") :
-
-		# Read in CPU info
-		for line in open("/proc/cpuinfo") :
-	
-			# Check if line contains hardware information
-			if line.startswith("Hardware") and ':' in line :
-		
-				# Return CPU hardware
-				return line[line.index(':') + 2 : -1]
-	
-	# Return empty string
-	return ''
-
-# Using a Raspberry Pi
-def usingARaspberryPi() :
-
-	# Return if using a Raspberry Pi
-	return platform.uname()[0].startswith("Linux") and ((platform.uname()[4].startswith("armv6l") and getCpuHardware() == "BCM2708") or (platform.uname()[4].startswith("armv7l") and getCpuHardware() == "BCM2709"))
-
 # Check if using OS X
 if platform.uname()[0].startswith("Darwin") :
 
@@ -84,12 +59,7 @@ elif platform.uname()[0].startswith("Linux") :
 		import dbus
 	except ImportError :
 		pass
-	
-	# Check if using a Raspberry Pi
-	if usingARaspberryPi() :
-	
-		# Import RPi GPIO
-		import RPi.GPIO
+
 
 # Command class
 class Command(object) :
@@ -471,6 +441,30 @@ class M3DFioPlugin(
 		self.backlashPositionRelativeE = 0
 		self.backlashCompensationExtraGcode = Gcode()
 	
+	# Get cpu hardware
+	def getCpuHardware(self) :
+
+		# Check if CPU info exists
+		if os.path.isfile("/proc/cpuinfo") :
+
+			# Read in CPU info
+			for line in open("/proc/cpuinfo") :
+	
+				# Check if line contains hardware information
+				if line.startswith("Hardware") and ':' in line :
+		
+					# Return CPU hardware
+					return line[line.index(':') + 2 : -1]
+	
+		# Return empty string
+		return ''
+
+	# Using a Raspberry Pi
+	def usingARaspberryPi(self) :
+
+		# Return if using a Raspberry Pi
+		return platform.uname()[0].startswith("Linux") and ((platform.uname()[4].startswith("armv6l") and self.getCpuHardware() == "BCM2708") or (platform.uname()[4].startswith("armv7l") and self.getCpuHardware() == "BCM2709"))
+	
 	# Save ports
 	def savePorts(self, currentPort) :
 	
@@ -703,7 +697,7 @@ class M3DFioPlugin(
 	
 	# On start
 	def on_after_startup(self) :
-	
+		
 		# Set reminders on initial OctoPrint instance
 		currentPort = self.getListenPort(psutil.Process(os.getpid()))
 		if currentPort is not None and self.getListenPort(psutil.Process(os.getpid())) == 5000 :
@@ -774,13 +768,13 @@ class M3DFioPlugin(
 		if platform.uname()[0].startswith("Linux") :
 		
 			# Check if running on a Raspberry Pi
-			if platform.uname()[4].startswith("armv6l") and getCpuHardware() == "BCM2708" :
+			if platform.uname()[4].startswith("armv6l") and self.getCpuHardware() == "BCM2708" :
 			
 				# Set shared library
 				self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace('\\', '/') + "/static/libraries/preprocessor_arm1176jzf-s.so")
 			
 			# Otherwise check if running on a Raspberry Pi 2
-			elif platform.uname()[4].startswith("armv7l") and getCpuHardware() == "BCM2709" :
+			elif platform.uname()[4].startswith("armv7l") and self.getCpuHardware() == "BCM2709" :
 			
 				# Set shared library
 				self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace('\\', '/') + "/static/libraries/preprocessor_arm_cortex-a7.so")
@@ -7048,13 +7042,12 @@ class M3DFioPlugin(
 		if fanPin is not None :
 	
 			# Check if running on a Raspberry Pi
-			if usingARaspberryPi() :
-		
+			if self.usingARaspberryPi() :
+			
 				# Turn on external fan
-				RPi.GPIO.setwarnings(False)
-				RPi.GPIO.setmode(RPi.GPIO.BCM)
-				RPi.GPIO.setup(fanPin, RPi.GPIO.OUT)
-				RPi.GPIO.output(fanPin, True)
+				os.system("echo \"" + str(fanPin) + "\" > /sys/class/gpio/export")
+				os.system("echo \"out\" > /sys/class/gpio/gpio" + str(fanPin) + "/direction")
+				os.system("echo \"1\" > /sys/class/gpio/gpio" + str(fanPin) + "/value")
 	
 	# Turn off external fan
 	def turnOffExternalFan(self) :
@@ -7064,13 +7057,12 @@ class M3DFioPlugin(
 		if fanPin is not None :
 	
 			# Check if running on a Raspberry Pi
-			if usingARaspberryPi() :
+			if self.usingARaspberryPi() :
 		
 				# Turn off external fan
-				RPi.GPIO.setwarnings(False)
-				RPi.GPIO.setmode(RPi.GPIO.BCM)
-				RPi.GPIO.setup(fanPin, RPi.GPIO.OUT)
-				RPi.GPIO.output(fanPin, False)
+				os.system("echo \"" + str(fanPin) + "\" > /sys/class/gpio/export")
+				os.system("echo \"out\" > /sys/class/gpio/gpio" + str(fanPin) + "/direction")
+				os.system("echo \"0\" > /sys/class/gpio/gpio" + str(fanPin) + "/value")
 
 
 # Plugin info

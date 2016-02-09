@@ -6636,7 +6636,7 @@ $(function() {
 																								waitingCallback = function() {
 																					
 																									// Show message
-																								showMessage("Calibration Status", "Finishing calibration");
+																									showMessage("Calibration Status", "Finishing calibration");
 																					
 																									// Set commands
 																									commands = [
