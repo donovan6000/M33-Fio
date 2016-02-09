@@ -154,6 +154,7 @@ bool removeFanCommands;
 bool removeTemperatureCommands;
 bool useExternalFan;
 uint16_t heatbedTemperature;
+double heatbedHeight;
 int16_t detectedFanSpeed;
 bool objectSuccessfullyCentered;
 
@@ -231,7 +232,6 @@ double minYExtruderLow;
 double minYExtruderMedium;
 double minYExtruderHigh;
 double minZExtruder;
-double heatbedHeight = 10.0;
 
 
 // Private function implementation
@@ -660,6 +660,12 @@ EXPORT void setHeatbedTemperature(unsigned short value) {
 
 	// Set heatbed temperature
 	heatbedTemperature = value;
+}
+
+EXPORT void setHeatbedHeight(double value) {
+
+	// Set heatbed height
+	heatbedHeight = value;
 }
 
 EXPORT void resetPreprocessorSettings() {

@@ -137,6 +137,7 @@ extern "C" {
 	EXPORT void setRemoveTemperatureCommands(bool value);
 	EXPORT void setUseExternalFan(bool value);
 	EXPORT void setHeatbedTemperature(unsigned short value);
+	EXPORT void setHeatbedHeight(double value);
 
 	/*
 	Name: Reset pre-processor settings

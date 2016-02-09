@@ -378,7 +378,6 @@ class M3DFioPlugin(
 		self.bedDepth = 121.0
 		self.bedCenterOffsetX = 8.5
 		self.bedCenterOffsetY = 2.0
-		self.heatbedHeight = 10.0
 		
 		# Chip details
 		self.chipName = "ATxmega32C4"
@@ -1132,7 +1131,8 @@ class M3DFioPlugin(
 			RemoveTemperatureCommands = True,
 			UseExternalFan = False,
 			ExternalFanPin = None,
-			HeatbedTemperature = 70
+			HeatbedTemperature = 70,
+			HeatbedHeight = 10.0
 		)
 	
 	# Template manager
@@ -1430,6 +1430,7 @@ class M3DFioPlugin(
 						self.sharedLibrary.setRemoveTemperatureCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveTemperatureCommands"])))
 						self.sharedLibrary.setUseExternalFan(ctypes.c_bool(self._settings.get_boolean(["UseExternalFan"])))
 						self.sharedLibrary.setHeatbedTemperature(ctypes.c_ushort(self._settings.get_int(["HeatbedTemperature"])))
+						self.sharedLibrary.setHeatbedHeight(ctypes.c_double(self._settings.get_float(["HeatbedHeight"])))
 									
 						# Collect print information
 						self.sharedLibrary.collectPrintInformation(ctypes.c_char_p(location))
@@ -2511,8 +2512,8 @@ class M3DFioPlugin(
 			# Check if using on the fly pre-processing
 			if self._settings.get_boolean(["PreprocessOnTheFly"]) :
 	
-				# Wait until pre-processing on the fly is ready
-				while not self.preprocessOnTheFlyReady :
+				# Wait until pre-processing on the fly is ready or print is canceled
+				while not self.preprocessOnTheFlyReady and self._printer.is_printing() :
 				
 					# Update communication timeout to prevent other commands from being sent
 					if self._printer._comm is not None :
@@ -2679,7 +2680,7 @@ class M3DFioPlugin(
 								if readingTemperature :
 								
 									# Display heatbed temperature
-									if len(self._printer._comm.getTemp()) :
+									if len(self._printer._comm.getTemp()) and self._printer._comm.getTemp()[0][0] is not None :
 										command = "T:" + str(self._printer._comm.getTemp()[0][0]) + " B:" + heatbedTemperature
 									else :
 										command = "T:0.0 B:" + heatbedTemperature
@@ -3252,6 +3253,7 @@ class M3DFioPlugin(
 					self.sharedLibrary.setRemoveTemperatureCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveTemperatureCommands"])))
 					self.sharedLibrary.setUseExternalFan(ctypes.c_bool(self._settings.get_boolean(["UseExternalFan"])))
 					self.sharedLibrary.setHeatbedTemperature(ctypes.c_ushort(self._settings.get_int(["HeatbedTemperature"])))
+					self.sharedLibrary.setHeatbedHeight(ctypes.c_double(self._settings.get_float(["HeatbedHeight"])))
 					
 					# Collect print information
 					printIsValid = self.sharedLibrary.collectPrintInformation(ctypes.c_char_p(payload.get("file")))
@@ -3291,7 +3293,7 @@ class M3DFioPlugin(
 			
 						# Create message
 						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "notice", title = "Print warning", text = "Object too large to center on print bed"))
-		
+				
 				# Set pre-process on the fly ready
 				self.preprocessOnTheFlyReady = True
 				
@@ -4808,6 +4810,7 @@ class M3DFioPlugin(
 				self.sharedLibrary.setRemoveTemperatureCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveTemperatureCommands"])))
 				self.sharedLibrary.setUseExternalFan(ctypes.c_bool(self._settings.get_boolean(["UseExternalFan"])))
 				self.sharedLibrary.setHeatbedTemperature(ctypes.c_ushort(self._settings.get_int(["HeatbedTemperature"])))
+				self.sharedLibrary.setHeatbedHeight(ctypes.c_double(self._settings.get_float(["HeatbedHeight"])))
 				
 				# Collect print information
 				printIsValid = self.sharedLibrary.collectPrintInformation(ctypes.c_char_p(input))
@@ -4906,8 +4909,8 @@ class M3DFioPlugin(
 		if self.heatbedConnected :
 		
 			# Adjust bed Z values
-			self.bedMediumMaxZ = 73.5 - self.heatbedHeight
-			self.bedHighMaxZ = 112.0 - self.heatbedHeight
+			self.bedMediumMaxZ = 73.5 - self._settings.get_float(["HeatbedHeight"])
+			self.bedHighMaxZ = 112.0 - self._settings.get_float(["HeatbedHeight"])
 			self.bedHighMinZ = self.bedMediumMaxZ
 		
 		# Otherwise
