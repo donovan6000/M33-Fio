@@ -7048,6 +7048,7 @@ class M3DFioPlugin(
 				os.system("echo \"" + str(fanPin) + "\" > /sys/class/gpio/export")
 				os.system("echo \"out\" > /sys/class/gpio/gpio" + str(fanPin) + "/direction")
 				os.system("echo \"1\" > /sys/class/gpio/gpio" + str(fanPin) + "/value")
+				os.system("echo \"" + str(fanPin) + "\" > /sys/class/gpio/unexport")
 	
 	# Turn off external fan
 	def turnOffExternalFan(self) :
@@ -7063,6 +7064,7 @@ class M3DFioPlugin(
 				os.system("echo \"" + str(fanPin) + "\" > /sys/class/gpio/export")
 				os.system("echo \"out\" > /sys/class/gpio/gpio" + str(fanPin) + "/direction")
 				os.system("echo \"0\" > /sys/class/gpio/gpio" + str(fanPin) + "/value")
+				os.system("echo \"" + str(fanPin) + "\" > /sys/class/gpio/unexport")
 
 
 # Plugin info
