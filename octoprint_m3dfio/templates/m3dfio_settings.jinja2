@@ -45,7 +45,7 @@
 	<div class="control-group">
 		<h4>Pre-Processor Stages</h4>
 		<div class="controls">
-			<label class="checkbox" title="Positions the printed object in the middle of the print bed according to the object's maximum and minimum dimensions">
+			<label class="checkbox" title="Positions the printed object in the middle of the print bed. If possible, the centered model will be repositioned if it goes out of bounds.">
 				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.UseCenterModelPreprocessor"><span>Center Model</span>
 			</label>
 		</div>
@@ -57,6 +57,20 @@
 			</label>
 		</div>
 	</div>
+	<div class="control-group dependant">
+		<div class="controls">
+			<label class="checkbox" title="Removes all fan commands">
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.RemoveFanCommands"><span>Remove fan commands</span>
+			</label>
+		</div>
+	</div>
+	<div class="control-group dependant">
+		<div class="controls">
+			<label class="checkbox" title="Removes all temperature commands">
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.RemoveTemperatureCommands"><span>Remove temperature commands</span>
+			</label>
+		</div>
+	</div>
 	<div class="control-group">
 		<div class="controls">
 			<label class="checkbox" title="Adds in G-code intro and outro">
@@ -64,9 +78,24 @@
 			</label>
 		</div>
 	</div>
+	<div class="control-group dependant">
+		<div class="controls">
+			<label class="checkbox" title="Performs the bed center Z0 calibration procedure before printing">
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.CalibrateBeforePrint"><span>Calibrate before print</span>
+			</label>
+		</div>
+	</div>
+	<div class="control-group dependant">
+		<div class="controls">
+			<label class="checkbox" title="Turns on an external fan at the start of the 4th layer and turns it off when the print is done">
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.UseExternalFan"><span>Use external fan</span>
+				<input type="number" step="1" min="0" max="99" class="input-block-level short" data-bind="value: settings.plugins.m3dfio.ExternalFanPin" placeholder="GPIO pin number">
+			</label>
+		</div>
+	</div>
 	<div class="control-group">
 		<div class="controls">
-			<label class="checkbox" title="Removes all existing temperature and fan G-code commands, and adds dwell times and higher temperatures to the first few layers">
+			<label class="checkbox" title="Adds dwell times and higher temperatures to the first few layers">
 				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.UseThermalBondingPreprocessor"><span>Thermal Bonding</span>
 			</label>
 		</div>
@@ -97,7 +126,7 @@
 		<label class="control-label">Backlash X</label>
 		<div class="controls">
 			<div class="input-append">
-				<input type="number" step="0.0001" min="0" max="2" class="input-block-level" data-bind="value: settings.plugins.m3dfio.BacklashX">
+				<input type="number" step="0.000001" min="0" max="2" class="input-block-level" data-bind="value: settings.plugins.m3dfio.BacklashX">
 				<span class="add-on">mm</span>
 			</div>
 		</div>
@@ -106,7 +135,7 @@
 		<label class="control-label">Backlash Y</label>
 		<div class="controls">
 			<div class="input-append">
-				<input type="number" step="0.0001" min="0" max="2" class="input-block-level" data-bind="value: settings.plugins.m3dfio.BacklashY">
+				<input type="number" step="0.000001" min="0" max="2" class="input-block-level" data-bind="value: settings.plugins.m3dfio.BacklashY">
 				<span class="add-on">mm</span>
 			</div>
 		</div>
@@ -115,7 +144,7 @@
 		<label class="control-label">Backlash Speed</label>
 		<div class="controls">
 			<div class="input-append mmPerMinute">
-				<input type="number" step="0.0001" min="1" max="4999" class="input-block-level" data-bind="value: settings.plugins.m3dfio.BacklashSpeed">
+				<input type="number" step="0.000001" min="1" max="4999" class="input-block-level" data-bind="value: settings.plugins.m3dfio.BacklashSpeed">
 				<span class="add-on">mm/min</span>
 			</div>
 		</div>
@@ -160,7 +189,7 @@
 		<label class="control-label">Bed Height Offset</label>
 		<div class="controls">
 			<div class="input-append">
-				<input type="number" step="0.0001" class="input-block-level" data-bind="value: settings.plugins.m3dfio.BedHeightOffset">
+				<input type="number" step="0.000001" class="input-block-level" data-bind="value: settings.plugins.m3dfio.BedHeightOffset">
 				<span class="add-on">mm</span>
 			</div>
 		</div>
@@ -169,7 +198,7 @@
 		<label class="control-label">Back Left Offset</label>
 		<div class="controls">
 			<div class="input-append">
-				<input type="number" step="0.0001" class="input-block-level" data-bind="value: settings.plugins.m3dfio.BackLeftOffset">
+				<input type="number" step="0.000001" class="input-block-level" data-bind="value: settings.plugins.m3dfio.BackLeftOffset">
 				<span class="add-on">mm</span>
 			</div>
 		</div>
@@ -178,7 +207,7 @@
 		<label class="control-label">Back Right Offset</label>
 		<div class="controls">
 			<div class="input-append">
-				<input type="number" step="0.0001" class="input-block-level" data-bind="value: settings.plugins.m3dfio.BackRightOffset">
+				<input type="number" step="0.000001" class="input-block-level" data-bind="value: settings.plugins.m3dfio.BackRightOffset">
 				<span class="add-on">mm</span>
 			</div>
 		</div>
@@ -187,7 +216,7 @@
 		<label class="control-label">Front Right Offset</label>
 		<div class="controls">
 			<div class="input-append">
-				<input type="number" step="0.0001" class="input-block-level" data-bind="value: settings.plugins.m3dfio.FrontRightOffset">
+				<input type="number" step="0.000001" class="input-block-level" data-bind="value: settings.plugins.m3dfio.FrontRightOffset">
 				<span class="add-on">mm</span>
 			</div>
 		</div>
@@ -196,7 +225,7 @@
 		<label class="control-label">Front Left Offset</label>
 		<div class="controls">
 			<div class="input-append">
-				<input type="number" step="0.0001" class="input-block-level" data-bind="value: settings.plugins.m3dfio.FrontLeftOffset">
+				<input type="number" step="0.000001" class="input-block-level" data-bind="value: settings.plugins.m3dfio.FrontLeftOffset">
 				<span class="add-on">mm</span>
 			</div>
 		</div>
@@ -207,6 +236,24 @@
 			<div class="input-append degreesCelsius">
 				<input type="number" step="1" min="150" max="285" class="input-block-level" data-bind="value: settings.plugins.m3dfio.FilamentTemperature">
 				<span class="add-on">°C</span>
+			</div>
+		</div>
+	</div>
+	<div class="control-group heatbed">
+		<label class="control-label">Heatbed Temperature</label>
+		<div class="controls">
+			<div class="input-append degreesCelsius">
+				<input type="number" step="1" min="40" max="110" class="input-block-level" data-bind="value: settings.plugins.m3dfio.HeatbedTemperature">
+				<span class="add-on">°C</span>
+			</div>
+		</div>
+	</div>
+	<div class="control-group heatbed">
+		<label class="control-label">Heatbed Height</label>
+		<div class="controls">
+			<div class="input-append">
+				<input type="number" step="0.01" min="0" max="20" class="input-block-level" data-bind="value: settings.plugins.m3dfio.HeatbedHeight">
+				<span class="add-on">mm</span>
 			</div>
 		</div>
 	</div>
@@ -246,7 +293,7 @@
 		<label class="control-label">Speed Limit Z</label>
 		<div class="controls">
 			<div class="input-append mmPerMinute">
-				<input type="number" step="1" min="30" max="90" class="input-block-level" data-bind="value: settings.plugins.m3dfio.SpeedLimitZ">
+				<input type="number" step="1" min="30" max="60" class="input-block-level" data-bind="value: settings.plugins.m3dfio.SpeedLimitZ">
 				<span class="add-on">mm/min</span>
 			</div>
 		</div>

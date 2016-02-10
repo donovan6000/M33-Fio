@@ -1,5 +1,16 @@
 Changelog:
 
+V0.26 February 9, 2016
+
+	* Added support for the Micro 3D compatible heatbed. Thanks Loswave!
+	* Fixed issue where commands would occasionally be ignored when a lot of commands were sent at once
+	* The centering model pre-processor will now reposition the model if it goes out of bounds after being centered
+	* A warning is displayed if printing a file without any fan commands
+	* The validation pre-processor now includes sub-options that allow removing all existing fan and temperature G-code commands from a file
+	* The slicer profile editor now allows easily setting the quality and fill of a print
+	* Allows setting a pin on a Raspberry Pi that goes high at the start of the 4th layer of a print and low when a print is canceled of fails. This is intended to be used to drive an external fan, but it can be used for any purpose. Thanks ra100!
+	* Fixed DBus issue that caused installations to fail on Linux distros that didn't have the Python DBus module installed
+
 V0.25 January 25, 2016
 
 	* Added support for AMF, COLLADA, and VRML files

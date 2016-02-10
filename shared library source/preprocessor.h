@@ -128,10 +128,16 @@ extern "C" {
 	EXPORT void setUseBacklashCompensationPreprocessor(bool value);
 	EXPORT void setUseCenterModelPreprocessor(bool value);
 	EXPORT void setIgnorePrintDimensionLimitations(bool value);
-	EXPORT void setUsingMicroPass(bool value);
+	EXPORT void setUsingHeatbed(bool value);
 	EXPORT void setPrintingTestBorder(bool value);
 	EXPORT void setPrintingBacklashCalibrationCylinder(bool value);
 	EXPORT void setPrinterColor(const char *value);
+	EXPORT void setCalibrateBeforePrint(bool value);
+	EXPORT void setRemoveFanCommands(bool value);
+	EXPORT void setRemoveTemperatureCommands(bool value);
+	EXPORT void setUseExternalFan(bool value);
+	EXPORT void setHeatbedTemperature(unsigned short value);
+	EXPORT void setHeatbedHeight(double value);
 
 	/*
 	Name: Reset pre-processor settings
@@ -150,6 +156,18 @@ extern "C" {
 	Purpose: Pre-processes a command or file and returns additional commands if pre-processing a command
 	*/
 	EXPORT const char *preprocess(const char *input, const char *output = NULL, bool lastCommand = false);
+	
+	/*
+	Name: Get detected fan speed
+	Purpose: Returns the speed of the fan that the print uses
+	*/
+	EXPORT unsigned char getDetectedFanSpeed();
+	
+	/*
+	Name: Get object successfully centered
+	Purpose: Returns if the object has been centered
+	*/
+	EXPORT bool getObjectSuccessfullyCentered();
 }
 
 

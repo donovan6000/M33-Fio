@@ -86,6 +86,11 @@ else
 		done
 		rm master.zip
 		
+		# Install heatbed drivers
+		curl -O 'https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/OS%20X/CH34x_Install.pkg'
+		installer -pkg CH34x_Install.pkg -target /
+		rm CH34x_Install.pkg
+		
 		# Get OctoPrint parameter
 		octoPrintVersion="$(/Library/Frameworks/Python.framework/Versions/${pythonVersion}/bin/octoprint --version | cut -d' ' -f3)"
 		if [ $octoPrintVersion = "1.2.8" ] || [ $octoPrintVersion = "1.2.9" ]; then
