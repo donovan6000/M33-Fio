@@ -23,7 +23,7 @@ else
 
 		# Install Python
 		curl -o index.html https://www.python.org/downloads/mac-osx/
-		version="$(grep -Po "(?<=Latest Python 2 Release - Python )[0-9\.]*" index.html)"
+		version="$(perl -nle'print $1 if m/Latest Python 2 Release - Python ([0-9\.]*)/' index.html)"
 		rm index.html
 		curl -o python.pkg https://www.python.org/ftp/python/${version}/python-${version}-macosx10.6.pkg
 		installer -pkg python.pkg -target /
@@ -37,7 +37,7 @@ else
 
 		# Install PyObjC core
 		curl -o index.html https://pypi.python.org/pypi/pyobjc-core
-		version="$(grep -Poa "(?<=pyobjc-core-)[0-9\.]*(?=\.tar\.gz)" index.html | head -1)"
+		version="$(perl -nle'print $1 if m/pyobjc-core-([0-9\.]*)\.tar\.gz/' index.html | head -1)"
 		rm index.html
 		curl -o pyobjc-core.tar.gz https://pypi.python.org/packages/source/p/pyobjc-core/pyobjc-core-${version}.tar.gz
 		tar zxvf pyobjc-core.tar.gz
@@ -57,7 +57,7 @@ else
 
 		# Install PyObjC framework
 		curl -o index.html https://pypi.python.org/pypi/pyobjc-framework-Cocoa
-		version="$(grep -Poa "(?<=pyobjc-framework-Cocoa-)[0-9\.]*(?=\.tar\.gz)" index.html | head -1)"
+		version="$(perl -nle'print $1 if m/pyobjc-framework-Cocoa-([0-9\.]*)\.tar\.gz/' index.html | head -1)"
 		rm index.html
 		curl -o pyobjc-framework-Cocoa.tar.gz https://pypi.python.org/packages/source/p/pyobjc-framework-Cocoa/pyobjc-framework-Cocoa-${version}.tar.gz
 		tar zxvf pyobjc-framework-Cocoa.tar.gz
