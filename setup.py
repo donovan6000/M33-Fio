@@ -66,7 +66,8 @@ def params():
 	install_requires = open("requirements.txt").read().split("\n")
 	
 	# Add Windows Specific requirements
-	if usingWindows() :	
+	if usingWindows() :
+		install_requires.pop()
 		install_requires += ["regex>=2016.01.10", '']
 	
 	# Hook the plugin into the "octoprint.plugin" entry point, mapping the plugin_identifier to the plugin_package.
