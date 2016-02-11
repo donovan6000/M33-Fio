@@ -64,10 +64,16 @@ extern "C" {
 	double getDistance(const Gcode &firstPoint, const Gcode &secondPoint);
 
 	/*
-	Name: Is sharp corner
-	Purpose: Returns if two points make a sharp corner
+	Name: Is sharp corner for thermal bonding
+	Purpose: Returns if two points make a sharp corner for thermal bonding
 	*/
-	bool isSharpCorner(const Gcode &point, const Gcode &refrence);
+	bool isSharpCornerForThermalBonding(const Gcode &point, const Gcode &refrence);
+	
+	/*
+	Name: Is sharp corner for wave bonding
+	Purpose: Returns if two points make a sharp corner for wave bonding
+	*/
+	bool isSharpCornerForWaveBonding(const Gcode &point, const Gcode &refrence);
 
 	/*
 	Name: Get current adjustment Z

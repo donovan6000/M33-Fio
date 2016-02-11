@@ -285,7 +285,7 @@ Gcode createTackPoint(const Gcode &point, const Gcode &refrence) {
 	return gcode;
 }
 
-bool isSharpCorner(const Gcode &point, const Gcode &refrence) {
+bool isSharpCornerForThermalBonding(const Gcode &point, const Gcode &refrence) {
 
 	// Initialize variables
 	double value;
@@ -310,6 +310,42 @@ bool isSharpCorner(const Gcode &point, const Gcode &refrence) {
 	
 		// Calculate value
 		value = acos((currentX * previousX + currentY * previousY) / denominator);
+	
+	// Check if value is not a number
+	if(std::isnan(value))
+	
+		// Return false
+		return false;
+	
+	// Return if sharp corner
+	return value > 0 && value < M_PI_2;
+}
+
+bool isSharpCornerForWaveBonding(const Gcode &point, const Gcode &refrence) {
+
+	// Initialize variables
+	double value;
+	
+	// Get point coordinates
+	double currentX = point.hasValue('X') ? stod(point.getValue('X')) : 0;
+	double currentY = point.hasValue('Y') ? stod(point.getValue('Y')) : 0;
+	
+	// Get refrence coordinates
+	double previousX = refrence.hasValue('X') ? stod(refrence.getValue('X')) : 0;
+	double previousY = refrence.hasValue('Y') ? stod(refrence.getValue('Y')) : 0;
+	
+	// Check if divide by zero
+	double denominator = pow(currentX * currentX + currentY + currentY, 2) * pow(previousX * previousX + previousY + previousY, 2);
+	if(!denominator)
+	
+		// Return false
+		return false;
+	
+	// Otherwise
+	else
+	
+		// Calculate value
+		value = acos((currentX * previousX + currentY + previousY) / denominator);
 	
 	// Check if value is not a number
 	if(std::isnan(value))
@@ -1075,13 +1111,13 @@ EXPORT bool collectPrintInformation(const char *file) {
 		}
 		
 		// Check if all fan commands are being removed
-		if(detectedFanSpeed == -1 || (removeFanCommands && !usePreparationPreprocessor))
+		if(detectedFanSpeed == -1 || removeFanCommands)
 		
 			// Set detected fan speed
 			detectedFanSpeed = 0;
 		
-		// Otherwise check if using preparation pre-processor
-		else if(usePreparationPreprocessor) {
+		// Check if using preparation pre-processor or printing a test border or backlash calibration cylinder
+		if(usePreparationPreprocessor || printingTestBorder || printingBacklashCalibrationCylinder) {
 		
 			// Set detected fan speed
 			if(filamentType == PLA || filamentType == FLX || filamentType == TGH)
@@ -1514,8 +1550,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 								// Check if previous G-code is not empty
 								if(!waveBondingPreviousGcode.isEmpty()) {
 
-									//Check if first sharp corner
-									if(waveBondingCornerCounter < 1 && isSharpCorner(gcode, waveBondingPreviousGcode)) {
+									// Check if first sharp corner
+									if(waveBondingCornerCounter < 1 && isSharpCornerForWaveBonding(gcode, waveBondingPreviousGcode)) {
 
 										// Check if refrence G-codes isn't set
 										if(waveBondingRefrenceGcode.isEmpty()) {
@@ -1536,7 +1572,7 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 									}
 
 									// Otherwise check if sharp corner
-									else if(isSharpCorner(gcode, waveBondingRefrenceGcode)) {
+									else if(isSharpCornerForWaveBonding(gcode, waveBondingRefrenceGcode)) {
 
 										// Check if a tack point was created
 										waveBondingTackPoint = createTackPoint(gcode, waveBondingRefrenceGcode);
@@ -1776,7 +1812,7 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 							if(!thermalBondingPreviousGcode.isEmpty() && (filamentType == ABS || filamentType == HIPS || filamentType == PLA || filamentType == FLX || filamentType == TGH || filamentType == CAM)) {
 
 								// Check if first sharp corner
-								if(thermalBondingCornerCounter < 1 && isSharpCorner(gcode, thermalBondingPreviousGcode)) {
+								if(thermalBondingCornerCounter < 1 && isSharpCornerForThermalBonding(gcode, thermalBondingPreviousGcode)) {
 		
 									// Check if refrence G-codes isn't set
 									if(thermalBondingRefrenceGcode.isEmpty()) {
@@ -1797,7 +1833,7 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 								}
 	
 								// Otherwise check if sharp corner
-								else if(isSharpCorner(gcode, thermalBondingRefrenceGcode)) {
+								else if(isSharpCornerForThermalBonding(gcode, thermalBondingRefrenceGcode)) {
 	
 									// Check if a tack point was created
 									thermalBondingTackPoint = createTackPoint(gcode, thermalBondingRefrenceGcode);
