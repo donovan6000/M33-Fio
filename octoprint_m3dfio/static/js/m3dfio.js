@@ -1554,7 +1554,7 @@ $(function() {
 					
 								// Render
 								viewport.render();
-							}, 80);
+							}, 200);
 				
 							$(document).on("mousemove.viewport", viewport.stopRemoveSelectionTimeout);
 						}
