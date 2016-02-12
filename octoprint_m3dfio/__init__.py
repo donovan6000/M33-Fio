@@ -14,6 +14,7 @@ import octoprint.plugin
 import octoprint.events
 import octoprint.filemanager
 import octoprint.printer
+import octoprint.settings
 import tempfile
 import os
 import time
@@ -38,6 +39,9 @@ import subprocess
 import psutil
 import socket
 import threading
+import cv2
+import BaseHTTPServer
+import SocketServer
 from .gcode import Gcode
 from .vector import Vector
 
@@ -110,6 +114,7 @@ class M3DFioPlugin(
 		self.currentSerialPort = None
 		self.providedFirmwares = {}
 		self.printerColor = "Black"
+		self.camera = None
 		
 		# Rom decryption and encryption tables
 		self.romDecryptionTable = [0x26, 0xE2, 0x63, 0xAC, 0x27, 0xDE, 0x0D, 0x94, 0x79, 0xAB, 0x29, 0x87, 0x14, 0x95, 0x1F, 0xAE, 0x5F, 0xED, 0x47, 0xCE, 0x60, 0xBC, 0x11, 0xC3, 0x42, 0xE3, 0x03, 0x8E, 0x6D, 0x9D, 0x6E, 0xF2, 0x4D, 0x84, 0x25, 0xFF, 0x40, 0xC0, 0x44, 0xFD, 0x0F, 0x9B, 0x67, 0x90, 0x16, 0xB4, 0x07, 0x80, 0x39, 0xFB, 0x1D, 0xF9, 0x5A, 0xCA, 0x57, 0xA9, 0x5E, 0xEF, 0x6B, 0xB6, 0x2F, 0x83, 0x65, 0x8A, 0x13, 0xF5, 0x3C, 0xDC, 0x37, 0xD3, 0x0A, 0xF4, 0x77, 0xF3, 0x20, 0xE8, 0x73, 0xDB, 0x7B, 0xBB, 0x0B, 0xFA, 0x64, 0x8F, 0x08, 0xA3, 0x7D, 0xEB, 0x5C, 0x9C, 0x3E, 0x8C, 0x30, 0xB0, 0x7F, 0xBE, 0x2A, 0xD0, 0x68, 0xA2, 0x22, 0xF7, 0x1C, 0xC2, 0x17, 0xCD, 0x78, 0xC7, 0x21, 0x9E, 0x70, 0x99, 0x1A, 0xF8, 0x58, 0xEA, 0x36, 0xB1, 0x69, 0xC9, 0x04, 0xEE, 0x3B, 0xD6, 0x34, 0xFE, 0x55, 0xE7, 0x1B, 0xA6, 0x4A, 0x9A, 0x54, 0xE6, 0x51, 0xA0, 0x4E, 0xCF, 0x32, 0x88, 0x48, 0xA4, 0x33, 0xA5, 0x5B, 0xB9, 0x62, 0xD4, 0x6F, 0x98, 0x6C, 0xE1, 0x53, 0xCB, 0x46, 0xDD, 0x01, 0xE5, 0x7A, 0x86, 0x75, 0xDF, 0x31, 0xD2, 0x02, 0x97, 0x66, 0xE4, 0x38, 0xEC, 0x12, 0xB7, 0x00, 0x93, 0x15, 0x8B, 0x6A, 0xC5, 0x71, 0x92, 0x45, 0xA1, 0x59, 0xF0, 0x06, 0xA8, 0x5D, 0x82, 0x2C, 0xC4, 0x43, 0xCC, 0x2D, 0xD5, 0x35, 0xD7, 0x3D, 0xB2, 0x74, 0xB3, 0x09, 0xC6, 0x7C, 0xBF, 0x2E, 0xB8, 0x28, 0x9F, 0x41, 0xBA, 0x10, 0xAF, 0x0C, 0xFC, 0x23, 0xD9, 0x49, 0xF6, 0x7E, 0x8D, 0x18, 0x96, 0x56, 0xD1, 0x2B, 0xAD, 0x4B, 0xC1, 0x4F, 0xC8, 0x3A, 0xF1, 0x1E, 0xBD, 0x4C, 0xDA, 0x50, 0xA7, 0x52, 0xE9, 0x76, 0xD8, 0x19, 0x91, 0x72, 0x85, 0x3F, 0x81, 0x61, 0xAA, 0x05, 0x89, 0x0E, 0xB5, 0x24, 0xE0]
@@ -695,9 +700,94 @@ class M3DFioPlugin(
 			# Delay
 			time.sleep(0.5)
 	
+	# Camera server
+	def cameraServer(self) :
+	
+		# Initialize camera
+		camera = self.camera
+		
+		# Create request handler
+		class requestHandler(BaseHTTPServer.BaseHTTPRequestHandler) :
+		
+			# GET request
+			def do_GET(self) :
+			
+				# Check if requesting snapshot
+				if self.path.split('?')[0] == "/snapshot" :
+				
+					# Start header
+					self.send_response(200)
+					self.send_header("Content-type", "image/jpg")
+					
+					# Get image from camera
+					ret = False
+					while not ret :
+						ret, image = camera.read()
+					
+					# Convert image to a JPEG
+					ret, jpeg = cv2.imencode(".jpg", image)
+					frame = jpeg.tostring()
+					
+					# Finish header
+					self.send_header("Content-length", len(frame))
+					self.end_headers()
+					
+					# Send image
+					self.wfile.write(frame)
+				
+				# Otherwise check if requesting stream
+				elif self.path.split('?')[0] == "/stream" :
+				
+					# Send header
+					self.send_response(200)
+					self.send_header("Content-type", "multipart/x-mixed-replace; boundary=frame")
+					self.end_headers()
+					
+					# Loop forever
+					while True :
+					
+						try :
+				
+							# Get image from camera
+							ret = False
+							while not ret :
+								ret, image = camera.read()
+					
+							# Convert image to a JPEG
+							ret, jpeg = cv2.imencode(".jpg", image)
+							frame = jpeg.tostring()
+					
+							# Send frame
+							self.wfile.write("--frame")
+							self.send_header("Content-type", "image/jpeg")
+							self.send_header("Content-length", len(frame))
+							self.end_headers()
+							self.wfile.write(frame)
+							
+							# Delay
+							cv2.waitKey(25)
+							
+						except Exception :
+							break
+				
+				# Otherwise
+				else :
+				
+					# Response with error 404
+					self.send_response(404)
+					self.end_headers()
+		
+		# Create threaded HTTP server
+		class ThreadedHTTPServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer) :
+			pass
+		
+		# Start server
+		server = ThreadedHTTPServer(("localhost", 8080), requestHandler)
+		server.serve_forever()
+	
 	# On start
 	def on_after_startup(self) :
-		
+	
 		# Set reminders on initial OctoPrint instance
 		currentPort = self.getListenPort(psutil.Process(os.getpid()))
 		if currentPort is not None and self.getListenPort(psutil.Process(os.getpid())) == 5000 :
@@ -847,6 +937,22 @@ class M3DFioPlugin(
 		monitorHeatbedThread = threading.Thread(target=self.monitorHeatbed)
 		monitorHeatbedThread.daemon = True
 		monitorHeatbedThread.start()
+		
+		# Check if hosting camera
+		if self._settings.get_boolean(["HostCamera"]) :
+		
+			# Check if camera device index is set
+			cameraDeviceIndex = self._settings.get_int(["CameraDeviceIndex"])
+			if cameraDeviceIndex is not None :
+		
+				# Check if a camera with the specified device index exist
+				self.camera = cv2.VideoCapture(cameraDeviceIndex)
+				if self.camera.isOpened() :
+				
+					# Start camera host thread
+					cameraServerThread = threading.Thread(target=self.cameraServer)
+					cameraServerThread.daemon = True
+					cameraServerThread.start()
 	
 	# Get firmware details
 	def getFirmwareDetails(self) :
@@ -1076,6 +1182,10 @@ class M3DFioPlugin(
 		if os.path.isfile(configFile) :
 			os.remove(configFile)
 		
+		# Release camera
+		if self.camera is not None :
+			self.camera.release()
+		
 		# Enable sleep
 		self.enableSleep()
 	
@@ -1124,7 +1234,9 @@ class M3DFioPlugin(
 			UseExternalFan = False,
 			ExternalFanPin = None,
 			HeatbedTemperature = 70,
-			HeatbedHeight = 10.0
+			HeatbedHeight = 10.0,
+			HostCamera = False,
+			CameraDeviceIndex = None
 		)
 	
 	# Template manager
@@ -1601,8 +1713,16 @@ class M3DFioPlugin(
 				else :
 					return flask.jsonify(dict(value = "OK"))
 			
-			# Otherwise check if parameter is to save printer settings
-			elif data["value"] == "Save Printer Settings" :
+			# Otherwise check if parameter is to saved settings
+			elif data["value"] == "Saved Settings" :
+			
+				# Check if hosting camera
+				if self._settings.get_boolean(["HostCamera"]) :
+				
+					# Set OctoPrint camera URLs
+					octoprint.settings.settings().set(["webcam", "stream"], "http://localhost:8080/stream")
+					octoprint.settings.settings().set(["webcam", "snapshot"], "http://localhost:8080/snapshot")
+					octoprint.settings.settings().save()
 			
 				# Check if a micro 3D is connected
 				if not self.invalidPrinter :
@@ -1867,6 +1987,9 @@ class M3DFioPlugin(
 				self._settings.set_int(["FilamentTemperature"], int(values["filamentTemperature"]))
 				self._settings.set_int(["HeatbedTemperature"], int(values["heatbedTemperature"]))
 				self._settings.set(["FilamentType"], str(values["filamentType"]))
+				
+				# Save settings
+				octoprint.settings.settings().save()
 				
 				# Return response
 				return flask.jsonify(dict(value = "OK"))
@@ -3370,8 +3493,8 @@ class M3DFioPlugin(
 		# Go through all connections
 		for connection in connections :
 		
-			# Check if listening on port
-			if connection.status == "LISTEN" :
+			# Check if listening on port and it's not the camera
+			if connection.status == "LISTEN" and connection.laddr[1] != 8080 :
 			
 				# Return port
 				return connection.laddr[1]
@@ -4460,7 +4583,7 @@ class M3DFioPlugin(
 				else :
 					
 					# Save software settings
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Save Software Settings"))
+					octoprint.settings.settings().save()
 				
 				# Send invalid values
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Invalid", bedCenter = self.invalidBedCenter, bedOrientation = self.invalidBedOrientation))
@@ -5168,13 +5291,13 @@ class M3DFioPlugin(
 				return False
 		
 		# Check if all fan commands are being removed
-		if self.detectedFanSpeed is None or self._settings.get_boolean(["RemoveFanCommands"]) :
+		if self.detectedFanSpeed is None or (self._settings.get_boolean(["RemoveFanCommands"]) and not self._settings.get_boolean(["UsePreparationPreprocessor"])) :
 		
 			# Set detected fan speed
 			self.detectedFanSpeed = 0
 		
-		# Check if using preparation pre-processor or printing a test border or backlash calibration cylinder
-		if self._settings.get_boolean(["UsePreparationPreprocessor"]) or self.printingTestBorder or self.printingBacklashCalibrationCylinder :
+		# Otherwise check if using preparation pre-processor
+		elif self._settings.get_boolean(["UsePreparationPreprocessor"]) :
 		
 			# Set detected fan speed
 			if str(self._settings.get(["FilamentType"])) == "PLA" or str(self._settings.get(["FilamentType"])) == "FLX" or str(self._settings.get(["FilamentType"])) == "TGH" :
@@ -5236,8 +5359,8 @@ class M3DFioPlugin(
 		# Return G-code
 		return gcode
 	
-	# Is sharp corner for thermal bonding
-	def isSharpCornerForThermalBonding(self, point, refrence) :
+	# Is sharp corner
+	def isSharpCorner(self, point, refrence) :
 
 		# Get point coordinates
 		if point.hasValue('X') :
@@ -5274,54 +5397,6 @@ class M3DFioPlugin(
 			# Calculate value
 			try :
 				value = math.acos((currentX * previousX + currentY * previousY) / denominator)
-			
-			# Check if value is not a number
-			except ValueError :
-			
-				# Return false
-				return False
-		
-		# Return if sharp corner
-		return value > 0 and value < math.pi / 2
-	
-	# Is sharp corner for wave bonding
-	def isSharpCornerForWaveBonding(self, point, refrence) :
-
-		# Get point coordinates
-		if point.hasValue('X') :
-			currentX = float(point.getValue('X'))
-		else :
-			currentX = 0
-		
-		if point.hasValue('Y') :
-			currentY = float(point.getValue('Y'))
-		else :
-			currentY = 0
-		
-		# Get refrence coordinates
-		if refrence.hasValue('X') :
-			previousX = float(refrence.getValue('X'))
-		else :
-			previousX = 0
-		
-		if refrence.hasValue('Y') :
-			previousY = float(refrence.getValue('Y'))
-		else :
-			previousY = 0
-		
-		# Check if divide by zero
-		denominator = math.pow(currentX * currentX + currentY + currentY, 2) * math.pow(previousX * previousX + previousY + previousY, 2)
-		if denominator == 0 :
-		
-			# Return false
-			return False
-		
-		# Otherwise
-		else :
-		
-			# Calculate value
-			try :
-				value = math.acos((currentX * previousX + currentY + previousY) / denominator)
 			
 			# Check if value is not a number
 			except ValueError :
@@ -5886,7 +5961,7 @@ class M3DFioPlugin(
 									if not self.waveBondingPreviousGcode.isEmpty() :
 
 										# Check if first sharp corner
-										if self.waveBondingCornerCounter < 1 and self.isSharpCornerForWaveBonding(gcode, self.waveBondingPreviousGcode) :
+										if self.waveBondingCornerCounter < 1 and self.isSharpCorner(gcode, self.waveBondingPreviousGcode) :
 	
 											# Check if refrence G-codes isn't set
 											if self.waveBondingRefrenceGcode.isEmpty() :
@@ -5905,7 +5980,7 @@ class M3DFioPlugin(
 											self.waveBondingCornerCounter += 1
 	
 										# Otherwise check if sharp corner
-										elif self.isSharpCornerForWaveBonding(gcode, self.waveBondingRefrenceGcode) :
+										elif self.isSharpCorner(gcode, self.waveBondingRefrenceGcode) :
 	
 											# Check if a tack point was created
 											self.waveBondingTackPoint = self.createTackPoint(gcode, self.waveBondingRefrenceGcode)
@@ -6127,7 +6202,7 @@ class M3DFioPlugin(
 								if not self.thermalBondingPreviousGcode.isEmpty() and (str(self._settings.get(["FilamentType"])) == "ABS" or str(self._settings.get(["FilamentType"])) == "HIPS" or str(self._settings.get(["FilamentType"])) == "PLA" or str(self._settings.get(["FilamentType"])) == "FLX" or str(self._settings.get(["FilamentType"])) == "TGH" or str(self._settings.get(["FilamentType"])) == "CAM") :
 	
 									# Check if first sharp corner
-									if self.thermalBondingCornerCounter < 1 and self.isSharpCornerForThermalBonding(gcode, self.thermalBondingPreviousGcode) :
+									if self.thermalBondingCornerCounter < 1 and self.isSharpCorner(gcode, self.thermalBondingPreviousGcode) :
 			
 										# Check if refrence G-codes isn't set
 										if self.thermalBondingRefrenceGcode.isEmpty() :
@@ -6146,7 +6221,7 @@ class M3DFioPlugin(
 										self.thermalBondingCornerCounter += 1
 		
 									# Otherwise check if sharp corner
-									elif self.isSharpCornerForThermalBonding(gcode, self.thermalBondingRefrenceGcode) :
+									elif self.isSharpCorner(gcode, self.thermalBondingRefrenceGcode) :
 		
 										# Check if a tack point was created
 										self.thermalBondingTackPoint = self.createTackPoint(gcode, self.thermalBondingRefrenceGcode)
@@ -6997,12 +7072,12 @@ class M3DFioPlugin(
 					bus = dbus.SessionBus()
 				
 				except dbus.DBusException :
-				
+					
 					self.linuxSleepService = None
-				
+			
 					# Return false
 					return False
-				
+			
 				# Inhibit sleep service
 				try :
 					self.linuxSleepService = dbus.Interface(bus.get_object("org.gnome.ScreenSaver", "/org/gnome/ScreenSaver"), "org.gnome.ScreenSaver")
@@ -7027,7 +7102,7 @@ class M3DFioPlugin(
 								self.linuxSleepPrevention = self.linuxSleepService.Inhibit("M3D Fio", "Disabled by M3D Fio")
 				
 							except dbus.DBusException :
-							
+					
 								self.linuxSleepService = None
 						
 								# Return false

@@ -1554,7 +1554,7 @@ $(function() {
 					
 								// Render
 								viewport.render();
-							}, 200);
+							}, 80);
 				
 							$(document).on("mousemove.viewport", viewport.stopRemoveSelectionTimeout);
 						}
@@ -5133,8 +5133,8 @@ $(function() {
 		// Save settings button event
 		$("#settings_dialog > div.modal-footer > button.btn-primary").click(function() {
 		
-			// Save printer settings
-			function savePrinterSettings() {
+			// Saved settings
+			function savedSettings() {
 			
 				// Check if settings were saved
 				if(!$("#settings_dialog").hasClass("in")) {
@@ -5144,7 +5144,7 @@ $(function() {
 						url: API_BASEURL + "plugin/m3dfio",
 						type: "POST",
 						dataType: "json",
-						data: JSON.stringify({command: "message", value: "Save Printer Settings"}),
+						data: JSON.stringify({command: "message", value: "Saved Settings"}),
 						contentType: "application/json; charset=UTF-8"
 					});
 				}
@@ -5153,9 +5153,9 @@ $(function() {
 				else
 				
 					// Check if settings were saved again
-					setTimeout(savePrinterSettings, 100);
+					setTimeout(savedSettings, 100);
 			}
-			setTimeout(savePrinterSettings, 100);
+			setTimeout(savedSettings, 100);
 		});
 	
 		// Override X increment control
@@ -5565,9 +5565,7 @@ $(function() {
 		
 				for(var i = 2; i <= 40; i += 2)
 					commands.push("G0 E-" + i + " F345");
-
-				commands.push("M104 S0");
-				commands.push("M107");
+				
 				commands.push("M65536;wait");
 				
 				// Set waiting callback
@@ -5578,6 +5576,23 @@ $(function() {
 		
 						// Hide message
 						hideMessage();
+						
+						// Set commands
+						commands = [
+							"M18",
+							"M104 S0",
+							"M107"
+						];
+						
+						// Send request
+						$.ajax({
+							url: API_BASEURL + "plugin/m3dfio",
+							type: "POST",
+							dataType: "json",
+							data: JSON.stringify({command: "message", value: commands}),
+							contentType: "application/json; charset=UTF-8"
+						});
+						
 					}, "No", function() {
 					
 						// Hide message
@@ -5651,9 +5666,7 @@ $(function() {
 		
 				for(var i = 2; i <= 40; i += 2)
 					commands.push("G0 E" + i + " F345");
-
-				commands.push("M104 S0");
-				commands.push("M107");
+				
 				commands.push("M65536;wait");
 				
 				// Set waiting callback
@@ -5664,6 +5677,22 @@ $(function() {
 				
 						// Hide message
 						hideMessage();
+						
+						// Set commands
+						commands = [
+							"M18",
+							"M104 S0",
+							"M107"
+						];
+						
+						// Send request
+						$.ajax({
+							url: API_BASEURL + "plugin/m3dfio",
+							type: "POST",
+							dataType: "json",
+							data: JSON.stringify({command: "message", value: commands}),
+							contentType: "application/json; charset=UTF-8"
+						});
 					}, "No", function() {
 				
 						// Hide message
@@ -7719,21 +7748,6 @@ $(function() {
 					// Open file input dialog
 					$("#control > div.jog-panel.advanced").find("div > input").click();
 				});
-			}
-			
-			// Otherwise check if data is to save software settings
-			else if(data.value == "Save Software Settings") {
-			
-				// Save software settings
-				function saveSoftwareSettings() {
-					self.settings.saveData();
-				}
-				
-				// Update settings
-				if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
-					self.settings.requestData(saveSoftwareSettings);
-				else
-					self.settings.requestData().done(saveSoftwareSettings);
 			}
 			
 			// Otherwise check if data is EEPROM
