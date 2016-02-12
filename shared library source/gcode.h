@@ -26,7 +26,7 @@ class Gcode {
 		Name: Copy constructor
 		Purpose: Initializes the variable if copied
 		*/
-		Gcode(Gcode &value);
+		Gcode(const Gcode &value);
 		
 		/*
 		Name: Parse line
