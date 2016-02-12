@@ -706,6 +706,10 @@ class M3DFioPlugin(
 		# Initialize camera
 		camera = self.camera
 		
+		# Stabilize lighting
+		for i in xrange(30) :
+			camera.read()
+		
 		# Create request handler
 		class requestHandler(BaseHTTPServer.BaseHTTPRequestHandler) :
 		
@@ -1294,12 +1298,21 @@ class M3DFioPlugin(
 			# Check if parameter is a list of commands
 			if isinstance(data["value"], list) :
 			
+				# Set no line numbers if first command is to remove line numbers
+				if data["value"][0] == "M65538;no line numbers" :
+					noLineNumber = True
+					data["value"].pop(0)
+				
+				# Otherwise clear no line numbers
+				else :
+					noLineNumber = False
+			
 				# Set waiting if last command is to wait
 				if data["value"][-1] == "M65536;wait" :
 					self.waiting = True
-			
-				# Check if printing or paused
-				if self._printer.is_printing() or self._printer.is_paused() :
+				
+				# Check if not using line numbers, printing, or paused
+				if noLineNumber or self._printer.is_printing() or self._printer.is_paused() :
 				
 					# Send commands to printer
 					self.sendCommands(data["value"])

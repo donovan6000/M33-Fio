@@ -5559,6 +5559,7 @@ $(function() {
 	
 				// Set commands
 				commands = [
+					"M65538;no line numbers",
 					"G90",
 					"G92"
 				];
@@ -5581,7 +5582,7 @@ $(function() {
 						commands = [
 							"M18",
 							"M104 S0",
-							"M107"
+							"M107",
 						];
 						
 						// Send request
@@ -5660,6 +5661,7 @@ $(function() {
 	
 				// Set commands
 				commands = [
+					"M65538;no line numbers",
 					"G90",
 					"G92"
 				];
