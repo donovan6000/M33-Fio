@@ -5291,13 +5291,13 @@ class M3DFioPlugin(
 				return False
 		
 		# Check if all fan commands are being removed
-		if self.detectedFanSpeed is None or (self._settings.get_boolean(["RemoveFanCommands"]) and not self._settings.get_boolean(["UsePreparationPreprocessor"])) :
+		if self.detectedFanSpeed is None or self._settings.get_boolean(["RemoveFanCommands"]) :
 		
 			# Set detected fan speed
 			self.detectedFanSpeed = 0
 		
-		# Otherwise check if using preparation pre-processor
-		elif self._settings.get_boolean(["UsePreparationPreprocessor"]) :
+		# Check if using preparation pre-processor or printing a test border or backlash calibration cylinder
+		if self._settings.get_boolean(["UsePreparationPreprocessor"]) or self.printingTestBorder or self.printingBacklashCalibrationCylinder :
 		
 			# Set detected fan speed
 			if str(self._settings.get(["FilamentType"])) == "PLA" or str(self._settings.get(["FilamentType"])) == "FLX" or str(self._settings.get(["FilamentType"])) == "TGH" :
@@ -5359,8 +5359,8 @@ class M3DFioPlugin(
 		# Return G-code
 		return gcode
 	
-	# Is sharp corner
-	def isSharpCorner(self, point, refrence) :
+	# Is sharp corner for thermal bonding
+	def isSharpCornerForThermalBonding(self, point, refrence) :
 
 		# Get point coordinates
 		if point.hasValue('X') :
@@ -5397,6 +5397,54 @@ class M3DFioPlugin(
 			# Calculate value
 			try :
 				value = math.acos((currentX * previousX + currentY * previousY) / denominator)
+			
+			# Check if value is not a number
+			except ValueError :
+			
+				# Return false
+				return False
+		
+		# Return if sharp corner
+		return value > 0 and value < math.pi / 2
+	
+	# Is sharp corner for wave bonding
+	def isSharpCornerForWaveBonding(self, point, refrence) :
+
+		# Get point coordinates
+		if point.hasValue('X') :
+			currentX = float(point.getValue('X'))
+		else :
+			currentX = 0
+		
+		if point.hasValue('Y') :
+			currentY = float(point.getValue('Y'))
+		else :
+			currentY = 0
+		
+		# Get refrence coordinates
+		if refrence.hasValue('X') :
+			previousX = float(refrence.getValue('X'))
+		else :
+			previousX = 0
+		
+		if refrence.hasValue('Y') :
+			previousY = float(refrence.getValue('Y'))
+		else :
+			previousY = 0
+		
+		# Check if divide by zero
+		denominator = math.pow(currentX * currentX + currentY + currentY, 2) * math.pow(previousX * previousX + previousY + previousY, 2)
+		if denominator == 0 :
+		
+			# Return false
+			return False
+		
+		# Otherwise
+		else :
+		
+			# Calculate value
+			try :
+				value = math.acos((currentX * previousX + currentY + previousY) / denominator)
 			
 			# Check if value is not a number
 			except ValueError :
@@ -5961,7 +6009,7 @@ class M3DFioPlugin(
 									if not self.waveBondingPreviousGcode.isEmpty() :
 
 										# Check if first sharp corner
-										if self.waveBondingCornerCounter < 1 and self.isSharpCorner(gcode, self.waveBondingPreviousGcode) :
+										if self.waveBondingCornerCounter < 1 and self.isSharpCornerForWaveBonding(gcode, self.waveBondingPreviousGcode) :
 	
 											# Check if refrence G-codes isn't set
 											if self.waveBondingRefrenceGcode.isEmpty() :
@@ -5980,7 +6028,7 @@ class M3DFioPlugin(
 											self.waveBondingCornerCounter += 1
 	
 										# Otherwise check if sharp corner
-										elif self.isSharpCorner(gcode, self.waveBondingRefrenceGcode) :
+										elif self.isSharpCornerForWaveBonding(gcode, self.waveBondingRefrenceGcode) :
 	
 											# Check if a tack point was created
 											self.waveBondingTackPoint = self.createTackPoint(gcode, self.waveBondingRefrenceGcode)
@@ -6202,7 +6250,7 @@ class M3DFioPlugin(
 								if not self.thermalBondingPreviousGcode.isEmpty() and (str(self._settings.get(["FilamentType"])) == "ABS" or str(self._settings.get(["FilamentType"])) == "HIPS" or str(self._settings.get(["FilamentType"])) == "PLA" or str(self._settings.get(["FilamentType"])) == "FLX" or str(self._settings.get(["FilamentType"])) == "TGH" or str(self._settings.get(["FilamentType"])) == "CAM") :
 	
 									# Check if first sharp corner
-									if self.thermalBondingCornerCounter < 1 and self.isSharpCorner(gcode, self.thermalBondingPreviousGcode) :
+									if self.thermalBondingCornerCounter < 1 and self.isSharpCornerForThermalBonding(gcode, self.thermalBondingPreviousGcode) :
 			
 										# Check if refrence G-codes isn't set
 										if self.thermalBondingRefrenceGcode.isEmpty() :
@@ -6221,7 +6269,7 @@ class M3DFioPlugin(
 										self.thermalBondingCornerCounter += 1
 		
 									# Otherwise check if sharp corner
-									elif self.isSharpCorner(gcode, self.thermalBondingRefrenceGcode) :
+									elif self.isSharpCornerForThermalBonding(gcode, self.thermalBondingRefrenceGcode) :
 		
 										# Check if a tack point was created
 										self.thermalBondingTackPoint = self.createTackPoint(gcode, self.thermalBondingRefrenceGcode)

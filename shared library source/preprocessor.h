@@ -56,19 +56,25 @@ extern "C" {
 	Purpose: Gets temperature bounded within a range
 	*/
 	uint16_t getBoundedTemperature(uint16_t temperature);
-
+	
 	/*
 	Name: Get distance
 	Purpose: Returns the distance between two points
 	*/
 	double getDistance(const Gcode &firstPoint, const Gcode &secondPoint);
-
+	
 	/*
-	Name: Is sharp corner
-	Purpose: Returns if two points make a sharp corner
+	Name: Is sharp corner for thermal bonding
+	Purpose: Returns if two points make a sharp corner for thermal bonding
 	*/
-	bool isSharpCorner(const Gcode &point, const Gcode &refrence);
-
+	bool isSharpCornerForThermalBonding(const Gcode &point, const Gcode &refrence);
+	
+	/*
+	Name: Is sharp corner for wave bonding
+	Purpose: Returns if two points make a sharp corner for wave bonding
+	*/
+	bool isSharpCornerForWaveBonding(const Gcode &point, const Gcode &refrence);
+	
 	/*
 	Name: Get current adjustment Z
 	Purpose: Returns the current Z adjustment for wave bonding
