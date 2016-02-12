@@ -39,11 +39,15 @@ import subprocess
 import psutil
 import socket
 import threading
-import cv2
 import BaseHTTPServer
 import SocketServer
 from .gcode import Gcode
 from .vector import Vector
+
+try :
+	import cv2
+except ImportError :
+	pass
 
 # Check if using OS X
 if platform.uname()[0].startswith("Darwin") :
@@ -942,8 +946,8 @@ class M3DFioPlugin(
 		monitorHeatbedThread.daemon = True
 		monitorHeatbedThread.start()
 		
-		# Check if hosting camera
-		if self._settings.get_boolean(["HostCamera"]) :
+		# Check if OpenCV is usable and hosting camera is enabled
+		if "cv2" in sys.modules and self._settings.get_boolean(["HostCamera"]) :
 		
 			# Check if camera device index is set
 			cameraDeviceIndex = self._settings.get_int(["CameraDeviceIndex"])
@@ -3221,6 +3225,12 @@ class M3DFioPlugin(
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Heatbed Not Detected"))
 			else :
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Heatbed Detected"))
+			
+			# Send message about hosting camera
+			if not "cv2" in sys.modules :
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Camera Not Hostable"))
+			else :
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Camera Hostable"))
 			
 			# Set file locations
 			self.setFileLocations()

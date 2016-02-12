@@ -7462,6 +7462,18 @@ $(function() {
 				usingHeatbed = false;
 			}
 			
+			// Otherwise check if data is that camera is hostable
+			else if(data.value == "Camera Hostable") 
+			
+				// Display camera server settings
+				$("#settings_plugin_m3dfio .camera").css("display", "block");
+			
+			// Otherwise check if data is that camera is not hostable
+			else if(data.value == "Camera Not Hostable")
+			
+				// Display camera server settings
+				$("#settings_plugin_m3dfio .camera").css("display", "none");
+			
 			// Otherwise check if data is current Z
 			else if(data.value == "Current Z" && printerConnected && typeof data.location !== "undefined")
 			

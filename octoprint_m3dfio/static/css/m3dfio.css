@@ -295,7 +295,7 @@
 	opacity: 1 !important;
 }
 
-#control .heatbed {
+#control .heatbed, #settings_plugin_m3dfio .heatbed, #settings_plugin_m3dfio .camera {
 	display: none;
 }
 
