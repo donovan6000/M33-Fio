@@ -707,7 +707,7 @@ class M3DFioPlugin(
 	# Camera server
 	def cameraServer(self) :
 	
-		# Initialize camera
+		# Initialize variables
 		camera = self.camera
 		
 		# Stabilize lighting
@@ -723,25 +723,14 @@ class M3DFioPlugin(
 				# Check if requesting snapshot
 				if self.path.split('?')[0] == "/snapshot" :
 				
-					# Start header
+					# Send current frame header
 					self.send_response(200)
 					self.send_header("Content-type", "image/jpg")
-					
-					# Get image from camera
-					ret = False
-					while not ret :
-						ret, image = camera.read()
-					
-					# Convert image to a JPEG
-					ret, jpeg = cv2.imencode(".jpg", image)
-					frame = jpeg.tostring()
-					
-					# Finish header
-					self.send_header("Content-length", len(frame))
+					self.send_header("Content-length", len(currentFrame))
 					self.end_headers()
 					
-					# Send image
-					self.wfile.write(frame)
+					# Send current frame
+					self.wfile.write(currentFrame)
 				
 				# Otherwise check if requesting stream
 				elif self.path.split('?')[0] == "/stream" :
@@ -755,26 +744,19 @@ class M3DFioPlugin(
 					while True :
 					
 						try :
-				
-							# Get image from camera
-							ret = False
-							while not ret :
-								ret, image = camera.read()
-					
-							# Convert image to a JPEG
-							ret, jpeg = cv2.imencode(".jpg", image)
-							frame = jpeg.tostring()
-					
-							# Send frame
+						
+							# Send current frame header
 							self.wfile.write("--frame")
 							self.send_header("Content-type", "image/jpeg")
-							self.send_header("Content-length", len(frame))
+							self.send_header("Content-length", len(currentFrame))
 							self.end_headers()
-							self.wfile.write(frame)
+							
+							# Send current frame
+							self.wfile.write(currentFrame)
 							
 							# Delay
 							cv2.waitKey(25)
-							
+						
 						except Exception :
 							break
 				
@@ -790,8 +772,32 @@ class M3DFioPlugin(
 			pass
 		
 		# Start server
-		server = ThreadedHTTPServer(("localhost", 8080), requestHandler)
-		server.serve_forever()
+		server = ThreadedHTTPServer(('', 4999), requestHandler)
+		serverThread = threading.Thread(target=server.serve_forever)
+		serverThread.daemon = True
+		serverThread.start()
+		
+		# Loop forever
+		while True :
+		
+			try :
+			
+				# Get image from camera
+				ret = False
+				while not ret :
+					ret, image = camera.read()
+			
+				# Convert image to a JPEG
+				ret, jpeg = cv2.imencode(".jpg", image)
+				
+				# Update current frame
+				currentFrame = jpeg.tostring()
+			
+				# Delay
+				cv2.waitKey(25)
+			
+			except Exception :
+				break
 	
 	# On start
 	def on_after_startup(self) :
@@ -1737,8 +1743,8 @@ class M3DFioPlugin(
 				if self._settings.get_boolean(["HostCamera"]) :
 				
 					# Set OctoPrint camera URLs
-					octoprint.settings.settings().set(["webcam", "stream"], "http://localhost:8080/stream")
-					octoprint.settings.settings().set(["webcam", "snapshot"], "http://localhost:8080/snapshot")
+					octoprint.settings.settings().set(["webcam", "stream"], "http://localhost:4999/stream")
+					octoprint.settings.settings().set(["webcam", "snapshot"], "http://localhost:4999/snapshot")
 					octoprint.settings.settings().save()
 			
 				# Check if a micro 3D is connected
@@ -3517,7 +3523,7 @@ class M3DFioPlugin(
 		for connection in connections :
 		
 			# Check if listening on port and it's not the camera
-			if connection.status == "LISTEN" and connection.laddr[1] != 8080 :
+			if connection.status == "LISTEN" and connection.laddr[1] != 4999 :
 			
 				# Return port
 				return connection.laddr[1]
