@@ -42,7 +42,7 @@ import threading
 import BaseHTTPServer
 import SocketServer
 import StringIO
-import Image
+from PIL import Image
 from .gcode import Gcode
 from .vector import Vector
 

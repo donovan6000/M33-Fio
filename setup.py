@@ -68,7 +68,7 @@ def params():
 	# Add Windows Specific requirements
 	if usingWindows() :
 		install_requires.pop()
-		install_requires += ["regex>=2016.01.10", '']
+		install_requires += ["regex>=2016.01.10", "pillow>=3.1.1", '']
 	
 	# Hook the plugin into the "octoprint.plugin" entry point, mapping the plugin_identifier to the plugin_package.
 	# That way OctoPrint will be able to find the plugin and load it.
