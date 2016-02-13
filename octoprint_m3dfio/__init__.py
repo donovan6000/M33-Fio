@@ -41,11 +41,13 @@ import socket
 import threading
 import BaseHTTPServer
 import SocketServer
+import StringIO
+import Image
 from .gcode import Gcode
 from .vector import Vector
 
 try :
-	import cv2
+	import pygame.camera
 except ImportError :
 	pass
 
@@ -707,12 +709,9 @@ class M3DFioPlugin(
 	# Camera server
 	def cameraServer(self) :
 	
-		# Initialize variables
-		camera = self.camera
-		
 		# Stabilize lighting
 		for i in xrange(30) :
-			camera.read()
+			self.camera.get_image()
 		
 		# Create request handler
 		class requestHandler(BaseHTTPServer.BaseHTTPRequestHandler) :
@@ -755,7 +754,7 @@ class M3DFioPlugin(
 							self.wfile.write(currentFrame)
 							
 							# Delay
-							cv2.waitKey(25)
+							time.sleep(1.0 / 20)
 						
 						except Exception :
 							break
@@ -773,7 +772,7 @@ class M3DFioPlugin(
 		
 		# Start server
 		server = ThreadedHTTPServer(('', 4999), requestHandler)
-		serverThread = threading.Thread(target=server.serve_forever)
+		serverThread = threading.Thread(target = server.serve_forever)
 		serverThread.daemon = True
 		serverThread.start()
 		
@@ -783,18 +782,18 @@ class M3DFioPlugin(
 			try :
 			
 				# Get image from camera
-				ret = False
-				while not ret :
-					ret, image = camera.read()
-			
+				cameraImage = self.camera.get_image()
+				
 				# Convert image to a JPEG
-				ret, jpeg = cv2.imencode(".jpg", image)
+				rawImage = Image.frombytes("RGB", self.camera.get_size(), pygame.image.tostring(cameraImage, "RGB", False))
+				buffer = StringIO.StringIO()
+				rawImage.save(buffer, "JPEG")
 				
 				# Update current frame
-				currentFrame = jpeg.tostring()
-			
+				currentFrame = buffer.getvalue()
+				
 				# Delay
-				cv2.waitKey(25)
+				time.sleep(1.0 / 20)
 			
 			except Exception :
 				break
@@ -948,25 +947,36 @@ class M3DFioPlugin(
 			self._printer.register_callback(self)
 		
 		# Monitor heatbed
-		monitorHeatbedThread = threading.Thread(target=self.monitorHeatbed)
+		monitorHeatbedThread = threading.Thread(target = self.monitorHeatbed)
 		monitorHeatbedThread.daemon = True
 		monitorHeatbedThread.start()
 		
-		# Check if OpenCV is usable and hosting camera is enabled
-		if "cv2" in sys.modules and self._settings.get_boolean(["HostCamera"]) :
+		# Check if pygame camera is usable
+		if "pygame.camera" in sys.modules :
 		
-			# Check if camera device index is set
-			cameraDeviceIndex = self._settings.get_int(["CameraDeviceIndex"])
-			if cameraDeviceIndex is not None :
-		
-				# Check if a camera with the specified device index exist
-				self.camera = cv2.VideoCapture(cameraDeviceIndex)
-				if self.camera.isOpened() :
+			# Initialize pygame camera
+			pygame.camera.init()
+			
+			# Check if hosting camera
+			if self._settings.get_boolean(["HostCamera"]) :
+			
+				# Check if camera port is set
+				cameraPort = self._settings.get(["CameraPort"])
+				if cameraPort is not None :
 				
-					# Start camera host thread
-					cameraServerThread = threading.Thread(target=self.cameraServer)
-					cameraServerThread.daemon = True
-					cameraServerThread.start()
+					try :
+					
+						# Start camera
+						self.camera = pygame.camera.Camera(cameraPort)
+						self.camera.start()
+						
+						# Start camera host thread
+						cameraServerThread = threading.Thread(target = self.cameraServer)
+						cameraServerThread.daemon = True
+						cameraServerThread.start()
+					
+					except Exception :
+						pass
 	
 	# Get firmware details
 	def getFirmwareDetails(self) :
@@ -1196,9 +1206,9 @@ class M3DFioPlugin(
 		if os.path.isfile(configFile) :
 			os.remove(configFile)
 		
-		# Release camera
+		# Stop camera
 		if self.camera is not None :
-			self.camera.release()
+			self.camera.stop()
 		
 		# Enable sleep
 		self.enableSleep()
@@ -1250,7 +1260,7 @@ class M3DFioPlugin(
 			HeatbedTemperature = 70,
 			HeatbedHeight = 10.0,
 			HostCamera = False,
-			CameraDeviceIndex = None
+			CameraPort = None
 		)
 	
 	# Template manager
@@ -3233,10 +3243,10 @@ class M3DFioPlugin(
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Heatbed Detected"))
 			
 			# Send message about hosting camera
-			if not "cv2" in sys.modules :
+			if not "pygame.camera" in sys.modules or not len(pygame.camera.list_cameras()) :
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Camera Not Hostable"))
 			else :
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Camera Hostable"))
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Camera Hostable", cameras = pygame.camera.list_cameras()))
 			
 			# Set file locations
 			self.setFileLocations()

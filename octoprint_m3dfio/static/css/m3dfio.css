@@ -61,7 +61,7 @@
 	margin-left: 30px;
 }
 
-#settings_plugin_m3dfio input.short {
+#settings_plugin_m3dfio input.short, #settings_plugin_m3dfio select.short {
 	width: 160px;
 	margin-top: -10px;
 	margin-left: 6px;

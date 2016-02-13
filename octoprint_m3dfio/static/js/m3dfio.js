@@ -7463,10 +7463,40 @@ $(function() {
 			}
 			
 			// Otherwise check if data is that camera is hostable
-			else if(data.value == "Camera Hostable") 
+			else if(data.value == "Camera Hostable" && typeof data.cameras !== "undefined")  {
 			
 				// Display camera server settings
 				$("#settings_plugin_m3dfio .camera").css("display", "block");
+				
+				// Reset cameras
+				$("#settings_plugin_m3dfio .camera select > option").remove();
+				
+				// Go through all cameras
+				var currentCamera = 0;
+				for(var i = 0; i < data.cameras.length; i++) {
+			
+					// Insert option
+					$("#settings_plugin_m3dfio .camera select").append("<option value = \"" + data.cameras[i] + "\">" + data.cameras[i] + "</option>");
+						
+					// Set current port
+					if(data.cameras[i] == self.settings.settings.plugins.m3dfio.CameraPort)
+						currentCamera = i;
+				}
+				
+				// Go through all options
+				$("#settings_plugin_m3dfio .camera select > option").each(function() {
+				
+					// Check if current port
+					if($(this).attr("value") == data.cameras[currentCamera]) {
+				
+						// Select current port
+						$(this).attr("selected", "true");
+						
+						// Return false
+						return false;
+					}
+				});
+			}
 			
 			// Otherwise check if data is that camera is not hostable
 			else if(data.value == "Camera Not Hostable")
