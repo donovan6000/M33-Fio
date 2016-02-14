@@ -5729,8 +5729,8 @@ class M3DFioPlugin(
 				# Check if command contains valid G-code
 				if not gcode.isEmpty() :
 
-					# Check if extruder absolute mode, extruder relative mode, stop idle hold, or request temperature command
-					if gcode.hasValue('M') and (gcode.getValue('M') == "82" or gcode.getValue('M') == "83" or gcode.getValue('M') == "84" or gcode.getValue('M') == "105") :
+					# Check if extruder absolute mode, extruder relative mode, stop idle hold, request temperature, or request coordinates command
+					if gcode.hasValue('M') and (gcode.getValue('M') == "82" or gcode.getValue('M') == "83" or gcode.getValue('M') == "84" or gcode.getValue('M') == "105" or gcode.getValue('M') == "117") :
 
 						# Get next line
 						continue

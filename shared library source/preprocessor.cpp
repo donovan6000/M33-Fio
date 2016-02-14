@@ -1241,8 +1241,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			// Check if command contains valid G-code
 			if(!gcode.isEmpty()) {
 
-				// Check if extruder absolute mode, extruder relative mode, stop idle hold, or request temperature command
-				if(gcode.hasValue('M') && (gcode.getValue('M') == "82" || gcode.getValue('M') == "83" || gcode.getValue('M') == "84" || gcode.getValue('M') == "105"))
+				// Check if extruder absolute mode, extruder relative mode, stop idle hold, request temperature, or request coordinates command
+				if(gcode.hasValue('M') && (gcode.getValue('M') == "82" || gcode.getValue('M') == "83" || gcode.getValue('M') == "84" || gcode.getValue('M') == "105" || gcode.getValue('M') == "117"))
 
 					// Get next line
 					continue;
