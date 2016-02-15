@@ -41,8 +41,6 @@ import socket
 import threading
 import BaseHTTPServer
 import SocketServer
-import StringIO
-from PIL import Image
 from .gcode import Gcode
 from .vector import Vector
 
@@ -66,8 +64,10 @@ if platform.uname()[0].startswith("Darwin") :
 # Otherwise
 else :
 
-	# Import pygame
+	# Import webcam libraries
 	try :
+		import StringIO
+		from PIL import Image
 		import pygame.camera
 	
 	except ImportError :
@@ -765,8 +765,8 @@ class M3DFioPlugin(
 				
 					# Send header
 					self.send_response(200)
-					self.send_header("Content-type", "multipart/x-mixed-replace; boundary=frame")
-					self.end_headers()
+					self.wfile.write("Content-type: multipart/x-mixed-replace; boundary=--frame")
+               				self.wfile.write("\r\n\r\n")
 					
 					# Loop forever
 					while True :
@@ -774,13 +774,14 @@ class M3DFioPlugin(
 						try :
 						
 							# Send current frame header
-							self.wfile.write("--frame")
-							self.send_header("Content-type", "image/jpeg")
-							self.send_header("Content-length", len(currentFrame))
-							self.end_headers()
+							self.wfile.write("--frame\r\n")
+							self.wfile.write("Content-type: image/jpeg\r\n")
+							self.wfile.write("Content-length: " + str(len(currentFrame)))
+							self.wfile.write("\r\n\r\n")
 							
 							# Send current frame
 							self.wfile.write(currentFrame)
+							self.wfile.write("\r\n\r\n\r\n")
 							
 							# Delay
 							time.sleep(cameraFrameDelay)
@@ -1102,7 +1103,7 @@ class M3DFioPlugin(
 		self._slicing_manager.get_slicer("cura").save_slicer_profile(output, profile)
 	
 	# Covert Profile to Cura
-	def convertProfileToCura(self, input, output, printerProfile, slicerProfileName) :
+	def convertProfileToCura(self, input, output, printerProfile) :
 	
 		# Cura plugin needs to be updated to include 'solidarea_speed', 'perimeter_before_infill', 'raft_airgap_all', 'raft_surface_thickness', and 'raft_surface_linewidth'
 		
@@ -1177,21 +1178,6 @@ class M3DFioPlugin(
 			
 			elif currentValue == "follow_surface" :
 				currentValue = "simple_mode"
-			
-			#elif currentValue.endswith("wall_thickness") :
-			
-				# Check if using a provided profile
-			#	profileName = os.path.basename(slicerProfileName)
-			#	if profileName.startswith("m3d_") :
-				
-					# Check what profile is being used
-			#		profileName = profileName[4 :]
-					
-					# Check if using ABS, FLX, HIPS, PLA, or TGH
-			#		if profileName.startswith("abs") or profileName.startswith("flx") or profileName.startswith("hips") or profileName.startswith("pla") or profileName.startswith("tgh") :
-					
-						# Set nozzle size to account for inset count
-			#			settings["nozzle_size"] = float(values[key]) / 3
 			
 			# Append values to alterations or settings
 			if currentValue.endswith("gcode") :
@@ -1906,7 +1892,7 @@ class M3DFioPlugin(
 				shutil.copyfile(fileLocation, temp)
 				
 				if values["slicerName"] == "cura" :
-					self.convertProfileToCura(temp, fileDestination, values["printerProfileName"], values["slicerProfileName"])
+					self.convertProfileToCura(temp, fileDestination, values["printerProfileName"])
 				else :
 					shutil.move(temp, fileDestination)
 				
@@ -3374,7 +3360,7 @@ class M3DFioPlugin(
 					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Camera Not Hostable"))
 					
 			except Exception :
-				pass
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Camera Not Hostable"))
 			
 			# Set file locations
 			self.setFileLocations()
