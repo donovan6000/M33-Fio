@@ -5559,7 +5559,6 @@ $(function() {
 	
 				// Set commands
 				commands = [
-					"M65538;no line numbers",
 					"G90",
 					"G92"
 				];
@@ -5661,7 +5660,6 @@ $(function() {
 	
 				// Set commands
 				commands = [
-					"M65538;no line numbers",
 					"G90",
 					"G92"
 				];
