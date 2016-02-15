@@ -51,6 +51,33 @@
 			</label>
 		</div>
 	</div>
+	<div class="control-group dependant camera">
+		<label class="control-label">Camera Width</label>
+		<div class="controls">
+			<div class="input-append px">
+				<input type="number" step="1" min="1" max="4096" class="input-block-level" data-bind="value: settings.plugins.m3dfio.CameraWidth">
+				<span class="add-on">px</span>
+			</div>
+		</div>
+	</div>
+	<div class="control-group dependant camera">
+		<label class="control-label">Camera Height</label>
+		<div class="controls">
+			<div class="input-append">
+				<input type="number" step="1" min="1" max="4096" class="input-block-level" data-bind="value: settings.plugins.m3dfio.CameraHeight">
+				<span class="add-on">px</span>
+			</div>
+		</div>
+	</div>
+	<div class="control-group dependant camera">
+		<label class="control-label">Camera Frames Per Second</label>
+		<div class="controls">
+			<div class="input-append">
+				<input type="number" step="1" min="1" max="60" class="input-block-level" data-bind="value: settings.plugins.m3dfio.CameraFramesPerSecond">
+				<span class="add-on">fps</span>
+			</div>
+		</div>
+	</div>
 	<div class="control-group">
 		<h4>Pre-Processor Stages</h4>
 		<div class="controls">

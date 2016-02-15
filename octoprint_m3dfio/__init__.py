@@ -46,27 +46,40 @@ from PIL import Image
 from .gcode import Gcode
 from .vector import Vector
 
-try :
-	import pygame.camera
-except ImportError :
-	pass
-
 # Check if using OS X
 if platform.uname()[0].startswith("Darwin") :
 
-	# Import Core Foundations and ObjC
+	# Import OS X frameworks
 	try :
 		import CoreFoundation
 		import objc
+		from objc import super
+		from AppKit import *
+		from Foundation import NSObject
+		from Foundation import NSTimer
+		from PyObjCTools import AppHelper
+		import QTKit
+	
 	except ImportError :
 		pass
 
-# Otherwise check if using Linux
-elif platform.uname()[0].startswith("Linux") :
+# Otherwise
+else :
+
+	# Import pygame
+	try :
+		import pygame.camera
+	
+	except ImportError :
+		pass
+
+# Check if using Linux
+if platform.uname()[0].startswith("Linux") :
 
 	# Import DBus
 	try :
 		import dbus
+	
 	except ImportError :
 		pass
 
@@ -710,6 +723,21 @@ class M3DFioPlugin(
 	# Camera server
 	def cameraServer(self) :
 	
+		# Check if pygame camera is usable
+		if "pygame.camera" in sys.modules :
+		
+			# Initialize variables
+			cameraImage = pygame.Surface(self.cameraSize)
+	
+		# Otherwise check if QTKit is usable
+		elif "QTKit" in sys.modules :
+		
+			# Initialize variables
+			pass
+		
+		# Calculate camera frame delay
+		cameraFrameDelay = 1.0 / self._settings.get_int(["CameraFramesPerSecond"])
+	
 		# Stabilize lighting
 		for i in xrange(30) :
 			self.camera.get_image()
@@ -721,7 +749,7 @@ class M3DFioPlugin(
 			def do_GET(self) :
 			
 				# Check if requesting snapshot
-				if self.path.split('?')[0] == "/snapshot" :
+				if self.path.split('?')[0] == "/snapshot.jpg" :
 				
 					# Send current frame header
 					self.send_response(200)
@@ -733,7 +761,7 @@ class M3DFioPlugin(
 					self.wfile.write(currentFrame)
 				
 				# Otherwise check if requesting stream
-				elif self.path.split('?')[0] == "/stream" :
+				elif self.path.split('?')[0] == "/stream.mjpg" :
 				
 					# Send header
 					self.send_response(200)
@@ -755,7 +783,7 @@ class M3DFioPlugin(
 							self.wfile.write(currentFrame)
 							
 							# Delay
-							time.sleep(1.0 / 20)
+							time.sleep(cameraFrameDelay)
 						
 						except Exception :
 							break
@@ -782,24 +810,33 @@ class M3DFioPlugin(
 		
 			try :
 			
-				# Get image from camera
-				cameraImage = self.camera.get_image()
+				# Check if pygame camera is usable
+				if "pygame.camera" in sys.modules :
+		
+					# Get image from camera
+					self.camera.get_image(cameraImage)
 				
-				# Convert image to a JPEG
-				rawImage = Image.frombytes("RGB", self.camera.get_size(), pygame.image.tostring(cameraImage, "RGB", False))
-				buffer = StringIO.StringIO()
-				rawImage.save(buffer, "JPEG")
+					# Convert image to a JPEG
+					rawImage = Image.frombytes("RGB", self.cameraSize, pygame.image.tostring(cameraImage, "RGB", False))
+					buffer = StringIO.StringIO()
+					rawImage.save(buffer, "JPEG")
 				
-				# Update current frame
-				currentFrame = buffer.getvalue()
+					# Update current frame
+					currentFrame = buffer.getvalue()
+	
+				# Otherwise check if QTKit is usable
+				elif "QTKit" in sys.modules :
+		
+					# Get image from camera
+					pass
 				
 				# Delay
-				time.sleep(1.0 / 20)
+				time.sleep(cameraFrameDelay)
 			
 			except Exception :
 				break
 	
-	# On start
+	# On after startup
 	def on_after_startup(self) :
 	
 		# Set reminders on initial OctoPrint instance
@@ -957,19 +994,49 @@ class M3DFioPlugin(
 		
 			# Initialize pygame camera
 			pygame.camera.init()
-			
+		
 			# Check if hosting camera
 			if self._settings.get_boolean(["HostCamera"]) :
 			
 				# Check if camera port is set
 				cameraPort = self._settings.get(["CameraPort"])
 				if cameraPort is not None :
-				
+			
 					try :
-					
+				
+						# Set camera size
+						self.cameraSize = (self._settings.get_int(["CameraWidth"]), self._settings.get_int(["CameraHeight"]))
+						
 						# Start camera
-						self.camera = pygame.camera.Camera(cameraPort)
+						if platform.uname()[0].startswith("Windows") :
+							cameraPort = int(cameraPort)
+						self.camera = pygame.camera.Camera(cameraPort, self.cameraSize)
 						self.camera.start()
+						
+						# Start camera host thread
+						cameraServerThread = threading.Thread(target = self.cameraServer)
+						cameraServerThread.daemon = True
+						cameraServerThread.start()
+					
+					except Exception :
+						pass
+		
+		# Otherwise check if QTKit is usable
+		elif "QTKit" in sys.modules :
+		
+			# Check if hosting camera
+			if self._settings.get_boolean(["HostCamera"]) :
+			
+				# Check if camera port is set
+				cameraPort = self._settings.get(["CameraPort"])
+				if cameraPort is not None :
+			
+					try :
+				
+						# Set camera size
+						self.cameraSize = (self._settings.get_int(["CameraWidth"]), self._settings.get_int(["CameraHeight"]))
+						
+						# Start camera
 						
 						# Start camera host thread
 						cameraServerThread = threading.Thread(target = self.cameraServer)
@@ -1035,7 +1102,7 @@ class M3DFioPlugin(
 		self._slicing_manager.get_slicer("cura").save_slicer_profile(output, profile)
 	
 	# Covert Profile to Cura
-	def convertProfileToCura(self, input, output, printerProfile) :
+	def convertProfileToCura(self, input, output, printerProfile, slicerProfileName) :
 	
 		# Cura plugin needs to be updated to include 'solidarea_speed', 'perimeter_before_infill', 'raft_airgap_all', 'raft_surface_thickness', and 'raft_surface_linewidth'
 		
@@ -1110,6 +1177,21 @@ class M3DFioPlugin(
 			
 			elif currentValue == "follow_surface" :
 				currentValue = "simple_mode"
+			
+			#elif currentValue.endswith("wall_thickness") :
+			
+				# Check if using a provided profile
+			#	profileName = os.path.basename(slicerProfileName)
+			#	if profileName.startswith("m3d_") :
+				
+					# Check what profile is being used
+			#		profileName = profileName[4 :]
+					
+					# Check if using ABS, FLX, HIPS, PLA, or TGH
+			#		if profileName.startswith("abs") or profileName.startswith("flx") or profileName.startswith("hips") or profileName.startswith("pla") or profileName.startswith("tgh") :
+					
+						# Set nozzle size to account for inset count
+			#			settings["nozzle_size"] = float(values[key]) / 3
 			
 			# Append values to alterations or settings
 			if currentValue.endswith("gcode") :
@@ -1261,7 +1343,10 @@ class M3DFioPlugin(
 			HeatbedTemperature = 70,
 			HeatbedHeight = 10.0,
 			HostCamera = False,
-			CameraPort = None
+			CameraPort = None,
+			CameraWidth = 640,
+			CameraHeight = 480,
+			CameraFramesPerSecond = 20
 		)
 	
 	# Template manager
@@ -1754,8 +1839,8 @@ class M3DFioPlugin(
 				if self._settings.get_boolean(["HostCamera"]) :
 				
 					# Set OctoPrint camera URLs
-					octoprint.settings.settings().set(["webcam", "stream"], "http://localhost:4999/stream")
-					octoprint.settings.settings().set(["webcam", "snapshot"], "http://localhost:4999/snapshot")
+					octoprint.settings.settings().set(["webcam", "stream"], "http://localhost:4999/stream.mjpg")
+					octoprint.settings.settings().set(["webcam", "snapshot"], "http://localhost:4999/snapshot.jpg")
 					octoprint.settings.settings().save()
 			
 				# Check if a micro 3D is connected
@@ -1821,7 +1906,7 @@ class M3DFioPlugin(
 				shutil.copyfile(fileLocation, temp)
 				
 				if values["slicerName"] == "cura" :
-					self.convertProfileToCura(temp, fileDestination, values["printerProfileName"])
+					self.convertProfileToCura(temp, fileDestination, values["printerProfileName"], values["slicerProfileName"])
 				else :
 					shutil.move(temp, fileDestination)
 				
@@ -3277,10 +3362,19 @@ class M3DFioPlugin(
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Heatbed Detected"))
 			
 			# Send message about hosting camera
-			if not "pygame.camera" in sys.modules or not len(pygame.camera.list_cameras()) :
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Camera Not Hostable"))
-			else :
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Camera Hostable", cameras = pygame.camera.list_cameras()))
+			try :
+			
+				if "pygame.camera" in sys.modules and len(pygame.camera.list_cameras()) :
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Camera Hostable", cameras = pygame.camera.list_cameras()))
+				
+				elif "QTKit" in sys.modules and False :
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Camera Hostable", cameras = pygame.camera.list_cameras()))
+				
+				else :
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Camera Not Hostable"))
+					
+			except Exception :
+				pass
 			
 			# Set file locations
 			self.setFileLocations()

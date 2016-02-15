@@ -55,7 +55,7 @@ else
 		cd ..
 		rm -rf pyobjc-core-${version}
 
-		# Install PyObjC framework
+		# Install PyObjC Cocoa framework
 		curl -o index.html https://pypi.python.org/pypi/pyobjc-framework-Cocoa
 		version="$(perl -nle'print $1 if m/pyobjc-framework-Cocoa-([0-9\.]*)\.tar\.gz/' index.html | head -1)"
 		rm index.html
@@ -66,6 +66,30 @@ else
 		/Library/Frameworks/Python.framework/Versions/${pythonVersion}/bin/python setup.py install
 		cd ..
 		rm -rf pyobjc-framework-Cocoa-${version}
+		
+		# Install PyObjC Quartz framework
+		curl -o index.html https://pypi.python.org/pypi/pyobjc-framework-Quartz
+		version="$(perl -nle'print $1 if m/pyobjc-framework-Quartz-([0-9\.]*)\.tar\.gz/' index.html | head -1)"
+		rm index.html
+		curl -o pyobjc-framework-Quartz.tar.gz https://pypi.python.org/packages/source/p/pyobjc-framework-Quartz/pyobjc-framework-Quartz-${version}.tar.gz
+		tar zxvf pyobjc-framework-Quartz.tar.gz
+		rm pyobjc-framework-Quartz.tar.gz
+		cd pyobjc-framework-Quartz-${version}
+		/Library/Frameworks/Python.framework/Versions/${pythonVersion}/bin/python setup.py install
+		cd ..
+		rm -rf pyobjc-framework-Quartz-${version}
+		
+		# Install PyObjC QTKit framework
+		curl -o index.html https://pypi.python.org/pypi/pyobjc-framework-QTKit
+		version="$(perl -nle'print $1 if m/pyobjc-framework-QTKit-([0-9\.]*)\.tar\.gz/' index.html | head -1)"
+		rm index.html
+		curl -o pyobjc-framework-QTKit.tar.gz https://pypi.python.org/packages/source/p/pyobjc-framework-QTKit/pyobjc-framework-QTKit-${version}.tar.gz
+		tar zxvf pyobjc-framework-QTKit.tar.gz
+		rm pyobjc-framework-QTKit.tar.gz
+		cd pyobjc-framework-QTKit-${version}
+		/Library/Frameworks/Python.framework/Versions/${pythonVersion}/bin/python setup.py install
+		cd ..
+		rm -rf pyobjc-framework-QTKit-${version}
 		
 		# Install OctoPrint
 		su $SUDO_USER -c 'launchctl unload /Library/LaunchAgents/com.octoprint.app.plist'
