@@ -51,11 +51,9 @@ if platform.uname()[0].startswith("Darwin") :
 	try :
 		import CoreFoundation
 		import objc
-		from objc import super
 		from AppKit import *
-		from Foundation import NSObject
-		from Foundation import NSTimer
 		from PyObjCTools import AppHelper
+		from Quartz import *
 		import QTKit
 	
 	except ImportError :
@@ -723,24 +721,9 @@ class M3DFioPlugin(
 	# Camera server
 	def cameraServer(self) :
 	
-		# Check if pygame camera is usable
-		if "pygame.camera" in sys.modules :
-		
-			# Initialize variables
-			cameraImage = pygame.Surface(self.cameraSize)
-	
-		# Otherwise check if QTKit is usable
-		elif "QTKit" in sys.modules :
-		
-			# Initialize variables
-			pass
-		
-		# Calculate camera frame delay
+		# Initialize variables
+		currentFrame = None
 		cameraFrameDelay = 1.0 / self._settings.get_int(["CameraFramesPerSecond"])
-	
-		# Stabilize lighting
-		for i in xrange(30) :
-			self.camera.get_image()
 		
 		# Create request handler
 		class requestHandler(BaseHTTPServer.BaseHTTPRequestHandler) :
@@ -753,9 +736,9 @@ class M3DFioPlugin(
 				
 					# Send current frame header
 					self.send_response(200)
-					self.send_header("Content-type", "image/jpg")
-					self.send_header("Content-length", len(currentFrame))
-					self.end_headers()
+					self.wfile.write("Content-Type: image/jpeg\r\n")
+					self.wfile.write("Content-Length: " + str(len(currentFrame)))
+					self.wfile.write("\r\n\r\n")
 					
 					# Send current frame
 					self.wfile.write(currentFrame)
@@ -765,8 +748,7 @@ class M3DFioPlugin(
 				
 					# Send header
 					self.send_response(200)
-					self.wfile.write("Content-type: multipart/x-mixed-replace; boundary=--frame")
-               				self.wfile.write("\r\n\r\n")
+					self.wfile.write("Content-Type: multipart/x-mixed-replace;boundary=--frame")
 					
 					# Loop forever
 					while True :
@@ -774,14 +756,14 @@ class M3DFioPlugin(
 						try :
 						
 							# Send current frame header
+							self.wfile.write("\r\n\r\n")
 							self.wfile.write("--frame\r\n")
-							self.wfile.write("Content-type: image/jpeg\r\n")
-							self.wfile.write("Content-length: " + str(len(currentFrame)))
+							self.wfile.write("Content-Type: image/jpeg\r\n")
+							self.wfile.write("Content-Length: " + str(len(currentFrame)))
 							self.wfile.write("\r\n\r\n")
 							
 							# Send current frame
 							self.wfile.write(currentFrame)
-							self.wfile.write("\r\n\r\n\r\n")
 							
 							# Delay
 							time.sleep(cameraFrameDelay)
@@ -794,7 +776,7 @@ class M3DFioPlugin(
 				
 					# Response with error 404
 					self.send_response(404)
-					self.end_headers()
+					self.wfile.write("\r\n\r\n")
 		
 		# Create threaded HTTP server
 		class ThreadedHTTPServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer) :
@@ -806,36 +788,99 @@ class M3DFioPlugin(
 		serverThread.daemon = True
 		serverThread.start()
 		
-		# Loop forever
-		while True :
+		# Check if pygame camera is usable
+		if "pygame.camera" in sys.modules :
 		
-			try :
+			# Initialize variables
+			cameraImage = pygame.Surface(self.cameraSize)
 			
-				# Check if pygame camera is usable
-				if "pygame.camera" in sys.modules :
+			# Stabilize lighting
+			for i in xrange(30) :
+				self.camera.get_image()
 		
+			# Loop forever
+			while True :
+		
+				try :
+			
 					# Get image from camera
 					self.camera.get_image(cameraImage)
-				
+			
 					# Convert image to a JPEG
 					rawImage = Image.frombytes("RGB", self.cameraSize, pygame.image.tostring(cameraImage, "RGB", False))
 					buffer = StringIO.StringIO()
 					rawImage.save(buffer, "JPEG")
-				
+			
 					# Update current frame
 					currentFrame = buffer.getvalue()
-	
-				# Otherwise check if QTKit is usable
-				elif "QTKit" in sys.modules :
-		
-					# Get image from camera
-					pass
 				
-				# Delay
-				time.sleep(cameraFrameDelay)
+					# Delay
+					time.sleep(cameraFrameDelay)
 			
-			except Exception :
-				break
+				except Exception :
+					break
+		
+		# Otherwise check if QTKit is usable
+		elif "QTKit" in sys.modules :
+		
+			# Initialize variables
+			camera = self.camera
+			settings = self._settings
+
+			# Camera class
+			class Camera(NSObject) :
+			
+				# Loop
+				def loop(self) :
+
+					# Create capture session
+					captureSession = QTKit.QTCaptureSession.alloc().init()
+
+					# Create input device from camera
+					inputDevice = QTKit.QTCaptureDeviceInput.alloc().initWithDevice_(camera)
+					error = None
+					if not captureSession.addInput_error_(inputDevice, error) :
+						return
+
+					# Create output device
+					outputDevice = QTKit.QTCaptureDecompressedVideoOutput.alloc().init()
+
+					# Set fames per second
+					outputDevice.setMinimumVideoFrameInterval_(cameraFrameDelay)
+					outputDevice.setAutomaticallyDropsLateVideoFrames_(True)
+
+					# Set camera size
+					outputDevice.setPixelBufferAttributes_({
+						kCVPixelBufferWidthKey: settings.get_int(["CameraWidth"]),
+						kCVPixelBufferHeightKey: settings.get_int(["CameraHeight"])
+					})
+
+					# Delegate frame task
+					outputDevice.setDelegate_(self)
+					if not captureSession.addOutput_error_(outputDevice, error) :
+						return
+
+					# Start the capture session
+					captureSession.startRunning()
+
+					# Start main loop
+					AppHelper.runConsoleEventLoop(installInterrupt = True)
+
+				# Capture video frame
+				def captureOutput_didOutputVideoFrame_withSampleBuffer_fromConnection_(self, captureOutput, videoFrame, sampleBuffer, connection) :
+
+					# Convert frame to a JPEG
+					rawImage = CIImage.imageWithCVImageBuffer_(videoFrame)
+					bitmapRepresentation = NSBitmapImageRep.alloc().initWithCIImage_(rawImage)
+					bitmapData = bitmapRepresentation.representationUsingType_properties_(NSJPEGFileType, {
+						NSImageCompressionFactor: 1.0
+					})
+
+					# Update current frame
+					currentFrame = bitmapData.bytes()
+			
+			# Camera loop
+			Camera.alloc().loop()
 	
 	# On after startup
 	def on_after_startup(self) :
@@ -1022,30 +1067,33 @@ class M3DFioPlugin(
 					except Exception :
 						pass
 		
-		# Otherwise check if QTKit is usable
-		elif "QTKit" in sys.modules :
+		# Otherwise check if QTKit is usable and hosting camera
+		elif "QTKit" in sys.modules and self._settings.get_boolean(["HostCamera"]) :
+			
+			# Check if camera port is set
+			cameraPort = self._settings.get(["CameraPort"])
+			if cameraPort is not None :
 		
-			# Check if hosting camera
-			if self._settings.get_boolean(["HostCamera"]) :
-			
-				# Check if camera port is set
-				cameraPort = self._settings.get(["CameraPort"])
-				if cameraPort is not None :
-			
-					try :
+				try :
 				
-						# Set camera size
-						self.cameraSize = (self._settings.get_int(["CameraWidth"]), self._settings.get_int(["CameraHeight"]))
-						
-						# Start camera
-						
+					# Create camera
+					cameras = []
+					for camera in QTKit.QTCaptureDevice.inputDevices() :
+						cameras += [str(camera)]
+					cameraIndex = cameras.index(cameraPort)
+					self.camera = QTKit.QTCaptureDevice.inputDevices()[cameraIndex]
+					
+					# Check if camera opened successfully
+					error = None
+					if camera.open_(error) :
+					
 						# Start camera host thread
 						cameraServerThread = threading.Thread(target = self.cameraServer)
 						cameraServerThread.daemon = True
 						cameraServerThread.start()
-					
-					except Exception :
-						pass
+				
+				except Exception :
+					pass
 	
 	# Get firmware details
 	def getFirmwareDetails(self) :
@@ -1276,7 +1324,7 @@ class M3DFioPlugin(
 			os.remove(configFile)
 		
 		# Stop camera
-		if self.camera is not None :
+		if "pygame.camera" in sys.modules and self.camera is not None :
 			self.camera.stop()
 		
 		# Enable sleep
@@ -3353,8 +3401,11 @@ class M3DFioPlugin(
 				if "pygame.camera" in sys.modules and len(pygame.camera.list_cameras()) :
 					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Camera Hostable", cameras = pygame.camera.list_cameras()))
 				
-				elif "QTKit" in sys.modules and False :
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Camera Hostable", cameras = pygame.camera.list_cameras()))
+				elif "QTKit" in sys.modules and len(QTKit.QTCaptureDevice.inputDevices()) :
+					cameras = []
+					for camera in QTKit.QTCaptureDevice.inputDevices() :
+						cameras += [str(camera)]
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Camera Hostable", cameras = cameras))
 				
 				else :
 					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Camera Not Hostable"))
@@ -7206,7 +7257,7 @@ class M3DFioPlugin(
 			return True
 		
 		# Otherwise check if using OS X and Core Foundations and ObjC are usable
-		elif platform.uname()[0].startswith("Darwin") and "CoreFoundation" in sys.modules and "objc" in sys.modules :
+		elif platform.uname()[0].startswith("Darwin") and "objc" in sys.modules :
 		
 			# Created by jbenden
 			def setUpIOFramework() :
@@ -7339,7 +7390,7 @@ class M3DFioPlugin(
 			ctypes.windll.kernel32.SetThreadExecutionState(ctypes.c_int(ES_CONTINUOUS))
 		
 		# Otherwise check if using OS X and Core Foundations and ObjC are usable
-		elif platform.uname()[0].startswith("Darwin") and "CoreFoundation" in sys.modules and "objc" in sys.modules :
+		elif platform.uname()[0].startswith("Darwin") and "objc" in sys.modules :
 		
 			# Check if sleep framework exists
 			if hasattr(self, "osXSleepFramework") and self.osXSleepFramework is not None :
