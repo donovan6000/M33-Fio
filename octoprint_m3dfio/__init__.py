@@ -3814,15 +3814,23 @@ class M3DFioPlugin(
 						currentPort = self.getPort()
 					
 						# Re-connect; wait for the device to be available
-                                                connection = None
-                                                for i in range(1, 5):
-						        try:
-                                                                connection = serial.Serial(currentPort, currentBaudrate)
-                                                                break
-                                                        except OSError:
-                                                                time.sleep(1)
-                                                if connection is None:
-                                                        raise Exception("Couldn't reconnect to the printer")
+						connection = None
+						for i in range(1, 5) :
+							try :
+								connection = serial.Serial(currentPort, currentBaudrate)
+								break
+							
+							except OSError :
+								time.sleep(1)
+						
+						# Check if connecting to printer failed
+						if connection is None :
+		
+							# Send message
+							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Cycle Power"))
+			
+							# Raise exception
+							raise Exception("Couldn't reconnect to the printer")
 				
 					# Check if getting EEPROM was successful
 					if self.getEeprom(connection) :
@@ -7247,16 +7255,24 @@ class M3DFioPlugin(
 		# Set state to connecting
 		comm_instance._log("Connecting to: " + str(port))
 		
-                # Create a connection
-                connection = None
-                for i in range(1, 5):
-                        try:
-                                connection = serial.Serial(str(port), baudrate)
-                        # If printer has just power-cycled it may not yet be ready
-                        except OSError:
-                                time.sleep(1)
-                if connection is None:
-                        raise Exception("Couldn't reconnect to the printer")
+		# Create a connection
+		connection = None
+		for i in range(1, 5) :
+			try :
+				connection = serial.Serial(str(port), baudrate)
+
+			# If printer has just power-cycled it may not yet be ready
+			except OSError :
+				time.sleep(1)
+		
+		# Check if connecting to printer failed
+		if connection is None :
+		
+			# Send message
+			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Cycle Power"))
+			
+			# Raise exception
+			raise Exception("Couldn't reconnect to the printer")
 
 		# Return connection
 		return connection
