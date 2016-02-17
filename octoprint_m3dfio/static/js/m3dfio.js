@@ -4233,6 +4233,8 @@ $(function() {
 													
 														changedSettings.push({
 															fill_density: 0,
+															wall_thickness: 0.35,
+															nozzle_size: 0.35,
 															solid_layer_thickness: 0.149,
 															infill_speed: 15
 														});
@@ -4242,6 +4244,8 @@ $(function() {
 													
 														changedSettings.push({
 															fill_density: 0,
+															wall_thickness: 1.05,
+															nozzle_size: 0.35,
 															solid_layer_thickness: 0.249,
 															infill_speed: 15
 														});
@@ -4251,6 +4255,8 @@ $(function() {
 													
 														changedSettings.push({
 															fill_density: 6.36363636364,
+															wall_thickness: 1.05,
+															nozzle_size: 0.35,
 															solid_layer_thickness: 0.299,
 															infill_speed: null
 														});
@@ -4260,6 +4266,8 @@ $(function() {
 													
 														changedSettings.push({
 															fill_density: 8.75,
+															wall_thickness: 1.4,
+															nozzle_size: 0.35,
 															solid_layer_thickness: 0.399,
 															infill_speed: null
 														});
@@ -4269,6 +4277,8 @@ $(function() {
 													
 														changedSettings.push({
 															fill_density: 14.0,
+															wall_thickness: 1.4,
+															nozzle_size: 0.35,
 															solid_layer_thickness: 0.399,
 															infill_speed: null
 														});
@@ -4278,6 +4288,8 @@ $(function() {
 													
 														changedSettings.push({
 															fill_density: 23.3333333333,
+															wall_thickness: 1.4,
+															nozzle_size: 0.35,
 															solid_layer_thickness: 0.399,
 															infill_speed: null
 														});
