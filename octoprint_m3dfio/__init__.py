@@ -3486,8 +3486,16 @@ class M3DFioPlugin(
 						# Set updated port
 						currentPort = self.getPort()
 					
-						# Re-connect
-						connection = serial.Serial(currentPort, currentBaudrate)
+						# Re-connect; wait for the device to be available
+                                                connection = None
+                                                for i in range(1, 5):
+						        try:
+                                                                connection = serial.Serial(currentPort, currentBaudrate)
+                                                                break
+                                                        except OSError:
+                                                                time.sleep(1)
+                                                if connection is None:
+                                                        raise Exception("Couldn't reconnect to the printer")
 				
 					# Check if getting EEPROM was successful
 					if self.getEeprom(connection) :
@@ -6864,8 +6872,19 @@ class M3DFioPlugin(
 		# Set state to connecting
 		comm_instance._log("Connecting to: " + str(port))
 		
+                # Create a connection
+                connection = None
+                for i in range(1, 5):
+                        try:
+                                connection = serial.Serial(str(port), baudrate)
+                        # If printer has just power-cycled it may not yet be ready
+                        except OSError:
+                                time.sleep(1)
+                if connection is None:
+                        raise Exception("Couldn't reconnect to the printer")
+
 		# Return connection
-		return serial.Serial(str(port), baudrate)
+		return connection
 	
 	# Disable sleep
 	def disableSleep(self) :
