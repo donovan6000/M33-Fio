@@ -3408,8 +3408,8 @@ $(function() {
 		var originalLoadFile = self.files.loadFile;
 		self.files.loadFile = function(file, printAfterLoad) {
 		
-			// Check if using on the fly pre-processing and changing settings before print
-			if(self.settings.settings.plugins.m3dfio.PreprocessOnTheFly() && self.settings.settings.plugins.m3dfio.ChangeSettingsBeforePrint()) {
+			// Check if printing after load, using on the fly pre-processing, and changing settings before print
+			if(printAfterLoad && self.settings.settings.plugins.m3dfio.PreprocessOnTheFly() && self.settings.settings.plugins.m3dfio.ChangeSettingsBeforePrint()) {
 			
 				// Show message
 				showMessage("Message", '', "Print", function() {
