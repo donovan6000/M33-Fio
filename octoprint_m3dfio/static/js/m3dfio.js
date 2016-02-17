@@ -5142,6 +5142,58 @@ $(function() {
 			});
 		});
 		
+		// Terminal send command key up event
+		$("#terminal-command").keyup(function(event) {
+		
+			// Check if key is enter
+			if(event.which === 13) {
+			
+				// Send command
+				sendCommand(event);
+				
+				// Blur self
+				$(this).blur();
+			}
+		});
+		
+		// Terminal send command click event
+		$("#terminal-send").click(function(event) {
+		
+			// Send command
+			sendCommand(event);
+			
+			// Blur self
+			$(this).blur();
+		});
+		
+		// Send command
+		function sendCommand(event) {
+		
+			// Check if printing
+			if(self.printerState.isPrinting() === true) {
+		
+				// Stop default behavior
+				event.stopImmediatePropagation();
+			
+				// Set commands
+				var commands = [
+					$("#terminal-command").val() + '*'
+				];
+			
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m3dfio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({command: "message", value: commands}),
+					contentType: "application/json; charset=UTF-8"
+				});
+				
+				// Clear value
+				$("#terminal-command").val('');
+			}
+		}
+		
 		// Save settings button event
 		$("#settings_dialog > div.modal-footer > button.btn-primary").click(function() {
 		
