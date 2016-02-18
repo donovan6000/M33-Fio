@@ -7538,7 +7538,7 @@ $(function() {
 				for(var i = 0; i < data.cameras.length; i++) {
 			
 					// Insert option
-					$("#settings_plugin_m3dfio .camera select").append("<option value = \"" + data.cameras[i] + "\">Port " + data.cameras[i] + "</option>");
+					$("#settings_plugin_m3dfio .camera select").append("<option value = \"" + data.cameras[i] + "\">Device " + data.cameras[i] + "</option>");
 						
 					// Set current port
 					if(data.cameras[i] == self.settings.settings.plugins.m3dfio.CameraPort)

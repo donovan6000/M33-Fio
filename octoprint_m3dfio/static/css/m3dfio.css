@@ -1,3 +1,7 @@
+#temperature-graph {
+	background-image: url("/plugin/m3dfio/static/img/graph%20background.png")
+}
+
 #settings_plugin_m3dfio h4:not(:first-of-type) {
 	margin-top: -5px;
 }
@@ -640,6 +644,7 @@ body > div.page-container > div.message > div > div > span.show {
 	overflow: scroll;
 	position: relative;
 	z-index: 1;
+	color: #333;
 }
 
 #slicing_configuration_dialog .modal-cover {
