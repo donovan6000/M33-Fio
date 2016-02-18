@@ -180,17 +180,17 @@ else :
 	if "pygame.camera" in sys.modules :
 	
 		# Check if camera isn't detected
+		if platform.uname()[0].startswith("Windows") :
+			cameraPort = int(cameraPort)
 		if cameraPort not in pygame.camera.list_cameras() :
 		
 			# Display message
 			print "Camera not detected"
-		
+			
 			# Exit
 			exit()
 	
 		# Start camera
-		if platform.uname()[0].startswith("Windows") :
-			cameraPort = int(cameraPort)
 		camera = pygame.camera.Camera(cameraPort, (cameraWidth, cameraHeight))
 		camera.start()
 

@@ -40,14 +40,6 @@ def usingWindows() :
 	# Return if using Windows
 	return platform.uname()[0].startswith("Windows")
 
-def usingOSX() :
-
-	# Imports
-	import platform
-	
-	# Return if using OS X
-	return platform.uname()[0].startswith("Darwin")
-
 def params():
 
 	# Our metadata, as defined above
@@ -74,7 +66,7 @@ def params():
 	install_requires = open("requirements.txt").read().split("\n")
 	
 	# Add operating system specific requirements
-	if usingWindows() or usingOSX() :
+	if usingWindows() :
 		install_requires.pop()
 		install_requires += ["regex", "pillow", '']
 	

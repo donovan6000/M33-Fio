@@ -3420,8 +3420,11 @@ class M3DFioPlugin(
 			# Enable sleep
 			self.enableSleep()
 		
-		# Otherwise check if a print is cancelled or failed
-		elif event == octoprint.events.Events.PRINT_CANCELLED or event == octoprint.events.Events.PRINT_FAILED :
+		# Otherwise check if a print failed
+		elif event == octoprint.events.Events.PRINT_FAILED :
+				
+			# Empty command queue
+			self.emptyCommandQueue()
 			
 			# Set commands
 			commands = [

@@ -137,6 +137,12 @@ bool Gcode::parseLine(const char *line) {
 		return true;
 	}
 	
+	// Otherwise check if command is a comment
+	else if(command[0] == ';')
+		
+		// Return false
+		return false;
+	
 	// Initialize variables used in parsing the line
 	string currentValue;
 	// size_t characterOffset;

@@ -1,5 +1,9 @@
 Changelog:
 
+V0.27 February X, 2016
+
+	* Builtin webcam server
+
 V0.26 February 9, 2016
 
 	* Added support for the Micro 3D compatible heatbed. Thanks Loswave!
