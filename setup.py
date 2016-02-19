@@ -32,14 +32,6 @@ def package_data_dirs(source, sub_folders):
 
 	return dirs
 
-def usingWindows() :
-
-	# Imports
-	import platform
-	
-	# Return if using Windows
-	return platform.uname()[0].startswith("Windows")
-
 def params():
 
 	# Our metadata, as defined above
@@ -64,11 +56,6 @@ def params():
 
 	# Read the requirements from our requirements.txt file
 	install_requires = open("requirements.txt").read().split("\n")
-	
-	# Add operating system specific requirements
-	if usingWindows() :
-		install_requires.pop()
-		install_requires += ["regex", "pillow", '']
 	
 	# Hook the plugin into the "octoprint.plugin" entry point, mapping the plugin_identifier to the plugin_package.
 	# That way OctoPrint will be able to find the plugin and load it.

@@ -6809,7 +6809,7 @@ class M3DFioPlugin(
 				return flask.jsonify(dict(value = "Error"))
 			
 			# Set if model was modified
-			modelModified = "Model Name" in flask.request.values and "Model Location" in flask.request.values and "Model Path" in flask.request.values
+			modelModified = "Model Name" in flask.request.values and "Model Location" in flask.request.values and "Model Path" in flask.request.values and "Model Center X" in flask.request.values and "Model Center Y" in flask.request.values
 	
 			# Check if slicer profile, model name, or model path contain path traversal
 			if "../" in flask.request.values["Slicer Profile Name"] or (modelModified and ("../" in flask.request.values["Model Name"] or "../" in flask.request.values["Model Path"])) :
@@ -6872,9 +6872,16 @@ class M3DFioPlugin(
 				u"Printer Profile Content" : copy.deepcopy(printerProfile)
 			}
 			
+			# Check if modifying model
 			if modelModified :
+			
+				# Save model locations
 				self.slicerChanges[u"Model Location"] = modelLocation
 				self.slicerChanges[u"Model Temporary"] = modelTemp
+				
+				# Adjust printer profile so that its center is equal to the model's center
+				printerProfile["volume"]["width"] += float(flask.request.values["Model Center X"]) * 2
+				printerProfile["volume"]["depth"] += float(flask.request.values["Model Center Y"]) * 2
 			
 			# Check if slicer is Cura
 			if flask.request.values["Slicer Name"] == "cura" :
@@ -6937,23 +6944,6 @@ class M3DFioPlugin(
 					value = (vectors[index].x, vectors[index].y)
 					printerProfile["extruder"]["offsets"][index] = value
 					index += 1
-			
-				# Get model's center X and Y
-				search = re.findall("object_center_x\s*?=\s*?(-?\d+.?\d*)", flask.request.values["Slicer Profile Content"])
-				if len(search) :
-					centerX = float(search[0])
-				else :
-					centerX = 0
-				
-				search = re.findall("object_center_y\s*?=\s*?(-?\d+.?\d*)", flask.request.values["Slicer Profile Content"])
-				if len(search) :
-					centerY = float(search[0])
-				else :
-					centerY = 0
-				
-				# Adjust printer profile so that its center is equal to the model's center
-				printerProfile["volume"]["width"] += centerX * 2
-				printerProfile["volume"]["depth"] += centerY * 2
 			
 			# Apply printer profile changes
 			self._printer_profile_manager.save(printerProfile, True)

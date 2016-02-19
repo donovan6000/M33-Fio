@@ -4937,14 +4937,18 @@ $(function() {
 									{
 										name: "Model Path",
 										value: modelPath
+									},
+									{
+										name: "Model Center X",
+										value: modelCenter[0]
+									},
+									{
+										name: "Model Center Y",
+										value: modelCenter[1]
 									});
 								
 									// Export scene as an STL
 									var scene = viewport.exportScene();
-			
-									// Append model's center to slicer profile if slicer is Cura
-									if(slicerName == "cura")
-										slicerProfileContent += "\nobject_center_x = " + modelCenter[0] + "\nobject_center_y = " + modelCenter[1] + '\n';
 								}
 							
 								// Append parameters
