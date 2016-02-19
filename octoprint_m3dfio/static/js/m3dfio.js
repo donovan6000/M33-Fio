@@ -4925,6 +4925,9 @@ $(function() {
 								// Check if WebGL is supported
 								if(Detector.webgl) {
 								
+									// Export scene as an STL
+									var scene = viewport.exportScene();
+								
 									// Append parameters
 									parameter.push({
 										name: "Model Name",
@@ -4946,9 +4949,6 @@ $(function() {
 										name: "Model Center Y",
 										value: modelCenter[1]
 									});
-								
-									// Export scene as an STL
-									var scene = viewport.exportScene();
 								}
 							
 								// Append parameters

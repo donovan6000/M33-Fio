@@ -6872,17 +6872,6 @@ class M3DFioPlugin(
 				u"Printer Profile Content" : copy.deepcopy(printerProfile)
 			}
 			
-			# Check if modifying model
-			if modelModified :
-			
-				# Save model locations
-				self.slicerChanges[u"Model Location"] = modelLocation
-				self.slicerChanges[u"Model Temporary"] = modelTemp
-				
-				# Adjust printer profile so that its center is equal to the model's center
-				printerProfile["volume"]["width"] += float(flask.request.values["Model Center X"]) * 2
-				printerProfile["volume"]["depth"] += float(flask.request.values["Model Center Y"]) * 2
-			
 			# Check if slicer is Cura
 			if flask.request.values["Slicer Name"] == "cura" :
 			
@@ -6944,6 +6933,17 @@ class M3DFioPlugin(
 					value = (vectors[index].x, vectors[index].y)
 					printerProfile["extruder"]["offsets"][index] = value
 					index += 1
+			
+			# Check if modifying model
+			if modelModified :
+			
+				# Save model locations
+				self.slicerChanges[u"Model Location"] = modelLocation
+				self.slicerChanges[u"Model Temporary"] = modelTemp
+				
+				# Adjust printer profile so that its center is equal to the model's center
+				printerProfile["volume"]["width"] += float(flask.request.values["Model Center X"]) * 2
+				printerProfile["volume"]["depth"] += float(flask.request.values["Model Center Y"]) * 2
 			
 			# Apply printer profile changes
 			self._printer_profile_manager.save(printerProfile, True)
