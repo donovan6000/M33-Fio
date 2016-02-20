@@ -3602,7 +3602,7 @@ class M3DFioPlugin(
 					
 						# Re-connect; wait for the device to be available
 						connection = None
-						for i in range(1, 5) :
+						for i in xrange(5) :
 							try :
 								connection = serial.Serial(currentPort, currentBaudrate)
 								break
@@ -7034,9 +7034,10 @@ class M3DFioPlugin(
 		
 		# Create a connection
 		connection = None
-		for i in range(1, 5) :
+		for i in xrange(5) :
 			try :
 				connection = serial.Serial(str(port), baudrate)
+				break
 
 			# If printer has just power-cycled it may not yet be ready
 			except OSError :
