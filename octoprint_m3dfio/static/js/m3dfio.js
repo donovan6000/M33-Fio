@@ -3953,7 +3953,7 @@ $(function() {
 													<div class="cura">
 														<div class="group basic">
 															<h3>Basic Settings</h3>
-															<p class="quality">` + (usingProvidedProfile ? `Medium Quality` : ``) + `</p>
+															<p class="quality">` + (usingProvidedProfile ? `Medium Quality` : `Unknown Quality`) + `</p>
 															<div class="quality">
 																<button title="Extra low quality"><img src="/plugin/m3dfio/static/img/extra%20low%20quality.png"></button>
 																<button title="Low quality"><img src="/plugin/m3dfio/static/img/low%20quality.png"></button>
@@ -3961,7 +3961,7 @@ $(function() {
 																<button title="High quality"><img src="/plugin/m3dfio/static/img/high%20quality.png"></button>
 																<button title="Extra high quality"><img src="/plugin/m3dfio/static/img/extra%20high%20quality.png"></button>
 															</div>
-															<p class="fill">` + (usingProvidedProfile ? `Medium Fill` : ``) + `</p>
+															<p class="fill">` + (usingProvidedProfile ? `Medium Fill` : `Unknown Fill`) + `</p>
 															<div class="fill">
 																<button title="Hollow thin fill"><img src="/plugin/m3dfio/static/img/hollow%20thin%20fill.png"></button>
 																<button title="Hollow thick fill"><img src="/plugin/m3dfio/static/img/hollow%20thick%20fill.png"></button>
@@ -3971,9 +3971,57 @@ $(function() {
 																<button title="Extra high fill"><img src="/plugin/m3dfio/static/img/extra%20high%20fill.png"></button>
 															</div>
 															<div class="settings">
-																<label title="Prints a breakaway support underneath overhanging parts of the model"><input type="checkbox"` + (usingProvidedProfile ? ` checked` : ``) + `>Use support material</label>
-																<label title="Allows support material to be created on top of models"><input type="checkbox"` + (usingProvidedProfile ? ` checked` : ``) + `>Use model on model support</label>
-																<label title="Prints a raft underneath the model"><input type="checkbox"` + (usingProvidedProfile ? ` checked` : ``) + `>Use raft</label>
+																<label title="Prints a breakaway support underneath overhanging parts of the model"><input type="checkbox" tabindex="-1"` + (usingProvidedProfile ? ` checked` : ``) + `>Use support material</label>
+																<label title="Allows support material to be created on top of models"><input type="checkbox" tabindex="-1"` + (usingProvidedProfile ? ` checked` : ``) + `>Use model on model support</label>
+																<label title="Prints a raft underneath the model"><input type="checkbox" tabindex="-1"` + (usingProvidedProfile ? ` checked` : ``) + `>Use raft</label>
+																<label title="Retracts the filament when moving over gaps"><input type="checkbox" tabindex="-1"` + (usingProvidedProfile ? ` checked` : ``) + `>Use retraction</label>
+															</div>
+														</div>
+														<div class="group manual closed">
+															<h3>Manual Settings</h3>
+															<div>
+																<div>
+																	<label title="Height of each layer">Layer height</label>
+																	<div class="input-append">
+																		<input class="layerHeight" type="number" tabindex="-1" min="0.01" max="0.35" step="0.01"` + (usingProvidedProfile ? ` value="0.15"` : ``) + `>
+																		<span class="add-on">mm</span>
+																	</div>
+																</div>
+																<div>
+																	<label title="Percentage of the model that is filled in">Fill density</label>
+																	<div class="input-append">
+																		<input class="fillDensity" type="number" tabindex="-1" min="0" max="100" step="0.01"` + (usingProvidedProfile ? ` value="8.75"` : ``) + `>
+																		<span class="add-on">%</span>
+																	</div>
+																</div>
+																<div>
+																	<label title="Thickness of the walls">Wall thickness</label>
+																	<div class="input-append">
+																		<input class="wallThickness" type="number" tabindex="-1" min="0" max="100" step="0.01"` + (usingProvidedProfile ? ` value="1.4"` : ``) + `>
+																		<span class="add-on">mm</span>
+																	</div>
+																</div>
+																<div>
+																	<label title="Speed of the extruder's movements while printing">Print speed</label>
+																	<div class="input-append">
+																		<input class="printSpeed" type="number" tabindex="-1" min="2" max="80" step="0.01"` + (usingProvidedProfile ? ` value="16"` : ``) + `>
+																		<span class="add-on">mm/s</span>
+																	</div>
+																</div>
+																<div>
+																	<label title="Distance between the raft and the model">Raft airgap</label>
+																	<div class="input-append">
+																		<input class="raftAirgap" type="number" tabindex="-1" min="0" max="4" step="0.01"` + (usingProvidedProfile ? ` value="0.28"` : ``) + `>
+																		<span class="add-on">mm</span>
+																	</div>
+																</div>
+																<div>
+																	<label title="Percentage of infill in the support material">Support fill rate</label>
+																	<div class="input-append">
+																		<input class="supportFillRate" type="number" tabindex="-1" min="0" max="100" step="0.01"` + (usingProvidedProfile ? ` value="20"` : ``) + `>
+																		<span class="add-on">%</span>
+																	</div>
+																</div>
 															</div>
 														</div>
 													</div>
@@ -3981,7 +4029,7 @@ $(function() {
 														<h3>Advanced Settings</h3>
 														<div>
 															<aside></aside>
-															<textarea spellcheck="false"></textarea>
+															<textarea tabindex="-1" spellcheck="false"></textarea>
 														</div>
 														<span></span>
 													</div>
@@ -4056,6 +4104,34 @@ $(function() {
 											}
 											updateLineNumbers();
 											
+											// Update profile settings
+											function updateProfileSettings(settings) {
+											
+												// Get current profile contents
+												slicerProfileContent = $("#slicing_configuration_dialog .modal-extra textarea").val();
+												
+												// Go through all changes settings
+												for(var setting in settings) {
+												
+													// Remove setting
+													var expression = new RegExp("(^|\n)" + setting + ".*\n?", 'g');
+													slicerProfileContent = slicerProfileContent.replace(expression, "$1");
+													
+													// Check if setting exists
+													if(settings[setting] !== null) {
+													
+														// Add setting
+														if(slicerProfileContent.match(/(^|\n)\[profile\].*\n?/) === null)
+															slicerProfileContent = "[profile]\n" + setting + " = " + settings[setting] + '\n';
+														else
+															slicerProfileContent = slicerProfileContent.replace(/(^|\n)\[profile\].*\n?/, "$1[profile]\n" + setting + " = " + settings[setting] + '\n');
+													}
+												}
+												
+												// Update profile contents
+												$("#slicing_configuration_dialog .modal-extra textarea").val(slicerProfileContent);
+											}
+											
 											// Mouse move on group
 											$("#slicing_configuration_dialog.profile .modal-extra div.group").mousemove(function(event) {
 	
@@ -4079,7 +4155,7 @@ $(function() {
 													if($(this).hasClass("closed")) {
 														$(this).removeClass("closed");
 														
-														if($(this).hasClass("advanced"))
+														 if($(this).hasClass("advanced"))
 															setTimeout(function() {
 																$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced > span").css("display", "block");
 															}, 100);
@@ -4105,7 +4181,7 @@ $(function() {
 												$(this).siblings("aside").scrollTop($(this).scrollTop());
 											});
 											
-											// Template checkbox change event
+											// Settings checkbox change event
 											$("#slicing_configuration_dialog .modal-extra div.cura div input[type=\"checkbox\"]").change(function() {
 											
 												// Initialize changed settings
@@ -4147,49 +4223,125 @@ $(function() {
 												// Otherwise set changed settings if changing use raft
 												else if($(this).parent().text() == "Use raft") {
 												
-													if(checked)
+													if(checked) {
 														changedSettings.push({
 															platform_adhesion: "Raft; None, Brim, Raft"
 														});
-													else
+														
+														// Enable raft airgap manual setting
+														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.raftAirgap").prop("disabled", false).parent("div").prev("label").removeClass("disabled");
+													}
+													else {
 														changedSettings.push({
 															platform_adhesion: "None; None, Brim, Raft"
 														});
-												}
-												
-												// Get current profile contents
-												slicerProfileContent = $("#slicing_configuration_dialog .modal-extra textarea").val();
-												
-												// Go through all changes settings
-												for(var setting in changedSettings[0]) {
-												
-													// Remove setting
-													var expression = new RegExp("(^|\n)" + setting + ".*\n?", 'g');
-													slicerProfileContent = slicerProfileContent.replace(expression, "$1");
-													
-													// Check if setting exists
-													if(changedSettings[0][setting] !== null) {
-													
-														// Add setting
-														if(slicerProfileContent.match(/(^|\n)\[profile\].*\n?/) === null)
-															slicerProfileContent = "[profile]\n" + setting + " = " + changedSettings[0][setting] + '\n';
-														else
-															slicerProfileContent = slicerProfileContent.replace(/(^|\n)\[profile\].*\n?/, "$1[profile]\n" + setting + " = " + changedSettings[0][setting] + '\n');
+														
+														// Disable raft airgap manual setting
+														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.raftAirgap").prop("disabled", true).parent("div").prev("label").addClass("disabled");
 													}
 												}
 												
-												// Update profile contents
-												$("#slicing_configuration_dialog .modal-extra textarea").val(slicerProfileContent);
+												// Otherwise set changed settings if changing use retraction
+												else if($(this).parent().text() == "Use retraction") {
+												
+													if(checked)
+														changedSettings.push({
+															retraction_enable: "True"
+														});
+													else
+														changedSettings.push({
+															retraction_enable: "False"
+														});
+												}
+												
+												// Update profile settings
+												updateProfileSettings(changedSettings[0]);
 											});
 											
-											// Template drag image event
+											// Settings drag image event
 											$("#slicing_configuration_dialog .modal-extra div.cura div button img").on("dragstart", function(event) {
 
 												// Prevent default
 												event.preventDefault();
 											});
 											
-											// Template button click event
+											// Settings label click event
+											$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > label").click(function() {
+											
+												// Focus on input
+												var input = $(this).next("div").children("input");
+												input.focus().val(input.val());
+											});
+											
+											// Settings change event
+											$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input").change(function() {
+											
+												// Initialize changed settings
+												var changedSettings = [];
+												
+												// Set changed settings if changing layer height
+												if($(this).hasClass("layerHeight")) {
+												
+													changedSettings.push({
+														layer_height: $(this).val()
+													});
+													
+													// Clear basic quality settings
+													$("#slicing_configuration_dialog .modal-extra div.cura p.quality").text("Unknown Quality");
+													$("#slicing_configuration_dialog .modal-extra div.cura div.quality button.disabled").removeClass("disabled");
+												}
+												
+												// Otherwise set changed settings if changing fill density
+												else if($(this).hasClass("fillDensity")) {
+												
+													changedSettings.push({
+														fill_density: $(this).val()
+													});
+													
+													// Clear basic fill settings
+													$("#slicing_configuration_dialog .modal-extra div.cura p.fill").text("Unknown Fill");
+													$("#slicing_configuration_dialog .modal-extra div.cura div.fill button.disabled").removeClass("disabled");
+												}
+												
+												// Otherwise set changed settings if changing wall thickness
+												else if($(this).hasClass("wallThickness")) {
+												
+													changedSettings.push({
+														wall_thickness: $(this).val()
+													});
+													
+													// Clear basic fill settings
+													$("#slicing_configuration_dialog .modal-extra div.cura p.fill").text("Unknown Fill");
+													$("#slicing_configuration_dialog .modal-extra div.cura div.fill button.disabled").removeClass("disabled");
+												}
+												
+												// Otherwise set changed settings if changing print speed
+												else if($(this).hasClass("printSpeed"))
+												
+													changedSettings.push({
+														print_speed: $(this).val(),
+														travel_speed: parseFloat($(this).val()) + 4 <= 80 ? parseFloat($(this).val()) + 4 : 80
+													});
+												
+												// Otherwise set changed settings if changing raft airgap
+												else if($(this).hasClass("raftAirgap"))
+												
+													changedSettings.push({
+														raft_airgap: $(this).val()
+													});
+												
+												// Otherwise set changed settings if changing support fill rate
+												else if($(this).hasClass("supportFillRate"))
+												
+													changedSettings.push({
+														support_fill_rate: $(this).val()
+													});
+												
+												// Update profile settings
+												updateProfileSettings(changedSettings[0]);
+											});
+											
+											// Settings button click event
 											$("#slicing_configuration_dialog .modal-extra div.cura div button").click(function() {
 											
 												// Select button
@@ -4274,6 +4426,9 @@ $(function() {
 														if(slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips")
 															changedSettings[0]["fan_full_height"] = 0.151;
 													}
+													
+													// Set layer height manual setting
+													$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.layerHeight").val(changedSettings[0]["layer_height"]);
 												}
 												
 												// Otherwise assume changing fill
@@ -4347,31 +4502,14 @@ $(function() {
 															solid_layer_thickness: 0.399,
 															infill_speed: null
 														});
+													
+													// Set fill density and wall thickness manual setting
+													$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.fillDensity").val(changedSettings[0]["fill_density"]);
+													$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.wallThickness").val(changedSettings[0]["wall_thickness"]);
 												}
 												
-												// Get current profile contents
-												slicerProfileContent = $("#slicing_configuration_dialog .modal-extra textarea").val();
-												
-												// Go through all changes settings
-												for(var setting in changedSettings[0]) {
-												
-													// Remove setting
-													var expression = new RegExp("(^|\n)" + setting + ".*\n?", 'g');
-													slicerProfileContent = slicerProfileContent.replace(expression, "$1");
-													
-													// Check if setting exists
-													if(changedSettings[0][setting] !== null) {
-													
-														// Add setting
-														if(slicerProfileContent.match(/(^|\n)\[profile\].*\n?/) === null)
-															slicerProfileContent = "[profile]\n" + setting + " = " + changedSettings[0][setting] + '\n';
-														else
-															slicerProfileContent = slicerProfileContent.replace(/(^|\n)\[profile\].*\n?/, "$1[profile]\n" + setting + " = " + changedSettings[0][setting] + '\n');
-													}
-												}
-												
-												// Update profile contents
-												$("#slicing_configuration_dialog .modal-extra textarea").val(slicerProfileContent);
+												// Update profile settings
+												updateProfileSettings(changedSettings[0]);
 											});
 							
 											// Resize window

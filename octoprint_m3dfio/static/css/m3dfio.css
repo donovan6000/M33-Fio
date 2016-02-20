@@ -496,8 +496,8 @@ body > div.page-container > div.message > div > div > span.show {
 }
 
 #slicing_configuration_dialog.profile {
-	max-width: 700px !important;
-	min-width: 540px !important;
+	max-width: 730px !important;
+	min-width: 630px !important;
 	overflow: visible !important;
 }
 
@@ -598,6 +598,10 @@ body > div.page-container > div.message > div > div > span.show {
 	height: 217px;
 }
 
+#slicing_configuration_dialog.profile .modal-extra div.group.manual {
+	height: 82px;
+}
+
 #slicing_configuration_dialog.profile .modal-extra div.group.advanced {
 	background-color: transparent;
 }
@@ -654,6 +658,40 @@ body > div.page-container > div.message > div > div > span.show {
 	position: relative;
 	top: -3px;
 	right: 2px;
+}
+
+#slicing_configuration_dialog.profile .modal-extra div.group.manual > div {
+	display: flex;
+	flex-wrap: wrap;
+	flex-direction: column;
+	margin-top: 11px;
+	height: 82px;
+}
+
+#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div {
+	display: inline-block;
+	width: calc(100% / 3);
+	margin: 3px 0;
+}
+
+#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > label {
+	display: inline-block;
+	margin-top: 4px;
+}
+
+#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > label.disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div {
+	display: inline;
+}
+
+#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input {
+	display: inline;
+	width: 50px;
+	margin-left: 3px;
 }
 
 #slicing_configuration_dialog.profile .modal-extra div.group.advanced > div {
