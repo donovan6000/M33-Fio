@@ -3153,6 +3153,18 @@ class M3DFioPlugin(
 			# Send provided firmware versions
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Provided Firmwares", firmwares = self.providedFirmwares))
 			
+			# Check if shared library exists
+			if self.sharedLibrary :
+		
+				# Show shared library options
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Using Shared Library"))
+		
+			# Otherwise
+			else :
+		
+				# Hide shared library options
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Not Using Shared Library"))
+			
 			# Check if EEPROM was read
 			if self.eeprom :
 			

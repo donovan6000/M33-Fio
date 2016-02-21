@@ -7811,17 +7811,17 @@ $(function() {
 					hide: false
 				});
 			
-			// Otherwise check if data is to enable shared library options
-			else if(data.value == "Enable Shared Library")
+			// Otherwise check if data is using shared library
+			else if(data.value == "Using Shared Library")
 			
-				// Enable shared library options
-				$("#settings_plugin_m3dfio label.sharedLibrary").removeClass("disabled").children("input").prop("disabled", false);
+				// Display shared library settings
+				$("#settings_plugin_m3dfio .sharedLibrary").css("display", "block");
 			
-			// Otherwise check if data is to disable shared library options
-			else if(data.value == "Disable Shared Library")
+			// Otherwise check if data is not using shared library
+			else if(data.value == "Not Using Shared Library")
 			
-				// Disable shared library options
-				$("#settings_plugin_m3dfio label.sharedLibrary").addClass("disabled").children("input").prop("disabled", true);
+				// Hide shared library settings
+				$("#settings_plugin_m3dfio .sharedLibrary").css("display", "none");
 			
 			// Otherwise check if data is that Cura isn't installed
 			else if(data.value == "Cura Not Installed") {
