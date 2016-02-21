@@ -42,6 +42,42 @@
 			</label>
 		</div>
 	</div>
+	<div class="control-group camera">
+		<div class="controls">
+			<label class="checkbox" title="Hosts a camera's stream and snapshot at port 4999 at /stream.mjpg and /snapshot.jpg respectively">
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.HostCamera"><span>Host Camera</span>
+				<select class="input-block-level short" data-bind="value: settings.plugins.m3dfio.CameraPort"></select>
+				&nbsp;&nbsp;<span class="label label-important">Changes require restart</span>
+			</label>
+		</div>
+	</div>
+	<div class="control-group dependant camera">
+		<label class="control-label">Camera Width</label>
+		<div class="controls">
+			<div class="input-append px">
+				<input type="number" step="1" min="1" max="4096" class="input-block-level" data-bind="value: settings.plugins.m3dfio.CameraWidth">
+				<span class="add-on">px</span>
+			</div>
+		</div>
+	</div>
+	<div class="control-group dependant camera">
+		<label class="control-label">Camera Height</label>
+		<div class="controls">
+			<div class="input-append">
+				<input type="number" step="1" min="1" max="4096" class="input-block-level" data-bind="value: settings.plugins.m3dfio.CameraHeight">
+				<span class="add-on">px</span>
+			</div>
+		</div>
+	</div>
+	<div class="control-group dependant camera">
+		<label class="control-label">Camera Frames Per Second</label>
+		<div class="controls">
+			<div class="input-append">
+				<input type="number" step="1" min="1" max="60" class="input-block-level" data-bind="value: settings.plugins.m3dfio.CameraFramesPerSecond">
+				<span class="add-on">fps</span>
+			</div>
+		</div>
+	</div>
 	<div class="control-group">
 		<h4>Pre-Processor Stages</h4>
 		<div class="controls">

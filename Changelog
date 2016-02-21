@@ -1,5 +1,13 @@
 Changelog:
 
+V0.27 February 20, 2016
+
+	* Builtin webcam server
+	* Slicer profile editor now makes manually settings certain values simplier
+	* Fixed issue where unloading/loading filament would hang
+	* Fixed isse in slicer profiles where the wall thickness would always be 0.35mm
+	* Fixed the need to run the Windows installer twice
+
 V0.26 February 9, 2016
 
 	* Added support for the Micro 3D compatible heatbed. Thanks Loswave!

@@ -6,7 +6,7 @@ import setuptools
 plugin_identifier = "m3dfio"
 plugin_package = "octoprint_%s" % plugin_identifier
 plugin_name = "OctoPrint-M3DFio"
-plugin_version = "0.26"
+plugin_version = "0.27"
 plugin_description = "Makes OctoPrint fully compatible with the Micro 3D printer"
 plugin_author = "donovan6000"
 plugin_author_email = "donovan6000@exploitkings.com"
@@ -32,14 +32,6 @@ def package_data_dirs(source, sub_folders):
 
 	return dirs
 
-def usingWindows() :
-
-	# Imports
-	import platform
-	
-	# Return if using Windows
-	return platform.uname()[0].startswith("Windows")
-
 def params():
 
 	# Our metadata, as defined above
@@ -64,11 +56,6 @@ def params():
 
 	# Read the requirements from our requirements.txt file
 	install_requires = open("requirements.txt").read().split("\n")
-	
-	# Add Windows Specific requirements
-	if usingWindows() :
-		install_requires.pop()
-		install_requires += ["regex>=2016.01.10", '']
 	
 	# Hook the plugin into the "octoprint.plugin" entry point, mapping the plugin_identifier to the plugin_package.
 	# That way OctoPrint will be able to find the plugin and load it.

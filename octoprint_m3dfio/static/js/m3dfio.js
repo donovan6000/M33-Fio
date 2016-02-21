@@ -1554,7 +1554,7 @@ $(function() {
 					
 								// Render
 								viewport.render();
-							}, 80);
+							}, 200);
 				
 							$(document).on("mousemove.viewport", viewport.stopRemoveSelectionTimeout);
 						}
@@ -3408,8 +3408,8 @@ $(function() {
 		var originalLoadFile = self.files.loadFile;
 		self.files.loadFile = function(file, printAfterLoad) {
 		
-			// Check if using on the fly pre-processing and changing settings before print
-			if(self.settings.settings.plugins.m3dfio.PreprocessOnTheFly() && self.settings.settings.plugins.m3dfio.ChangeSettingsBeforePrint()) {
+			// Check if printing after load, using on the fly pre-processing, and changing settings before print
+			if(printAfterLoad && self.settings.settings.plugins.m3dfio.PreprocessOnTheFly() && self.settings.settings.plugins.m3dfio.ChangeSettingsBeforePrint()) {
 			
 				// Show message
 				showMessage("Message", '', "Print", function() {
@@ -3934,6 +3934,9 @@ $(function() {
 
 										// On success
 										success: function(data) {
+										
+											// Set using provided profile
+											var usingProvidedProfile = slicerName == "cura" && (slicerProfileName == "m3d_pla" || slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips" || slicerProfileName == "m3d_flx" || slicerProfileName == "m3d_tgh");
 											
 											// Hide cover
 											$("#slicing_configuration_dialog .modal-cover").addClass("noTransition").removeClass("show");
@@ -3947,50 +3950,106 @@ $(function() {
 											$("#slicing_configuration_dialog .modal-body").css("display", "none");
 											$("#slicing_configuration_dialog .modal-body").after(`
 												<div class="modal-extra">
-													<div class="templates">
-														<p class="quality">Medium Quality</p>
-														<div class="quality">
-															<button title="Extra low quality"><img src="/plugin/m3dfio/static/img/extra%20low%20quality.png"></button>
-															<button title="Low quality"><img src="/plugin/m3dfio/static/img/low%20quality.png"></button>
-															<button title="Medium quality" class="disabled"><img src="/plugin/m3dfio/static/img/medium%20quality.png"></button>
-															<button title="High quality"><img src="/plugin/m3dfio/static/img/high%20quality.png"></button>
-															<button title="Extra high quality"><img src="/plugin/m3dfio/static/img/extra%20high%20quality.png"></button>
+													<div class="cura">
+														<div class="group basic">
+															<h3>Basic Settings</h3>
+															<p class="quality">` + (usingProvidedProfile ? `Medium Quality` : `Unknown Quality`) + `</p>
+															<div class="quality">
+																<button title="Extra low quality"><img src="/plugin/m3dfio/static/img/extra%20low%20quality.png"></button>
+																<button title="Low quality"><img src="/plugin/m3dfio/static/img/low%20quality.png"></button>
+																<button title="Medium quality"` + (usingProvidedProfile ? ` class="disabled"` : ``) + `><img src="/plugin/m3dfio/static/img/medium%20quality.png"></button>
+																<button title="High quality"><img src="/plugin/m3dfio/static/img/high%20quality.png"></button>
+																<button title="Extra high quality"><img src="/plugin/m3dfio/static/img/extra%20high%20quality.png"></button>
+															</div>
+															<p class="fill">` + (usingProvidedProfile ? `Medium Fill` : `Unknown Fill`) + `</p>
+															<div class="fill">
+																<button title="Hollow thin fill"><img src="/plugin/m3dfio/static/img/hollow%20thin%20fill.png"></button>
+																<button title="Hollow thick fill"><img src="/plugin/m3dfio/static/img/hollow%20thick%20fill.png"></button>
+																<button title="Low fill"><img src="/plugin/m3dfio/static/img/low%20fill.png"></button>
+																<button title="Medium fill"` + (usingProvidedProfile ? ` class="disabled"` : ``) + `><img src="/plugin/m3dfio/static/img/medium%20fill.png"></button>
+																<button title="High fill"><img src="/plugin/m3dfio/static/img/high%20fill.png"></button>
+																<button title="Extra high fill"><img src="/plugin/m3dfio/static/img/extra%20high%20fill.png"></button>
+															</div>
+															<div class="settings">
+																<label title="Prints a breakaway support underneath overhanging parts of the model"><input type="checkbox" tabindex="-1"` + (usingProvidedProfile ? ` checked` : ``) + `>Use support material</label>
+																<label title="Allows support material to be created on top of models"><input type="checkbox" tabindex="-1"` + (usingProvidedProfile ? ` checked` : ``) + `>Use model on model support</label>
+																<label title="Prints a raft underneath the model"><input type="checkbox" tabindex="-1"` + (usingProvidedProfile ? ` checked` : ``) + `>Use raft</label>
+																<label title="Retracts the filament when moving over gaps"><input type="checkbox" tabindex="-1"` + (usingProvidedProfile ? ` checked` : ``) + `>Use retraction</label>
+															</div>
 														</div>
-														<p class="fill">Medium Fill</p>
-														<div class="fill">
-															<button title="Hollow thin fill"><img src="/plugin/m3dfio/static/img/hollow%20thin%20fill.png"></button>
-															<button title="Hollow thick fill"><img src="/plugin/m3dfio/static/img/hollow%20thick%20fill.png"></button>
-															<button title="Low fill"><img src="/plugin/m3dfio/static/img/low%20fill.png"></button>
-															<button title="Medium fill" class="disabled"><img src="/plugin/m3dfio/static/img/medium%20fill.png"></button>
-															<button title="High fill"><img src="/plugin/m3dfio/static/img/high%20fill.png"></button>
-															<button title="Extra high fill"><img src="/plugin/m3dfio/static/img/extra%20high%20fill.png"></button>
-														</div>
-														<div class="settings">
-															<label title="Prints a breakaway support underneath overhanging parts of the model"><input type="checkbox" checked>Use support material</label>
-															<label title="Allows support material to be created on top of models"><input type="checkbox" checked>Use model on model support</label>
-															<label title="Prints a raft underneath the model"><input type="checkbox" checked>Use raft</label>
+														<div class="group manual closed">
+															<h3>Manual Settings</h3>
+															<div>
+																<div>
+																	<label title="Height of each layer">Layer height</label>
+																	<div class="input-append">
+																		<input class="layerHeight" type="number" tabindex="-1" min="0.01" max="0.35" step="0.01"` + (usingProvidedProfile ? ` value="0.15"` : ``) + `>
+																		<span class="add-on">mm</span>
+																	</div>
+																</div>
+																<div>
+																	<label title="Percentage of the model that is filled in">Fill density</label>
+																	<div class="input-append">
+																		<input class="fillDensity" type="number" tabindex="-1" min="0" max="100" step="0.01"` + (usingProvidedProfile ? ` value="8.75"` : ``) + `>
+																		<span class="add-on">%</span>
+																	</div>
+																</div>
+																<div>
+																	<label title="Thickness of the walls">Wall thickness</label>
+																	<div class="input-append">
+																		<input class="wallThickness" type="number" tabindex="-1" min="0" max="100" step="0.01"` + (usingProvidedProfile ? ` value="1.4"` : ``) + `>
+																		<span class="add-on">mm</span>
+																	</div>
+																</div>
+																<div>
+																	<label title="Speed of the extruder's movements while printing">Print speed</label>
+																	<div class="input-append">
+																		<input class="printSpeed" type="number" tabindex="-1" min="2" max="80" step="0.01"` + (usingProvidedProfile ? ` value="16"` : ``) + `>
+																		<span class="add-on">mm/s</span>
+																	</div>
+																</div>
+																<div>
+																	<label title="Distance between the raft and the model">Raft airgap</label>
+																	<div class="input-append">
+																		<input class="raftAirgap" type="number" tabindex="-1" min="0" max="4" step="0.01"` + (usingProvidedProfile ? ` value="0.28"` : ``) + `>
+																		<span class="add-on">mm</span>
+																	</div>
+																</div>
+																<div>
+																	<label title="Percentage of infill in the support material">Support fill rate</label>
+																	<div class="input-append">
+																		<input class="supportFillRate" type="number" tabindex="-1" min="0" max="100" step="0.01"` + (usingProvidedProfile ? ` value="20"` : ``) + `>
+																		<span class="add-on">%</span>
+																	</div>
+																</div>
+															</div>
 														</div>
 													</div>
-													<div>
-														<aside></aside>
-														<textarea spellcheck="false"></textarea>
+													<div class="group advanced closed">
+														<h3>Advanced Settings</h3>
+														<div>
+															<aside></aside>
+															<textarea tabindex="-1" spellcheck="false"></textarea>
+														</div>
+														<span></span>
 													</div>
-													<span></span>
 												</div
 											`);
 											$("#slicing_configuration_dialog .modal-extra textarea").val(data);
 											
-											// Check if using one of the provided profiles
-											if(slicerName == "cura" && (slicerProfileName == "m3d_pla" || slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips" || slicerProfileName == "m3d_flx" || slicerProfileName == "m3d_tgh"))
+											// Check if using a Cura profile
+											if(slicerName == "cura")
 											
-												// Show templates
-												$("#slicing_configuration_dialog .modal-extra div.templates").addClass("show");
+												// Show Cura settings
+												$("#slicing_configuration_dialog .modal-extra div.cura").addClass("show");
 											
 											// Otherwise
-											else
+											else {
 											
 												// Grow text area
-												$("#slicing_configuration_dialog.profile .modal-extra div").addClass("fullSpace");
+												$("#slicing_configuration_dialog.profile .modal-extra div.advanced").addClass("fullSpace").removeClass("closed")
+												$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced > span").css("display", "block");
+											}
 											
 											// Set slicer menu
 											slicerMenu = "Modify Profile";
@@ -4033,6 +4092,7 @@ $(function() {
 														for(var i = 1; i <= numberOfLines; i++)
 															lineNumberArea.append(i + "<br>");
 														lineNumberArea.append("<br>");
+														lineNumberArea.append("<br>");
 													
 														// Update previous line count
 														previousLineCount = numberOfLines;
@@ -4043,6 +4103,76 @@ $(function() {
 												}
 											}
 											updateLineNumbers();
+											
+											// Update profile settings
+											function updateProfileSettings(settings) {
+											
+												// Get current profile contents
+												slicerProfileContent = $("#slicing_configuration_dialog .modal-extra textarea").val();
+												
+												// Go through all changes settings
+												for(var setting in settings) {
+												
+													// Remove setting
+													var expression = new RegExp("(^|\n)" + setting + ".*\n?", 'g');
+													slicerProfileContent = slicerProfileContent.replace(expression, "$1");
+													
+													// Check if setting exists
+													if(settings[setting] !== null) {
+													
+														// Add setting
+														if(slicerProfileContent.match(/(^|\n)\[profile\].*\n?/) === null)
+															slicerProfileContent = "[profile]\n" + setting + " = " + settings[setting] + '\n';
+														else
+															slicerProfileContent = slicerProfileContent.replace(/(^|\n)\[profile\].*\n?/, "$1[profile]\n" + setting + " = " + settings[setting] + '\n');
+													}
+												}
+												
+												// Update profile contents
+												$("#slicing_configuration_dialog .modal-extra textarea").val(slicerProfileContent);
+											}
+											
+											// Mouse move on group
+											$("#slicing_configuration_dialog.profile .modal-extra div.group").mousemove(function(event) {
+	
+												// Set tooltip if hovering over corner
+												if($(this).offset().left - event.pageX >= -12 && $(this).offset().top - event.pageY >= -12) {
+													$(this).attr("title", $(this).hasClass("closed") ? "Open" : "Close");
+													$(this).css("cursor", "pointer");
+												}
+												else {
+													$(this).removeAttr("title");
+													$(this).css("cursor", '');
+												}
+											
+											// Click on group
+											}).click(function(event) {
+											
+												// Check if clicking on corner
+												if($(this).offset().left - event.pageX >= -12 && $(this).offset().top - event.pageY >= -12) {
+												
+													// Open or close group
+													if($(this).hasClass("closed")) {
+														$(this).removeClass("closed");
+														
+														 if($(this).hasClass("advanced"))
+															setTimeout(function() {
+																$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced > span").css("display", "block");
+															}, 100);
+													}
+													else {
+														$(this).addClass("closed");
+														
+														if($(this).hasClass("advanced"))
+															setTimeout(function() {
+																$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced > span").css("display", "none");
+															}, 100);
+													}
+													
+													// Update cursor and title
+													$(this).mousemove();
+												}
+											});
 										
 											// Text area scroll event
 											$("#slicing_configuration_dialog .modal-extra textarea").scroll(function() {
@@ -4051,8 +4181,8 @@ $(function() {
 												$(this).siblings("aside").scrollTop($(this).scrollTop());
 											});
 											
-											// Template checkbox change event
-											$("#slicing_configuration_dialog .modal-extra div.templates > div input[type=\"checkbox\"]").change(function() {
+											// Settings checkbox change event
+											$("#slicing_configuration_dialog .modal-extra div.cura div input[type=\"checkbox\"]").change(function() {
 											
 												// Initialize changed settings
 												var changedSettings = [];
@@ -4065,10 +4195,10 @@ $(function() {
 												
 													if(checked)
 														changedSettings.push({
-															support: $("#slicing_configuration_dialog .modal-extra div.templates > div input").eq(1).is(":checked") ? "Everywhere; None, Touching buildplate, Everywhere" : "Touching buildplate; None, Touching buildplate, Everywhere"
+															support: $("#slicing_configuration_dialog .modal-extra div.cura div input").eq(1).is(":checked") ? "Everywhere; None, Touching buildplate, Everywhere" : "Touching buildplate; None, Touching buildplate, Everywhere"
 														});
 													else {
-														$("#slicing_configuration_dialog .modal-extra div.templates > div input").eq(1).prop("checked", false);
+														$("#slicing_configuration_dialog .modal-extra div.cura div input").eq(1).prop("checked", false);
 														changedSettings.push({
 															support: "None; None, Touching buildplate, Everywhere"
 														});
@@ -4079,64 +4209,140 @@ $(function() {
 												else if($(this).parent().text() == "Use model on model support") {
 												
 													if(checked) {
-														$("#slicing_configuration_dialog .modal-extra div.templates > div input").eq(0).prop("checked", true);
+														$("#slicing_configuration_dialog .modal-extra div.cura div input").eq(0).prop("checked", true);
 														changedSettings.push({
 															support: "Everywhere; None, Touching buildplate, Everywhere"
 														});
 													}
 													else
 														changedSettings.push({
-															support: $("#slicing_configuration_dialog .modal-extra div.templates > div input").eq(0).is(":checked") ? "Touching buildplate; None, Touching buildplate, Everywhere" : "None; None, Touching buildplate, Everywhere"
+															support: $("#slicing_configuration_dialog .modal-extra div.cura div input").eq(0).is(":checked") ? "Touching buildplate; None, Touching buildplate, Everywhere" : "None; None, Touching buildplate, Everywhere"
 														});
 												}
 												
 												// Otherwise set changed settings if changing use raft
 												else if($(this).parent().text() == "Use raft") {
 												
-													if(checked)
+													if(checked) {
 														changedSettings.push({
 															platform_adhesion: "Raft; None, Brim, Raft"
 														});
-													else
+														
+														// Enable raft airgap manual setting
+														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.raftAirgap").prop("disabled", false).parent("div").prev("label").removeClass("disabled");
+													}
+													else {
 														changedSettings.push({
 															platform_adhesion: "None; None, Brim, Raft"
 														});
-												}
-												
-												// Get current profile contents
-												slicerProfileContent = $("#slicing_configuration_dialog .modal-extra textarea").val();
-												
-												// Go through all changes settings
-												for(var setting in changedSettings[0]) {
-												
-													// Remove setting
-													var expression = new RegExp("(^|\n)" + setting + ".*\n?", 'g');
-													slicerProfileContent = slicerProfileContent.replace(expression, "$1");
-													
-													// Check if setting exists
-													if(changedSettings[0][setting] !== null) {
-													
-														// Add setting
-														if(slicerProfileContent.match(/(^|\n)\[profile\].*\n?/) === null)
-															slicerProfileContent = "[profile]\n" + setting + " = " + changedSettings[0][setting] + '\n';
-														else
-															slicerProfileContent = slicerProfileContent.replace(/(^|\n)\[profile\].*\n?/, "$1[profile]\n" + setting + " = " + changedSettings[0][setting] + '\n');
+														
+														// Disable raft airgap manual setting
+														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.raftAirgap").prop("disabled", true).parent("div").prev("label").addClass("disabled");
 													}
 												}
 												
-												// Update profile contents
-												$("#slicing_configuration_dialog .modal-extra textarea").val(slicerProfileContent);
+												// Otherwise set changed settings if changing use retraction
+												else if($(this).parent().text() == "Use retraction") {
+												
+													if(checked)
+														changedSettings.push({
+															retraction_enable: "True"
+														});
+													else
+														changedSettings.push({
+															retraction_enable: "False"
+														});
+												}
+												
+												// Update profile settings
+												updateProfileSettings(changedSettings[0]);
 											});
 											
-											// Template drag image event
-											$("#slicing_configuration_dialog .modal-extra div.templates > div button img").on("dragstart", function(event) {
+											// Settings drag image event
+											$("#slicing_configuration_dialog .modal-extra div.cura div button img").on("dragstart", function(event) {
 
 												// Prevent default
 												event.preventDefault();
 											});
 											
-											// Template button click event
-											$("#slicing_configuration_dialog .modal-extra div.templates > div button").click(function() {
+											// Settings label click event
+											$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > label").click(function() {
+											
+												// Focus on input
+												var input = $(this).next("div").children("input");
+												input.focus().val(input.val());
+											});
+											
+											// Settings change event
+											$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input").change(function() {
+											
+												// Initialize changed settings
+												var changedSettings = [];
+												
+												// Set changed settings if changing layer height
+												if($(this).hasClass("layerHeight")) {
+												
+													changedSettings.push({
+														layer_height: $(this).val()
+													});
+													
+													// Clear basic quality settings
+													$("#slicing_configuration_dialog .modal-extra div.cura p.quality").text("Unknown Quality");
+													$("#slicing_configuration_dialog .modal-extra div.cura div.quality button.disabled").removeClass("disabled");
+												}
+												
+												// Otherwise set changed settings if changing fill density
+												else if($(this).hasClass("fillDensity")) {
+												
+													changedSettings.push({
+														fill_density: $(this).val()
+													});
+													
+													// Clear basic fill settings
+													$("#slicing_configuration_dialog .modal-extra div.cura p.fill").text("Unknown Fill");
+													$("#slicing_configuration_dialog .modal-extra div.cura div.fill button.disabled").removeClass("disabled");
+												}
+												
+												// Otherwise set changed settings if changing wall thickness
+												else if($(this).hasClass("wallThickness")) {
+												
+													changedSettings.push({
+														wall_thickness: $(this).val()
+													});
+													
+													// Clear basic fill settings
+													$("#slicing_configuration_dialog .modal-extra div.cura p.fill").text("Unknown Fill");
+													$("#slicing_configuration_dialog .modal-extra div.cura div.fill button.disabled").removeClass("disabled");
+												}
+												
+												// Otherwise set changed settings if changing print speed
+												else if($(this).hasClass("printSpeed"))
+												
+													changedSettings.push({
+														print_speed: $(this).val(),
+														travel_speed: parseFloat($(this).val()) + 4 <= 80 ? parseFloat($(this).val()) + 4 : 80
+													});
+												
+												// Otherwise set changed settings if changing raft airgap
+												else if($(this).hasClass("raftAirgap"))
+												
+													changedSettings.push({
+														raft_airgap: $(this).val()
+													});
+												
+												// Otherwise set changed settings if changing support fill rate
+												else if($(this).hasClass("supportFillRate"))
+												
+													changedSettings.push({
+														support_fill_rate: $(this).val()
+													});
+												
+												// Update profile settings
+												updateProfileSettings(changedSettings[0]);
+											});
+											
+											// Settings button click event
+											$("#slicing_configuration_dialog .modal-extra div.cura div button").click(function() {
 											
 												// Select button
 												$(this).blur();
@@ -4149,7 +4355,7 @@ $(function() {
 												if($(this).parent().hasClass("quality")) {
 												
 													// Set text
-													$("#slicing_configuration_dialog .modal-extra div.templates > p.quality").text(capitalize($(this).attr("title")));
+													$("#slicing_configuration_dialog .modal-extra div.cura p.quality").text(capitalize($(this).attr("title")));
 												
 													// Set changed settings if extra low quality
 													if($(this).attr("title") == "Extra low quality") {
@@ -4220,19 +4426,24 @@ $(function() {
 														if(slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips")
 															changedSettings[0]["fan_full_height"] = 0.151;
 													}
+													
+													// Set layer height manual setting
+													$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.layerHeight").val(changedSettings[0]["layer_height"]);
 												}
 												
 												// Otherwise assume changing fill
 												else {
 												
 													// Set text
-													$("#slicing_configuration_dialog .modal-extra div.templates > p.fill").text(capitalize($(this).attr("title")));
+													$("#slicing_configuration_dialog .modal-extra div.cura p.fill").text(capitalize($(this).attr("title")));
 												
 													// Set changed settings if hollow thin fill
 													if($(this).attr("title") == "Hollow thin fill")
 													
 														changedSettings.push({
 															fill_density: 0,
+															wall_thickness: 0.35,
+															nozzle_size: 0.35,
 															solid_layer_thickness: 0.149,
 															infill_speed: 15
 														});
@@ -4242,6 +4453,8 @@ $(function() {
 													
 														changedSettings.push({
 															fill_density: 0,
+															wall_thickness: 1.05,
+															nozzle_size: 0.35,
 															solid_layer_thickness: 0.249,
 															infill_speed: 15
 														});
@@ -4251,6 +4464,8 @@ $(function() {
 													
 														changedSettings.push({
 															fill_density: 6.36363636364,
+															wall_thickness: 1.05,
+															nozzle_size: 0.35,
 															solid_layer_thickness: 0.299,
 															infill_speed: null
 														});
@@ -4260,6 +4475,8 @@ $(function() {
 													
 														changedSettings.push({
 															fill_density: 8.75,
+															wall_thickness: 1.4,
+															nozzle_size: 0.35,
 															solid_layer_thickness: 0.399,
 															infill_speed: null
 														});
@@ -4269,6 +4486,8 @@ $(function() {
 													
 														changedSettings.push({
 															fill_density: 14.0,
+															wall_thickness: 1.4,
+															nozzle_size: 0.35,
 															solid_layer_thickness: 0.399,
 															infill_speed: null
 														});
@@ -4278,34 +4497,19 @@ $(function() {
 													
 														changedSettings.push({
 															fill_density: 23.3333333333,
+															wall_thickness: 1.4,
+															nozzle_size: 0.35,
 															solid_layer_thickness: 0.399,
 															infill_speed: null
 														});
+													
+													// Set fill density and wall thickness manual setting
+													$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.fillDensity").val(changedSettings[0]["fill_density"]);
+													$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.wallThickness").val(changedSettings[0]["wall_thickness"]);
 												}
 												
-												// Get current profile contents
-												slicerProfileContent = $("#slicing_configuration_dialog .modal-extra textarea").val();
-												
-												// Go through all changes settings
-												for(var setting in changedSettings[0]) {
-												
-													// Remove setting
-													var expression = new RegExp("(^|\n)" + setting + ".*\n?", 'g');
-													slicerProfileContent = slicerProfileContent.replace(expression, "$1");
-													
-													// Check if setting exists
-													if(changedSettings[0][setting] !== null) {
-													
-														// Add setting
-														if(slicerProfileContent.match(/(^|\n)\[profile\].*\n?/) === null)
-															slicerProfileContent = "[profile]\n" + setting + " = " + changedSettings[0][setting] + '\n';
-														else
-															slicerProfileContent = slicerProfileContent.replace(/(^|\n)\[profile\].*\n?/, "$1[profile]\n" + setting + " = " + changedSettings[0][setting] + '\n');
-													}
-												}
-												
-												// Update profile contents
-												$("#slicing_configuration_dialog .modal-extra textarea").val(slicerProfileContent);
+												// Update profile settings
+												updateProfileSettings(changedSettings[0]);
 											});
 							
 											// Resize window
@@ -4913,6 +5117,9 @@ $(function() {
 								// Check if WebGL is supported
 								if(Detector.webgl) {
 								
+									// Export scene as an STL
+									var scene = viewport.exportScene();
+								
 									// Append parameters
 									parameter.push({
 										name: "Model Name",
@@ -4925,14 +5132,15 @@ $(function() {
 									{
 										name: "Model Path",
 										value: modelPath
+									},
+									{
+										name: "Model Center X",
+										value: modelCenter[0]
+									},
+									{
+										name: "Model Center Y",
+										value: modelCenter[1]
 									});
-								
-									// Export scene as an STL
-									var scene = viewport.exportScene();
-			
-									// Append model's center to slicer profile if slicer is Cura
-									if(slicerName == "cura")
-										slicerProfileContent += "\nobject_center_x = " + modelCenter[0] + "\nobject_center_y = " + modelCenter[1] + '\n';
 								}
 							
 								// Append parameters
@@ -5130,11 +5338,63 @@ $(function() {
 			});
 		});
 		
+		// Terminal send command key up event
+		$("#terminal-command").keyup(function(event) {
+		
+			// Check if key is enter
+			if(event.which === 13) {
+			
+				// Send command
+				sendCommand(event);
+				
+				// Blur self
+				$(this).blur();
+			}
+		});
+		
+		// Terminal send command click event
+		$("#terminal-send").click(function(event) {
+		
+			// Send command
+			sendCommand(event);
+			
+			// Blur self
+			$(this).blur();
+		});
+		
+		// Send command
+		function sendCommand(event) {
+		
+			// Check if printing
+			if(self.printerState.isPrinting() === true) {
+		
+				// Stop default behavior
+				event.stopImmediatePropagation();
+			
+				// Set commands
+				var commands = [
+					$("#terminal-command").val() + '*'
+				];
+			
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m3dfio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({command: "message", value: commands}),
+					contentType: "application/json; charset=UTF-8"
+				});
+				
+				// Clear value
+				$("#terminal-command").val('');
+			}
+		}
+		
 		// Save settings button event
 		$("#settings_dialog > div.modal-footer > button.btn-primary").click(function() {
 		
-			// Save printer settings
-			function savePrinterSettings() {
+			// Saved settings
+			function savedSettings() {
 			
 				// Check if settings were saved
 				if(!$("#settings_dialog").hasClass("in")) {
@@ -5144,7 +5404,7 @@ $(function() {
 						url: API_BASEURL + "plugin/m3dfio",
 						type: "POST",
 						dataType: "json",
-						data: JSON.stringify({command: "message", value: "Save Printer Settings"}),
+						data: JSON.stringify({command: "message", value: "Saved Settings"}),
 						contentType: "application/json; charset=UTF-8"
 					});
 				}
@@ -5153,9 +5413,9 @@ $(function() {
 				else
 				
 					// Check if settings were saved again
-					setTimeout(savePrinterSettings, 100);
+					setTimeout(savedSettings, 100);
 			}
-			setTimeout(savePrinterSettings, 100);
+			setTimeout(savedSettings, 100);
 		});
 	
 		// Override X increment control
@@ -5565,9 +5825,7 @@ $(function() {
 		
 				for(var i = 2; i <= 40; i += 2)
 					commands.push("G0 E-" + i + " F345");
-
-				commands.push("M104 S0");
-				commands.push("M107");
+				
 				commands.push("M65536;wait");
 				
 				// Set waiting callback
@@ -5578,6 +5836,23 @@ $(function() {
 		
 						// Hide message
 						hideMessage();
+						
+						// Set commands
+						commands = [
+							"M18",
+							"M104 S0",
+							"M107",
+						];
+						
+						// Send request
+						$.ajax({
+							url: API_BASEURL + "plugin/m3dfio",
+							type: "POST",
+							dataType: "json",
+							data: JSON.stringify({command: "message", value: commands}),
+							contentType: "application/json; charset=UTF-8"
+						});
+						
 					}, "No", function() {
 					
 						// Hide message
@@ -5651,9 +5926,7 @@ $(function() {
 		
 				for(var i = 2; i <= 40; i += 2)
 					commands.push("G0 E" + i + " F345");
-
-				commands.push("M104 S0");
-				commands.push("M107");
+				
 				commands.push("M65536;wait");
 				
 				// Set waiting callback
@@ -5664,6 +5937,22 @@ $(function() {
 				
 						// Hide message
 						hideMessage();
+						
+						// Set commands
+						commands = [
+							"M18",
+							"M104 S0",
+							"M107"
+						];
+						
+						// Send request
+						$.ajax({
+							url: API_BASEURL + "plugin/m3dfio",
+							type: "POST",
+							dataType: "json",
+							data: JSON.stringify({command: "message", value: commands}),
+							contentType: "application/json; charset=UTF-8"
+						});
 					}, "No", function() {
 				
 						// Hide message
@@ -7431,6 +7720,48 @@ $(function() {
 				usingHeatbed = false;
 			}
 			
+			// Otherwise check if data is that camera is hostable
+			else if(data.value == "Camera Hostable" && typeof data.cameras !== "undefined")  {
+			
+				// Display camera server settings
+				$("#settings_plugin_m3dfio .camera").css("display", "block");
+				
+				// Reset cameras
+				$("#settings_plugin_m3dfio .camera select > option").remove();
+				
+				// Go through all cameras
+				var currentCamera = 0;
+				for(var i = 0; i < data.cameras.length; i++) {
+			
+					// Insert option
+					$("#settings_plugin_m3dfio .camera select").append("<option value = \"" + data.cameras[i] + "\">Device " + data.cameras[i] + "</option>");
+						
+					// Set current port
+					if(data.cameras[i] == self.settings.settings.plugins.m3dfio.CameraPort)
+						currentCamera = i;
+				}
+				
+				// Go through all options
+				$("#settings_plugin_m3dfio .camera select > option").each(function() {
+				
+					// Check if current port
+					if($(this).attr("value") == data.cameras[currentCamera]) {
+				
+						// Select current port
+						$(this).attr("selected", "true");
+						
+						// Return false
+						return false;
+					}
+				});
+			}
+			
+			// Otherwise check if data is that camera is not hostable
+			else if(data.value == "Camera Not Hostable")
+			
+				// Display camera server settings
+				$("#settings_plugin_m3dfio .camera").css("display", "none");
+			
 			// Otherwise check if data is current Z
 			else if(data.value == "Current Z" && printerConnected && typeof data.location !== "undefined")
 			
@@ -7719,21 +8050,6 @@ $(function() {
 					// Open file input dialog
 					$("#control > div.jog-panel.advanced").find("div > input").click();
 				});
-			}
-			
-			// Otherwise check if data is to save software settings
-			else if(data.value == "Save Software Settings") {
-			
-				// Save software settings
-				function saveSoftwareSettings() {
-					self.settings.saveData();
-				}
-				
-				// Update settings
-				if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
-					self.settings.requestData(saveSoftwareSettings);
-				else
-					self.settings.requestData().done(saveSoftwareSettings);
 			}
 			
 			// Otherwise check if data is EEPROM

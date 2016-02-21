@@ -357,7 +357,7 @@ if insetXSpeed != printSpeed :
 	output.write("inner_shell_speed = " + str(insetXSpeed) + '\n')
 
 output.write("first_layer_width_factor = " + str(layer0extrusionWidth * 100 / (edgeWidth * 1000)) + '\n')
-output.write("wall_thickness = " + str(layer0extrusionWidth / 1000.0) + '\n')
+output.write("wall_thickness = " + str(extrusionWidth * lineCount / 1000.0) + '\n')
 output.write("solid_layer_thickness = " + str(math.floor(solidLayerCount * (layerThickness - 0.0001)) / 1000) + '\n')
 
 # Set default alterations
