@@ -1655,9 +1655,9 @@ class M3DFioPlugin(
 				if self._settings.get_boolean(["HostCamera"]) :
 				
 					# Set OctoPrint camera URLs
-					if not octoprint.settings.settings().get(["webcam", "stream"]).endswith(":4999/stream.mjpg") :
+					if octoprint.settings.settings().get(["webcam", "stream"]) is None or not octoprint.settings.settings().get(["webcam", "stream"]).endswith(":4999/stream.mjpg") :
 						octoprint.settings.settings().set(["webcam", "stream"], "http://" + socket.gethostbyname(socket.gethostname()) + ":4999/stream.mjpg")
-					if not octoprint.settings.settings().get(["webcam", "snapshot"]).endswith(":4999/snapshot.jpg") :
+					if octoprint.settings.settings().get(["webcam", "snapshot"]) is None or not octoprint.settings.settings().get(["webcam", "snapshot"]).endswith(":4999/snapshot.jpg") :
 						octoprint.settings.settings().set(["webcam", "snapshot"], "http://" + socket.gethostbyname(socket.gethostname()) + ":4999/snapshot.jpg")
 					octoprint.settings.settings().save()
 			
