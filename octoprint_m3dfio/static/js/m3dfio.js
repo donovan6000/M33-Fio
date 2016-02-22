@@ -3397,8 +3397,8 @@ $(function() {
 		`);
 		$("#slicing_configuration_dialog").find(".control-group:nth-of-type(2) > label").text("Base Slicing Profile");
 		
-		// Add save button
-		$("#slicing_configuration_dialog .modal-footer").append("<a href=\"#\" class=\"btn save\" data-dismiss=\"modal\" aria-hidden=\"true\">Save</a><a class=\"link\"></a>");
+		// Add save button and warning
+		$("#slicing_configuration_dialog .modal-footer").append("<a href=\"#\" class=\"btn save\" data-dismiss=\"modal\" aria-hidden=\"true\">Save</a><a class=\"link\"></a><p class=\"warning\"></p>");
 		
 		// Allow positioning OctoPrint instance manager
 		$("div.navbar-inner div.container").css("position", "relative");
@@ -3851,6 +3851,7 @@ $(function() {
 						$("#slicing_configuration_dialog .modal-extra").remove();
 						$("#slicing_configuration_dialog .modal-body").css("display", '');
 						$("#slicing_configuration_dialog .modal-cover").removeClass("show").css("z-index", '');
+						$("#slicing_configuration_dialog .modal-footer p.warning").text('');
 						
 						// Save software settings
 						self.settings.saveData();
@@ -4057,9 +4058,11 @@ $(function() {
 											// Set button
 											button.removeClass("disabled");
 											
-											// Skip model editor it WebGL isn't supported
-											if(!Detector.webgl)
+											// Skip model editor and show warning if WebGL isn't supported
+											if(!Detector.webgl) {
 												button.text("Slice");
+												$("#slicing_configuration_dialog .modal-footer p.warning").text("Model editor will be skipped since your browser doesn't support WebGL");
+											}
 										
 											// Update line numbers
 											var previousLineCount = 0;
@@ -4444,7 +4447,6 @@ $(function() {
 															fill_density: 0,
 															wall_thickness: 0.35,
 															nozzle_size: 0.35,
-															solid_layer_thickness: 0.149,
 															infill_speed: 15
 														});
 													
@@ -4455,7 +4457,6 @@ $(function() {
 															fill_density: 0,
 															wall_thickness: 1.05,
 															nozzle_size: 0.35,
-															solid_layer_thickness: 0.249,
 															infill_speed: 15
 														});
 													
@@ -4466,7 +4467,6 @@ $(function() {
 															fill_density: 6.36363636364,
 															wall_thickness: 1.05,
 															nozzle_size: 0.35,
-															solid_layer_thickness: 0.299,
 															infill_speed: null
 														});
 													
@@ -4477,7 +4477,6 @@ $(function() {
 															fill_density: 8.75,
 															wall_thickness: 1.4,
 															nozzle_size: 0.35,
-															solid_layer_thickness: 0.399,
 															infill_speed: null
 														});
 													
@@ -4488,7 +4487,6 @@ $(function() {
 															fill_density: 14.0,
 															wall_thickness: 1.4,
 															nozzle_size: 0.35,
-															solid_layer_thickness: 0.399,
 															infill_speed: null
 														});
 													
@@ -4499,7 +4497,6 @@ $(function() {
 															fill_density: 23.3333333333,
 															wall_thickness: 1.4,
 															nozzle_size: 0.35,
-															solid_layer_thickness: 0.399,
 															infill_speed: null
 														});
 													

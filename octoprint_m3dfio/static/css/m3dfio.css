@@ -507,6 +507,17 @@ body > div.page-container > div.message > div > div > span.show {
 	left: -5px;
 }
 
+#slicing_configuration_dialog .modal-footer p.warning {
+	position: absolute;
+	left: 50%;
+	bottom: 17px;
+	transform: translateX(-50%);
+	margin: 0;
+	font-size: 9px;
+	color: #999;
+	cursor: default;
+}
+
 #slicing_configuration_dialog .modal-footer a.link, #slicing_configuration_dialog:not(.model):not(.profile) .modal-footer a.save {
 	display: none;
 }

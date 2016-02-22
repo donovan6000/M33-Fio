@@ -1655,8 +1655,10 @@ class M3DFioPlugin(
 				if self._settings.get_boolean(["HostCamera"]) :
 				
 					# Set OctoPrint camera URLs
-					octoprint.settings.settings().set(["webcam", "stream"], "http://localhost:4999/stream.mjpg")
-					octoprint.settings.settings().set(["webcam", "snapshot"], "http://localhost:4999/snapshot.jpg")
+					if not octoprint.settings.settings().get(["webcam", "stream"]).endswith(":4999/stream.mjpg") :
+						octoprint.settings.settings().set(["webcam", "stream"], "http://" + socket.gethostbyname(socket.gethostname()) + ":4999/stream.mjpg")
+					if not octoprint.settings.settings().get(["webcam", "snapshot"]).endswith(":4999/snapshot.jpg") :
+						octoprint.settings.settings().set(["webcam", "snapshot"], "http://" + socket.gethostbyname(socket.gethostname()) + ":4999/snapshot.jpg")
 					octoprint.settings.settings().save()
 			
 				# Check if a micro 3D is connected
