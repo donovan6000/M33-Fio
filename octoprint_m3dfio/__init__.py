@@ -1987,6 +1987,12 @@ class M3DFioPlugin(
 					self.savedCurrentPort = None
 					self.savedCurrentBaudrate = None
 					self.savedCurrentProfile = None
+			
+			# Otherwise check if parameter is to get print information
+			elif data == "Print Information" :
+			
+				# Return print information
+				return flask.jsonify(dict(value = "OK", maxXLow = self.maxXExtruderLow, maxXMedium = self.maxXExtruderMedium, maxXHigh = self.maxXExtruderHigh, maxYLow = self.maxYExtruderLow, maxYMedium = self.maxYExtruderMedium, maxYHigh = self.maxYExtruderHigh, maxZ = self.maxZExtruder, minXLow = self.minXExtruderLow, minXMedium = self.minXExtruderMedium, minXHigh = self.minXExtruderHigh, minYLow = self.minYExtruderLow, minYMedium = self.minYExtruderMedium, minYHigh = self.minYExtruderHigh, minZ = self.minZExtruder))
 		
 		# Otherwise check if command is a file
 		elif command == "file" :
@@ -4254,8 +4260,15 @@ class M3DFioPlugin(
 		# Otherwise check if data contains current Z
 		elif "Z:" in data :
 		
-			# Send current Z
-			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Current Z", location = data[data.find("Z:") + 2 :]))
+			# Set location X and Y
+			locationX = None
+			locationY = None
+			
+			# Set location Z
+			locationZ = data[data.find("Z:") + 2 :]
+			
+			# Send current location
+			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Current Location", locationX = locationX, locationY = locationY, locationZ = locationZ))
 		
 		# Otherwise check if data contains an EEPROM value
 		elif "DT:" in data :

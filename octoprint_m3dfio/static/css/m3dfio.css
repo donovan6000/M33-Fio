@@ -153,6 +153,10 @@
 	clear: left;
 }
 
+#control div.jog-panel.filament button {
+	width: 125px;
+}
+
 #control div.jog-panel.calibration button {
 	width: 180px;
 	float: left;
