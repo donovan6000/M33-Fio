@@ -8421,48 +8421,60 @@ $(function() {
 			$("#navbar_plugin_m3dfio > select > option").last().prop("disabled", true).prev().prop("disabled", true);
 		}
 		
-		// On server disconnect event
-		self.onServerDisconnect = function() {
+		// On startup complete
+		self.onStartupComplete = function() {
 		
-			// Get message
-			var message = $("body > div.page-container > div.message");
+			// On server disconnect event
+			self.onServerDisconnect = function() {
 		
-			// Check if a progress message is being shown
-			if(message.hasClass("show") && !message.find("button.confirm").eq(1).hasClass("show")) {
+				// Get message
+				var message = $("body > div.page-container > div.message");
+		
+				// Check if a progress message is being shown
+				if(message.hasClass("show") && !message.find("button.confirm").eq(1).hasClass("show")) {
 			
-				// Reset message system
-				messages = [];
-				skippedMessages = 0;
+					// Reset message system
+					messages = [];
+					skippedMessages = 0;
 		
-				// Show message
-				showMessage("Server Status", "You've been disconnected from the server which has most likely caused the printer's current operation to fail. This page will now be refreshed to prevent further problems.", "OK", function() {
+					// Show message
+					showMessage("Server Status", "You've been disconnected from the server which has most likely caused the printer's current operation to fail. It's recommended that you refresh this page to prevent further problems. Refresh now?", "OK", function() {
 
-					// Hide message
-					hideMessage();
+						// Hide message
+						hideMessage();
 					
-					// Refresh the page
-					location.reload();
-				});
-			}
+						// Refresh the page
+						location.reload();
+					}, "No", function() {
+
+						// Hide message
+						hideMessage();
+					});
+				}
 			
-			// Otherwise
-			else {
+				// Otherwise
+				else {
 			
-				// Check if a message is shown
-				if(message.hasClass("show"))
+					// Check if a message is shown
+					if(message.hasClass("show"))
 				
-					// Hide message
-					hideMessage();
+						// Hide message
+						hideMessage();
 			
-				// Show message
-				showMessage("Server Status", "You've been disconnected from the server. This page will now be refreshed to prevent any problems.", "OK", function() {
+					// Show message
+					showMessage("Server Status", "You've been disconnected from the server. It's recommended that you refresh this page to prevent further problems. Refresh now?", "OK", function() {
 
-					// Hide message
-					hideMessage();
+						// Hide message
+						hideMessage();
 					
-					// Refresh the page
-					location.reload();
-				});
+						// Refresh the page
+						location.reload();
+					}, "No", function() {
+
+						// Hide message
+						hideMessage();
+					});
+				}
 			}
 		}
 	}
