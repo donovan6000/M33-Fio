@@ -3397,8 +3397,8 @@ $(function() {
 		`);
 		$("#slicing_configuration_dialog").find(".control-group:nth-of-type(2) > label").text("Base Slicing Profile");
 		
-		// Add save button
-		$("#slicing_configuration_dialog .modal-footer").append("<a href=\"#\" class=\"btn save\" data-dismiss=\"modal\" aria-hidden=\"true\">Save</a><a class=\"link\"></a>");
+		// Add save button and warning
+		$("#slicing_configuration_dialog .modal-footer").append("<a href=\"#\" class=\"btn save\" data-dismiss=\"modal\" aria-hidden=\"true\">Save</a><a class=\"link\"></a><p class=\"warning\"></p>");
 		
 		// Allow positioning OctoPrint instance manager
 		$("div.navbar-inner div.container").css("position", "relative");
@@ -3851,6 +3851,7 @@ $(function() {
 						$("#slicing_configuration_dialog .modal-extra").remove();
 						$("#slicing_configuration_dialog .modal-body").css("display", '');
 						$("#slicing_configuration_dialog .modal-cover").removeClass("show").css("z-index", '');
+						$("#slicing_configuration_dialog .modal-footer p.warning").text('');
 						
 						// Save software settings
 						self.settings.saveData();
@@ -4057,9 +4058,11 @@ $(function() {
 											// Set button
 											button.removeClass("disabled");
 											
-											// Skip model editor it WebGL isn't supported
-											if(!Detector.webgl)
+											// Skip model editor and show warning if WebGL isn't supported
+											if(!Detector.webgl) {
 												button.text("Slice");
+												$("#slicing_configuration_dialog .modal-footer p.warning").text("Model editor will be skipped since your browser doesn't support WebGL");
+											}
 										
 											// Update line numbers
 											var previousLineCount = 0;
@@ -4444,7 +4447,6 @@ $(function() {
 															fill_density: 0,
 															wall_thickness: 0.35,
 															nozzle_size: 0.35,
-															solid_layer_thickness: 0.149,
 															infill_speed: 15
 														});
 													
@@ -4455,7 +4457,6 @@ $(function() {
 															fill_density: 0,
 															wall_thickness: 1.05,
 															nozzle_size: 0.35,
-															solid_layer_thickness: 0.249,
 															infill_speed: 15
 														});
 													
@@ -4466,7 +4467,6 @@ $(function() {
 															fill_density: 6.36363636364,
 															wall_thickness: 1.05,
 															nozzle_size: 0.35,
-															solid_layer_thickness: 0.299,
 															infill_speed: null
 														});
 													
@@ -4477,7 +4477,6 @@ $(function() {
 															fill_density: 8.75,
 															wall_thickness: 1.4,
 															nozzle_size: 0.35,
-															solid_layer_thickness: 0.399,
 															infill_speed: null
 														});
 													
@@ -4488,7 +4487,6 @@ $(function() {
 															fill_density: 14.0,
 															wall_thickness: 1.4,
 															nozzle_size: 0.35,
-															solid_layer_thickness: 0.399,
 															infill_speed: null
 														});
 													
@@ -4499,7 +4497,6 @@ $(function() {
 															fill_density: 23.3333333333,
 															wall_thickness: 1.4,
 															nozzle_size: 0.35,
-															solid_layer_thickness: 0.399,
 															infill_speed: null
 														});
 													
@@ -7811,17 +7808,17 @@ $(function() {
 					hide: false
 				});
 			
-			// Otherwise check if data is to enable shared library options
-			else if(data.value == "Enable Shared Library")
+			// Otherwise check if data is using shared library
+			else if(data.value == "Using Shared Library")
 			
-				// Enable shared library options
-				$("#settings_plugin_m3dfio label.sharedLibrary").removeClass("disabled").children("input").prop("disabled", false);
+				// Display shared library settings
+				$("#settings_plugin_m3dfio .sharedLibrary").css("display", "block");
 			
-			// Otherwise check if data is to disable shared library options
-			else if(data.value == "Disable Shared Library")
+			// Otherwise check if data is not using shared library
+			else if(data.value == "Not Using Shared Library")
 			
-				// Disable shared library options
-				$("#settings_plugin_m3dfio label.sharedLibrary").addClass("disabled").children("input").prop("disabled", true);
+				// Hide shared library settings
+				$("#settings_plugin_m3dfio .sharedLibrary").css("display", "none");
 			
 			// Otherwise check if data is that Cura isn't installed
 			else if(data.value == "Cura Not Installed") {
@@ -8424,48 +8421,60 @@ $(function() {
 			$("#navbar_plugin_m3dfio > select > option").last().prop("disabled", true).prev().prop("disabled", true);
 		}
 		
-		// On server disconnect event
-		self.onServerDisconnect = function() {
+		// On startup complete
+		self.onStartupComplete = function() {
 		
-			// Get message
-			var message = $("body > div.page-container > div.message");
+			// On server disconnect event
+			self.onServerDisconnect = function() {
 		
-			// Check if a progress message is being shown
-			if(message.hasClass("show") && !message.find("button.confirm").eq(1).hasClass("show")) {
+				// Get message
+				var message = $("body > div.page-container > div.message");
+		
+				// Check if a progress message is being shown
+				if(message.hasClass("show") && !message.find("button.confirm").eq(1).hasClass("show")) {
 			
-				// Reset message system
-				messages = [];
-				skippedMessages = 0;
+					// Reset message system
+					messages = [];
+					skippedMessages = 0;
 		
-				// Show message
-				showMessage("Server Status", "You've been disconnected from the server which has most likely caused the printer's current operation to fail. This page will now be refreshed to prevent further problems.", "OK", function() {
+					// Show message
+					showMessage("Server Status", "You've been disconnected from the server which has most likely caused the printer's current operation to fail. It's recommended that you refresh this page to prevent further problems. Refresh now?", "OK", function() {
 
-					// Hide message
-					hideMessage();
+						// Hide message
+						hideMessage();
 					
-					// Refresh the page
-					location.reload();
-				});
-			}
+						// Refresh the page
+						location.reload();
+					}, "No", function() {
+
+						// Hide message
+						hideMessage();
+					});
+				}
 			
-			// Otherwise
-			else {
+				// Otherwise
+				else {
 			
-				// Check if a message is shown
-				if(message.hasClass("show"))
+					// Check if a message is shown
+					if(message.hasClass("show"))
 				
-					// Hide message
-					hideMessage();
+						// Hide message
+						hideMessage();
 			
-				// Show message
-				showMessage("Server Status", "You've been disconnected from the server. This page will now be refreshed to prevent any problems.", "OK", function() {
+					// Show message
+					showMessage("Server Status", "You've been disconnected from the server. It's recommended that you refresh this page to prevent further problems. Refresh now?", "OK", function() {
 
-					// Hide message
-					hideMessage();
+						// Hide message
+						hideMessage();
 					
-					// Refresh the page
-					location.reload();
-				});
+						// Refresh the page
+						location.reload();
+					}, "No", function() {
+
+						// Hide message
+						hideMessage();
+					});
+				}
 			}
 		}
 	}

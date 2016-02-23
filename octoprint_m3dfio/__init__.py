@@ -1165,6 +1165,38 @@ class M3DFioPlugin(
 			CameraFramesPerSecond = 20
 		)
 	
+	# On settings save
+	def on_settings_save(self, data) :
+	
+		# Get old host camera settings
+		oldHostCamera = self._settings.get_boolean(["HostCamera"])
+		
+		# Save settings
+		octoprint.plugin.SettingsPlugin.on_settings_save(self, data)
+		
+		# Get new host camera settings
+		newHostCamera = self._settings.get_boolean(["HostCamera"])
+		
+		# Check if host camera setting changed
+		if oldHostCamera != newHostCamera :
+		
+			# Check if now hosting camera
+			if newHostCamera :
+			
+				# Set camera URLs
+				octoprint.settings.settings().set(["webcam", "stream"], "http://" + socket.gethostbyname(socket.gethostname()) + ":4999/stream.mjpg")
+				octoprint.settings.settings().set(["webcam", "snapshot"], "http://" + socket.gethostbyname(socket.gethostname()) + ":4999/snapshot.jpg")
+				
+			# Otherwise assume now not hosting camera
+			else :
+			
+				# Clear camera URLs
+				octoprint.settings.settings().set(["webcam", "stream"], None)
+				octoprint.settings.settings().set(["webcam", "snapshot"], None)
+			
+			# Save settings
+			octoprint.settings.settings().save()
+	
 	# Template manager
 	def get_template_configs(self) :
 	
@@ -1651,16 +1683,8 @@ class M3DFioPlugin(
 			# Otherwise check if parameter is to saved settings
 			elif data["value"] == "Saved Settings" :
 			
-				# Check if hosting camera
-				if self._settings.get_boolean(["HostCamera"]) :
-				
-					# Set OctoPrint camera URLs
-					octoprint.settings.settings().set(["webcam", "stream"], "http://localhost:4999/stream.mjpg")
-					octoprint.settings.settings().set(["webcam", "snapshot"], "http://localhost:4999/snapshot.jpg")
-					octoprint.settings.settings().save()
-			
-				# Check if a micro 3D is connected
-				if not self.invalidPrinter :
+				# Check if a micro 3D is connected and not printing or paused
+				if not self.invalidPrinter and not self._printer.is_printing() and not self._printer.is_paused() :
 				
 					# Save settings to the printer
 					self.sendCommands(self.getSaveCommands())
@@ -3152,6 +3176,18 @@ class M3DFioPlugin(
 		
 			# Send provided firmware versions
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Provided Firmwares", firmwares = self.providedFirmwares))
+			
+			# Check if shared library exists
+			if self.sharedLibrary :
+		
+				# Show shared library options
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Using Shared Library"))
+		
+			# Otherwise
+			else :
+		
+				# Hide shared library options
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Not Using Shared Library"))
 			
 			# Check if EEPROM was read
 			if self.eeprom :

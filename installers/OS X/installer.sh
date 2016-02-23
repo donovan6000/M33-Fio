@@ -40,18 +40,18 @@ else
 		version="$(perl -nle'print $1 if m/pyobjc-core-([0-9\.]*)\.tar\.gz/' index.html | head -1)"
 		rm index.html
 		curl -o pyobjc-core.tar.gz https://pypi.python.org/packages/source/p/pyobjc-core/pyobjc-core-${version}.tar.gz
-		tar zxvf pyobjc-core.tar.gz
+		sudo -u $SUDO_USER tar zxvf pyobjc-core.tar.gz
 		rm pyobjc-core.tar.gz
 		cd pyobjc-core-${version}
 
 		# Patch installer
-		sed -i '' -e 's/\(self\.sdk_root = subprocess.*\)/try:\
+		sudo -u $SUDO_USER sed -i '' -e 's/\(self\.sdk_root = subprocess.*\)/try:\
                     \1/g' setup.py
-		sed -i '' -e 's/\(universal_newlines=True.*\)/\1\
+		sudo -u $SUDO_USER sed -i '' -e 's/\(universal_newlines=True.*\)/\1\
                 except subprocess.CalledProcessError as e:\
                     self.sdk_root = \'"'"'\/\'"'"'/g' setup.py
 
-		/Library/Frameworks/Python.framework/Versions/${pythonVersion}/bin/python setup.py install
+		sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/${pythonVersion}/bin/python setup.py install --user
 		cd ..
 		rm -rf pyobjc-core-${version}
 
@@ -60,10 +60,10 @@ else
 		version="$(perl -nle'print $1 if m/pyobjc-framework-Cocoa-([0-9\.]*)\.tar\.gz/' index.html | head -1)"
 		rm index.html
 		curl -o pyobjc-framework-Cocoa.tar.gz https://pypi.python.org/packages/source/p/pyobjc-framework-Cocoa/pyobjc-framework-Cocoa-${version}.tar.gz
-		tar zxvf pyobjc-framework-Cocoa.tar.gz
+		sudo -u $SUDO_USER tar zxvf pyobjc-framework-Cocoa.tar.gz
 		rm pyobjc-framework-Cocoa.tar.gz
 		cd pyobjc-framework-Cocoa-${version}
-		/Library/Frameworks/Python.framework/Versions/${pythonVersion}/bin/python setup.py install
+		sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/${pythonVersion}/bin/python setup.py install --user
 		cd ..
 		rm -rf pyobjc-framework-Cocoa-${version}
 		
@@ -72,10 +72,10 @@ else
 		version="$(perl -nle'print $1 if m/pyobjc-framework-Quartz-([0-9\.]*)\.tar\.gz/' index.html | head -1)"
 		rm index.html
 		curl -o pyobjc-framework-Quartz.tar.gz https://pypi.python.org/packages/source/p/pyobjc-framework-Quartz/pyobjc-framework-Quartz-${version}.tar.gz
-		tar zxvf pyobjc-framework-Quartz.tar.gz
+		sudo -u $SUDO_USER tar zxvf pyobjc-framework-Quartz.tar.gz
 		rm pyobjc-framework-Quartz.tar.gz
 		cd pyobjc-framework-Quartz-${version}
-		/Library/Frameworks/Python.framework/Versions/${pythonVersion}/bin/python setup.py install
+		sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/${pythonVersion}/bin/python setup.py install --user
 		cd ..
 		rm -rf pyobjc-framework-Quartz-${version}
 		
@@ -84,27 +84,27 @@ else
 		version="$(perl -nle'print $1 if m/pyobjc-framework-QTKit-([0-9\.]*)\.tar\.gz/' index.html | head -1)"
 		rm index.html
 		curl -o pyobjc-framework-QTKit.tar.gz https://pypi.python.org/packages/source/p/pyobjc-framework-QTKit/pyobjc-framework-QTKit-${version}.tar.gz
-		tar zxvf pyobjc-framework-QTKit.tar.gz
+		sudo -u $SUDO_USER tar zxvf pyobjc-framework-QTKit.tar.gz
 		rm pyobjc-framework-QTKit.tar.gz
 		cd pyobjc-framework-QTKit-${version}
-		/Library/Frameworks/Python.framework/Versions/${pythonVersion}/bin/python setup.py install
+		sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/${pythonVersion}/bin/python setup.py install --user
 		cd ..
 		rm -rf pyobjc-framework-QTKit-${version}
 		
 		# Install OctoPrint
-		su $SUDO_USER -c 'launchctl unload /Library/LaunchAgents/com.octoprint.app.plist'
+		sudo -u $SUDO_USER launchctl unload /Library/LaunchAgents/com.octoprint.app.plist
 		curl -LOk https://github.com/foosel/OctoPrint/archive/master.zip
-		unzip master.zip
+		sudo -u $SUDO_USER unzip master.zip
 		cd OctoPrint-master
-		/Library/Frameworks/Python.framework/Versions/${pythonVersion}/bin/python setup.py install
+		sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/${pythonVersion}/bin/python setup.py install --user
 		cd ..
 		rm -rf OctoPrint-master
 		rm master.zip
 
 		# Install M3D Fio
-		echo 'y' | /Library/Frameworks/Python.framework/Versions/${pythonVersion}/bin/pip uninstall OctoPrint-M3DFio
+		echo 'y' | sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/${pythonVersion}/bin/pip uninstall OctoPrint-M3DFio
 		curl -LOk https://github.com/donovan6000/M3D-Fio/archive/master.zip
-		while ! /Library/Frameworks/Python.framework/Versions/${pythonVersion}/bin/pip install master.zip
+		while ! sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/${pythonVersion}/bin/pip install master.zip
 		do
 			:
 		done
@@ -116,7 +116,7 @@ else
 		rm CH34x_Install.pkg
 		
 		# Get OctoPrint parameter
-		octoPrintVersion="$(/Library/Frameworks/Python.framework/Versions/${pythonVersion}/bin/octoprint --version | cut -d' ' -f3)"
+		octoPrintVersion="$(/Users/$SUDO_USER/Library/Python/${pythonVersion}/bin/octoprint --version | cut -d' ' -f3)"
 		if [ $octoPrintVersion = "1.2.8" ] || [ $octoPrintVersion = "1.2.9" ]; then
 			octoPrintParameter=""
 		else
@@ -125,16 +125,16 @@ else
 		
 		# Add OctoPrint to startup programs
 		curl -O 'https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/OS%20X/com.octoprint.app.plist'
-		sed -i '' -e 's/path to octoprint/\/Library\/Frameworks\/Python.framework\/Versions\/'"${pythonVersion}"'\/bin\/octoprint/g' com.octoprint.app.plist
+		sed -i '' -e 's/path to octoprint/\/Users\/'"$SUDO_USER"'\/Library\/Python\/'"${pythonVersion}"'\/bin\/octoprint/g' com.octoprint.app.plist
 		sed -i '' -e 's/<string>octoprint parameter<\/string>/'"$octoPrintParameter"'/g' com.octoprint.app.plist
 		mv com.octoprint.app.plist '/Library/LaunchAgents'
 		
 		# Create URL link on desktop
 		curl -O 'https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/OS%20X/shortcut.zip'
-		ditto -x -k --sequesterRsrc --rsrc shortcut.zip '/Users/'"$SUDO_USER"'/Desktop'
+		sudo -u $SUDO_USER ditto -x -k --sequesterRsrc --rsrc shortcut.zip '/Users/'"$SUDO_USER"'/Desktop'
 		
 		# Start OctoPrint
-		su $SUDO_USER -c 'launchctl load /Library/LaunchAgents/com.octoprint.app.plist'
+		sudo -u $SUDO_USER launchctl load /Library/LaunchAgents/com.octoprint.app.plist
 		
 		# Display message
 		echo

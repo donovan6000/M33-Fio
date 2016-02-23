@@ -28,9 +28,9 @@
 			</label>
 		</div>
 	</div>
-	<div class="control-group">
+	<div class="control-group sharedLibrary">
 		<div class="controls">
-			<label class="checkbox sharedLibrary" title="Uses the shared library pre-processor instead of the Python pre-processor to pre-process G-code files and commands">
+			<label class="checkbox" title="Uses the shared library pre-processor instead of the Python pre-processor to pre-process G-code files and commands">
 				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.UseSharedLibrary"><span>Use shared library</span>
 			</label>
 		</div>
@@ -116,8 +116,8 @@
 	</div>
 	<div class="control-group dependant">
 		<div class="controls">
-			<label class="checkbox" title="Performs the bed center Z0 calibration procedure before printing">
-				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.CalibrateBeforePrint"><span>Calibrate before print</span>
+			<label class="checkbox" title="Performs the bed center Z0 calibration procedure before printing. Avoid leaving the printer unmonitored until after the print starts in case the resulting calibration is inaccurate.">
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.CalibrateBeforePrint"><span>Calibrate before print  <span class="label label-important">Caution</span></span>
 			</label>
 		</div>
 	</div>

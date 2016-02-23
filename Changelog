@@ -1,5 +1,9 @@
 Changelog:
 
+V0.27.1 February 22, 2016
+
+	* Fixed issue where webcam URL's couldn't be changed
+
 V0.27 February 20, 2016
 
 	* Builtin webcam server
