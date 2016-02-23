@@ -4260,15 +4260,32 @@ class M3DFioPlugin(
 		# Otherwise check if data contains current Z
 		elif "Z:" in data :
 		
-			# Set location X and Y
-			locationX = None
-			locationY = None
+			# Set location X
+			if "X:" in data :
+				start = data.find("X:") + 2
+				locationX = data[start : data[start :].find(' ') + start]
+			else :
+				locationX = None
+			
+			# Set location Y
+			if "Y:" in data :
+				start = data.find("Y:") + 2
+				locationY = data[start : data[start :].find(' ') + start]
+			else :
+				locationY = None
+				
+			# Set location E
+			if "E:" in data :
+				start = data.find("E:") + 2
+				locationE = data[start : data[start :].find(' ') + start]
+			else :
+				locationE = None
 			
 			# Set location Z
 			locationZ = data[data.find("Z:") + 2 :]
 			
 			# Send current location
-			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Current Location", locationX = locationX, locationY = locationY, locationZ = locationZ))
+			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Current Location", locationX = locationX, locationY = locationY, locationZ = locationZ, locationE = locationE))
 		
 		# Otherwise check if data contains an EEPROM value
 		elif "DT:" in data :

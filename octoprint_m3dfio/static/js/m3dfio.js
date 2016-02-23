@@ -19,7 +19,7 @@ $(function() {
 		var afterSlicingAction;
 		var gCodeFileName;
 		var modelCenter = [0, 0];
-		var currentX, currentY, currentZ;
+		var currentX, currentY, currentZ, currentE;
 		var viewport = null;
 		var convertedModel = null;
 		var messages = [];
@@ -6074,7 +6074,6 @@ $(function() {
 		
 											// Set commands
 											var commands = [
-												"M106",
 												"M109 S250",
 												"M65536;wait"
 											];
@@ -6134,7 +6133,7 @@ $(function() {
 														waitingCallback = function() {
 														
 															// Show message
-															showMessage("Filament Status", "Make sure nozzle is clean. It will be hot.", "OK", function() {
+															showMessage("Filament Status", "Make sure the nozzle is clean. Be careful; It will be hot.", "OK", function() {
 															
 																// Hide message
 																hideMessage();
@@ -6145,6 +6144,7 @@ $(function() {
 																// Set commands
 																var commands = [
 																	"G90",
+																	"G92 E" + currentE,
 																	"M65536;wait"
 																];
 																
@@ -6188,6 +6188,7 @@ $(function() {
 												contentType: "application/json; charset=UTF-8"
 											});
 										}
+										loadFilament();
 									}, "No", function() {
 				
 										// Hide message
@@ -6217,6 +6218,7 @@ $(function() {
 								contentType: "application/json; charset=UTF-8"
 							});
 						}
+						unloadFilament();
 					}
 				});
 			}
@@ -8011,12 +8013,13 @@ $(function() {
 				$("#settings_plugin_m3dfio .camera").css("display", "none");
 			
 			// Otherwise check if data is current location
-			else if(data.value == "Current Location" && printerConnected && typeof data.locationX !== "undefined" && typeof data.locationY !== "undefined" && typeof data.locationZ !== "undefined") {
+			else if(data.value == "Current Location" && printerConnected && typeof data.locationX !== "undefined" && typeof data.locationY !== "undefined" && typeof data.locationZ !== "undefined" && typeof data.locationE !== "undefined") {
 			
 				// Set current values
 				currentX = parseFloat(data.locationX);
 				currentY = parseFloat(data.locationY);
 				currentZ = parseFloat(data.locationZ);
+				currentE = parseFloat(data.locationE);
 			}
 			
 			// Otherwise check if data is to change progress bar percent

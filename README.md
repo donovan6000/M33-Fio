@@ -8,12 +8,12 @@ M3D Fio can be installed with OctoPrint's built in plugin manager.
 
 It works in conjunction with OctoPrint's autodetect serial port and baudrate feature, so neither of those values need to be specified in order to successfully connect to the Micro 3D printer.
 
-Installers were made for Windows, OS X, and Linux to simplify installing OctoPrint, M3D Fio, and all their dependencies like any device drivers. If your using Windows, you can run [this file](https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/Windows/installer.zip) to install everything. If your using OS X, you can run [this file](https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/OS%20X/installer.zip) to install everything. If your using Linux, you can run [this file](https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/Linux/installer.zip) or run the following commands to install everything.
+Installers were made for Windows, OS X, and Linux to simplify installing OctoPrint, M3D Fio, and all their dependencies like any device drivers. If your using Windows, you can run [this file](https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/Windows/install.zip) to install everything. If your using OS X, you can run [this file](https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/OS%20X/install.zip) to install everything. If your using Linux, you can run [this file](https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/Linux/install.zip) or run the following commands to install everything.
 
 ```shell
-wget https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/Linux/installer.zip
-unzip ./installer.zip
-sudo sh ./installer.sh
+wget https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/Linux/install.zip
+unzip install.zip -x uninstall.sh
+sudo sh ./install.sh
 ```
 
 M3D Fio expands the capabilities of OctoPrint to make it fully compatible with the Micro 3D printer. All of the printer's settings can be customized.
