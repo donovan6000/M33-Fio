@@ -853,6 +853,9 @@ $(function() {
 						bedLowMaxZ = 5.0 + parseFloat(self.settings.settings.plugins.m3dfio.HeatbedHeight());
 						bedLowMinZ = 0.0 + parseFloat(self.settings.settings.plugins.m3dfio.HeatbedHeight());
 						bedMediumMinZ = bedLowMaxZ;
+						bedMediumMaxZ = 73.5;
+						bedHighMaxZ = 112.0;
+						bedHighMinZ = bedMediumMaxZ;
 					}
 					
 					// otherwise
@@ -862,6 +865,9 @@ $(function() {
 						bedLowMaxZ = 5.0;
 						bedLowMinZ = 0.0;
 						bedMediumMinZ = bedLowMaxZ;
+						bedMediumMaxZ = 73.5;
+						bedHighMaxZ = 112.0;
+						bedHighMinZ = bedMediumMaxZ;
 					}
 
 					// Create scene
@@ -6017,192 +6023,316 @@ $(function() {
 					
 						// On success										
 						success: function(data) {
-					
-							// Set commands
-							var commands = [
-								"G90",
-								"G0 Z" + (currentZ + 3) + " E" + (currentE - 3) + " F345",
-								"G0 X9 Y5 F3000",
-								"M65536;wait"
-							];
-			
-							// Set waiting callback
-							waitingCallback = function() {
-					
-								// Unload filament
-								function unloadFilament() {
-					
-									// Show message
-									showMessage("Filament Status", "Warming up");
+						
+							// Check if using a heatbed
+							if(usingHeatbed) {
 		
-									// Set commands
-									var commands = [
-										"M109 S250",
-										"M65536;wait"
-									];
+								// Adjust bed Z values
+								bedLowMaxZ = 5.0;
+								bedLowMinZ = 0.0;
+								bedMediumMinZ = bedLowMaxZ;
+								bedMediumMaxZ = 73.5 - parseFloat(self.settings.settings.plugins.m3dfio.HeatbedHeight());
+								bedHighMaxZ = 112.0 - parseFloat(self.settings.settings.plugins.m3dfio.HeatbedHeight());
+								bedHighMinZ = bedMediumMaxZ;
+							}
+		
+							// Otherwise
+							else {
+		
+								// Set bed Z values to defaults
+								bedLowMaxZ = 5.0;
+								bedLowMinZ = 0.0;
+								bedMediumMinZ = bedLowMaxZ;
+								bedMediumMaxZ = 73.5;
+								bedHighMaxZ = 112.0;
+								bedHighMinZ = bedMediumMaxZ;
+							}
+							
+							// Set move Z
+							var moveZ = currentZ + 3;
+							if(currentZ <= bedMediumMaxZ && moveZ >= bedHighMinZ)
+								moveZ = bedMediumMaxZ;
+							else if(moveZ > bedHighMaxZ)
+								moveZ = bedHighMaxZ;
+							
+							// Get min and max X and Y values
+							var minModelX, maxModelX, minMoveX, maxMoveX;
+							var minModelY, maxModelY, minMoveY, maxMoveY;
+							if(moveZ >= bedHighMinZ) {
+							
+								minModelX = Math.min(minXLow, minXMedium, minXHigh);
+								maxModelX = Math.max(maxXLow, maxXMedium, maxXHigh);
+								minMoveX = bedHighMinX;
+								maxMoveX = bedHighMaxX;
+								
+								minModelY = Math.min(minYLow, minYMedium, minYHigh);
+								maxModelY = Math.max(maxYLow, maxYMedium, maxYHigh);
+								minMoveY = bedHighMinY;
+								maxMoveY = bedHighMaxY;
+							}
+							else if(moveZ >= bedMediumMinZ) {
+							
+								minModelX = Math.min(minXLow, minXMedium);
+								maxModelX = Math.max(maxXLow, maxXMedium);
+								minMoveX = bedMediumMinX;
+								maxMoveX = bedMediumMaxX;
+								
+								minModelY = Math.min(minYLow, minYMedium);
+								maxModelY = Math.max(maxYLow, maxYMedium);
+								minMoveY = bedMediumMinY;
+								maxMoveY = bedMediumMaxY;
+							}
+							else {
+							
+								minModelX = minXLow;
+								maxModelX = maxXLow;
+								minMoveX = bedLowMinX;
+								maxMoveX = bedLowMaxX;
+								
+								minModelY = minYLow;
+								maxModelY = maxYLow;
+								minMoveY = bedLowMinY;
+								maxMoveY = bedLowMaxY;
+							}
+							
+							// Set move X
+							var moveX = null;
+							if(minModelX > minMoveX) {
+								moveX = minModelX - 5;
+								if(moveX < minMoveX)
+									moveX = minMoveX;
+							}
+							else if(maxModelX < maxMoveX) {
+								moveX = maxModelX + 5;
+								if(moveX > maxMoveX)
+									moveX = maxMoveX;
+							}
+							
+							// Set move Y
+							var moveY = null;
+							if(minModelY > minMoveY) {
+								moveY = minModelY - 5;
+								if(moveY < minMoveY)
+									moveY = minMoveY;
+							}
+							else if(maxModelY < maxMoveY) {
+								moveY = maxModelY + 5;
+								if(moveY > maxMoveY)
+									moveY = maxMoveY;
+							}
+							
+							// Check if an X or Y movement isn't possible
+							if(moveX === null || moveY === null) {
+							
+								// Show message
+								showMessage("Filament Status", "The filament can't be changed since the extruder can't be moved away from the print. The print will now resume.", "OK", function() {
+								
+									// Hide message
+									hideMessage();
+										
+									// Resume print
+									self.printerState.pause();
+								});
+							}
+							
+							// Otherwise
+							else {
+							
+								// Set commands
+								var commands = [
+									"G90",
+									"G0 Z" + moveZ + " E" + (currentE - 3) + " F345",
+									"G0 X" + moveX + " Y" + moveY + " F3000",
+									"M65536;wait"
+								];
 			
-									// Display temperature
-									var updateTemperature = setInterval(function() {
-			
+								// Set waiting callback
+								waitingCallback = function() {
+					
+									// Unload filament
+									function unloadFilament() {
+					
 										// Show message
-										if(self.temperature.temperatures.tool0.actual.length) {
-			
-											var temperature = self.temperature.temperatures.tool0.actual[self.temperature.temperatures.tool0.actual.length - 1][1];
-				
-											if(temperature != 0)
-												showMessage("Filament Status", "Warming up: " + temperature + "°C");
-										}
-									}, 1000);
-			
-									// Set waiting callback
-									waitingCallback = function() {
-			
-										// Stop displaying temperature
-										clearInterval(updateTemperature);
-	
-										// Show message
-										showMessage("Filament Status", "Remove filament");
-	
+										showMessage("Filament Status", "Warming up");
+		
 										// Set commands
-										commands = [
-											"G90",
-											"G92"
+										var commands = [
+											"M109 S250",
+											"M65536;wait"
 										];
-		
-										for(var i = 2; i <= 40; i += 2)
-											commands.push("G0 E-" + i + " F345");
+			
+										// Display temperature
+										var updateTemperature = setInterval(function() {
+			
+											// Show message
+											if(self.temperature.temperatures.tool0.actual.length) {
+			
+												var temperature = self.temperature.temperatures.tool0.actual[self.temperature.temperatures.tool0.actual.length - 1][1];
 				
-										commands.push("M65536;wait");
-				
+												if(temperature != 0)
+													showMessage("Filament Status", "Warming up: " + temperature + "°C");
+											}
+										}, 1000);
+			
 										// Set waiting callback
 										waitingCallback = function() {
-				
+			
+											// Stop displaying temperature
+											clearInterval(updateTemperature);
+	
 											// Show message
-											showMessage("Filament Status", "Was filament removed?", "Yes", function() {
+											showMessage("Filament Status", "Remove filament");
+	
+											// Set commands
+											commands = [
+												"G90",
+												"G92"
+											];
+		
+											for(var i = 2; i <= 40; i += 2)
+												commands.push("G0 E-" + i + " F345");
 				
-												// Hide message
-												hideMessage();
+											commands.push("M65536;wait");
+				
+											// Set waiting callback
+											waitingCallback = function() {
+				
+												// Show message
+												showMessage("Filament Status", "Was filament removed?", "Yes", function() {
+				
+													// Hide message
+													hideMessage();
 						
-												// Load filament
-												function loadFilament() {
+													// Load filament
+													function loadFilament() {
 					
-													// Show message
-													showMessage("Filament Status", "Warming up");
+														// Show message
+														showMessage("Filament Status", "Warming up");
 		
-													// Set commands
-													var commands = [
-														"M109 S250",
-														"M65536;wait"
-													];
-			
-													// Display temperature
-													var updateTemperature = setInterval(function() {
-			
-														// Show message
-														if(self.temperature.temperatures.tool0.actual.length) {
-			
-															var temperature = self.temperature.temperatures.tool0.actual[self.temperature.temperatures.tool0.actual.length - 1][1];
-				
-															if(temperature != 0)
-																showMessage("Filament Status", "Warming up: " + temperature + "°C");
-														}
-													}, 1000);
-			
-													// Set waiting callback
-													waitingCallback = function() {
-			
-														// Stop displaying temperature
-														clearInterval(updateTemperature);
-	
-														// Show message
-														showMessage("Filament Status", "Insert filament");
-	
 														// Set commands
-														commands = [
-															"G90",
-															"G92"
+														var commands = [
+															"M109 S250",
+															"M65536;wait"
 														];
-		
-														for(var i = 2; i <= 40; i += 2)
-															commands.push("G0 E" + i + " F345");
+			
+														// Display temperature
+														var updateTemperature = setInterval(function() {
+			
+															// Show message
+															if(self.temperature.temperatures.tool0.actual.length) {
+			
+																var temperature = self.temperature.temperatures.tool0.actual[self.temperature.temperatures.tool0.actual.length - 1][1];
 				
-														commands.push("M65536;wait");
-				
+																if(temperature != 0)
+																	showMessage("Filament Status", "Warming up: " + temperature + "°C");
+															}
+														}, 1000);
+			
 														// Set waiting callback
 														waitingCallback = function() {
-				
-															// Show message
-															showMessage("Filament Status", "Was filament inserted?", "Yes", function() {
-				
-																// Hide message
-																hideMessage();
-						
-																// Show message
-																showMessage("Filament Status", "Returning to desired temperature");
-		
-																// Set commands
-																var commands = [
-																	"M109 S" + currentTemperature,
-																	"M65536;wait"
-																];
 			
-																// Set waiting callback
-																waitingCallback = function() {
-														
-																	// Show message
-																	showMessage("Filament Status", "Make sure the nozzle is clean. Be careful; It will be hot.", "OK", function() {
-															
-																		// Hide message
-																		hideMessage();
-						
-																		// Show message
-																		showMessage("Filament Status", "Resuming print");
+															// Stop displaying temperature
+															clearInterval(updateTemperature);
+	
+															// Show message
+															showMessage("Filament Status", "Insert filament");
+	
+															// Set commands
+															commands = [
+																"G90",
+																"G92"
+															];
 		
-																		// Set commands
-																		var commands = [
-																			"G90",
-																			"G92 E" + currentE,
-																			"G0 X" + currentX + " Y" + currentY + " F3000",
-																			"G0 Z" + currentZ + " F90",
-																			"M65536;wait"
-																		];
-																
-																		// Set waiting callback
-																		waitingCallback = function() {
+															for(var i = 2; i <= 40; i += 2)
+																commands.push("G0 E" + i + " F345");
+				
+															commands.push("M65536;wait");
+				
+															// Set waiting callback
+															waitingCallback = function() {
+				
+																// Show message
+																showMessage("Filament Status", "Was filament inserted?", "Yes", function() {
+				
+																	// Hide message
+																	hideMessage();
+						
+																	// Show message
+																	showMessage("Filament Status", "Returning to desired temperature");
+		
+																	// Set commands
+																	var commands = [
+																		"M109 S" + currentTemperature,
+																		"M65536;wait"
+																	];
+			
+																	// Set waiting callback
+																	waitingCallback = function() {
 														
+																		// Show message
+																		showMessage("Filament Status", "Make sure the nozzle is clean. Be careful; It will be hot.", "OK", function() {
+															
 																			// Hide message
 																			hideMessage();
-															
-																			// Resume print
-																			self.printerState.pause();
-																		}
+						
+																			// Show message
+																			showMessage("Filament Status", "Resuming print");
+		
+																			// Set commands
+																			var commands = [
+																				"G90",
+																				"G92 E" + currentE,
+																				"G0 X" + currentX + " Y" + currentY + " F3000",
+																				"G0 Z" + currentZ + " F90",
+																				"M65536;wait"
+																			];
 																
-																		// Send request
-																		$.ajax({
-																			url: API_BASEURL + "plugin/m3dfio",
-																			type: "POST",
-																			dataType: "json",
-																			data: JSON.stringify({command: "message", value: commands}),
-																			contentType: "application/json; charset=UTF-8"
-																		});
-																	});
-																}
+																			// Set waiting callback
+																			waitingCallback = function() {
 														
-																// Send request
-																$.ajax({
-																	url: API_BASEURL + "plugin/m3dfio",
-																	type: "POST",
-																	dataType: "json",
-																	data: JSON.stringify({command: "message", value: commands}),
-																	contentType: "application/json; charset=UTF-8"
+																				// Hide message
+																				hideMessage();
+															
+																				// Resume print
+																				self.printerState.pause();
+																			}
+																
+																			// Send request
+																			$.ajax({
+																				url: API_BASEURL + "plugin/m3dfio",
+																				type: "POST",
+																				dataType: "json",
+																				data: JSON.stringify({command: "message", value: commands}),
+																				contentType: "application/json; charset=UTF-8"
+																			});
+																		});
+																	}
+														
+																	// Send request
+																	$.ajax({
+																		url: API_BASEURL + "plugin/m3dfio",
+																		type: "POST",
+																		dataType: "json",
+																		data: JSON.stringify({command: "message", value: commands}),
+																		contentType: "application/json; charset=UTF-8"
+																	});
+																}, "No", function() {
+				
+																	// Hide message
+																	hideMessage();
+				
+																	// Load filament again
+																	loadFilament()
 																});
-															}, "No", function() {
-				
-																// Hide message
-																hideMessage();
-				
-																// Load filament again
-																loadFilament()
+															}
+		
+															// Send request
+															$.ajax({
+																url: API_BASEURL + "plugin/m3dfio",
+																type: "POST",
+																dataType: "json",
+																data: JSON.stringify({command: "message", value: commands}),
+																contentType: "application/json; charset=UTF-8"
 															});
 														}
 		
@@ -6215,24 +6345,24 @@ $(function() {
 															contentType: "application/json; charset=UTF-8"
 														});
 													}
+													loadFilament();
+												}, "No", function() {
+				
+													// Hide message
+													hideMessage();
+				
+													// Unload filament again
+													unloadFilament()
+												});
+											}
 		
-													// Send request
-													$.ajax({
-														url: API_BASEURL + "plugin/m3dfio",
-														type: "POST",
-														dataType: "json",
-														data: JSON.stringify({command: "message", value: commands}),
-														contentType: "application/json; charset=UTF-8"
-													});
-												}
-												loadFilament();
-											}, "No", function() {
-				
-												// Hide message
-												hideMessage();
-				
-												// Unload filament again
-												unloadFilament()
+											// Send request
+											$.ajax({
+												url: API_BASEURL + "plugin/m3dfio",
+												type: "POST",
+												dataType: "json",
+												data: JSON.stringify({command: "message", value: commands}),
+												contentType: "application/json; charset=UTF-8"
 											});
 										}
 		
@@ -6245,27 +6375,18 @@ $(function() {
 											contentType: "application/json; charset=UTF-8"
 										});
 									}
-		
-									// Send request
-									$.ajax({
-										url: API_BASEURL + "plugin/m3dfio",
-										type: "POST",
-										dataType: "json",
-										data: JSON.stringify({command: "message", value: commands}),
-										contentType: "application/json; charset=UTF-8"
-									});
+									unloadFilament();
 								}
-								unloadFilament();
-							}
 						
-							// Send request
-							$.ajax({
-								url: API_BASEURL + "plugin/m3dfio",
-								type: "POST",
-								dataType: "json",
-								data: JSON.stringify({command: "message", value: commands}),
-								contentType: "application/json; charset=UTF-8"
-							});
+								// Send request
+								$.ajax({
+									url: API_BASEURL + "plugin/m3dfio",
+									type: "POST",
+									dataType: "json",
+									data: JSON.stringify({command: "message", value: commands}),
+									contentType: "application/json; charset=UTF-8"
+								});
+							}
 						}
 					});
 				}
