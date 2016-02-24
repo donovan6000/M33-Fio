@@ -2819,6 +2819,48 @@ class M3DFioPlugin(
 						# Turn off external fan
 						self.turnOffExternalFan()
 				
+				# Check if pause command
+				if gcode.getValue('M') == "25" :
+				
+					# Check if printing
+					if self._printer.is_printing() :
+					
+						# Wait until all sent commands have been processed
+						while len(self.sentCommands) :
+				
+							# Update communication timeout to prevent other commands from being sent
+							if self._printer._comm is not None :
+								self._printer._comm._gcode_G4_sent("G4")
+					
+							time.sleep(0.01)
+						
+						# Pause print
+						self._printer.toggle_pause_print()
+					
+						# Send message
+						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "The print has been paused. Click the resume button at any time to resume the print.", confirm = True))
+					
+					# Send fake acknowledgment
+					self._printer.fake_ack()
+					
+					# Return
+					return
+				
+				# Check if resume command
+				elif gcode.getValue('M') == "24" :
+				
+					# Check if paused
+					if self._printer.is_paused() :
+					
+						# Resume print
+						self._printer.toggle_pause_print()
+					
+					# Send fake acknowledgment
+					self._printer.fake_ack()
+					
+					# Return
+					return
+				
 				# Get the command's binary representation
 				data = gcode.getBinary()
 				

@@ -5985,7 +5985,7 @@ $(function() {
 		$("#control > div.jog-panel.filament").find("div > button:nth-of-type(3)").attr("title", "Changes filament during a print").click(function(event) {
 		
 			// Pause print
-			self.printerState._jobCommand("pause")
+			self.printerState.pause();
 			
 			// Show message
 			showMessage("Filament Status", "Pausing print");
@@ -6174,7 +6174,7 @@ $(function() {
 																			hideMessage();
 															
 																			// Resume print
-																			self.printerState._jobCommand("pause")
+																			self.printerState.pause();
 																		}
 																
 																		// Send request
@@ -8622,10 +8622,25 @@ $(function() {
 			}
 			
 			// Otherwise check if data is to show message
-			else if(data.value == "Show Message" && typeof data.message !== "undefined")
-			
-				// Display message
-				showMessage("Printing Status", htmlEncode(data.message));
+			else if(data.value == "Show Message" && typeof data.message !== "undefined") {
+				
+				// Check if a confirmation is requested
+				if(typeof data.confirm !== "undefined") {
+				
+					// Display message
+					showMessage("Printing Status", htmlEncode(data.message), "OK", function() {
+					
+						// Hide message
+						hideMessage();
+					});
+				}
+				
+				// Otherwise
+				else
+				
+					// Display message
+					showMessage("Printing Status", htmlEncode(data.message));
+			}
 			
 			// Otherwise check if data is to hide message
 			else if(data.value == "Hide Message")
