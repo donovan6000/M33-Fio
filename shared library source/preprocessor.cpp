@@ -1311,7 +1311,7 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 				newCommands.push(Command("M420 T1", PREPARATION, PREPARATION));
 				if(calibrateBeforePrint)
 					newCommands.push(Command("G30", PREPARATION, PREPARATION));
-				newCommands.push(Command("M106 S" + static_cast<string>(filamentType == PLA ? "255" : "50"), PREPARATION, PREPARATION));
+				newCommands.push(Command("M106 S" + static_cast<string>(filamentType == PLA || filamentType == FLX || filamentType == TGH ? "255" : "50"), PREPARATION, PREPARATION));
 				newCommands.push(Command("M17", PREPARATION, PREPARATION));
 				newCommands.push(Command("G90", PREPARATION, PREPARATION));
 				newCommands.push(Command("M104 S" + to_string(filamentTemperature), PREPARATION, PREPARATION));
