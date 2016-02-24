@@ -35,11 +35,13 @@ else
 	# Uninstall PyObjC core
 	echo 'y' | sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/pip uninstall pyobjc-core
 	
+	# TODO Uninstall command line tools
+	
 	# Uninstall Python
 	rm -rf /Library/Frameworks/Python.framework/Versions/2.7
 	rm -rf '/Applications/Python 2.7'
 	cd /usr/local/bin/
-	ls -l /usr/local/bin | grep '../Library/Frameworks/Python.framework/Versions/2.7' | awk '{print $9}' | tr -d @ | xargs rm
+	ls -l /usr/local/bin | grep '../Library/Frameworks/Python.framework/Versions/2.7/' | awk '{print $9}' | tr -d @ | xargs rm
 	pkgutil --forget org.python.Python.PythonApplications-2.7
 	pkgutil --forget org.python.Python.PythonDocumentation-2.7
 	pkgutil --forget org.python.Python.PythonFramework-2.7
