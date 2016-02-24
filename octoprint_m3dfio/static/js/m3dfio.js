@@ -6069,6 +6069,9 @@ $(function() {
 								maxModelY = Math.max(maxYLow, maxYMedium, maxYHigh);
 								minMoveY = bedHighMinY;
 								maxMoveY = bedHighMaxY;
+								
+								if(minMoveY < bedLowMinY)
+									minMoveY = bedLowMinY;
 							}
 							else if(moveZ >= bedMediumMinZ) {
 							
@@ -6081,6 +6084,9 @@ $(function() {
 								maxModelY = Math.max(maxYLow, maxYMedium);
 								minMoveY = bedMediumMinY;
 								maxMoveY = bedMediumMaxY;
+								
+								if(minMoveY < bedLowMinY)
+									minMoveY = bedLowMinY;
 							}
 							else {
 							
