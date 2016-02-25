@@ -1544,7 +1544,7 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			}
 			
 			// Otherwise check if command is at a new layer
-			else if(preparationLayerCounter < 4 && !gcode.isEmpty() && gcode.hasValue('G') && gcode.hasValue('Z')) {
+			else if(!gcode.isEmpty() && gcode.hasValue('G') && gcode.hasValue('Z')) {
 				
 				// Increment layer counter
 				preparationLayerCounter++;
