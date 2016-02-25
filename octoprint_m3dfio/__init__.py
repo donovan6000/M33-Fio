@@ -1168,8 +1168,9 @@ class M3DFioPlugin(
 			CalibrateBeforePrint = False,
 			RemoveFanCommands = True,
 			RemoveTemperatureCommands = True,
-			UseExternalFan = False,
-			ExternalFanPin = None,
+			UseGpio = False,
+			GpioPin = None,
+			GpioLayer = None,
 			HeatbedTemperature = 70,
 			HeatbedHeight = 10.0,
 			HostCamera = False,
@@ -1187,6 +1188,12 @@ class M3DFioPlugin(
 		
 		# Save settings
 		octoprint.plugin.SettingsPlugin.on_settings_save(self, data)
+		
+		# Send message for enabling/disabling GPIO
+		if self._settings.get_boolean(["UseGpio"]) and self._settings.get_int(["GpioPin"]) is not None and self._settings.get_int(["GpioLayer"]) is not None :
+			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Enable GPIO"))
+		else :
+			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Disable GPIO"))
 		
 		# Get new host camera settings
 		newHostCamera = self._settings.get_boolean(["HostCamera"])
@@ -1513,7 +1520,8 @@ class M3DFioPlugin(
 						self.sharedLibrary.setCalibrateBeforePrint(ctypes.c_bool(self._settings.get_boolean(["CalibrateBeforePrint"])))
 						self.sharedLibrary.setRemoveFanCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveFanCommands"])))
 						self.sharedLibrary.setRemoveTemperatureCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveTemperatureCommands"])))
-						self.sharedLibrary.setUseExternalFan(ctypes.c_bool(self._settings.get_boolean(["UseExternalFan"])))
+						self.sharedLibrary.setUseGpio(ctypes.c_bool(self._settings.get_boolean(["UseGpio"])))
+						self.sharedLibrary.setGpioLayer(ctypes.c_ushort(self._settings.get_int(["GpioLayer"])))
 						self.sharedLibrary.setHeatbedTemperature(ctypes.c_ushort(self._settings.get_int(["HeatbedTemperature"])))
 						self.sharedLibrary.setHeatbedHeight(ctypes.c_double(self._settings.get_float(["HeatbedHeight"])))
 									
@@ -2852,25 +2860,30 @@ class M3DFioPlugin(
 						gcode.removeParameter('S')
 						gcode.setValue('G', '4')
 			
-				# Check if using an external fan
-				if self._settings.get_boolean(["UseExternalFan"]) :
+				# Check if using a GPIO pin
+				if self._settings.get_boolean(["UseGpio"]) :
 			
-					# Check if command is to turn on external fan
+					# Check if command is to set GPIO pin high
 					if gcode.getValue('M') == "106" and gcode.getValue('T') == '1' :
 				
-						# Turn on external fan
-						self.turnOnExternalFan()
-					
+						# Set GPIO pin high
+						self.setGpioPinHigh()
+						
 						# Set command to nothing
 						gcode.removeParameter('M')
 						gcode.removeParameter('T')
 						gcode.setValue('G', '4')
-				
-					# Check if command is to turn off fans
-					elif gcode.getValue('M') == "107" :
-				
-						# Turn off external fan
-						self.turnOffExternalFan()
+					
+					# Check if command is to set GPIO pin low
+					elif gcode.getValue('M') == "107" and gcode.getValue('T') == '1' :
+					
+						# Set GPIO pin low
+						self.setGpioPinLow()
+						
+						# Set command to nothing
+						gcode.removeParameter('M')
+						gcode.removeParameter('T')
+						gcode.setValue('G', '4')
 				
 				# Check if pause command
 				if gcode.getValue('M') == "25" :
@@ -3339,6 +3352,12 @@ class M3DFioPlugin(
 			# Set file locations
 			self.setFileLocations()
 			
+			# Send message for enabling/disabling GPIO
+			if self._settings.get_boolean(["UseGpio"]) and self._settings.get_int(["GpioPin"]) is not None and self._settings.get_int(["GpioLayer"]) is not None :
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Enable GPIO"))
+			else :
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Disable GPIO"))
+			
 			# Check if sending Cura reminder
 			if self.curaReminder :
 			
@@ -3468,7 +3487,8 @@ class M3DFioPlugin(
 					self.sharedLibrary.setCalibrateBeforePrint(ctypes.c_bool(self._settings.get_boolean(["CalibrateBeforePrint"])))
 					self.sharedLibrary.setRemoveFanCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveFanCommands"])))
 					self.sharedLibrary.setRemoveTemperatureCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveTemperatureCommands"])))
-					self.sharedLibrary.setUseExternalFan(ctypes.c_bool(self._settings.get_boolean(["UseExternalFan"])))
+					self.sharedLibrary.setUseGpio(ctypes.c_bool(self._settings.get_boolean(["UseGpio"])))
+					self.sharedLibrary.setGpioLayer(ctypes.c_ushort(self._settings.get_int(["GpioLayer"])))
 					self.sharedLibrary.setHeatbedTemperature(ctypes.c_ushort(self._settings.get_int(["HeatbedTemperature"])))
 					self.sharedLibrary.setHeatbedHeight(ctypes.c_double(self._settings.get_float(["HeatbedHeight"])))
 					
@@ -5093,7 +5113,8 @@ class M3DFioPlugin(
 				self.sharedLibrary.setCalibrateBeforePrint(ctypes.c_bool(self._settings.get_boolean(["CalibrateBeforePrint"])))
 				self.sharedLibrary.setRemoveFanCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveFanCommands"])))
 				self.sharedLibrary.setRemoveTemperatureCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveTemperatureCommands"])))
-				self.sharedLibrary.setUseExternalFan(ctypes.c_bool(self._settings.get_boolean(["UseExternalFan"])))
+				self.sharedLibrary.setUseGpio(ctypes.c_bool(self._settings.get_boolean(["UseGpio"])))
+				self.sharedLibrary.setGpioLayer(ctypes.c_ushort(self._settings.get_int(["GpioLayer"])))
 				self.sharedLibrary.setHeatbedTemperature(ctypes.c_ushort(self._settings.get_int(["HeatbedTemperature"])))
 				self.sharedLibrary.setHeatbedHeight(ctypes.c_double(self._settings.get_float(["HeatbedHeight"])))
 				
@@ -6074,6 +6095,9 @@ class M3DFioPlugin(
 
 					if self.heatbedConnected :
 						newCommands.append(Command("M140 S0", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					
+					if self._settings.get_boolean(["UseGpio"]) :
+						newCommands.append(Command("M107 T1", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 
 					newCommands.append(Command("M18", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 					newCommands.append(Command("M107", "PREPARATION", "CENTER VALIDATION PREPARATION"))
@@ -6109,35 +6133,41 @@ class M3DFioPlugin(
 						commands.append(newCommands.pop())
 				
 				# Otherwise check if command is at a new layer
-				elif self.preparationLayerCounter < 4 and not gcode.isEmpty() and gcode.hasValue('G') and gcode.hasValue('Z') :
+				elif not gcode.isEmpty() and gcode.hasValue('G') and gcode.hasValue('Z') :
 					
 					# Increment layer counter
 					self.preparationLayerCounter += 1
 					
-					# Check if at the start of the first layer and using an external fan
-					if self.preparationLayerCounter == 4 and self._settings.get_boolean(["UseExternalFan"]) :
+					# Check if using a GPIO pin
+					if self._settings.get_boolean(["UseGpio"]) :
 					
-						# Initialize new commands
-						newCommands = []
+						# Get GPIO layer
+						gpioLayer = self._settings.get_int(["GpioLayer"])
 						
-						# Add command to turn on external fan
-						newCommands.append(Command("M106 T1", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						# Check if at the start of the specified layer
+						if gpioLayer is not None and self.preparationLayerCounter == gpioLayer :
 					
-						# Check if new commands exist
-						if len(newCommands) :
+							# Initialize new commands
+							newCommands = []
+						
+							# Add command to set GPIO pin high
+							newCommands.append(Command("M106 T1", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					
+							# Check if new commands exist
+							if len(newCommands) :
 		
-							# Finish processing command later
-							if not gcode.isEmpty() :
-								commands.append(Command(gcode.getAscii(), command.origin, "CENTER VALIDATION PREPARATION WAVE"))
-							else :
-								commands.append(Command(command.line, command.origin, "CENTER VALIDATION PREPARATION WAVE"))
+								# Finish processing command later
+								if not gcode.isEmpty() :
+									commands.append(Command(gcode.getAscii(), command.origin, "CENTER VALIDATION PREPARATION WAVE"))
+								else :
+									commands.append(Command(command.line, command.origin, "CENTER VALIDATION PREPARATION WAVE"))
 		
-							# Append new commands to commands
-							while len(newCommands) :
-								commands.append(newCommands.pop())
+								# Append new commands to commands
+								while len(newCommands) :
+									commands.append(newCommands.pop())
 			
-							# Get next command
-							continue
+								# Get next command
+								continue
 			
 			# Check if not printing test border or backlash calibration cylinder and using wave bonding pre-processor
 			if not self.printingTestBorder and not self.printingBacklashCalibrationCylinder and self._settings.get_boolean(["UseWaveBondingPreprocessor"]) and "WAVE" not in command.skip :
@@ -7436,37 +7466,37 @@ class M3DFioPlugin(
 				self.linuxSleepService.UnInhibit(self.linuxSleepPrevention)
 				self.linuxSleepService = None
 	
-	# Turn on external fan
-	def turnOnExternalFan(self) :
+	# Set GPIO pin high
+	def setGpioPinHigh(self) :
 	
-		# Check if fan pin is set
-		fanPin = self._settings.get_int(["ExternalFanPin"])
-		if fanPin is not None :
+		# Check if GPIO pin is set
+		gpioPin = self._settings.get_int(["GpioPin"])
+		if gpioPin is not None :
 	
-			# Check if running on a Raspberry Pi
-			if self.usingARaspberryPi() :
+			# Check if using Linux
+			if platform.uname()[0].startswith("Linux") :
 			
-				# Turn on external fan
-				os.system("echo \"" + str(fanPin) + "\" > /sys/class/gpio/export")
-				os.system("echo \"out\" > /sys/class/gpio/gpio" + str(fanPin) + "/direction")
-				os.system("echo \"1\" > /sys/class/gpio/gpio" + str(fanPin) + "/value")
-				os.system("echo \"" + str(fanPin) + "\" > /sys/class/gpio/unexport")
+				# Set GPIO pin high
+				os.system("echo \"" + str(gpioPin) + "\" > /sys/class/gpio/export")
+				os.system("echo \"out\" > /sys/class/gpio/gpio" + str(gpioPin) + "/direction")
+				os.system("echo \"1\" > /sys/class/gpio/gpio" + str(gpioPin) + "/value")
+				os.system("echo \"" + str(gpioPin) + "\" > /sys/class/gpio/unexport")
 	
-	# Turn off external fan
-	def turnOffExternalFan(self) :
+	# Set GPIO pin low
+	def setGpioPinLow(self) :
 	
-		# Check if fan pin is set
-		fanPin = self._settings.get_int(["ExternalFanPin"])
-		if fanPin is not None :
+		# Check if GPIO pin is set
+		gpioPin = self._settings.get_int(["GpioPin"])
+		if gpioPin is not None :
 	
-			# Check if running on a Raspberry Pi
-			if self.usingARaspberryPi() :
+			# Check if using Linux
+			if platform.uname()[0].startswith("Linux") :
 		
-				# Turn off external fan
-				os.system("echo \"" + str(fanPin) + "\" > /sys/class/gpio/export")
-				os.system("echo \"out\" > /sys/class/gpio/gpio" + str(fanPin) + "/direction")
-				os.system("echo \"0\" > /sys/class/gpio/gpio" + str(fanPin) + "/value")
-				os.system("echo \"" + str(fanPin) + "\" > /sys/class/gpio/unexport")
+				# Set GPIO pin low
+				os.system("echo \"" + str(gpioPin) + "\" > /sys/class/gpio/export")
+				os.system("echo \"out\" > /sys/class/gpio/gpio" + str(gpioPin) + "/direction")
+				os.system("echo \"0\" > /sys/class/gpio/gpio" + str(gpioPin) + "/value")
+				os.system("echo \"" + str(gpioPin) + "\" > /sys/class/gpio/unexport")
 
 
 # Plugin info

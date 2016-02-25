@@ -123,9 +123,10 @@
 	</div>
 	<div class="control-group dependant">
 		<div class="controls">
-			<label class="checkbox" title="Turns on an external fan at the start of the 4th layer and turns it off when the print is done">
-				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.UseExternalFan"><span>Use external fan</span>
-				<input type="number" step="1" min="0" max="99" class="input-block-level short" data-bind="value: settings.plugins.m3dfio.ExternalFanPin" placeholder="GPIO pin number">
+			<label class="checkbox" title="Sets a GPIO pin high at the start of the specified layer and sets it low when the print is done">
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.UseGpio"><span>Use GPIO</span>
+				<input type="number" step="1" min="0" max="99" class="input-block-level short" data-bind="value: settings.plugins.m3dfio.GpioPin" placeholder="GPIO pin number">
+				<input type="number" step="1" min="0" max="5000" class="input-block-level short" data-bind="value: settings.plugins.m3dfio.GpioLayer" placeholder="GPIO start layer">
 			</label>
 		</div>
 	</div>

@@ -152,7 +152,8 @@ printerColors printerColor;
 bool calibrateBeforePrint;
 bool removeFanCommands;
 bool removeTemperatureCommands;
-bool useExternalFan;
+bool useGpio;
+uint16_t gpioLayer;
 uint16_t heatbedTemperature;
 double heatbedHeight;
 int16_t detectedFanSpeed;
@@ -686,10 +687,16 @@ EXPORT void setRemoveTemperatureCommands(bool value) {
 	removeTemperatureCommands = value;
 }
 
-EXPORT void setUseExternalFan(bool value) {
+EXPORT void setUseGpio(bool value) {
 
-	// Set use external fan
-	useExternalFan = value;
+	// Set use GPIO
+	useGpio = value;
+}
+
+EXPORT void setGpioLayer(unsigned short value) {
+
+	// Set GPIO layer
+	gpioLayer = value;
 }
 
 EXPORT void setHeatbedTemperature(unsigned short value) {
@@ -1509,6 +1516,9 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 				if(usingHeatbed)
 					newCommands.push(Command("M140 S0", PREPARATION, PREPARATION));
 				
+				if(useGpio)
+					newCommands.push(Command("M107 T1", PREPARATION, PREPARATION));
+				
 				newCommands.push(Command("M18", PREPARATION, PREPARATION));
 				newCommands.push(Command("M107", PREPARATION, PREPARATION));
 				
@@ -1539,13 +1549,13 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 				// Increment layer counter
 				preparationLayerCounter++;
 				
-				// Check if at the start of the first layer and using an external fan
-				if(preparationLayerCounter == 4 && useExternalFan) {
+				// Check if using a GPIO pin and at the start of the specified layer
+				if(useGpio && preparationLayerCounter == gpioLayer) {
 				
 					// Initialize new commands
 					stack<Command> newCommands;
 					
-					// Add command to turn on external fan
+					// Add command to set GPIO pin high
 					newCommands.push(Command("M106 T1", PREPARATION, PREPARATION));
 				
 					// Check if new commands exist

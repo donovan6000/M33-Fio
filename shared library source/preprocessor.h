@@ -141,7 +141,8 @@ extern "C" {
 	EXPORT void setCalibrateBeforePrint(bool value);
 	EXPORT void setRemoveFanCommands(bool value);
 	EXPORT void setRemoveTemperatureCommands(bool value);
-	EXPORT void setUseExternalFan(bool value);
+	EXPORT void setUseGpio(bool value);
+	EXPORT void setGpioLayer(unsigned short value);
 	EXPORT void setHeatbedTemperature(unsigned short value);
 	EXPORT void setHeatbedHeight(double value);
 	

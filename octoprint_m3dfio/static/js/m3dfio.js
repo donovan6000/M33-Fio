@@ -3192,6 +3192,8 @@ $(function() {
 			<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'G91'}) }" title="Sets extruder to use relative positioning">Relative mode</button>
 			<button class="btn btn-block control-box" data-bind="enable: loginState.isUser()">Print settings</button>
 			<button class="btn btn-block control-box" data-bind="enable: isOperational() && loginState.isUser()">Emergency stop</button>
+			<button class="btn btn-block control-box gpio" data-bind="enable: isOperational() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M106 T1*'}) }" title="Sets GPIO pin high">GPIO high</button>
+			<button class="btn btn-block control-box gpio" data-bind="enable: isOperational() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M107 T1*'}) }" title="Sets GPIO pin low">GPIO low</button>
 		`);
 	
 		// Add filament controls
@@ -9049,7 +9051,7 @@ $(function() {
 					showMessage("Error Status", htmlEncode(data.message));
 			}
 			
-			// Otherwise check if data is doen waiting
+			// Otherwise check if data is done waiting
 			else if(data.value == "Done Waiting" && typeof waitingCallback === "function") {
 			
 				// Clear waiting callback
@@ -9059,6 +9061,18 @@ $(function() {
 				// Call waiting callback
 				temp();
 			}
+			
+			// Otherwise check if data is to enable GPIO
+			else if(data.value == "Enable GPIO")
+			
+				// Show GPIO buttons
+				$("#control > div.jog-panel.general button.gpio").css("display", "block");
+			
+			// Otherwise check if data is to disable GPIO
+			else if(data.value == "Disable GPIO")
+			
+				// Hide GPIO buttons
+				$("#control > div.jog-panel.general button.gpio").css("display", "none");
 		}
 		
 		// User log in event
