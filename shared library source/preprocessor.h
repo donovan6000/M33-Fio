@@ -144,6 +144,25 @@ extern "C" {
 	EXPORT void setUseExternalFan(bool value);
 	EXPORT void setHeatbedTemperature(unsigned short value);
 	EXPORT void setHeatbedHeight(double value);
+	
+	/*
+	Name: Get values
+	Purpose: Returns values calculated by the pre-processor
+	*/
+	EXPORT double getMaxXExtruderLow();
+	EXPORT double getMaxXExtruderMedium();
+	EXPORT double getMaxXExtruderHigh();
+	EXPORT double getMaxYExtruderLow();
+	EXPORT double getMaxYExtruderMedium();
+	EXPORT double getMaxYExtruderHigh();
+	EXPORT double getMaxZExtruder();
+	EXPORT double getMinXExtruderLow();
+	EXPORT double getMinXExtruderMedium();
+	EXPORT double getMinXExtruderHigh();
+	EXPORT double getMinYExtruderLow();
+	EXPORT double getMinYExtruderMedium();
+	EXPORT double getMinYExtruderHigh();
+	EXPORT double getMinZExtruder();
 
 	/*
 	Name: Reset pre-processor settings

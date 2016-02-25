@@ -704,6 +704,90 @@ EXPORT void setHeatbedHeight(double value) {
 	heatbedHeight = value;
 }
 
+EXPORT double getMaxXExtruderLow() {
+
+	// Return max X extruder low
+	return maxXExtruderLow;
+}
+
+EXPORT double getMaxXExtruderMedium() {
+
+	// Return max X extruder medium
+	return maxXExtruderMedium;
+}
+
+EXPORT double getMaxXExtruderHigh() {
+
+	// Return max X extruder high
+	return maxXExtruderHigh;
+}
+
+EXPORT double getMaxYExtruderLow() {
+
+	// Return max Y extruder low
+	return maxYExtruderLow;
+}
+
+EXPORT double getMaxYExtruderMedium() {
+
+	// Return max Y extruder medium
+	return maxYExtruderMedium;
+}
+
+EXPORT double getMaxYExtruderHigh() {
+
+	// Return max Y extruder high
+	return maxYExtruderHigh;
+}
+
+EXPORT double getMaxZExtruder() {
+
+	// Return max Z extruder
+	return maxZExtruder;
+}
+
+EXPORT double getMinXExtruderLow() {
+
+	// Return min X extruder low
+	return minXExtruderLow;
+}
+
+EXPORT double getMinXExtruderMedium() {
+
+	// Return max X extruder medium
+	return maxXExtruderMedium;
+}
+
+EXPORT double getMinXExtruderHigh() {
+
+	// Return min X extruder high
+	return minXExtruderHigh;
+}
+
+EXPORT double getMinYExtruderLow() {
+
+	// Return min Y extruder low
+	return minYExtruderLow;
+}
+
+EXPORT double getMinYExtruderMedium() {
+
+	// Return min Y extruder medium
+	return minYExtruderMedium;
+}
+
+EXPORT double getMinYExtruderHigh() {
+
+	// Return min Y extruder high
+	return minYExtruderHigh;
+}
+
+EXPORT double getMinZExtruder() {
+
+	// Return min Z extruder
+	return minZExtruder;
+}
+
 EXPORT void resetPreprocessorSettings() {
 
 	// General settings
@@ -1291,23 +1375,38 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 				stack<Command> newCommands;
 				
 				// Check if not printing test border
-				double cornerX = 0, cornerY = 0;
+				double cornerX = 0, cornerY = 0, cornerZ = 0;
 				if(!printingTestBorder) {
 
 					// Set corner X
-					if(maxXExtruderLow < BED_LOW_MAX_X)
-						cornerX = (BED_LOW_MAX_X - BED_LOW_MIN_X) / 2;
-					else if(minXExtruderLow > BED_LOW_MIN_X)
+					if(minXExtruderLow > BED_LOW_MIN_X)
 						cornerX = -(BED_LOW_MAX_X - BED_LOW_MIN_X) / 2;
+					else if(maxXExtruderLow < BED_LOW_MAX_X)
+						cornerX = (BED_LOW_MAX_X - BED_LOW_MIN_X) / 2;
 
 					// Set corner Y
-					if(maxYExtruderLow < BED_LOW_MAX_Y)
-						cornerY = (BED_LOW_MAX_Y - BED_LOW_MIN_Y - 10) / 2;
-					else if(minYExtruderLow > BED_LOW_MIN_Y)
+					if(minYExtruderLow > BED_LOW_MIN_Y)
 						cornerY = -(BED_LOW_MAX_Y - BED_LOW_MIN_Y - 10) / 2;
+					else if(maxYExtruderLow < BED_LOW_MAX_Y)
+						cornerY = (BED_LOW_MAX_Y - BED_LOW_MIN_Y - 10) / 2;
+				}
+				
+				// Check if both of the corners are set
+				if(cornerX && cornerY) {
+				
+					// Set cornet Z
+					if(cornerX > 0 && cornerY > 0)
+						cornerZ = backRightOrientation + backRightOffset;
+					else if(cornerX < 0 && cornerY > 0)
+						cornerZ = backLeftOrientation + backLeftOffset;
+					else if(cornerX < 0 && cornerY < 0)
+						cornerZ = frontLeftOrientation + frontLeftOffset;
+					else if(cornerX > 0 && cornerY < 0)
+						cornerZ = frontRightOrientation + frontRightOffset;
 				}
 			
 				// Add intro to output
+				newCommands.push(Command("G90", PREPARATION, PREPARATION));
 				newCommands.push(Command("M420 T1", PREPARATION, PREPARATION));
 				if(calibrateBeforePrint)
 					newCommands.push(Command("G30", PREPARATION, PREPARATION));
@@ -1330,30 +1429,26 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 					newCommands.push(Command("M109 S" + to_string(filamentTemperature), PREPARATION, PREPARATION));
 					newCommands.push(Command("G4 S2", PREPARATION, PREPARATION));
 					newCommands.push(Command("M17", PREPARATION, PREPARATION));
-					newCommands.push(Command("G91", PREPARATION, PREPARATION));
+					newCommands.push(Command("G92 E0", PREPARATION, PREPARATION));
+					newCommands.push(Command("G0 Z0.4 F48", PREPARATION, PREPARATION));
 				}
-
+				
 				// Otherwise
 				else {
 
 					// Prepare extruder by leaving excess at corner
-					newCommands.push(Command("G91", PREPARATION, PREPARATION));
-					newCommands.push(Command("G0 X" + to_string(-cornerX) + " Y" + to_string(-cornerY) + " F1800", PREPARATION, PREPARATION));
+					newCommands.push(Command("G0 X" + to_string(54 + cornerX) + " Y" + to_string(50 + cornerY) + " F1800", PREPARATION, PREPARATION));
 					newCommands.push(Command("M18", PREPARATION, PREPARATION));
 					newCommands.push(Command("M109 S" + to_string(filamentTemperature), PREPARATION, PREPARATION));
 					newCommands.push(Command("M17", PREPARATION, PREPARATION));
-					newCommands.push(Command("G0 Z-4 F48", PREPARATION, PREPARATION));
+					newCommands.push(Command("G0 Z" + to_string(cornerZ + 3) + " F48", PREPARATION, PREPARATION));
+					newCommands.push(Command("G92 E0", PREPARATION, PREPARATION));
 					newCommands.push(Command("G0 E10 F360", PREPARATION, PREPARATION));
 					newCommands.push(Command("G4 S3", PREPARATION, PREPARATION));
-					newCommands.push(Command("G0 X" + to_string(cornerX * 0.1) + " Y" + to_string(cornerY * 0.1) + " Z-0.999 F400", PREPARATION, PREPARATION));
-					newCommands.push(Command("G0 X" + to_string(cornerX * 0.9) + " Y" + to_string(cornerY * 0.9) + " F1000", PREPARATION, PREPARATION));
+					newCommands.push(Command("G0 X" + to_string(54 + cornerX - cornerX * 0.1) + " Y" + to_string(50 + cornerY - cornerY * 0.1) + " Z" + to_string(cornerZ + 0.5) + " F400", PREPARATION, PREPARATION));
+					newCommands.push(Command("G92 E0", PREPARATION, PREPARATION));
 				}
-
-				newCommands.push(Command("G92 E0", PREPARATION, PREPARATION));
-				newCommands.push(Command("G90", PREPARATION, PREPARATION));
-				newCommands.push(Command("G0 Z0.4 F48", PREPARATION, PREPARATION));
-				newCommands.push(Command("G0 F1800", PREPARATION, PREPARATION));
-		
+				
 				// Finish processing command later
 				if(!gcode.isEmpty())
 					commands.push_front(Command(gcode.getAscii(), command.origin, PREPARATION));

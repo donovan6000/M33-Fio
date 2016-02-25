@@ -857,6 +857,20 @@ class M3DFioPlugin(
 		if self.sharedLibrary :
 		
 			# Set output types of shared library functions
+			self.sharedLibrary.getMaxXExtruderLow.restype = ctypes.c_double
+			self.sharedLibrary.getMaxXExtruderMedium.restype = ctypes.c_double
+			self.sharedLibrary.getMaxXExtruderHigh.restype = ctypes.c_double
+			self.sharedLibrary.getMaxYExtruderLow.restype = ctypes.c_double
+			self.sharedLibrary.getMaxYExtruderMedium.restype = ctypes.c_double
+			self.sharedLibrary.getMaxYExtruderHigh.restype = ctypes.c_double
+			self.sharedLibrary.getMaxZExtruder.restype = ctypes.c_double
+			self.sharedLibrary.getMinXExtruderLow.restype = ctypes.c_double
+			self.sharedLibrary.getMinXExtruderMedium.restype = ctypes.c_double
+			self.sharedLibrary.getMinXExtruderHigh.restype = ctypes.c_double
+			self.sharedLibrary.getMinYExtruderLow.restype = ctypes.c_double
+			self.sharedLibrary.getMinYExtruderMedium.restype = ctypes.c_double
+			self.sharedLibrary.getMinYExtruderHigh.restype = ctypes.c_double
+			self.sharedLibrary.getMinZExtruder.restype = ctypes.c_double
 			self.sharedLibrary.collectPrintInformation.restype = ctypes.c_bool
 	  		self.sharedLibrary.preprocess.restype = ctypes.c_char_p
 	  		self.sharedLibrary.getDetectedFanSpeed.restype = ctypes.c_ubyte
@@ -1265,8 +1279,8 @@ class M3DFioPlugin(
 				if data["value"][-1] == "M65536;wait" :
 					self.waiting = True
 				
-				# Check if not using line numbers, printing, or paused
-				if noLineNumber or self._printer.is_printing() or self._printer.is_paused() :
+				# Check if not using line numbers or printing
+				if noLineNumber or self._printer.is_printing() :
 				
 					# Send commands to printer
 					self.sendCommands(data["value"])
@@ -1505,6 +1519,28 @@ class M3DFioPlugin(
 									
 						# Collect print information
 						self.sharedLibrary.collectPrintInformation(ctypes.c_char_p(location))
+						
+						# Get extruder min and max movements
+						self.maxXExtruderLow = self.sharedLibrary.getMaxXExtruderLow()
+						self.maxXExtruderMedium = self.sharedLibrary.getMaxXExtruderMedium()
+						self.maxXExtruderHigh = self.sharedLibrary.getMaxXExtruderHigh()
+						self.maxYExtruderLow = self.sharedLibrary.getMaxYExtruderLow()
+						self.maxYExtruderMedium = self.sharedLibrary.getMaxYExtruderMedium()
+						self.maxYExtruderHigh = self.sharedLibrary.getMaxYExtruderHigh()
+						self.maxZExtruder = self.sharedLibrary.getMaxZExtruder()
+						self.minXExtruderLow = self.sharedLibrary.getMinXExtruderLow()
+						self.minXExtruderMedium = self.sharedLibrary.getMinXExtruderMedium()
+						self.minXExtruderHigh = self.sharedLibrary.getMinXExtruderHigh()
+						self.minYExtruderLow = self.sharedLibrary.getMinYExtruderLow()
+						self.minYExtruderMedium = self.sharedLibrary.getMinYExtruderMedium()
+						self.minYExtruderHigh = self.sharedLibrary.getMinYExtruderHigh()
+						self.minZExtruder = self.sharedLibrary.getMinZExtruder()
+						
+						# Get detected fan speed
+						self.detectedFanSpeed = self.sharedLibrary.getDetectedFanSpeed()
+					
+						# Get object successfully centered
+						self.objectSuccessfullyCentered = self.sharedLibrary.getObjectSuccessfullyCentered()
 					
 						# Pre-process file and moved to destination
 						self.sharedLibrary.preprocess(ctypes.c_char_p(location), ctypes.c_char_p(destination), ctypes.c_bool(False))
@@ -1683,8 +1719,8 @@ class M3DFioPlugin(
 			# Otherwise check if parameter is to saved settings
 			elif data["value"] == "Saved Settings" :
 			
-				# Check if a micro 3D is connected and not printing or paused
-				if not self.invalidPrinter and not self._printer.is_printing() and not self._printer.is_paused() :
+				# Check if a micro 3D is connected and not printing
+				if not self.invalidPrinter and not self._printer.is_printing() :
 				
 					# Save settings to the printer
 					self.sendCommands(self.getSaveCommands())
@@ -1988,8 +2024,23 @@ class M3DFioPlugin(
 					self.savedCurrentBaudrate = None
 					self.savedCurrentProfile = None
 			
+			# Otherwise check if parameter is to toggle pause
+			elif data["value"] == "Toggle Pause" :
+			
+				# Check if paused
+				if self._printer.is_paused() :
+				
+					# Send resume command
+					self._printer.commands("M24");
+				
+				# Otherwise
+				else :
+			
+					# Send pause command
+					self._printer.commands("M25");
+			
 			# Otherwise check if parameter is to get print information
-			elif data == "Print Information" :
+			elif data["value"] == "Print Information" :
 			
 				# Return print information
 				return flask.jsonify(dict(value = "OK", maxXLow = self.maxXExtruderLow, maxXMedium = self.maxXExtruderMedium, maxXHigh = self.maxXExtruderHigh, maxYLow = self.maxYExtruderLow, maxYMedium = self.maxYExtruderMedium, maxYHigh = self.maxYExtruderHigh, maxZ = self.maxZExtruder, minXLow = self.minXExtruderLow, minXMedium = self.minXExtruderMedium, minXHigh = self.minXExtruderHigh, minYLow = self.minYExtruderLow, minYMedium = self.minYExtruderMedium, minYHigh = self.minYExtruderHigh, minZ = self.minZExtruder))
@@ -2577,11 +2628,13 @@ class M3DFioPlugin(
 	def emptyCommandQueue(self) :
 	
 		# Empty command queues
-		while not self._printer._comm._send_queue.empty() :
-			self._printer._comm._send_queue.get()
+		if self._printer._comm is not None :
 		
-		while not self._printer._comm._commandQueue.empty() :
-			self._printer._comm._commandQueue.get()
+			while not self._printer._comm._send_queue.empty() :
+				self._printer._comm._send_queue.get()
+		
+			while not self._printer._comm._commandQueue.empty() :
+				self._printer._comm._commandQueue.get()
 	
 	# Process write
 	def processWrite(self, data) :
@@ -2827,18 +2880,15 @@ class M3DFioPlugin(
 					
 						# Wait until all sent commands have been processed
 						while len(self.sentCommands) :
-				
+			
 							# Update communication timeout to prevent other commands from being sent
 							if self._printer._comm is not None :
 								self._printer._comm._gcode_G4_sent("G4")
-					
+				
 							time.sleep(0.01)
-						
+					
 						# Pause print
 						self._printer.toggle_pause_print()
-					
-						# Send message
-						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "The print has been paused. Click the resume button at any time to resume the print.", confirm = True))
 					
 					# Send fake acknowledgment
 					self._printer.fake_ack()
@@ -2854,6 +2904,11 @@ class M3DFioPlugin(
 					
 						# Resume print
 						self._printer.toggle_pause_print()
+						
+						# Restart line numbers
+						self.sendCommands(["N0 M110", "G90"])
+						if self._printer._comm is not None :
+							self._printer._comm._gcode_M110_sending("N1");
 					
 					# Send fake acknowledgment
 					self._printer.fake_ack()
@@ -3420,6 +3475,22 @@ class M3DFioPlugin(
 					# Collect print information
 					printIsValid = self.sharedLibrary.collectPrintInformation(ctypes.c_char_p(payload.get("file")))
 					
+					# Get extruder min and max movements
+					self.maxXExtruderLow = self.sharedLibrary.getMaxXExtruderLow()
+					self.maxXExtruderMedium = self.sharedLibrary.getMaxXExtruderMedium()
+					self.maxXExtruderHigh = self.sharedLibrary.getMaxXExtruderHigh()
+					self.maxYExtruderLow = self.sharedLibrary.getMaxYExtruderLow()
+					self.maxYExtruderMedium = self.sharedLibrary.getMaxYExtruderMedium()
+					self.maxYExtruderHigh = self.sharedLibrary.getMaxYExtruderHigh()
+					self.maxZExtruder = self.sharedLibrary.getMaxZExtruder()
+					self.minXExtruderLow = self.sharedLibrary.getMinXExtruderLow()
+					self.minXExtruderMedium = self.sharedLibrary.getMinXExtruderMedium()
+					self.minXExtruderHigh = self.sharedLibrary.getMinXExtruderHigh()
+					self.minYExtruderLow = self.sharedLibrary.getMinYExtruderLow()
+					self.minYExtruderMedium = self.sharedLibrary.getMinYExtruderMedium()
+					self.minYExtruderHigh = self.sharedLibrary.getMinYExtruderHigh()
+					self.minZExtruder = self.sharedLibrary.getMinZExtruder()
+					
 					# Get detected fan speed
 					self.detectedFanSpeed = self.sharedLibrary.getDetectedFanSpeed()
 					
@@ -3477,6 +3548,12 @@ class M3DFioPlugin(
 		# Otherwise check if a print is done
 		elif event == octoprint.events.Events.PRINT_DONE :
 		
+			# Empty command queue
+			self.emptyCommandQueue()
+			
+			# Clear sent commands
+			self.sentCommands = {}
+		
 			# Check if pre-processing on the fly
 			if self._settings.get_boolean(["PreprocessOnTheFly"]) :
 				
@@ -3509,6 +3586,9 @@ class M3DFioPlugin(
 				
 			# Empty command queue
 			self.emptyCommandQueue()
+			
+			# Clear sent commands
+			self.sentCommands = {}
 			
 			# Set commands
 			commands = [
@@ -5020,6 +5100,22 @@ class M3DFioPlugin(
 				# Collect print information
 				printIsValid = self.sharedLibrary.collectPrintInformation(ctypes.c_char_p(input))
 				
+				# Get extruder min and max movements
+				self.maxXExtruderLow = self.sharedLibrary.getMaxXExtruderLow()
+				self.maxXExtruderMedium = self.sharedLibrary.getMaxXExtruderMedium()
+				self.maxXExtruderHigh = self.sharedLibrary.getMaxXExtruderHigh()
+				self.maxYExtruderLow = self.sharedLibrary.getMaxYExtruderLow()
+				self.maxYExtruderMedium = self.sharedLibrary.getMaxYExtruderMedium()
+				self.maxYExtruderHigh = self.sharedLibrary.getMaxYExtruderHigh()
+				self.maxZExtruder = self.sharedLibrary.getMaxZExtruder()
+				self.minXExtruderLow = self.sharedLibrary.getMinXExtruderLow()
+				self.minXExtruderMedium = self.sharedLibrary.getMinXExtruderMedium()
+				self.minXExtruderHigh = self.sharedLibrary.getMinXExtruderHigh()
+				self.minYExtruderLow = self.sharedLibrary.getMinYExtruderLow()
+				self.minYExtruderMedium = self.sharedLibrary.getMinYExtruderMedium()
+				self.minYExtruderHigh = self.sharedLibrary.getMinYExtruderHigh()
+				self.minZExtruder = self.sharedLibrary.getMinZExtruder()
+				
 				# Get detected fan speed
 				self.detectedFanSpeed = self.sharedLibrary.getDetectedFanSpeed()
 				
@@ -5852,22 +5948,36 @@ class M3DFioPlugin(
 					newCommands = []
 					
 					# Check if not printing test border
-					cornerX = cornerY = 0
+					cornerX = cornerY = cornerZ = 0
 					if not self.printingTestBorder :
 
 						# Set corner X
-						if self.maxXExtruderLow < self.bedLowMaxX :
-							cornerX = (self.bedLowMaxX - self.bedLowMinX) / 2
-						elif self.minXExtruderLow > self.bedLowMinX :
+						if self.minXExtruderLow > self.bedLowMinX :
 							cornerX = -(self.bedLowMaxX - self.bedLowMinX) / 2
+						elif self.maxXExtruderLow < self.bedLowMaxX :
+							cornerX = (self.bedLowMaxX - self.bedLowMinX) / 2
 
 						# Set corner Y
-						if self.maxYExtruderLow < self.bedLowMaxY :
-							cornerY = (self.bedLowMaxY - self.bedLowMinY - 10) / 2
-						elif self.minYExtruderLow > self.bedLowMinY :
+						if self.minYExtruderLow > self.bedLowMinY :
 							cornerY = -(self.bedLowMaxY - self.bedLowMinY - 10) / 2
-				
+						elif self.maxYExtruderLow < self.bedLowMaxY :
+							cornerY = (self.bedLowMaxY - self.bedLowMinY - 10) / 2
+					
+					# Check if both of the corners are set
+					if cornerX != 0 and cornerY != 0 :
+					
+						# Set cornet Z
+						if cornerX > 0 and cornerY > 0 :
+							cornerZ = self._settings.get_float(["BackRightOrientation"]) + self._settings.get_float(["BackRightOffset"])
+						elif cornerX < 0 and cornerY > 0 :
+							cornerZ = self._settings.get_float(["BackLeftOrientation"]) + self._settings.get_float(["BackLeftOffset"])
+						elif cornerX < 0 and cornerY < 0 :
+							cornerZ = self._settings.get_float(["FrontLeftOrientation"]) + self._settings.get_float(["FrontLeftOffset"])
+						elif cornerX > 0 and cornerY < 0 :
+							cornerZ = self._settings.get_float(["FrontRightOrientation"]) + self._settings.get_float(["FrontRightOffset"])
+					
 					# Add intro to output
+					newCommands.append(Command("G90", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 					newCommands.append(Command("M420 T1", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 					if self._settings.get_boolean(["CalibrateBeforePrint"]) :
 						newCommands.append(Command("G30", "PREPARATION", "CENTER VALIDATION PREPARATION"))
@@ -5893,28 +6003,24 @@ class M3DFioPlugin(
 						newCommands.append(Command("M109 S" + str(self._settings.get_int(["FilamentTemperature"])), "PREPARATION", "CENTER VALIDATION PREPARATION"))
 						newCommands.append(Command("G4 S2", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 						newCommands.append(Command("M17", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G91","PREPARATION",  "CENTER VALIDATION PREPARATION"))
-
+						newCommands.append(Command("G92 E0", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G0 Z0.4 F48", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					
 					# Otherwise
 					else :
 
 						# Prepare extruder by leaving excess at corner
-						newCommands.append(Command("G91", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G0 X%f Y%f F1800" % (-cornerX, -cornerY), "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G0 X%f Y%f F1800" % (54 + cornerX, 50 + cornerY), "PREPARATION", "CENTER VALIDATION PREPARATION"))
 						newCommands.append(Command("M18", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 						newCommands.append(Command("M109 S" + str(self._settings.get_int(["FilamentTemperature"])), "PREPARATION", "CENTER VALIDATION PREPARATION"))
 						newCommands.append(Command("M17", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G0 Z-4 F48", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G0 Z%f F48" % (cornerZ + 3), "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G92 E0", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 						newCommands.append(Command("G0 E10 F360", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 						newCommands.append(Command("G4 S3", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G0 X%f Y%f Z-0.999 F400" % ((cornerX * 0.1), (cornerY * 0.1)), "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G0 X%f Y%f F1000" % ((cornerX * 0.9), (cornerY * 0.9)), "PREPARATION", "CENTER VALIDATION PREPARATION"))
-
-					newCommands.append(Command("G92 E0", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G90", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G0 Z0.4 F48", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G0 F1800", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-			
+						newCommands.append(Command("G0 X%f Y%f Z%f F400" % (54 + cornerX - cornerX * 0.1, 50 + cornerY - cornerY * 0.1, cornerZ + 0.5), "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G92 E0", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					
 					# Finish processing command later
 					if not gcode.isEmpty() :
 						commands.append(Command(gcode.getAscii(), command.origin, "CENTER VALIDATION PREPARATION"))
@@ -5961,7 +6067,7 @@ class M3DFioPlugin(
 					
 					# Add outro to output
 					newCommands.append(Command("G90", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G0 Y%f Z%f F1800" % ((moveY), (moveZ)), "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G0 Y%f Z%f F1800" % (moveY, moveZ), "PREPARATION", "CENTER VALIDATION PREPARATION"))
 					newCommands.append(Command("G91", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 					newCommands.append(Command("G0 E-8 F360", "PREPARATION", "CENTER VALIDATION PREPARATION"))
 					newCommands.append(Command("M104 S0", "PREPARATION", "CENTER VALIDATION PREPARATION"))
