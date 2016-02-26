@@ -279,9 +279,9 @@ for line in open(sys.argv[1], "rb") :
 		elif key == "simpleMode" :
 		
 			if int(value) == 0 :
-				output.write("follow_surface = False\n")
+				output.write("simple_mode = False\n")
 			else :
-				output.write("follow_surface = True\n")
+				output.write("simple_mode = True\n")
 		
 		elif key == "spiralizeMode" :
 		
@@ -351,12 +351,12 @@ else :
 	output.write("fill_density = " + str(100 * edgeWidth * 1000 / sparseInfillLineDistance) + '\n')
 
 if inset0Speed != printSpeed :
-	output.write("outer_shell_speed = " + str(inset0Speed) + '\n')
+	output.write("inset0_speed = " + str(inset0Speed) + '\n')
 
 if insetXSpeed != printSpeed :
-	output.write("inner_shell_speed = " + str(insetXSpeed) + '\n')
+	output.write("insetx_speed = " + str(insetXSpeed) + '\n')
 
-output.write("first_layer_width_factor = " + str(layer0extrusionWidth * 100 / (edgeWidth * 1000)) + '\n')
+output.write("layer0_width_factor = " + str(layer0extrusionWidth * 100 / (edgeWidth * 1000)) + '\n')
 output.write("wall_thickness = " + str(extrusionWidth * lineCount / 1000.0) + '\n')
 output.write("solid_layer_thickness = " + str(math.floor(solidLayerCount * (layerThickness - 0.0001)) / 1000) + '\n')
 

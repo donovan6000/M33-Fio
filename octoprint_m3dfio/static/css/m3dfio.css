@@ -500,8 +500,8 @@ body > div.page-container > div.message > div > div > span.show {
 }
 
 #slicing_configuration_dialog.profile {
-	max-width: 730px !important;
-	min-width: 630px !important;
+	max-width: 830px !important;
+	min-width: 720px !important;
 	overflow: visible !important;
 }
 
