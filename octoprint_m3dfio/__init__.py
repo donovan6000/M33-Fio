@@ -4244,17 +4244,20 @@ class M3DFioPlugin(
 				# Wait until connection is established
 				while not isinstance(self._printer.get_transport(), serial.Serial) :
 					time.sleep(1)
-				
-				# Remove serial timeout
-				self._printer.get_transport().timeout = None
-				if float(serial.VERSION) < 3 :
-					self._printer.get_transport().writeTimeout = None
-				else :
-					self._printer.get_transport().write_timeout = None
 			
 				# Enable printer callbacks if using a Micro 3D printer
 		    		if not self._settings.get_boolean(["UsingADifferentPrinter"]) :
 					self._printer.register_callback(self)
+				
+				# Otherwise
+				else :
+				
+					# Remove serial timeout
+					self._printer.get_transport().timeout = None
+					if float(serial.VERSION) < 3 :
+						self._printer.get_transport().writeTimeout = None
+					else :
+						self._printer.get_transport().write_timeout = None
 			
 			# Check if an error didn't occur
 			if not error :
