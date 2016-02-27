@@ -4607,7 +4607,7 @@ $(function() {
 												
 													changedSettings.push({
 														layer_height: $(this).val(),
-														solid_layer_thickness: parseFloat(parseInt($("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.topBottomLayers").val()) * parseFloat($(this).val())).toFixed(2)
+														solid_layer_thickness: parseFloat(parseInt($("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.topBottomLayers").val()) * parseFloat($(this).val())).toFixed(3)
 													});
 													
 													// Clear basic quality settings
@@ -4634,7 +4634,7 @@ $(function() {
 													var nozzleSize = getValue("nozzle_size");
 												
 													changedSettings.push({
-														wall_thickness: parseFloat(parseInt($(this).val()) * parseFloat(nozzleSize == '' ? 0.35 : nozzleSize)).toFixed(2)
+														wall_thickness: parseFloat(parseInt($(this).val()) * parseFloat(nozzleSize == '' ? 0.35 : nozzleSize)).toFixed(3)
 													});
 													
 													if(nozzleSize == '')
@@ -4650,9 +4650,11 @@ $(function() {
 												
 													changedSettings.push({
 														print_speed: $(this).val(),
-														travel_speed: parseFloat($(this).val()) + 4 <= 80 ? parseFloat(parseFloat($(this).val()) + 4).toFixed(2) : 80,
-														inset0_speed: parseFloat($(this).val()) - 4 >= 1 ? parseFloat(parseFloat($(this).val()) - 4).toFixed(2) : 1,
-														insetx_speed: parseFloat($(this).val()) - 2 >= 1 ? parseFloat(parseFloat($(this).val()) - 2).toFixed(2) : 1,
+														travel_speed: parseFloat($(this).val()) + 4 <= 80 ? parseFloat(parseFloat($(this).val()) + 4).toFixed(3) : 80,
+														inset0_speed: parseFloat($(this).val()) - 4 >= 1 ? parseFloat(parseFloat($(this).val()) - 4).toFixed(3) : 1,
+														insetx_speed: parseFloat($(this).val()) - 2 >= 1 ? parseFloat(parseFloat($(this).val()) - 2).toFixed(3) : 1,
+														infill_speed: $(this).val(),
+														solidarea_speed: $(this).val()
 													});
 													
 													if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
@@ -4673,7 +4675,7 @@ $(function() {
 													var layerHeight = getValue("layer_height");
 												
 													changedSettings.push({
-														solid_layer_thickness: parseFloat(parseInt($(this).val()) * parseFloat(layerHeight == '' ? 0.15 : layerHeight)).toFixed(2)
+														solid_layer_thickness: parseFloat(parseInt($(this).val()) * parseFloat(layerHeight == '' ? 0.15 : layerHeight)).toFixed(3)
 													});
 													
 													if(layerHeight == '')
@@ -4805,7 +4807,7 @@ $(function() {
 													else if($(this).attr("title") == "Low fill")
 													
 														changedSettings.push({
-															fill_density: 6.36363636364,
+															fill_density: 6.364,
 															wall_thickness: 1.05,
 															nozzle_size: 0.35,
 															infill_speed: null
@@ -4835,7 +4837,7 @@ $(function() {
 													else if($(this).attr("title") == "Extra high fill")
 													
 														changedSettings.push({
-															fill_density: 23.3333333333,
+															fill_density: 23.333,
 															wall_thickness: 1.4,
 															nozzle_size: 0.35,
 															infill_speed: null
