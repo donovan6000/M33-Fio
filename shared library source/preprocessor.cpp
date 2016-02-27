@@ -928,7 +928,7 @@ EXPORT bool collectPrintInformation(const char *file) {
 				if(detectedFanSpeed == -1 && gcode.hasValue('M') && gcode.getValue('M') == "106")
 				
 					// Get fan speed
-					detectedFanSpeed = stoi(gcode.getValue('S'));
+					detectedFanSpeed = stoi(gcode.hasValue('S') ? gcode.getValue('S') : gcode.getValue('P'));
 			
 				// Otherwise check if command is a G command
 				else if(gcode.hasValue('G')) {

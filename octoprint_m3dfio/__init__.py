@@ -2016,6 +2016,12 @@ class M3DFioPlugin(
 			# Otherwise check if parameter is ping
 			elif data["value"] == "Ping" :
 			
+				# Check if paused
+				if self._printer.is_paused() :
+				
+					# Send command to keep printer from being inactive for too long
+					self._printer.commands("G4");
+				
 				# Return response
 				return flask.jsonify(dict(value = "OK"))
 			
@@ -5281,7 +5287,10 @@ class M3DFioPlugin(
 				if self.detectedFanSpeed is None and gcode.hasValue('M') and gcode.getValue('M') == "106" :
 				
 					# Get fan speed
-					self.detectedFanSpeed = int(gcode.getValue('S'))
+					if gcode.hasValue('S') :
+						self.detectedFanSpeed = int(gcode.getValue('S'))
+					else :
+						self.detectedFanSpeed = int(gcode.getValue('P'))
 			
 				# Otherwise check if command is a G command
 				elif gcode.hasValue('G') :
