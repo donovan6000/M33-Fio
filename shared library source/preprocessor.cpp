@@ -157,6 +157,7 @@ uint16_t gpioLayer;
 uint16_t heatbedTemperature;
 double heatbedHeight;
 int16_t detectedFanSpeed;
+bool detectedMidPrintFilamentChange;
 bool objectSuccessfullyCentered;
 
 // Return value
@@ -896,6 +897,9 @@ EXPORT bool collectPrintInformation(const char *file) {
 		// Reset detected fan speed
 		detectedFanSpeed = -1;
 		
+		// Reset detected mid-print filament change
+		detectedMidPrintFilamentChange = false;
+		
 		// Reset object successfully centered
 		objectSuccessfullyCentered = true;
 	
@@ -925,11 +929,23 @@ EXPORT bool collectPrintInformation(const char *file) {
 			if(gcode.parseLine(line)) {
 			
 				// Check if command is the first fan command
-				if(detectedFanSpeed == -1 && gcode.hasValue('M') && gcode.getValue('M') == "106")
+				if(detectedFanSpeed == -1 && gcode.hasValue('M') && gcode.getValue('M') == "106") {
 				
 					// Get fan speed
-					detectedFanSpeed = stoi(gcode.hasValue('S') ? gcode.getValue('S') : gcode.getValue('P'));
-			
+					if(gcode.hasValue('S'))
+						detectedFanSpeed = stoi(gcode.getValue('S'));
+					else if(gcode.hasValue('P'))
+						detectedFanSpeed = stoi(gcode.getValue('P'));
+					else
+						detectedFanSpeed = 0;
+				}
+				
+				// Otherwise check if command is a mid-print filament change
+				else if(!detectedMidPrintFilamentChange && gcode.hasValue('M') && gcode.getValue('M') == "600")
+				
+					// Set mid-print filament change
+					detectedMidPrintFilamentChange = true;
+				
 				// Otherwise check if command is a G command
 				else if(gcode.hasValue('G')) {
 		
@@ -2445,6 +2461,12 @@ EXPORT unsigned char getDetectedFanSpeed() {
 
 	// Return detected fan speed
 	return detectedFanSpeed;
+}
+
+EXPORT bool getDetectedMidPrintFilamentChange() {
+
+	// Return detected mid-print filament change
+	return detectedMidPrintFilamentChange;
 }
 
 EXPORT bool getObjectSuccessfullyCentered() {

@@ -190,6 +190,12 @@ extern "C" {
 	EXPORT unsigned char getDetectedFanSpeed();
 	
 	/*
+	Name: Get detected mid-print filament change
+	Purpose: Returns if the file contains mid-print filament change commands
+	*/
+	EXPORT bool getDetectedMidPrintFilamentChange();
+	
+	/*
 	Name: Get object successfully centered
 	Purpose: Returns if the object has been centered
 	*/

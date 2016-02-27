@@ -874,6 +874,7 @@ class M3DFioPlugin(
 			self.sharedLibrary.collectPrintInformation.restype = ctypes.c_bool
 	  		self.sharedLibrary.preprocess.restype = ctypes.c_char_p
 	  		self.sharedLibrary.getDetectedFanSpeed.restype = ctypes.c_ubyte
+	  		self.sharedLibrary.getDetectedMidPrintFilamentChange.restype = ctypes.c_bool
 	  		self.sharedLibrary.getObjectSuccessfullyCentered.restype = ctypes.c_bool
 	    	
 	    	# Enable printer callbacks if using a Micro 3D printer
@@ -1547,6 +1548,9 @@ class M3DFioPlugin(
 						
 						# Get detected fan speed
 						self.detectedFanSpeed = self.sharedLibrary.getDetectedFanSpeed()
+						
+						# Get detected mid-print filament change
+						self.detectedMidPrintFilamentChange = self.sharedLibrary.getDetectedMidPrintFilamentChange()
 					
 						# Get object successfully centered
 						self.objectSuccessfullyCentered = self.sharedLibrary.getObjectSuccessfullyCentered()
@@ -2020,7 +2024,7 @@ class M3DFioPlugin(
 				if self._printer.is_paused() :
 				
 					# Send command to keep printer from being inactive for too long
-					self._printer.commands("G4");
+					self._printer.commands("G4")
 				
 				# Return response
 				return flask.jsonify(dict(value = "OK"))
@@ -2039,20 +2043,17 @@ class M3DFioPlugin(
 					self.savedCurrentBaudrate = None
 					self.savedCurrentProfile = None
 			
-			# Otherwise check if parameter is to toggle pause
-			elif data["value"] == "Toggle Pause" :
+			# Otherwise check if parameter is to pause
+			elif data["value"] == "Pause" :
 			
-				# Check if paused
-				if self._printer.is_paused() :
-				
-					# Send resume command
-					self._printer.commands("M24");
-				
-				# Otherwise
-				else :
+				# Send pause command
+				self._printer.commands("M25")
 			
-					# Send pause command
-					self._printer.commands("M25");
+			# Otherwise check if parameter is to resume
+			elif data["value"] == "Resume" :
+			
+				# Send resume command
+				self._printer.commands("M24")
 			
 			# Otherwise check if parameter is to get print information
 			elif data["value"] == "Print Information" :
@@ -2906,7 +2907,7 @@ class M3DFioPlugin(
 								self._printer._comm._gcode_G4_sent("G4")
 				
 							time.sleep(0.01)
-					
+						
 						# Pause print
 						self._printer.toggle_pause_print()
 					
@@ -2928,7 +2929,22 @@ class M3DFioPlugin(
 						# Restart line numbers
 						self.sendCommands(["N0 M110", "G90"])
 						if self._printer._comm is not None :
-							self._printer._comm._gcode_M110_sending("N1");
+							self._printer._comm._gcode_M110_sending("N1")
+					
+					# Send fake acknowledgment
+					self._printer.fake_ack()
+					
+					# Return
+					return
+				
+				# Otherwise check if change filament mid-print command
+				elif gcode.getValue('M') == "600" :
+				
+					# Check if printing
+					if self._printer.is_printing() :
+					
+						# Send message
+						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Mid-Print Filament Change"))
 					
 					# Send fake acknowledgment
 					self._printer.fake_ack()
@@ -3522,6 +3538,9 @@ class M3DFioPlugin(
 					# Get detected fan speed
 					self.detectedFanSpeed = self.sharedLibrary.getDetectedFanSpeed()
 					
+					# Get detected mid-print filament change
+					self.detectedMidPrintFilamentChange = self.sharedLibrary.getDetectedMidPrintFilamentChange()
+					
 					# Get object successfully centered
 					self.objectSuccessfullyCentered = self.sharedLibrary.getObjectSuccessfullyCentered()
 	
@@ -3548,6 +3567,12 @@ class M3DFioPlugin(
 				
 						# Create message
 						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "notice", title = "Print warning", text = "No fan speed has been detected in this file which could cause the print to fail"))
+					
+					# Check if detected mid-print filament change
+					if self.detectedMidPrintFilamentChange :
+			
+						# Create message
+						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "notice", title = "Print warning", text = "This file uses mid-print filament change commands. These commands will be ignored if a client is not connected when they are run, so it's recommended that you don't disconnect from the server and that you keep this page open for the entire duration of the print."))
 					
 					# Check if objected couldn't be centered
 					if self._settings.get_boolean(["UseCenterModelPreprocessor"]) and not self.objectSuccessfullyCentered :
@@ -5152,6 +5177,9 @@ class M3DFioPlugin(
 				# Get detected fan speed
 				self.detectedFanSpeed = self.sharedLibrary.getDetectedFanSpeed()
 				
+				# Get detected mid-print filament change
+				self.detectedMidPrintFilamentChange = self.sharedLibrary.getDetectedMidPrintFilamentChange()
+				
 				# Get object successfully centered
 				self.objectSuccessfullyCentered = self.sharedLibrary.getObjectSuccessfullyCentered()
 			
@@ -5196,6 +5224,12 @@ class M3DFioPlugin(
 			
 					# Create message
 					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "notice", title = "Print warning", text = "No fan speed has been detected in this file which could cause the print to fail"))
+				
+				# Check if detected mid-print filament change
+				if self.detectedMidPrintFilamentChange :
+		
+					# Create message
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "notice", title = "Print warning", text = "This file uses mid-print filament change commands. These commands will be ignored if a client is not connected when they are run, so it's recommended that you don't disconnect from the server and that you keep this page open for the entire duration of the print."))
 				
 				# Check if objected couldn't be centered
 				if self._settings.get_boolean(["UseCenterModelPreprocessor"]) and not self.objectSuccessfullyCentered :
@@ -5258,6 +5292,9 @@ class M3DFioPlugin(
 		# Reset detected fan speed
 		self.detectedFanSpeed = None
 		
+		# Reset detected mid-print filament change
+		self.detectedMidPrintFilamentChange = False
+		
 		# Reset object successfully centered
 		self.objectSuccessfullyCentered = True
 		
@@ -5289,8 +5326,16 @@ class M3DFioPlugin(
 					# Get fan speed
 					if gcode.hasValue('S') :
 						self.detectedFanSpeed = int(gcode.getValue('S'))
-					else :
+					elif gcode.hasValue('P') :
 						self.detectedFanSpeed = int(gcode.getValue('P'))
+					else :
+						self.detectedFanSpeed = 0
+				
+				# Otherwise check if command is a mid-print filament change
+				elif not self.detectedMidPrintFilamentChange and gcode.hasValue('M') and gcode.getValue('M') == "600" :
+				
+					# Set mid-print filament change
+					self.detectedMidPrintFilamentChange = True
 			
 				# Otherwise check if command is a G command
 				elif gcode.hasValue('G') :

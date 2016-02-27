@@ -141,7 +141,7 @@
 }
 
 #control div.jog-panel.extruder > div div.slider {
-	width: 134px !important;
+	width: 124px !important;
 	position: relative;
 	right: 2px;
 }
@@ -399,7 +399,7 @@ body > div.page-container > div.message > div > div > div:not(.calibrate) > butt
 	margin:0 1px 0 0;
 }
 
-body > div.page-container > div.message > div > div > div.calibrate, body > div.page-container > div.message > div > div > div.printSettings {
+body > div.page-container > div.message > div > div > div.calibrate, body > div.page-container > div.message > div > div > div.printSettings, body > div.page-container > div.message > div > div > div.filamentSettings {
 	visibility: hidden;
 	position: relative;
 	top: -2px;
@@ -434,7 +434,7 @@ body > div.page-container > div.message > div > div > div.calibrate > div.distan
 	border-radius: 0 4px 4px 0;
 }
 
-body > div.page-container > div.message > div > div > div.printSettings {
+body > div.page-container > div.message > div > div > div.printSettings, body > div.page-container > div.message > div > div > div.filamentSettings {
 	width: 100%;
 	display: block;
 	right: auto;
@@ -444,7 +444,7 @@ body > div.page-container > div.message > div > div > div.printSettings {
 	top: 4px;
 }
 
-body > div.page-container > div.message > div > div > div.printSettings h3 {
+body > div.page-container > div.message > div > div > div.printSettings h3, body > div.page-container > div.message > div > div > div.filamentSettings h3 {
 	text-align: center;
 	font-size: 20px;
 	margin: 0;
@@ -454,24 +454,24 @@ body > div.page-container > div.message > div > div > div.printSettings h3 {
 	top: -14px;
 }
 
-body > div.page-container > div.message > div > div > div.printSettings label, body > div.page-container > div.message > div > div > div.printSettings div.controls {
+body > div.page-container > div.message > div > div > div.printSettings label, body > div.page-container > div.message > div > div > div.printSettings div.controls, body > div.page-container > div.message > div > div > div.filamentSettings label, body > div.page-container > div.message > div > div > div.filamentSettings div.controls {
 	display: inline-block;
 }
 
-body > div.page-container > div.message > div > div > div.printSettings label {
+body > div.page-container > div.message > div > div > div.printSettings label, body > div.page-container > div.message > div > div > div.filamentSettings label {
 	cursor: default;
 }
 
-body > div.page-container > div.message > div > div > div.printSettings input, body > div.page-container > div.message > div > div > div.printSettings input + span {
+body > div.page-container > div.message > div > div > div.printSettings input, body > div.page-container > div.message > div > div > div.printSettings input + span, body > div.page-container > div.message > div > div > div.filamentSettings input, body > div.page-container > div.message > div > div > div.filamentSettings input + span {
 	position: relative;
 	top: -10px;
 }
 
-body > div.page-container > div.message > div > div > div.printSettings input {
+body > div.page-container > div.message > div > div > div.printSettings input, body > div.page-container > div.message > div > div > div.filamentSettings input {
 	width: 145px;
 }
 
-body > div.page-container > div.message > div > div > div.printSettings div.heatbed input {
+body > div.page-container > div.message > div > div > div.printSettings div.heatbed input, body > div.page-container > div.message > div > div > div.filamentSettings div.heatbed input {
 	width: 146px;
 }
 
@@ -1052,6 +1052,44 @@ body > div.page-container > div.message > div > div > span.show {
 	background-image: none !important;
 	background-color: #e6e6e6 !important;
 	box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+}
+
+#control > div.jog-panel {
+	position: relative;
+	transition: height 0.3s ease-out;
+}
+
+#control > div.jog-panel > h1 {
+	cursor: default;
+}
+
+#control > div.jog-panel.closed > h1 {
+	margin-bottom: 10px;
+	transition: margin-bottom 0.3s ease-out;
+}
+
+#control > div.jog-panel > img {
+	width: 20px;
+	height: 20px;
+	position: absolute;
+	bottom: -14px;
+	left: calc(50% - 10px);
+	cursor: pointer;
+	z-index: 1;
+}
+
+#control > div.jog-panel:not(:first-of-type) > div {
+	transition: height 0.3s ease-out;
+	overflow: hidden;
+}
+
+#control > div.jog-panel.closed > div {
+	height: 0px;
+	pointer-events: none;
+}
+
+#control {
+	padding-bottom: 10px;
 }
 
 .noTransition {
