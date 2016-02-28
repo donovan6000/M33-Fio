@@ -3444,32 +3444,32 @@ $(function() {
 		`);
 		
 		// Open and close control sections
-		if(typeof localStorage.extruderControlsOpen === "undefined" || localStorage.extruderControlsOpen == true)
+		if(typeof localStorage.extruderControlsOpen === "undefined" || localStorage.extruderControlsOpen == "true")
 			$("#control > div.jog-panel.extruder").removeClass("closed");
 		else
 			$("#control > div.jog-panel.extruder").addClass("closed");
 		
-		if(typeof localStorage.generalControlsOpen === "undefined" || localStorage.generalControlsOpen == true)
+		if(typeof localStorage.generalControlsOpen === "undefined" || localStorage.generalControlsOpen == "true")
 			$("#control > div.jog-panel.general").removeClass("closed");
 		else
 			$("#control > div.jog-panel.general").addClass("closed");
 		
-		if(typeof localStorage.filamentControlsOpen === "undefined" || localStorage.filamentControlsOpen == false)
+		if(typeof localStorage.filamentControlsOpen === "undefined" || localStorage.filamentControlsOpen == "false")
 			$("#control > div.jog-panel.filament").addClass("closed");
 		else
 			$("#control > div.jog-panel.filament").removeClass("closed");
 			
-		if(typeof localStorage.calibrationControlsOpen === "undefined" || localStorage.calibrationControlsOpen == false)
+		if(typeof localStorage.calibrationControlsOpen === "undefined" || localStorage.calibrationControlsOpen == "false")
 			$("#control > div.jog-panel.calibration").addClass("closed");
 		else
 			$("#control > div.jog-panel.calibration").removeClass("closed");
 			
-		if(typeof localStorage.advancedControlsOpen === "undefined" || localStorage.advancedControlsOpen == false)
+		if(typeof localStorage.advancedControlsOpen === "undefined" || localStorage.advancedControlsOpen == "false")
 			$("#control > div.jog-panel.advanced").addClass("closed");
 		else
 			$("#control > div.jog-panel.advanced").removeClass("closed");
 			
-		if(typeof localStorage.eepromControlsOpen === "undefined" || localStorage.eepromControlsOpen == false)
+		if(typeof localStorage.eepromControlsOpen === "undefined" || localStorage.eepromControlsOpen == "false")
 			$("#control > div.jog-panel.eeprom").addClass("closed");
 		else
 			$("#control > div.jog-panel.eeprom").removeClass("closed");
@@ -3515,17 +3515,17 @@ $(function() {
 					
 					// Save that section is open
 					if(location.parent().hasClass("extruder"))
-						localStorage.extruderControlsOpen = true;
+						localStorage.extruderControlsOpen = "true";
 					else if(location.parent().hasClass("general"))
-						localStorage.generalControlsOpen = true;
+						localStorage.generalControlsOpen = "true";
 					else if(location.parent().hasClass("filament"))
-						localStorage.filamentControlsOpen = true;
+						localStorage.filamentControlsOpen = "true";
 					else if(location.parent().hasClass("calibration"))
-						localStorage.calibrationControlsOpen = true;
+						localStorage.calibrationControlsOpen = "true";
 					else if(location.parent().hasClass("advanced"))
-						localStorage.advancedControlsOpen = true;
+						localStorage.advancedControlsOpen = "true";
 					else if(location.parent().hasClass("eeprom"))
-						localStorage.eepromControlsOpen = true;
+						localStorage.eepromControlsOpen = "true";
 				}, 0);
 				
 				// Change arrow image
@@ -3546,17 +3546,17 @@ $(function() {
 					
 					// Save that section is closed
 					if(location.parent().hasClass("extruder"))
-						localStorage.extruderControlsOpen = false;
+						localStorage.extruderControlsOpen = "false";
 					else if(location.parent().hasClass("general"))
-						localStorage.generalControlsOpen = false;
+						localStorage.generalControlsOpen = "false";
 					else if(location.parent().hasClass("filament"))
-						localStorage.filamentControlsOpen = false;
+						localStorage.filamentControlsOpen = "false";
 					else if(location.parent().hasClass("calibration"))
-						localStorage.calibrationControlsOpen = false;
+						localStorage.calibrationControlsOpen = "false";
 					else if(location.parent().hasClass("advanced"))
-						localStorage.advancedControlsOpen = false;
+						localStorage.advancedControlsOpen = "false";
 					else if(location.parent().hasClass("eeprom"))
-						localStorage.eepromControlsOpen = false;
+						localStorage.eepromControlsOpen = "false";
 				}, 0);
 				
 				// Change arrow image
@@ -3731,22 +3731,22 @@ $(function() {
 						hideMessage();
 				
 					// Otherwise
-					else
+					else {
+					
+						// Send request
+						$.ajax({
+							url: API_BASEURL + "plugin/m3dfio",
+							type: "POST",
+							dataType: "json",
+							data: JSON.stringify({command: "message", value: "Pause"}),
+							contentType: "application/json; charset=UTF-8"
+						});
 				
 						// Check if paused again
 						setTimeout(waitUntilPaused, 500);
+					}
 				}
-				setTimeout(waitUntilPaused, 500);
-				
-				// Send request
-				$.ajax({
-					url: API_BASEURL + "plugin/m3dfio",
-					type: "POST",
-					dataType: "json",
-					data: JSON.stringify({command: "message", value: "Pause"}),
-					contentType: "application/json; charset=UTF-8"
-				});
-			}
+				waitUntilPaused();			}
 			
 			// Otherwise
 			else {
@@ -3764,21 +3764,22 @@ $(function() {
 						hideMessage();
 				
 					// Otherwise
-					else
+					else {
+					
+						// Send request
+						$.ajax({
+							url: API_BASEURL + "plugin/m3dfio",
+							type: "POST",
+							dataType: "json",
+							data: JSON.stringify({command: "message", value: "Resume"}),
+							contentType: "application/json; charset=UTF-8"
+						});
 				
 						// Check if resumed again
 						setTimeout(waitUntilResumed, 500);
+					}
 				}
-				setTimeout(waitUntilResumed, 500);
-				
-				// Send request
-				$.ajax({
-					url: API_BASEURL + "plugin/m3dfio",
-					type: "POST",
-					dataType: "json",
-					data: JSON.stringify({command: "message", value: "Resume"}),
-					contentType: "application/json; charset=UTF-8"
-				});
+				waitUntilResumed();
 			}
 		});
 		
@@ -4401,17 +4402,17 @@ $(function() {
 											}
 											
 											// Open and close setting groups
-											if(typeof localStorage.basicSettingsOpen === "undefined" || localStorage.basicSettingsOpen == true)
+											if(typeof localStorage.basicSettingsOpen === "undefined" || localStorage.basicSettingsOpen == "true")
 												$("#slicing_configuration_dialog.profile .modal-extra div.group.basic").removeClass("closed");
 											else
 												$("#slicing_configuration_dialog.profile .modal-extra div.group.basic").addClass("closed");
 		
-											if(typeof localStorage.manualSettingsOpen === "undefined" || localStorage.manualSettingsOpen == false)
+											if(typeof localStorage.manualSettingsOpen === "undefined" || localStorage.manualSettingsOpen == "false")
 												$("#slicing_configuration_dialog.profile .modal-extra div.group.manual").addClass("closed");
 											else
 												$("#slicing_configuration_dialog.profile .modal-extra div.group.manual").removeClass("closed");
 											
-											if(typeof localStorage.advancedSettingsOpen === "undefined" || localStorage.advancedSettingsOpen == false)
+											if(typeof localStorage.advancedSettingsOpen === "undefined" || localStorage.advancedSettingsOpen == "false")
 												$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced").addClass("closed");
 											else
 												$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced").removeClass("closed");
@@ -4446,11 +4447,11 @@ $(function() {
 														
 														// Save that group is open
 														if($(this).hasClass("basic"))
-															localStorage.basicSettingsOpen = true;
+															localStorage.basicSettingsOpen = "true";
 														else if($(this).hasClass("manual"))
-															localStorage.manualSettingsOpen = true;
+															localStorage.manualSettingsOpen = "true";
 														else if($(this).hasClass("advanced"))
-															localStorage.advancedSettingsOpen = true;
+															localStorage.advancedSettingsOpen = "true";
 													}
 													else {
 														$(this).addClass("closed");
@@ -4462,11 +4463,11 @@ $(function() {
 														
 														// Save that group is closed
 														if($(this).hasClass("basic"))
-															localStorage.basicSettingsOpen = false;
+															localStorage.basicSettingsOpen = "false";
 														else if($(this).hasClass("manual"))
-															localStorage.manualSettingsOpen = false;
+															localStorage.manualSettingsOpen = "false";
 														else if($(this).hasClass("advanced"))
-															localStorage.advancedSettingsOpen = false;
+															localStorage.advancedSettingsOpen = "false";
 													}
 													
 													// Update cursor and title
@@ -6368,15 +6369,6 @@ $(function() {
 			// Show message
 			showMessage("Filament Status", "Pausing print");
 			
-			// Send request
-			$.ajax({
-				url: API_BASEURL + "plugin/m3dfio",
-				type: "POST",
-				dataType: "json",
-				data: JSON.stringify({command: "message", value: "Pause"}),
-				contentType: "application/json; charset=UTF-8"
-			});
-			
 			// Wait until paused
 			function waitUntilPaused() {
 			
@@ -6390,7 +6382,7 @@ $(function() {
 					showMessage("Filament Status", "Moving extruder away from print");
 				
 					// Set commands
-					commands = [
+					var commands = [
 						"M114"
 					];
 					
@@ -6814,30 +6806,41 @@ $(function() {
 						}
 						
 						// Otherwise
-						else
+						else {
+						
+							// Send request
+							$.ajax({
+								url: API_BASEURL + "plugin/m3dfio",
+								type: "POST",
+								dataType: "json",
+								data: JSON.stringify({command: "message", value: commands}),
+								contentType: "application/json; charset=UTF-8"
+							});
 						
 							// Check if position is obtained again
 							setTimeout(waitUntilPositionIsObtained, 500);
+						}
 					}
-					setTimeout(waitUntilPositionIsObtained, 500);
-			
+					waitUntilPositionIsObtained();
+				}
+				
+				// Otherwise
+				else {
+				
 					// Send request
 					$.ajax({
 						url: API_BASEURL + "plugin/m3dfio",
 						type: "POST",
 						dataType: "json",
-						data: JSON.stringify({command: "message", value: commands}),
+						data: JSON.stringify({command: "message", value: "Pause"}),
 						contentType: "application/json; charset=UTF-8"
 					});
-				}
-				
-				// Otherwise
-				else
 				
 					// Check if paused again
 					setTimeout(waitUntilPaused, 500);
+				}
 			}
-			setTimeout(waitUntilPaused, 500);
+			waitUntilPaused();
 		}
 	
 		// Set calibrate bed center Z0 control
@@ -7089,7 +7092,7 @@ $(function() {
 				showMessage("Saving Status", "Saving Z as front left Z0");
 			
 				// Set commands
-				commands = [
+				var commands = [
 					"M114"
 				];
 			
@@ -7144,21 +7147,22 @@ $(function() {
 					}
 						
 					// Otherwise
-					else
+					else {
+					
+						// Send request
+						$.ajax({
+							url: API_BASEURL + "plugin/m3dfio",
+							type: "POST",
+							dataType: "json",
+							data: JSON.stringify({command: "message", value: commands}),
+							contentType: "application/json; charset=UTF-8"
+						});
 			
 						// Check if position is obtained again
 						setTimeout(waitUntilPositionIsObtained, 500);
+					}
 				}
-				setTimeout(waitUntilPositionIsObtained, 500);
-		
-				// Send request
-				$.ajax({
-					url: API_BASEURL + "plugin/m3dfio",
-					type: "POST",
-					dataType: "json",
-					data: JSON.stringify({command: "message", value: commands}),
-					contentType: "application/json; charset=UTF-8"
-				});
+				waitUntilPositionIsObtained();
 			}, "No", function() {
 			
 				// Hide message
@@ -7179,7 +7183,7 @@ $(function() {
 				showMessage("Saving Status", "Saving Z as front right Z0");
 		
 				// Set commands
-				commands = [
+				var commands = [
 					"M114"
 				];
 			
@@ -7234,21 +7238,22 @@ $(function() {
 					}
 						
 					// Otherwise
-					else
+					else {
+					
+						// Send request
+						$.ajax({
+							url: API_BASEURL + "plugin/m3dfio",
+							type: "POST",
+							dataType: "json",
+							data: JSON.stringify({command: "message", value: commands}),
+							contentType: "application/json; charset=UTF-8"
+						});
 			
 						// Check if position is obtained again
 						setTimeout(waitUntilPositionIsObtained, 500);
+					}
 				}
-				setTimeout(waitUntilPositionIsObtained, 500);
-		
-				// Send request
-				$.ajax({
-					url: API_BASEURL + "plugin/m3dfio",
-					type: "POST",
-					dataType: "json",
-					data: JSON.stringify({command: "message", value: commands}),
-					contentType: "application/json; charset=UTF-8"
-				});
+				waitUntilPositionIsObtained();
 			}, "No", function() {
 			
 				// Hide message
@@ -7269,7 +7274,7 @@ $(function() {
 				showMessage("Saving Status", "Saving Z as back right Z0");
 		
 				// Set commands
-				commands = [
+				var commands = [
 					"M114"
 				];
 			
@@ -7324,21 +7329,22 @@ $(function() {
 					}
 						
 					// Otherwise
-					else
+					else {
+					
+						// Send request
+						$.ajax({
+							url: API_BASEURL + "plugin/m3dfio",
+							type: "POST",
+							dataType: "json",
+							data: JSON.stringify({command: "message", value: commands}),
+							contentType: "application/json; charset=UTF-8"
+						});
 			
 						// Check if position is obtained again
 						setTimeout(waitUntilPositionIsObtained, 500);
+					}
 				}
-				setTimeout(waitUntilPositionIsObtained, 500);
-			
-				// Send request
-				$.ajax({
-					url: API_BASEURL + "plugin/m3dfio",
-					type: "POST",
-					dataType: "json",
-					data: JSON.stringify({command: "message", value: commands}),
-					contentType: "application/json; charset=UTF-8"
-				});
+				waitUntilPositionIsObtained();
 			}, "No", function() {
 			
 				// Hide message
@@ -7359,7 +7365,7 @@ $(function() {
 				showMessage("Saving Status", "Saving Z as back left Z0");
 		
 				// Set commands
-				commands = [
+				var commands = [
 					"M114"
 				];
 			
@@ -7414,21 +7420,22 @@ $(function() {
 					}
 						
 					// Otherwise
-					else
+					else {
+					
+						// Send request
+						$.ajax({
+							url: API_BASEURL + "plugin/m3dfio",
+							type: "POST",
+							dataType: "json",
+							data: JSON.stringify({command: "message", value: commands}),
+							contentType: "application/json; charset=UTF-8"
+						});
 			
 						// Check if position is obtained again
 						setTimeout(waitUntilPositionIsObtained, 500);
+					}
 				}
-				setTimeout(waitUntilPositionIsObtained, 500);
-		
-				// Send request
-				$.ajax({
-					url: API_BASEURL + "plugin/m3dfio",
-					type: "POST",
-					dataType: "json",
-					data: JSON.stringify({command: "message", value: commands}),
-					contentType: "application/json; charset=UTF-8"
-				});
+				waitUntilPositionIsObtained();
 			}, "No", function() {
 			
 				// Hide message
@@ -7709,7 +7716,7 @@ $(function() {
 						showMessage("Calibration Status", "Calibrating bed orientation");
 	
 						// Set commands
-						var commands = [
+						commands = [
 							"M104 S0",
 							"G90",
 							"G0 Z3 F90",
@@ -7742,7 +7749,7 @@ $(function() {
 									showMessage("Calibration Status", "Calibrating front left offset");
 	
 									// Set commands
-									var commands = [
+									commands = [
 										"G90",
 										"G0 Z3 F90",
 										"G28",
@@ -7790,7 +7797,7 @@ $(function() {
 														showMessage("Calibration Status", "Calibrating front right offset");
 
 														// Set commands
-														var commands = [
+														commands = [
 															"G90",
 															"G0 Z3 F90",
 															"G28",
@@ -7838,7 +7845,7 @@ $(function() {
 																			showMessage("Calibration Status", "Calibrating back right offset");
 
 																			// Set commands
-																			var commands = [
+																			commands = [
 																				"G90",
 																				"G0 Z3 F90",
 																				"G28",
@@ -7886,7 +7893,7 @@ $(function() {
 																								showMessage("Calibration Status", "Calibrating back left offset");
 
 																								// Set commands
-																								var commands = [
+																								commands = [
 																									"G90",
 																									"G0 Z3 F90",
 																									"G28",
@@ -7986,21 +7993,22 @@ $(function() {
 																											}
 												
 																											// Otherwise
-																											else
+																											else {
+																											
+																												// Send request
+																												$.ajax({
+																													url: API_BASEURL + "plugin/m3dfio",
+																													type: "POST",
+																													dataType: "json",
+																													data: JSON.stringify({command: "message", value: commands}),
+																													contentType: "application/json; charset=UTF-8"
+																												});
 
 																												// Check if position is obtained again
 																												setTimeout(waitUntilPositionIsObtained, 500);
+																											}
 																										}
-																										setTimeout(waitUntilPositionIsObtained, 500);
-
-																										// Send request
-																										$.ajax({
-																											url: API_BASEURL + "plugin/m3dfio",
-																											type: "POST",
-																											dataType: "json",
-																											data: JSON.stringify({command: "message", value: commands}),
-																											contentType: "application/json; charset=UTF-8"
-																										});
+																										waitUntilPositionIsObtained();
 																									});
 																								}
 
@@ -8025,21 +8033,22 @@ $(function() {
 																						}
 												
 																						// Otherwise
-																						else
+																						else {
+																						
+																							// Send request
+																							$.ajax({
+																								url: API_BASEURL + "plugin/m3dfio",
+																								type: "POST",
+																								dataType: "json",
+																								data: JSON.stringify({command: "message", value: commands}),
+																								contentType: "application/json; charset=UTF-8"
+																							});
 
 																							// Check if position is obtained again
 																							setTimeout(waitUntilPositionIsObtained, 500);
+																						}
 																					}
-																					setTimeout(waitUntilPositionIsObtained, 500);
-
-																					// Send request
-																					$.ajax({
-																						url: API_BASEURL + "plugin/m3dfio",
-																						type: "POST",
-																						dataType: "json",
-																						data: JSON.stringify({command: "message", value: commands}),
-																						contentType: "application/json; charset=UTF-8"
-																					});
+																					waitUntilPositionIsObtained();
 																				});
 																			}
 
@@ -8064,21 +8073,22 @@ $(function() {
 																	}
 												
 																	// Otherwise
-																	else
+																	else {
+																	
+																		// Send request
+																		$.ajax({
+																			url: API_BASEURL + "plugin/m3dfio",
+																			type: "POST",
+																			dataType: "json",
+																			data: JSON.stringify({command: "message", value: commands}),
+																			contentType: "application/json; charset=UTF-8"
+																		});
 
 																		// Check if position is obtained again
 																		setTimeout(waitUntilPositionIsObtained, 500);
+																	}
 																}
-																setTimeout(waitUntilPositionIsObtained, 500);
-
-																// Send request
-																$.ajax({
-																	url: API_BASEURL + "plugin/m3dfio",
-																	type: "POST",
-																	dataType: "json",
-																	data: JSON.stringify({command: "message", value: commands}),
-																	contentType: "application/json; charset=UTF-8"
-																});
+																waitUntilPositionIsObtained();
 															});
 														}
 
@@ -8103,21 +8113,22 @@ $(function() {
 												}
 												
 												// Otherwise
-												else
+												else {
+												
+													// Send request
+													$.ajax({
+														url: API_BASEURL + "plugin/m3dfio",
+														type: "POST",
+														dataType: "json",
+														data: JSON.stringify({command: "message", value: commands}),
+														contentType: "application/json; charset=UTF-8"
+													});
 
 													// Check if position is obtained again
 													setTimeout(waitUntilPositionIsObtained, 500);
+												}
 											}
-											setTimeout(waitUntilPositionIsObtained, 500);
-
-											// Send request
-											$.ajax({
-												url: API_BASEURL + "plugin/m3dfio",
-												type: "POST",
-												dataType: "json",
-												data: JSON.stringify({command: "message", value: commands}),
-												contentType: "application/json; charset=UTF-8"
-											});
+											waitUntilPositionIsObtained();
 										});
 									}
 
@@ -9254,7 +9265,7 @@ $(function() {
 										showMessage("Error Status", "Calibrating bed orientation");
 	
 										// Set commands
-										var commands = [
+										commands = [
 											"M104 S0",
 											"G90",
 											"G0 Z3 F90",
