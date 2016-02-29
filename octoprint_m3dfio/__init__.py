@@ -2911,7 +2911,7 @@ class M3DFioPlugin(
 						
 						# Pause print
 						if self._printer._comm is not None :
-							self._comm.setPause(True);
+							self._printer._comm.setPause(True);
 					
 					# Set command to nothing
 					gcode.removeParameter('M')
@@ -2924,7 +2924,8 @@ class M3DFioPlugin(
 					if self._printer.is_paused() :
 					
 						# Resume print
-						self._printer.toggle_pause_print()
+						if self._printer._comm is not None :
+							self._printer._comm.setPause(False);
 						
 						# Restart line numbers
 						self.sendCommands(["N0 M110", "G90"])
