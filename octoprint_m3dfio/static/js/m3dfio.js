@@ -3740,22 +3740,22 @@ $(function() {
 						hideMessage();
 				
 					// Otherwise
-					else {
+					else
 					
-						// Send request
-						$.ajax({
-							url: API_BASEURL + "plugin/m3dfio",
-							type: "POST",
-							dataType: "json",
-							data: JSON.stringify({command: "message", value: "Pause"}),
-							contentType: "application/json; charset=UTF-8"
-						});
-				
 						// Check if paused again
-						setTimeout(waitUntilPaused, 500);
-					}
+						setTimeout(waitUntilPaused, 100);
 				}
-				waitUntilPaused();			}
+				waitUntilPaused();
+				
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m3dfio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({command: "message", value: "Pause"}),
+					contentType: "application/json; charset=UTF-8"
+				});
+			}
 			
 			// Otherwise
 			else {
@@ -3773,22 +3773,21 @@ $(function() {
 						hideMessage();
 				
 					// Otherwise
-					else {
-					
-						// Send request
-						$.ajax({
-							url: API_BASEURL + "plugin/m3dfio",
-							type: "POST",
-							dataType: "json",
-							data: JSON.stringify({command: "message", value: "Resume"}),
-							contentType: "application/json; charset=UTF-8"
-						});
-				
+					else
+						
 						// Check if resumed again
-						setTimeout(waitUntilResumed, 500);
-					}
+						setTimeout(waitUntilResumed, 100);
 				}
 				waitUntilResumed();
+				
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m3dfio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({command: "message", value: "Resume"}),
+					contentType: "application/json; charset=UTF-8"
+				});
 			}
 		});
 		
@@ -4039,7 +4038,7 @@ $(function() {
 					else
 					
 						// Check if conversion is done again
-						setTimeout(conversionDone, 300);
+						setTimeout(conversionDone, 100);
 				
 				}
 				conversionDone();
@@ -6549,7 +6548,7 @@ $(function() {
 										commands = [
 											"G90",
 											"G0 Z" + moveZ + " E" + (currentE - 5) + " F345",
-											"G0 X" + moveX + " Y" + moveY + " F3000",
+											"G0 X" + moveX + " Y" + moveY + " F2000",
 											"M65536;wait"
 										];
 									
@@ -6677,7 +6676,7 @@ $(function() {
 																					hideMessage();
 					
 																					// Show message
-																					showMessage("Filament Status", "Returning to desired temperature");
+																					showMessage("Filament Status", "Returning to previous temperature");
 	
 																					// Set commands
 																					commands = [
@@ -6702,7 +6701,7 @@ $(function() {
 																								"G90",
 																								"G92 E" + currentE,
 																								"G0 E" + (currentE - 0.3) + " F345",
-																								"G0 X" + currentX + " Y" + currentY + " F3000",
+																								"G0 X" + currentX + " Y" + currentY + " F2000",
 																								"G0 Z" + currentZ + " F90",
 																								"M65536;wait"
 																							];
@@ -6832,29 +6831,28 @@ $(function() {
 							});
 						
 							// Check if position is obtained again
-							setTimeout(waitUntilPositionIsObtained, 500);
+							setTimeout(waitUntilPositionIsObtained, 100);
 						}
 					}
 					waitUntilPositionIsObtained();
 				}
 				
 				// Otherwise
-				else {
-				
-					// Send request
-					$.ajax({
-						url: API_BASEURL + "plugin/m3dfio",
-						type: "POST",
-						dataType: "json",
-						data: JSON.stringify({command: "message", value: "Pause"}),
-						contentType: "application/json; charset=UTF-8"
-					});
+				else
 				
 					// Check if paused again
-					setTimeout(waitUntilPaused, 500);
-				}
+					setTimeout(waitUntilPaused, 100);
 			}
 			waitUntilPaused();
+			
+			// Send request
+			$.ajax({
+				url: API_BASEURL + "plugin/m3dfio",
+				type: "POST",
+				dataType: "json",
+				data: JSON.stringify({command: "message", value: "Pause"}),
+				contentType: "application/json; charset=UTF-8"
+			});
 		}
 	
 		// Set calibrate bed center Z0 control
@@ -7173,7 +7171,7 @@ $(function() {
 						});
 			
 						// Check if position is obtained again
-						setTimeout(waitUntilPositionIsObtained, 500);
+						setTimeout(waitUntilPositionIsObtained, 100);
 					}
 				}
 				waitUntilPositionIsObtained();
@@ -7264,7 +7262,7 @@ $(function() {
 						});
 			
 						// Check if position is obtained again
-						setTimeout(waitUntilPositionIsObtained, 500);
+						setTimeout(waitUntilPositionIsObtained, 100);
 					}
 				}
 				waitUntilPositionIsObtained();
@@ -7355,7 +7353,7 @@ $(function() {
 						});
 			
 						// Check if position is obtained again
-						setTimeout(waitUntilPositionIsObtained, 500);
+						setTimeout(waitUntilPositionIsObtained, 100);
 					}
 				}
 				waitUntilPositionIsObtained();
@@ -7446,7 +7444,7 @@ $(function() {
 						});
 			
 						// Check if position is obtained again
-						setTimeout(waitUntilPositionIsObtained, 500);
+						setTimeout(waitUntilPositionIsObtained, 100);
 					}
 				}
 				waitUntilPositionIsObtained();
@@ -8021,7 +8019,7 @@ $(function() {
 																												});
 
 																												// Check if position is obtained again
-																												setTimeout(waitUntilPositionIsObtained, 500);
+																												setTimeout(waitUntilPositionIsObtained, 100);
 																											}
 																										}
 																										waitUntilPositionIsObtained();
@@ -8061,7 +8059,7 @@ $(function() {
 																							});
 
 																							// Check if position is obtained again
-																							setTimeout(waitUntilPositionIsObtained, 500);
+																							setTimeout(waitUntilPositionIsObtained, 100);
 																						}
 																					}
 																					waitUntilPositionIsObtained();
@@ -8101,7 +8099,7 @@ $(function() {
 																		});
 
 																		// Check if position is obtained again
-																		setTimeout(waitUntilPositionIsObtained, 500);
+																		setTimeout(waitUntilPositionIsObtained, 100);
 																	}
 																}
 																waitUntilPositionIsObtained();
@@ -8141,7 +8139,7 @@ $(function() {
 													});
 
 													// Check if position is obtained again
-													setTimeout(waitUntilPositionIsObtained, 500);
+													setTimeout(waitUntilPositionIsObtained, 100);
 												}
 											}
 											waitUntilPositionIsObtained();

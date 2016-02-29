@@ -2910,13 +2910,12 @@ class M3DFioPlugin(
 							time.sleep(0.01)
 						
 						# Pause print
-						self._printer.toggle_pause_print()
+						if self._printer._comm is not None :
+							self._comm.setPause(True);
 					
-					# Send fake acknowledgment
-					self._printer.fake_ack()
-					
-					# Return
-					return
+					# Set command to nothing
+					gcode.removeParameter('M')
+					gcode.setValue('G', '4')
 				
 				# Check if resume command
 				elif gcode.getValue('M') == "24" :
@@ -2932,11 +2931,9 @@ class M3DFioPlugin(
 						if self._printer._comm is not None :
 							self._printer._comm._gcode_M110_sending("N1")
 					
-					# Send fake acknowledgment
-					self._printer.fake_ack()
-					
-					# Return
-					return
+					# Set command to nothing
+					gcode.removeParameter('M')
+					gcode.setValue('G', '4')
 				
 				# Otherwise check if change filament mid-print command
 				elif gcode.getValue('M') == "600" :
@@ -2947,11 +2944,9 @@ class M3DFioPlugin(
 						# Send message
 						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Mid-Print Filament Change"))
 					
-					# Send fake acknowledgment
-					self._printer.fake_ack()
-					
-					# Return
-					return
+					# Set command to nothing
+					gcode.removeParameter('M')
+					gcode.setValue('G', '4')
 				
 				# Get the command's binary representation
 				data = gcode.getBinary()
