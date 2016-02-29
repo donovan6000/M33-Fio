@@ -3828,14 +3828,23 @@ class M3DFioPlugin(
 							except OSError :
 								time.sleep(1)
 						
-						# Check if connecting to printer failed
-						if connection is None :
+						# Check if user lacks read/write access to the printer
+						if not os.access(currentPort, os.R_OK | os.W_OK) :
 		
 							# Send message
-							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Cycle Power"))
+							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "You don't have read/write access to " + str(port), confirm = True))
 			
 							# Raise exception
-							raise Exception("Couldn't reconnect to the printer")
+							raise Exception("Couldn't connect to the printer")
+		
+						# Otherwise check if connecting to printer failed
+						elif connection is None :
+		
+							# Send message
+							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "No Micro 3D printer detected. Try cycling the printer's power and try again.", confirm = True))
+			
+							# Raise exception
+							raise Exception("Couldn't connect to the printer")
 				
 					# Check if getting EEPROM was successful
 					if self.getEeprom(connection) :
@@ -7323,7 +7332,10 @@ class M3DFioPlugin(
 				comm_instance._changeState(comm_instance.STATE_ERROR)
 				
 				# Send message
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Cycle Power"))
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "No Micro 3D printer detected. Try cycling the printer's power and try again.", confirm = True))
+				
+				# Raise exception
+				raise Exception("Couldn't connect to the printer")
 				
 				# Return none
 				return None
@@ -7342,14 +7354,23 @@ class M3DFioPlugin(
 			except OSError :
 				time.sleep(1)
 		
-		# Check if connecting to printer failed
-		if connection is None :
+		# Check if user lacks read/write access to the printer
+		if not os.access(str(port), os.R_OK | os.W_OK) :
 		
 			# Send message
-			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Cycle Power"))
+			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "You don't have read/write access to " + str(port), confirm = True))
 			
 			# Raise exception
-			raise Exception("Couldn't reconnect to the printer")
+			raise Exception("Couldn't connect to the printer")
+		
+		# Otherwise check if connecting to printer failed
+		elif connection is None :
+		
+			# Send message
+			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "No Micro 3D printer detected. Try cycling the printer's power and try again.", confirm = True))
+			
+			# Raise exception
+			raise Exception("Couldn't connect to the printer")
 
 		# Return connection
 		return connection

@@ -9020,23 +9020,6 @@ $(function() {
 				self.terminal.log.push(command);
 			}
 			
-			// Otherwise check if data is to cycle power
-			else if(data.value == "Cycle Power") {
-			
-				// Get message
-				var message = $("body > div.page-container > div.message");
-	
-				// Check if message is already being shown that doesn't need confirmation
-				if(message.css("z-index") != "9999" || !message.find("button.confirm").eq(1).hasClass("show"))
-			
-					// Show message
-					showMessage("Message", "No Micro 3D printer detected. Try cycling the printer's power and try again.", "OK", function() {
-				
-						// Hide message
-						hideMessage();
-					});
-			}
-			
 			// Otherwise check if data is process details
 			else if(data.value == "Process Details" && typeof data.processes !== "undefined") {
 			
@@ -9476,7 +9459,7 @@ $(function() {
 				if(typeof data.confirm !== "undefined") {
 				
 					// Display message
-					showMessage("Printing Status", htmlEncode(data.message), "OK", function() {
+					showMessage("Message", htmlEncode(data.message), "OK", function() {
 					
 						// Hide message
 						hideMessage();
@@ -9487,7 +9470,7 @@ $(function() {
 				else
 				
 					// Display message
-					showMessage("Printing Status", htmlEncode(data.message));
+					showMessage("Message", htmlEncode(data.message));
 			}
 			
 			// Otherwise check if data is to hide message
