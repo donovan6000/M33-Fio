@@ -1995,7 +1995,7 @@ class M3DFioPlugin(
 				self._settings.set_int(["FilamentTemperature"], int(values["filamentTemperature"]))
 				self._settings.set_int(["HeatbedTemperature"], int(values["heatbedTemperature"]))
 				self._settings.set(["FilamentType"], str(values["filamentType"]))
-				self._settings.set_bool(["UseWaveBondingPreprocessor"], bool(values["useWaveBondingPreprocessor"]))
+				self._settings.set_boolean(["UseWaveBondingPreprocessor"], bool(values["useWaveBondingPreprocessor"]))
 				
 				# Save settings
 				octoprint.settings.settings().save()
