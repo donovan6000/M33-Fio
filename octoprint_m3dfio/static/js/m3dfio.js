@@ -5,7 +5,6 @@ $(function() {
 	function M3DFioViewModel(parameters) {
 		
 		// Initialize variables
-		var printerConnected = false;
 		var eepromDisplayType = "hexadecimal";
 		var slicerOpen = false;
 		var slicerMenu = "Select Profile";
@@ -582,6 +581,7 @@ $(function() {
 							$("body > div.page-container > div.message > div > div > div.printSettings input").eq(0).val(self.settings.settings.plugins.m3dfio.FilamentTemperature());
 							$("body > div.page-container > div.message > div > div > div.printSettings input").eq(1).val(self.settings.settings.plugins.m3dfio.HeatbedTemperature());
 							$("body > div.page-container > div.message > div > div > div.printSettings select").val(self.settings.settings.plugins.m3dfio.FilamentType());
+							$("body > div.page-container > div.message > div > div > div.printSettings input[type=\"checkbox\"]").prop("checked", self.settings.settings.plugins.m3dfio.UseWaveBondingPreprocessor());
 							$("body > div.page-container > div.message > div > div > div.printSettings").addClass("show");
 						}
 						
@@ -3387,6 +3387,13 @@ $(function() {
 									</select> 
 								</div>
 							</div>
+							<div class="control-group">
+								<div class="controls">
+									<label class="checkbox" title="Smooths out the bottom layer">
+										<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.UseWaveBondingPreprocessor"><span>Use Wave Bonding</span>
+									</label>
+								</div>
+							</div>
 						</div>
 						<div class="filamentSettings">
 							<h3>Filament settings</h3>
@@ -3590,7 +3597,8 @@ $(function() {
 							value: "Print Settings: " + JSON.stringify({
 								filamentTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").eq(0).val(),
 								heatbedTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").eq(1).val(),
-								filamentType: $("body > div.page-container > div.message > div > div > div.printSettings select").val()
+								filamentType: $("body > div.page-container > div.message > div > div > div.printSettings select").val(),
+								useWaveBondingPreprocessor: $("body > div.page-container > div.message > div > div > div.printSettings input[type=\"checkbox\"]").is(":checked")
 							})
 						}),
 						contentType: "application/json; charset=UTF-8",
@@ -3660,7 +3668,8 @@ $(function() {
 								value: "Print Settings: " + JSON.stringify({
 									filamentTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").eq(0).val(),
 									heatbedTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").eq(1).val(),
-									filamentType: $("body > div.page-container > div.message > div > div > div.printSettings select").val()
+									filamentType: $("body > div.page-container > div.message > div > div > div.printSettings select").val(),
+									useWaveBondingPreprocessor: $("body > div.page-container > div.message > div > div > div.printSettings input[type=\"checkbox\"]").is(":checked")
 								})
 							}),
 							contentType: "application/json; charset=UTF-8",
@@ -3873,7 +3882,7 @@ $(function() {
 							// Check if scene is exported again
 							setTimeout(isSceneExported, 100);
 					}
-					setTimeout(isSceneExported, 100);
+					isSceneExported();
 				}, 300);
 			}
 		});
@@ -4033,7 +4042,7 @@ $(function() {
 						setTimeout(conversionDone, 300);
 				
 				}
-				setTimeout(conversionDone, 300);
+				conversionDone();
 			}
 		}
 		
@@ -5050,7 +5059,7 @@ $(function() {
 																				// Check if model is loaded again
 																				setTimeout(isModelLoaded, 100);
 																		}
-																		setTimeout(isModelLoaded, 100);
+																		isModelLoaded();
 																	}, 300);
 																});
 
@@ -5142,7 +5151,7 @@ $(function() {
 																				// Check if model is loaded again
 																				setTimeout(isModelLoaded, 100);
 																		}
-																		setTimeout(isModelLoaded, 100);
+																		isModelLoaded();
 																	}, 300);
 																});
 
@@ -5412,7 +5421,7 @@ $(function() {
 															// Check if model is loaded again
 															setTimeout(isModelLoaded, 100);
 													}
-													setTimeout(isModelLoaded, 100);
+													isModelLoaded();
 												}
 											}
 						
@@ -5580,7 +5589,8 @@ $(function() {
 										value: "Print Settings: " + JSON.stringify({
 											filamentTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").eq(0).val(),
 											heatbedTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").eq(1).val(),
-											filamentType: $("body > div.page-container > div.message > div > div > div.printSettings select").val()
+											filamentType: $("body > div.page-container > div.message > div > div > div.printSettings select").val(),
+											useWaveBondingPreprocessor: $("body > div.page-container > div.message > div > div > div.printSettings input[type=\"checkbox\"]").is(":checked")
 										})
 									}),
 									contentType: "application/json; charset=UTF-8",
@@ -5748,6 +5758,9 @@ $(function() {
 						data: JSON.stringify({command: "message", value: "Saved Settings"}),
 						contentType: "application/json; charset=UTF-8"
 					});
+					
+					// Update settings
+					self.settings.requestData();
 				}
 				
 				// Otherwise
@@ -5756,7 +5769,7 @@ $(function() {
 					// Check if settings were saved again
 					setTimeout(savedSettings, 100);
 			}
-			setTimeout(savedSettings, 100);
+			savedSettings();
 		});
 	
 		// Override X increment control
@@ -6688,6 +6701,7 @@ $(function() {
 																							commands = [
 																								"G90",
 																								"G92 E" + currentE,
+																								"G0 E" + (currentE - 0.3) + " F345",
 																								"G0 X" + currentX + " Y" + currentY + " F3000",
 																								"G0 Z" + currentZ + " F90",
 																								"M65536;wait"
@@ -7089,7 +7103,7 @@ $(function() {
 				hideMessage();
 				
 				// Show message
-				showMessage("Saving Status", "Saving Z as front left Z0");
+				showMessage("Calibration Status", "Saving Z as front left Z0");
 			
 				// Set commands
 				var commands = [
@@ -7122,7 +7136,7 @@ $(function() {
 								self.settings.saveData();
 					
 								// Show message
-								showMessage("Saving Status", "Done", "OK", function() {
+								showMessage("Calibration Status", "Done", "OK", function() {
 				
 									// Hide message
 									hideMessage();
@@ -7180,7 +7194,7 @@ $(function() {
 				hideMessage();
 				
 				// Show message
-				showMessage("Saving Status", "Saving Z as front right Z0");
+				showMessage("Calibration Status", "Saving Z as front right Z0");
 		
 				// Set commands
 				var commands = [
@@ -7213,7 +7227,7 @@ $(function() {
 								self.settings.saveData();
 					
 								// Show message
-								showMessage("Saving Status", "Done", "OK", function() {
+								showMessage("Calibration Status", "Done", "OK", function() {
 				
 									// Hide message
 									hideMessage();
@@ -7271,7 +7285,7 @@ $(function() {
 				hideMessage();
 				
 				// Show message
-				showMessage("Saving Status", "Saving Z as back right Z0");
+				showMessage("Calibration Status", "Saving Z as back right Z0");
 		
 				// Set commands
 				var commands = [
@@ -7304,7 +7318,7 @@ $(function() {
 								self.settings.saveData();
 					
 								// Show message
-								showMessage("Saving Status", "Done", "OK", function() {
+								showMessage("Calibration Status", "Done", "OK", function() {
 				
 									// Hide message
 									hideMessage();
@@ -7362,7 +7376,7 @@ $(function() {
 				hideMessage();
 				
 				// Show message
-				showMessage("Saving Status", "Saving Z as back left Z0");
+				showMessage("Calibration Status", "Saving Z as back left Z0");
 		
 				// Set commands
 				var commands = [
@@ -7395,7 +7409,7 @@ $(function() {
 								self.settings.saveData();
 					
 								// Show message
-								showMessage("Saving Status", "Done", "OK", function() {
+								showMessage("Calibration Status", "Done", "OK", function() {
 				
 									// Hide message
 									hideMessage();
@@ -7453,7 +7467,7 @@ $(function() {
 				hideMessage();
 				
 				// Show message
-				showMessage("Saving Status", "Saving Z as bed center Z0");
+				showMessage("Calibration Status", "Saving Z as bed center Z0");
 			
 				// Set commands
 				var commands = [
@@ -7476,7 +7490,7 @@ $(function() {
 					waitingCallback = function() {
 			
 						// Show message
-						showMessage("Saving Status", "Done", "OK", function() {
+						showMessage("Calibration Status", "Done", "OK", function() {
 		
 							// Hide message
 							hideMessage();
@@ -7536,7 +7550,8 @@ $(function() {
 								value: "Print Settings: " + JSON.stringify({
 									filamentTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").eq(0).val(),
 									heatbedTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").eq(1).val(),
-									filamentType: $("body > div.page-container > div.message > div > div > div.printSettings select").val()
+									filamentType: $("body > div.page-container > div.message > div > div > div.printSettings select").val(),
+									useWaveBondingPreprocessor: $("body > div.page-container > div.message > div > div > div.printSettings input[type=\"checkbox\"]").is(":checked")
 								})
 							}),
 							contentType: "application/json; charset=UTF-8",
@@ -7621,7 +7636,8 @@ $(function() {
 								value: "Print Settings: " + JSON.stringify({
 									filamentTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").eq(0).val(),
 									heatbedTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").eq(1).val(),
-									filamentType: $("body > div.page-container > div.message > div > div > div.printSettings select").val()
+									filamentType: $("body > div.page-container > div.message > div > div > div.printSettings select").val(),
+									useWaveBondingPreprocessor: $("body > div.page-container > div.message > div > div > div.printSettings input[type=\"checkbox\"]").is(":checked")
 								})
 							}),
 							contentType: "application/json; charset=UTF-8",
@@ -8790,17 +8806,11 @@ $(function() {
 				// Return
 				return;
 			
-			// Check if data is that a Micro 3D is connected
-			if(data.value == "Micro 3D Connected" && !printerConnected)
-			
-				// Set printer connected
-				printerConnected = true;
-			
 			// Check if data is current firmware
-			else if(data.value == "Current Firmware" && typeof data.name !== "undefined" && typeof data.release !== "undefined") {
+			if(data.value == "Current Firmware" && typeof data.name !== "undefined" && typeof data.release !== "undefined") {
 			
 				// Set name to unknown if not specified
-				if(data.name == null)
+				if(data.name === null)
 					data.name = "an unknown"
 			
 				// Set firmware text
@@ -8814,10 +8824,9 @@ $(function() {
 				$("#navbar_plugin_m3dfio > a").text((data.serialNumber.match(/^[0-9a-z]+$/i) ? data.serialNumber : "Printer") + " at " + data.serialPort);
 			
 			// Otherwise check if data is that a Micro 3D isn't connected
-			else if(data.value == "Micro 3D Not Connected" && printerConnected) {
+			else if(data.value == "Micro 3D Not Connected") {
 			
 				// Clear printer connected
-				printerConnected = false;
 				$("#control > div.jog-panel.advanced").find("div > button").removeClass("current");
 				$("#control > div.jog-panel.eeprom table input").val(eepromDisplayType == "ascii" ? "?" : (eepromDisplayType == "decimal" ? "???" : "??"));
 				$("#control div.jog-panel.advanced p").text('');
@@ -8889,13 +8898,13 @@ $(function() {
 				$("#settings_plugin_m3dfio .camera").css("display", "none");
 			
 			// Otherwise check if data is current location
-			else if(data.value == "Current Location" && printerConnected && typeof data.locationX !== "undefined" && typeof data.locationY !== "undefined" && typeof data.locationZ !== "undefined" && typeof data.locationE !== "undefined") {
+			else if(data.value == "Current Location" && typeof data.locationX !== "undefined" && typeof data.locationY !== "undefined" && typeof data.locationZ !== "undefined" && typeof data.locationE !== "undefined") {
 			
 				// Set current values
-				currentX = parseFloat(data.locationX);
-				currentY = parseFloat(data.locationY);
+				currentX = data.locationX === null ? null : parseFloat(data.locationX);
+				currentY = data.locationY === null ? null : parseFloat(data.locationY);
 				currentZ = parseFloat(data.locationZ);
-				currentE = parseFloat(data.locationE);
+				currentE = data.locationE === null ? null : parseFloat(data.locationE);
 			}
 			
 			// Otherwise check if data is to change progress bar percent

@@ -1995,6 +1995,7 @@ class M3DFioPlugin(
 				self._settings.set_int(["FilamentTemperature"], int(values["filamentTemperature"]))
 				self._settings.set_int(["HeatbedTemperature"], int(values["heatbedTemperature"]))
 				self._settings.set(["FilamentType"], str(values["filamentType"]))
+				self._settings.set_bool(["UseWaveBondingPreprocessor"], bool(values["useWaveBondingPreprocessor"]))
 				
 				# Save settings
 				octoprint.settings.settings().save()
@@ -4374,12 +4375,6 @@ class M3DFioPlugin(
 				
 				# Set invalid printer
 				self.invalidPrinter = True
-			
-			# Otherwise
-			else :
-			
-				# Send printer status
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Micro 3D Connected"))
 		
 		# Otherwise check if printer's data is requested
 		elif "Send: M21" in data :

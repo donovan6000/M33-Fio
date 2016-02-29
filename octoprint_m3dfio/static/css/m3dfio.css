@@ -475,6 +475,20 @@ body > div.page-container > div.message > div > div > div.printSettings div.heat
 	width: 146px;
 }
 
+body > div.page-container > div.message > div > div > div.printSettings label[title] {
+	cursor: pointer;
+	min-height: auto;
+	height: 10px;
+	margin-bottom: 0px;
+}
+
+body > div.page-container > div.message > div > div > div.printSettings input[type="checkbox"] {
+	width: 13px;
+	height: 30px;
+	position: relative;
+	top: -18px;
+}
+
 body > div.page-container > div.message > div > div > span {
 	font-size: 9px;
 	color: #999;
@@ -1063,11 +1077,6 @@ body > div.page-container > div.message > div > div > span.show {
 	cursor: default;
 }
 
-#control > div.jog-panel.closed > h1 {
-	margin-bottom: 10px;
-	transition: margin-bottom 0.3s ease-out;
-}
-
 #control > div.jog-panel > img {
 	width: 20px;
 	height: 20px;
@@ -1076,6 +1085,11 @@ body > div.page-container > div.message > div > div > span.show {
 	left: calc(50% - 10px);
 	cursor: pointer;
 	z-index: 1;
+	transition: bottom 0.3s ease-out;
+}
+
+#control > div.jog-panel.closed > img {
+	bottom: -6px;
 }
 
 #control > div.jog-panel:not(:first-of-type) > div {
