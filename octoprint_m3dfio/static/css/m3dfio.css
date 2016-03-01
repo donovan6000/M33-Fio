@@ -120,7 +120,7 @@
 	top: 1px;
 }
 
-#control div.jog-panel.extruder > div > div:first-of-type, #control div.jog-panel.extruder > div > div:nth-of-type(3), #control div.jog-panel.extruder > div > button:nth-of-type(3), #control div.jog-panel.controls > div:nth-of-type(4), #control div.jog-panel.controls > button:first-of-type {
+#control div.jog-panel.extruder > div > div:first-of-type, #control div.jog-panel.extruder > div > div:nth-of-type(3), #control div.jog-panel.extruder > div > button:nth-of-type(3), #control div.jog-panel.controls > div > div:nth-of-type(4), #control div.jog-panel.controls > div > button:first-of-type {
 	display: none !important;
 }
 
@@ -132,13 +132,13 @@
 	font-size: 14px;
 	width: 80%;
 	height: 30px;
-	margin: -10px auto 0 auto;
+	margin: -10px auto 10px auto;
 	position: relative;
-	top: -5px;
 }
 
 #control div.jog-panel h1.heatbed:nth-of-type(2) {
 	margin-top: -15px;
+	margin-bottom: 0px;
 	top: -10px;
 }
 
@@ -1103,9 +1103,20 @@ body > div.page-container > div.message > div > div > span.show {
 	bottom: -6px;
 }
 
-#control > div.jog-panel:not(:first-of-type) > div {
+#control > div.jog-panel > div {
 	transition: height 0.3s ease-out;
 	overflow: hidden;
+}
+
+#control div.jog-panel.controls > div > div.jog-panel:first-of-type {
+	margin-right: 40px !important;
+}
+
+#control > div.jog-panel.controls > div h1 {
+	font-size: 14px;
+	margin-top: -10px;
+	position: relative;
+	right: 4px;
 }
 
 #control > div.jog-panel.closed > div {

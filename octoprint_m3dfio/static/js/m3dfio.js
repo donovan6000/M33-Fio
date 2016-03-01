@@ -3174,7 +3174,7 @@ $(function() {
 		$("#control > div.jog-panel.controls").find("div.distance > div > button:nth-of-type(3)").click();
 	
 		// Change tool section text
-		$("#control > div.jog-panel").eq(1).addClass("extruder").find("h1").text("Extruder").after(`
+		$("#control > div.jog-panel").eq(1).addClass("extruder").find("h1").text("Extruder").next("div").prepend(`
 			<h1 class="heatbed">Extruder</h1>
 		`);
 
@@ -3448,12 +3448,25 @@ $(function() {
 			</audio>
 		`);
 		
+		// Wrap movement controls in section
+		$("#control > div.jog-panel.controls > *").wrapAll("<div></div>");
+		
 		// Add section control arrows
-		$("#control > div.jog-panel:not(:first-of-type)").append(`
+		$("#control > div.jog-panel").append(`
 			<img>
 		`);
 		
+		// Add header to movement controls
+		$("#control > div.jog-panel.controls").prepend(`
+			<h1>Movement</h1>
+		`);
+		
 		// Open and close control sections
+		if(typeof localStorage.movementControlsOpen === "undefined" || localStorage.movementControlsOpen == "true")
+			$("#control > div.jog-panel.controls").removeClass("closed");
+		else
+			$("#control > div.jog-panel.controls").addClass("closed");
+			
 		if(typeof localStorage.extruderControlsOpen === "undefined" || localStorage.extruderControlsOpen == "true")
 			$("#control > div.jog-panel.extruder").removeClass("closed");
 		else
@@ -3524,7 +3537,9 @@ $(function() {
 					}, 300);
 					
 					// Save that section is open
-					if(location.parent().hasClass("extruder"))
+					if(location.parent().hasClass("controls"))
+						localStorage.movementControlsOpen = "true";
+					else if(location.parent().hasClass("extruder"))
 						localStorage.extruderControlsOpen = "true";
 					else if(location.parent().hasClass("general"))
 						localStorage.generalControlsOpen = "true";
@@ -3555,7 +3570,9 @@ $(function() {
 					location.css("height", '');
 					
 					// Save that section is closed
-					if(location.parent().hasClass("extruder"))
+					if(location.parent().hasClass("controls"))
+						localStorage.movementControlsOpen = "false";
+					else if(location.parent().hasClass("extruder"))
 						localStorage.extruderControlsOpen = "false";
 					else if(location.parent().hasClass("general"))
 						localStorage.generalControlsOpen = "false";
