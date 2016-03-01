@@ -81,6 +81,14 @@
 	<div class="control-group">
 		<h4>Pre-Processor Stages</h4>
 		<div class="controls">
+			<label title="Adds in mid-print filament change commands at the starts of each specified layer. Layers numbers should be seperated by commas.">
+				<span class="noCheckbox">Mid-print filament change layers</span>
+				<input type="text" pattern="[\d\s,]*" class="input-block-level short" data-bind="value: settings.plugins.m3dfio.MidPrintFilamentChangeLayers">
+			</label>
+		</div>
+	</div>
+	<div class="control-group">
+		<div class="controls">
 			<label class="checkbox" title="Positions the printed object in the middle of the print bed. If possible, the centered model will be repositioned if it goes out of bounds.">
 				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.UseCenterModelPreprocessor"><span>Center Model</span>
 			</label>

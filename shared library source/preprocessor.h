@@ -145,6 +145,7 @@ extern "C" {
 	EXPORT void setGpioLayer(unsigned short value);
 	EXPORT void setHeatbedTemperature(unsigned short value);
 	EXPORT void setHeatbedHeight(double value);
+	EXPORT void setMidPrintFilamentChangeLayers(const char *value);
 	
 	/*
 	Name: Get values

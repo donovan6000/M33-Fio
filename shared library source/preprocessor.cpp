@@ -3,6 +3,7 @@
 #include <string>
 #include <list>
 #include <stack>
+#include <regex>
 #include <cmath>
 #include <cfloat>
 #include <cstring>
@@ -58,7 +59,7 @@ enum directions {POSITIVE, NEGATIVE, NEITHER};
 enum printTiers {LOW, MEDIUM, HIGH};
 
 // Pre-processor stages
-enum preprocessorStages {NONE, INPUT, CENTER, VALIDATION, PREPARATION, WAVE, THERMAL, BED, BACKLASH};
+enum preprocessorStages {NONE, INPUT, MID_PRINT, CENTER, VALIDATION, PREPARATION, WAVE, THERMAL, BED, BACKLASH};
 
 // Printer colors
 enum printerColors {BLACK, WHITE, BLUE, GREEN, ORANGE, CLEAR, SILVER};
@@ -163,6 +164,10 @@ bool objectSuccessfullyCentered;
 // Return value
 string returnValue;
 
+// Mid-print filament change pre-processor
+uint64_t midPrintFilamentChangeLayerCounter;
+list<uint64_t> midPrintFilamentChangeLayers;
+
 // Center model pre-processor settings
 double displacementX;
 double displacementY;
@@ -170,7 +175,7 @@ double displacementY;
 // Preparation pre-processor settings
 bool addedIntro;
 bool addedOutro;
-uint8_t preparationLayerCounter;
+uint64_t preparationLayerCounter;
 
 // Wave bonding pre-processor settings
 uint8_t waveStep;
@@ -712,6 +717,17 @@ EXPORT void setHeatbedHeight(double value) {
 	heatbedHeight = value;
 }
 
+EXPORT void setMidPrintFilamentChangeLayers(const char *value) {
+
+	// Initialize variables
+	string temp = value;
+	regex pattern("\\d+");
+	
+	// Store mid print filament change layer numbers
+	for(sregex_iterator i = sregex_iterator(temp.begin(), temp.end(), pattern); i != sregex_iterator(); i++)
+		midPrintFilamentChangeLayers.push_front(stoi(i->str()));
+}
+
 EXPORT double getMaxXExtruderLow() {
 
 	// Return max X extruder low
@@ -802,6 +818,10 @@ EXPORT void resetPreprocessorSettings() {
 	printingTestBorder = false;
 	printingBacklashCalibrationCylinder = false;
 	printerColor = BLACK;
+	
+	// Mid-print filament change pre-processor
+	midPrintFilamentChangeLayerCounter = 0;
+	midPrintFilamentChangeLayers.clear();
 
 	// Center model pre-processor settings
 	displacementX = 0;
@@ -1233,6 +1253,12 @@ EXPORT bool collectPrintInformation(const char *file) {
 				detectedFanSpeed = 50;
 		}
 		
+		// Check if mid-print filament change layers exist
+		if(midPrintFilamentChangeLayers.size())
+		
+			// Set mid-print filament change
+			detectedMidPrintFilamentChange = true;
+		
 		// Return true
 		return true;
 	}
@@ -1318,10 +1344,43 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 		
 			// Remove line number
 			gcode.removeParameter('N');
+		
+		// Check if not printing test border or backlash calibration cylinder and using mid-print filament change pre-processor
+		if(!printingTestBorder && !printingBacklashCalibrationCylinder && midPrintFilamentChangeLayers.size() && command.skip < MID_PRINT) {
+		
+			// Set command skip
+			command.skip = MID_PRINT;
+			
+			// Check if command is at a new layer
+			if(!gcode.isEmpty() && command.origin == INPUT && gcode.hasValue('G') && gcode.hasValue('Z')) {
+				
+				// Increment layer counter
+				midPrintFilamentChangeLayerCounter++;
+				
+				// Check if at the start of a specified layer
+				if(find(midPrintFilamentChangeLayers.begin(), midPrintFilamentChangeLayers.end(), midPrintFilamentChangeLayerCounter) != midPrintFilamentChangeLayers.end()) {
+				
+					// Initialize new commands
+					stack<Command> newCommands;
+					
+					// Add mid-print filament change command to output
+					newCommands.push(Command("M600", MID_PRINT, MID_PRINT));
+					
+					// Append new commands to commands
+					while(newCommands.size()) {
+						commands.push_front(newCommands.top());
+						newCommands.pop();
+					}
+				}
+			}
+		}
 
-		// Check if printing test border or backlash calibration cylinder and using center model pre-processor
+		// Check if not printing test border or backlash calibration cylinder and using center model pre-processor
 		if(!printingTestBorder && !printingBacklashCalibrationCylinder && useCenterModelPreprocessor && command.skip < CENTER) {
 
+			// Set command skip
+			command.skip = CENTER;
+			
 			// Check if command contains valid G-code
 			if(!gcode.isEmpty()) 
 			
@@ -1345,6 +1404,9 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 		// Check if printing test border or backlash calibration cylinder or using validation pre-processor
 		if((printingTestBorder || printingBacklashCalibrationCylinder || useValidationPreprocessor) && command.skip < VALIDATION) {
 
+			// Set command skip
+			command.skip = VALIDATION;
+			
 			// Check if command contains valid G-code
 			if(!gcode.isEmpty()) {
 
@@ -1388,6 +1450,9 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 		// Check if printing test border or backlash calibration cylinder or using preparation pre-processor
 		if((printingTestBorder || printingBacklashCalibrationCylinder || usePreparationPreprocessor) && command.skip < PREPARATION) {
 
+			// Set command skip
+			command.skip = PREPARATION;
+			
 			// Check if intro hasn't been added yet
 			if(!addedIntro) {
 
@@ -1474,9 +1539,9 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 				
 				// Finish processing command later
 				if(!gcode.isEmpty())
-					commands.push_front(Command(gcode.getAscii(), command.origin, PREPARATION));
+					commands.push_front(Command(gcode.getAscii(), command.origin, command.skip));
 				else
-					commands.push_front(Command(command.line, command.origin, PREPARATION));
+					commands.push_front(Command(command.line, command.origin, command.skip));
 	
 				// Append new commands to commands
 				while(newCommands.size()) {
@@ -1574,24 +1639,20 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 					// Add command to set GPIO pin high
 					newCommands.push(Command("M106 T1", PREPARATION, PREPARATION));
 				
-					// Check if new commands exist
-					if(newCommands.size()) {
-			
-						// Finish processing command later
-						if(!gcode.isEmpty())
-							commands.push_front(Command(gcode.getAscii(), command.origin, WAVE));
-						else
-							commands.push_front(Command(command.line, command.origin, WAVE));
-	
-						// Append new commands to commands
-						while(newCommands.size()) {
-							commands.push_front(newCommands.top());
-							newCommands.pop();
-						}
-		
-						// Get next command
-						continue;
+					// Finish processing command later
+					if(!gcode.isEmpty())
+						commands.push_front(Command(gcode.getAscii(), command.origin, command.skip));
+					else
+						commands.push_front(Command(command.line, command.origin, command.skip));
+
+					// Append new commands to commands
+					while(newCommands.size()) {
+						commands.push_front(newCommands.top());
+						newCommands.pop();
 					}
+	
+					// Get next command
+					continue;
 				}
 			}
 		}
@@ -1599,6 +1660,9 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 		// Check if not printing test border or backlash calibration cylinder and using wave bonding pre-processor
 		if(!printingTestBorder && !printingBacklashCalibrationCylinder && useWaveBondingPreprocessor && command.skip < WAVE) {
 		
+			// Set command skip
+			command.skip = WAVE;
+			
 			// Initialize new commands
 			stack<Command> newCommands;
 
@@ -1609,7 +1673,7 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 				if(gcode.hasValue('G')) {
 				
 					// Check if at a new layer
-					if(waveBondingLayerCounter < 2 && command.origin != PREPARATION && gcode.hasValue('Z'))
+					if(waveBondingLayerCounter < 2 && command.origin == INPUT && gcode.hasValue('Z'))
 	
 						// Increment layer counter
 						waveBondingLayerCounter++;
@@ -1852,9 +1916,9 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			
 				// Finish processing command later
 				if(!gcode.isEmpty())
-					commands.push_front(Command(gcode.getAscii(), command.origin, WAVE));
+					commands.push_front(Command(gcode.getAscii(), command.origin, command.skip));
 				else
-					commands.push_front(Command(command.line, command.origin, WAVE));
+					commands.push_front(Command(command.line, command.origin, command.skip));
 	
 				// Append new commands to commands
 				while(newCommands.size()) {
@@ -1870,6 +1934,9 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 		// Check if printing test border or backlash calibration cylinder or using thermal bonding pre-processor
 		if((printingTestBorder || printingBacklashCalibrationCylinder || useThermalBondingPreprocessor) && command.skip < THERMAL) {
 
+			// Set command skip
+			command.skip = THERMAL;
+			
 			// Initialize new commands
 			stack<Command> newCommands;
 
@@ -1877,7 +1944,7 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			if(!gcode.isEmpty()) {
 			
 				// Check if at a new layer
-				if(thermalBondingLayerCounter < 2 && command.origin != PREPARATION && gcode.hasValue('Z')) {
+				if(thermalBondingLayerCounter < 2 && command.origin == INPUT && gcode.hasValue('Z')) {
 		
 					// Check if on first counted layer
 					if(thermalBondingLayerCounter == 0) {
@@ -1995,9 +2062,9 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			
 				// Finish processing command later
 				if(!gcode.isEmpty())
-					commands.push_front(Command(gcode.getAscii(), command.origin, THERMAL));
+					commands.push_front(Command(gcode.getAscii(), command.origin, command.skip));
 				else
-					commands.push_front(Command(command.line, command.origin, THERMAL));
+					commands.push_front(Command(command.line, command.origin, command.skip));
 	
 				// Append new commands to commands
 				while(newCommands.size()) {
@@ -2012,7 +2079,10 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 
 		// Check if printing test border or backlash calibration cylinder or using bed compensation pre-processor
 		if((printingTestBorder || printingBacklashCalibrationCylinder || useBedCompensationPreprocessor) && command.skip < BED) {
-		
+
+			// Set command skip
+			command.skip = BED;
+			
 			// Initialize new commands
 			stack<Command> newCommands;
 
@@ -2253,9 +2323,9 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			
 				// Finish processing command later
 				if(!gcode.isEmpty())
-					commands.push_front(Command(gcode.getAscii(), command.origin, BED));
+					commands.push_front(Command(gcode.getAscii(), command.origin, command.skip));
 				else
-					commands.push_front(Command(command.line, command.origin, BED));
+					commands.push_front(Command(command.line, command.origin, command.skip));
 	
 				// Append new commands to commands
 				while(newCommands.size()) {
@@ -2271,6 +2341,9 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 		// Check if printing test border or backlash calibration cylinder or using backlash compentation pre-processor
 		if((printingTestBorder || printingBacklashCalibrationCylinder || useBacklashCompensationPreprocessor) && command.skip < BACKLASH) {
 
+			// Set command skip
+			command.skip = BACKLASH;
+			
 			// Initialize new commands
 			stack<Command> newCommands;
 
@@ -2417,9 +2490,9 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			
 				// Finish processing command later
 				if(!gcode.isEmpty())
-					commands.push_front(Command(gcode.getAscii(), command.origin, BACKLASH));
+					commands.push_front(Command(gcode.getAscii(), command.origin, command.skip));
 				else
-					commands.push_front(Command(command.line, command.origin, BACKLASH));
+					commands.push_front(Command(command.line, command.origin, command.skip));
 	
 				// Append new commands to commands
 				while(newCommands.size()) {

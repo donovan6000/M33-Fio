@@ -409,6 +409,10 @@ class M3DFioPlugin(
 		# Print settings
 		self.resetPrintSettings()
 		
+		# Mid-print filament change pre-processor settings
+		self.midPrintFilamentChangeLayerCounter = 0
+		self.midPrintFilamentChangeLayers = []
+		
 		# Center model pre-processor settings
 		self.displacementX = 0
 		self.displacementY = 0
@@ -721,7 +725,7 @@ class M3DFioPlugin(
 	
 	# On after startup
 	def on_after_startup(self) :
-	
+		
 		# Set reminders on initial OctoPrint instance
 		currentPort = self.getListenPort(psutil.Process(os.getpid()))
 		if currentPort is not None and self.getListenPort(psutil.Process(os.getpid())) == 5000 :
@@ -1179,7 +1183,8 @@ class M3DFioPlugin(
 			CameraPort = None,
 			CameraWidth = 640,
 			CameraHeight = 480,
-			CameraFramesPerSecond = 20
+			CameraFramesPerSecond = 20,
+			MidPrintFilamentChangeLayers = ''
 		)
 	
 	# On settings save
@@ -1527,6 +1532,7 @@ class M3DFioPlugin(
 							self.sharedLibrary.setGpioLayer(ctypes.c_ushort(self._settings.get_int(["GpioLayer"])))
 						self.sharedLibrary.setHeatbedTemperature(ctypes.c_ushort(self._settings.get_int(["HeatbedTemperature"])))
 						self.sharedLibrary.setHeatbedHeight(ctypes.c_double(self._settings.get_float(["HeatbedHeight"])))
+						self.sharedLibrary.setMidPrintFilamentChangeLayers(ctypes.c_char_p(str(self._settings.get(["MidPrintFilamentChangeLayers"]))))
 									
 						# Collect print information
 						self.sharedLibrary.collectPrintInformation(ctypes.c_char_p(location))
@@ -3642,6 +3648,7 @@ class M3DFioPlugin(
 						self.sharedLibrary.setGpioLayer(ctypes.c_ushort(self._settings.get_int(["GpioLayer"])))
 					self.sharedLibrary.setHeatbedTemperature(ctypes.c_ushort(self._settings.get_int(["HeatbedTemperature"])))
 					self.sharedLibrary.setHeatbedHeight(ctypes.c_double(self._settings.get_float(["HeatbedHeight"])))
+					self.sharedLibrary.setMidPrintFilamentChangeLayers(ctypes.c_char_p(str(self._settings.get(["MidPrintFilamentChangeLayers"]))))
 					
 					# Collect print information
 					printIsValid = self.sharedLibrary.collectPrintInformation(ctypes.c_char_p(payload.get("file")))
@@ -3699,7 +3706,7 @@ class M3DFioPlugin(
 					if self.detectedMidPrintFilamentChange :
 			
 						# Create message
-						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "notice", title = "Print warning", text = "This file uses mid-print filament change commands. These commands will be ignored if a client is not connected when they are run, so it's recommended that you don't disconnect from the server and that you keep this page open for the entire duration of the print."))
+						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "notice", title = "Print warning", text = "This file uses mid-print filament change commands. These commands will be ignored if a client is not connected when they are run, so it's recommended that you keep this page open and stay connected to the server for the entire duration of the print."))
 					
 					# Check if objected couldn't be centered
 					if self._settings.get_boolean(["UseCenterModelPreprocessor"]) and not self.objectSuccessfullyCentered :
@@ -5284,6 +5291,7 @@ class M3DFioPlugin(
 					self.sharedLibrary.setGpioLayer(ctypes.c_ushort(self._settings.get_int(["GpioLayer"])))
 				self.sharedLibrary.setHeatbedTemperature(ctypes.c_ushort(self._settings.get_int(["HeatbedTemperature"])))
 				self.sharedLibrary.setHeatbedHeight(ctypes.c_double(self._settings.get_float(["HeatbedHeight"])))
+				self.sharedLibrary.setMidPrintFilamentChangeLayers(ctypes.c_char_p(str(self._settings.get(["MidPrintFilamentChangeLayers"]))))
 				
 				# Collect print information
 				printIsValid = self.sharedLibrary.collectPrintInformation(ctypes.c_char_p(input))
@@ -5359,7 +5367,7 @@ class M3DFioPlugin(
 				if self.detectedMidPrintFilamentChange :
 		
 					# Create message
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "notice", title = "Print warning", text = "This file uses mid-print filament change commands. These commands will be ignored if a client is not connected when they are run, so it's recommended that you don't disconnect from the server and that you keep this page open for the entire duration of the print."))
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "notice", title = "Print warning", text = "This file uses mid-print filament change commands. These commands will be ignored if a client is not connected when they are run, so it's recommended that you keep this page open and stay connected to the server for the entire duration of the print."))
 				
 				# Check if objected couldn't be centered
 				if self._settings.get_boolean(["UseCenterModelPreprocessor"]) and not self.objectSuccessfullyCentered :
@@ -5727,6 +5735,15 @@ class M3DFioPlugin(
 			else :
 				self.detectedFanSpeed = 50
 		
+		# Get mid-print filament change layers
+		self.midPrintFilamentChangeLayers = re.findall("\\d+", str(self._settings.get(["MidPrintFilamentChangeLayers"])))
+		
+		# Check if mid-print filament change layers exist
+		if len(self.midPrintFilamentChangeLayers) :
+		
+			# Set mid-print filament change
+			self.detectedMidPrintFilamentChange = True
+		
 		# Return true
 		return True
 	
@@ -6084,10 +6101,38 @@ class M3DFioPlugin(
 			
 				# Remove line number
 				gcode.removeParameter('N')
+			
+			# Check if not printing test border or backlash calibration cylinder and using mid-print filament change pre-processor
+			if not self.printingTestBorder and not self.printingBacklashCalibrationCylinder and len(self.midPrintFilamentChangeLayers) and "MID-PRINT" not in command.skip :
+			
+				# Set command skip
+				command.skip += " MID-PRINT"
+				
+				# Check if command is at a new layer
+				if not gcode.isEmpty() and command.origin == "INPUT" and gcode.hasValue('G') and gcode.hasValue('Z') :
+					
+					# Increment layer counter
+					self.midPrintFilamentChangeLayerCounter += 1
+					
+					# Check if at the start of a specified layer
+					if str(self.midPrintFilamentChangeLayerCounter) in self.midPrintFilamentChangeLayers :
+					
+						# Initialize new commands
+						newCommands = []
+						
+						# Add mid-print filament change command to output
+						newCommands.append(Command("M600", "MID-PRINT", "MID-PRINT"))
+						
+						# Append new commands to commands
+						while len(newCommands) :
+							commands.append(newCommands.pop())
 	
-			# Check if printing test border or backlash calibration cylinder and using center model pre-processor
+			# Check if not printing test border or backlash calibration cylinder and using center model pre-processor
 			if not self.printingTestBorder and not self.printingBacklashCalibrationCylinder and self._settings.get_boolean(["UseCenterModelPreprocessor"]) and "CENTER" not in command.skip :
-
+			
+				# Set command skip
+				command.skip += " CENTER"
+				
 				# Check if command contains valid G-code
 				if not gcode.isEmpty() :
 
@@ -6109,6 +6154,9 @@ class M3DFioPlugin(
 			# Check if printing test border or backlash calibration cylinder or using validation pre-processor
 			if (self.printingTestBorder or self.printingBacklashCalibrationCylinder or self._settings.get_boolean(["UseValidationPreprocessor"])) and "VALIDATION" not in command.skip :
 			
+				# Set command skip
+				command.skip += " VALIDATION"
+				
 				# Check if command contains valid G-code
 				if not gcode.isEmpty() :
 
@@ -6149,6 +6197,9 @@ class M3DFioPlugin(
 			# Check if printing test border or backlash calibration cylinder or using preparation pre-processor
 			if (self.printingTestBorder or self.printingBacklashCalibrationCylinder or self._settings.get_boolean(["UsePreparationPreprocessor"])) and "PREPARATION" not in command.skip :
 
+				# Set command skip
+				command.skip += " PREPARATION"
+				
 				# Check if intro hasn't been added yet
 				if not self.addedIntro :
 
@@ -6188,55 +6239,55 @@ class M3DFioPlugin(
 							cornerZ = self._settings.get_float(["FrontRightOrientation"]) + self._settings.get_float(["FrontRightOffset"])
 					
 					# Add intro to output
-					newCommands.append(Command("G90", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("M420 T1", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G90", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("M420 T1", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 					if self._settings.get_boolean(["CalibrateBeforePrint"]) :
-						newCommands.append(Command("G30", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G30", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 					if str(self._settings.get(["FilamentType"])) == "PLA" or str(self._settings.get(["FilamentType"])) == "FLX" or str(self._settings.get(["FilamentType"])) == "TGH" :
-						newCommands.append(Command("M106 S255", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M106 S255", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 					else :
-						newCommands.append(Command("M106 S50", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("M17", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G90", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("M104 S" + str(self._settings.get_int(["FilamentTemperature"])), "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G0 Z5 F48", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G28", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M106 S50", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("M17", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G90", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("M104 S" + str(self._settings.get_int(["FilamentTemperature"])), "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G0 Z5 F48", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G28", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 
 					# Add heatbed command if using a heatbed
 					if self.heatbedConnected :
-						newCommands.append(Command("M190 S" + str(self._settings.get_int(["HeatbedTemperature"])), "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M190 S" + str(self._settings.get_int(["HeatbedTemperature"])), "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 
 					# Check if one of the corners wasn't set
 					if cornerX == 0 or cornerY == 0 :
 
 						# Prepare extruder the standard way
-						newCommands.append(Command("M18", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("M109 S" + str(self._settings.get_int(["FilamentTemperature"])), "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G4 S2", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("M17", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G92 E0", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G0 Z0.4 F48", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M18", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M109 S" + str(self._settings.get_int(["FilamentTemperature"])), "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G4 S2", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M17", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G92 E0", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G0 Z0.4 F48", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 					
 					# Otherwise
 					else :
 
 						# Prepare extruder by leaving excess at corner
-						newCommands.append(Command("G0 X%f Y%f F1800" % (54 + cornerX, 50 + cornerY), "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("M18", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("M109 S" + str(self._settings.get_int(["FilamentTemperature"])), "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("M17", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G0 Z%f F48" % (cornerZ + 3), "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G92 E0", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G0 E10 F360", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G4 S3", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G0 X%f Y%f Z%f F400" % (54 + cornerX - cornerX * 0.1, 50 + cornerY - cornerY * 0.1, cornerZ + 0.5), "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G92 E0", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G0 X%f Y%f F1800" % (54 + cornerX, 50 + cornerY), "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M18", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M109 S" + str(self._settings.get_int(["FilamentTemperature"])), "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M17", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G0 Z%f F48" % (cornerZ + 3), "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G92 E0", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G0 E10 F360", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G4 S3", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G0 X%f Y%f Z%f F400" % (54 + cornerX - cornerX * 0.1, 50 + cornerY - cornerY * 0.1, cornerZ + 0.5), "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G92 E0", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 					
 					# Finish processing command later
 					if not gcode.isEmpty() :
-						commands.append(Command(gcode.getAscii(), command.origin, "CENTER VALIDATION PREPARATION"))
+						commands.append(Command(gcode.getAscii(), command.origin, command.skip))
 					else :
-						commands.append(Command(command.line, command.origin, "CENTER VALIDATION PREPARATION"))
+						commands.append(Command(command.line, command.origin, command.skip))
 		
 					# Append new commands to commands
 					while len(newCommands) :
@@ -6277,46 +6328,46 @@ class M3DFioPlugin(
 						moveY = maxMoveY
 					
 					# Add outro to output
-					newCommands.append(Command("G90", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G0 Y%f Z%f F1800" % (moveY, moveZ), "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G91", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G0 E-8 F360", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("M104 S0", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G90", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G0 Y%f Z%f F1800" % (moveY, moveZ), "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G91", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G0 E-8 F360", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("M104 S0", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 
 					if self.heatbedConnected :
-						newCommands.append(Command("M140 S0", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M140 S0", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 					
 					if self._settings.get_boolean(["UseGpio"]) :
-						newCommands.append(Command("M107 T1", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M107 T1", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 
-					newCommands.append(Command("M18", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("M107", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("M18", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("M107", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 					
 					if self.printerColor == "Clear" :
-						newCommands.append(Command("M420 T20", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M420 T20", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 					else :
-						newCommands.append(Command("M420 T100", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G4 P500", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("M420 T1", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G4 P500", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M420 T100", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G4 P500", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("M420 T1", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G4 P500", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 					if self.printerColor == "Clear" :
-						newCommands.append(Command("M420 T20", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M420 T20", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 					else :
-						newCommands.append(Command("M420 T100", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G4 P500", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("M420 T1", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G4 P500", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M420 T100", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G4 P500", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("M420 T1", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G4 P500", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 					if self.printerColor == "Clear" :
-						newCommands.append(Command("M420 T20", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M420 T20", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 					else :
-						newCommands.append(Command("M420 T100", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G4 P500", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("M420 T1", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G4 P500", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M420 T100", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G4 P500", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("M420 T1", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G4 P500", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 					if self.printerColor == "Clear" :
-						newCommands.append(Command("M420 T20", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M420 T20", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 					else :
-						newCommands.append(Command("M420 T100", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M420 T100", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 			
 					# Append new commands to commands
 					while len(newCommands) :
@@ -6341,27 +6392,27 @@ class M3DFioPlugin(
 							newCommands = []
 						
 							# Add command to set GPIO pin high
-							newCommands.append(Command("M106 T1", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+							newCommands.append(Command("M106 T1", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 					
-							# Check if new commands exist
-							if len(newCommands) :
+							# Finish processing command later
+							if not gcode.isEmpty() :
+								commands.append(Command(gcode.getAscii(), command.origin, command.skip))
+							else :
+								commands.append(Command(command.line, command.origin, command.skip))
+	
+							# Append new commands to commands
+							while len(newCommands) :
+								commands.append(newCommands.pop())
 		
-								# Finish processing command later
-								if not gcode.isEmpty() :
-									commands.append(Command(gcode.getAscii(), command.origin, "CENTER VALIDATION PREPARATION WAVE"))
-								else :
-									commands.append(Command(command.line, command.origin, "CENTER VALIDATION PREPARATION WAVE"))
-		
-								# Append new commands to commands
-								while len(newCommands) :
-									commands.append(newCommands.pop())
-			
-								# Get next command
-								continue
+							# Get next command
+							continue
 			
 			# Check if not printing test border or backlash calibration cylinder and using wave bonding pre-processor
 			if not self.printingTestBorder and not self.printingBacklashCalibrationCylinder and self._settings.get_boolean(["UseWaveBondingPreprocessor"]) and "WAVE" not in command.skip :
-	
+
+				# Set command skip
+				command.skip += " WAVE"
+				
 				# Initialize new commands
 				newCommands = []
 
@@ -6372,7 +6423,7 @@ class M3DFioPlugin(
 					if gcode.hasValue('G') :
 					
 						# Check if at a new layer
-						if self.waveBondingLayerCounter < 2 and command.origin != "PREPARATION" and gcode.hasValue('Z') :
+						if self.waveBondingLayerCounter < 2 and command.origin == "INPUT" and gcode.hasValue('Z') :
 		
 							# Increment layer counter
 							self.waveBondingLayerCounter += 1
@@ -6460,7 +6511,7 @@ class M3DFioPlugin(
 												if not self.waveBondingTackPoint.isEmpty() :
 									
 													# Add tack point to output
-													newCommands.append(Command(self.waveBondingTackPoint.getAscii(), "WAVE", "CENTER VALIDATION PREPARATION WAVE"))
+													newCommands.append(Command(self.waveBondingTackPoint.getAscii(), "WAVE", "MID-PRINT CENTER VALIDATION PREPARATION WAVE"))
 		
 											# Set refrence G-code
 											self.waveBondingRefrenceGcode = copy.deepcopy(gcode)
@@ -6476,7 +6527,7 @@ class M3DFioPlugin(
 											if not self.waveBondingTackPoint.isEmpty() :
 								
 												# Add tack point to output
-												newCommands.append(Command(self.waveBondingTackPoint.getAscii(), "WAVE", "CENTER VALIDATION PREPARATION WAVE"))
+												newCommands.append(Command(self.waveBondingTackPoint.getAscii(), "WAVE", "MID-PRINT CENTER VALIDATION PREPARATION WAVE"))
 		
 											# Set refrence G-code
 											self.waveBondingRefrenceGcode = copy.deepcopy(gcode)
@@ -6538,7 +6589,7 @@ class M3DFioPlugin(
 											self.waveBondingExtraGcode.setValue('E', "%f" % (self.waveBondingPositionRelativeE - deltaE + tempRelativeE - relativeDifferenceE))
 								
 											# Add extra G-code to output
-											newCommands.append(Command(self.waveBondingExtraGcode.getAscii(), "WAVE", "CENTER VALIDATION PREPARATION WAVE"))
+											newCommands.append(Command(self.waveBondingExtraGcode.getAscii(), "WAVE", "MID-PRINT CENTER VALIDATION PREPARATION WAVE"))
 	
 										# Otherwise check if plane changed
 										elif self.waveBondingChangesPlane :
@@ -6616,9 +6667,9 @@ class M3DFioPlugin(
 		
 					# Finish processing command later
 					if not gcode.isEmpty() :
-						commands.append(Command(gcode.getAscii(), command.origin, "CENTER VALIDATION PREPARATION WAVE"))
+						commands.append(Command(gcode.getAscii(), command.origin, command.skip))
 					else :
-						commands.append(Command(command.line, command.origin, "CENTER VALIDATION PREPARATION WAVE"))
+						commands.append(Command(command.line, command.origin, command.skip))
 		
 					# Append new commands to commands
 					while len(newCommands) :
@@ -6629,7 +6680,10 @@ class M3DFioPlugin(
 
 			# Check if printing test border or backlash calibration cylinder or using thermal bonding pre-processor
 			if (self.printingTestBorder or self.printingBacklashCalibrationCylinder or self._settings.get_boolean(["UseThermalBondingPreprocessor"])) and "THERMAL" not in command.skip :
-	
+
+				# Set command skip
+				command.skip += " THERMAL"
+				
 				# Initialize new commands
 				newCommands = []
 
@@ -6637,7 +6691,7 @@ class M3DFioPlugin(
 				if not gcode.isEmpty() :
 				
 					# Check if at a new layer
-					if self.thermalBondingLayerCounter < 2 and command.origin != "PREPARATION" and gcode.hasValue('Z') :
+					if self.thermalBondingLayerCounter < 2 and command.origin == "INPUT" and gcode.hasValue('Z') :
 			
 						# Check if on first counted layer
 						if self.thermalBondingLayerCounter == 0 :
@@ -6646,19 +6700,19 @@ class M3DFioPlugin(
 							if str(self._settings.get(["FilamentType"])) == "PLA" :
 			
 								# Add temperature to output
-								newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 10)), "THERMAL", "CENTER VALIDATION PREPARATION WAVE THERMAL"))
+								newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 10)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
 							
 							# Otherwise check if filament type is TGH or FLX
 							elif str(self._settings.get(["FilamentType"])) == "TGH" or str(self._settings.get(["FilamentType"])) == "FLX" :
 			
 								# Add temperature to output
-								newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) - 15)), "THERMAL", "CENTER VALIDATION PREPARATION WAVE THERMAL"))
+								newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) - 15)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
 				
 							# Otherwise
 							else :
 				
 								# Add temperature to output
-								newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 15)), "THERMAL", "CENTER VALIDATION PREPARATION WAVE THERMAL"))
+								newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 15)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
 						
 						# Otherwise
 						else :
@@ -6667,13 +6721,13 @@ class M3DFioPlugin(
 							if str(self._settings.get(["FilamentType"])) == "TGH" :
 						
 								# Add temperature to output
-								newCommands.append(Command("M104 S" + str(self._settings.get_int(["FilamentTemperature"]) + 15), "THERMAL", "CENTER VALIDATION PREPARATION WAVE THERMAL"))
+								newCommands.append(Command("M104 S" + str(self._settings.get_int(["FilamentTemperature"]) + 15), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
 							
 							# Otherwise
 							else :
 			
 								# Add temperature to output
-								newCommands.append(Command("M104 S" + str(self._settings.get_int(["FilamentTemperature"])), "THERMAL", "CENTER VALIDATION PREPARATION WAVE THERMAL"))
+								newCommands.append(Command("M104 S" + str(self._settings.get_int(["FilamentTemperature"])), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
 				
 						# Increment layer counter
 						self.thermalBondingLayerCounter += 1
@@ -6701,7 +6755,7 @@ class M3DFioPlugin(
 											if not self.thermalBondingTackPoint.isEmpty() :
 									
 												# Add tack point to output
-												newCommands.append(Command(self.thermalBondingTackPoint.getAscii(), "THERMAL", "CENTER VALIDATION PREPARATION WAVE THERMAL"))
+												newCommands.append(Command(self.thermalBondingTackPoint.getAscii(), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
 										
 										# Set refrence G-code
 										self.thermalBondingRefrenceGcode = copy.deepcopy(gcode)
@@ -6717,7 +6771,7 @@ class M3DFioPlugin(
 										if not self.thermalBondingTackPoint.isEmpty() :
 								
 											# Add tack point to output
-											newCommands.append(Command(self.thermalBondingTackPoint.getAscii(), "THERMAL", "CENTER VALIDATION PREPARATION WAVE THERMAL"))
+											newCommands.append(Command(self.thermalBondingTackPoint.getAscii(), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
 									
 										# Set refrence G-code
 										self.thermalBondingRefrenceGcode = copy.deepcopy(gcode)
@@ -6745,9 +6799,9 @@ class M3DFioPlugin(
 		
 					# Finish processing command later
 					if not gcode.isEmpty() :
-						commands.append(Command(gcode.getAscii(), command.origin, "CENTER VALIDATION PREPARATION WAVE THERMAL"))
+						commands.append(Command(gcode.getAscii(), command.origin, command.skip))
 					else :
-						commands.append(Command(command.line, command.origin, "CENTER VALIDATION PREPARATION WAVE THERMAL"))
+						commands.append(Command(command.line, command.origin, command.skip))
 		
 					# Append new commands to commands
 					while len(newCommands) :
@@ -6758,7 +6812,10 @@ class M3DFioPlugin(
 
 			# Check if printing test border or backlash calibration cylinder or using bed compensation pre-processor
 			if (self.printingTestBorder or self.printingBacklashCalibrationCylinder or self._settings.get_boolean(["UseBedCompensationPreprocessor"])) and "BED" not in command.skip :
-	
+
+				# Set command skip
+				command.skip += " BED"
+				
 				# Initialize new commands
 				newCommands = []
 
@@ -6914,7 +6971,7 @@ class M3DFioPlugin(
 										self.bedCompensationExtraGcode.setValue('E', "%f" % (self.bedCompensationPositionRelativeE - deltaE + tempRelativeE - relativeDifferenceE))
 								
 										# Add extra G-code to output
-										newCommands.append(Command(self.bedCompensationExtraGcode.getAscii(), "BED", "CENTER VALIDATION PREPARATION WAVE THERMAL BED"))
+										newCommands.append(Command(self.bedCompensationExtraGcode.getAscii(), "BED", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL BED"))
 									
 									# Otherwise check if the plane changed
 									elif self.bedCompensationChangesPlane :
@@ -7004,9 +7061,9 @@ class M3DFioPlugin(
 		
 					# Finish processing command later
 					if not gcode.isEmpty() :
-						commands.append(Command(gcode.getAscii(), command.origin, "CENTER VALIDATION PREPARATION WAVE THERMAL BED"))
+						commands.append(Command(gcode.getAscii(), command.origin, command.skip))
 					else :
-						commands.append(Command(command.line, command.origin, "CENTER VALIDATION PREPARATION WAVE THERMAL BED"))
+						commands.append(Command(command.line, command.origin, command.skip))
 		
 					# Append new commands to commands
 					while len(newCommands) :
@@ -7017,7 +7074,10 @@ class M3DFioPlugin(
 
 			# Check if printing test border or backlash calibration cylinder or using backlash compentation pre-processor
 			if (self.printingTestBorder or self.printingBacklashCalibrationCylinder or self._settings.get_boolean(["UseBacklashCompensationPreprocessor"])) and "BACKLASH" not in command.skip :
-	
+
+				# Set command skip
+				command.skip += " BACKLASH"
+				
 				# Initialize new commands
 				newCommands = []
 
@@ -7105,7 +7165,7 @@ class M3DFioPlugin(
 								self.backlashCompensationExtraGcode.setValue('F', "%f" % (self._settings.get_float(["BacklashSpeed"])))
 						
 								# Add extra G-code to output
-								newCommands.append(Command(self.backlashCompensationExtraGcode.getAscii(), "BACKLASH", "CENTER VALIDATION PREPARATION WAVE THERMAL BED BACKLASH"))
+								newCommands.append(Command(self.backlashCompensationExtraGcode.getAscii(), "BACKLASH", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL BED BACKLASH"))
 						
 								# Set command's F value
 								gcode.setValue('F', self.valueF)
@@ -7191,9 +7251,9 @@ class M3DFioPlugin(
 		
 					# Finish processing command later
 					if not gcode.isEmpty() :
-						commands.append(Command(gcode.getAscii(), command.origin, "CENTER VALIDATION PREPARATION WAVE THERMAL BED BACKLASH"))
+						commands.append(Command(gcode.getAscii(), command.origin, command.skip))
 					else :
-						commands.append(Command(command.line, command.origin, "CENTER VALIDATION PREPARATION WAVE THERMAL BED BACKLASH"))
+						commands.append(Command(command.line, command.origin, command.skip))
 		
 					# Append new commands to commands
 					while len(newCommands) :

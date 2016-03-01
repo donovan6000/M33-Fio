@@ -21,6 +21,11 @@
 	width: calc(100% - 24px);
 }
 
+#settings_plugin_m3dfio label > span.noCheckbox {
+	position: relative;
+	top: 10px;
+}
+
 #settings_plugin_m3dfio label.checkbox:first-of-type {
 	margin-top: -5px;
 	width: calc(100% - 24px);
