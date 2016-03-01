@@ -41,6 +41,7 @@ import socket
 import threading
 import BaseHTTPServer
 import SocketServer
+import yaml
 from .gcode import Gcode
 from .vector import Vector
 
@@ -1732,7 +1733,7 @@ class M3DFioPlugin(
 			# Otherwise check if parameter is to saved settings
 			elif data["value"] == "Saved Settings" :
 			
-				# Check if a micro 3D is connected and not printing
+				# Check if a Micro 3D is connected and not printing
 				if not self.invalidPrinter and not self._printer.is_printing() :
 				
 					# Save settings to the printer
@@ -1783,7 +1784,7 @@ class M3DFioPlugin(
 					return flask.jsonify(dict(value = "Error"))
 				
 				# Set file's destination
-				destinationName = "profile_" + str(random.randint(0, 1000000)) +  values["slicerProfileName"]
+				destinationName = "profile_" + str(random.randint(0, 1000000)) + values["slicerProfileName"]
 				fileDestination = self.get_plugin_data_folder().replace('\\', '/') + '/' + destinationName
 				
 				# Remove file in destination if it already exists
@@ -1801,6 +1802,135 @@ class M3DFioPlugin(
 				
 				# Return location
 				return flask.jsonify(dict(value = "OK", path = "/plugin/m3dfio/download/" + destinationName))
+			
+			# Otherwise check if parameter is to get printer settings
+			elif data["value"] == "Get Printer Settings" :
+			
+				# Get printer settings
+				printerSettings = dict(
+					BacklashX = self._settings.get_float(["BacklashX"]),
+					BacklashY = self._settings.get_float(["BacklashY"]),
+					BackLeftOrientation = self._settings.get_float(["BackLeftOrientation"]),
+					BackRightOrientation = self._settings.get_float(["BackRightOrientation"]),
+					FrontRightOrientation = self._settings.get_float(["FrontRightOrientation"]),
+					FrontLeftOrientation = self._settings.get_float(["FrontLeftOrientation"]),
+					BacklashSpeed = self._settings.get_float(["BacklashSpeed"]),
+					BackLeftOffset = self._settings.get_float(["BackLeftOffset"]),
+					BackRightOffset = self._settings.get_float(["BackRightOffset"]),
+					FrontRightOffset = self._settings.get_float(["FrontRightOffset"]),
+					FrontLeftOffset = self._settings.get_float(["FrontLeftOffset"]),
+					BedHeightOffset = self._settings.get_float(["BedHeightOffset"]),
+					FilamentTemperature = self._settings.get_int(["FilamentTemperature"]),
+					FilamentType = str(self._settings.get(["FilamentType"])),
+					PrinterColor = str(self._settings.get(["PrinterColor"])),
+					FilamentColor = str(self._settings.get(["FilamentColor"])),
+					SpeedLimitX = self._settings.get_float(["SpeedLimitX"]),
+					SpeedLimitY = self._settings.get_float(["SpeedLimitY"]),
+					SpeedLimitZ = self._settings.get_float(["SpeedLimitZ"]),
+					SpeedLimitEPositive = self._settings.get_float(["SpeedLimitEPositive"]),
+					SpeedLimitENegative = self._settings.get_float(["SpeedLimitENegative"])
+				)
+				
+				# Set file's destination
+				destinationName = "printer_settings_" + str(random.randint(0, 1000000)) + ".yaml"
+				fileDestination = self.get_plugin_data_folder().replace('\\', '/') + '/' + destinationName
+				
+				# Remove file in destination if it already exists
+				if os.path.isfile(fileDestination) :
+					os.remove(fileDestination)
+				
+				# Write printer settings to file
+				output = open(fileDestination, "wb")
+    				output.write(yaml.dump(printerSettings, default_flow_style = True))
+    				output.close()
+    				
+    				# Return location
+				return flask.jsonify(dict(value = "OK", path = "/plugin/m3dfio/download/" + destinationName))
+			
+			# Otherwise check if parameter is to set printer settings
+			elif data["value"].startswith("Set Printer Settings:") :
+			
+				# Get printer settings
+				try :
+					printerSettings = yaml.load(data["value"][21 :])
+				except Exception :
+					return flask.jsonify(dict(value = "Error"))
+				
+				# Save printer settings
+				if "BacklashX" in printerSettings :
+					self._settings.set_float(["BacklashX"], float(printerSettings["BacklashX"]))
+				
+				if "BacklashY" in printerSettings :
+					self._settings.set_float(["BacklashY"], float(printerSettings["BacklashY"]))
+				
+				if "BackLeftOrientation" in printerSettings :
+					self._settings.set_float(["BackLeftOrientation"], float(printerSettings["BackLeftOrientation"]))
+				
+				if "BackRightOrientation" in printerSettings :
+					self._settings.set_float(["BackRightOrientation"], float(printerSettings["BackRightOrientation"]))
+				
+				if "FrontRightOrientation" in printerSettings :
+					self._settings.set_float(["FrontRightOrientation"], float(printerSettings["FrontRightOrientation"]))
+				
+				if "FrontLeftOrientation" in printerSettings :
+					self._settings.set_float(["FrontLeftOrientation"], float(printerSettings["FrontLeftOrientation"]))
+				
+				if "BacklashSpeed" in printerSettings :
+					self._settings.set_float(["BacklashSpeed"], float(printerSettings["BacklashSpeed"]))
+				
+				if "BackLeftOffset" in printerSettings :
+					self._settings.set_float(["BackLeftOffset"], float(printerSettings["BackLeftOffset"]))
+				
+				if "BackRightOffset" in printerSettings :
+					self._settings.set_float(["BackRightOffset"], float(printerSettings["BackRightOffset"]))
+				
+				if "FrontRightOffset" in printerSettings :
+					self._settings.set_float(["FrontRightOffset"], float(printerSettings["FrontRightOffset"]))
+				
+				if "FrontLeftOffset" in printerSettings :
+					self._settings.set_float(["FrontLeftOffset"], float(printerSettings["FrontLeftOffset"]))
+				
+				if "BedHeightOffset" in printerSettings :
+					self._settings.set_float(["BedHeightOffset"], float(printerSettings["BedHeightOffset"]))
+				
+				if "FilamentTemperature" in printerSettings :
+					self._settings.set_int(["FilamentTemperature"], int(printerSettings["FilamentTemperature"]))
+				
+				if "FilamentType" in printerSettings :
+					self._settings.set(["FilamentType"], str(printerSettings["FilamentType"]))
+				
+				if "PrinterColor" in printerSettings :
+					self._settings.set(["PrinterColor"], str(printerSettings["PrinterColor"]))
+				
+				if "FilamentColor" in printerSettings :
+					self._settings.set(["FilamentColor"], str(printerSettings["FilamentColor"]))
+				
+				if "SpeedLimitX" in printerSettings :
+					self._settings.set_float(["SpeedLimitX"], float(printerSettings["SpeedLimitX"]))
+				
+				if "SpeedLimitY" in printerSettings :
+					self._settings.set_float(["SpeedLimitY"], float(printerSettings["SpeedLimitY"]))
+				
+				if "SpeedLimitZ" in printerSettings :
+					self._settings.set_float(["SpeedLimitZ"], float(printerSettings["SpeedLimitZ"]))
+				
+				if "SpeedLimitEPositive" in printerSettings :
+					self._settings.set_float(["SpeedLimitEPositive"], float(printerSettings["SpeedLimitEPositive"]))
+				
+				if "SpeedLimitENegative" in printerSettings :
+					self._settings.set_float(["SpeedLimitENegative"], float(printerSettings["SpeedLimitENegative"]))
+				
+				# Check if a Micro 3D is connected and not printing
+				if not self.invalidPrinter and not self._printer.is_printing() :
+				
+					# Save settings to the printer
+					self.sendCommands(self.getSaveCommands())
+				
+				# Save software settings
+				octoprint.settings.settings().save()
+				
+				# Send response
+				return flask.jsonify(dict(value = "OK"))
 			
 			# Otherwise check if parameter is to remove temporary files
 			elif data["value"] == "Remove Temp" :

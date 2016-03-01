@@ -3233,6 +3233,9 @@ $(function() {
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Print 0.4mm test border</button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Print backlash calibration cylinder</button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Run complete bed calibration</button>
+					<button class="btn btn-block control-box" data-bind="enable: loginState.isUser() && !isPrinting()">Save printer settings to file</button>
+					<button class="btn btn-block control-box" data-bind="enable: loginState.isUser() && !isPrinting()">Restore printer settings from file</button>
+					<input type="file" accept=".yaml">
 				</div>
 			</div>
 		`);
@@ -8206,6 +8209,107 @@ $(function() {
 				// Hide message
 				hideMessage();
 			});
+		});
+		
+		// Save printer settings to file calibration control
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(15)").attr("title", "Saves printer settings to a file").click(function(event) {
+			
+			// Show message
+			showMessage("Settings Status", "Obtaining printer settings");
+			
+			setTimeout(function() {
+		
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m3dfio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({
+						command: "message",
+						value: "Get Printer Settings"
+					}),
+					contentType: "application/json; charset=UTF-8",
+
+					// On success
+					success: function(data) {
+				
+						// Send request
+						$.ajax({
+							url: data.path,
+							type: "GET",
+							contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+
+							// On success
+							success: function(data) {
+						
+								// Hide message
+								hideMessage();
+						
+								// Download profile
+								var blob = new Blob([data], {type: 'text/plain'});
+								saveFile(blob, "printer settings.yaml");
+							}
+						});
+					}
+				});
+			}, 500);
+		});
+		
+		// Restore printer settings from file calibration control
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(16)").attr("title", "Restores printer settings from a file").click(function(event) {
+		
+			// Open file input dialog
+			$("#control > div.jog-panel.calibration").find("div > input").click();
+		});
+		
+		// Restore pritner settings from file input change
+		$("#control > div.jog-panel.calibration").find("div > input").change(function(event) {
+		
+			// Get file
+			var file = this.files[0];
+			
+			// Clear input
+			$(this).val('');
+
+			// Show message
+			showMessage("Settings Status", "Restoring printer settings");
+			
+			setTimeout(function() {
+
+				// Read in file
+				var reader = new FileReader();
+				reader.readAsBinaryString(file);
+			
+				// On file load
+				reader.onload = function(event) {
+	
+					// Send request
+					$.ajax({
+						url: API_BASEURL + "plugin/m3dfio",
+						type: "POST",
+						dataType: "json",
+						data: JSON.stringify({
+							command: "message",
+							value: "Set Printer Settings:" + event.target.result
+						}),
+						contentType: "application/json; charset=UTF-8",
+
+						// On success
+						success: function(data) {
+
+							// Show message
+							showMessage("Settings Status", data.value == "OK" ? "Done" : "Failed", "OK", function() {
+
+								// Hide message
+								hideMessage();
+							
+								// Update settings
+								self.settings.requestData();
+							});
+						}
+					});
+				}
+			}, 500);
 		});
 		
 		// Set HengLiXin fan control

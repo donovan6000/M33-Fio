@@ -167,7 +167,7 @@
 	float: left;
 }
 
-#control div.jog-panel.calibration button:first-of-type, #control div.jog-panel.calibration button:nth-of-type(2), #control div.jog-panel.calibration button:nth-of-type(11), #control div.jog-panel.calibration button:nth-of-type(12), #control div.jog-panel.calibration button:nth-of-type(13), #control div.jog-panel.calibration button:nth-of-type(14) {
+#control div.jog-panel.calibration button:first-of-type, #control div.jog-panel.calibration button:nth-of-type(2), #control div.jog-panel.calibration button:nth-of-type(11), #control div.jog-panel.calibration button:nth-of-type(12), #control div.jog-panel.calibration button:nth-of-type(13), #control div.jog-panel.calibration button:nth-of-type(14), #control div.jog-panel.calibration button:nth-of-type(15), #control div.jog-panel.calibration button:nth-of-type(16) {
 	width: 230px;
 	clear: both;
 }
@@ -224,7 +224,7 @@
 	left: -8px;
 }
 
-#control div.jog-panel.advanced input {
+#control div.jog-panel.calibration input, #control div.jog-panel.advanced input {
 	display: none;
 }
 
