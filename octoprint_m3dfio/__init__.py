@@ -3969,7 +3969,8 @@ class M3DFioPlugin(
 								connection = serial.Serial(currentPort, currentBaudrate)
 								break
 							
-							except OSError :
+							except Exception :
+								connection = None
 								time.sleep(1)
 						
 						# Check if user lacks read/write access to the printer
@@ -4460,6 +4461,16 @@ class M3DFioPlugin(
 	
 				# Check if printer switched to G-code processing mode
 				if self._printer.is_closed_or_error() :
+				
+					 # Close connection
+                                        if self._printer._comm is not None :
+                                        
+                                                try :
+                                                        self._printer._comm.close(False, False)
+                                                except TypeError :
+                                                        pass
+                                        
+                                        self._printer.disconnect()
 	
 					# Re-connect to printer
 					self._printer.connect(currentPort, currentBaudrate, currentProfile)
@@ -7560,7 +7571,8 @@ class M3DFioPlugin(
 				break
 
 			# If printer has just power-cycled it may not yet be ready
-			except OSError :
+			except Exception :
+				connection = None
 				time.sleep(1)
 		
 		# Check if user lacks read/write access to the printer

@@ -7,6 +7,9 @@ V0.28 March X, 2016
 	* Manual section in slicer profile editor now allows changing the model thickness and top/bottom thickness. Thanks Muele!
 	* Printer settings can be saved and restored from a file. Thanks ra100!
 	* Added warning about needing to restart printer for changes to speed limits to take affect
+	* Added enabling/disabling wave bonding to the change settings before print dialog
+	* Added warning if trying to connect to a printer that you don't have read/write access to
+	* Improved reliability of connecting to printer when running on Windows
 
 V0.27.1 February 22, 2016
 
