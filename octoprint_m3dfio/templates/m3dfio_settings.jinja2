@@ -81,9 +81,9 @@
 	<div class="control-group">
 		<h4>Pre-Processor Stages</h4>
 		<div class="controls">
-			<label title="Adds in mid-print filament change commands at the starts of each specified layer. Layers numbers should be seperated by commas.">
+			<label title="Adds in mid-print filament change commands at the start of each specified layer. Layer numbers should be seperated by a space.">
 				<span class="noCheckbox">Mid-print filament change layers</span>
-				<input type="text" pattern="[\d\s,]*" class="input-block-level short" data-bind="value: settings.plugins.m3dfio.MidPrintFilamentChangeLayers">
+				<input type="text" pattern="[\d\s]*" class="input-block-level short" data-bind="value: settings.plugins.m3dfio.MidPrintFilamentChangeLayers">
 			</label>
 		</div>
 	</div>

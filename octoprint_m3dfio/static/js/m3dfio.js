@@ -3162,6 +3162,17 @@ $(function() {
 			});
 		}
 		
+		// Add mid-print filament change settings
+		$("#gcode div.progress").after(`
+			<div class="midPrintFilamentChange">
+				<h1>Mid-Print Filament Change</h1>
+				<label title="Mid-print filament change commands will be added at the start of each specified layer. Layer numbers should be seperated by a space.">Layers<input type="text" pattern="[\\d\\s]*" class="input-block-level"></label>
+				<button class="btn btn-block control-box" data-bind="enable: loginState.isUser() && enableReload">Add current layer</button>
+				<button class="btn btn-block control-box" data-bind="enable: loginState.isUser()">Clear all layers</button>
+				<button class="btn btn-block control-box" data-bind="enable: loginState.isUser()">Save</button>
+			</div>
+		`);
+		
 		// Add 0.01 movement control
 		$("#control > div.jog-panel").eq(0).addClass("controls").find("div.distance > div").prepend(`
 			<button type="button" id="control-distance001" class="btn distance" data-distance="0.01" data-bind="enable: loginState.isUser()">0.01</button>
@@ -3594,6 +3605,68 @@ $(function() {
 			$(this).mousemove();
 		});
 		
+		// Add mid-print filament change layer event
+		$("#gcode div.midPrintFilamentChange button").eq(0).click(function() {
+		
+			// Blue self
+			$(this).blur();
+		
+			// Initialzie variables
+			var currentLayer = $("#gcode div.tooltip div.tooltip-inner").eq(0).text().substr(7);
+			var currentValue = $("#gcode div.midPrintFilamentChange input").val();
+			var index = (' ' + currentValue + ' ').indexOf(' ' + currentLayer + ' ');
+			
+			// Update layers input
+			if(!$("#gcode div.midPrintFilamentChange input").val().length)
+				$("#gcode div.midPrintFilamentChange input").val(currentLayer);
+			else if(index === -1)
+				$("#gcode div.midPrintFilamentChange input").val(($("#gcode div.midPrintFilamentChange input").val().length ? $("#gcode div.midPrintFilamentChange input").val() + ' ' : '') + currentLayer);
+			else
+				$("#gcode div.midPrintFilamentChange input").val(((currentValue.substr(0, index) + currentValue.substr(index + currentLayer.length)).trim() + ' ' + currentLayer).trim().replace(/\s+/g, ' '));			
+		});
+		
+		// Clear all mid-print filament change layers event
+		$("#gcode div.midPrintFilamentChange button").eq(1).click(function() {
+		
+			// Blue self
+			$(this).blur();
+		
+			// Clear value
+			$("#gcode div.midPrintFilamentChange input").val('');
+		});
+		
+		// Save mid-print filament change layer event
+		$("#gcode div.midPrintFilamentChange button").eq(2).click(function() {
+		
+			// Blue self
+			$(this).blur();
+		
+			// Show message
+			showMessage("Saving Status", "Saving changes");
+			
+			setTimeout(function() {
+		
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m3dfio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({command: "message", value: "Mid-Print Filament Change Layers:" + $("#gcode div.midPrintFilamentChange input").val()}),
+					contentType: "application/json; charset=UTF-8",
+				
+					// On success
+					success: function() {
+					
+						// Hide message
+						hideMessage();
+				
+						// Update settings
+						self.settings.requestData();
+					}
+				});
+			}, 500);
+		});
+		
 		// Replace load file function
 		var originalLoadFile = self.files.loadFile;
 		self.files.loadFile = function(file, printAfterLoad) {
@@ -3623,7 +3696,7 @@ $(function() {
 						}),
 						contentType: "application/json; charset=UTF-8",
 					
-						// On success										
+						// On success								
 						success: function() {
 					
 							// Print file
@@ -3694,7 +3767,7 @@ $(function() {
 							}),
 							contentType: "application/json; charset=UTF-8",
 					
-							// On success										
+							// On success									
 							success: function() {
 					
 								// Print file
@@ -5614,7 +5687,7 @@ $(function() {
 									}),
 									contentType: "application/json; charset=UTF-8",
 
-									// On success										
+									// On success									
 									success: function() {
 									
 										// Slice file
@@ -5760,37 +5833,6 @@ $(function() {
 			}
 		}
 		
-		// Save settings button event
-		$("#settings_dialog > div.modal-footer > button.btn-primary").click(function() {
-		
-			// Saved settings
-			function savedSettings() {
-			
-				// Check if settings were saved
-				if(!$("#settings_dialog").hasClass("in")) {
-				
-					// Send request
-					$.ajax({
-						url: API_BASEURL + "plugin/m3dfio",
-						type: "POST",
-						dataType: "json",
-						data: JSON.stringify({command: "message", value: "Saved Settings"}),
-						contentType: "application/json; charset=UTF-8"
-					});
-					
-					// Update settings
-					self.settings.requestData();
-				}
-				
-				// Otherwise
-				else
-				
-					// Check if settings were saved again
-					setTimeout(savedSettings, 100);
-			}
-			savedSettings();
-		});
-	
 		// Override X increment control
 		$("#control #control-xinc").attr("title", "Increases extruder's X position by the specified amount").click(function(event) {
 	
@@ -6435,7 +6477,7 @@ $(function() {
 								data: JSON.stringify({command: "message", value: "Print Information"}),
 								contentType: "application/json; charset=UTF-8",
 					
-								// On success										
+								// On success									
 								success: function(data) {
 							
 									// Check if using a heatbed
@@ -7574,7 +7616,7 @@ $(function() {
 							}),
 							contentType: "application/json; charset=UTF-8",
 					
-							// On success										
+							// On success									
 							success: function() {
 					
 								// Print file
@@ -7660,7 +7702,7 @@ $(function() {
 							}),
 							contentType: "application/json; charset=UTF-8",
 					
-							// On success										
+							// On success									
 							success: function() {
 					
 								// Print file
@@ -9720,6 +9762,21 @@ $(function() {
 		// On startup complete
 		self.onStartupComplete = function() {
 		
+			// Set mid-print filament change layer input
+			$("#gcode div.midPrintFilamentChange input").val(self.settings.settings.plugins.m3dfio.MidPrintFilamentChangeLayers());
+		
+			// Check if printing or paused
+			if(self.printerState.isPrinting() === true || self.printerState.isPaused() === true)
+		
+				// Disable changing mid-print filement change layers
+				$("#gcode div.midPrintFilamentChange button").eq(2).addClass("disabled");
+		
+			// Otherwise
+			else
+		
+				// Enable changing mid-print filement change layers
+				$("#gcode div.midPrintFilamentChange button").eq(2).removeClass("disabled");
+		
 			// On server disconnect event
 			self.onServerDisconnect = function() {
 		
@@ -9772,6 +9829,53 @@ $(function() {
 					});
 				}
 			}
+		}
+		
+		// On settings hidden
+		self.onSettingsHidden = function() {
+		
+			// Send request
+			$.ajax({
+				url: API_BASEURL + "plugin/m3dfio",
+				type: "POST",
+				dataType: "json",
+				data: JSON.stringify({command: "message", value: "Saved Settings"}),
+				contentType: "application/json; charset=UTF-8"
+			});
+			
+			// Update values
+			function updateValues() {
+
+				// Update mid-print filament change layer input
+				$("#gcode div.midPrintFilamentChange input").val(self.settings.settings.plugins.m3dfio.MidPrintFilamentChangeLayers());
+			}
+
+			// Update settings
+			if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
+				self.settings.requestData(updateValues);
+			else
+				self.settings.requestData().done(updateValues);
+		}
+		
+		// On print started event
+		self.onEventPrintStarted = function(payload) {
+		
+			// Disable changing mid-print filement change layers
+			$("#gcode div.midPrintFilamentChange button").eq(2).addClass("disabled");
+		}
+		
+		// On print started event
+		self.onEventPrintFailed = function(payload) {
+		
+			// Enable changing mid-print filement change layers
+			$("#gcode div.midPrintFilamentChange button").eq(2).removeClass("disabled");
+		}
+		
+		// On print done event
+		self.onEventPrintDone = function(payload) {
+		
+			// Enable changing mid-print filement change layers
+			$("#gcode div.midPrintFilamentChange button").eq(2).removeClass("disabled");
 		}
 	}
 

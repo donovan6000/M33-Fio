@@ -7,6 +7,45 @@
 	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
+#gcode div.midPrintFilamentChange h1 {
+	text-align: center;
+}
+
+#gcode div.midPrintFilamentChange label {
+	display: inline;
+}
+
+#gcode div.midPrintFilamentChange label input {
+	display: inline;
+	width: calc(100% - 200px);
+	position: relative;
+	top: 4px;
+	margin-left: 5px;
+}
+
+#gcode div.midPrintFilamentChange button:first-of-type {
+	display: inline;
+	width: 140px;
+	position: relative;
+	top: -1px;
+}
+
+#gcode div.midPrintFilamentChange button:nth-of-type(2) {
+	float: left;
+	width: 30%;
+	margin-left: 70px;
+}
+
+#gcode div.midPrintFilamentChange button:nth-of-type(3) {
+	float: right;
+	width: 30%;
+	margin-right: 70px;
+}
+
+#gcode div.midPrintFilamentChange button.disabled {
+	pointer-events: none;
+}
+
 #settings_plugin_m3dfio h4:not(:first-of-type) {
 	margin-top: -5px;
 }

@@ -2139,6 +2139,15 @@ class M3DFioPlugin(
 				# Return response
 				return flask.jsonify(dict(value = "OK"))
 			
+			# Otherwise check if parameter is to set mid-print filament change layers
+			elif data["value"].startswith("Mid-Print Filament Change Layers:") :
+				
+				# Set mid-print filament change layers
+				self._settings.set(["MidPrintFilamentChangeLayers"], data["value"][33 :])
+				
+				# Save settings
+				octoprint.settings.settings().save()
+			
 			# Otherwise check if parameter is emergency stop
 			elif data["value"] == "Emergency Stop" :
 			
