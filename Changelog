@@ -1,6 +1,6 @@
 Changelog:
 
-V0.28 March X, 2016
+V0.28 March 2, 2016
 
 	* Implemented mid-print filement change pre-processor and button. Thanks drschlaumeier!
 	* Section in the control tab can now be expanded and hidden. Thanks TonyH!
@@ -10,6 +10,7 @@ V0.28 March X, 2016
 	* Added enabling/disabling wave bonding to the change settings before print dialog
 	* Added warning if trying to connect to a printer that you don't have read/write access to
 	* Improved reliability of connecting to printer when running on Windows
+	* Added purple printer color
 
 V0.27.1 February 22, 2016
 

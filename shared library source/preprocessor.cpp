@@ -62,7 +62,7 @@ enum printTiers {LOW, MEDIUM, HIGH};
 enum preprocessorStages {NONE, INPUT, MID_PRINT, CENTER, VALIDATION, PREPARATION, WAVE, THERMAL, BED, BACKLASH};
 
 // Printer colors
-enum printerColors {BLACK, WHITE, BLUE, GREEN, ORANGE, CLEAR, SILVER};
+enum printerColors {BLACK, WHITE, BLUE, GREEN, ORANGE, CLEAR, SILVER, PURPLE};
 
 
 // Classes
@@ -675,6 +675,8 @@ EXPORT void setPrinterColor(const char *value) {
 		printerColor = CLEAR;
 	else if(!strcmp(value, "Silver"))
 		printerColor = SILVER;
+	else if(!strcmp(value, "Purple"))
+		printerColor = PURPLE;
 	else
 		printerColor = BLACK;
 }

@@ -1907,7 +1907,7 @@ class M3DFioPlugin(
 				if "FilamentType" in printerSettings :
 					self._settings.set(["FilamentType"], str(printerSettings["FilamentType"]))
 				
-				if "PrinterColor" in printerSettings :
+				if "PrinterColor" in printerSettings and (str(printerSettings["PrinterColor"]) == "Black" or str(printerSettings["PrinterColor"]) == "White" or str(printerSettings["PrinterColor"]) == "Blue" or str(printerSettings["PrinterColor"]) == "Green" or str(printerSettings["PrinterColor"]) == "Orange" or str(printerSettings["PrinterColor"]) == "Clear" or str(printerSettings["PrinterColor"]) == "Silver" or str(printerSettings["PrinterColor"]) == "Purple") :
 					self._settings.set(["PrinterColor"], str(printerSettings["PrinterColor"]))
 				
 				if "FilamentColor" in printerSettings :
@@ -2094,7 +2094,7 @@ class M3DFioPlugin(
 				color = data["value"][19 :]
 				
 				# Check if color is valid
-				if color == "Black" or color == "White" or color == "Blue" or color == "Green" or color == "Orange" or color == "Clear" or color == "Silver" :
+				if color == "Black" or color == "White" or color == "Blue" or color == "Green" or color == "Orange" or color == "Clear" or color == "Silver" or color == "Purple" :
 				
 					# Set setting
 					self._settings.set(["PrinterColor"], color)
@@ -4046,6 +4046,9 @@ class M3DFioPlugin(
 						elif color == "SL" :
 							self.printerColor = "Silver"
 							self._settings.set(["PrinterColor"], "Silver")
+						elif color == "PL" :
+							self.printerColor = "Purple"
+							self._settings.set(["PrinterColor"], "Purple")
 					
 						# Get fan type from EEPROM
 						fanType = int(ord(self.eeprom[self.eepromOffsets["fanType"]["offset"]]))

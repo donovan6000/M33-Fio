@@ -112,6 +112,13 @@ $(function() {
 				specular: 0x050505,
 				shininess: 80,
 				side: THREE.DoubleSide
+			}),
+			
+			Purple: new THREE.MeshPhongMaterial({
+				color: 0x580085,
+				specular: 0x050505,
+				shininess: 80,
+				side: THREE.DoubleSide
 			})
 		};
 		
@@ -5050,6 +5057,7 @@ $(function() {
 																		<button data-color="Orange" title="Orange"><img src="/plugin/m3dfio/static/img/orange.png"></button>
 																		<button data-color="Clear" title="Clear"><img src="/plugin/m3dfio/static/img/clear.png"></button>
 																		<button data-color="Silver" title="Silver"><img src="/plugin/m3dfio/static/img/silver.png"></button>
+																		<button data-color="Purple" title="Purple"><img src="/plugin/m3dfio/static/img/purple.png"></button>
 																	</div>
 																	<div class="filament">
 																		<button data-color="White" title="White"><span style="background-color: #F4F3E9;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
