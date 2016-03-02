@@ -2,6 +2,50 @@
 	background-image: url("/plugin/m3dfio/static/img/graph%20background.png")
 }
 
+#job_pause.active {
+	background-image: linear-gradient(to bottom, #FFF, #E6E6E6);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+#gcode div.midPrintFilamentChange h1 {
+	text-align: center;
+}
+
+#gcode div.midPrintFilamentChange label {
+	display: inline;
+}
+
+#gcode div.midPrintFilamentChange label input {
+	display: inline;
+	width: calc(100% - 200px);
+	position: relative;
+	top: 4px;
+	margin-left: 5px;
+}
+
+#gcode div.midPrintFilamentChange button:first-of-type {
+	display: inline;
+	width: 140px;
+	position: relative;
+	top: -1px;
+}
+
+#gcode div.midPrintFilamentChange button:nth-of-type(2) {
+	float: left;
+	width: 30%;
+	margin-left: 70px;
+}
+
+#gcode div.midPrintFilamentChange button:nth-of-type(3) {
+	float: right;
+	width: 30%;
+	margin-right: 70px;
+}
+
+#gcode div.midPrintFilamentChange button.disabled {
+	pointer-events: none;
+}
+
 #settings_plugin_m3dfio h4:not(:first-of-type) {
 	margin-top: -5px;
 }
@@ -11,9 +55,20 @@
 	top: -1px;
 }
 
+#settings_plugin_m3dfio h4 > span {
+	top: -10px !important;
+	left: calc(50% + 50px);
+	transform: translateX(-50%);
+}
+
 #settings_plugin_m3dfio label.checkbox {
 	margin-top: -15px;
 	width: calc(100% - 24px);
+}
+
+#settings_plugin_m3dfio label > span.noCheckbox {
+	position: relative;
+	top: 10px;
 }
 
 #settings_plugin_m3dfio label.checkbox:first-of-type {
@@ -104,7 +159,7 @@
 	top: 1px;
 }
 
-#control div.jog-panel.extruder > div > div:first-of-type, #control div.jog-panel.extruder > div > div:nth-of-type(3), #control div.jog-panel.extruder > div > button:nth-of-type(3), #control div.jog-panel.controls > div:nth-of-type(4), #control div.jog-panel.controls > button:first-of-type {
+#control div.jog-panel.extruder > div > div:first-of-type, #control div.jog-panel.extruder > div > div:nth-of-type(3), #control div.jog-panel.extruder > div > button:nth-of-type(3), #control div.jog-panel.controls > div > div:nth-of-type(4), #control div.jog-panel.controls > div > button:first-of-type {
 	display: none !important;
 }
 
@@ -116,13 +171,13 @@
 	font-size: 14px;
 	width: 80%;
 	height: 30px;
-	margin: -10px auto 0 auto;
+	margin: -10px auto 10px auto;
 	position: relative;
-	top: -5px;
 }
 
 #control div.jog-panel h1.heatbed:nth-of-type(2) {
 	margin-top: -15px;
+	margin-bottom: 0px;
 	top: -10px;
 }
 
@@ -136,7 +191,7 @@
 }
 
 #control div.jog-panel.extruder > div div.slider {
-	width: 134px !important;
+	width: 124px !important;
 	position: relative;
 	right: 2px;
 }
@@ -153,12 +208,16 @@
 	clear: left;
 }
 
+#control div.jog-panel.filament button {
+	width: 125px;
+}
+
 #control div.jog-panel.calibration button {
 	width: 180px;
 	float: left;
 }
 
-#control div.jog-panel.calibration button:first-of-type, #control div.jog-panel.calibration button:nth-of-type(2), #control div.jog-panel.calibration button:nth-of-type(11), #control div.jog-panel.calibration button:nth-of-type(12), #control div.jog-panel.calibration button:nth-of-type(13), #control div.jog-panel.calibration button:nth-of-type(14) {
+#control div.jog-panel.calibration button:first-of-type, #control div.jog-panel.calibration button:nth-of-type(2), #control div.jog-panel.calibration button:nth-of-type(11), #control div.jog-panel.calibration button:nth-of-type(12), #control div.jog-panel.calibration button:nth-of-type(13), #control div.jog-panel.calibration button:nth-of-type(14), #control div.jog-panel.calibration button:nth-of-type(15), #control div.jog-panel.calibration button:nth-of-type(16) {
 	width: 230px;
 	clear: both;
 }
@@ -215,7 +274,7 @@
 	left: -8px;
 }
 
-#control div.jog-panel.advanced input {
+#control div.jog-panel.calibration input, #control div.jog-panel.advanced input {
 	display: none;
 }
 
@@ -308,7 +367,7 @@
 
 #control button.current:not(:disabled) {
 	border-color: rgba(82, 168, 236, 0.8);
-	box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
+	box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), inset 0 0 8px rgba(82, 168, 236, 0.6);
 }
 
 body > div.page-container > div.message {
@@ -390,7 +449,7 @@ body > div.page-container > div.message > div > div > div:not(.calibrate) > butt
 	margin:0 1px 0 0;
 }
 
-body > div.page-container > div.message > div > div > div.calibrate, body > div.page-container > div.message > div > div > div.printSettings {
+body > div.page-container > div.message > div > div > div.calibrate, body > div.page-container > div.message > div > div > div.printSettings, body > div.page-container > div.message > div > div > div.filamentSettings {
 	visibility: hidden;
 	position: relative;
 	top: -2px;
@@ -425,7 +484,7 @@ body > div.page-container > div.message > div > div > div.calibrate > div.distan
 	border-radius: 0 4px 4px 0;
 }
 
-body > div.page-container > div.message > div > div > div.printSettings {
+body > div.page-container > div.message > div > div > div.printSettings, body > div.page-container > div.message > div > div > div.filamentSettings {
 	width: 100%;
 	display: block;
 	right: auto;
@@ -435,7 +494,7 @@ body > div.page-container > div.message > div > div > div.printSettings {
 	top: 4px;
 }
 
-body > div.page-container > div.message > div > div > div.printSettings h3 {
+body > div.page-container > div.message > div > div > div.printSettings h3, body > div.page-container > div.message > div > div > div.filamentSettings h3 {
 	text-align: center;
 	font-size: 20px;
 	margin: 0;
@@ -445,25 +504,39 @@ body > div.page-container > div.message > div > div > div.printSettings h3 {
 	top: -14px;
 }
 
-body > div.page-container > div.message > div > div > div.printSettings label, body > div.page-container > div.message > div > div > div.printSettings div.controls {
+body > div.page-container > div.message > div > div > div.printSettings label, body > div.page-container > div.message > div > div > div.printSettings div.controls, body > div.page-container > div.message > div > div > div.filamentSettings label, body > div.page-container > div.message > div > div > div.filamentSettings div.controls {
 	display: inline-block;
 }
 
-body > div.page-container > div.message > div > div > div.printSettings label {
+body > div.page-container > div.message > div > div > div.printSettings label, body > div.page-container > div.message > div > div > div.filamentSettings label {
 	cursor: default;
 }
 
-body > div.page-container > div.message > div > div > div.printSettings input, body > div.page-container > div.message > div > div > div.printSettings input + span {
+body > div.page-container > div.message > div > div > div.printSettings input, body > div.page-container > div.message > div > div > div.printSettings input + span, body > div.page-container > div.message > div > div > div.filamentSettings input, body > div.page-container > div.message > div > div > div.filamentSettings input + span {
 	position: relative;
 	top: -10px;
 }
 
-body > div.page-container > div.message > div > div > div.printSettings input {
+body > div.page-container > div.message > div > div > div.printSettings input, body > div.page-container > div.message > div > div > div.filamentSettings input {
 	width: 145px;
 }
 
-body > div.page-container > div.message > div > div > div.printSettings div.heatbed input {
+body > div.page-container > div.message > div > div > div.printSettings div.heatbed input, body > div.page-container > div.message > div > div > div.filamentSettings div.heatbed input {
 	width: 146px;
+}
+
+body > div.page-container > div.message > div > div > div.printSettings label[title] {
+	cursor: pointer;
+	min-height: auto;
+	height: 10px;
+	margin-bottom: 0px;
+}
+
+body > div.page-container > div.message > div > div > div.printSettings input[type="checkbox"] {
+	width: 13px;
+	height: 30px;
+	position: relative;
+	top: -18px;
 }
 
 body > div.page-container > div.message > div > div > span {
@@ -491,8 +564,8 @@ body > div.page-container > div.message > div > div > span.show {
 }
 
 #slicing_configuration_dialog.profile {
-	max-width: 730px !important;
-	min-width: 630px !important;
+	max-width: 830px !important;
+	min-width: 720px !important;
 	overflow: visible !important;
 }
 
@@ -1043,6 +1116,55 @@ body > div.page-container > div.message > div > div > span.show {
 	background-image: none !important;
 	background-color: #e6e6e6 !important;
 	box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+}
+
+#control > div.jog-panel {
+	position: relative;
+	transition: height 0.3s ease-out;
+}
+
+#control > div.jog-panel > h1 {
+	cursor: default;
+}
+
+#control > div.jog-panel > img {
+	width: 20px;
+	height: 20px;
+	position: absolute;
+	bottom: -14px;
+	left: calc(50% - 10px);
+	cursor: pointer;
+	z-index: 1;
+	transition: bottom 0.3s ease-out;
+}
+
+#control > div.jog-panel.closed > img {
+	bottom: -6px;
+}
+
+#control > div.jog-panel > div {
+	transition: height 0.3s ease-out;
+	overflow: hidden;
+}
+
+#control div.jog-panel.controls > div > div.jog-panel:first-of-type {
+	margin-right: 40px !important;
+}
+
+#control > div.jog-panel.controls > div h1 {
+	font-size: 14px;
+	margin-top: -10px;
+	position: relative;
+	right: 4px;
+}
+
+#control > div.jog-panel.closed > div {
+	height: 0px;
+	pointer-events: none;
+}
+
+#control {
+	padding-bottom: 10px;
 }
 
 .noTransition {

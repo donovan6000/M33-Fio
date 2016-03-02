@@ -81,6 +81,14 @@
 	<div class="control-group">
 		<h4>Pre-Processor Stages</h4>
 		<div class="controls">
+			<label title="Adds in mid-print filament change commands at the start of each specified layer. Layer numbers should be seperated by a space.">
+				<span class="noCheckbox">Mid-print filament change layers</span>
+				<input type="text" pattern="[\d\s]*" class="input-block-level short" data-bind="value: settings.plugins.m3dfio.MidPrintFilamentChangeLayers">
+			</label>
+		</div>
+	</div>
+	<div class="control-group">
+		<div class="controls">
 			<label class="checkbox" title="Positions the printed object in the middle of the print bed. If possible, the centered model will be repositioned if it goes out of bounds.">
 				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.UseCenterModelPreprocessor"><span>Center Model</span>
 			</label>
@@ -123,9 +131,10 @@
 	</div>
 	<div class="control-group dependant">
 		<div class="controls">
-			<label class="checkbox" title="Turns on an external fan at the start of the 4th layer and turns it off when the print is done">
-				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.UseExternalFan"><span>Use external fan</span>
-				<input type="number" step="1" min="0" max="99" class="input-block-level short" data-bind="value: settings.plugins.m3dfio.ExternalFanPin" placeholder="GPIO pin number">
+			<label class="checkbox" title="Sets a GPIO pin high at the start of the specified layer and sets it low when the print is done">
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.UseGpio"><span>Use GPIO</span>
+				<input type="number" step="1" min="0" max="99" class="input-block-level short" data-bind="value: settings.plugins.m3dfio.GpioPin" placeholder="GPIO pin number">
+				<input type="number" step="1" min="0" max="5000" class="input-block-level short" data-bind="value: settings.plugins.m3dfio.GpioLayer" placeholder="GPIO start layer">
 			</label>
 		</div>
 	</div>
@@ -308,6 +317,7 @@
 		</div>
 	</div>
 	<div class="control-group">
+		<h4><span class="label label-important">Changes to speed limits require restarting the printer to take effect</span></h4>
 		<label class="control-label">Speed Limit X</label>
 		<div class="controls">
 			<div class="input-append mmPerMinute">

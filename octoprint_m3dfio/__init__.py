@@ -41,6 +41,7 @@ import socket
 import threading
 import BaseHTTPServer
 import SocketServer
+import yaml
 from .gcode import Gcode
 from .vector import Vector
 
@@ -404,9 +405,15 @@ class M3DFioPlugin(
 	
 		# General settings
 		self.preprocessOnTheFlyReady = False
+		self.currentHighestZ = -1
+		self.onNewLayer = False
 		
 		# Print settings
 		self.resetPrintSettings()
+		
+		# Mid-print filament change pre-processor settings
+		self.midPrintFilamentChangeLayerCounter = 0
+		self.midPrintFilamentChangeLayers = []
 		
 		# Center model pre-processor settings
 		self.displacementX = 0
@@ -857,9 +864,24 @@ class M3DFioPlugin(
 		if self.sharedLibrary :
 		
 			# Set output types of shared library functions
+			self.sharedLibrary.getMaxXExtruderLow.restype = ctypes.c_double
+			self.sharedLibrary.getMaxXExtruderMedium.restype = ctypes.c_double
+			self.sharedLibrary.getMaxXExtruderHigh.restype = ctypes.c_double
+			self.sharedLibrary.getMaxYExtruderLow.restype = ctypes.c_double
+			self.sharedLibrary.getMaxYExtruderMedium.restype = ctypes.c_double
+			self.sharedLibrary.getMaxYExtruderHigh.restype = ctypes.c_double
+			self.sharedLibrary.getMaxZExtruder.restype = ctypes.c_double
+			self.sharedLibrary.getMinXExtruderLow.restype = ctypes.c_double
+			self.sharedLibrary.getMinXExtruderMedium.restype = ctypes.c_double
+			self.sharedLibrary.getMinXExtruderHigh.restype = ctypes.c_double
+			self.sharedLibrary.getMinYExtruderLow.restype = ctypes.c_double
+			self.sharedLibrary.getMinYExtruderMedium.restype = ctypes.c_double
+			self.sharedLibrary.getMinYExtruderHigh.restype = ctypes.c_double
+			self.sharedLibrary.getMinZExtruder.restype = ctypes.c_double
 			self.sharedLibrary.collectPrintInformation.restype = ctypes.c_bool
 	  		self.sharedLibrary.preprocess.restype = ctypes.c_char_p
 	  		self.sharedLibrary.getDetectedFanSpeed.restype = ctypes.c_ubyte
+	  		self.sharedLibrary.getDetectedMidPrintFilamentChange.restype = ctypes.c_bool
 	  		self.sharedLibrary.getObjectSuccessfullyCentered.restype = ctypes.c_bool
 	    	
 	    	# Enable printer callbacks if using a Micro 3D printer
@@ -1154,15 +1176,17 @@ class M3DFioPlugin(
 			CalibrateBeforePrint = False,
 			RemoveFanCommands = True,
 			RemoveTemperatureCommands = True,
-			UseExternalFan = False,
-			ExternalFanPin = None,
+			UseGpio = False,
+			GpioPin = None,
+			GpioLayer = None,
 			HeatbedTemperature = 70,
 			HeatbedHeight = 10.0,
 			HostCamera = False,
 			CameraPort = None,
 			CameraWidth = 640,
 			CameraHeight = 480,
-			CameraFramesPerSecond = 20
+			CameraFramesPerSecond = 20,
+			MidPrintFilamentChangeLayers = ''
 		)
 	
 	# On settings save
@@ -1173,6 +1197,12 @@ class M3DFioPlugin(
 		
 		# Save settings
 		octoprint.plugin.SettingsPlugin.on_settings_save(self, data)
+		
+		# Send message for enabling/disabling GPIO
+		if self._settings.get_boolean(["UseGpio"]) and self._settings.get_int(["GpioPin"]) is not None and self._settings.get_int(["GpioLayer"]) is not None :
+			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Enable GPIO"))
+		else :
+			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Disable GPIO"))
 		
 		# Get new host camera settings
 		newHostCamera = self._settings.get_boolean(["HostCamera"])
@@ -1265,8 +1295,8 @@ class M3DFioPlugin(
 				if data["value"][-1] == "M65536;wait" :
 					self.waiting = True
 				
-				# Check if not using line numbers, printing, or paused
-				if noLineNumber or self._printer.is_printing() or self._printer.is_paused() :
+				# Check if not using line numbers or printing
+				if noLineNumber or self._printer.is_printing() :
 				
 					# Send commands to printer
 					self.sendCommands(data["value"])
@@ -1499,12 +1529,40 @@ class M3DFioPlugin(
 						self.sharedLibrary.setCalibrateBeforePrint(ctypes.c_bool(self._settings.get_boolean(["CalibrateBeforePrint"])))
 						self.sharedLibrary.setRemoveFanCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveFanCommands"])))
 						self.sharedLibrary.setRemoveTemperatureCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveTemperatureCommands"])))
-						self.sharedLibrary.setUseExternalFan(ctypes.c_bool(self._settings.get_boolean(["UseExternalFan"])))
+						self.sharedLibrary.setUseGpio(ctypes.c_bool(self._settings.get_boolean(["UseGpio"])))
+						if self._settings.get_int(["GpioLayer"]) is not None :
+							self.sharedLibrary.setGpioLayer(ctypes.c_ushort(self._settings.get_int(["GpioLayer"])))
 						self.sharedLibrary.setHeatbedTemperature(ctypes.c_ushort(self._settings.get_int(["HeatbedTemperature"])))
 						self.sharedLibrary.setHeatbedHeight(ctypes.c_double(self._settings.get_float(["HeatbedHeight"])))
+						self.sharedLibrary.setMidPrintFilamentChangeLayers(ctypes.c_char_p(' '.join(re.findall("\\d+", str(self._settings.get(["MidPrintFilamentChangeLayers"]))))))
 									
 						# Collect print information
 						self.sharedLibrary.collectPrintInformation(ctypes.c_char_p(location))
+						
+						# Get extruder min and max movements
+						self.maxXExtruderLow = self.sharedLibrary.getMaxXExtruderLow()
+						self.maxXExtruderMedium = self.sharedLibrary.getMaxXExtruderMedium()
+						self.maxXExtruderHigh = self.sharedLibrary.getMaxXExtruderHigh()
+						self.maxYExtruderLow = self.sharedLibrary.getMaxYExtruderLow()
+						self.maxYExtruderMedium = self.sharedLibrary.getMaxYExtruderMedium()
+						self.maxYExtruderHigh = self.sharedLibrary.getMaxYExtruderHigh()
+						self.maxZExtruder = self.sharedLibrary.getMaxZExtruder()
+						self.minXExtruderLow = self.sharedLibrary.getMinXExtruderLow()
+						self.minXExtruderMedium = self.sharedLibrary.getMinXExtruderMedium()
+						self.minXExtruderHigh = self.sharedLibrary.getMinXExtruderHigh()
+						self.minYExtruderLow = self.sharedLibrary.getMinYExtruderLow()
+						self.minYExtruderMedium = self.sharedLibrary.getMinYExtruderMedium()
+						self.minYExtruderHigh = self.sharedLibrary.getMinYExtruderHigh()
+						self.minZExtruder = self.sharedLibrary.getMinZExtruder()
+						
+						# Get detected fan speed
+						self.detectedFanSpeed = self.sharedLibrary.getDetectedFanSpeed()
+						
+						# Get detected mid-print filament change
+						self.detectedMidPrintFilamentChange = self.sharedLibrary.getDetectedMidPrintFilamentChange()
+					
+						# Get object successfully centered
+						self.objectSuccessfullyCentered = self.sharedLibrary.getObjectSuccessfullyCentered()
 					
 						# Pre-process file and moved to destination
 						self.sharedLibrary.preprocess(ctypes.c_char_p(location), ctypes.c_char_p(destination), ctypes.c_bool(False))
@@ -1683,8 +1741,8 @@ class M3DFioPlugin(
 			# Otherwise check if parameter is to saved settings
 			elif data["value"] == "Saved Settings" :
 			
-				# Check if a micro 3D is connected and not printing or paused
-				if not self.invalidPrinter and not self._printer.is_printing() and not self._printer.is_paused() :
+				# Check if a Micro 3D is connected and not printing
+				if not self.invalidPrinter and not self._printer.is_printing() :
 				
 					# Save settings to the printer
 					self.sendCommands(self.getSaveCommands())
@@ -1734,7 +1792,7 @@ class M3DFioPlugin(
 					return flask.jsonify(dict(value = "Error"))
 				
 				# Set file's destination
-				destinationName = "profile_" + str(random.randint(0, 1000000)) +  values["slicerProfileName"]
+				destinationName = "profile_" + str(random.randint(0, 1000000)) + values["slicerProfileName"]
 				fileDestination = self.get_plugin_data_folder().replace('\\', '/') + '/' + destinationName
 				
 				# Remove file in destination if it already exists
@@ -1752,6 +1810,135 @@ class M3DFioPlugin(
 				
 				# Return location
 				return flask.jsonify(dict(value = "OK", path = "/plugin/m3dfio/download/" + destinationName))
+			
+			# Otherwise check if parameter is to get printer settings
+			elif data["value"] == "Get Printer Settings" :
+			
+				# Get printer settings
+				printerSettings = dict(
+					BacklashX = self._settings.get_float(["BacklashX"]),
+					BacklashY = self._settings.get_float(["BacklashY"]),
+					BackLeftOrientation = self._settings.get_float(["BackLeftOrientation"]),
+					BackRightOrientation = self._settings.get_float(["BackRightOrientation"]),
+					FrontRightOrientation = self._settings.get_float(["FrontRightOrientation"]),
+					FrontLeftOrientation = self._settings.get_float(["FrontLeftOrientation"]),
+					BacklashSpeed = self._settings.get_float(["BacklashSpeed"]),
+					BackLeftOffset = self._settings.get_float(["BackLeftOffset"]),
+					BackRightOffset = self._settings.get_float(["BackRightOffset"]),
+					FrontRightOffset = self._settings.get_float(["FrontRightOffset"]),
+					FrontLeftOffset = self._settings.get_float(["FrontLeftOffset"]),
+					BedHeightOffset = self._settings.get_float(["BedHeightOffset"]),
+					FilamentTemperature = self._settings.get_int(["FilamentTemperature"]),
+					FilamentType = str(self._settings.get(["FilamentType"])),
+					PrinterColor = str(self._settings.get(["PrinterColor"])),
+					FilamentColor = str(self._settings.get(["FilamentColor"])),
+					SpeedLimitX = self._settings.get_float(["SpeedLimitX"]),
+					SpeedLimitY = self._settings.get_float(["SpeedLimitY"]),
+					SpeedLimitZ = self._settings.get_float(["SpeedLimitZ"]),
+					SpeedLimitEPositive = self._settings.get_float(["SpeedLimitEPositive"]),
+					SpeedLimitENegative = self._settings.get_float(["SpeedLimitENegative"])
+				)
+				
+				# Set file's destination
+				destinationName = "printer_settings_" + str(random.randint(0, 1000000)) + ".yaml"
+				fileDestination = self.get_plugin_data_folder().replace('\\', '/') + '/' + destinationName
+				
+				# Remove file in destination if it already exists
+				if os.path.isfile(fileDestination) :
+					os.remove(fileDestination)
+				
+				# Write printer settings to file
+				output = open(fileDestination, "wb")
+    				output.write(yaml.dump(printerSettings, default_flow_style = True))
+    				output.close()
+    				
+    				# Return location
+				return flask.jsonify(dict(value = "OK", path = "/plugin/m3dfio/download/" + destinationName))
+			
+			# Otherwise check if parameter is to set printer settings
+			elif data["value"].startswith("Set Printer Settings:") :
+			
+				# Get printer settings
+				try :
+					printerSettings = yaml.load(data["value"][21 :])
+				except Exception :
+					return flask.jsonify(dict(value = "Error"))
+				
+				# Save printer settings
+				if "BacklashX" in printerSettings :
+					self._settings.set_float(["BacklashX"], float(printerSettings["BacklashX"]))
+				
+				if "BacklashY" in printerSettings :
+					self._settings.set_float(["BacklashY"], float(printerSettings["BacklashY"]))
+				
+				if "BackLeftOrientation" in printerSettings :
+					self._settings.set_float(["BackLeftOrientation"], float(printerSettings["BackLeftOrientation"]))
+				
+				if "BackRightOrientation" in printerSettings :
+					self._settings.set_float(["BackRightOrientation"], float(printerSettings["BackRightOrientation"]))
+				
+				if "FrontRightOrientation" in printerSettings :
+					self._settings.set_float(["FrontRightOrientation"], float(printerSettings["FrontRightOrientation"]))
+				
+				if "FrontLeftOrientation" in printerSettings :
+					self._settings.set_float(["FrontLeftOrientation"], float(printerSettings["FrontLeftOrientation"]))
+				
+				if "BacklashSpeed" in printerSettings :
+					self._settings.set_float(["BacklashSpeed"], float(printerSettings["BacklashSpeed"]))
+				
+				if "BackLeftOffset" in printerSettings :
+					self._settings.set_float(["BackLeftOffset"], float(printerSettings["BackLeftOffset"]))
+				
+				if "BackRightOffset" in printerSettings :
+					self._settings.set_float(["BackRightOffset"], float(printerSettings["BackRightOffset"]))
+				
+				if "FrontRightOffset" in printerSettings :
+					self._settings.set_float(["FrontRightOffset"], float(printerSettings["FrontRightOffset"]))
+				
+				if "FrontLeftOffset" in printerSettings :
+					self._settings.set_float(["FrontLeftOffset"], float(printerSettings["FrontLeftOffset"]))
+				
+				if "BedHeightOffset" in printerSettings :
+					self._settings.set_float(["BedHeightOffset"], float(printerSettings["BedHeightOffset"]))
+				
+				if "FilamentTemperature" in printerSettings :
+					self._settings.set_int(["FilamentTemperature"], int(printerSettings["FilamentTemperature"]))
+				
+				if "FilamentType" in printerSettings :
+					self._settings.set(["FilamentType"], str(printerSettings["FilamentType"]))
+				
+				if "PrinterColor" in printerSettings and (str(printerSettings["PrinterColor"]) == "Black" or str(printerSettings["PrinterColor"]) == "White" or str(printerSettings["PrinterColor"]) == "Blue" or str(printerSettings["PrinterColor"]) == "Green" or str(printerSettings["PrinterColor"]) == "Orange" or str(printerSettings["PrinterColor"]) == "Clear" or str(printerSettings["PrinterColor"]) == "Silver" or str(printerSettings["PrinterColor"]) == "Purple") :
+					self._settings.set(["PrinterColor"], str(printerSettings["PrinterColor"]))
+				
+				if "FilamentColor" in printerSettings :
+					self._settings.set(["FilamentColor"], str(printerSettings["FilamentColor"]))
+				
+				if "SpeedLimitX" in printerSettings :
+					self._settings.set_float(["SpeedLimitX"], float(printerSettings["SpeedLimitX"]))
+				
+				if "SpeedLimitY" in printerSettings :
+					self._settings.set_float(["SpeedLimitY"], float(printerSettings["SpeedLimitY"]))
+				
+				if "SpeedLimitZ" in printerSettings :
+					self._settings.set_float(["SpeedLimitZ"], float(printerSettings["SpeedLimitZ"]))
+				
+				if "SpeedLimitEPositive" in printerSettings :
+					self._settings.set_float(["SpeedLimitEPositive"], float(printerSettings["SpeedLimitEPositive"]))
+				
+				if "SpeedLimitENegative" in printerSettings :
+					self._settings.set_float(["SpeedLimitENegative"], float(printerSettings["SpeedLimitENegative"]))
+				
+				# Check if a Micro 3D is connected and not printing
+				if not self.invalidPrinter and not self._printer.is_printing() :
+				
+					# Save settings to the printer
+					self.sendCommands(self.getSaveCommands())
+				
+				# Save software settings
+				octoprint.settings.settings().save()
+				
+				# Send response
+				return flask.jsonify(dict(value = "OK"))
 			
 			# Otherwise check if parameter is to remove temporary files
 			elif data["value"] == "Remove Temp" :
@@ -1907,7 +2094,7 @@ class M3DFioPlugin(
 				color = data["value"][19 :]
 				
 				# Check if color is valid
-				if color == "Black" or color == "White" or color == "Blue" or color == "Green" or color == "Orange" or color == "Clear" or color == "Silver" :
+				if color == "Black" or color == "White" or color == "Blue" or color == "Green" or color == "Orange" or color == "Clear" or color == "Silver" or color == "Purple" :
 				
 					# Set setting
 					self._settings.set(["PrinterColor"], color)
@@ -1946,12 +2133,22 @@ class M3DFioPlugin(
 				self._settings.set_int(["FilamentTemperature"], int(values["filamentTemperature"]))
 				self._settings.set_int(["HeatbedTemperature"], int(values["heatbedTemperature"]))
 				self._settings.set(["FilamentType"], str(values["filamentType"]))
+				self._settings.set_boolean(["UseWaveBondingPreprocessor"], bool(values["useWaveBondingPreprocessor"]))
 				
 				# Save settings
 				octoprint.settings.settings().save()
 				
 				# Return response
 				return flask.jsonify(dict(value = "OK"))
+			
+			# Otherwise check if parameter is to set mid-print filament change layers
+			elif data["value"].startswith("Mid-Print Filament Change Layers:") :
+				
+				# Set mid-print filament change layers
+				self._settings.set(["MidPrintFilamentChangeLayers"], data["value"][33 :])
+				
+				# Save settings
+				octoprint.settings.settings().save()
 			
 			# Otherwise check if parameter is emergency stop
 			elif data["value"] == "Emergency Stop" :
@@ -1971,6 +2168,12 @@ class M3DFioPlugin(
 			# Otherwise check if parameter is ping
 			elif data["value"] == "Ping" :
 			
+				# Check if paused
+				if self._printer.is_paused() :
+				
+					# Send command to keep printer from being inactive for too long
+					self._printer.commands("G4")
+				
 				# Return response
 				return flask.jsonify(dict(value = "OK"))
 			
@@ -1987,6 +2190,24 @@ class M3DFioPlugin(
 					self.savedCurrentPort = None
 					self.savedCurrentBaudrate = None
 					self.savedCurrentProfile = None
+			
+			# Otherwise check if parameter is to pause
+			elif data["value"] == "Pause" :
+			
+				# Send pause command
+				self._printer.commands("M25")
+			
+			# Otherwise check if parameter is to resume
+			elif data["value"] == "Resume" :
+			
+				# Send resume command
+				self._printer.commands("M24")
+			
+			# Otherwise check if parameter is to get print information
+			elif data["value"] == "Print Information" :
+			
+				# Return print information
+				return flask.jsonify(dict(value = "OK", maxXLow = self.maxXExtruderLow, maxXMedium = self.maxXExtruderMedium, maxXHigh = self.maxXExtruderHigh, maxYLow = self.maxYExtruderLow, maxYMedium = self.maxYExtruderMedium, maxYHigh = self.maxYExtruderHigh, maxZ = self.maxZExtruder, minXLow = self.minXExtruderLow, minXMedium = self.minXExtruderMedium, minXHigh = self.minXExtruderHigh, minYLow = self.minYExtruderLow, minYMedium = self.minYExtruderMedium, minYHigh = self.minYExtruderHigh, minZ = self.minZExtruder))
 		
 		# Otherwise check if command is a file
 		elif command == "file" :
@@ -2571,11 +2792,13 @@ class M3DFioPlugin(
 	def emptyCommandQueue(self) :
 	
 		# Empty command queues
-		while not self._printer._comm._send_queue.empty() :
-			self._printer._comm._send_queue.get()
+		if self._printer._comm is not None :
 		
-		while not self._printer._comm._commandQueue.empty() :
-			self._printer._comm._commandQueue.get()
+			while not self._printer._comm._send_queue.empty() :
+				self._printer._comm._send_queue.get()
+		
+			while not self._printer._comm._commandQueue.empty() :
+				self._printer._comm._commandQueue.get()
 	
 	# Process write
 	def processWrite(self, data) :
@@ -2793,25 +3016,85 @@ class M3DFioPlugin(
 						gcode.removeParameter('S')
 						gcode.setValue('G', '4')
 			
-				# Check if using an external fan
-				if self._settings.get_boolean(["UseExternalFan"]) :
+				# Check if using a GPIO pin
+				if self._settings.get_boolean(["UseGpio"]) :
 			
-					# Check if command is to turn on external fan
+					# Check if command is to set GPIO pin high
 					if gcode.getValue('M') == "106" and gcode.getValue('T') == '1' :
 				
-						# Turn on external fan
-						self.turnOnExternalFan()
+						# Set GPIO pin high
+						self.setGpioPinHigh()
+						
+						# Set command to nothing
+						gcode.removeParameter('M')
+						gcode.removeParameter('T')
+						gcode.setValue('G', '4')
 					
+					# Check if command is to set GPIO pin low
+					elif gcode.getValue('M') == "107" and gcode.getValue('T') == '1' :
+					
+						# Set GPIO pin low
+						self.setGpioPinLow()
+						
 						# Set command to nothing
 						gcode.removeParameter('M')
 						gcode.removeParameter('T')
 						gcode.setValue('G', '4')
 				
-					# Check if command is to turn off fans
-					elif gcode.getValue('M') == "107" :
+				# Check if pause command
+				if gcode.getValue('M') == "25" :
 				
-						# Turn off external fan
-						self.turnOffExternalFan()
+					# Check if printing
+					if self._printer.is_printing() :
+					
+						# Wait until all sent commands have been processed
+						while len(self.sentCommands) :
+			
+							# Update communication timeout to prevent other commands from being sent
+							if self._printer._comm is not None :
+								self._printer._comm._gcode_G4_sent("G4")
+				
+							time.sleep(0.01)
+						
+						# Pause print
+						if self._printer._comm is not None :
+							self._printer._comm.setPause(True);
+					
+					# Set command to nothing
+					gcode.removeParameter('M')
+					gcode.setValue('G', '4')
+				
+				# Check if resume command
+				elif gcode.getValue('M') == "24" :
+				
+					# Check if paused
+					if self._printer.is_paused() :
+					
+						# Resume print
+						if self._printer._comm is not None :
+							self._printer._comm.setPause(False);
+						
+						# Restart line numbers
+						self.sendCommands(["N0 M110", "G90"])
+						if self._printer._comm is not None :
+							self._printer._comm._gcode_M110_sending("N1")
+					
+					# Set command to nothing
+					gcode.removeParameter('M')
+					gcode.setValue('G', '4')
+				
+				# Otherwise check if change filament mid-print command
+				elif gcode.getValue('M') == "600" :
+				
+					# Check if printing
+					if self._printer.is_printing() :
+					
+						# Send message
+						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Mid-Print Filament Change"))
+					
+					# Set command to nothing
+					gcode.removeParameter('M')
+					gcode.setValue('G', '4')
 				
 				# Get the command's binary representation
 				data = gcode.getBinary()
@@ -3236,6 +3519,12 @@ class M3DFioPlugin(
 			# Set file locations
 			self.setFileLocations()
 			
+			# Send message for enabling/disabling GPIO
+			if self._settings.get_boolean(["UseGpio"]) and self._settings.get_int(["GpioPin"]) is not None and self._settings.get_int(["GpioLayer"]) is not None :
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Enable GPIO"))
+			else :
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Disable GPIO"))
+			
 			# Check if sending Cura reminder
 			if self.curaReminder :
 			
@@ -3365,15 +3654,37 @@ class M3DFioPlugin(
 					self.sharedLibrary.setCalibrateBeforePrint(ctypes.c_bool(self._settings.get_boolean(["CalibrateBeforePrint"])))
 					self.sharedLibrary.setRemoveFanCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveFanCommands"])))
 					self.sharedLibrary.setRemoveTemperatureCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveTemperatureCommands"])))
-					self.sharedLibrary.setUseExternalFan(ctypes.c_bool(self._settings.get_boolean(["UseExternalFan"])))
+					self.sharedLibrary.setUseGpio(ctypes.c_bool(self._settings.get_boolean(["UseGpio"])))
+					if self._settings.get_int(["GpioLayer"]) is not None :
+						self.sharedLibrary.setGpioLayer(ctypes.c_ushort(self._settings.get_int(["GpioLayer"])))
 					self.sharedLibrary.setHeatbedTemperature(ctypes.c_ushort(self._settings.get_int(["HeatbedTemperature"])))
 					self.sharedLibrary.setHeatbedHeight(ctypes.c_double(self._settings.get_float(["HeatbedHeight"])))
+					self.sharedLibrary.setMidPrintFilamentChangeLayers(ctypes.c_char_p(' '.join(re.findall("\\d+", str(self._settings.get(["MidPrintFilamentChangeLayers"]))))))
 					
 					# Collect print information
 					printIsValid = self.sharedLibrary.collectPrintInformation(ctypes.c_char_p(payload.get("file")))
 					
+					# Get extruder min and max movements
+					self.maxXExtruderLow = self.sharedLibrary.getMaxXExtruderLow()
+					self.maxXExtruderMedium = self.sharedLibrary.getMaxXExtruderMedium()
+					self.maxXExtruderHigh = self.sharedLibrary.getMaxXExtruderHigh()
+					self.maxYExtruderLow = self.sharedLibrary.getMaxYExtruderLow()
+					self.maxYExtruderMedium = self.sharedLibrary.getMaxYExtruderMedium()
+					self.maxYExtruderHigh = self.sharedLibrary.getMaxYExtruderHigh()
+					self.maxZExtruder = self.sharedLibrary.getMaxZExtruder()
+					self.minXExtruderLow = self.sharedLibrary.getMinXExtruderLow()
+					self.minXExtruderMedium = self.sharedLibrary.getMinXExtruderMedium()
+					self.minXExtruderHigh = self.sharedLibrary.getMinXExtruderHigh()
+					self.minYExtruderLow = self.sharedLibrary.getMinYExtruderLow()
+					self.minYExtruderMedium = self.sharedLibrary.getMinYExtruderMedium()
+					self.minYExtruderHigh = self.sharedLibrary.getMinYExtruderHigh()
+					self.minZExtruder = self.sharedLibrary.getMinZExtruder()
+					
 					# Get detected fan speed
 					self.detectedFanSpeed = self.sharedLibrary.getDetectedFanSpeed()
+					
+					# Get detected mid-print filament change
+					self.detectedMidPrintFilamentChange = self.sharedLibrary.getDetectedMidPrintFilamentChange()
 					
 					# Get object successfully centered
 					self.objectSuccessfullyCentered = self.sharedLibrary.getObjectSuccessfullyCentered()
@@ -3402,6 +3713,12 @@ class M3DFioPlugin(
 						# Create message
 						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "notice", title = "Print warning", text = "No fan speed has been detected in this file which could cause the print to fail"))
 					
+					# Check if detected mid-print filament change
+					if self.detectedMidPrintFilamentChange :
+			
+						# Create message
+						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "notice", title = "Print warning", text = "This file uses mid-print filament change commands. These commands will be ignored if a client is not connected when they are run, so it's recommended that you keep this page open and stay connected to the server for the entire duration of the print."))
+					
 					# Check if objected couldn't be centered
 					if self._settings.get_boolean(["UseCenterModelPreprocessor"]) and not self.objectSuccessfullyCentered :
 			
@@ -3428,6 +3745,12 @@ class M3DFioPlugin(
 		
 		# Otherwise check if a print is done
 		elif event == octoprint.events.Events.PRINT_DONE :
+		
+			# Empty command queue
+			self.emptyCommandQueue()
+			
+			# Clear sent commands
+			self.sentCommands = {}
 		
 			# Check if pre-processing on the fly
 			if self._settings.get_boolean(["PreprocessOnTheFly"]) :
@@ -3461,6 +3784,9 @@ class M3DFioPlugin(
 				
 			# Empty command queue
 			self.emptyCommandQueue()
+			
+			# Clear sent commands
+			self.sentCommands = {}
 			
 			# Set commands
 			commands = [
@@ -3643,17 +3969,27 @@ class M3DFioPlugin(
 								connection = serial.Serial(currentPort, currentBaudrate)
 								break
 							
-							except OSError :
+							except Exception :
+								connection = None
 								time.sleep(1)
 						
-						# Check if connecting to printer failed
-						if connection is None :
+						# Check if user lacks read/write access to the printer
+						if not os.access(currentPort, os.R_OK | os.W_OK) :
 		
 							# Send message
-							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Cycle Power"))
+							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "You don't have read/write access to " + str(port), confirm = True))
 			
 							# Raise exception
-							raise Exception("Couldn't reconnect to the printer")
+							raise Exception("Couldn't connect to the printer")
+		
+						# Otherwise check if connecting to printer failed
+						elif connection is None :
+		
+							# Send message
+							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "No Micro 3D printer detected. Try cycling the printer's power and try again.", confirm = True))
+			
+							# Raise exception
+							raise Exception("Couldn't connect to the printer")
 				
 					# Check if getting EEPROM was successful
 					if self.getEeprom(connection) :
@@ -3710,6 +4046,9 @@ class M3DFioPlugin(
 						elif color == "SL" :
 							self.printerColor = "Silver"
 							self._settings.set(["PrinterColor"], "Silver")
+						elif color == "PL" :
+							self.printerColor = "Purple"
+							self._settings.set(["PrinterColor"], "Purple")
 					
 						# Get fan type from EEPROM
 						fanType = int(ord(self.eeprom[self.eepromOffsets["fanType"]["offset"]]))
@@ -4094,17 +4433,20 @@ class M3DFioPlugin(
 				# Wait until connection is established
 				while not isinstance(self._printer.get_transport(), serial.Serial) :
 					time.sleep(1)
-				
-				# Remove serial timeout
-				self._printer.get_transport().timeout = None
-				if float(serial.VERSION) < 3 :
-					self._printer.get_transport().writeTimeout = None
-				else :
-					self._printer.get_transport().write_timeout = None
 			
 				# Enable printer callbacks if using a Micro 3D printer
 		    		if not self._settings.get_boolean(["UsingADifferentPrinter"]) :
 					self._printer.register_callback(self)
+				
+				# Otherwise
+				else :
+				
+					# Remove serial timeout
+					self._printer.get_transport().timeout = None
+					if float(serial.VERSION) < 3 :
+						self._printer.get_transport().writeTimeout = None
+					else :
+						self._printer.get_transport().write_timeout = None
 			
 			# Check if an error didn't occur
 			if not error :
@@ -4122,6 +4464,16 @@ class M3DFioPlugin(
 	
 				# Check if printer switched to G-code processing mode
 				if self._printer.is_closed_or_error() :
+				
+					 # Close connection
+                                        if self._printer._comm is not None :
+                                        
+                                                try :
+                                                        self._printer._comm.close(False, False)
+                                                except TypeError :
+                                                        pass
+                                        
+                                        self._printer.disconnect()
 	
 					# Re-connect to printer
 					self._printer.connect(currentPort, currentBaudrate, currentProfile)
@@ -4190,12 +4542,6 @@ class M3DFioPlugin(
 				
 				# Set invalid printer
 				self.invalidPrinter = True
-			
-			# Otherwise
-			else :
-			
-				# Send printer status
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Micro 3D Connected"))
 		
 		# Otherwise check if printer's data is requested
 		elif "Send: M21" in data :
@@ -4254,8 +4600,32 @@ class M3DFioPlugin(
 		# Otherwise check if data contains current Z
 		elif "Z:" in data :
 		
-			# Send current Z
-			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Current Z", location = data[data.find("Z:") + 2 :]))
+			# Set location X
+			if "X:" in data :
+				start = data.find("X:") + 2
+				locationX = data[start : data[start :].find(' ') + start]
+			else :
+				locationX = None
+			
+			# Set location Y
+			if "Y:" in data :
+				start = data.find("Y:") + 2
+				locationY = data[start : data[start :].find(' ') + start]
+			else :
+				locationY = None
+				
+			# Set location E
+			if "E:" in data :
+				start = data.find("E:") + 2
+				locationE = data[start : data[start :].find(' ') + start]
+			else :
+				locationE = None
+			
+			# Set location Z
+			locationZ = data[data.find("Z:") + 2 :]
+			
+			# Send current location
+			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Current Location", locationX = locationX, locationY = locationY, locationZ = locationZ, locationE = locationE))
 		
 		# Otherwise check if data contains an EEPROM value
 		elif "DT:" in data :
@@ -4941,15 +5311,37 @@ class M3DFioPlugin(
 				self.sharedLibrary.setCalibrateBeforePrint(ctypes.c_bool(self._settings.get_boolean(["CalibrateBeforePrint"])))
 				self.sharedLibrary.setRemoveFanCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveFanCommands"])))
 				self.sharedLibrary.setRemoveTemperatureCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveTemperatureCommands"])))
-				self.sharedLibrary.setUseExternalFan(ctypes.c_bool(self._settings.get_boolean(["UseExternalFan"])))
+				self.sharedLibrary.setUseGpio(ctypes.c_bool(self._settings.get_boolean(["UseGpio"])))
+				if self._settings.get_int(["GpioLayer"]) is not None :
+					self.sharedLibrary.setGpioLayer(ctypes.c_ushort(self._settings.get_int(["GpioLayer"])))
 				self.sharedLibrary.setHeatbedTemperature(ctypes.c_ushort(self._settings.get_int(["HeatbedTemperature"])))
 				self.sharedLibrary.setHeatbedHeight(ctypes.c_double(self._settings.get_float(["HeatbedHeight"])))
+				self.sharedLibrary.setMidPrintFilamentChangeLayers(ctypes.c_char_p(' '.join(re.findall("\\d+", str(self._settings.get(["MidPrintFilamentChangeLayers"]))))))
 				
 				# Collect print information
 				printIsValid = self.sharedLibrary.collectPrintInformation(ctypes.c_char_p(input))
 				
+				# Get extruder min and max movements
+				self.maxXExtruderLow = self.sharedLibrary.getMaxXExtruderLow()
+				self.maxXExtruderMedium = self.sharedLibrary.getMaxXExtruderMedium()
+				self.maxXExtruderHigh = self.sharedLibrary.getMaxXExtruderHigh()
+				self.maxYExtruderLow = self.sharedLibrary.getMaxYExtruderLow()
+				self.maxYExtruderMedium = self.sharedLibrary.getMaxYExtruderMedium()
+				self.maxYExtruderHigh = self.sharedLibrary.getMaxYExtruderHigh()
+				self.maxZExtruder = self.sharedLibrary.getMaxZExtruder()
+				self.minXExtruderLow = self.sharedLibrary.getMinXExtruderLow()
+				self.minXExtruderMedium = self.sharedLibrary.getMinXExtruderMedium()
+				self.minXExtruderHigh = self.sharedLibrary.getMinXExtruderHigh()
+				self.minYExtruderLow = self.sharedLibrary.getMinYExtruderLow()
+				self.minYExtruderMedium = self.sharedLibrary.getMinYExtruderMedium()
+				self.minYExtruderHigh = self.sharedLibrary.getMinYExtruderHigh()
+				self.minZExtruder = self.sharedLibrary.getMinZExtruder()
+				
 				# Get detected fan speed
 				self.detectedFanSpeed = self.sharedLibrary.getDetectedFanSpeed()
+				
+				# Get detected mid-print filament change
+				self.detectedMidPrintFilamentChange = self.sharedLibrary.getDetectedMidPrintFilamentChange()
 				
 				# Get object successfully centered
 				self.objectSuccessfullyCentered = self.sharedLibrary.getObjectSuccessfullyCentered()
@@ -4995,6 +5387,12 @@ class M3DFioPlugin(
 			
 					# Create message
 					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "notice", title = "Print warning", text = "No fan speed has been detected in this file which could cause the print to fail"))
+				
+				# Check if detected mid-print filament change
+				if self.detectedMidPrintFilamentChange :
+		
+					# Create message
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "notice", title = "Print warning", text = "This file uses mid-print filament change commands. These commands will be ignored if a client is not connected when they are run, so it's recommended that you keep this page open and stay connected to the server for the entire duration of the print."))
 				
 				# Check if objected couldn't be centered
 				if self._settings.get_boolean(["UseCenterModelPreprocessor"]) and not self.objectSuccessfullyCentered :
@@ -5057,6 +5455,9 @@ class M3DFioPlugin(
 		# Reset detected fan speed
 		self.detectedFanSpeed = None
 		
+		# Reset detected mid-print filament change
+		self.detectedMidPrintFilamentChange = False
+		
 		# Reset object successfully centered
 		self.objectSuccessfullyCentered = True
 		
@@ -5086,7 +5487,18 @@ class M3DFioPlugin(
 				if self.detectedFanSpeed is None and gcode.hasValue('M') and gcode.getValue('M') == "106" :
 				
 					# Get fan speed
-					self.detectedFanSpeed = int(gcode.getValue('S'))
+					if gcode.hasValue('S') :
+						self.detectedFanSpeed = int(gcode.getValue('S'))
+					elif gcode.hasValue('P') :
+						self.detectedFanSpeed = int(gcode.getValue('P'))
+					else :
+						self.detectedFanSpeed = 0
+				
+				# Otherwise check if command is a mid-print filament change
+				elif not self.detectedMidPrintFilamentChange and gcode.hasValue('M') and gcode.getValue('M') == "600" :
+				
+					# Set mid-print filament change
+					self.detectedMidPrintFilamentChange = True
 			
 				# Otherwise check if command is a G command
 				elif gcode.hasValue('G') :
@@ -5347,6 +5759,15 @@ class M3DFioPlugin(
 				self.detectedFanSpeed = 255
 			else :
 				self.detectedFanSpeed = 50
+		
+		# Get mid-print filament change layers
+		self.midPrintFilamentChangeLayers = re.findall("\\d+", str(self._settings.get(["MidPrintFilamentChangeLayers"])))
+		
+		# Check if mid-print filament change layers exist
+		if len(self.midPrintFilamentChangeLayers) :
+		
+			# Set mid-print filament change
+			self.detectedMidPrintFilamentChange = True
 		
 		# Return true
 		return True
@@ -5700,15 +6121,55 @@ class M3DFioPlugin(
 			command = commands.pop()
 			gcode.parseLine(command.line)
 			
+			# Clear on new layer
+			self.onNewLayer = False
+			
 			# Check if command contains valid G-code
 			if not gcode.isEmpty() :
 			
 				# Remove line number
 				gcode.removeParameter('N')
+				
+				# Check if command goes to a higher layer
+				if command.origin == "INPUT" and gcode.hasValue('G') and gcode.hasValue('Z') and float(gcode.getValue('Z')) > self.currentHighestZ :
+				
+					# Set current highest Z
+					self.currentHighestZ = float(gcode.getValue('Z'))
+					
+					# Set on new layer
+					self.onNewLayer = True
+			
+			# Check if not printing test border or backlash calibration cylinder and using mid-print filament change pre-processor
+			if not self.printingTestBorder and not self.printingBacklashCalibrationCylinder and len(self.midPrintFilamentChangeLayers) and "MID-PRINT" not in command.skip :
+			
+				# Set command skip
+				command.skip += " MID-PRINT"
+				
+				# Check if command is on a new layer
+				if self.onNewLayer :
+					
+					# Increment layer counter
+					self.midPrintFilamentChangeLayerCounter += 1
+					
+					# Check if at the start of a specified layer
+					if str(self.midPrintFilamentChangeLayerCounter) in self.midPrintFilamentChangeLayers :
+					
+						# Initialize new commands
+						newCommands = []
+						
+						# Add mid-print filament change command to output
+						newCommands.append(Command("M600", "MID-PRINT", "MID-PRINT"))
+						
+						# Append new commands to commands
+						while len(newCommands) :
+							commands.append(newCommands.pop())
 	
-			# Check if printing test border or backlash calibration cylinder and using center model pre-processor
+			# Check if not printing test border or backlash calibration cylinder and using center model pre-processor
 			if not self.printingTestBorder and not self.printingBacklashCalibrationCylinder and self._settings.get_boolean(["UseCenterModelPreprocessor"]) and "CENTER" not in command.skip :
-
+			
+				# Set command skip
+				command.skip += " CENTER"
+				
 				# Check if command contains valid G-code
 				if not gcode.isEmpty() :
 
@@ -5730,6 +6191,9 @@ class M3DFioPlugin(
 			# Check if printing test border or backlash calibration cylinder or using validation pre-processor
 			if (self.printingTestBorder or self.printingBacklashCalibrationCylinder or self._settings.get_boolean(["UseValidationPreprocessor"])) and "VALIDATION" not in command.skip :
 			
+				# Set command skip
+				command.skip += " VALIDATION"
+				
 				# Check if command contains valid G-code
 				if not gcode.isEmpty() :
 
@@ -5770,6 +6234,9 @@ class M3DFioPlugin(
 			# Check if printing test border or backlash calibration cylinder or using preparation pre-processor
 			if (self.printingTestBorder or self.printingBacklashCalibrationCylinder or self._settings.get_boolean(["UsePreparationPreprocessor"])) and "PREPARATION" not in command.skip :
 
+				# Set command skip
+				command.skip += " PREPARATION"
+				
 				# Check if intro hasn't been added yet
 				if not self.addedIntro :
 
@@ -5780,74 +6247,84 @@ class M3DFioPlugin(
 					newCommands = []
 					
 					# Check if not printing test border
-					cornerX = cornerY = 0
+					cornerX = cornerY = cornerZ = 0
 					if not self.printingTestBorder :
 
 						# Set corner X
-						if self.maxXExtruderLow < self.bedLowMaxX :
-							cornerX = (self.bedLowMaxX - self.bedLowMinX) / 2
-						elif self.minXExtruderLow > self.bedLowMinX :
+						if self.minXExtruderLow > self.bedLowMinX :
 							cornerX = -(self.bedLowMaxX - self.bedLowMinX) / 2
+						elif self.maxXExtruderLow < self.bedLowMaxX :
+							cornerX = (self.bedLowMaxX - self.bedLowMinX) / 2
 
 						# Set corner Y
-						if self.maxYExtruderLow < self.bedLowMaxY :
-							cornerY = (self.bedLowMaxY - self.bedLowMinY - 10) / 2
-						elif self.minYExtruderLow > self.bedLowMinY :
+						if self.minYExtruderLow > self.bedLowMinY :
 							cornerY = -(self.bedLowMaxY - self.bedLowMinY - 10) / 2
-				
+						elif self.maxYExtruderLow < self.bedLowMaxY :
+							cornerY = (self.bedLowMaxY - self.bedLowMinY - 10) / 2
+					
+					# Check if both of the corners are set
+					if cornerX != 0 and cornerY != 0 :
+					
+						# Set cornet Z
+						if cornerX > 0 and cornerY > 0 :
+							cornerZ = self._settings.get_float(["BackRightOrientation"]) + self._settings.get_float(["BackRightOffset"])
+						elif cornerX < 0 and cornerY > 0 :
+							cornerZ = self._settings.get_float(["BackLeftOrientation"]) + self._settings.get_float(["BackLeftOffset"])
+						elif cornerX < 0 and cornerY < 0 :
+							cornerZ = self._settings.get_float(["FrontLeftOrientation"]) + self._settings.get_float(["FrontLeftOffset"])
+						elif cornerX > 0 and cornerY < 0 :
+							cornerZ = self._settings.get_float(["FrontRightOrientation"]) + self._settings.get_float(["FrontRightOffset"])
+					
 					# Add intro to output
-					newCommands.append(Command("M420 T1", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G90", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("M420 T1", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 					if self._settings.get_boolean(["CalibrateBeforePrint"]) :
-						newCommands.append(Command("G30", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G30", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 					if str(self._settings.get(["FilamentType"])) == "PLA" or str(self._settings.get(["FilamentType"])) == "FLX" or str(self._settings.get(["FilamentType"])) == "TGH" :
-						newCommands.append(Command("M106 S255", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M106 S255", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 					else :
-						newCommands.append(Command("M106 S50", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("M17", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G90", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("M104 S" + str(self._settings.get_int(["FilamentTemperature"])), "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G0 Z5 F48", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G28", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M106 S50", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("M17", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G90", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("M104 S" + str(self._settings.get_int(["FilamentTemperature"])), "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G0 Z5 F48", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G28", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 
 					# Add heatbed command if using a heatbed
 					if self.heatbedConnected :
-						newCommands.append(Command("M190 S" + str(self._settings.get_int(["HeatbedTemperature"])), "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M190 S" + str(self._settings.get_int(["HeatbedTemperature"])), "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 
 					# Check if one of the corners wasn't set
 					if cornerX == 0 or cornerY == 0 :
 
 						# Prepare extruder the standard way
-						newCommands.append(Command("M18", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("M109 S" + str(self._settings.get_int(["FilamentTemperature"])), "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G4 S2", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("M17", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G91","PREPARATION",  "CENTER VALIDATION PREPARATION"))
-
+						newCommands.append(Command("M18", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M109 S" + str(self._settings.get_int(["FilamentTemperature"])), "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G4 S2", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M17", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G92 E0", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G0 Z0.4 F48", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					
 					# Otherwise
 					else :
 
 						# Prepare extruder by leaving excess at corner
-						newCommands.append(Command("G91", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G0 X%f Y%f F1800" % (-cornerX, -cornerY), "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("M18", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("M109 S" + str(self._settings.get_int(["FilamentTemperature"])), "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("M17", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G0 Z-4 F48", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G0 E10 F360", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G4 S3", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G0 X%f Y%f Z-0.999 F400" % ((cornerX * 0.1), (cornerY * 0.1)), "PREPARATION", "CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G0 X%f Y%f F1000" % ((cornerX * 0.9), (cornerY * 0.9)), "PREPARATION", "CENTER VALIDATION PREPARATION"))
-
-					newCommands.append(Command("G92 E0", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G90", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G0 Z0.4 F48", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G0 F1800", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-			
+						newCommands.append(Command("G0 X%f Y%f F1800" % (54 + cornerX, 50 + cornerY), "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M18", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M109 S" + str(self._settings.get_int(["FilamentTemperature"])), "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M17", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G0 Z%f F48" % (cornerZ + 3), "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G92 E0", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G0 E10 F360", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G4 S3", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G0 X%f Y%f Z%f F400" % (54 + cornerX - cornerX * 0.1, 50 + cornerY - cornerY * 0.1, cornerZ + 0.5), "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G92 E0", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					
 					# Finish processing command later
 					if not gcode.isEmpty() :
-						commands.append(Command(gcode.getAscii(), command.origin, "CENTER VALIDATION PREPARATION"))
+						commands.append(Command(gcode.getAscii(), command.origin, command.skip))
 					else :
-						commands.append(Command(command.line, command.origin, "CENTER VALIDATION PREPARATION"))
+						commands.append(Command(command.line, command.origin, command.skip))
 		
 					# Append new commands to commands
 					while len(newCommands) :
@@ -5888,82 +6365,91 @@ class M3DFioPlugin(
 						moveY = maxMoveY
 					
 					# Add outro to output
-					newCommands.append(Command("G90", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G0 Y%f Z%f F1800" % ((moveY), (moveZ)), "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G91", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G0 E-8 F360", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("M104 S0", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G90", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G0 Y%f Z%f F1800" % (moveY, moveZ), "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G91", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G0 E-8 F360", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("M104 S0", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 
 					if self.heatbedConnected :
-						newCommands.append(Command("M140 S0", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M140 S0", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					
+					if self._settings.get_boolean(["UseGpio"]) :
+						newCommands.append(Command("M107 T1", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 
-					newCommands.append(Command("M18", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("M107", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("M18", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("M107", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 					
 					if self.printerColor == "Clear" :
-						newCommands.append(Command("M420 T20", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M420 T20", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 					else :
-						newCommands.append(Command("M420 T100", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G4 P500", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("M420 T1", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G4 P500", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M420 T100", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G4 P500", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("M420 T1", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G4 P500", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 					if self.printerColor == "Clear" :
-						newCommands.append(Command("M420 T20", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M420 T20", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 					else :
-						newCommands.append(Command("M420 T100", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G4 P500", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("M420 T1", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G4 P500", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M420 T100", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G4 P500", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("M420 T1", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G4 P500", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 					if self.printerColor == "Clear" :
-						newCommands.append(Command("M420 T20", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M420 T20", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 					else :
-						newCommands.append(Command("M420 T100", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G4 P500", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("M420 T1", "PREPARATION", "CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G4 P500", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M420 T100", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G4 P500", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("M420 T1", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G4 P500", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 					if self.printerColor == "Clear" :
-						newCommands.append(Command("M420 T20", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M420 T20", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 					else :
-						newCommands.append(Command("M420 T100", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M420 T100", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 			
 					# Append new commands to commands
 					while len(newCommands) :
 						commands.append(newCommands.pop())
 				
-				# Otherwise check if command is at a new layer
-				elif self.preparationLayerCounter < 4 and not gcode.isEmpty() and gcode.hasValue('G') and gcode.hasValue('Z') :
+				# Otherwise check if command is on a new layer
+				elif self.onNewLayer :
 					
 					# Increment layer counter
 					self.preparationLayerCounter += 1
 					
-					# Check if at the start of the first layer and using an external fan
-					if self.preparationLayerCounter == 4 and self._settings.get_boolean(["UseExternalFan"]) :
+					# Check if using a GPIO pin
+					if self._settings.get_boolean(["UseGpio"]) :
 					
-						# Initialize new commands
-						newCommands = []
+						# Get GPIO layer
+						gpioLayer = self._settings.get_int(["GpioLayer"])
 						
-						# Add command to turn on external fan
-						newCommands.append(Command("M106 T1", "PREPARATION", "CENTER VALIDATION PREPARATION"))
+						# Check if at the start of the specified layer
+						if gpioLayer is not None and self.preparationLayerCounter == gpioLayer :
 					
-						# Check if new commands exist
-						if len(newCommands) :
-		
+							# Initialize new commands
+							newCommands = []
+						
+							# Add command to set GPIO pin high
+							newCommands.append(Command("M106 T1", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					
 							# Finish processing command later
 							if not gcode.isEmpty() :
-								commands.append(Command(gcode.getAscii(), command.origin, "CENTER VALIDATION PREPARATION WAVE"))
+								commands.append(Command(gcode.getAscii(), command.origin, command.skip))
 							else :
-								commands.append(Command(command.line, command.origin, "CENTER VALIDATION PREPARATION WAVE"))
-		
+								commands.append(Command(command.line, command.origin, command.skip))
+	
 							# Append new commands to commands
 							while len(newCommands) :
 								commands.append(newCommands.pop())
-			
+		
 							# Get next command
 							continue
 			
 			# Check if not printing test border or backlash calibration cylinder and using wave bonding pre-processor
 			if not self.printingTestBorder and not self.printingBacklashCalibrationCylinder and self._settings.get_boolean(["UseWaveBondingPreprocessor"]) and "WAVE" not in command.skip :
-	
+
+				# Set command skip
+				command.skip += " WAVE"
+				
 				# Initialize new commands
 				newCommands = []
 
@@ -5973,8 +6459,8 @@ class M3DFioPlugin(
 					# Check if command is a G command
 					if gcode.hasValue('G') :
 					
-						# Check if at a new layer
-						if self.waveBondingLayerCounter < 2 and command.origin != "PREPARATION" and gcode.hasValue('Z') :
+						# Check if on a new layer
+						if self.waveBondingLayerCounter < 2 and self.onNewLayer :
 		
 							# Increment layer counter
 							self.waveBondingLayerCounter += 1
@@ -6062,7 +6548,7 @@ class M3DFioPlugin(
 												if not self.waveBondingTackPoint.isEmpty() :
 									
 													# Add tack point to output
-													newCommands.append(Command(self.waveBondingTackPoint.getAscii(), "WAVE", "CENTER VALIDATION PREPARATION WAVE"))
+													newCommands.append(Command(self.waveBondingTackPoint.getAscii(), "WAVE", "MID-PRINT CENTER VALIDATION PREPARATION WAVE"))
 		
 											# Set refrence G-code
 											self.waveBondingRefrenceGcode = copy.deepcopy(gcode)
@@ -6078,7 +6564,7 @@ class M3DFioPlugin(
 											if not self.waveBondingTackPoint.isEmpty() :
 								
 												# Add tack point to output
-												newCommands.append(Command(self.waveBondingTackPoint.getAscii(), "WAVE", "CENTER VALIDATION PREPARATION WAVE"))
+												newCommands.append(Command(self.waveBondingTackPoint.getAscii(), "WAVE", "MID-PRINT CENTER VALIDATION PREPARATION WAVE"))
 		
 											# Set refrence G-code
 											self.waveBondingRefrenceGcode = copy.deepcopy(gcode)
@@ -6140,7 +6626,7 @@ class M3DFioPlugin(
 											self.waveBondingExtraGcode.setValue('E', "%f" % (self.waveBondingPositionRelativeE - deltaE + tempRelativeE - relativeDifferenceE))
 								
 											# Add extra G-code to output
-											newCommands.append(Command(self.waveBondingExtraGcode.getAscii(), "WAVE", "CENTER VALIDATION PREPARATION WAVE"))
+											newCommands.append(Command(self.waveBondingExtraGcode.getAscii(), "WAVE", "MID-PRINT CENTER VALIDATION PREPARATION WAVE"))
 	
 										# Otherwise check if plane changed
 										elif self.waveBondingChangesPlane :
@@ -6218,9 +6704,9 @@ class M3DFioPlugin(
 		
 					# Finish processing command later
 					if not gcode.isEmpty() :
-						commands.append(Command(gcode.getAscii(), command.origin, "CENTER VALIDATION PREPARATION WAVE"))
+						commands.append(Command(gcode.getAscii(), command.origin, command.skip))
 					else :
-						commands.append(Command(command.line, command.origin, "CENTER VALIDATION PREPARATION WAVE"))
+						commands.append(Command(command.line, command.origin, command.skip))
 		
 					# Append new commands to commands
 					while len(newCommands) :
@@ -6231,15 +6717,18 @@ class M3DFioPlugin(
 
 			# Check if printing test border or backlash calibration cylinder or using thermal bonding pre-processor
 			if (self.printingTestBorder or self.printingBacklashCalibrationCylinder or self._settings.get_boolean(["UseThermalBondingPreprocessor"])) and "THERMAL" not in command.skip :
-	
+
+				# Set command skip
+				command.skip += " THERMAL"
+				
 				# Initialize new commands
 				newCommands = []
 
 				# Check if command contains valid G-code
 				if not gcode.isEmpty() :
 				
-					# Check if at a new layer
-					if self.thermalBondingLayerCounter < 2 and command.origin != "PREPARATION" and gcode.hasValue('Z') :
+					# Check if on a new layer
+					if self.thermalBondingLayerCounter < 2 and self.onNewLayer :
 			
 						# Check if on first counted layer
 						if self.thermalBondingLayerCounter == 0 :
@@ -6248,19 +6737,19 @@ class M3DFioPlugin(
 							if str(self._settings.get(["FilamentType"])) == "PLA" :
 			
 								# Add temperature to output
-								newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 10)), "THERMAL", "CENTER VALIDATION PREPARATION WAVE THERMAL"))
+								newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 10)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
 							
 							# Otherwise check if filament type is TGH or FLX
 							elif str(self._settings.get(["FilamentType"])) == "TGH" or str(self._settings.get(["FilamentType"])) == "FLX" :
 			
 								# Add temperature to output
-								newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) - 15)), "THERMAL", "CENTER VALIDATION PREPARATION WAVE THERMAL"))
+								newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) - 15)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
 				
 							# Otherwise
 							else :
 				
 								# Add temperature to output
-								newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 15)), "THERMAL", "CENTER VALIDATION PREPARATION WAVE THERMAL"))
+								newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 15)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
 						
 						# Otherwise
 						else :
@@ -6269,13 +6758,13 @@ class M3DFioPlugin(
 							if str(self._settings.get(["FilamentType"])) == "TGH" :
 						
 								# Add temperature to output
-								newCommands.append(Command("M104 S" + str(self._settings.get_int(["FilamentTemperature"]) + 15), "THERMAL", "CENTER VALIDATION PREPARATION WAVE THERMAL"))
+								newCommands.append(Command("M104 S" + str(self._settings.get_int(["FilamentTemperature"]) + 15), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
 							
 							# Otherwise
 							else :
 			
 								# Add temperature to output
-								newCommands.append(Command("M104 S" + str(self._settings.get_int(["FilamentTemperature"])), "THERMAL", "CENTER VALIDATION PREPARATION WAVE THERMAL"))
+								newCommands.append(Command("M104 S" + str(self._settings.get_int(["FilamentTemperature"])), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
 				
 						# Increment layer counter
 						self.thermalBondingLayerCounter += 1
@@ -6303,7 +6792,7 @@ class M3DFioPlugin(
 											if not self.thermalBondingTackPoint.isEmpty() :
 									
 												# Add tack point to output
-												newCommands.append(Command(self.thermalBondingTackPoint.getAscii(), "THERMAL", "CENTER VALIDATION PREPARATION WAVE THERMAL"))
+												newCommands.append(Command(self.thermalBondingTackPoint.getAscii(), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
 										
 										# Set refrence G-code
 										self.thermalBondingRefrenceGcode = copy.deepcopy(gcode)
@@ -6319,7 +6808,7 @@ class M3DFioPlugin(
 										if not self.thermalBondingTackPoint.isEmpty() :
 								
 											# Add tack point to output
-											newCommands.append(Command(self.thermalBondingTackPoint.getAscii(), "THERMAL", "CENTER VALIDATION PREPARATION WAVE THERMAL"))
+											newCommands.append(Command(self.thermalBondingTackPoint.getAscii(), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
 									
 										# Set refrence G-code
 										self.thermalBondingRefrenceGcode = copy.deepcopy(gcode)
@@ -6347,9 +6836,9 @@ class M3DFioPlugin(
 		
 					# Finish processing command later
 					if not gcode.isEmpty() :
-						commands.append(Command(gcode.getAscii(), command.origin, "CENTER VALIDATION PREPARATION WAVE THERMAL"))
+						commands.append(Command(gcode.getAscii(), command.origin, command.skip))
 					else :
-						commands.append(Command(command.line, command.origin, "CENTER VALIDATION PREPARATION WAVE THERMAL"))
+						commands.append(Command(command.line, command.origin, command.skip))
 		
 					# Append new commands to commands
 					while len(newCommands) :
@@ -6360,7 +6849,10 @@ class M3DFioPlugin(
 
 			# Check if printing test border or backlash calibration cylinder or using bed compensation pre-processor
 			if (self.printingTestBorder or self.printingBacklashCalibrationCylinder or self._settings.get_boolean(["UseBedCompensationPreprocessor"])) and "BED" not in command.skip :
-	
+
+				# Set command skip
+				command.skip += " BED"
+				
 				# Initialize new commands
 				newCommands = []
 
@@ -6516,7 +7008,7 @@ class M3DFioPlugin(
 										self.bedCompensationExtraGcode.setValue('E', "%f" % (self.bedCompensationPositionRelativeE - deltaE + tempRelativeE - relativeDifferenceE))
 								
 										# Add extra G-code to output
-										newCommands.append(Command(self.bedCompensationExtraGcode.getAscii(), "BED", "CENTER VALIDATION PREPARATION WAVE THERMAL BED"))
+										newCommands.append(Command(self.bedCompensationExtraGcode.getAscii(), "BED", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL BED"))
 									
 									# Otherwise check if the plane changed
 									elif self.bedCompensationChangesPlane :
@@ -6606,9 +7098,9 @@ class M3DFioPlugin(
 		
 					# Finish processing command later
 					if not gcode.isEmpty() :
-						commands.append(Command(gcode.getAscii(), command.origin, "CENTER VALIDATION PREPARATION WAVE THERMAL BED"))
+						commands.append(Command(gcode.getAscii(), command.origin, command.skip))
 					else :
-						commands.append(Command(command.line, command.origin, "CENTER VALIDATION PREPARATION WAVE THERMAL BED"))
+						commands.append(Command(command.line, command.origin, command.skip))
 		
 					# Append new commands to commands
 					while len(newCommands) :
@@ -6619,7 +7111,10 @@ class M3DFioPlugin(
 
 			# Check if printing test border or backlash calibration cylinder or using backlash compentation pre-processor
 			if (self.printingTestBorder or self.printingBacklashCalibrationCylinder or self._settings.get_boolean(["UseBacklashCompensationPreprocessor"])) and "BACKLASH" not in command.skip :
-	
+
+				# Set command skip
+				command.skip += " BACKLASH"
+				
 				# Initialize new commands
 				newCommands = []
 
@@ -6707,7 +7202,7 @@ class M3DFioPlugin(
 								self.backlashCompensationExtraGcode.setValue('F', "%f" % (self._settings.get_float(["BacklashSpeed"])))
 						
 								# Add extra G-code to output
-								newCommands.append(Command(self.backlashCompensationExtraGcode.getAscii(), "BACKLASH", "CENTER VALIDATION PREPARATION WAVE THERMAL BED BACKLASH"))
+								newCommands.append(Command(self.backlashCompensationExtraGcode.getAscii(), "BACKLASH", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL BED BACKLASH"))
 						
 								# Set command's F value
 								gcode.setValue('F', self.valueF)
@@ -6793,9 +7288,9 @@ class M3DFioPlugin(
 		
 					# Finish processing command later
 					if not gcode.isEmpty() :
-						commands.append(Command(gcode.getAscii(), command.origin, "CENTER VALIDATION PREPARATION WAVE THERMAL BED BACKLASH"))
+						commands.append(Command(gcode.getAscii(), command.origin, command.skip))
 					else :
-						commands.append(Command(command.line, command.origin, "CENTER VALIDATION PREPARATION WAVE THERMAL BED BACKLASH"))
+						commands.append(Command(command.line, command.origin, command.skip))
 		
 					# Append new commands to commands
 					while len(newCommands) :
@@ -7060,7 +7555,10 @@ class M3DFioPlugin(
 				comm_instance._changeState(comm_instance.STATE_ERROR)
 				
 				# Send message
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Cycle Power"))
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "No Micro 3D printer detected. Try cycling the printer's power and try again.", confirm = True))
+				
+				# Raise exception
+				raise Exception("Couldn't connect to the printer")
 				
 				# Return none
 				return None
@@ -7076,17 +7574,27 @@ class M3DFioPlugin(
 				break
 
 			# If printer has just power-cycled it may not yet be ready
-			except OSError :
+			except Exception :
+				connection = None
 				time.sleep(1)
 		
-		# Check if connecting to printer failed
-		if connection is None :
+		# Check if user lacks read/write access to the printer
+		if not os.access(str(port), os.R_OK | os.W_OK) :
 		
 			# Send message
-			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Cycle Power"))
+			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "You don't have read/write access to " + str(port), confirm = True))
 			
 			# Raise exception
-			raise Exception("Couldn't reconnect to the printer")
+			raise Exception("Couldn't connect to the printer")
+		
+		# Otherwise check if connecting to printer failed
+		elif connection is None :
+		
+			# Send message
+			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "No Micro 3D printer detected. Try cycling the printer's power and try again.", confirm = True))
+			
+			# Raise exception
+			raise Exception("Couldn't connect to the printer")
 
 		# Return connection
 		return connection
@@ -7258,37 +7766,37 @@ class M3DFioPlugin(
 				self.linuxSleepService.UnInhibit(self.linuxSleepPrevention)
 				self.linuxSleepService = None
 	
-	# Turn on external fan
-	def turnOnExternalFan(self) :
+	# Set GPIO pin high
+	def setGpioPinHigh(self) :
 	
-		# Check if fan pin is set
-		fanPin = self._settings.get_int(["ExternalFanPin"])
-		if fanPin is not None :
+		# Check if GPIO pin is set
+		gpioPin = self._settings.get_int(["GpioPin"])
+		if gpioPin is not None :
 	
-			# Check if running on a Raspberry Pi
-			if self.usingARaspberryPi() :
+			# Check if using Linux
+			if platform.uname()[0].startswith("Linux") :
 			
-				# Turn on external fan
-				os.system("echo \"" + str(fanPin) + "\" > /sys/class/gpio/export")
-				os.system("echo \"out\" > /sys/class/gpio/gpio" + str(fanPin) + "/direction")
-				os.system("echo \"1\" > /sys/class/gpio/gpio" + str(fanPin) + "/value")
-				os.system("echo \"" + str(fanPin) + "\" > /sys/class/gpio/unexport")
+				# Set GPIO pin high
+				os.system("echo \"" + str(gpioPin) + "\" > /sys/class/gpio/export")
+				os.system("echo \"out\" > /sys/class/gpio/gpio" + str(gpioPin) + "/direction")
+				os.system("echo \"1\" > /sys/class/gpio/gpio" + str(gpioPin) + "/value")
+				os.system("echo \"" + str(gpioPin) + "\" > /sys/class/gpio/unexport")
 	
-	# Turn off external fan
-	def turnOffExternalFan(self) :
+	# Set GPIO pin low
+	def setGpioPinLow(self) :
 	
-		# Check if fan pin is set
-		fanPin = self._settings.get_int(["ExternalFanPin"])
-		if fanPin is not None :
+		# Check if GPIO pin is set
+		gpioPin = self._settings.get_int(["GpioPin"])
+		if gpioPin is not None :
 	
-			# Check if running on a Raspberry Pi
-			if self.usingARaspberryPi() :
+			# Check if using Linux
+			if platform.uname()[0].startswith("Linux") :
 		
-				# Turn off external fan
-				os.system("echo \"" + str(fanPin) + "\" > /sys/class/gpio/export")
-				os.system("echo \"out\" > /sys/class/gpio/gpio" + str(fanPin) + "/direction")
-				os.system("echo \"0\" > /sys/class/gpio/gpio" + str(fanPin) + "/value")
-				os.system("echo \"" + str(fanPin) + "\" > /sys/class/gpio/unexport")
+				# Set GPIO pin low
+				os.system("echo \"" + str(gpioPin) + "\" > /sys/class/gpio/export")
+				os.system("echo \"out\" > /sys/class/gpio/gpio" + str(gpioPin) + "/direction")
+				os.system("echo \"0\" > /sys/class/gpio/gpio" + str(gpioPin) + "/value")
+				os.system("echo \"" + str(gpioPin) + "\" > /sys/class/gpio/unexport")
 
 
 # Plugin info

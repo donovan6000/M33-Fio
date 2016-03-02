@@ -28,7 +28,6 @@ else
 		curl -o python.pkg https://www.python.org/ftp/python/${version}/python-${version}-macosx10.6.pkg
 		installer -pkg python.pkg -target /
 		rm python.pkg
-		pythonVersion="$(cut -f1,2 -d'.' <<< ${version})"
 
 		# Install command line tools
 		curl -O 'https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/OS%20X/command%20line%20tools%20installer.bash'
@@ -51,7 +50,7 @@ else
                 except subprocess.CalledProcessError as e:\
                     self.sdk_root = \'"'"'\/\'"'"'/g' setup.py
 
-		sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/${pythonVersion}/bin/python setup.py install --user
+		sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/python setup.py install --user
 		cd ..
 		rm -rf pyobjc-core-${version}
 
@@ -63,7 +62,7 @@ else
 		sudo -u $SUDO_USER tar zxvf pyobjc-framework-Cocoa.tar.gz
 		rm pyobjc-framework-Cocoa.tar.gz
 		cd pyobjc-framework-Cocoa-${version}
-		sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/${pythonVersion}/bin/python setup.py install --user
+		sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/python setup.py install --user
 		cd ..
 		rm -rf pyobjc-framework-Cocoa-${version}
 		
@@ -75,7 +74,7 @@ else
 		sudo -u $SUDO_USER tar zxvf pyobjc-framework-Quartz.tar.gz
 		rm pyobjc-framework-Quartz.tar.gz
 		cd pyobjc-framework-Quartz-${version}
-		sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/${pythonVersion}/bin/python setup.py install --user
+		sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/python setup.py install --user
 		cd ..
 		rm -rf pyobjc-framework-Quartz-${version}
 		
@@ -87,7 +86,7 @@ else
 		sudo -u $SUDO_USER tar zxvf pyobjc-framework-QTKit.tar.gz
 		rm pyobjc-framework-QTKit.tar.gz
 		cd pyobjc-framework-QTKit-${version}
-		sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/${pythonVersion}/bin/python setup.py install --user
+		sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/python setup.py install --user
 		cd ..
 		rm -rf pyobjc-framework-QTKit-${version}
 		
@@ -96,15 +95,15 @@ else
 		curl -LOk https://github.com/foosel/OctoPrint/archive/master.zip
 		sudo -u $SUDO_USER unzip master.zip
 		cd OctoPrint-master
-		sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/${pythonVersion}/bin/python setup.py install --user
+		sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/python setup.py install --user
 		cd ..
 		rm -rf OctoPrint-master
 		rm master.zip
 
 		# Install M3D Fio
-		echo 'y' | sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/${pythonVersion}/bin/pip uninstall OctoPrint-M3DFio
+		echo 'y' | sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/pip uninstall OctoPrint-M3DFio
 		curl -LOk https://github.com/donovan6000/M3D-Fio/archive/master.zip
-		while ! sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/${pythonVersion}/bin/pip install master.zip
+		while ! sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/pip install --user master.zip
 		do
 			:
 		done
@@ -116,7 +115,7 @@ else
 		rm CH34x_Install.pkg
 		
 		# Get OctoPrint parameter
-		octoPrintVersion="$(/Users/$SUDO_USER/Library/Python/${pythonVersion}/bin/octoprint --version | cut -d' ' -f3)"
+		octoPrintVersion="$(/Users/$SUDO_USER/Library/Python/2.7/bin/octoprint --version | cut -d' ' -f3)"
 		if [ $octoPrintVersion = "1.2.8" ] || [ $octoPrintVersion = "1.2.9" ]; then
 			octoPrintParameter=""
 		else
@@ -125,7 +124,7 @@ else
 		
 		# Add OctoPrint to startup programs
 		curl -O 'https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/OS%20X/com.octoprint.app.plist'
-		sed -i '' -e 's/path to octoprint/\/Users\/'"$SUDO_USER"'\/Library\/Python\/'"${pythonVersion}"'\/bin\/octoprint/g' com.octoprint.app.plist
+		sed -i '' -e 's/path to octoprint/\/Users\/'"$SUDO_USER"'\/Library\/Python\/2.7\/bin\/octoprint/g' com.octoprint.app.plist
 		sed -i '' -e 's/<string>octoprint parameter<\/string>/'"$octoPrintParameter"'/g' com.octoprint.app.plist
 		mv com.octoprint.app.plist '/Library/LaunchAgents'
 		

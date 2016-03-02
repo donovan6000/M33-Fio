@@ -141,9 +141,30 @@ extern "C" {
 	EXPORT void setCalibrateBeforePrint(bool value);
 	EXPORT void setRemoveFanCommands(bool value);
 	EXPORT void setRemoveTemperatureCommands(bool value);
-	EXPORT void setUseExternalFan(bool value);
+	EXPORT void setUseGpio(bool value);
+	EXPORT void setGpioLayer(unsigned short value);
 	EXPORT void setHeatbedTemperature(unsigned short value);
 	EXPORT void setHeatbedHeight(double value);
+	EXPORT void setMidPrintFilamentChangeLayers(const char *value);
+	
+	/*
+	Name: Get values
+	Purpose: Returns values calculated by the pre-processor
+	*/
+	EXPORT double getMaxXExtruderLow();
+	EXPORT double getMaxXExtruderMedium();
+	EXPORT double getMaxXExtruderHigh();
+	EXPORT double getMaxYExtruderLow();
+	EXPORT double getMaxYExtruderMedium();
+	EXPORT double getMaxYExtruderHigh();
+	EXPORT double getMaxZExtruder();
+	EXPORT double getMinXExtruderLow();
+	EXPORT double getMinXExtruderMedium();
+	EXPORT double getMinXExtruderHigh();
+	EXPORT double getMinYExtruderLow();
+	EXPORT double getMinYExtruderMedium();
+	EXPORT double getMinYExtruderHigh();
+	EXPORT double getMinZExtruder();
 
 	/*
 	Name: Reset pre-processor settings
@@ -168,6 +189,12 @@ extern "C" {
 	Purpose: Returns the speed of the fan that the print uses
 	*/
 	EXPORT unsigned char getDetectedFanSpeed();
+	
+	/*
+	Name: Get detected mid-print filament change
+	Purpose: Returns if the file contains mid-print filament change commands
+	*/
+	EXPORT bool getDetectedMidPrintFilamentChange();
 	
 	/*
 	Name: Get object successfully centered
