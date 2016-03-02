@@ -807,12 +807,6 @@ class M3DFioPlugin(
 				# Set shared library
 				self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace('\\', '/') + "/static/libraries/preprocessor_arm_cortex-a7.so")
 			
-			# Otherwise check if running on an ARM7 device
-			elif platform.uname()[4].startswith("armv7") :
-			
-				# Set shared library
-				self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace('\\', '/') + "/static/libraries/preprocessor_arm7.so")
-			
 			# Otherwise check if using an i386 or x86-64 device
 			elif platform.uname()[4].endswith("86") or platform.uname()[4].endswith("64") :
 		
