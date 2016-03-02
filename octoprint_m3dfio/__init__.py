@@ -405,6 +405,8 @@ class M3DFioPlugin(
 	
 		# General settings
 		self.preprocessOnTheFlyReady = False
+		self.currentHighestZ = -1
+		self.onNewLayer = False
 		
 		# Print settings
 		self.resetPrintSettings()
@@ -6105,11 +6107,23 @@ class M3DFioPlugin(
 			command = commands.pop()
 			gcode.parseLine(command.line)
 			
+			# Clear on new layer
+			self.onNewLayer = False
+			
 			# Check if command contains valid G-code
 			if not gcode.isEmpty() :
 			
 				# Remove line number
 				gcode.removeParameter('N')
+				
+				# Check if command goes to a higher layer
+				if command.origin == "INPUT" and gcode.hasValue('G') and gcode.hasValue('Z') and float(gcode.getValue('Z')) > self.currentHighestZ :
+				
+					# Set current highest Z
+					self.currentHighestZ = float(gcode.getValue('Z'))
+					
+					# Set on new layer
+					self.onNewLayer = True
 			
 			# Check if not printing test border or backlash calibration cylinder and using mid-print filament change pre-processor
 			if not self.printingTestBorder and not self.printingBacklashCalibrationCylinder and len(self.midPrintFilamentChangeLayers) and "MID-PRINT" not in command.skip :
@@ -6117,8 +6131,8 @@ class M3DFioPlugin(
 				# Set command skip
 				command.skip += " MID-PRINT"
 				
-				# Check if command is at a new layer
-				if not gcode.isEmpty() and command.origin == "INPUT" and gcode.hasValue('G') and gcode.hasValue('Z') :
+				# Check if command is on a new layer
+				if self.onNewLayer :
 					
 					# Increment layer counter
 					self.midPrintFilamentChangeLayerCounter += 1
@@ -6382,8 +6396,8 @@ class M3DFioPlugin(
 					while len(newCommands) :
 						commands.append(newCommands.pop())
 				
-				# Otherwise check if command is at a new layer
-				elif not gcode.isEmpty() and gcode.hasValue('G') and gcode.hasValue('Z') :
+				# Otherwise check if command is on a new layer
+				elif self.onNewLayer :
 					
 					# Increment layer counter
 					self.preparationLayerCounter += 1
@@ -6431,8 +6445,8 @@ class M3DFioPlugin(
 					# Check if command is a G command
 					if gcode.hasValue('G') :
 					
-						# Check if at a new layer
-						if self.waveBondingLayerCounter < 2 and command.origin == "INPUT" and gcode.hasValue('Z') :
+						# Check if on a new layer
+						if self.waveBondingLayerCounter < 2 and self.onNewLayer :
 		
 							# Increment layer counter
 							self.waveBondingLayerCounter += 1
@@ -6699,8 +6713,8 @@ class M3DFioPlugin(
 				# Check if command contains valid G-code
 				if not gcode.isEmpty() :
 				
-					# Check if at a new layer
-					if self.thermalBondingLayerCounter < 2 and command.origin == "INPUT" and gcode.hasValue('Z') :
+					# Check if on a new layer
+					if self.thermalBondingLayerCounter < 2 and self.onNewLayer :
 			
 						# Check if on first counted layer
 						if self.thermalBondingLayerCounter == 0 :

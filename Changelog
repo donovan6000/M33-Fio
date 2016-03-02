@@ -1,5 +1,13 @@
 Changelog:
 
+V0.28 March X, 2016
+
+	* Implemented mid-print filement change pre-processor and button. Thanks drschlaumeier!
+	* Section in the control tab can now be expanded and hidden. Thanks TonyH!
+	* Manual section in slicer profile editor now allows changing the model thickness and top/bottom thickness. Thanks Muele!
+	* Printer settings can be saved and restored from a file. Thanks ra100!
+	* Added warning about needing to restart printer for changes to speed limits to take affect
+
 V0.27.1 February 22, 2016
 
 	* Fixed issue where webcam URL's couldn't be changed

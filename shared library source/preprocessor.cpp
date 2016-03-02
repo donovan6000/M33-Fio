@@ -164,7 +164,11 @@ bool objectSuccessfullyCentered;
 // Return value
 string returnValue;
 
-// Mid-print filament change pre-processor
+// General settings
+double currentHighestZ;
+bool onNewLayer;
+
+// Mid-print filament change pre-processor settings
 uint64_t midPrintFilamentChangeLayerCounter;
 list<uint64_t> midPrintFilamentChangeLayers;
 
@@ -834,6 +838,8 @@ EXPORT void resetPreprocessorSettings() {
 	printingTestBorder = false;
 	printingBacklashCalibrationCylinder = false;
 	printerColor = BLACK;
+	currentHighestZ = -1;
+	onNewLayer = false;
 	
 	// Mid-print filament change pre-processor
 	midPrintFilamentChangeLayerCounter = 0;
@@ -1355,11 +1361,25 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 		commands.pop_front();
 		gcode.parseLine(command.line);
 		
+		// Clear on new layer
+		onNewLayer = false;
+		
 		// Check if command contains valid G-code
-		if(!gcode.isEmpty())
+		if(!gcode.isEmpty()) {
 		
 			// Remove line number
 			gcode.removeParameter('N');
+			
+			// Check if command goes to a higher layer
+			if(command.origin == INPUT && gcode.hasValue('G') && gcode.hasValue('Z') && stod(gcode.getValue('Z')) > currentHighestZ) {
+			
+				// Set current highest Z
+				currentHighestZ = stod(gcode.getValue('Z'));
+				
+				// Set on new layer
+				onNewLayer = true;
+			}
+		}
 		
 		// Check if not printing test border or backlash calibration cylinder and using mid-print filament change pre-processor
 		if(!printingTestBorder && !printingBacklashCalibrationCylinder && midPrintFilamentChangeLayers.size() && command.skip < MID_PRINT) {
@@ -1367,8 +1387,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			// Set command skip
 			command.skip = MID_PRINT;
 			
-			// Check if command is at a new layer
-			if(!gcode.isEmpty() && command.origin == INPUT && gcode.hasValue('G') && gcode.hasValue('Z')) {
+			// Check if command is on a new layer
+			if(onNewLayer) {
 				
 				// Increment layer counter
 				midPrintFilamentChangeLayerCounter++;
@@ -1640,8 +1660,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 				}
 			}
 			
-			// Otherwise check if command is at a new layer
-			else if(!gcode.isEmpty() && gcode.hasValue('G') && gcode.hasValue('Z')) {
+			// Otherwise check if command is on a new layer
+			else if(onNewLayer) {
 				
 				// Increment layer counter
 				preparationLayerCounter++;
@@ -1688,8 +1708,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 				// Check if command is a G command
 				if(gcode.hasValue('G')) {
 				
-					// Check if at a new layer
-					if(waveBondingLayerCounter < 2 && command.origin == INPUT && gcode.hasValue('Z'))
+					// Check if on a new layer
+					if(waveBondingLayerCounter < 2 && onNewLayer)
 	
 						// Increment layer counter
 						waveBondingLayerCounter++;
@@ -1959,8 +1979,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			// Check if command contains valid G-code
 			if(!gcode.isEmpty()) {
 			
-				// Check if at a new layer
-				if(thermalBondingLayerCounter < 2 && command.origin == INPUT && gcode.hasValue('Z')) {
+				// Check if on a new layer
+				if(thermalBondingLayerCounter < 2 && onNewLayer) {
 		
 					// Check if on first counted layer
 					if(thermalBondingLayerCounter == 0) {
