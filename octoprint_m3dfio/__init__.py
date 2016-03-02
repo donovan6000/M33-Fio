@@ -725,7 +725,7 @@ class M3DFioPlugin(
 	
 	# On after startup
 	def on_after_startup(self) :
-		
+	
 		# Set reminders on initial OctoPrint instance
 		currentPort = self.getListenPort(psutil.Process(os.getpid()))
 		if currentPort is not None and self.getListenPort(psutil.Process(os.getpid())) == 5000 :
@@ -806,6 +806,12 @@ class M3DFioPlugin(
 			
 				# Set shared library
 				self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace('\\', '/') + "/static/libraries/preprocessor_arm_cortex-a7.so")
+			
+			# Otherwise check if running on an ARM7 device
+			elif platform.uname()[4].startswith("armv7") :
+			
+				# Set shared library
+				self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace('\\', '/') + "/static/libraries/preprocessor_arm7.so")
 			
 			# Otherwise check if using an i386 or x86-64 device
 			elif platform.uname()[4].endswith("86") or platform.uname()[4].endswith("64") :
@@ -1526,7 +1532,7 @@ class M3DFioPlugin(
 							self.sharedLibrary.setGpioLayer(ctypes.c_ushort(self._settings.get_int(["GpioLayer"])))
 						self.sharedLibrary.setHeatbedTemperature(ctypes.c_ushort(self._settings.get_int(["HeatbedTemperature"])))
 						self.sharedLibrary.setHeatbedHeight(ctypes.c_double(self._settings.get_float(["HeatbedHeight"])))
-						self.sharedLibrary.setMidPrintFilamentChangeLayers(ctypes.c_char_p(str(self._settings.get(["MidPrintFilamentChangeLayers"]))))
+						self.sharedLibrary.setMidPrintFilamentChangeLayers(ctypes.c_char_p(' '.join(re.findall("\\d+", str(self._settings.get(["MidPrintFilamentChangeLayers"]))))))
 									
 						# Collect print information
 						self.sharedLibrary.collectPrintInformation(ctypes.c_char_p(location))
@@ -3642,7 +3648,7 @@ class M3DFioPlugin(
 						self.sharedLibrary.setGpioLayer(ctypes.c_ushort(self._settings.get_int(["GpioLayer"])))
 					self.sharedLibrary.setHeatbedTemperature(ctypes.c_ushort(self._settings.get_int(["HeatbedTemperature"])))
 					self.sharedLibrary.setHeatbedHeight(ctypes.c_double(self._settings.get_float(["HeatbedHeight"])))
-					self.sharedLibrary.setMidPrintFilamentChangeLayers(ctypes.c_char_p(str(self._settings.get(["MidPrintFilamentChangeLayers"]))))
+					self.sharedLibrary.setMidPrintFilamentChangeLayers(ctypes.c_char_p(' '.join(re.findall("\\d+", str(self._settings.get(["MidPrintFilamentChangeLayers"]))))))
 					
 					# Collect print information
 					printIsValid = self.sharedLibrary.collectPrintInformation(ctypes.c_char_p(payload.get("file")))
@@ -5285,7 +5291,7 @@ class M3DFioPlugin(
 					self.sharedLibrary.setGpioLayer(ctypes.c_ushort(self._settings.get_int(["GpioLayer"])))
 				self.sharedLibrary.setHeatbedTemperature(ctypes.c_ushort(self._settings.get_int(["HeatbedTemperature"])))
 				self.sharedLibrary.setHeatbedHeight(ctypes.c_double(self._settings.get_float(["HeatbedHeight"])))
-				self.sharedLibrary.setMidPrintFilamentChangeLayers(ctypes.c_char_p(str(self._settings.get(["MidPrintFilamentChangeLayers"]))))
+				self.sharedLibrary.setMidPrintFilamentChangeLayers(ctypes.c_char_p(' '.join(re.findall("\\d+", str(self._settings.get(["MidPrintFilamentChangeLayers"]))))))
 				
 				# Collect print information
 				printIsValid = self.sharedLibrary.collectPrintInformation(ctypes.c_char_p(input))

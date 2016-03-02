@@ -3,7 +3,7 @@
 #include <string>
 #include <list>
 #include <stack>
-#include <regex>
+#include <algorithm>
 #include <cmath>
 #include <cfloat>
 #include <cstring>
@@ -720,12 +720,28 @@ EXPORT void setHeatbedHeight(double value) {
 EXPORT void setMidPrintFilamentChangeLayers(const char *value) {
 
 	// Initialize variables
-	string temp = value;
-	regex pattern("\\d+");
+	string temp;
 	
-	// Store mid print filament change layer numbers
-	for(sregex_iterator i = sregex_iterator(temp.begin(), temp.end(), pattern); i != sregex_iterator(); i++)
-		midPrintFilamentChangeLayers.push_front(stoi(i->str()));
+	// Go through all character in value
+	for(uint64_t i = 0; i <= strlen(value); i++)
+	
+		// Check if at end of value of charcter is a space
+		if(!value[i] || value[i] == ' ') {
+		
+			// Check if temp exists
+			if(temp.length()) {
+		
+				// Store mid print filament change layer numbers
+				midPrintFilamentChangeLayers.push_front(stoi(temp));
+				temp.clear();
+			}
+		}
+		
+		// Otherwise
+		else
+		
+			// Append character to temp
+			temp.push_back(value[i]);
 }
 
 EXPORT double getMaxXExtruderLow() {

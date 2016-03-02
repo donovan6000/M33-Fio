@@ -39,6 +39,12 @@ ifeq ($(TARGET_PLATFORM), PI2)
 	CFLAGS = -fPIC -mcpu=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard -static-libgcc -O3 -Wl,-soname,$(PROG)$(VER) -static-libstdc++
 endif
 
+ifeq ($(TARGET_PLATFORM), ARM7)
+	PROG = $(LIBRARY_NAME)_arm7.so
+	CC = ~/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin/arm-linux-gnueabihf-g++
+	CFLAGS = -fPIC -mcpu=generic-armv7-a -mfpu=vfp -mfloat-abi=hard -static-libgcc -O3 -Wl,-soname,$(PROG)$(VER) -static-libstdc++
+endif
+
 ifeq ($(TARGET_PLATFORM), OSX32)
 	PROG = $(LIBRARY_NAME)_i386.dylib
 	CC = clang++
