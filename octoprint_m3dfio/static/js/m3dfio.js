@@ -4638,8 +4638,12 @@ $(function() {
 												
 													if(checked) {
 														changedSettings.push({
-															platform_adhesion: "Raft; None, Brim, Raft"
+															platform_adhesion: "Raft; None, Brim, Raft",
+															bottom_layer_speed: 12
 														});
+														
+														if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
+															changedSettings[0]["bottom_layer_speed"] = 16;
 														
 														// Uncheck use brim basic setting and enable raft airgap manual setting
 														$("#slicing_configuration_dialog .modal-extra div.cura div input.useBrim").prop("checked", false);
@@ -4647,7 +4651,8 @@ $(function() {
 													}
 													else {
 														changedSettings.push({
-															platform_adhesion: "None; None, Brim, Raft"
+															platform_adhesion: "None; None, Brim, Raft",
+															bottom_layer_speed: 6
 														});
 														
 														// Disable raft airgap manual setting
@@ -4660,8 +4665,12 @@ $(function() {
 												
 													if(checked) {
 														changedSettings.push({
-															platform_adhesion: "Brim; None, Brim, Raft"
+															platform_adhesion: "Brim; None, Brim, Raft",
+															bottom_layer_speed: 12
 														});
+														
+														if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
+															changedSettings[0]["bottom_layer_speed"] = 16;
 														
 														// Uncheck use raft basic setting and disable raft airgap manual setting
 														$("#slicing_configuration_dialog .modal-extra div.cura div input.useRaft").prop("checked", false);
@@ -4669,7 +4678,8 @@ $(function() {
 													}
 													else
 														changedSettings.push({
-															platform_adhesion: "None; None, Brim, Raft"
+															platform_adhesion: "None; None, Brim, Raft",
+															bottom_layer_speed: 6
 														});
 												}
 												
@@ -4789,6 +4799,10 @@ $(function() {
 													
 													if(layerHeight == '')
 														changedSettings[0]["layer_height"] = 0.15;
+													
+													// Clear basic quality settings
+													$("#slicing_configuration_dialog .modal-extra div.cura p.quality").text("Unknown Quality");
+													$("#slicing_configuration_dialog .modal-extra div.cura div.quality button.disabled").removeClass("disabled");
 												}
 												
 												// Update profile settings
@@ -8027,6 +8041,7 @@ $(function() {
 																													// Set commands
 																													commands = [
 																														"G90",
+																														"G0 Z3 F90",
 																														"G28",
 																														"M18",
 																														"M65536;wait"
