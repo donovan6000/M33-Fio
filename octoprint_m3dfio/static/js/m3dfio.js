@@ -594,7 +594,7 @@ $(function() {
 						
 						else if(secondButton == "Unload" || secondButton == "Load" || secondButton == "Set") {
 							$("body > div.page-container > div.message > div > div > div.filamentSettings input").eq(0).val(self.settings.settings.plugins.m3dfio.FilamentTemperature());
-							$("body > div.page-container > div.message > div > div > div.filamentSettings label").text(secondButton + " Temperature");
+							$("body > div.page-container > div.message > div > div > div.filamentSettings label").text((secondButton == "Set" ? "New Print" : secondButton) + " Temperature");
 							$("body > div.page-container > div.message > div > div > div.filamentSettings").addClass("show");
 						}
 					}
