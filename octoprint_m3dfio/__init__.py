@@ -3976,8 +3976,8 @@ class M3DFioPlugin(
 								connection = None
 								time.sleep(1)
 						
-						# Check if user lacks read/write access to the printer
-						if not os.access(currentPort, os.R_OK | os.W_OK) :
+						# Check if using OS X or Linux and the user lacks read/write access to the printer
+						if (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(currentPort, os.R_OK | os.W_OK) :
 		
 							# Send message
 							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "You don't have read/write access to " + str(port), confirm = True))
@@ -7641,8 +7641,8 @@ class M3DFioPlugin(
 				connection = None
 				time.sleep(1)
 		
-		# Check if user lacks read/write access to the printer
-		if not os.access(str(port), os.R_OK | os.W_OK) :
+		# Check if using OS X or Linux and the user lacks read/write access to the printer
+		if (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(str(port), os.R_OK | os.W_OK) :
 		
 			# Send message
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "You don't have read/write access to " + str(port), confirm = True))
