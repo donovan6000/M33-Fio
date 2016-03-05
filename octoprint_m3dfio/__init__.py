@@ -405,8 +405,11 @@ class M3DFioPlugin(
 	
 		# General settings
 		self.preprocessOnTheFlyReady = False
-		self.currentHighestZ = -1
-		self.onNewLayer = False
+		self.currentE = 0
+		self.currentZ = 0
+		self.relativeMode = False
+		self.printedLayers = []
+		self.onNewPrintedLayer = False
 		
 		# Print settings
 		self.resetPrintSettings()
@@ -3058,7 +3061,7 @@ class M3DFioPlugin(
 						
 						# Pause print
 						if self._printer._comm is not None :
-							self._printer._comm.setPause(True);
+							self._printer._comm.setPause(True)
 					
 					# Set command to nothing
 					gcode.removeParameter('M')
@@ -3072,7 +3075,7 @@ class M3DFioPlugin(
 					
 						# Resume print
 						if self._printer._comm is not None :
-							self._printer._comm.setPause(False);
+							self._printer._comm.setPause(False)
 						
 						# Restart line numbers
 						self.sendCommands(["N0 M110", "G90"])
@@ -6084,7 +6087,7 @@ class M3DFioPlugin(
 
 						# Append line to commands
 						line = input.readline()
-						commands.append(Command(line, "INPUT", ''))
+						commands.append(Command(line, "INPUT", "NONE"))
 		
 					# Otherwise
 					else :
@@ -6105,7 +6108,7 @@ class M3DFioPlugin(
 				if not processedCommand :
 		
 					# Append input to commands
-					commands.append(Command(input, "INPUT", ''))
+					commands.append(Command(input, "INPUT", "NONE"))
 					
 					# Set processed command
 					processedCommand = True
@@ -6121,23 +6124,71 @@ class M3DFioPlugin(
 			command = commands.pop()
 			gcode.parseLine(command.line)
 			
-			# Clear on new layer
-			self.onNewLayer = False
-			
 			# Check if command contains valid G-code
 			if not gcode.isEmpty() :
 			
 				# Remove line number
 				gcode.removeParameter('N')
 				
-				# Check if command goes to a higher layer
-				if command.origin == "INPUT" and gcode.hasValue('G') and gcode.hasValue('Z') and float(gcode.getValue('Z')) > self.currentHighestZ :
+				# Check if command is from the input file, hasn't been processed yet, and it contains a G value
+				if command.origin == "INPUT" and command.skip == "NONE" and gcode.hasValue('G') :
 				
-					# Set current highest Z
-					self.currentHighestZ = float(gcode.getValue('Z'))
+					# Set new E
+					newE = self.currentE
 					
-					# Set on new layer
-					self.onNewLayer = True
+					# Check if command is G0 or G1
+					if gcode.getValue('G') == "0" or gcode.getValue('G') == "1" :
+					
+						# Check if command changes Z
+						if gcode.hasValue('Z') :
+			
+							# Set current Z
+							if self.relativeMode :
+								self.currentZ += float(gcode.getValue('Z'))
+							else :
+								self.currentZ = float(gcode.getValue('Z'))
+						
+						# Check if command contains an E value
+						if gcode.hasValue('E') :
+				
+							# Set new E
+							if self.relativeMode :
+								newE += float(gcode.getValue('E'))
+							else :
+								newE = float(gcode.getValue('E'))
+			
+					# Otherwise check if command is G90
+					elif gcode.getValue('G') == "90" :
+				
+						# Clear relative mode
+						self.relativeMode = False
+				
+					# Otherwise check if command is G91
+					elif gcode.getValue('G') == "91" :
+				
+						# Set relative mode
+						self.relativeMode = True
+				
+					# Otherwise check if command is G92
+					elif gcode.getValue('G') == "92" :
+			
+						# Set new E
+						if gcode.hasValue('E') :
+							newE = float(gcode.getValue('E'))
+						else :
+							newE = 0
+				
+					# Check if first time layer extrudes filament
+					if newE > self.currentE and self.currentZ not in self.printedLayers :
+					
+						# Append layer to list
+						self.printedLayers.append(self.currentZ)
+						
+						# Set on new printed layer
+						self.onNewPrintedLayer = True
+			
+					# Set current E
+					self.currentE = newE
 			
 			# Check if not printing test border or backlash calibration cylinder and using mid-print filament change pre-processor
 			if not self.printingTestBorder and not self.printingBacklashCalibrationCylinder and len(self.midPrintFilamentChangeLayers) and "MID-PRINT" not in command.skip :
@@ -6145,8 +6196,8 @@ class M3DFioPlugin(
 				# Set command skip
 				command.skip += " MID-PRINT"
 				
-				# Check if command is on a new layer
-				if self.onNewLayer :
+				# Check if command is on a new printed layer
+				if self.onNewPrintedLayer :
 					
 					# Increment layer counter
 					self.midPrintFilamentChangeLayerCounter += 1
@@ -6160,10 +6211,19 @@ class M3DFioPlugin(
 						# Add mid-print filament change command to output
 						newCommands.append(Command("M600", "MID-PRINT", "MID-PRINT"))
 						
+						# Finish processing command later
+						if not gcode.isEmpty() :
+							commands.append(Command(gcode.getAscii(), command.origin, command.skip))
+						else :
+							commands.append(Command(command.line, command.origin, command.skip))
+		
 						# Append new commands to commands
 						while len(newCommands) :
 							commands.append(newCommands.pop())
-	
+		
+						# Process next command
+						continue
+			
 			# Check if not printing test border or backlash calibration cylinder and using center model pre-processor
 			if not self.printingTestBorder and not self.printingBacklashCalibrationCylinder and self._settings.get_boolean(["UseCenterModelPreprocessor"]) and "CENTER" not in command.skip :
 			
@@ -6410,8 +6470,8 @@ class M3DFioPlugin(
 					while len(newCommands) :
 						commands.append(newCommands.pop())
 				
-				# Otherwise check if command is on a new layer
-				elif self.onNewLayer :
+				# Otherwise check if command is on a new printed layer
+				elif self.onNewPrintedLayer :
 					
 					# Increment layer counter
 					self.preparationLayerCounter += 1
@@ -6459,8 +6519,8 @@ class M3DFioPlugin(
 					# Check if command is a G command
 					if gcode.hasValue('G') :
 					
-						# Check if on a new layer
-						if self.waveBondingLayerCounter < 2 and self.onNewLayer :
+						# Check if on a new printed layer
+						if self.waveBondingLayerCounter < 2 and self.onNewPrintedLayer :
 		
 							# Increment layer counter
 							self.waveBondingLayerCounter += 1
@@ -6727,11 +6787,14 @@ class M3DFioPlugin(
 				# Check if command contains valid G-code
 				if not gcode.isEmpty() :
 				
-					# Check if on a new layer
-					if self.thermalBondingLayerCounter < 2 and self.onNewLayer :
+					# Check if on a new printed layer
+					if self.thermalBondingLayerCounter < 2 and self.onNewPrintedLayer :
+					
+						# Increment layer counter
+						self.thermalBondingLayerCounter += 1
 			
 						# Check if on first counted layer
-						if self.thermalBondingLayerCounter == 0 :
+						if self.thermalBondingLayerCounter == 1 :
 			
 							# Check if filament type is PLA
 							if str(self._settings.get(["FilamentType"])) == "PLA" :
@@ -6765,9 +6828,6 @@ class M3DFioPlugin(
 			
 								# Add temperature to output
 								newCommands.append(Command("M104 S" + str(self._settings.get_int(["FilamentTemperature"])), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
-				
-						# Increment layer counter
-						self.thermalBondingLayerCounter += 1
 
 					# Check if on first counted layer
 					if self.thermalBondingLayerCounter == 1 :
@@ -7313,6 +7373,9 @@ class M3DFioPlugin(
 				
 					# Append ascii representation of the command to list
 					value += [gcode.getAscii() + '*']
+			
+			# Clear on new printed layer
+			self.onNewPrintedLayer = False
 		
 		# Check if not outputting to a file
 		if output is None :

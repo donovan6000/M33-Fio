@@ -165,8 +165,11 @@ bool objectSuccessfullyCentered;
 string returnValue;
 
 // General settings
-double currentHighestZ;
-bool onNewLayer;
+double currentE;
+double currentZ;
+bool relativeMode;
+list<double>printedLayers;
+bool onNewPrintedLayer;
 
 // Mid-print filament change pre-processor settings
 uint64_t midPrintFilamentChangeLayerCounter;
@@ -840,8 +843,11 @@ EXPORT void resetPreprocessorSettings() {
 	printingTestBorder = false;
 	printingBacklashCalibrationCylinder = false;
 	printerColor = BLACK;
-	currentHighestZ = -1;
-	onNewLayer = false;
+	currentE = 0;
+	currentZ = 0;
+	relativeMode = false;
+	printedLayers.clear();
+	onNewPrintedLayer = false;
 	
 	// Mid-print filament change pre-processor
 	midPrintFilamentChangeLayerCounter = 0;
@@ -1111,7 +1117,7 @@ EXPORT bool collectPrintInformation(const char *file) {
 						break;
 					
 						// G28
-						case 28 :
+						case 28:
 					
 							// Set X and Y to home
 							localX = 54;
@@ -1327,7 +1333,7 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 
 					// Append line to commands
 					getline(inputFile, line);
-					commands.push_front(Command(line, INPUT));
+					commands.push_front(Command(line));
 				}
 	
 				// Otherwise
@@ -1345,7 +1351,7 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			if(!processedCommand) {
 	
 				// Append input to commands
-				commands.push_front(Command(input, INPUT));
+				commands.push_front(Command(input));
 				
 				// Set processed command
 				processedCommand = true;
@@ -1363,23 +1369,72 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 		commands.pop_front();
 		gcode.parseLine(command.line);
 		
-		// Clear on new layer
-		onNewLayer = false;
-		
 		// Check if command contains valid G-code
 		if(!gcode.isEmpty()) {
 		
 			// Remove line number
 			gcode.removeParameter('N');
 			
-			// Check if command goes to a higher layer
-			if(command.origin == INPUT && gcode.hasValue('G') && gcode.hasValue('Z') && stod(gcode.getValue('Z')) > currentHighestZ) {
-			
-				// Set current highest Z
-				currentHighestZ = stod(gcode.getValue('Z'));
+			// Check if command is from the input file, hasn't been processed yet, and it contains a G value
+			if(command.origin == INPUT && command.skip == NONE && gcode.hasValue('G')) {
+		
+				// Set new E
+				double newE = currentE;
 				
-				// Set on new layer
-				onNewLayer = true;
+				// Check what parameter is associated with the command
+				switch(stoi(gcode.getValue('G'))) {
+				
+					// G0 or G1
+					case 0:
+					case 1:
+					
+						// Check if command changes Z
+						if(gcode.hasValue('Z'))
+		
+							// Set current Z
+							currentZ = relativeMode ? currentZ + stod(gcode.getValue('Z')) : stod(gcode.getValue('Z'));
+					
+						// Check if command contains an E value
+						if(gcode.hasValue('E'))
+			
+							// Set new E
+							newE = relativeMode ? newE + stod(gcode.getValue('E')) : stod(gcode.getValue('E'));
+					break;
+				
+					// G90
+					case 90:
+					
+						// Clear relative mode
+						relativeMode = false;
+					break;
+					
+					// G91
+					case 91:
+					
+						// Set relative mode
+						relativeMode = true;
+					break;
+					
+					// G92
+					case 92:
+					
+						// Set new E
+						newE = gcode.hasValue('E') ? stod(gcode.getValue('E')) : 0;
+					break;
+				}
+			
+				// Check if first time layer extrudes filament
+				if(newE > currentE && find(printedLayers.begin(), printedLayers.end(), currentZ) == printedLayers.end()) {
+				
+					// Append layer to list
+					printedLayers.push_back(currentZ);
+					
+					// Set on new printed layer
+					onNewPrintedLayer = true;
+				}
+		
+				// Set current E
+				currentE = newE;
 			}
 		}
 		
@@ -1389,8 +1444,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			// Set command skip
 			command.skip = MID_PRINT;
 			
-			// Check if command is on a new layer
-			if(onNewLayer) {
+			// Check if command is on a new printed layer
+			if(onNewPrintedLayer) {
 				
 				// Increment layer counter
 				midPrintFilamentChangeLayerCounter++;
@@ -1404,11 +1459,20 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 					// Add mid-print filament change command to output
 					newCommands.push(Command("M600", MID_PRINT, MID_PRINT));
 					
+					// Finish processing command later
+					if(!gcode.isEmpty())
+						commands.push_front(Command(gcode.getAscii(), command.origin, command.skip));
+					else
+						commands.push_front(Command(command.line, command.origin, command.skip));
+	
 					// Append new commands to commands
 					while(newCommands.size()) {
 						commands.push_front(newCommands.top());
 						newCommands.pop();
 					}
+	
+					// Process next command
+					continue;
 				}
 			}
 		}
@@ -1662,8 +1726,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 				}
 			}
 			
-			// Otherwise check if command is on a new layer
-			else if(onNewLayer) {
+			// Otherwise check if command is on a new printed layer
+			else if(onNewPrintedLayer) {
 				
 				// Increment layer counter
 				preparationLayerCounter++;
@@ -1710,8 +1774,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 				// Check if command is a G command
 				if(gcode.hasValue('G')) {
 				
-					// Check if on a new layer
-					if(waveBondingLayerCounter < 2 && onNewLayer)
+					// Check if on a new printed layer
+					if(waveBondingLayerCounter < 2 && onNewPrintedLayer)
 	
 						// Increment layer counter
 						waveBondingLayerCounter++;
@@ -1981,11 +2045,14 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			// Check if command contains valid G-code
 			if(!gcode.isEmpty()) {
 			
-				// Check if on a new layer
-				if(thermalBondingLayerCounter < 2 && onNewLayer) {
+				// Check if on a new printed layer
+				if(thermalBondingLayerCounter < 2 && onNewPrintedLayer) {
+				
+					// Increment layer counter
+					thermalBondingLayerCounter++;
 		
 					// Check if on first counted layer
-					if(thermalBondingLayerCounter == 0) {
+					if(thermalBondingLayerCounter == 1) {
 					
 						// Check if filament type is PLA
 						if(filamentType == PLA)
@@ -2020,9 +2087,6 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 						
 							// Add temperature to output
 							newCommands.push(Command("M104 S" + to_string(filamentTemperature), THERMAL, THERMAL));
-			
-					// Increment layer counter
-					thermalBondingLayerCounter++;
 				}
 				
 				// Check if on first counted layer
@@ -2558,6 +2622,9 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 				// Append ascii representation of the command to list
 				returnValue += gcode.getAscii() + "*,";
 		}
+		
+		// Clear on new printed layer
+		onNewPrintedLayer = false;
 	}
 	
 	// Remove last comma from value

@@ -592,9 +592,9 @@ $(function() {
 							$("body > div.page-container > div.message > div > div > div.printSettings").addClass("show");
 						}
 						
-						else if(secondButton == "Unload" || secondButton == "Load") {
+						else if(secondButton == "Unload" || secondButton == "Load" || secondButton == "Set") {
 							$("body > div.page-container > div.message > div > div > div.filamentSettings input").eq(0).val(self.settings.settings.plugins.m3dfio.FilamentTemperature());
-							$("body > div.page-container > div.message > div > div > div.filamentSettings label").text(secondButton + " Temperature");
+							$("body > div.page-container > div.message > div > div > div.filamentSettings label").text((secondButton == "Set" ? "New Print" : secondButton) + " Temperature");
 							$("body > div.page-container > div.message > div > div > div.filamentSettings").addClass("show");
 						}
 					}
@@ -4638,8 +4638,12 @@ $(function() {
 												
 													if(checked) {
 														changedSettings.push({
-															platform_adhesion: "Raft; None, Brim, Raft"
+															platform_adhesion: "Raft; None, Brim, Raft",
+															bottom_layer_speed: 12
 														});
+														
+														if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
+															changedSettings[0]["bottom_layer_speed"] = 16;
 														
 														// Uncheck use brim basic setting and enable raft airgap manual setting
 														$("#slicing_configuration_dialog .modal-extra div.cura div input.useBrim").prop("checked", false);
@@ -4647,7 +4651,8 @@ $(function() {
 													}
 													else {
 														changedSettings.push({
-															platform_adhesion: "None; None, Brim, Raft"
+															platform_adhesion: "None; None, Brim, Raft",
+															bottom_layer_speed: 6
 														});
 														
 														// Disable raft airgap manual setting
@@ -4660,8 +4665,12 @@ $(function() {
 												
 													if(checked) {
 														changedSettings.push({
-															platform_adhesion: "Brim; None, Brim, Raft"
+															platform_adhesion: "Brim; None, Brim, Raft",
+															bottom_layer_speed: 12
 														});
+														
+														if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
+															changedSettings[0]["bottom_layer_speed"] = 16;
 														
 														// Uncheck use raft basic setting and disable raft airgap manual setting
 														$("#slicing_configuration_dialog .modal-extra div.cura div input.useRaft").prop("checked", false);
@@ -4669,7 +4678,8 @@ $(function() {
 													}
 													else
 														changedSettings.push({
-															platform_adhesion: "None; None, Brim, Raft"
+															platform_adhesion: "None; None, Brim, Raft",
+															bottom_layer_speed: 6
 														});
 												}
 												
@@ -4789,6 +4799,10 @@ $(function() {
 													
 													if(layerHeight == '')
 														changedSettings[0]["layer_height"] = 0.15;
+													
+													// Clear basic quality settings
+													$("#slicing_configuration_dialog .modal-extra div.cura p.quality").text("Unknown Quality");
+													$("#slicing_configuration_dialog .modal-extra div.cura div.quality button.disabled").removeClass("disabled");
 												}
 												
 												// Update profile settings
@@ -6457,9 +6471,6 @@ $(function() {
 				// Check if paused
 				if(self.printerState.isPaused() === true) {
 		
-					// Save current temperature
-					var currentTemperature = parseInt(self.temperature.temperatures.tool0.actual[self.temperature.temperatures.tool0.actual.length - 1][1]);
-					
 					// Show message
 					showMessage("Filament Status", "Moving extruder away from print");
 				
@@ -6704,7 +6715,7 @@ $(function() {
 																		];
 		
 																		// Display temperature
-																		var updateTemperature = setInterval(function() {
+																		updateTemperature = setInterval(function() {
 		
 																			// Show message
 																			if(self.temperature.temperatures.tool0.actual.length) {
@@ -6744,72 +6755,95 @@ $(function() {
 			
 																					// Hide message
 																					hideMessage();
-					
+																					
 																					// Show message
-																					showMessage("Filament Status", "Returning to previous temperature");
+																					showMessage("Filament Status", '', "Set", function() {
 	
-																					// Set commands
-																					commands = [
-																						"M109 S" + currentTemperature,
-																						"M65536;wait"
-																					];
-		
-																					// Set waiting callback
-																					waitingCallback = function() {
-													
-																						// Show message
-																						showMessage("Filament Status", "Make sure the nozzle is clean before continuing. It will be hot, so be careful.", "OK", function() {
-														
-																							// Hide message
-																							hideMessage();
+																						// Hide message
+																						hideMessage();
 					
-																							// Show message
-																							showMessage("Filament Status", "Resuming print");
+																						// Show message
+																						showMessage("Filament Status", "Warming up");
 	
-																							// Set commands
-																							commands = [
-																								"G90",
-																								"G92 E" + currentE,
-																								"G0 E" + (currentE - 0.3) + " F345",
-																								"G0 X" + currentX + " Y" + currentY + " F2000",
-																								"G0 Z" + currentZ + " F90",
-																								"M65536;wait"
-																							];
-															
-																							// Set waiting callback
-																							waitingCallback = function() {
+																						// Set commands
+																						commands = [
+																							"M109 S" + parseInt($("body > div.page-container > div.message > div > div > div.filamentSettings input").eq(0).val()),
+																							"M65536;wait"
+																						];
+		
+																						// Display temperature
+																						updateTemperature = setInterval(function() {
+		
+																							// Show message
+																							if(self.temperature.temperatures.tool0.actual.length) {
+		
+																								var temperature = self.temperature.temperatures.tool0.actual[self.temperature.temperatures.tool0.actual.length - 1][1];
+			
+																								if(temperature != 0)
+																									showMessage("Filament Status", "Warming up: " + temperature + "°C");
+																							}
+																						}, 1000);
+		
+																						// Set waiting callback
+																						waitingCallback = function() {
+		
+																							// Stop displaying temperature
+																							clearInterval(updateTemperature);
 													
+																							// Show message
+																							showMessage("Filament Status", "Make sure the nozzle is clean before continuing. It will be hot, so be careful.", "OK", function() {
+														
 																								// Hide message
 																								hideMessage();
+					
+																								// Show message
+																								showMessage("Filament Status", "Resuming print");
+	
+																								// Set commands
+																								commands = [
+																									"G90",
+																									"G92 E" + currentE,
+																									"G0 E" + (currentE - 0.3) + " F345",
+																									"G0 X" + currentX + " Y" + currentY + " F2000",
+																									"G0 Z" + currentZ + " F90",
+																									"M65536;wait"
+																								];
+															
+																								// Set waiting callback
+																								waitingCallback = function() {
+													
+																									// Hide message
+																									hideMessage();
 														
+																									// Send request
+																									$.ajax({
+																										url: API_BASEURL + "plugin/m3dfio",
+																										type: "POST",
+																										dataType: "json",
+																										data: JSON.stringify({command: "message", value: "Resume"}),
+																										contentType: "application/json; charset=UTF-8"
+																									});
+																								}
+															
 																								// Send request
 																								$.ajax({
 																									url: API_BASEURL + "plugin/m3dfio",
 																									type: "POST",
 																									dataType: "json",
-																									data: JSON.stringify({command: "message", value: "Resume"}),
+																									data: JSON.stringify({command: "message", value: commands}),
 																									contentType: "application/json; charset=UTF-8"
 																								});
-																							}
-															
-																							// Send request
-																							$.ajax({
-																								url: API_BASEURL + "plugin/m3dfio",
-																								type: "POST",
-																								dataType: "json",
-																								data: JSON.stringify({command: "message", value: commands}),
-																								contentType: "application/json; charset=UTF-8"
 																							});
-																						});
-																					}
+																						}
 													
-																					// Send request
-																					$.ajax({
-																						url: API_BASEURL + "plugin/m3dfio",
-																						type: "POST",
-																						dataType: "json",
-																						data: JSON.stringify({command: "message", value: commands}),
-																						contentType: "application/json; charset=UTF-8"
+																						// Send request
+																						$.ajax({
+																							url: API_BASEURL + "plugin/m3dfio",
+																							type: "POST",
+																							dataType: "json",
+																							data: JSON.stringify({command: "message", value: commands}),
+																							contentType: "application/json; charset=UTF-8"
+																						});
 																					});
 																				}, "No", function() {
 			
@@ -8027,6 +8061,7 @@ $(function() {
 																													// Set commands
 																													commands = [
 																														"G90",
+																														"G0 Z3 F90",
 																														"G28",
 																														"M18",
 																														"M65536;wait"
