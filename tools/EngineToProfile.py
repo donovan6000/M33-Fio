@@ -97,8 +97,9 @@ for line in open(sys.argv[1], "rb") :
 		
 			if int(value) != 0 :
 				output.write("platform_adhesion = Brim\n")
-			
-			output.write("skirt_line_count = " + str(int(value)) + '\n')
+				output.write("brim_line_count = " + str(int(value)) + '\n')
+			else :
+				output.write("skirt_line_count = " + str(int(value)) + '\n')
 		
 		elif key == "skirtMinLength" :
 			output.write("skirt_minimal_length = " + str(float(value) / 1000) + '\n')

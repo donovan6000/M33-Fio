@@ -549,6 +549,10 @@ body > div.page-container > div.message > div > div > span.show {
 	display: inline;
 }
 
+#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div.disabled {
+	display: none;
+}
+
 #slicing_configuration_dialog.profile, #slicing_configuration_dialog.model {
 	width: 80% !important;
 	max-width: 900px !important;
@@ -756,11 +760,6 @@ body > div.page-container > div.message > div > div > span.show {
 #slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > label {
 	display: inline-block;
 	margin-top: 4px;
-}
-
-#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > label.disabled {
-	opacity: 0.5;
-	cursor: not-allowed;
 }
 
 #slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div {

@@ -176,8 +176,8 @@ $(function() {
 			})
 		};
 		
-		// Set vertex and fragment shader
-		var vertexShader = `
+		// Set glow vertex and fragment shader
+		var glowVertexShader = `
 			uniform vec3 viewVector;
 			uniform float c;
 			uniform float p;
@@ -191,11 +191,11 @@ $(function() {
 			}
 		`;
 	
-		var fragmentShader = `
-			uniform vec3 glowColor;
+		var glowFragmentShader = `
+			uniform vec3 color;
 			varying float intensity;
 			void main() {
-				vec3 glow = glowColor * intensity;
+				vec3 glow = color * intensity;
 				gl_FragColor = vec4(glow, 1.0);
 			}
 		`;
@@ -948,7 +948,7 @@ $(function() {
 					// Load printer model
 					var loader = new THREE.STLLoader();
 					loader.load("/plugin/m3dfio/static/files/printer.stl", function(geometry) {
-
+					
 						// Create printer's mesh
 						var mesh = new THREE.Mesh(geometry, printerMaterials[self.settings.settings.plugins.m3dfio.PrinterColor()]);
 	
@@ -992,7 +992,7 @@ $(function() {
 			
 					// Create measurement material
 					var measurementMaterial = new THREE.LineBasicMaterial({
-						color: 0x0000ff,
+						color: 0x0000FF,
 						side: THREE.FrontSide
 					});
 		
@@ -1024,7 +1024,7 @@ $(function() {
 						this.measurements[i][0].visible = false;
 						this.scene[1].add(this.measurements[i][0]);
 					}
-		
+					
 					// Create boundary material
 					var boundaryMaterial = new THREE.MeshLambertMaterial({
 						color: 0x00FF00,
@@ -1958,19 +1958,19 @@ $(function() {
 					// Create glow material
 					var glowMaterial = new THREE.ShaderMaterial({
 						uniforms: { 
-							"c": {
+							'c': {
 								type: 'f',
 								value: 1.0
 							},
 
-							"p":   {
+							'p':   {
 								type: 'f',
 								value: 1.4
 							},
 
-							glowColor: {
+							color: {
 								type: 'c',
-								value: new THREE.Color(0xffff00)
+								value: new THREE.Color(0xFFFF00)
 							},
 
 							viewVector: {
@@ -1978,8 +1978,8 @@ $(function() {
 								value: viewport.camera.position
 							}
 						},
-						vertexShader: vertexShader,
-						fragmentShader: fragmentShader,
+						vertexShader: glowVertexShader,
+						fragmentShader: glowFragmentShader,
 						side: THREE.FrontSide,
 						blending: THREE.AdditiveBlending,
 						transparent: true
@@ -2020,7 +2020,7 @@ $(function() {
 						else if(viewport.models[i].glow !== null)
 				
 							// Set model's glow color
-							viewport.models[i].glow.material.uniforms.glowColor.value.setHex(0xFFFFB3);
+							viewport.models[i].glow.material.uniforms.color.value.setHex(0xFFFFB3);
 				},
 		
 				// Apply changes
@@ -4355,6 +4355,13 @@ $(function() {
 																		<span class="add-on">mm/s</span>
 																	</div>
 																</div>
+																<div title="Number of layers that the top and bottom each consist of">
+																	<label>Top/bottom</label>
+																	<div class="input-append">
+																		<input class="topBottomLayers" type="number" tabindex="-1" min="1" max="25" step="1">
+																		<span class="add-on">layer(s)</span>
+																	</div>
+																</div>
 																<div title="Distance between the raft and the model">
 																	<label>Raft airgap</label>
 																	<div class="input-append">
@@ -4362,11 +4369,11 @@ $(function() {
 																		<span class="add-on">mm</span>
 																	</div>
 																</div>
-																<div title="Number of layers that the top and bottom each consist of">
-																	<label>Top/bottom</label>
+																<div title="The amount of lines used for the brim">
+																	<label>Brim line count</label>
 																	<div class="input-append">
-																		<input class="topBottomLayers" type="number" tabindex="-1" min="1" max="25" step="1">
-																		<span class="add-on">layer(s)</span>
+																		<input class="brimLineCount" type="number" tabindex="-1" min="0" max="50" step="1">
+																		<span class="add-on">line(s)</span>
 																	</div>
 																</div>
 															</div>
@@ -4397,9 +4404,14 @@ $(function() {
 											$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.thickness").val(Math.round(parseFloat(getValue("wall_thickness")) / parseFloat(getValue("nozzle_size"))));
 											$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.printSpeed").val(getValue("print_speed"));
 											$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.raftAirgap").val(getValue("raft_airgap"));
+											$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").val(getValue("brim_line_count"));
+											if(!$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").val().length)
+												$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").val(20);
 											$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.topBottomLayers").val(Math.round(parseFloat(getValue("solid_layer_thickness")) / parseFloat(getValue("layer_height"))));
 											if(getValue("platform_adhesion") != "Raft")
-												$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.raftAirgap").prop("disabled", true).parent("div").prev("label").addClass("disabled");
+												$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.raftAirgap").parent("div").parent("div").addClass("disabled");
+											if(getValue("platform_adhesion") != "Brim")
+												$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").parent("div").parent("div").addClass("disabled");
 											
 											// Check if using a Cura profile
 											if(slicerName == "cura")
@@ -4639,24 +4651,29 @@ $(function() {
 													if(checked) {
 														changedSettings.push({
 															platform_adhesion: "Raft; None, Brim, Raft",
-															bottom_layer_speed: 12
+															bottom_layer_speed: 12,
+															skirt_line_count: 0,
+															brim_line_count: null
 														});
 														
 														if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
 															changedSettings[0]["bottom_layer_speed"] = 16;
 														
-														// Uncheck use brim basic setting and enable raft airgap manual setting
+														// Uncheck use brim basic setting, disable brim line count manual setting, and enable raft airgap manual setting
 														$("#slicing_configuration_dialog .modal-extra div.cura div input.useBrim").prop("checked", false);
-														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.raftAirgap").prop("disabled", false).parent("div").prev("label").removeClass("disabled");
+														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").parent("div").parent("div").addClass("disabled");
+														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.raftAirgap").parent("div").parent("div").removeClass("disabled");
 													}
 													else {
 														changedSettings.push({
 															platform_adhesion: "None; None, Brim, Raft",
-															bottom_layer_speed: 6
+															bottom_layer_speed: 6,
+															skirt_line_count: 0,
+															brim_line_count: null
 														});
 														
 														// Disable raft airgap manual setting
-														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.raftAirgap").prop("disabled", true).parent("div").prev("label").addClass("disabled");
+														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.raftAirgap").parent("div").parent("div").addClass("disabled");
 													}
 												}
 												
@@ -4666,21 +4683,30 @@ $(function() {
 													if(checked) {
 														changedSettings.push({
 															platform_adhesion: "Brim; None, Brim, Raft",
-															bottom_layer_speed: 12
+															bottom_layer_speed: 12,
+															skirt_line_count: null,
+															brim_line_count: $("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").val()
 														});
 														
 														if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
 															changedSettings[0]["bottom_layer_speed"] = 16;
 														
-														// Uncheck use raft basic setting and disable raft airgap manual setting
+														// Uncheck use raft basic setting, enable brim line count manual setting, and disable raft airgap manual setting
 														$("#slicing_configuration_dialog .modal-extra div.cura div input.useRaft").prop("checked", false);
-														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.raftAirgap").prop("disabled", true).parent("div").prev("label").addClass("disabled");
+														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").parent("div").parent("div").removeClass("disabled");
+														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.raftAirgap").parent("div").parent("div").addClass("disabled");
 													}
-													else
+													else {
 														changedSettings.push({
 															platform_adhesion: "None; None, Brim, Raft",
-															bottom_layer_speed: 6
+															bottom_layer_speed: 6,
+															skirt_line_count: 0,
+															brim_line_count: null
 														});
+														
+														// Disable brim line count manual setting
+														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").parent("div").parent("div").addClass("disabled");
+													}
 												}
 												
 												// Otherwise set changed settings if changing use retraction
@@ -4780,13 +4806,6 @@ $(function() {
 														changedSettings[0]["travel_speed"] = $(this).val();
 												}
 												
-												// Otherwise set changed settings if changing raft airgap
-												else if($(this).hasClass("raftAirgap"))
-												
-													changedSettings.push({
-														raft_airgap: $(this).val()
-													});
-												
 												// Otherwise set changed settings if changing top/bottom layers
 												else if($(this).hasClass("topBottomLayers")) {
 												
@@ -4804,6 +4823,20 @@ $(function() {
 													$("#slicing_configuration_dialog .modal-extra div.cura p.quality").text("Unknown Quality");
 													$("#slicing_configuration_dialog .modal-extra div.cura div.quality button.disabled").removeClass("disabled");
 												}
+												
+												// Otherwise set changed settings if changing raft airgap
+												else if($(this).hasClass("raftAirgap"))
+												
+													changedSettings.push({
+														raft_airgap: $(this).val()
+													});
+												
+												// Otherwise set changed settings if changing brim line count
+												else if($(this).hasClass("brimLineCount"))
+												
+													changedSettings.push({
+														brim_line_count: $(this).val()
+													});
 												
 												// Update profile settings
 												updateProfileSettings(changedSettings[0]);
@@ -5369,7 +5402,7 @@ $(function() {
 													
 																		// Create cut shape outline
 																		viewport.cutShapeOutline = new THREE.LineSegments(viewport.lineGeometry(cutShapeGeometry), new THREE.LineDashedMaterial({
-																			color: 0xffaa00,
+																			color: 0xFFAA00,
 																			dashSize: 3,
 																			gapSize: 1,
 																			linewidth: 2
