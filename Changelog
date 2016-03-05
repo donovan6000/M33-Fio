@@ -1,5 +1,9 @@
 Changelog:
 
+V0.28.2 March 4, 2016
+
+	* Fixed read/write message error when using Windows
+
 V0.28.1 March 4, 2016
 
 	* Fixed issue where the layer numbers shown in OctoPrint's G-code viewer would differ from those used in the mid-print filament change pre-processor stage
