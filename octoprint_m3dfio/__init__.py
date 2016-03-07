@@ -2806,6 +2806,9 @@ class M3DFioPlugin(
 	# Process write
 	def processWrite(self, data) :
 	
+		# Log sent data
+		self._logger.info("M3D Fio - Original Sent: " + data)
+	
 		# Check if printing
 		if self._printer.is_printing() :
 			
@@ -3089,18 +3092,28 @@ class M3DFioPlugin(
 				# Otherwise check if change filament mid-print command
 				elif gcode.getValue('M') == "600" :
 				
+					# Set command to nothing
+					gcode.removeParameter('M')
+					gcode.setValue('G', '4')
+				
 					# Check if printing
 					if self._printer.is_printing() :
 					
 						# Send message
 						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Mid-Print Filament Change"))
-					
-					# Set command to nothing
-					gcode.removeParameter('M')
-					gcode.setValue('G', '4')
+						
+						# Set command to delay for half a second
+						gcode.setValue('P', "500")
+						
+						# Update communication timeout
+						if self._printer._comm is not None :
+							self._printer._comm._gcode_G4_sent("G4 P500")
 				
 				# Get the command's binary representation
 				data = gcode.getBinary()
+				
+				# Log sent data
+				self._logger.info("M3D Fio - Processed Sent: " + gcode.getAscii())
 				
 				# Check if command has a line number
 				if gcode.hasValue('N') :
@@ -3140,6 +3153,9 @@ class M3DFioPlugin(
 	
 		# Get response
 		response = self.originalRead()
+		
+		# Log received data
+		self._logger.info("M3D Fio - Original Response: " + response)
 		
 		# Check if setting heatbed temperature
 		if self.settingHeatbedTemperature :
@@ -3195,6 +3211,9 @@ class M3DFioPlugin(
 			# Clear last response was wait
 			self.lastResponseWasWait = False
 		
+		# Log received data
+		self._logger.info("M3D Fio - Processed Response: " + response)
+		
 		# Check if response is a temperature reading
 		if response.startswith("T:") :
 		
@@ -3238,9 +3257,6 @@ class M3DFioPlugin(
 			# Check if processing an unprocessed command
 			if lineNumber in self.sentCommands :
 			
-				# Remove stored command
-				self.sentCommands.pop(lineNumber)
-			
 				# Check if processing a reset line number command
 				if self.resetLineNumberCommandSent and lineNumber == 0 :
 			
@@ -3256,6 +3272,9 @@ class M3DFioPlugin(
 				# Increment number wrap counter if applicable
 				if lineNumber == 0xFFFF :
 					self.numberWrapCounter += 1
+				
+				# Remove stored command
+				self.sentCommands.pop(lineNumber)
 			
 			# Otherwise
 			else :

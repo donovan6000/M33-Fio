@@ -516,7 +516,7 @@ $(function() {
 			// Return encoded html
 			return $("<div>").text(value).html();
 		}
-
+		
 		// Show message
 		function showMessage(header, text, secondButton, secondButtonCallback, firstButton, firstButtonCallback) {
 		
@@ -670,6 +670,17 @@ $(function() {
 				}
 			}
 		}, 500);
+		
+		// Get slicer profile value
+		function getSlicerProfileValue(setting) {
+		
+			// Get first match
+			var expression = new RegExp("(^|\n)" + setting + "\\s*?=\\s*(.*)\n?");
+			var matches = expression.exec($("#slicing_configuration_dialog .modal-extra textarea").length ? $("#slicing_configuration_dialog .modal-extra textarea").val() : slicerProfileContent);
+			
+			// Return setting's value if it exists
+			return matches !== null && matches.length > 2 ? matches[2].indexOf(';') != -1 ? matches[2].substr(0, matches[2].indexOf(';')) : matches[2] : '';
+		}
 		
 		// Capitalize
 		function capitalize(string) {
@@ -855,7 +866,9 @@ $(function() {
 				savedMatrix: null,
 				cutShape: null,
 				cutShapeOutline: null,
-
+				platformAdhesion: null,
+				adhesionSize: null,
+				
 				// Initialize
 				init: function() {
 				
@@ -881,6 +894,55 @@ $(function() {
 						bedMediumMaxZ = 73.5;
 						bedHighMaxZ = 112.0;
 						bedHighMinZ = bedMediumMaxZ;
+					}
+					
+					// Check if using Cura
+					if(slicerName == "cura") {
+					
+						// Set platform adhesion
+						this.platformAdhesion = getSlicerProfileValue("platform_adhesion");
+					
+						// Check if platform adhesion isn't set
+						if(!this.platformAdhesion.length) {
+					
+							// Set default platform adhesion
+							this.platformAdhesion = "None";
+							this.adhesionSize = 0;
+						}
+					
+						// Otherwise
+						else {
+					
+							// Check if platform adhesion is raft
+							if(this.platformAdhesion == "Raft") {
+						
+								// Set adhesion size to raft margin
+								this.adhesionSize = getSlicerProfileValue("raft_margin");
+								if(!this.adhesionSize.length)
+									this.adhesionSize = 5.0;
+								else
+									this.adhesionSize = parseFloat(this.adhesionSize);
+							}
+						
+							// Otherwise check if platform adhesion is brim
+							else if(this.platformAdhesion == "Brim") {
+						
+								// Set adhesion size to brim line count
+								this.adhesionSize = getSlicerProfileValue("brim_line_count");
+								if(!this.adhesionSize.length)
+									this.adhesionSize = 20;
+								else
+									this.adhesionSize = parseFloat(this.adhesionSize);
+							}
+						}
+					}
+					
+					// Otherwise
+					else {
+					
+						// Set default platform adhesion
+						this.platformAdhesion = "None";
+						this.adhesionSize = 0;
 					}
 
 					// Create scene
@@ -947,7 +1009,7 @@ $(function() {
 
 					// Load printer model
 					var loader = new THREE.STLLoader();
-					loader.load("/plugin/m3dfio/static/files/printer.stl", function(geometry) {
+					loader.load(PLUGIN_BASEURL + "m3dfio/static/files/printer.stl", function(geometry) {
 					
 						// Create printer's mesh
 						var mesh = new THREE.Mesh(geometry, printerMaterials[self.settings.settings.plugins.m3dfio.PrinterColor()]);
@@ -959,14 +1021,14 @@ $(function() {
 						mesh.renderOrder = 3;
 		
 						// Append model to list
-						viewport.models.push({mesh: mesh, type: "stl", glow: null});
+						viewport.models.push({mesh: mesh, type: "stl", glow: null, adhesion: null});
 	
 						// Add printer to scene
 						viewport.scene[0].add(mesh);
 					
 						// Load logo
 						var loader = new THREE.TextureLoader();
-						loader.load("/plugin/m3dfio/static/img/logo.png", function (map) {
+						loader.load(PLUGIN_BASEURL + "m3dfio/static/img/logo.png", function (map) {
 					
 							// Create logo
 							var mesh = new THREE.Mesh(new THREE.PlaneGeometry(51.5, 12), new THREE.MeshBasicMaterial({
@@ -1299,7 +1361,7 @@ $(function() {
 						viewport.scene[0].add(mesh);
 		
 						// Append model to list
-						viewport.models.push({mesh: mesh, type: type, glow: null});
+						viewport.models.push({mesh: mesh, type: type, glow: null, adhesion: viewport.createPlatformAdhesion(mesh)});
 					
 						// Select model
 						viewport.removeSelection();
@@ -1311,6 +1373,30 @@ $(function() {
 						// Set model loaded
 						viewport.modelLoaded = true;
 					});
+				},
+				
+				// Create platform adhesion
+				createPlatformAdhesion: function(mesh) {
+				
+					// Check if using a raft or a brim
+					if(viewport.platformAdhesion == "Raft" || viewport.platformAdhesion == "Brim") {
+					
+						// Create adhesion mesh
+						var adhesionMesh = mesh.clone();
+						adhesionMesh.material = new THREE.MeshLambertMaterial({
+							color: 0xB4B4B4,
+							side: THREE.DoubleSide
+						});
+						
+						// Add adhesion to scene
+						viewport.scene[0].add(adhesionMesh);
+						
+						// Return adhesion mesh
+						return adhesionMesh;
+					}
+					
+					// Return null
+					return null;
 				},
 
 				// Key down event
@@ -1802,7 +1888,7 @@ $(function() {
 							viewport.scene[0].add(clonedModel);
 		
 							// Append model to list
-							viewport.models.push({mesh: clonedModel, type: viewport.models[i].type, glow: null});
+							viewport.models.push({mesh: clonedModel, type: viewport.models[i].type, glow: null, adhesion: viewport.createPlatformAdhesion(clonedModel)});
 					
 							// Append cloned model to list
 							if(viewport.models[i].mesh == viewport.transformControls.object)
@@ -1907,6 +1993,8 @@ $(function() {
 								// Remove model
 								viewport.scene[0].remove(viewport.models[i].mesh);
 								viewport.scene[1].remove(viewport.models[i].glow);
+								if(viewport.models[i].adhesion !== null)
+									viewport.scene[0].remove(viewport.models[i].adhesion);
 								viewport.models.splice(i--, 1);
 							}
 	
@@ -2193,6 +2281,26 @@ $(function() {
 								viewport.models[i].glow.position.copy(viewport.models[i].mesh.position);
 								viewport.models[i].glow.rotation.copy(viewport.models[i].mesh.rotation);
 								viewport.models[i].glow.scale.copy(viewport.models[i].mesh.scale);
+								
+								// Check if adhesion exists
+								if(viewport.models[i].adhesion !== null) {
+								
+									// Update adhesion's orientation
+									viewport.models[i].adhesion.position.copy(viewport.models[i].mesh.position);
+									viewport.models[i].adhesion.rotation.copy(viewport.models[i].mesh.rotation);
+									viewport.models[i].adhesion.scale.copy(viewport.models[i].mesh.scale);
+									viewport.models[i].adhesion.position.y = 0;
+									viewport.models[i].adhesion.visible = false;
+									//viewport.models[i].adhesion.updateMatrix();
+									//viewport.models[i].adhesion.geometry.applyMatrix(viewport.models[i].mesh.matrix);
+									/*viewport.models[i].adhesion.position.set(0, 0, 0);
+									viewport.models[i].adhesion.rotation.set(0, 0, 0);
+									viewport.models[i].adhesion.scale.set(1, 1, 1);
+									
+									// Scale adhesion
+									var boundaryBox = new THREE.Box3().setFromObject(viewport.models[i].mesh);
+									viewport.models[i].adhesion.scale.set((boundaryBox.max.x - boundaryBox.min.x + viewport.adhesionSize) / (boundaryBox.max.x - boundaryBox.min.x), 0.000000000001, (boundaryBox.max.z - boundaryBox.min.z + viewport.adhesionSize) / (boundaryBox.max.z - boundaryBox.min.z));*/
+								}
 							}
 					
 						// Enable or disable merge button
@@ -2781,6 +2889,8 @@ $(function() {
 				
 							// Delete model
 							viewport.scene[0].remove(viewport.models[i].mesh);
+							if(viewport.models[i].adhesion !== null)
+								viewport.scene[0].remove(viewport.models[i].adhesion);
 							var type = viewport.models[i].type;
 							viewport.models.splice(i--, 1);
 				
@@ -2838,7 +2948,7 @@ $(function() {
 							viewport.scene[0].add(intersections[i].mesh);
 				
 							// Add intersection mesh to list
-							viewport.models.push({mesh: intersections[i].mesh, type: intersections[i].type, glow: null});
+							viewport.models.push({mesh: intersections[i].mesh, type: intersections[i].type, glow: null, adhesion: viewport.createPlatformAdhesion(intersections[i].mesh)});
 				
 							// Select intersection mesh
 							viewport.selectModel(intersections[i].mesh);
@@ -2851,7 +2961,7 @@ $(function() {
 							viewport.scene[0].add(differences[i].mesh);
 				
 							// Add difference mesh to list
-							viewport.models.push({mesh: differences[i].mesh, type: differences[i].type, glow: null});
+							viewport.models.push({mesh: differences[i].mesh, type: differences[i].type, glow: null, adhesion: viewport.createPlatformAdhesion(differences[i].mesh)});
 				
 							// Select difference mesh
 							viewport.selectModel(differences[i].mesh);
@@ -2956,6 +3066,8 @@ $(function() {
 								// Delete model
 								viewport.scene[0].remove(viewport.models[i].mesh);
 								viewport.scene[1].remove(viewport.models[i].glow);
+								if(viewport.models[i].adhesion !== null)
+									viewport.scene[0].remove(viewport.models[i].adhesion);
 								viewport.models.splice(i--, 1);
 				
 								// Center union mesh's geometry
@@ -2980,6 +3092,8 @@ $(function() {
 								// Delete model
 								viewport.scene[0].remove(viewport.models[i].mesh);
 								viewport.scene[1].remove(viewport.models[i].glow);
+								if(viewport.models[i].adhesion !== null)
+									viewport.scene[0].remove(viewport.models[i].adhesion);
 								var type = viewport.models[i].type;
 								viewport.models.splice(i--, 1);
 						
@@ -2991,7 +3105,7 @@ $(function() {
 						viewport.scene[0].add(meshUnion);
 			
 						// Add union mesh to list
-						viewport.models.push({mesh: meshUnion, type: type, glow: null});
+						viewport.models.push({mesh: meshUnion, type: type, glow: null, adhesion: viewport.createPlatformAdhesion(meshUnion)});
 			
 						// Select union mesh
 						viewport.selectModel(meshUnion);
@@ -3169,6 +3283,9 @@ $(function() {
 			});
 		}
 		
+		// Change temperature graph's background image
+		$("#temperature-graph").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/graph%20background.png");
+		
 		// Add mid-print filament change settings
 		$("#gcode div.progress").after(`
 			<div class="midPrintFilamentChange">
@@ -3263,10 +3380,10 @@ $(function() {
 			<div class="jog-panel advanced" data-bind="visible: loginState.isUser">
 				<h1>Advanced</h1>
 				<div>
-					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="/plugin/m3dfio/static/img/hengLiXin.png">HengLiXin fan</button>
-					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="/plugin/m3dfio/static/img/listener.png">Listener fan</button>
-					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="/plugin/m3dfio/static/img/shenzhew.png">Shenzhew fan</button>
-					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="/plugin/m3dfio/static/img/xinyujie.png">Xinyujie fan</button>
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/hengLiXin.png">HengLiXin fan</button>
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/listener.png">Listener fan</button>
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/shenzhew.png">Shenzhew fan</button>
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/xinyujie.png">Xinyujie fan</button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">500mA extruder current</button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">660mA extruder current</button>
 					<button class="btn btn-block control-box placeHolder" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"></button>
@@ -3360,7 +3477,7 @@ $(function() {
 			<div class="message">
 				<div>
 					<h4></h4>
-					<img src="/plugin/m3dfio/static/img/loading.gif">
+					<img src="` + PLUGIN_BASEURL + `m3dfio/static/img/loading.gif">
 					<div>
 						<p></p>
 						<div class="calibrate">
@@ -3441,7 +3558,7 @@ $(function() {
 		// Add cover to slicer
 		$("#slicing_configuration_dialog").append(`
 			<div class="modal-cover">
-				<img src="/plugin/m3dfio/static/img/loading.gif">
+				<img src="` + PLUGIN_BASEURL + `m3dfio/static/img/loading.gif">
 				<p></p>
 			</div>
 		`);
@@ -3462,7 +3579,7 @@ $(function() {
 		// Add audio
 		$("body").append(`
 			<audio class="notification">
-				<source src="/plugin/m3dfio/static/files/notification.mp3" type="audio/mpeg">
+				<source src="` + PLUGIN_BASEURL + `m3dfio/static/files/notification.mp3" type="audio/mpeg">
 			</audio>
 		`);
 		
@@ -3519,9 +3636,9 @@ $(function() {
 		$("#control > div.jog-panel > img").each(function() {
 		
 			if($(this).parent().hasClass("closed"))
-				$(this).attr("src", "/plugin/m3dfio/static/img/down%20arrow.png");
+				$(this).attr("src", PLUGIN_BASEURL + "m3dfio/static/img/down%20arrow.png");
 			else
-				$(this).attr("src", "/plugin/m3dfio/static/img/up%20arrow.png");
+				$(this).attr("src", PLUGIN_BASEURL + "m3dfio/static/img/up%20arrow.png");
 		});
 		
 		// Mouse move control arrow event
@@ -3572,7 +3689,7 @@ $(function() {
 				}, 0);
 				
 				// Change arrow image
-				$(this).attr("src", "/plugin/m3dfio/static/img/up%20arrow.png");
+				$(this).attr("src", PLUGIN_BASEURL + "m3dfio/static/img/up%20arrow.png");
 			}
 			else {
 			
@@ -3605,7 +3722,7 @@ $(function() {
 				}, 0);
 				
 				// Change arrow image
-				$(this).attr("src", "/plugin/m3dfio/static/img/down%20arrow.png");
+				$(this).attr("src", PLUGIN_BASEURL + "m3dfio/static/img/down%20arrow.png");
 			}
 			
 			// Update title
@@ -3816,6 +3933,49 @@ $(function() {
 			
 				// Clear continue with print
 				continueWithPrint = false;
+		});
+		
+		// Set temperature target or offset button event
+		$(document).on("click", "#temp button[type=\"submit\"]", function(event) {
+		
+			// Stop default behavior
+			event.stopImmediatePropagation();
+			
+			// Get temperature
+			var temperature = 0;
+			
+			$(this).closest("tr").find("input").each(function() {
+			
+				if(!isNaN(parseInt($(this).val())))
+					temperature += parseInt($(this).val());
+				else if(!isNaN(parseInt($(this).attr("placeholder"))))
+					temperature += parseInt($(this).attr("placeholder"));
+			});
+			
+			// Check if setting extruder temperature
+			if($(this).closest("tr").children("th").text() == "Hotend")
+				
+				// Set commands
+				var commands = [
+					"M104 S" + temperature + '*'
+				];
+			
+			// Otherwise
+			else
+			
+				// Set commands
+				var commands = [
+					"M140 S" + temperature + '*'
+				];
+		
+			// Send request
+			$.ajax({
+				url: API_BASEURL + "plugin/m3dfio",
+				type: "POST",
+				dataType: "json",
+				data: JSON.stringify({command: "message", value: commands}),
+				contentType: "application/json; charset=UTF-8"
+			});
 		});
 		
 		// Pause print button click event
@@ -4115,7 +4275,7 @@ $(function() {
 					
 						// Send request
 						$.ajax({
-							url: "/api/files/" + location,
+							url: API_BASEURL + "files/" + location,
 							type: "POST",
 							data: form,
 							processData: false,
@@ -4301,20 +4461,20 @@ $(function() {
 															<h3>Basic Settings</h3>
 															<p class="quality">` + (usingProvidedProfile ? `Medium Quality` : `Unknown Quality`) + `</p>
 															<div class="quality">
-																<button title="Extra low quality"><img src="/plugin/m3dfio/static/img/extra%20low%20quality.png"></button>
-																<button title="Low quality"><img src="/plugin/m3dfio/static/img/low%20quality.png"></button>
-																<button title="Medium quality"` + (usingProvidedProfile ? ` class="disabled"` : ``) + `><img src="/plugin/m3dfio/static/img/medium%20quality.png"></button>
-																<button title="High quality"><img src="/plugin/m3dfio/static/img/high%20quality.png"></button>
-																<button title="Extra high quality"><img src="/plugin/m3dfio/static/img/extra%20high%20quality.png"></button>
+																<button title="Extra low quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/extra%20low%20quality.png"></button>
+																<button title="Low quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/low%20quality.png"></button>
+																<button title="Medium quality"` + (usingProvidedProfile ? ` class="disabled"` : ``) + `><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/medium%20quality.png"></button>
+																<button title="High quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/high%20quality.png"></button>
+																<button title="Extra high quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/extra%20high%20quality.png"></button>
 															</div>
 															<p class="fill">` + (usingProvidedProfile ? `Medium Fill` : `Unknown Fill`) + `</p>
 															<div class="fill">
-																<button title="Hollow thin fill"><img src="/plugin/m3dfio/static/img/hollow%20thin%20fill.png"></button>
-																<button title="Hollow thick fill"><img src="/plugin/m3dfio/static/img/hollow%20thick%20fill.png"></button>
-																<button title="Low fill"><img src="/plugin/m3dfio/static/img/low%20fill.png"></button>
-																<button title="Medium fill"` + (usingProvidedProfile ? ` class="disabled"` : ``) + `><img src="/plugin/m3dfio/static/img/medium%20fill.png"></button>
-																<button title="High fill"><img src="/plugin/m3dfio/static/img/high%20fill.png"></button>
-																<button title="Extra high fill"><img src="/plugin/m3dfio/static/img/extra%20high%20fill.png"></button>
+																<button title="Hollow thin fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/hollow%20thin%20fill.png"></button>
+																<button title="Hollow thick fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/hollow%20thick%20fill.png"></button>
+																<button title="Low fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/low%20fill.png"></button>
+																<button title="Medium fill"` + (usingProvidedProfile ? ` class="disabled"` : ``) + `><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/medium%20fill.png"></button>
+																<button title="High fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/high%20fill.png"></button>
+																<button title="Extra high fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/extra%20high%20fill.png"></button>
 															</div>
 															<div class="settings">
 																<label title="Prints a breakaway support underneath overhanging parts of the model"><input class="useSupportMaterial" type="checkbox" tabindex="-1">Use support material</label>
@@ -4392,25 +4552,25 @@ $(function() {
 											$("#slicing_configuration_dialog .modal-extra textarea").val(data);
 											
 											// Set basic setting values
-											$("#slicing_configuration_dialog .modal-extra div.cura div input[type=\"checkbox\"].useSupportMaterial").prop("checked", getValue("support") == "Everywhere" || getValue("support") == "Touching buildplate");
-											$("#slicing_configuration_dialog .modal-extra div.cura div input[type=\"checkbox\"].useModelOnModelSupport").prop("checked", getValue("support") == "Everywhere");
-											$("#slicing_configuration_dialog .modal-extra div.cura div input[type=\"checkbox\"].useRaft").prop("checked", getValue("platform_adhesion") == "Raft");
-											$("#slicing_configuration_dialog .modal-extra div.cura div input[type=\"checkbox\"].useBrim").prop("checked", getValue("platform_adhesion") == "Brim");
-											$("#slicing_configuration_dialog .modal-extra div.cura div input[type=\"checkbox\"].useRetraction").prop("checked", getValue("retraction_enable") == "True");
+											$("#slicing_configuration_dialog .modal-extra div.cura div input[type=\"checkbox\"].useSupportMaterial").prop("checked", getSlicerProfileValue("support") == "Everywhere" || getSlicerProfileValue("support") == "Touching buildplate");
+											$("#slicing_configuration_dialog .modal-extra div.cura div input[type=\"checkbox\"].useModelOnModelSupport").prop("checked", getSlicerProfileValue("support") == "Everywhere");
+											$("#slicing_configuration_dialog .modal-extra div.cura div input[type=\"checkbox\"].useRaft").prop("checked", getSlicerProfileValue("platform_adhesion") == "Raft");
+											$("#slicing_configuration_dialog .modal-extra div.cura div input[type=\"checkbox\"].useBrim").prop("checked", getSlicerProfileValue("platform_adhesion") == "Brim");
+											$("#slicing_configuration_dialog .modal-extra div.cura div input[type=\"checkbox\"].useRetraction").prop("checked", getSlicerProfileValue("retraction_enable") == "True");
 											
 											// Set manual setting values
-											$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.layerHeight").val(getValue("layer_height"));
-											$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.fillDensity").val(getValue("fill_density"));
-											$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.thickness").val(Math.round(parseFloat(getValue("wall_thickness")) / parseFloat(getValue("nozzle_size"))));
-											$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.printSpeed").val(getValue("print_speed"));
-											$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.raftAirgap").val(getValue("raft_airgap"));
-											$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").val(getValue("brim_line_count"));
+											$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.layerHeight").val(getSlicerProfileValue("layer_height"));
+											$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.fillDensity").val(getSlicerProfileValue("fill_density"));
+											$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.thickness").val(Math.round(parseFloat(getSlicerProfileValue("wall_thickness")) / parseFloat(getSlicerProfileValue("nozzle_size"))));
+											$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.printSpeed").val(getSlicerProfileValue("print_speed"));
+											$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.raftAirgap").val(getSlicerProfileValue("raft_airgap"));
+											$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").val(getSlicerProfileValue("brim_line_count"));
 											if(!$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").val().length)
 												$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").val(20);
-											$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.topBottomLayers").val(Math.round(parseFloat(getValue("solid_layer_thickness")) / parseFloat(getValue("layer_height"))));
-											if(getValue("platform_adhesion") != "Raft")
+											$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.topBottomLayers").val(Math.round(parseFloat(getSlicerProfileValue("solid_layer_thickness")) / parseFloat(getSlicerProfileValue("layer_height"))));
+											if(getSlicerProfileValue("platform_adhesion") != "Raft")
 												$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.raftAirgap").parent("div").parent("div").addClass("disabled");
-											if(getValue("platform_adhesion") != "Brim")
+											if(getSlicerProfileValue("platform_adhesion") != "Brim")
 												$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").parent("div").parent("div").addClass("disabled");
 											
 											// Check if using a Cura profile
@@ -4482,17 +4642,6 @@ $(function() {
 											}
 											updateLineNumbers();
 											
-											// Get value
-											function getValue(setting) {
-											
-												// Get first match
-												var expression = new RegExp("(^|\n)" + setting + "\\s*?=\\s*(.*)\n?");
-												var matches = expression.exec($("#slicing_configuration_dialog .modal-extra textarea").val());
-												
-												// Return setting's value if it exists
-												return matches !== null && matches.length > 2 ? matches[2].indexOf(';') != -1 ? matches[2].substr(0, matches[2].indexOf(';')) : matches[2] : '';
-											}
-											
 											// Update profile settings
 											function updateProfileSettings(settings) {
 											
@@ -4523,19 +4672,19 @@ $(function() {
 											
 											// Open and close setting groups
 											if(typeof localStorage.basicSettingsOpen === "undefined" || localStorage.basicSettingsOpen == "true")
-												$("#slicing_configuration_dialog.profile .modal-extra div.group.basic").removeClass("closed");
+												$("#slicing_configuration_dialog.profile .modal-extra div.group.basic").removeClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/up%20arrow.png");
 											else
-												$("#slicing_configuration_dialog.profile .modal-extra div.group.basic").addClass("closed");
+												$("#slicing_configuration_dialog.profile .modal-extra div.group.basic").addClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/down%20arrow.png");
 		
 											if(typeof localStorage.manualSettingsOpen === "undefined" || localStorage.manualSettingsOpen == "false")
-												$("#slicing_configuration_dialog.profile .modal-extra div.group.manual").addClass("closed");
+												$("#slicing_configuration_dialog.profile .modal-extra div.group.manual").addClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/down%20arrow.png");
 											else
-												$("#slicing_configuration_dialog.profile .modal-extra div.group.manual").removeClass("closed");
+												$("#slicing_configuration_dialog.profile .modal-extra div.group.manual").removeClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/up%20arrow.png");
 											
 											if(typeof localStorage.advancedSettingsOpen === "undefined" || localStorage.advancedSettingsOpen == "false")
-												$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced").addClass("closed");
+												$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced").addClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/down%20arrow.png");
 											else
-												$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced").removeClass("closed");
+												$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced").removeClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/up%20arrow.png");
 											
 											// Mouse move on group
 											$("#slicing_configuration_dialog.profile .modal-extra div.group").mousemove(function(event) {
@@ -4558,7 +4707,7 @@ $(function() {
 												
 													// Open or close group
 													if($(this).hasClass("closed")) {
-														$(this).removeClass("closed");
+														$(this).removeClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/up%20arrow.png");
 														
 														 if($(this).hasClass("advanced"))
 															setTimeout(function() {
@@ -4574,7 +4723,7 @@ $(function() {
 															localStorage.advancedSettingsOpen = "true";
 													}
 													else {
-														$(this).addClass("closed");
+														$(this).addClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/down%20arrow.png");
 														
 														if($(this).hasClass("advanced"))
 															setTimeout(function() {
@@ -4776,7 +4925,7 @@ $(function() {
 												else if($(this).hasClass("thickness")) {
 												
 													// Get nozzle size
-													var nozzleSize = getValue("nozzle_size");
+													var nozzleSize = getSlicerProfileValue("nozzle_size");
 												
 													changedSettings.push({
 														wall_thickness: parseFloat(parseInt($(this).val()) * parseFloat(nozzleSize == '' ? 0.35 : nozzleSize)).toFixed(3)
@@ -4810,7 +4959,7 @@ $(function() {
 												else if($(this).hasClass("topBottomLayers")) {
 												
 													// Get layer height
-													var layerHeight = getValue("layer_height");
+													var layerHeight = getSlicerProfileValue("layer_height");
 												
 													changedSettings.push({
 														solid_layer_thickness: parseFloat(parseInt($(this).val()) * parseFloat(layerHeight == '' ? 0.15 : layerHeight)).toFixed(3)
@@ -5037,7 +5186,7 @@ $(function() {
 
 						// Send request
 						$.ajax({
-							url: "/plugin/m3dfio/upload",
+							url: PLUGIN_BASEURL + "m3dfio/upload",
 							type: "POST",
 							data: $.param(parameter),
 							dataType: "json",
@@ -5097,43 +5246,43 @@ $(function() {
 
 																$("#slicing_configuration_dialog .modal-extra").empty().append(`
 																	<div class="printer">
-																		<button data-color="Black" title="Black"><img src="/plugin/m3dfio/static/img/black.png"></button>
-																		<button data-color="White" title="White"><img src="/plugin/m3dfio/static/img/white.png"></button>
-																		<button data-color="Blue" title="Blue"><img src="/plugin/m3dfio/static/img/blue.png"></button>
-																		<button data-color="Green" title="Green"><img src="/plugin/m3dfio/static/img/green.png"></button>
-																		<button data-color="Orange" title="Orange"><img src="/plugin/m3dfio/static/img/orange.png"></button>
-																		<button data-color="Clear" title="Clear"><img src="/plugin/m3dfio/static/img/clear.png"></button>
-																		<button data-color="Silver" title="Silver"><img src="/plugin/m3dfio/static/img/silver.png"></button>
-																		<button data-color="Purple" title="Purple"><img src="/plugin/m3dfio/static/img/purple.png"></button>
+																		<button data-color="Black" title="Black"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/black.png"></button>
+																		<button data-color="White" title="White"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/white.png"></button>
+																		<button data-color="Blue" title="Blue"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/blue.png"></button>
+																		<button data-color="Green" title="Green"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/green.png"></button>
+																		<button data-color="Orange" title="Orange"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/orange.png"></button>
+																		<button data-color="Clear" title="Clear"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/clear.png"></button>
+																		<button data-color="Silver" title="Silver"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/silver.png"></button>
+																		<button data-color="Purple" title="Purple"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/purple.png"></button>
 																	</div>
 																	<div class="filament">
-																		<button data-color="White" title="White"><span style="background-color: #F4F3E9;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
-																		<button data-color="Pink" title="Pink"><span style="background-color: #FF006B;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
-																		<button data-color="Red" title="Red"><span style="background-color: #EE0000;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
-																		<button data-color="Orange" title="Orange"><span style="background-color: #FE9800;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
-																		<button data-color="Yellow" title="Yellow"><span style="background-color: #FFEA00;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
-																		<button data-color="Green" title="Green"><span style="background-color: #009E60;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
-																		<button data-color="Light Blue" title="Light Blue"><span style="background-color: #00EEEE;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
-																		<button data-color="Blue" title="Blue"><span style="background-color: #236B8E;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
-																		<button data-color="Purple" title="Purple"><span style="background-color: #9A009A;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
-																		<button data-color="Black" title="Black"><span style="background-color: #404040;"></span><img src="/plugin/m3dfio/static/img/filament.png"></button>
+																		<button data-color="White" title="White"><span style="background-color: #F4F3E9;"></span><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/filament.png"></button>
+																		<button data-color="Pink" title="Pink"><span style="background-color: #FF006B;"></span><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/filament.png"></button>
+																		<button data-color="Red" title="Red"><span style="background-color: #EE0000;"></span><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/filament.png"></button>
+																		<button data-color="Orange" title="Orange"><span style="background-color: #FE9800;"></span><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/filament.png"></button>
+																		<button data-color="Yellow" title="Yellow"><span style="background-color: #FFEA00;"></span><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/filament.png"></button>
+																		<button data-color="Green" title="Green"><span style="background-color: #009E60;"></span><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/filament.png"></button>
+																		<button data-color="Light Blue" title="Light Blue"><span style="background-color: #00EEEE;"></span><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/filament.png"></button>
+																		<button data-color="Blue" title="Blue"><span style="background-color: #236B8E;"></span><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/filament.png"></button>
+																		<button data-color="Purple" title="Purple"><span style="background-color: #9A009A;"></span><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/filament.png"></button>
+																		<button data-color="Black" title="Black"><span style="background-color: #404040;"></span><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/filament.png"></button>
 																	</div>
 																	<div class="model">
 																		<input type="file" accept=".stl, .obj, .m3d, .amf, .wrl, .dae">
-																		<button class="import" title="Import"><img src="/plugin/m3dfio/static/img/import.png"></button>
-																		<button class="translate disabled" title="Translate"><img src="/plugin/m3dfio/static/img/translate.png"></button>
-																		<button class="rotate" title="Rotate"><img src="/plugin/m3dfio/static/img/rotate.png"></button>
-																		<button class="scale" title="Scale"><img src="/plugin/m3dfio/static/img/scale.png"></button>
-																		<button class="snap" title="Snap"><img src="/plugin/m3dfio/static/img/snap.png"></button>
-																		<button class="delete disabled" title="Delete"><img src="/plugin/m3dfio/static/img/delete.png"></button>
-																		<button class="clone disabled" title="Clone"><img src="/plugin/m3dfio/static/img/clone.png"></button>
-																		<button class="reset disabled" title="Reset"><img src="/plugin/m3dfio/static/img/reset.png"></button>
-																		<button class="cut" title="Cut"><img src="/plugin/m3dfio/static/img/cut.png"></button>
-																		<button class="merge" title="Merge"><img src="/plugin/m3dfio/static/img/merge.png"></button>
+																		<button class="import" title="Import"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/import.png"></button>
+																		<button class="translate disabled" title="Translate"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/translate.png"></button>
+																		<button class="rotate" title="Rotate"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/rotate.png"></button>
+																		<button class="scale" title="Scale"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/scale.png"></button>
+																		<button class="snap" title="Snap"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/snap.png"></button>
+																		<button class="delete disabled" title="Delete"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/delete.png"></button>
+																		<button class="clone disabled" title="Clone"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/clone.png"></button>
+																		<button class="reset disabled" title="Reset"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/reset.png"></button>
+																		<button class="cut" title="Cut"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/cut.png"></button>
+																		<button class="merge" title="Merge"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/merge.png"></button>
 																	</div>
 																	<div class="display">
-																		<button class="boundaries" title="Boundaries"><img src="/plugin/m3dfio/static/img/boundaries.png"></button>
-																		<button class="measurements" title="Measurements"><img src="/plugin/m3dfio/static/img/measurements.png"></button>
+																		<button class="boundaries" title="Boundaries"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/boundaries.png"></button>
+																		<button class="measurements" title="Measurements"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/measurements.png"></button>
 																	</div>
 																	<div class="values translate">
 																		<div>
@@ -5145,8 +5294,8 @@ $(function() {
 																	</div>
 																	<div class="cutShape">
 																		<div>
-																			<button class="cube disabled" title="Cube"><img src="/plugin/m3dfio/static/img/cube.png"></button>
-																			<button class="sphere" title="Sphere"><img src="/plugin/m3dfio/static/img/sphere.png"></button>
+																			<button class="cube disabled" title="Cube"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/cube.png"></button>
+																			<button class="sphere" title="Sphere"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/sphere.png"></button>
 																			<span></span>
 																		</div>
 																	</div>
@@ -5572,9 +5721,9 @@ $(function() {
 												}
 											}
 						
-											xhr.open("GET", "/downloads/files/" + modelLocation + modelPath + modelName);
+											xhr.open("GET", BASEURL + "downloads/files/" + modelLocation + modelPath + modelName);
 											xhr.responseType = "blob";
-											xhr.setRequestHeader("X-Api-Key", $.ajaxSettings.headers["X-Api-Key"])
+											xhr.setRequestHeader("X-Api-Key", UI_API_KEY);
 											xhr.send();
 										}, 300);
 									}
@@ -5664,7 +5813,7 @@ $(function() {
 								
 								// Send request
 								$.ajax({
-									url: "/plugin/m3dfio/upload",
+									url: PLUGIN_BASEURL + "m3dfio/upload",
 									type: "POST",
 									data: $.param(parameter),
 									dataType: "json",
@@ -5685,7 +5834,7 @@ $(function() {
 				
 											// Send request
 											$.ajax({
-												url: "/api/files/" + modelLocation,
+												url: API_BASEURL + "files/" + modelLocation,
 												type: "POST",
 												data: form,
 												processData: false,
