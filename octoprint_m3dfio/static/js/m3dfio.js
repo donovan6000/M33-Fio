@@ -10,6 +10,7 @@ $(function() {
 		var slicerMenu = "Select Profile";
 		var modelName;
 		var modelLocation;
+		var modelPath;
 		var slicerName;
 		var slicerProfileName;
 		var slicerProfileContent;
