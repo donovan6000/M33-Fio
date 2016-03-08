@@ -10,7 +10,6 @@ $(function() {
 		var slicerMenu = "Select Profile";
 		var modelName;
 		var modelLocation;
-		var modelPath;
 		var slicerName;
 		var slicerProfileName;
 		var slicerProfileContent;
@@ -176,7 +175,7 @@ $(function() {
 			})
 		};
 		
-		// Set glow vertex and fragment shader
+		// Set glow shader
 		var glowVertexShader = `
 			uniform vec3 viewVector;
 			uniform float c;
@@ -197,6 +196,23 @@ $(function() {
 			void main() {
 				vec3 glow = color * intensity;
 				gl_FragColor = vec4(glow, 1.0);
+			}
+		`;
+		
+		// Set outline shader
+		var outlineVertexShader = `
+			uniform float offset;
+			void main() {
+				vec4 pos = modelViewMatrix * vec4(position + normal * offset, 1.0);
+				gl_Position = projectionMatrix * pos;
+			}
+		`;
+
+		var outlineFragmentShader = `
+			uniform vec3 color;
+			uniform float alpha;
+			void main() {
+				gl_FragColor = vec4(color, alpha);
 			}
 		`;
 		
@@ -927,12 +943,18 @@ $(function() {
 							// Otherwise check if platform adhesion is brim
 							else if(this.platformAdhesion == "Brim") {
 						
-								// Set adhesion size to brim line count
+								// Set adhesion size to the product of brim line count and bottom thickness
 								this.adhesionSize = getSlicerProfileValue("brim_line_count");
 								if(!this.adhesionSize.length)
 									this.adhesionSize = 20;
 								else
 									this.adhesionSize = parseFloat(this.adhesionSize);
+								
+								var bottomThickness = getSlicerProfileValue("bottom_thickness");
+								if(!bottomThickness.length)
+									this.adhesionSize *= 0.3;
+								else
+									this.adhesionSize *= parseFloat(bottomThickness);
 							}
 						}
 					}
@@ -1382,17 +1404,18 @@ $(function() {
 					if(viewport.platformAdhesion == "Raft" || viewport.platformAdhesion == "Brim") {
 					
 						// Create adhesion mesh
-						var adhesionMesh = mesh.clone();
-						adhesionMesh.material = new THREE.MeshLambertMaterial({
-							color: 0xB4B4B4,
-							side: THREE.DoubleSide
-						});
+						var adhesionMesh = new THREE.Mesh(mesh.geometry.clone(), filamentMaterials[self.settings.settings.plugins.m3dfio.FilamentColor()]);
+						
+						// Set adhesion's orientation
+						adhesionMesh.position.set(0, 0, 0);
+						adhesionMesh.rotation.set(0, 0, 0);
+						adhesionMesh.scale.set(1, 1, 1);
 						
 						// Add adhesion to scene
 						viewport.scene[0].add(adhesionMesh);
 						
 						// Return adhesion mesh
-						return adhesionMesh;
+						return {mesh: adhesionMesh, glow: null};
 					}
 					
 					// Return null
@@ -1593,8 +1616,11 @@ $(function() {
 	
 						// Get models' meshes
 						var modelMeshes = []
-						for(var i = 0; i < viewport.models.length; i++)
+						for(var i = 0; i < viewport.models.length; i++) {
 							modelMeshes.push(viewport.models[i].mesh);
+							if(viewport.models[i].adhesion !== null)
+								modelMeshes.push(viewport.models[i].adhesion.mesh);
+						}
 	
 						// Get objects that intersect ray caster
 						var intersects = raycaster.intersectObjects(modelMeshes); 
@@ -1609,16 +1635,23 @@ $(function() {
 								for(var i = 0; i < viewport.models.length; i++)
 						
 									// Check if model was selected
-									if(viewport.models[i].mesh == intersects[0].object) {
+									if(viewport.models[i].mesh == intersects[0].object || (viewport.models[i].adhesion !== null && viewport.models[i].adhesion.mesh == intersects[0].object)) {
 							
-										// Set model's material
+										// Set model's color
 										viewport.models[i].mesh.material = filamentMaterials[self.settings.settings.plugins.m3dfio.FilamentColor()];
+										
+										// Set adhesion's color
+										if(viewport.models[i].adhesion !== null) {
+											viewport.models[i].adhesion.mesh.material = filamentMaterials[self.settings.settings.plugins.m3dfio.FilamentColor()];
+											viewport.scene[1].remove(viewport.models[i].adhesion.glow);
+											viewport.models[i].adhesion.glow = null;
+										}
 		
 										// Remove glow
 										viewport.scene[1].remove(viewport.models[i].glow);
 										viewport.models[i].glow = null;
 			
-										// Remove selection
+										// Remove selection and select new model
 										if(viewport.models[i].mesh == viewport.transformControls.object) {
 											viewport.transformControls.detach();
 											for(var j = 0; j < viewport.models.length; j++)
@@ -1642,9 +1675,15 @@ $(function() {
 				
 									// Remove selection
 									viewport.removeSelection();
+								
+								// Go through all models
+								for(var i = 0; i < viewport.models.length; i++)
+						
+									// Check if model was selected
+									if(viewport.models[i].mesh == intersects[0].object || (viewport.models[i].adhesion !== null && viewport.models[i].adhesion.mesh == intersects[0].object))
 				
-								// Select object
-								viewport.selectModel(intersects[0].object);
+										// Select object
+										viewport.selectModel(viewport.models[i].mesh);
 							}
 						}
 	
@@ -1834,7 +1873,7 @@ $(function() {
 					for(var i = 1; i < viewport.models.length; i++)
 
 						// Check if model is selected
-						if(viewport.models[i].glow) {
+						if(viewport.models[i].glow !== null) {
 
 							// Get model's boundary box
 							var boundaryBox = new THREE.Box3().setFromObject(viewport.models[i].mesh);
@@ -1876,7 +1915,7 @@ $(function() {
 					for(var i = 1; i < viewport.models.length; i++)
 
 						// Check if model is selected
-						if(viewport.models[i].glow) {
+						if(viewport.models[i].glow !== null) {
 
 							// Clone model
 							var clonedModel = new THREE.Mesh(viewport.models[i].mesh.geometry.clone(), viewport.models[i].mesh.material.clone());
@@ -1947,7 +1986,7 @@ $(function() {
 						for(var i = 1; i < viewport.models.length; i++)
 
 							// Check if model is selected
-							if(viewport.models[i].glow) {
+							if(viewport.models[i].glow !== null) {
 				
 								// Reset model's orientation
 								viewport.models[i].mesh.position.set(0, 0, 0);
@@ -1988,13 +2027,15 @@ $(function() {
 						for(var i = 1; i < viewport.models.length; i++)
 
 							// Check if model is selected
-							if(viewport.models[i].glow) {
+							if(viewport.models[i].glow !== null) {
 				
 								// Remove model
 								viewport.scene[0].remove(viewport.models[i].mesh);
 								viewport.scene[1].remove(viewport.models[i].glow);
-								if(viewport.models[i].adhesion !== null)
-									viewport.scene[0].remove(viewport.models[i].adhesion);
+								if(viewport.models[i].adhesion !== null) {
+									viewport.scene[0].remove(viewport.models[i].adhesion.mesh);
+									viewport.scene[1].remove(viewport.models[i].adhesion.glow);
+								}
 								viewport.models.splice(i--, 1);
 							}
 	
@@ -2022,10 +2063,17 @@ $(function() {
 						for(var i = 1; i < viewport.models.length; i++)
 		
 							// Check if glow exists
-							if(viewport.models[i].glow) {
+							if(viewport.models[i].glow !== null) {
 	
-								// Set model's material
+								// Set model's color
 								viewport.models[i].mesh.material = filamentMaterials[self.settings.settings.plugins.m3dfio.FilamentColor()];
+								
+								// Set adhesion's color
+								if(viewport.models[i].adhesion !== null) {
+									viewport.models[i].adhesion.mesh.material = filamentMaterials[self.settings.settings.plugins.m3dfio.FilamentColor()];
+									viewport.scene[1].remove(viewport.models[i].adhesion.glow);
+									viewport.models[i].adhesion.glow = null;
+								}
 		
 								// Remove glow
 								viewport.scene[1].remove(viewport.models[i].glow);
@@ -2046,21 +2094,18 @@ $(function() {
 					// Create glow material
 					var glowMaterial = new THREE.ShaderMaterial({
 						uniforms: { 
-							'c': {
+							c: {
 								type: 'f',
 								value: 1.0
 							},
-
-							'p':   {
+							p:   {
 								type: 'f',
 								value: 1.4
 							},
-
 							color: {
 								type: 'c',
 								value: new THREE.Color(0xFFFF00)
 							},
-
 							viewVector: {
 								type: "v3",
 								value: viewport.camera.position
@@ -2068,6 +2113,25 @@ $(function() {
 						},
 						vertexShader: glowVertexShader,
 						fragmentShader: glowFragmentShader,
+						side: THREE.FrontSide,
+						blending: THREE.AdditiveBlending,
+						transparent: true
+					});
+					
+					// Create outline material
+					var outlineMaterial = new THREE.ShaderMaterial({
+						uniforms: { 
+							alpha: {
+								type: 'f',
+								value: 0.3
+							},
+							color: {
+								type: 'c',
+								value: new THREE.Color(0xFFFF00)
+							}
+						},
+						vertexShader: outlineVertexShader,
+						fragmentShader: outlineFragmentShader,
 						side: THREE.FrontSide,
 						blending: THREE.AdditiveBlending,
 						transparent: true
@@ -2081,12 +2145,22 @@ $(function() {
 				
 							// Select model
 							viewport.transformControls.attach(model);
-		
-							// Set model's material
-							model.material = new THREE.MeshLambertMaterial({
+							
+							// Set select material
+							var selectMaterial = new THREE.MeshLambertMaterial({
 								color: 0xEC9F3B,
 								side: THREE.DoubleSide
 							});
+		
+							// Set model's color
+							model.material = selectMaterial;
+							
+							// Set adhesion's color
+							if(viewport.models[i].adhesion !== null) {
+								viewport.models[i].adhesion.mesh.material = selectMaterial;
+								if(viewport.models[i].adhesion.glow !== null)
+									viewport.scene[1].remove(viewport.models[i].adhesion.glow);
+							}
 					
 							// Remove existing glow
 							if(viewport.models[i].glow !== null)
@@ -2094,21 +2168,40 @@ $(function() {
 					
 							// Create glow
 							model.updateMatrix();
-							viewport.models[i].glow = new THREE.Mesh(model.geometry.clone(), glowMaterial);
+							viewport.models[i].glow = new THREE.Mesh(model.geometry.clone(), glowMaterial.clone());
 						   	viewport.models[i].glow.applyMatrix(model.matrix);
+						   	viewport.models[i].glow.renderOrder = 1;
 						    	
 						    	// Add glow to scene
 							viewport.scene[1].add(viewport.models[i].glow);
+							
+							// Check if adhesion exists
+							if(viewport.models[i].adhesion !== null) {
+							
+								// Create adhesion glow
+								viewport.models[i].adhesion.mesh.updateMatrix();
+								viewport.models[i].adhesion.glow = new THREE.Mesh(viewport.models[i].adhesion.mesh.geometry.clone(), outlineMaterial.clone());
+							   	viewport.models[i].adhesion.glow.applyMatrix(viewport.models[i].adhesion.mesh.matrix);
+							    	viewport.models[i].adhesion.glow.renderOrder = 0;
+							    	
+							    	// Add glow to scene
+								viewport.scene[1].add(viewport.models[i].adhesion.glow);
+							}
 		
 							// Update model changes
 							viewport.updateModelChanges();
 						}
 				
 						// Otherwise check if model is selected
-						else if(viewport.models[i].glow !== null)
+						else if(viewport.models[i].glow !== null) {
 				
 							// Set model's glow color
 							viewport.models[i].glow.material.uniforms.color.value.setHex(0xFFFFB3);
+							
+							// Set adhesion's glow color
+							if(viewport.models[i].adhesion !== null)
+								viewport.models[i].adhesion.glow.material.uniforms.color.value.setHex(0xFFFFB3);
+						}
 				},
 		
 				// Apply changes
@@ -2272,7 +2365,7 @@ $(function() {
 						for(var i = 1; i < viewport.models.length; i++)
 		
 							// Check if glow exists
-							if(viewport.models[i].glow) {
+							if(viewport.models[i].glow !== null) {
 						
 								// Increment number of models selected
 								numberOfModelsSelected++;
@@ -2286,20 +2379,21 @@ $(function() {
 								if(viewport.models[i].adhesion !== null) {
 								
 									// Update adhesion's orientation
-									viewport.models[i].adhesion.position.copy(viewport.models[i].mesh.position);
-									viewport.models[i].adhesion.rotation.copy(viewport.models[i].mesh.rotation);
-									viewport.models[i].adhesion.scale.copy(viewport.models[i].mesh.scale);
-									viewport.models[i].adhesion.position.y = 0;
-									viewport.models[i].adhesion.visible = false;
-									//viewport.models[i].adhesion.updateMatrix();
-									//viewport.models[i].adhesion.geometry.applyMatrix(viewport.models[i].mesh.matrix);
-									/*viewport.models[i].adhesion.position.set(0, 0, 0);
-									viewport.models[i].adhesion.rotation.set(0, 0, 0);
-									viewport.models[i].adhesion.scale.set(1, 1, 1);
+									viewport.models[i].adhesion.mesh.position.copy(viewport.models[i].mesh.position);
+									viewport.models[i].adhesion.mesh.rotation.copy(viewport.models[i].mesh.rotation);
+									viewport.models[i].adhesion.mesh.scale.copy(viewport.models[i].mesh.scale);
+									
+									// Position adhesion
+									viewport.models[i].adhesion.mesh.position.y = 0;
 									
 									// Scale adhesion
 									var boundaryBox = new THREE.Box3().setFromObject(viewport.models[i].mesh);
-									viewport.models[i].adhesion.scale.set((boundaryBox.max.x - boundaryBox.min.x + viewport.adhesionSize) / (boundaryBox.max.x - boundaryBox.min.x), 0.000000000001, (boundaryBox.max.z - boundaryBox.min.z + viewport.adhesionSize) / (boundaryBox.max.z - boundaryBox.min.z));*/
+									viewport.models[i].adhesion.mesh.scale.set(viewport.models[i].adhesion.mesh.scale.x * (boundaryBox.max.x - boundaryBox.min.x + viewport.adhesionSize * 2) / (boundaryBox.max.x - boundaryBox.min.x), 0.000000000001, viewport.models[i].adhesion.mesh.scale.z * (boundaryBox.max.z - boundaryBox.min.z + viewport.adhesionSize * 2) / (boundaryBox.max.z - boundaryBox.min.z));
+									
+									// Update adhesion glow's orientation
+									viewport.models[i].adhesion.glow.position.copy(viewport.models[i].adhesion.mesh.position);
+									viewport.models[i].adhesion.glow.rotation.copy(viewport.models[i].adhesion.mesh.rotation);
+									viewport.models[i].adhesion.glow.scale.copy(viewport.models[i].adhesion.mesh.scale);
 								}
 							}
 					
@@ -2397,7 +2491,7 @@ $(function() {
 						// Go through all models
 						for(var i = 1; i < viewport.models.length; i++)
 
-							// Check if glow exists
+							// Check if model is selected
 							if(viewport.models[i].glow && viewport.models[i].mesh != viewport.transformControls.object)
 					
 								// Check current mode
@@ -2505,7 +2599,7 @@ $(function() {
 					}
 		
 					// Check if models goes out of bounds on low front
-					if(minimums[0].z < bedLowMinY - extruderCenterY) {
+					if(minimums[0].z - viewport.adhesionSize < bedLowMinY - extruderCenterY) {
 		
 						// Set boundary
 						viewport.boundaries[1].material.color.setHex(0xFF0000);
@@ -2521,7 +2615,7 @@ $(function() {
 						viewport.boundaries[1].visible = viewport.showBoundaries;
 		
 					// Check if models goes out of bounds on low back
-					if(maximums[0].z > bedLowMaxY - extruderCenterY) {
+					if(maximums[0].z + viewport.adhesionSize > bedLowMaxY - extruderCenterY) {
 		
 						// Set boundary
 						viewport.boundaries[2].material.color.setHex(0xFF0000);
@@ -2537,7 +2631,7 @@ $(function() {
 						viewport.boundaries[2].visible = viewport.showBoundaries;
 		
 					// Check if models goes out of bounds on low right
-					if(maximums[0].x > bedLowMaxX - extruderCenterX) {
+					if(maximums[0].x + viewport.adhesionSize > bedLowMaxX - extruderCenterX) {
 		
 						// Set boundary
 						viewport.boundaries[3].material.color.setHex(0xFF0000);
@@ -2553,7 +2647,7 @@ $(function() {
 						viewport.boundaries[3].visible = viewport.showBoundaries;
 		
 					// Check if models goes out of bounds on low left
-					if(minimums[0].x < bedLowMinX - extruderCenterX) {
+					if(minimums[0].x - viewport.adhesionSize < bedLowMinX - extruderCenterX) {
 		
 						// Set boundary
 						viewport.boundaries[4].material.color.setHex(0xFF0000);
@@ -2890,7 +2984,7 @@ $(function() {
 							// Delete model
 							viewport.scene[0].remove(viewport.models[i].mesh);
 							if(viewport.models[i].adhesion !== null)
-								viewport.scene[0].remove(viewport.models[i].adhesion);
+								viewport.scene[0].remove(viewport.models[i].adhesion.mesh);
 							var type = viewport.models[i].type;
 							viewport.models.splice(i--, 1);
 				
@@ -3049,7 +3143,7 @@ $(function() {
 						// Go through all models
 						for(var i = 1; i < viewport.models.length; i++)
 	
-							// Check if glow exists and it's not the currently selected model
+							// Check if model is selected and it's not the newest selected model
 							if(viewport.models[i].glow && viewport.models[i].mesh != viewport.transformControls.object) {
 					
 								// Update model's geometry
@@ -3066,8 +3160,10 @@ $(function() {
 								// Delete model
 								viewport.scene[0].remove(viewport.models[i].mesh);
 								viewport.scene[1].remove(viewport.models[i].glow);
-								if(viewport.models[i].adhesion !== null)
-									viewport.scene[0].remove(viewport.models[i].adhesion);
+								if(viewport.models[i].adhesion !== null) {
+									viewport.scene[0].remove(viewport.models[i].adhesion.mesh);
+									viewport.scene[1].remove(viewport.models[i].adhesion.glow);
+								}
 								viewport.models.splice(i--, 1);
 				
 								// Center union mesh's geometry
@@ -3092,8 +3188,10 @@ $(function() {
 								// Delete model
 								viewport.scene[0].remove(viewport.models[i].mesh);
 								viewport.scene[1].remove(viewport.models[i].glow);
-								if(viewport.models[i].adhesion !== null)
-									viewport.scene[0].remove(viewport.models[i].adhesion);
+								if(viewport.models[i].adhesion !== null) {
+									viewport.scene[0].remove(viewport.models[i].adhesion.mesh);
+									viewport.scene[1].remove(viewport.models[i].adhesion.glow);
+								}
 								var type = viewport.models[i].type;
 								viewport.models.splice(i--, 1);
 						
@@ -3220,7 +3318,7 @@ $(function() {
 						for(var i = 1; i < viewport.models.length; i++)
 		
 							// Check if model is selected
-							if(viewport.models[i].glow)
+							if(viewport.models[i].glow !== null)
 					
 								// Update glow's view vector
 								viewport.models[i].glow.material.uniforms.viewVector.value = new THREE.Vector3().subVectors(viewport.camera.position, viewport.models[i].glow.position);
@@ -4227,7 +4325,7 @@ $(function() {
 		
 			// Upload file with expanded file support
 			uploadWithExpandedFileSupport(event, this.files[0], $(this).attr("id") == "gcode_upload" ? "local" : "sdcard");
-		});
+		}).attr("accept", ".stl, .obj, .m3d, .amf, .wrl, .dae, .gcode, .gco, .g");
 		
 		// Upload with expanded file support
 		function uploadWithExpandedFileSupport(event, file, location) {
@@ -5651,10 +5749,15 @@ $(function() {
 																	for(var i = 1; i < viewport.models.length; i++)
 
 																		// Check if model isn't currently selected
-																		if(viewport.models[i].glow === null)
+																		if(viewport.models[i].glow === null) {
 
-																			// Set models' color
+																			// Set model's color
 																			viewport.models[i].mesh.material = filamentMaterials[$(this).data("color")];
+																			
+																			// Set adhesion's color
+																			if(viewport.models[i].adhesion !== null)
+																				viewport.models[i].adhesion.mesh.material = filamentMaterials[$(this).data("color")];
+																		}
 
 																	// Select button
 																	$(this).addClass("disabled").siblings(".disabled").removeClass("disabled");
@@ -10016,7 +10119,7 @@ $(function() {
 					skippedMessages = 0;
 		
 					// Show message
-					showMessage("Server Status", "You've been disconnected from the server which has most likely caused the printer's current operation to fail. It's recommended that you refresh this page to prevent further problems. Refresh now?", "OK", function() {
+					showMessage("Server Status", "You've been disconnected from the server which has most likely caused the printer's current operation to fail. It's recommended that you refresh this page to prevent further problems. Refresh now?", "Yes", function() {
 
 						// Hide message
 						hideMessage();
@@ -10040,7 +10143,7 @@ $(function() {
 						hideMessage();
 			
 					// Show message
-					showMessage("Server Status", "You've been disconnected from the server. It's recommended that you refresh this page to prevent further problems. Refresh now?", "OK", function() {
+					showMessage("Server Status", "You've been disconnected from the server. It's recommended that you refresh this page to prevent further problems. Refresh now?", "Yes", function() {
 
 						// Hide message
 						hideMessage();
