@@ -133,11 +133,15 @@
 	pointer-events: none;
 }
 
+#navbar {
+	margin-bottom: 44px;
+}
+
 #navbar_plugin_m3dfio {
 	display: inline;
 	position: absolute;
-	top: 0;
-	left: 158px;
+	top: 44px;
+	left: 30px;
 }
 
 #navbar_plugin_m3dfio > select {
@@ -151,7 +155,7 @@
 	cursor: default;
 	display: inline;
 	position: relative;
-	right: 30px;
+	right: 36px;
 	top: 1px;
 }
 
