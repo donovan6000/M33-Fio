@@ -1406,17 +1406,12 @@ $(function() {
 					
 						// Create adhesion mesh
 						var adhesionMesh = new THREE.Mesh(mesh.geometry.clone(), filamentMaterials[self.settings.settings.plugins.m3dfio.FilamentColor()]);
-						
-						// Set adhesion's orientation
-						adhesionMesh.position.set(0, 0, 0);
-						adhesionMesh.rotation.set(0, 0, 0);
-						adhesionMesh.scale.set(1, 1, 1);
-						
+
 						// Add adhesion to scene
 						viewport.scene[0].add(adhesionMesh);
 						
 						// Return adhesion mesh
-						return {mesh: adhesionMesh, glow: null};
+						return {mesh: adhesionMesh, glow: null, geometry: adhesionMesh.geometry.clone()};
 					}
 					
 					// Return null
@@ -2169,7 +2164,7 @@ $(function() {
 					
 							// Create glow
 							model.updateMatrix();
-							viewport.models[i].glow = new THREE.Mesh(model.geometry.clone(), glowMaterial.clone());
+							viewport.models[i].glow = new THREE.Mesh(model.geometry, glowMaterial.clone());
 						   	viewport.models[i].glow.applyMatrix(model.matrix);
 						   	viewport.models[i].glow.renderOrder = 1;
 						    	
@@ -2181,7 +2176,7 @@ $(function() {
 							
 								// Create adhesion glow
 								viewport.models[i].adhesion.mesh.updateMatrix();
-								viewport.models[i].adhesion.glow = new THREE.Mesh(viewport.models[i].adhesion.mesh.geometry.clone(), outlineMaterial.clone());
+								viewport.models[i].adhesion.glow = new THREE.Mesh(viewport.models[i].adhesion.mesh.geometry, outlineMaterial.clone());
 							   	viewport.models[i].adhesion.glow.applyMatrix(viewport.models[i].adhesion.mesh.matrix);
 							    	viewport.models[i].adhesion.glow.renderOrder = 0;
 							    	
@@ -2379,19 +2374,26 @@ $(function() {
 								// Check if adhesion exists
 								if(viewport.models[i].adhesion !== null) {
 								
+									// Restore original geometry
+									viewport.models[i].adhesion.mesh.geometry = viewport.models[i].adhesion.geometry.clone();
+								
 									// Update adhesion's orientation
-									viewport.models[i].adhesion.mesh.position.copy(viewport.models[i].mesh.position);
 									viewport.models[i].adhesion.mesh.rotation.copy(viewport.models[i].mesh.rotation);
 									viewport.models[i].adhesion.mesh.scale.copy(viewport.models[i].mesh.scale);
 									
-									// Position adhesion
-									viewport.models[i].adhesion.mesh.position.y = 0;
+									// Apply transformation to adhesion's geometry
+									viewport.models[i].adhesion.mesh.updateMatrix();
+									viewport.models[i].adhesion.mesh.geometry.applyMatrix(viewport.models[i].adhesion.mesh.matrix);
+									viewport.models[i].adhesion.mesh.geometry.center();
 									
-									// Scale adhesion
+									// Set adhesion's orientation
+									viewport.models[i].adhesion.mesh.position.set(viewport.models[i].mesh.position.x, 0, viewport.models[i].mesh.position.z);
+									viewport.models[i].adhesion.mesh.rotation.set(0, 0, 0);
 									var boundaryBox = new THREE.Box3().setFromObject(viewport.models[i].mesh);
-									viewport.models[i].adhesion.mesh.scale.set(viewport.models[i].adhesion.mesh.scale.x * (boundaryBox.max.x - boundaryBox.min.x + viewport.adhesionSize * 2) / (boundaryBox.max.x - boundaryBox.min.x), 0.000000000001, viewport.models[i].adhesion.mesh.scale.z * (boundaryBox.max.z - boundaryBox.min.z + viewport.adhesionSize * 2) / (boundaryBox.max.z - boundaryBox.min.z));
+									viewport.models[i].adhesion.mesh.scale.set((boundaryBox.max.x - boundaryBox.min.x + viewport.adhesionSize * 2) / (boundaryBox.max.x - boundaryBox.min.x), 0.000000000001, (boundaryBox.max.z - boundaryBox.min.z + viewport.adhesionSize * 2) / (boundaryBox.max.z - boundaryBox.min.z));
 									
 									// Update adhesion glow's orientation
+									viewport.models[i].adhesion.glow.geometry = viewport.models[i].adhesion.mesh.geometry;
 									viewport.models[i].adhesion.glow.position.copy(viewport.models[i].adhesion.mesh.position);
 									viewport.models[i].adhesion.glow.rotation.copy(viewport.models[i].adhesion.mesh.rotation);
 									viewport.models[i].adhesion.glow.scale.copy(viewport.models[i].adhesion.mesh.scale);
@@ -2600,7 +2602,7 @@ $(function() {
 					}
 		
 					// Check if models goes out of bounds on low front
-					if(minimums[0].z - viewport.adhesionSize < bedLowMinY - extruderCenterY) {
+					if((viewport.platformAdhesion != "None" && (minimums[0].z - viewport.adhesionSize < bedLowMinY - extruderCenterY || minimums[1].z - viewport.adhesionSize < bedLowMinY - extruderCenterY || minimums[2].z - viewport.adhesionSize < bedLowMinY - extruderCenterY)) || (viewport.platformAdhesion == "None" && minimums[0].z < bedLowMinY - extruderCenterY)) {
 		
 						// Set boundary
 						viewport.boundaries[1].material.color.setHex(0xFF0000);
@@ -2616,7 +2618,7 @@ $(function() {
 						viewport.boundaries[1].visible = viewport.showBoundaries;
 		
 					// Check if models goes out of bounds on low back
-					if(maximums[0].z + viewport.adhesionSize > bedLowMaxY - extruderCenterY) {
+					if((viewport.platformAdhesion != "None" && (maximums[0].z + viewport.adhesionSize > bedLowMaxY - extruderCenterY || maximums[1].z + viewport.adhesionSize > bedLowMaxY - extruderCenterY || maximums[2].z + viewport.adhesionSize > bedLowMaxY - extruderCenterY)) || (viewport.platformAdhesion == "None" && maximums[0].z > bedLowMaxY - extruderCenterY)) {
 		
 						// Set boundary
 						viewport.boundaries[2].material.color.setHex(0xFF0000);
@@ -2632,7 +2634,7 @@ $(function() {
 						viewport.boundaries[2].visible = viewport.showBoundaries;
 		
 					// Check if models goes out of bounds on low right
-					if(maximums[0].x + viewport.adhesionSize > bedLowMaxX - extruderCenterX) {
+					if((viewport.platformAdhesion != "None" && (maximums[0].x + viewport.adhesionSize > bedLowMaxX - extruderCenterX || maximums[1].x + viewport.adhesionSize > bedLowMaxX - extruderCenterX || maximums[2].x + viewport.adhesionSize > bedLowMaxX - extruderCenterX)) || (viewport.platformAdhesion == "None" && maximums[0].x > bedLowMaxX - extruderCenterX)) {
 		
 						// Set boundary
 						viewport.boundaries[3].material.color.setHex(0xFF0000);
@@ -2648,7 +2650,7 @@ $(function() {
 						viewport.boundaries[3].visible = viewport.showBoundaries;
 		
 					// Check if models goes out of bounds on low left
-					if(minimums[0].x - viewport.adhesionSize < bedLowMinX - extruderCenterX) {
+					if((viewport.platformAdhesion != "None" && (minimums[0].x - viewport.adhesionSize < bedLowMinX - extruderCenterX || minimums[1].x - viewport.adhesionSize < bedLowMinX - extruderCenterX || minimums[2].x - viewport.adhesionSize < bedLowMinX - extruderCenterX)) || (viewport.platformAdhesion == "None" && minimums[0].x < bedLowMinX - extruderCenterX)) {
 		
 						// Set boundary
 						viewport.boundaries[4].material.color.setHex(0xFF0000);
