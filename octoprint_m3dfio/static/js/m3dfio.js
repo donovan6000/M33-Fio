@@ -194,9 +194,10 @@ $(function() {
 		var glowFragmentShader = `
 			uniform vec3 color;
 			varying float intensity;
+			uniform float alpha;
 			void main() {
 				vec3 glow = color * intensity;
-				gl_FragColor = vec4(glow, 1.0);
+				gl_FragColor = vec4(glow, alpha);
 			}
 		`;
 		
@@ -1004,6 +1005,7 @@ $(function() {
 
 					// Create lights
 					this.scene[0].add(new THREE.AmbientLight(0x444444));
+					this.scene[1].add(new THREE.AmbientLight(0x444444));
 					var dirLight = new THREE.DirectionalLight(0xFFFFFF);
 					dirLight.position.set(200, 200, 1000).normalize();
 					this.camera.add(dirLight);
@@ -2105,13 +2107,18 @@ $(function() {
 							viewVector: {
 								type: "v3",
 								value: viewport.camera.position
-							}
+							},
+							alpha: {
+								type: 'f',
+								value: 0.9
+							},
 						},
 						vertexShader: glowVertexShader,
 						fragmentShader: glowFragmentShader,
 						side: THREE.FrontSide,
 						blending: THREE.AdditiveBlending,
-						transparent: true
+						transparent: true,
+						depthWrite: false
 					});
 					
 					// Create outline material
@@ -2130,7 +2137,8 @@ $(function() {
 						fragmentShader: outlineFragmentShader,
 						side: THREE.FrontSide,
 						blending: THREE.AdditiveBlending,
-						transparent: true
+						transparent: true,
+						depthWrite: false
 					});
 			
 					// Go through all models
