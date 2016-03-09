@@ -18,6 +18,7 @@ import octoprint.settings
 import tempfile
 import os
 import time
+import datetime
 import struct
 import shutil
 import sys
@@ -2352,7 +2353,7 @@ class M3DFioPlugin(
 		
 		# Write to log
 		output = open(self.get_plugin_data_folder().replace('\\', '/') + "/log.txt", "ab+")
-		output.write(data.rstrip() + '\n')
+		output.write(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f") + " - " + data.rstrip() + '\n')
 		output.close()
 		
 		# Release lock
