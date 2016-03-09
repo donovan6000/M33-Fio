@@ -27,5 +27,5 @@ find ./ -name '*.pyc' | xargs rm
 
 # Push changes
 git add .
-git commit -m "'$3'"
+git commit -m "$3"
 git push origin $1
