@@ -3570,7 +3570,7 @@ $(function() {
 					<div class="tooltip-arrow"></div>
 					<div class="tooltip-inner"></div>
 				</div>
-				<input style="width: 100px;" data-bind="slider: {min: 100, max: 235, step: 1, value: flowRate, tooltip: 'hide'}" type="number">
+				<input style="width: 100px;" data-bind="slider: {min: 100, max: 300, step: 1, value: flowRate, tooltip: 'hide'}" type="number">
 			</div>
 			<button class="btn btn-block control-box" data-bind="enable: isOperational() && loginState.isUser()">Temperature:<span data-bind="text: flowRate() + 50 + '°C'"></span></button>
 			<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M104 S0'}) }" title="Turns off extruder's heater">Heater off</button>
@@ -3618,7 +3618,7 @@ $(function() {
 								<label class="control-label">Filament Temperature</label>
 								<div class="controls">
 									<div class="input-append degreesCelsius">
-										<input type="number" step="1" min="150" max="285" class="input-block-level">
+										<input type="number" step="1" min="150" max="350" class="input-block-level">
 										<span class="add-on">°C</span>
 									</div>
 								</div>
@@ -3660,7 +3660,7 @@ $(function() {
 								<label class="control-label">Unload/Load Temperature</label>
 								<div class="controls">
 									<div class="input-append degreesCelsius">
-										<input type="number" step="1" min="150" max="285" class="input-block-level">
+										<input type="number" step="1" min="150" max="350" class="input-block-level">
 										<span class="add-on">°C</span>
 									</div>
 								</div>

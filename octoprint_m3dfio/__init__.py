@@ -5887,7 +5887,7 @@ class M3DFioPlugin(
 	def getBoundedTemperature(self, value) :
 	
 		# Return temperature in bounded range
-		return min(max(value, 150), 285)
+		return min(max(value, 150), 350)
 	
 	# Get distance
 	def getDistance(self, firstPoint, secondPoint) :

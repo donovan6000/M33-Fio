@@ -264,7 +264,7 @@ double max(double first, double second) {
 uint16_t getBoundedTemperature(uint16_t temperature) {
 
 	// Return temperature bounded by range
-	return min(max(temperature, 150), 285);
+	return min(max(temperature, 150), 350);
 }
 
 double getDistance(const Gcode &firstPoint, const Gcode &secondPoint) {
