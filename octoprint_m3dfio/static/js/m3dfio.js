@@ -8350,41 +8350,64 @@ $(function() {
 																					
 																												// Set waiting callback
 																												waitingCallback = function() {
-																					
+																												
 																													// Show message
-																													showMessage("Calibration Status", "Finishing calibration");
-																					
+																													showMessage("Calibration Status", "Resetting bed height offset");
+																												
 																													// Set commands
 																													commands = [
-																														"G90",
-																														"G0 Z3 F90",
-																														"G28",
-																														"M18",
+																														"M618 S" + eepromOffsets["bedHeightOffset"]["offset"] + " T" + eepromOffsets["bedHeightOffset"]["bytes"] + " P" + floatToBinary(0),
+																														"M619 S" + eepromOffsets["bedHeightOffset"]["offset"] + " T" + eepromOffsets["bedHeightOffset"]["bytes"],
 																														"M65536;wait"
 																													];
-																						
+																					
 																													// Set waiting callback
 																													waitingCallback = function() {
+																					
+																														// Show message
+																														showMessage("Calibration Status", "Finishing calibration");
+																					
+																														// Set commands
+																														commands = [
+																															"G90",
+																															"G0 Z3 F90",
+																															"G28",
+																															"M18",
+																															"M65536;wait"
+																														];
 																						
-																														// Save settings
-																														function saveSettings() {
+																														// Set waiting callback
+																														waitingCallback = function() {
+																						
+																															// Save settings
+																															function saveSettings() {
 				
-																															// Save software settings
-																															self.settings.saveData();
+																																// Save software settings
+																																self.settings.saveData();
 					
-																															// Show message
-																															showMessage("Calibration Status", "Done", "OK", function() {
+																																// Show message
+																																showMessage("Calibration Status", "Done", "OK", function() {
 				
-																																// Hide message
-																																hideMessage();
-																															});
-																														}
+																																	// Hide message
+																																	hideMessage();
+																																});
+																															}
 			
-																														// Update settings
-																														if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
-																															self.settings.requestData(saveSettings);
-																														else
-																															self.settings.requestData().done(saveSettings);
+																															// Update settings
+																															if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
+																																self.settings.requestData(saveSettings);
+																															else
+																																self.settings.requestData().done(saveSettings);
+																														}
+																														
+																														// Send request
+																														$.ajax({
+																															url: API_BASEURL + "plugin/m3dfio",
+																															type: "POST",
+																															dataType: "json",
+																															data: JSON.stringify({command: "message", value: commands}),
+																															contentType: "application/json; charset=UTF-8"
+																														});
 																													}
 
 																													// Send request
