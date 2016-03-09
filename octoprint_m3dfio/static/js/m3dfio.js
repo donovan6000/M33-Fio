@@ -2442,6 +2442,18 @@ $(function() {
 				
 						// Disable merge button
 						$("#slicing_configuration_dialog .modal-extra button.merge").addClass("disabled");
+					
+					// Check if no models exist
+					if(viewport.models.length == 1)
+					
+						// Disable cut button
+						$("#slicing_configuration_dialog .modal-extra button.cut").addClass("off");
+					
+					// Otherwise
+					else
+					
+						// Enable cut button
+						$("#slicing_configuration_dialog .modal-extra button.cut").removeClass("off");
 				},
 		
 				// Apply group transformation
@@ -4047,9 +4059,6 @@ $(function() {
 		// Set temperature target or offset button event
 		$(document).on("click", "#temp button[type=\"submit\"]", function(event) {
 		
-			// Stop default behavior
-			event.stopImmediatePropagation();
-			
 			// Get temperature
 			var temperature = 0;
 			
@@ -4069,13 +4078,22 @@ $(function() {
 					"M104 S" + temperature + '*'
 				];
 			
-			// Otherwise
-			else
+			// Otherwise check if setting heatbed temperature
+			else if($(this).closest("tr").children("th").text() == "Bed")
 			
 				// Set commands
 				var commands = [
 					"M140 S" + temperature + '*'
 				];
+			
+			// Otherwise
+			else
+			
+				// Return
+				return;
+			
+			// Stop default behavior
+			event.stopImmediatePropagation();
 		
 			// Send request
 			$.ajax({
@@ -4543,7 +4561,7 @@ $(function() {
 								
 									// Send request
 									$.ajax({
-										url: data.path,
+										url: PLUGIN_BASEURL + data.path,
 										type: "GET",
 										contentType: "application/x-www-form-urlencoded; charset=UTF-8",
 
@@ -8656,7 +8674,7 @@ $(function() {
 				
 						// Send request
 						$.ajax({
-							url: data.path,
+							url: PLUGIN_BASEURL + data.path,
 							type: "GET",
 							contentType: "application/x-www-form-urlencoded; charset=UTF-8",
 

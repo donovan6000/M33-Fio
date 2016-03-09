@@ -1104,7 +1104,7 @@ body > div.page-container > div.message > div > div > span.show {
 	position: relative;
 }
 
-#slicing_configuration_dialog.model .modal-extra > div > button[disabled], #slicing_configuration_dialog.model .modal-extra > div > button.disabled.delete, #slicing_configuration_dialog.model .modal-extra > div > button.disabled.clone, #slicing_configuration_dialog.model .modal-extra > div > button.disabled.reset, #slicing_configuration_dialog.model .modal-extra > div > button.disabled.merge {
+#slicing_configuration_dialog.model .modal-extra > div > button[disabled], #slicing_configuration_dialog.model .modal-extra > div > button.disabled.delete, #slicing_configuration_dialog.model .modal-extra > div > button.disabled.clone, #slicing_configuration_dialog.model .modal-extra > div > button.disabled.reset, #slicing_configuration_dialog.model .modal-extra > div > button.disabled.merge, #slicing_configuration_dialog.model .modal-extra > div > button.cut.off {
 	opacity: 0.5;
 	pointer-events: none;
 }

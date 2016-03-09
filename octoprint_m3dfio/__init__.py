@@ -1812,7 +1812,7 @@ class M3DFioPlugin(
 					shutil.move(temp, fileDestination)
 				
 				# Return location
-				return flask.jsonify(dict(value = "OK", path = "/plugin/m3dfio/download/" + destinationName))
+				return flask.jsonify(dict(value = "OK", path = "m3dfio/download/" + destinationName))
 			
 			# Otherwise check if parameter is to get printer settings
 			elif data["value"] == "Get Printer Settings" :
@@ -1856,7 +1856,7 @@ class M3DFioPlugin(
     				output.close()
     				
     				# Return location
-				return flask.jsonify(dict(value = "OK", path = "/plugin/m3dfio/download/" + destinationName))
+				return flask.jsonify(dict(value = "OK", path = "m3dfio/download/" + destinationName))
 			
 			# Otherwise check if parameter is to set printer settings
 			elif data["value"].startswith("Set Printer Settings:") :
