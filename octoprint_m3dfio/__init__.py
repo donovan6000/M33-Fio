@@ -1879,12 +1879,28 @@ class M3DFioPlugin(
 				if os.path.isfile(fileDestination) :
 					os.remove(fileDestination)
 				
-				# Write printer settings to file
+				# Open archive
 				output = zipfile.ZipFile(fileDestination, 'w')
+				
+				# Check if log file exists
 				if os.path.isfile(logLocation) :
+				
+					# Acquire lock
+					self.fileLock.acquire()
+					
+					# Write log file to archive
     					output.write(logLocation, "log.txt")
+    					
+    					# Release lock
+					self.fileLock.release()
+				
+				# Otherwise
     				else :
+    				
+    					# Write empty file to archive
     					output.writestr("log.txt", '')
+    				
+    				# Close archive
     				output.close()
     				
     				# Return location
@@ -2355,9 +2371,17 @@ class M3DFioPlugin(
 		logLocation = self.get_plugin_data_folder().replace('\\', '/') + "/log.txt"
 		zipLocation = self.get_plugin_data_folder().replace('\\', '/') + "/log.zip"
 		
-		# Remove log file if it exists
+		# Check if log file exists
 		if os.path.isfile(logLocation) :
+		
+			# Acquire lock
+			self.fileLock.acquire()
+			
+			# Remove log file
 			os.remove(logLocation)
+		
+			# Release lock
+			self.fileLock.release()
 		
 		# Remove zip file if it exists
 		if os.path.isfile(zipLocation) :
