@@ -244,7 +244,7 @@
 		arrowGeometry.merge( mesh.geometry, mesh.matrix );
 
 		var lineXGeometry = new THREE.BufferGeometry();
-		lineXGeometry.addAttribute( 'position', new THREE.Float32Attribute( [ 0, 0, 0,  1, 0, 0 ], 3 ) );
+		lineXGeometry.addAttribute( 'position', new THREE.Float32Attribute( [ 0, 0, 0,  - 1, 0, 0 ], 3 ) );
 
 		var lineYGeometry = new THREE.BufferGeometry();
 		lineYGeometry.addAttribute( 'position', new THREE.Float32Attribute( [ 0, 0, 0,  0, 1, 0 ], 3 ) );
@@ -255,7 +255,7 @@
 		this.handleGizmos = {
 
 			X: [
-				[ new THREE.Mesh( arrowGeometry, new GizmoMaterial( { color: 0xff0000 } ) ), [ 0.5, 0, 0 ], [ 0, 0, - Math.PI / 2 ] ],
+				[ new THREE.Mesh( arrowGeometry, new GizmoMaterial( { color: 0xff0000 } ) ), [ - 0.5, 0, 0 ], [ 0, 0, Math.PI / 2 ] ],
 				[ new THREE.Line( lineXGeometry, new GizmoLineMaterial( { color: 0xff0000 } ) ) ]
 			],
 
@@ -270,19 +270,19 @@
 			],
 
 			XYZ: [
-				[ new THREE.Mesh( new THREE.OctahedronGeometry( 0.1, 0 ), new GizmoMaterial( { color: 0xffffff, opacity: 0.25 } ) ), [ 0, 0, 0 ], [ 0, 0, 0 ] ]
+				[ new THREE.Mesh( new THREE.OctahedronGeometry( 0.1, 0 ), new GizmoMaterial( { color: 0xffffff, opacity: 0.25, side: THREE.DoubleSide } ) ), [ 0, 0, 0 ], [ 0, 0, 0 ] ]
 			],
 
 			XY: [
-				[ new THREE.Mesh( new THREE.PlaneBufferGeometry( 0.29, 0.29 ), new GizmoMaterial( { color: 0xffff00, opacity: 0.25 } ) ), [ 0.15, 0.15, 0 ] ]
+				[ new THREE.Mesh( new THREE.PlaneBufferGeometry( 0.29, 0.29 ), new GizmoMaterial( { color: 0xffff00, opacity: 0.25, side: THREE.DoubleSide } ) ), [ - 0.15, 0.15, 0 ] ]
 			],
 
 			YZ: [
-				[ new THREE.Mesh( new THREE.PlaneBufferGeometry( 0.29, 0.29 ), new GizmoMaterial( { color: 0x00ffff, opacity: 0.25 } ) ), [ 0, 0.15, 0.15 ], [ 0, Math.PI / 2, 0 ] ]
+				[ new THREE.Mesh( new THREE.PlaneBufferGeometry( - 0.29, 0.29 ), new GizmoMaterial( { color: 0x00ffff, opacity: 0.25, side: THREE.DoubleSide } ) ), [ 0, 0.15, 0.15 ], [ 0, Math.PI / 2, 0 ] ]
 			],
 
 			XZ: [
-				[ new THREE.Mesh( new THREE.PlaneBufferGeometry( 0.29, 0.29 ), new GizmoMaterial( { color: 0xff00ff, opacity: 0.25 } ) ), [ 0.15, 0, 0.15 ], [ - Math.PI / 2, 0, 0 ] ]
+				[ new THREE.Mesh( new THREE.PlaneBufferGeometry( 0.29, 0.29 ), new GizmoMaterial( { color: 0xff00ff, opacity: 0.25, side: THREE.DoubleSide } ) ), [ - 0.15, 0, 0.15 ], [ - Math.PI / 2, 0, 0 ] ]
 			]
 
 		};
@@ -290,7 +290,7 @@
 		this.pickerGizmos = {
 
 			X: [
-				[ new THREE.Mesh( new THREE.CylinderGeometry( 0.2, 0, 1, 4, 1, false ), pickerMaterial ), [ 0.6, 0, 0 ], [ 0, 0, - Math.PI / 2 ] ]
+				[ new THREE.Mesh( new THREE.CylinderGeometry( 0.2, 0, 1, 4, 1, false ), pickerMaterial ), [ - 0.6, 0, 0 ], [ 0, 0, - Math.PI / 2 ] ]
 			],
 
 			Y: [
@@ -306,15 +306,15 @@
 			],
 
 			XY: [
-				[ new THREE.Mesh( new THREE.PlaneBufferGeometry( 0.4, 0.4 ), pickerMaterial ), [ 0.2, 0.2, 0 ] ]
+				[ new THREE.Mesh( new THREE.CubeGeometry( 0.4, 0.4, 0.4 ), pickerMaterial ), [ - 0.2, 0.2, 0 ] ]
 			],
 
 			YZ: [
-				[ new THREE.Mesh( new THREE.PlaneBufferGeometry( 0.4, 0.4 ), pickerMaterial ), [ 0, 0.2, 0.2 ], [ 0, Math.PI / 2, 0 ] ]
+				[ new THREE.Mesh( new THREE.CubeGeometry( 0.4, 0.4, 0.4 ), pickerMaterial ), [ 0, 0.2, 0.2 ], [ 0, - Math.PI / 2, 0 ] ]
 			],
 
 			XZ: [
-				[ new THREE.Mesh( new THREE.PlaneBufferGeometry( 0.4, 0.4 ), pickerMaterial ), [ 0.2, 0, 0.2 ], [ - Math.PI / 2, 0, 0 ] ]
+				[ new THREE.Mesh( new THREE.CubeGeometry( 0.4, 0.4, 0.4 ), pickerMaterial ), [ - 0.2, 0, 0.2 ], [ - Math.PI / 2, 0, 0 ] ]
 			]
 
 		};
@@ -530,7 +530,7 @@
 		arrowGeometry.merge( mesh.geometry, mesh.matrix );
 
 		var lineXGeometry = new THREE.BufferGeometry();
-		lineXGeometry.addAttribute( 'position', new THREE.Float32Attribute( [ 0, 0, 0,  1, 0, 0 ], 3 ) );
+		lineXGeometry.addAttribute( 'position', new THREE.Float32Attribute( [ 0, 0, 0,  - 1, 0, 0 ], 3 ) );
 
 		var lineYGeometry = new THREE.BufferGeometry();
 		lineYGeometry.addAttribute( 'position', new THREE.Float32Attribute( [ 0, 0, 0,  0, 1, 0 ], 3 ) );
@@ -541,7 +541,7 @@
 		this.handleGizmos = {
 
 			X: [
-				[ new THREE.Mesh( arrowGeometry, new GizmoMaterial( { color: 0xff0000 } ) ), [ 0.5, 0, 0 ], [ 0, 0, - Math.PI / 2 ] ],
+				[ new THREE.Mesh( arrowGeometry, new GizmoMaterial( { color: 0xff0000 } ) ), [ - 0.5, 0, 0 ], [ 0, 0, Math.PI / 2 ] ],
 				[ new THREE.Line( lineXGeometry, new GizmoLineMaterial( { color: 0xff0000 } ) ) ]
 			],
 
@@ -564,7 +564,7 @@
 		this.pickerGizmos = {
 
 			X: [
-				[ new THREE.Mesh( new THREE.CylinderGeometry( 0.2, 0, 1, 4, 1, false ), pickerMaterial ), [ 0.6, 0, 0 ], [ 0, 0, - Math.PI / 2 ] ]
+				[ new THREE.Mesh( new THREE.CylinderGeometry( 0.2, 0, 1, 4, 1, false ), pickerMaterial ), [ - 0.6, 0, 0 ], [ 0, 0, - Math.PI / 2 ] ]
 			],
 
 			Y: [
@@ -1032,7 +1032,7 @@
 
 						point.applyMatrix4( tempMatrix.getInverse( worldRotationMatrix ) );
 
-						if ( scope.axis === "X" ) scope.object.scale.x = oldScale.x * ( 1 + point.x / 50 );
+						if ( scope.axis === "X" ) scope.object.scale.x = oldScale.x * ( 1 - point.x / 50 );
 						if ( scope.axis === "Y" ) scope.object.scale.y = oldScale.y * ( 1 + point.y / 50 );
 						if ( scope.axis === "Z" ) scope.object.scale.z = oldScale.z * ( 1 + point.z / 50 );
 
