@@ -1882,23 +1882,17 @@ class M3DFioPlugin(
 				# Open archive
 				output = zipfile.ZipFile(fileDestination, 'w')
 				
-				# Check if log file exists
+				# Acquire lock
+				self.fileLock.acquire()
+				
+				# Write log to archive
 				if os.path.isfile(logLocation) :
-				
-					# Acquire lock
-					self.fileLock.acquire()
-					
-					# Write log file to archive
-    					output.write(logLocation, "log.txt")
-    					
-    					# Release lock
-					self.fileLock.release()
-				
-				# Otherwise
+					output.write(logLocation, "log.txt")
     				else :
-    				
-    					# Write empty file to archive
     					output.writestr("log.txt", '')
+    				
+    				# Release lock
+				self.fileLock.release()
     				
     				# Close archive
     				output.close()
@@ -2371,17 +2365,15 @@ class M3DFioPlugin(
 		logLocation = self.get_plugin_data_folder().replace('\\', '/') + "/log.txt"
 		zipLocation = self.get_plugin_data_folder().replace('\\', '/') + "/log.zip"
 		
-		# Check if log file exists
-		if os.path.isfile(logLocation) :
+		# Acquire lock
+		self.fileLock.acquire()
 		
-			# Acquire lock
-			self.fileLock.acquire()
-			
-			# Remove log file
+		# Remove log file if it exists
+		if os.path.isfile(logLocation) :
 			os.remove(logLocation)
 		
-			# Release lock
-			self.fileLock.release()
+		# Release lock
+		self.fileLock.release()
 		
 		# Remove zip file if it exists
 		if os.path.isfile(zipLocation) :
