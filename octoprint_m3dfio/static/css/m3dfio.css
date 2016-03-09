@@ -233,8 +233,8 @@
 	float: left;
 }
 
-#control div.jog-panel.calibration button:first-of-type, #control div.jog-panel.calibration button:nth-of-type(2), #control div.jog-panel.calibration button:nth-of-type(11), #control div.jog-panel.calibration button:nth-of-type(12), #control div.jog-panel.calibration button:nth-of-type(13), #control div.jog-panel.calibration button:nth-of-type(14), #control div.jog-panel.calibration button:nth-of-type(15), #control div.jog-panel.calibration button:nth-of-type(16) {
-	width: 230px;
+#control div.jog-panel.calibration button:first-of-type, #control div.jog-panel.calibration button:nth-of-type(2), #control div.jog-panel.calibration button:nth-of-type(15), #control div.jog-panel.calibration button:nth-of-type(16), #control div.jog-panel.calibration button:nth-of-type(17), #control div.jog-panel.calibration button:nth-of-type(18), #control div.jog-panel.calibration button:nth-of-type(19), #control div.jog-panel.calibration button:nth-of-type(20) {
+	width: 231px;
 	clear: both;
 }
 
@@ -243,15 +243,22 @@
 }
 
 #control div.jog-panel.calibration button.arrow {
-	clear: both;
 	width: 30px;
 	height: 30px;
+}
+
+#control div.jog-panel.calibration button.arrow:not(.point) {
+	clear: both;
 	margin-right: 15px;
 }
 
-#control div.jog-panel.calibration button:nth-of-type(4), #control div.jog-panel.calibration button:nth-of-type(6), #control div.jog-panel.calibration button:nth-of-type(8), #control div.jog-panel.calibration button:nth-of-type(10) {
+#control div.jog-panel.calibration button.arrow.point {
+}
+
+#control div.jog-panel.calibration button:nth-of-type(5), #control div.jog-panel.calibration button:nth-of-type(8), #control div.jog-panel.calibration button:nth-of-type(11), #control div.jog-panel.calibration button:nth-of-type(14) {
 	position: relative;
 	left: 5px;
+	width: 151px;
 } 
 
 #control div.jog-panel.calibration > div > button:nth-of-type(3) {
@@ -260,19 +267,19 @@
 	transform: rotate(45deg);
 }
 
-#control div.jog-panel.calibration > div > button:nth-of-type(5) {
+#control div.jog-panel.calibration > div > button:nth-of-type(6) {
 	position: relative;
 	left: 5px;
 	transform: rotate(-45deg);
 }
 
-#control div.jog-panel.calibration > div > button:nth-of-type(7) {
+#control div.jog-panel.calibration > div > button:nth-of-type(9) {
 	position: relative;
 	left: 5px;
 	transform: rotate(45deg);
 }
 
-#control div.jog-panel.calibration > div > button:nth-of-type(9) {
+#control div.jog-panel.calibration > div > button:nth-of-type(12) {
 	position: relative;
 	left: 5px;
 	transform: rotate(-45deg);

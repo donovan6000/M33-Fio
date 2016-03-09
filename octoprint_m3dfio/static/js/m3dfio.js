@@ -3478,12 +3478,16 @@ $(function() {
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Calibrate bed center Z0</button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Calibrate bed orientation</button>
 					<button class="btn btn-block control-box arrow" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><i class="icon-arrow-down"></i></button>
+					<button class="btn btn-block control-box arrow point" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><i class="icon-arrow-down"></i></button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Save Z as front left Z0</button>
 					<button class="btn btn-block control-box arrow" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><i class="icon-arrow-down"></i></button>
+					<button class="btn btn-block control-box arrow point" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><i class="icon-arrow-down"></i></button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Save Z as front right Z0</button>
 					<button class="btn btn-block control-box arrow" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><i class="icon-arrow-up"></i></button>
+					<button class="btn btn-block control-box arrow point" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><i class="icon-arrow-down"></i></button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Save Z as back right Z0</button>
 					<button class="btn btn-block control-box arrow" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><i class="icon-arrow-up"></i></button>
+					<button class="btn btn-block control-box arrow point" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><i class="icon-arrow-down"></i></button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Save Z as back left Z0</button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Save Z as bed center Z0</button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Print 0.4mm test border</button>
@@ -7538,7 +7542,7 @@ $(function() {
 		});
 	
 		// Set go to front right
-		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(5)").attr("title", "Positions extruder above the bed's front right corner").click(function(event) {
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(6)").attr("title", "Positions extruder above the bed's front right corner").click(function(event) {
 		
 			// Set commands
 			var commands = [
@@ -7559,7 +7563,7 @@ $(function() {
 		});
 	
 		// Set go to back right
-		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(7)").attr("title", "Positions extruder above the bed's back right corner").click(function(event) {
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(9)").attr("title", "Positions extruder above the bed's back right corner").click(function(event) {
 		
 			// Set commands
 			var commands = [
@@ -7580,7 +7584,7 @@ $(function() {
 		});
 	
 		// Set go to back left
-		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(9)").attr("title", "Positions extruder above the bed's back left corner").click(function(event) {
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(12)").attr("title", "Positions extruder above the bed's back left corner").click(function(event) {
 		
 			// Set commands
 			var commands = [
@@ -7599,9 +7603,129 @@ $(function() {
 				contentType: "application/json; charset=UTF-8"
 			});
 		});
+		
+		// Set go to front left Z0
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(4)").attr("title", "Vertically positions the extruder to be at the bed's front left corner's Z0").click(function(event) {
+		
+			// Show message
+			showMessage("Calibration Status", "This will vertically position the extruder to be at the bed's front left corner's Z0. The extruder can dig into the bed if the front left corner isn't correctly calibrated. Proceed?", "Yes", function() {
+			
+				// Hide message
+				hideMessage();
+				
+				// Set commands
+				var commands = [
+					"G90",
+					"G0 Z" + (parseFloat(self.settings.settings.plugins.m3dfio.FrontLeftOrientation()) + parseFloat(self.settings.settings.plugins.m3dfio.FrontLeftOffset())) + " F90"
+				];
+		
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m3dfio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({command: "message", value: commands}),
+					contentType: "application/json; charset=UTF-8"
+				});
+			}, "No", function() {
+			
+				// Hide message
+				hideMessage();
+			});
+		});
+		
+		// Set go to front right Z0
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(7)").attr("title", "Vertically positions the extruder to be at the bed's front right corner's Z0").click(function(event) {
+		
+			// Show message
+			showMessage("Calibration Status", "This will vertically position the extruder to be at the bed's front right corner's Z0. The extruder can dig into the bed if the front right corner isn't correctly calibrated. Proceed?", "Yes", function() {
+			
+				// Hide message
+				hideMessage();
+				
+				// Set commands
+				var commands = [
+					"G90",
+					"G0 Z" + (parseFloat(self.settings.settings.plugins.m3dfio.FrontRightOrientation()) + parseFloat(self.settings.settings.plugins.m3dfio.FrontRightOffset())) + " F90"
+				];
+		
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m3dfio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({command: "message", value: commands}),
+					contentType: "application/json; charset=UTF-8"
+				});
+			}, "No", function() {
+			
+				// Hide message
+				hideMessage();
+			});
+		});
+		
+		// Set go to back right Z0
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(10)").attr("title", "Vertically positions the extruder to be at the bed's back right corner's Z0").click(function(event) {
+		
+			// Show message
+			showMessage("Calibration Status", "This will vertically position the extruder to be at the bed's back right corner's Z0. The extruder can dig into the bed if the back right corner isn't correctly calibrated. Proceed?", "Yes", function() {
+			
+				// Hide message
+				hideMessage();
+				
+				// Set commands
+				var commands = [
+					"G90",
+					"G0 Z" + (parseFloat(self.settings.settings.plugins.m3dfio.BackRightOrientation()) + parseFloat(self.settings.settings.plugins.m3dfio.BackRightOffset())) + " F90"
+				];
+		
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m3dfio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({command: "message", value: commands}),
+					contentType: "application/json; charset=UTF-8"
+				});
+			}, "No", function() {
+			
+				// Hide message
+				hideMessage();
+			});
+		});
+		
+		// Set go to back left Z0
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(13)").attr("title", "Vertically positions the extruder to be at the bed's back left corner's Z0").click(function(event) {
+		
+			// Show message
+			showMessage("Calibration Status", "This will vertically position the extruder to be at the bed's back left corner's Z0. The extruder can dig into the bed if the back left corner isn't correctly calibrated. Proceed?", "Yes", function() {
+			
+				// Hide message
+				hideMessage();
+				
+				// Set commands
+				var commands = [
+					"G90",
+					"G0 Z" + (parseFloat(self.settings.settings.plugins.m3dfio.BackLeftOrientation()) + parseFloat(self.settings.settings.plugins.m3dfio.BackLeftOffset())) + " F90"
+				];
+		
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m3dfio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({command: "message", value: commands}),
+					contentType: "application/json; charset=UTF-8"
+				});
+			}, "No", function() {
+			
+				// Hide message
+				hideMessage();
+			});
+		});
 	
 		// Set save Z as front left Z0 control
-		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(4)").attr("title", "Saves the extruder's current Z value as the bed's front left corner's Z0").click(function(event) {
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(5)").attr("title", "Saves the extruder's current Z value as the bed's front left corner's Z0").click(function(event) {
 			
 			// Show message
 			showMessage("Calibration Status", "This will overwrite the existing front left offset. Proceed?", "Yes", function() {
@@ -7692,7 +7816,7 @@ $(function() {
 		});
 	
 		// Set save Z as front right Z0 control
-		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(6)").attr("title", "Saves the extruder's current Z value as the bed's front right corner's Z0").click(function(event) {
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(8)").attr("title", "Saves the extruder's current Z value as the bed's front right corner's Z0").click(function(event) {
 			
 			// Show message
 			showMessage("Calibration Status", "This will overwrite the existing front right offset. Proceed?", "Yes", function() {
@@ -7783,7 +7907,7 @@ $(function() {
 		});
 	
 		// Set save Z as back right Z0 control
-		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(8)").attr("title", "Saves the extruder's current Z value as the bed's back right corner's Z0").click(function(event) {
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(11)").attr("title", "Saves the extruder's current Z value as the bed's back right corner's Z0").click(function(event) {
 			
 			// Show message
 			showMessage("Calibration Status", "This will overwrite the existing back right offset. Proceed?", "Yes", function() {
@@ -7874,7 +7998,7 @@ $(function() {
 		});
 	
 		// Set save Z as back left Z0 control
-		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(10)").attr("title", "Saves the extruder's current Z value as the bed's back left corner's Z0").click(function(event) {
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(14)").attr("title", "Saves the extruder's current Z value as the bed's back left corner's Z0").click(function(event) {
 			
 			// Show message
 			showMessage("Calibration Status", "This will overwrite the existing back left offset. Proceed?", "Yes", function() {
@@ -7965,7 +8089,7 @@ $(function() {
 		});
 		
 		// Set save Z as bed center Z0 control
-		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(11)").attr("title", "Saves the extruder's current Z value as the bed center's Z0").click(function(event) {
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(15)").attr("title", "Saves the extruder's current Z value as the bed center's Z0").click(function(event) {
 			
 			// Show message
 			showMessage("Calibration Status", "This will overwrite the existing bed center calibration. Proceed?", "Yes", function() {
@@ -8030,7 +8154,7 @@ $(function() {
 		});
 		
 		// Set print test border control
-		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(12)").attr("title", "Prints 0.4mm test border").click(function(event) {
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(16)").attr("title", "Prints 0.4mm test border").click(function(event) {
 		
 			// Show message
 			showMessage("Calibration Status", "It's recommended to print this test border after completely calibrating the bed to ensure that the calibration is accurate.<br><br>The test border should print as a solid, even extruded border, and the 'Back Left Offset', 'Back Right Offset', 'Front Right Offset', and 'Front Left Offset' values can be adjusted to correct any issues with it. If the test border contains squiggly ripples, then it is too high. If the test border contains missing gaps, then it is too low.<br><br>It's also recommended to print a model with a raft after this is done to see if the 'Bed Height Offset' value needs to be adjusted. If the raft does not securely stick to the bed, then it is too high. If the model isn't easily removed from the raft, then it is too low.<br><br>All the referenced values can be found by clicking the 'Print settings' button in the 'General' section. Proceed?", "Yes", function() {
@@ -8116,7 +8240,7 @@ $(function() {
 		});
 		
 		// Set print backlash calibration cylinder control
-		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(13)").attr("title", "Prints backlash calibration cylinder").click(function(event) {
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(17)").attr("title", "Prints backlash calibration cylinder").click(function(event) {
 		
 			// Show message
 			showMessage("Calibration Status", "It's recommended to print this backlash calibration cylinder after the print bed has been accurately calibrated.<br><br>To start this procedure, the 'Backlash X' and 'Backlash Y' values should be set to 0 so that an uncompensated cylinder can be printed. The cylinder's X backlash signature gaps are located at 2 and 8 o'clock and Y backlash signature gaps are located at 5 and 11 o'clock. The front left corner of the cylinder's base is cut off to make identifying the cylinder's orientation easier.<br><br>After printing an initial cylinder, adjust the 'Backlash X' value to close the X signature gaps, print, and repeat if necessary to ensure the accuracy. 'Backlash X' values typically range within 0.2mm to 0.6mm.<br><br>After the 'Backlash X' value has been calibrated, adjust the 'Backlash Y' value to close the Y signature gaps, print, and repeat if necessary to ensure the accuracy. 'Backlash Y' values typically range within 0.4mm to 1.3mm. You may need fine tune the 'Backlash X' vale again after 'Backlash Y' value has been calibrated.<br><br>All the referenced values can be found by clicking the 'Print settings' button in the 'General' section. Proceed?", "Yes", function() {
@@ -8202,7 +8326,7 @@ $(function() {
 		});
 		
 		// Run complete bed calibration control
-		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(14)").attr("title", "Automatically calibrates the bed's center's Z0, automatically calibrates the bed's orientation, and manually calibrates the Z0 values for the bed's four corners").click(function(event) {
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(18)").attr("title", "Automatically calibrates the bed's center's Z0, automatically calibrates the bed's orientation, and manually calibrates the Z0 values for the bed's four corners").click(function(event) {
 			
 			// Show message
 			showMessage("Calibration Status", "This process can take a while to complete and will require your input during some steps. Proceed?", "Yes", function() {
@@ -8742,7 +8866,7 @@ $(function() {
 		});
 		
 		// Save printer settings to file calibration control
-		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(15)").attr("title", "Saves printer settings to a file").click(function(event) {
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(19)").attr("title", "Saves printer settings to a file").click(function(event) {
 			
 			// Show message
 			showMessage("Settings Status", "Obtaining printer settings");
@@ -8786,13 +8910,13 @@ $(function() {
 		});
 		
 		// Restore printer settings from file calibration control
-		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(16)").attr("title", "Restores printer settings from a file").click(function(event) {
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(20)").attr("title", "Restores printer settings from a file").click(function(event) {
 		
 			// Open file input dialog
 			$("#control > div.jog-panel.calibration").find("div > input").click();
 		});
 		
-		// Restore pritner settings from file input change
+		// Restore printer settings from file input change
 		$("#control > div.jog-panel.calibration").find("div > input").change(function(event) {
 		
 			// Get file

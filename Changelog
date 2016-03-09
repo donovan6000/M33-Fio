@@ -1,5 +1,14 @@
 Changelog:
 
+V0.29 March X, 2016
+
+	* Added raft/brim to model editor
+	* Implemented logging functionality
+	* Fixed issue where M3D Fio wouldn't work when OctoPrint was being run from a server that directs it to a path other than the root
+	* Increased max temperature to 350 degrees
+	* Fixed setting temperature in OctoPrint's temperature tab when printing
+	* Brim line count can be set in slicer profile editor
+
 V0.28.2 March 4, 2016
 
 	* Fixed read/write message error when using Windows

@@ -493,12 +493,6 @@ class M3DFioPlugin(
 	
 		# Return empty string
 		return ''
-
-	# Using a Raspberry Pi
-	def usingARaspberryPi(self) :
-
-		# Return if using a Raspberry Pi
-		return platform.uname()[0].startswith("Linux") and ((platform.uname()[4].startswith("armv6l") and self.getCpuHardware() == "BCM2708") or (platform.uname()[4].startswith("armv7l") and self.getCpuHardware() == "BCM2709"))
 	
 	# Save ports
 	def savePorts(self, currentPort) :
@@ -802,13 +796,13 @@ class M3DFioPlugin(
 		# Check if running on Linux
 		if platform.uname()[0].startswith("Linux") :
 		
-			# Check if running on a Raspberry Pi
+			# Check if running on a Raspberry Pi 1
 			if platform.uname()[4].startswith("armv6l") and self.getCpuHardware() == "BCM2708" :
 			
 				# Set shared library
 				self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace('\\', '/') + "/static/libraries/preprocessor_arm1176jzf-s.so")
 			
-			# Otherwise check if running on a Raspberry Pi 2
+			# Otherwise check if running on a Raspberry Pi 2 or Raspberry Pi 3
 			elif platform.uname()[4].startswith("armv7l") and self.getCpuHardware() == "BCM2709" :
 			
 				# Set shared library
