@@ -51,6 +51,22 @@
 	top: -1px;
 }
 
+#settings_plugin_m3dfio div.control-group.log span {
+	position: relative;
+	top: 0;
+}
+
+#settings_plugin_m3dfio div.control-group.log input {
+	position: relative;
+	top: -4px;
+}
+
+#settings_plugin_m3dfio div.control-group.log button {
+	position: relative;
+	top: -2px;
+	margin-left: 3px;
+}
+
 #settings_plugin_m3dfio h4 > span {
 	top: -10px !important;
 	left: calc(50% + 50px);

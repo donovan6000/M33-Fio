@@ -4178,6 +4178,97 @@ $(function() {
 			}
 		});
 		
+		// Download log click event
+		$("#settings_plugin_m3dfio div.control-group.log button:nth-of-type(1)").click(function(event) {
+		
+			// Prevent default
+			event.preventDefault();
+			
+			// Blue self
+			$(this).blur();
+			
+			// Show message
+			showMessage("Log Status", "Obtaining log");
+			
+			setTimeout(function() {
+		
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m3dfio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({
+						command: "message",
+						value: "Get Log"
+					}),
+					contentType: "application/json; charset=UTF-8",
+
+					// On success
+					success: function(data) {
+					
+						// Download log
+						var xhr = new XMLHttpRequest();
+						xhr.onreadystatechange = function() {
+
+							// Check if model has loaded
+							if(this.readyState == 4 && this.status == 200) {
+	
+								// Hide message
+								hideMessage();
+								
+								// Download log 
+								saveFile(this.response, "log " + new Date().toISOString().substring(0, 10).replace(/-/g, '') + ".zip");
+							}
+						}
+
+						xhr.open("GET", PLUGIN_BASEURL + data.path + '?' + Date.now());
+						xhr.responseType = "blob";
+						xhr.setRequestHeader("X-Api-Key", UI_API_KEY);
+						xhr.send();
+					}
+				});
+			}, 500);
+		});
+		
+		// Clear log click event
+		$("#settings_plugin_m3dfio div.control-group.log button:nth-of-type(2)").click(function(event) {
+		
+			// Prevent default
+			event.preventDefault();
+			
+			// Blue self
+			$(this).blur();
+			
+			// Show message
+			showMessage("Log Status", "Clearing log");
+			
+			setTimeout(function() {
+		
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m3dfio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({
+						command: "message",
+						value: "Clear Log"
+					}),
+					contentType: "application/json; charset=UTF-8",
+
+					// On success
+					success: function() {
+					
+						// Show message
+						showMessage("Log Status", "Done", "OK", function() {
+				
+							// Hide message
+							hideMessage();
+						});
+					}
+				});
+			}, 500);
+		});
+		
 		// Cancel print button click event
 		$("#job_cancel").click(function(event) {
 		
@@ -4227,7 +4318,7 @@ $(function() {
 							text += lines[i] + '\n';
 			
 					// Download profile
-					var blob = new Blob([text], {type: 'text/plain'});
+					var blob = new Blob([text], {type: "text/plain"});
 					saveFile(blob, slicerProfileName + ".ini");
 					
 					// Hide cover
@@ -4561,7 +4652,7 @@ $(function() {
 								
 									// Send request
 									$.ajax({
-										url: PLUGIN_BASEURL + data.path,
+										url: PLUGIN_BASEURL + data.path + '?' + Date.now(),
 										type: "GET",
 										contentType: "application/x-www-form-urlencoded; charset=UTF-8",
 
@@ -8674,7 +8765,7 @@ $(function() {
 				
 						// Send request
 						$.ajax({
-							url: PLUGIN_BASEURL + data.path,
+							url: PLUGIN_BASEURL + data.path + '?' + Date.now(),
 							type: "GET",
 							contentType: "application/x-www-form-urlencoded; charset=UTF-8",
 
@@ -8685,7 +8776,7 @@ $(function() {
 								hideMessage();
 						
 								// Download profile
-								var blob = new Blob([data], {type: 'text/plain'});
+								var blob = new Blob([data], {type: "text/plain"});
 								saveFile(blob, "printer settings.yaml");
 							}
 						});

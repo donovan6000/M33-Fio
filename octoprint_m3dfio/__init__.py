@@ -30,7 +30,6 @@ import binascii
 import re
 import collections
 import json
-import random
 import imp
 import glob
 import ctypes
@@ -42,6 +41,7 @@ import threading
 import BaseHTTPServer
 import SocketServer
 import yaml
+import zipfile
 from .gcode import Gcode
 from .vector import Vector
 
@@ -134,6 +134,7 @@ class M3DFioPlugin(
 		self.printerColor = "Black"
 		self.camera = None
 		self.lastLineNumberSent = None
+		self.fileLock = threading.Lock()
 		
 		# Rom decryption and encryption tables
 		self.romDecryptionTable = [0x26, 0xE2, 0x63, 0xAC, 0x27, 0xDE, 0x0D, 0x94, 0x79, 0xAB, 0x29, 0x87, 0x14, 0x95, 0x1F, 0xAE, 0x5F, 0xED, 0x47, 0xCE, 0x60, 0xBC, 0x11, 0xC3, 0x42, 0xE3, 0x03, 0x8E, 0x6D, 0x9D, 0x6E, 0xF2, 0x4D, 0x84, 0x25, 0xFF, 0x40, 0xC0, 0x44, 0xFD, 0x0F, 0x9B, 0x67, 0x90, 0x16, 0xB4, 0x07, 0x80, 0x39, 0xFB, 0x1D, 0xF9, 0x5A, 0xCA, 0x57, 0xA9, 0x5E, 0xEF, 0x6B, 0xB6, 0x2F, 0x83, 0x65, 0x8A, 0x13, 0xF5, 0x3C, 0xDC, 0x37, 0xD3, 0x0A, 0xF4, 0x77, 0xF3, 0x20, 0xE8, 0x73, 0xDB, 0x7B, 0xBB, 0x0B, 0xFA, 0x64, 0x8F, 0x08, 0xA3, 0x7D, 0xEB, 0x5C, 0x9C, 0x3E, 0x8C, 0x30, 0xB0, 0x7F, 0xBE, 0x2A, 0xD0, 0x68, 0xA2, 0x22, 0xF7, 0x1C, 0xC2, 0x17, 0xCD, 0x78, 0xC7, 0x21, 0x9E, 0x70, 0x99, 0x1A, 0xF8, 0x58, 0xEA, 0x36, 0xB1, 0x69, 0xC9, 0x04, 0xEE, 0x3B, 0xD6, 0x34, 0xFE, 0x55, 0xE7, 0x1B, 0xA6, 0x4A, 0x9A, 0x54, 0xE6, 0x51, 0xA0, 0x4E, 0xCF, 0x32, 0x88, 0x48, 0xA4, 0x33, 0xA5, 0x5B, 0xB9, 0x62, 0xD4, 0x6F, 0x98, 0x6C, 0xE1, 0x53, 0xCB, 0x46, 0xDD, 0x01, 0xE5, 0x7A, 0x86, 0x75, 0xDF, 0x31, 0xD2, 0x02, 0x97, 0x66, 0xE4, 0x38, 0xEC, 0x12, 0xB7, 0x00, 0x93, 0x15, 0x8B, 0x6A, 0xC5, 0x71, 0x92, 0x45, 0xA1, 0x59, 0xF0, 0x06, 0xA8, 0x5D, 0x82, 0x2C, 0xC4, 0x43, 0xCC, 0x2D, 0xD5, 0x35, 0xD7, 0x3D, 0xB2, 0x74, 0xB3, 0x09, 0xC6, 0x7C, 0xBF, 0x2E, 0xB8, 0x28, 0x9F, 0x41, 0xBA, 0x10, 0xAF, 0x0C, 0xFC, 0x23, 0xD9, 0x49, 0xF6, 0x7E, 0x8D, 0x18, 0x96, 0x56, 0xD1, 0x2B, 0xAD, 0x4B, 0xC1, 0x4F, 0xC8, 0x3A, 0xF1, 0x1E, 0xBD, 0x4C, 0xDA, 0x50, 0xA7, 0x52, 0xE9, 0x76, 0xD8, 0x19, 0x91, 0x72, 0x85, 0x3F, 0x81, 0x61, 0xAA, 0x05, 0x89, 0x0E, 0xB5, 0x24, 0xE0]
@@ -1121,10 +1122,8 @@ class M3DFioPlugin(
 	# On shutdown
 	def on_shutdown(self) :
 	
-		# Delete all temporary files
-		path = self.get_plugin_data_folder().replace('\\', '/') + '/'
-		for file in os.listdir(path) :
-			os.remove(path + file)
+		# Remove temporary files
+		self.removeTemporaryFiles();
 		
 		# Restore files
 		self.restoreFiles()
@@ -1136,6 +1135,15 @@ class M3DFioPlugin(
 		
 		# Enable sleep
 		self.enableSleep()
+	
+	# Remove temporary files
+	def removeTemporaryFiles(self) :
+	
+		# Delete all temporary files aside from the log
+		path = self.get_plugin_data_folder().replace('\\', '/') + '/'
+		for file in os.listdir(path) :
+			if file != "log.txt" :
+				os.remove(path + file)
 	
 	# Get default settings
 	def get_settings_defaults(self) :
@@ -1189,7 +1197,8 @@ class M3DFioPlugin(
 			CameraWidth = 640,
 			CameraHeight = 480,
 			CameraFramesPerSecond = 20,
-			MidPrintFilamentChangeLayers = ''
+			MidPrintFilamentChangeLayers = '',
+			LogSentReceivedData = False
 		)
 	
 	# On settings save
@@ -1795,7 +1804,7 @@ class M3DFioPlugin(
 					return flask.jsonify(dict(value = "Error"))
 				
 				# Set file's destination
-				destinationName = "profile_" + str(random.randint(0, 1000000)) + values["slicerProfileName"]
+				destinationName = "slicer_profile.ini"
 				fileDestination = self.get_plugin_data_folder().replace('\\', '/') + '/' + destinationName
 				
 				# Remove file in destination if it already exists
@@ -1843,7 +1852,7 @@ class M3DFioPlugin(
 				)
 				
 				# Set file's destination
-				destinationName = "printer_settings_" + str(random.randint(0, 1000000)) + ".yaml"
+				destinationName = "printer_settings.yaml"
 				fileDestination = self.get_plugin_data_folder().replace('\\', '/') + '/' + destinationName
 				
 				# Remove file in destination if it already exists
@@ -1857,6 +1866,35 @@ class M3DFioPlugin(
     				
     				# Return location
 				return flask.jsonify(dict(value = "OK", path = "m3dfio/download/" + destinationName))
+			
+			# Otherwise check if parameter is to get log
+			elif data["value"] == "Get Log" :
+			
+				# Set file's destination
+				destinationName = "log.zip"
+				fileDestination = self.get_plugin_data_folder().replace('\\', '/') + '/' + destinationName
+				logLocation = self.get_plugin_data_folder().replace('\\', '/') + "/log.txt"
+				
+				# Remove file in destination if it already exists
+				if os.path.isfile(fileDestination) :
+					os.remove(fileDestination)
+				
+				# Write printer settings to file
+				output = zipfile.ZipFile(fileDestination, 'w')
+				if os.path.isfile(logLocation) :
+    					output.write(logLocation, "log.txt")
+    				else :
+    					output.writestr("log.txt", '')
+    				output.close()
+    				
+    				# Return location
+				return flask.jsonify(dict(value = "OK", path = "m3dfio/download/" + destinationName))
+			
+			# Otherwise check if parameter is to clear log
+			elif data["value"] == "Clear Log" :
+			
+				# Erase log files
+				self.eraseLogFiles()
 			
 			# Otherwise check if parameter is to set printer settings
 			elif data["value"].startswith("Set Printer Settings:") :
@@ -1946,10 +1984,8 @@ class M3DFioPlugin(
 			# Otherwise check if parameter is to remove temporary files
 			elif data["value"] == "Remove Temp" :
 			
-				# Delete all temporary files
-				path = self.get_plugin_data_folder().replace('\\', '/') + '/'
-				for file in os.listdir(path) :
-					os.remove(path + file)
+				# Remove temporary files
+				self.removeTemporaryFiles();
 			
 			# Otherwise check if parameter is to update firmware to provided
 			elif data["value"].startswith("Update Firmware To Provided:") :
@@ -2297,6 +2333,35 @@ class M3DFioPlugin(
 				return flask.jsonify(dict(value = "Error"))
 			else :
 				return flask.jsonify(dict(value = "OK"))
+	
+	# Write to log
+	def writeToLog(self, data) :
+	
+		# Acquire lock
+		self.fileLock.acquire()
+		
+		# Write to log
+		output = open(self.get_plugin_data_folder().replace('\\', '/') + "/log.txt", "ab+")
+		output.write(data.rstrip() + '\n')
+		output.close()
+		
+		# Release lock
+		self.fileLock.release()
+	
+	# Erase log files
+	def eraseLogFiles(self) :
+	
+		# Set file location
+		logLocation = self.get_plugin_data_folder().replace('\\', '/') + "/log.txt"
+		zipLocation = self.get_plugin_data_folder().replace('\\', '/') + "/log.zip"
+		
+		# Remove log file if it exists
+		if os.path.isfile(logLocation) :
+			os.remove(logLocation)
+		
+		# Remove zip file if it exists
+		if os.path.isfile(zipLocation) :
+			os.remove(zipLocation)
 	
 	# Write to EEPROM
 	def writeToEeprom(self, connection, address, data) :
@@ -2807,7 +2872,8 @@ class M3DFioPlugin(
 	def processWrite(self, data) :
 	
 		# Log sent data
-		self._logger.info("M3D Fio - Original Sent: " + data)
+		if self._settings.get_boolean(["LogSentReceivedData"]) :
+			self.writeToLog("Original Sent: " + data)
 	
 		# Check if printing
 		if self._printer.is_printing() :
@@ -3113,7 +3179,8 @@ class M3DFioPlugin(
 				data = gcode.getBinary()
 				
 				# Log sent data
-				self._logger.info("M3D Fio - Processed Sent: " + gcode.getAscii())
+				if self._settings.get_boolean(["LogSentReceivedData"]) :
+					self.writeToLog("Processed Sent: " + gcode.getAscii())
 				
 				# Check if command has a line number
 				if gcode.hasValue('N') :
@@ -3155,7 +3222,8 @@ class M3DFioPlugin(
 		response = self.originalRead()
 		
 		# Log received data
-		self._logger.info("M3D Fio - Original Response: " + response)
+		if self._settings.get_boolean(["LogSentReceivedData"]) :
+			self.writeToLog("Original Response: " + response)
 		
 		# Check if setting heatbed temperature
 		if self.settingHeatbedTemperature :
@@ -3212,7 +3280,8 @@ class M3DFioPlugin(
 			self.lastResponseWasWait = False
 		
 		# Log received data
-		self._logger.info("M3D Fio - Processed Response: " + response)
+		if self._settings.get_boolean(["LogSentReceivedData"]) :
+			self.writeToLog("Processed Response: " + response)
 		
 		# Check if response is a temperature reading
 		if response.startswith("T:") :
@@ -3609,6 +3678,9 @@ class M3DFioPlugin(
 		
 			# Disable sleep
 			self.disableSleep()
+			
+			# Erase log files
+			self.eraseLogFiles()
 		
 			# Check if pre-processing on the fly
 			if self._settings.get_boolean(["PreprocessOnTheFly"]) :
