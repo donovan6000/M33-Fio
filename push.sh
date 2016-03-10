@@ -22,8 +22,8 @@ else
 fi
 
 # Remove backup and python byte code files
-find ./ -name '*~' | xargs rm
-find ./ -name '*.pyc' | xargs rm
+find ./ -name '*~' -print0 | xargs -0 rm
+find ./ -name '*.pyc' -print0 | xargs -0 rm
 
 # Push changes
 git add .
