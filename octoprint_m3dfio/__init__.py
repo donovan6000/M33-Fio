@@ -883,8 +883,10 @@ class M3DFioPlugin(
 	  		self.sharedLibrary.getDetectedMidPrintFilamentChange.restype = ctypes.c_bool
 	  		self.sharedLibrary.getObjectSuccessfullyCentered.restype = ctypes.c_bool
 	    	
-	    	# Enable printer callbacks if using a Micro 3D printer
-	    	if not self._settings.get_boolean(["UsingADifferentPrinter"]) :
+	    	# Set printer callbacks is using a different printer
+		if self._settings.get_boolean(["UsingADifferentPrinter"]) :
+			self._printer.unregister_callback(self)
+		else :
 			self._printer.register_callback(self)
 		
 		# Monitor heatbed
@@ -1343,6 +1345,10 @@ class M3DFioPlugin(
 				# Set updated port
 				currentPort = self.getPort()
 				
+				# Return error if printer wasn't found
+				if currentPort is None :
+					return flask.jsonify(dict(value = "Error"))
+				
 				# Connect to the printer
 				connection = serial.Serial(currentPort, currentBaudrate)
 						
@@ -1379,7 +1385,7 @@ class M3DFioPlugin(
 				
 				# Wait until connection is established
 				while not isinstance(self._printer.get_transport(), serial.Serial) :
-					time.sleep(1)
+					time.sleep(0.01)
 				
 				# Remove serial timeout
 				self._printer.get_transport().timeout = None
@@ -1420,6 +1426,10 @@ class M3DFioPlugin(
 				# Set updated port
 				currentPort = self.getPort()
 				
+				# Return error if printer wasn't found
+				if currentPort is None :
+					return flask.jsonify(dict(value = "Error"))
+				
 				# Connect to the printer
 				connection = serial.Serial(currentPort, currentBaudrate)
 				
@@ -1456,7 +1466,7 @@ class M3DFioPlugin(
 				
 				# Wait until connection is established
 				while not isinstance(self._printer.get_transport(), serial.Serial) :
-					time.sleep(1)
+					time.sleep(0.01)
 				
 				# Remove serial timeout
 				self._printer.get_transport().timeout = None
@@ -1622,6 +1632,10 @@ class M3DFioPlugin(
 				# Set updated port
 				currentPort = self.getPort()
 				
+				# Return error if printer wasn't found
+				if currentPort is None :
+					return flask.jsonify(dict(value = "Error"))
+				
 				# Connect to the printer
 				connection = serial.Serial(currentPort, currentBaudrate)
 				
@@ -1640,7 +1654,7 @@ class M3DFioPlugin(
 				
 				# Wait until connection is established
 				while not isinstance(self._printer.get_transport(), serial.Serial) :
-					time.sleep(1)
+					time.sleep(0.01)
 				
 				# Remove serial timeout
 				self._printer.get_transport().timeout = None
@@ -1692,6 +1706,10 @@ class M3DFioPlugin(
 				
 					# Set updated port
 					currentPort = self.getPort()
+					
+					# Return error if printer wasn't found
+					if currentPort is None :
+						return flask.jsonify(dict(value = "Error"))
 				
 					# Connect to the printer
 					connection = serial.Serial(currentPort, currentBaudrate)
@@ -1747,6 +1765,12 @@ class M3DFioPlugin(
 			
 			# Otherwise check if parameter is to saved settings
 			elif data["value"] == "Saved Settings" :
+			
+				# Set printer callbacks is using a different printer
+				if self._settings.get_boolean(["UsingADifferentPrinter"]) :
+					self._printer.unregister_callback(self)
+				else :
+					self._printer.register_callback(self)
 			
 				# Check if a Micro 3D is connected and not printing
 				if not self.invalidPrinter and not self._printer.is_printing() :
@@ -2024,6 +2048,10 @@ class M3DFioPlugin(
 			
 				# Set updated port
 				currentPort = self.getPort()
+				
+				# Return error if printer wasn't found
+				if currentPort is None :
+					return flask.jsonify(dict(value = "Error"))
 		
 				# Connect to the printer
 				connection = serial.Serial(currentPort, currentBaudrate)
@@ -2286,6 +2314,10 @@ class M3DFioPlugin(
 				
 				# Set updated port
 				currentPort = self.getPort()
+				
+				# Return error if printer wasn't found
+				if currentPort is None :
+					return flask.jsonify(dict(value = "Error"))
 			
 				# Connect to the printer
 				connection = serial.Serial(currentPort, currentBaudrate)
@@ -3986,7 +4018,10 @@ class M3DFioPlugin(
 		# Check if connection was just established
 		if data.startswith("Send: ") and "M110" in data and (self._printer.get_state_string() == "Connecting" or self._printer.get_state_string() == "Detecting baudrate") :
 		
-			# Initialize variables
+			# Disable printer callbacks
+			self._printer.unregister_callback(self)
+			
+			# Clear error
 			error = False
 		
 			# Get current printer connection state
@@ -4000,15 +4035,9 @@ class M3DFioPlugin(
 			if not currentBaudrate or currentBaudrate == 0 :
 				currentBaudrate = 115200
 			
-			# Save ports
-			self.savePorts(currentPort)
-			
 			# Check if EEPROM hasn't been read yet
 			if not self.eeprom :
 			
-				# Disable printer callbacks
-				self._printer.unregister_callback(self)
-				
 				# Close connection
 				if self._printer._comm is not None :
 				
@@ -4018,10 +4047,6 @@ class M3DFioPlugin(
 						pass
 				
 				self._printer.disconnect()
-				time.sleep(1)
-				
-				# Set updated port
-				currentPort = self.getPort()
 
 				# Connect to the printer
 				connection = serial.Serial(currentPort, currentBaudrate)
@@ -4029,12 +4054,12 @@ class M3DFioPlugin(
 				# Attempt to get current printer mode
 				try :
 					connection.write("M115")
-					firstByte = connection.read()
+					bootloaderVersion = connection.read()
 					
 					if float(serial.VERSION) < 3 :
-						connection.read(connection.inWaiting())
+						bootloaderVersion += connection.read(connection.inWaiting())
 					else :
-						connection.read(connection.in_waiting)
+						bootloaderVersion += connection.read(connection.in_waiting)
 				
 				# Check if an error occured
 				except serial.SerialException :
@@ -4046,59 +4071,74 @@ class M3DFioPlugin(
 				if not error :
 				
 					# Check if not in bootloader mode
-					if firstByte != 'B' :
+					if not bootloaderVersion.startswith('B') :
 				
 						# Save ports
 						self.savePorts(currentPort)
 						
 						# Switch to bootloader mode
 						connection.write("M115 S628")
-						time.sleep(1)
 						
 						try :
 							gcode = Gcode("M115 S628")
 							connection.write(gcode.getBinary())
-							time.sleep(1)
 						
 						# Check if an error occured
 						except serial.SerialException :	
 							pass
 						
+						time.sleep(1)
+						
+						# Close connection
+						connection.close()
+						
 						# Set updated port
 						currentPort = self.getPort()
-					
-						# Re-connect; wait for the device to be available
-						connection = None
-						for i in xrange(5) :
-							try :
-								connection = serial.Serial(currentPort, currentBaudrate)
-								break
-							
-							except Exception :
-								connection = None
-								time.sleep(1)
 						
-						# Check if using OS X or Linux and the user lacks read/write access to the printer
-						if (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(currentPort, os.R_OK | os.W_OK) :
-		
-							# Send message
-							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "You don't have read/write access to " + str(port), confirm = True))
-			
-							# Raise exception
-							raise Exception("Couldn't connect to the printer")
-		
-						# Otherwise check if connecting to printer failed
-						elif connection is None :
-		
+						# Check if printer wasn't found
+						if currentPort is None :
+							
 							# Send message
 							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "No Micro 3D printer detected. Try cycling the printer's power and try again.", confirm = True))
-			
-							# Raise exception
-							raise Exception("Couldn't connect to the printer")
-				
-					# Check if getting EEPROM was successful
-					if self.getEeprom(connection) :
+							
+							# Set error
+							error = True
+						
+						# Otherwise
+						else :
 					
+							# Re-connect; wait for the device to be available
+							connection = None
+							for i in xrange(5) :
+								try :
+									connection = serial.Serial(currentPort, currentBaudrate)
+									break
+							
+								except Exception :
+									connection = None
+									time.sleep(1)
+						
+							# Check if using OS X or Linux and the user lacks read/write access to the printer
+							if (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(currentPort, os.R_OK | os.W_OK) :
+		
+								# Send message
+								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "You don't have read/write access to " + str(port), confirm = True))
+								
+								# Set error
+								error = True
+		
+							# Otherwise check if connecting to printer failed
+							elif connection is None :
+		
+								# Send message
+								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "No Micro 3D printer detected. Try cycling the printer's power and try again.", confirm = True))
+								
+								# Set error
+								error = True
+				
+					# Check if an error hasn't occured and getting EEPROM was successful
+					if not error and self.getEeprom(connection) :
+						
 						# Get firmware CRC from EEPROM
 						index = 0
 						eepromCrc = 0
@@ -4524,7 +4564,6 @@ class M3DFioPlugin(
 				
 				# Close connection
 				connection.close()
-				time.sleep(1)
 				
 				# Check if an error has occured
 				if error :
@@ -4537,55 +4576,52 @@ class M3DFioPlugin(
 		
 				# Wait until connection is established
 				while not isinstance(self._printer.get_transport(), serial.Serial) :
-					time.sleep(1)
-			
-				# Enable printer callbacks if using a Micro 3D printer
-		    		if not self._settings.get_boolean(["UsingADifferentPrinter"]) :
-					self._printer.register_callback(self)
-				
-				# Otherwise
-				else :
-				
-					# Remove serial timeout
-					self._printer.get_transport().timeout = None
-					if float(serial.VERSION) < 3 :
-						self._printer.get_transport().writeTimeout = None
-					else :
-						self._printer.get_transport().write_timeout = None
+					time.sleep(0.01)
 			
 			# Check if an error didn't occur
 			if not error :
-			
+				
+				# Close connection
+				if self._printer._comm is not None :
+				
+					try :
+						self._printer._comm.close(False, False)
+					except TypeError :
+						pass
+				
+				self._printer.disconnect()
+
+				# Connect to the printer
+				connection = serial.Serial(currentPort, currentBaudrate)
+				
 				# Save ports
 				self.savePorts(currentPort)
-			
+				
 				# Attempt to put printer into G-code processing mode
-				if isinstance(self._printer.get_transport(), serial.Serial) :
-					self._printer.get_transport().write("Q")
+				connection.write("Q")
 				time.sleep(1)
+				
+				# Close connection
+				connection.close()
 	
 				# Set updated port
 				currentPort = self.getPort()
-	
-				# Check if printer switched to G-code processing mode
-				if self._printer.is_closed_or_error() :
 				
-					 # Close connection
-                                        if self._printer._comm is not None :
-                                        
-                                                try :
-                                                        self._printer._comm.close(False, False)
-                                                except TypeError :
-                                                        pass
-                                        
-                                        self._printer.disconnect()
+				# Check if printer wasn't found
+				if currentPort is None :
+
+					# Send message
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "No Micro 3D printer detected. Try cycling the printer's power and try again.", confirm = True))
+				
+				# Otherwise
+				else :
 	
 					# Re-connect to printer
 					self._printer.connect(currentPort, currentBaudrate, currentProfile)
-					
+				
 					# Wait until connection is established
 					while not isinstance(self._printer.get_transport(), serial.Serial) :
-						time.sleep(1)
+						time.sleep(0.01)
 				
 					# Remove serial timeout
 					self._printer.get_transport().timeout = None
@@ -4593,6 +4629,36 @@ class M3DFioPlugin(
 						self._printer.get_transport().writeTimeout = None
 					else :
 						self._printer.get_transport().write_timeout = None
+				
+					# Check if printer communication layer exists
+					if self._printer._comm is not None :
+					
+						# Set printer state to operational
+						self._printer._comm._changeState(self._printer._comm.STATE_OPERATIONAL)
+					
+						# Check if using M3D firmware
+						if self.getFirmwareDetails()[0] == "M3D" :
+		
+							# Save original write and read functions
+							self.originalWrite = self._printer.get_transport().write
+							self.originalRead = self._printer.get_transport().readline
+		
+							# Overwrite write and read functions to process write and read functions
+							self._printer.get_transport().write = self.processWrite
+							self._printer.get_transport().readline = self.processRead
+			
+						# Clear invalid printer
+						self.invalidPrinter = False
+						
+						# Remove serial timeout
+						self._printer.get_transport().timeout = None
+						if float(serial.VERSION) < 3 :
+							self._printer.get_transport().writeTimeout = None
+						else :
+							self._printer.get_transport().write_timeout = None
+			
+						# Request printer information
+						self._printer.get_transport().write("M115")
 			
 			# Otherwise
 			else :
@@ -4606,33 +4672,9 @@ class M3DFioPlugin(
 						pass
 				
 				self._printer.disconnect()
-		
-		# Otherwise check if a printer is connected and processing G-code commands, but settings haven't been obtained yet
-		elif (data == "Recv: e1" or data == "Recv: ok Error: Unknown G-code command") and self.eeprom and self.invalidPrinter :
 			
-			# Check if using M3D firmware
-			if self.getFirmwareDetails()[0] == "M3D" :
-		
-				# Save original write and read functions
-				self.originalWrite = self._printer.get_transport().write
-				self.originalRead = self._printer.get_transport().readline
-		
-				# Overwrite write and read functions to process write and read functions
-				self._printer.get_transport().write = self.processWrite
-				self._printer.get_transport().readline = self.processRead
-			
-			# Clear invalid printer
-			self.invalidPrinter = False
-			
-			# Remove serial timeout
-			self._printer.get_transport().timeout = None
-			if float(serial.VERSION) < 3 :
-				self._printer.get_transport().writeTimeout = None
-			else :
-				self._printer.get_transport().write_timeout = None
-			
-			# Request printer information
-			self._printer.get_transport().write("M115")
+			# Enable printer callbacks
+			self._printer.register_callback(self)
 		
 		# Otherwise check if data contains printer information
 		elif "MACHINE_TYPE:" in data :
@@ -4647,12 +4689,9 @@ class M3DFioPlugin(
 				
 				# Set invalid printer
 				self.invalidPrinter = True
-		
-		# Otherwise check if printer's data is requested
-		elif "Send: M21" in data :
-		
-			# Check if a Micro M3D is connected
-			if not self.invalidPrinter :
+			
+			# Otherwise
+			else :
 			
 				# Clear invalid values
 				self.invalidBedCenter = None
@@ -6512,13 +6551,21 @@ class M3DFioPlugin(
 					# Set move Y
 					startingMoveY = 0
 					maxMoveY = 0
-					if moveZ >= self.bedMediumMaxZ and self.maxYExtruderHigh != -sys.float_info.max :
-						startingMoveY = self.maxYExtruderHigh
+					if moveZ >= self.bedMediumMaxZ :
+						if self.maxYExtruderHigh != -sys.float_info.max :
+							startingMoveY = self.maxYExtruderHigh
+						elif self.maxYExtruderMedium != -sys.float_info.max :
+							startingMoveY = self.maxYExtruderMedium
+						else :
+							startingMoveY = self.maxYExtruderLow
 						maxMoveY = self.bedHighMaxY
-					elif moveZ >= self.bedLowMaxZ and self.maxYExtruderMedium != -sys.float_info.max :
-						startingMoveY = self.maxYExtruderMedium
+					elif moveZ >= self.bedLowMaxZ :
+						if self.maxYExtruderMedium != -sys.float_info.max :
+							startingMoveY = self.maxYExtruderMedium
+						else :
+							startingMoveY = self.maxYExtruderLow
 						maxMoveY = self.bedMediumMaxY
-					elif self.maxYExtruderLow != -sys.float_info.max :
+					else :
 						startingMoveY = self.maxYExtruderLow
 						maxMoveY = self.bedLowMaxY
 					
@@ -7722,9 +7769,6 @@ class M3DFioPlugin(
 				# Send message
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "No Micro 3D printer detected. Try cycling the printer's power and try again.", confirm = True))
 				
-				# Raise exception
-				raise Exception("Couldn't connect to the printer")
-				
 				# Return none
 				return None
 		
@@ -7749,18 +7793,15 @@ class M3DFioPlugin(
 			# Send message
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "You don't have read/write access to " + str(port), confirm = True))
 			
-			# Raise exception
-			raise Exception("Couldn't connect to the printer")
+			# Clear connection
+			connection = None
 		
 		# Otherwise check if connecting to printer failed
 		elif connection is None :
 		
 			# Send message
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "No Micro 3D printer detected. Try cycling the printer's power and try again.", confirm = True))
-			
-			# Raise exception
-			raise Exception("Couldn't connect to the printer")
-
+		
 		# Return connection
 		return connection
 	
