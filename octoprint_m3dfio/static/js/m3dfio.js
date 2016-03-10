@@ -709,6 +709,19 @@ $(function() {
 			});
 		}
 		
+		// Preload
+		function preload() {
+
+			// Go through all images
+			var images = new Array()
+			for(var i = 0; i < preload.arguments.length; i++) {
+	
+				// Load images
+				images[i] = new Image();
+				images[i].src = preload.arguments[i];
+			}
+		}
+		
 		// Save file
 		function saveFile(blob, name) {
 		
@@ -886,6 +899,7 @@ $(function() {
 				cutShapeOutline: null,
 				platformAdhesion: null,
 				adhesionSize: null,
+				scaleLock: [],
 				
 				// Initialize
 				init: function() {
@@ -968,6 +982,10 @@ $(function() {
 						this.platformAdhesion = "None";
 						this.adhesionSize = 0;
 					}
+					
+					// Set scale lock
+					for(var i = 0; i < 3; i++)
+						this.scaleLock[i] = false;
 
 					// Create scene
 					for(var i = 0; i < 2; i++)
@@ -2245,11 +2263,11 @@ $(function() {
 					else if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("scale")) {
 
 						// Set model's scale
-						if(name == 'x')
+						if(name == 'x' || viewport.scaleLock[0])
 							model.scale.x = parseFloat(value) == 0 ? 0.000000000001 : parseFloat(value);
-						else if(name == 'y')
+						if(name == 'y' || viewport.scaleLock[1])
 							model.scale.y = parseFloat(value) == 0 ? 0.000000000001 : parseFloat(value);
-						else if(name == 'z')
+						if(name == 'z' || viewport.scaleLock[2])
 							model.scale.z = parseFloat(value == 0 ? 0.000000000001 : parseFloat(value));
 					}
 			
@@ -2335,7 +2353,7 @@ $(function() {
 							if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("translate")) {
 
 								// Display position values
-								$("#slicing_configuration_dialog .modal-extra div.values p span").text("mm");
+								$("#slicing_configuration_dialog .modal-extra div.values p span").text("mm").attr("title", '');
 								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"x\"]").val((model.position.x.toFixed(3) == 0 ? 0 : -model.position.x).toFixed(3));
 								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"y\"]").val(model.position.y.toFixed(3));
 								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"z\"]").val(model.position.z.toFixed(3));
@@ -2345,7 +2363,7 @@ $(function() {
 							else if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("rotate")) {
 
 								// Display rotation values
-								$("#slicing_configuration_dialog .modal-extra div.values p span").text('°');
+								$("#slicing_configuration_dialog .modal-extra div.values p span").text('°').attr("title", '');
 								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"x\"]").val((model.rotation.x * 180 / Math.PI).toFixed(3));
 								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"y\"]").val((model.rotation.y * 180 / Math.PI).toFixed(3));
 								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"z\"]").val((model.rotation.z * 180 / Math.PI).toFixed(3));
@@ -2355,6 +2373,8 @@ $(function() {
 							else if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("scale")) {
 
 								// Display scale values
+								for(var i = 0; i < 3; i++)
+									$("#slicing_configuration_dialog .modal-extra div.values p span").eq(i).text(viewport.scaleLock[i] ? '🔒' : '🔓').attr("title", viewport.scaleLock[i] ? "Unlock" : "Lock");
 								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"x\"]").val(model.scale.x.toFixed(3));
 								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"y\"]").val(model.scale.y.toFixed(3));
 								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"z\"]").val(model.scale.z.toFixed(3));
@@ -3403,6 +3423,9 @@ $(function() {
 				convertedModel = new Blob([exporter.parse(mesh)], {type: "text/plain"});
 			});
 		}
+		
+		// Preload images
+		preload(PLUGIN_BASEURL + "m3dfio/static/img/down%20arrow.png", PLUGIN_BASEURL + "m3dfio/static/img/up%20arrow.png");
 		
 		// Change temperature graph's background image
 		$("#temperature-graph").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/graph%20background.png");
@@ -5615,6 +5638,41 @@ $(function() {
 																	// Set selection mode to scale
 																	viewport.setMode("scale");
 																});
+																
+																// Lock/unlock scale mousedown
+																$(document).on("mousedown", "#slicing_configuration_dialog.model .modal-extra > div.values.scale > div > p > span", function(event) {
+																	
+																	// Stop default behavior
+																	event.stopImmediatePropagation();
+																	
+																	// Check if locking
+																	if($(this).text() == '🔓') {
+																	
+																		// Update image and title
+																		$(this).text('🔒').attr("title", "Unlock");
+																		
+																		// Update scale lock
+																		for(var i = 0; i < 3; i++)
+																			if($(this).is($("#slicing_configuration_dialog .modal-extra div.values p span").eq(i))) {
+																				viewport.scaleLock[i] = true;
+																				break;
+																			}
+																	}
+																	
+																	// Otherwise assume unlocking
+																	else {
+																	
+																		// Update image and title
+																		$(this).text('🔓').attr("title", "Lock");
+																		
+																		// Update scale lock
+																		for(var i = 0; i < 3; i++)
+																			if($(this).is($("#slicing_configuration_dialog .modal-extra div.values p span").eq(i))) {
+																				viewport.scaleLock[i] = false;
+																				break;
+																			}
+																	}
+																});
 
 																// Snap button click event
 																$("#slicing_configuration_dialog .modal-extra button.snap").click(function() {
@@ -5917,10 +5975,23 @@ $(function() {
 																$("#slicing_configuration_dialog .modal-extra div.values input").keyup(function() {
 
 																	// Check if value is a number
-																	if(!isNaN(parseFloat($(this).val())))
+																	if(!isNaN(parseFloat($(this).val()))) {
 
 																		// Apply changes
 																		viewport.applyChanges($(this).attr("name"), $(this).val());
+																		
+																		// Check if changing scale
+																		if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("scale"))
+																		
+																			// Go through all inputs
+																			for(var i = 0; i < 3; i++)
+																			
+																				// Check if not current input and is locked
+																				if(!$(this).is($("#slicing_configuration_dialog .modal-extra div.values input").eq(i)) && viewport.scaleLock[i])
+																				
+																					// Match input value
+																					$("#slicing_configuration_dialog .modal-extra div.values input").eq(i).val($(this).val());	
+																	}
 																});
 
 																// Update model changes

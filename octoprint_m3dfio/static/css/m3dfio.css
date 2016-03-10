@@ -1057,7 +1057,7 @@ body > div.page-container > div.message > div > div > span.show {
 	top: 0;
 	padding: 0 2px;
 	margin: 0;
-	pointer-events: none;
+	cursor: default;
 	display: inline-block;
 	float: right;
 }
@@ -1067,11 +1067,9 @@ body > div.page-container > div.message > div > div > span.show {
 }
 
 #slicing_configuration_dialog.model .modal-extra > div.values.scale > div > p > span {
-	display: none;
-}
-
-#slicing_configuration_dialog.model .modal-extra > div.values.scale > div > p > input {
-	border-radius: 4px;
+	width: 15px;
+	cursor: pointer;
+	text-align: center;
 }
 
 #slicing_configuration_dialog.model .modal-extra > div button {
