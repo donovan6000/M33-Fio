@@ -1043,7 +1043,22 @@ body > div.page-container > div.message > div > div > span.show {
 	line-height: 16px;
 }
 
-#slicing_configuration_dialog.model .modal-extra > div.values > div > p > span {
+#slicing_configuration_dialog.model .modal-extra > div.values > div > p > span.axis.x {
+	color: #F00;
+	text-shadow: 0 1px 0 #fff;
+}
+
+#slicing_configuration_dialog.model .modal-extra > div.values > div > p > span.axis.y {
+	color: #0F0;
+	text-shadow: 0 1px 0 #fff;
+}
+
+#slicing_configuration_dialog.model .modal-extra > div.values > div > p > span.axis.z {
+	color: #00F;
+	text-shadow: 0 1px 0 #fff;
+}
+
+#slicing_configuration_dialog.model .modal-extra > div.values > div > p > span:not(.axis) {
 	border-radius: 0 4px 4px 0;
 	border: 1px solid #ccc;
 	border-left: none;
@@ -1066,7 +1081,7 @@ body > div.page-container > div.message > div > div > span.show {
 	margin-bottom: -5px;
 }
 
-#slicing_configuration_dialog.model .modal-extra > div.values.scale > div > p > span {
+#slicing_configuration_dialog.model .modal-extra > div.values.scale > div > p > span:not(.axis) {
 	width: 15px;
 	cursor: pointer;
 	text-align: center;

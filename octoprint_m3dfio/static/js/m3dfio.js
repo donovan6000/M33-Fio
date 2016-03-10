@@ -2353,20 +2353,20 @@ $(function() {
 							if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("translate")) {
 
 								// Display position values
-								$("#slicing_configuration_dialog .modal-extra div.values p span").text("mm").attr("title", '');
-								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"x\"]").val((model.position.x.toFixed(3) == 0 ? 0 : -model.position.x).toFixed(3));
-								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"y\"]").val(model.position.y.toFixed(3));
-								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"z\"]").val(model.position.z.toFixed(3));
+								$("#slicing_configuration_dialog .modal-extra div.values p span:not(.axis)").text("mm").attr("title", '');
+								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"x\"]").val((model.position.x.toFixed(3) == 0 ? 0 : -model.position.x).toFixed(3)).attr("min", '');
+								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"y\"]").val(model.position.y.toFixed(3)).attr("min", '');
+								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"z\"]").val(model.position.z.toFixed(3)).attr("min", '');
 							}
 
 							// Otherwise check if in rotate mode
 							else if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("rotate")) {
 
 								// Display rotation values
-								$("#slicing_configuration_dialog .modal-extra div.values p span").text('°').attr("title", '');
-								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"x\"]").val((model.rotation.x * 180 / Math.PI).toFixed(3));
-								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"y\"]").val((model.rotation.y * 180 / Math.PI).toFixed(3));
-								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"z\"]").val((model.rotation.z * 180 / Math.PI).toFixed(3));
+								$("#slicing_configuration_dialog .modal-extra div.values p span:not(.axis)").text('°').attr("title", '');
+								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"x\"]").val((model.rotation.x * 180 / Math.PI).toFixed(3)).attr("min", '');
+								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"y\"]").val((model.rotation.y * 180 / Math.PI).toFixed(3)).attr("min", '');
+								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"z\"]").val((model.rotation.z * 180 / Math.PI).toFixed(3)).attr("min", '');
 							}
 
 							// Otherwise check if in scale mode
@@ -2374,10 +2374,10 @@ $(function() {
 
 								// Display scale values
 								for(var i = 0; i < 3; i++)
-									$("#slicing_configuration_dialog .modal-extra div.values p span").eq(i).text(viewport.scaleLock[i] ? '🔒' : '🔓').attr("title", viewport.scaleLock[i] ? "Unlock" : "Lock");
-								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"x\"]").val(model.scale.x.toFixed(3));
-								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"y\"]").val(model.scale.y.toFixed(3));
-								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"z\"]").val(model.scale.z.toFixed(3));
+									$("#slicing_configuration_dialog .modal-extra div.values p span:not(.axis)").eq(i).text(viewport.scaleLock[i] ? '🔒' : '🔓').attr("title", viewport.scaleLock[i] ? "Unlock" : "Lock");
+								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"x\"]").val(model.scale.x.toFixed(3)).attr("min", '0');
+								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"y\"]").val(model.scale.y.toFixed(3)).attr("min", '0');
+								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"z\"]").val(model.scale.z.toFixed(3)).attr("min", '0');
 							}
 						}
 			
@@ -2559,6 +2559,14 @@ $(function() {
 							
 										// Update model's size
 										viewport.models[i].mesh.scale.sub(changes);
+										
+										// Prevent scaling less than zero
+										if(viewport.models[i].mesh.scale.x <= 0)
+											viewport.models[i].mesh.scale.x = 0.000000000001;
+										if(viewport.models[i].mesh.scale.y <= 0)
+											viewport.models[i].mesh.scale.y = 0.000000000001;
+										if(viewport.models[i].mesh.scale.z <= 0)
+											viewport.models[i].mesh.scale.z = 0.000000000001;
 									break;
 								}
 				
@@ -5531,9 +5539,9 @@ $(function() {
 																	</div>
 																	<div class="values translate">
 																		<div>
-																			<p>X<input type="number" step="any" name="x"><span></span></p>
-																			<p>Y<input type="number" step="any" name="y"><span></span></p>
-																			<p>Z<input type="number" step="any" name="z"><span></span></p>
+																			<p><span class="axis x">X</span><input type="number" step="any" name="x"><span></span></p>
+																			<p><span class="axis y">Y</span><input type="number" step="any" name="y"><span></span></p>
+																			<p><span class="axis z">Z</span><input type="number" step="any" name="z"><span></span></p>
 																			<span></span>
 																		</div>
 																	</div>
@@ -5640,7 +5648,7 @@ $(function() {
 																});
 																
 																// Lock/unlock scale mousedown
-																$(document).on("mousedown", "#slicing_configuration_dialog.model .modal-extra > div.values.scale > div > p > span", function(event) {
+																$(document).on("mousedown", "#slicing_configuration_dialog.model .modal-extra > div.values.scale > div > p > span:not(.axis)", function(event) {
 																	
 																	// Stop default behavior
 																	event.stopImmediatePropagation();
@@ -5653,7 +5661,7 @@ $(function() {
 																		
 																		// Update scale lock
 																		for(var i = 0; i < 3; i++)
-																			if($(this).is($("#slicing_configuration_dialog .modal-extra div.values p span").eq(i))) {
+																			if($(this).is($("#slicing_configuration_dialog .modal-extra div.values p span:not(.axis)").eq(i))) {
 																				viewport.scaleLock[i] = true;
 																				break;
 																			}
@@ -5667,7 +5675,7 @@ $(function() {
 																		
 																		// Update scale lock
 																		for(var i = 0; i < 3; i++)
-																			if($(this).is($("#slicing_configuration_dialog .modal-extra div.values p span").eq(i))) {
+																			if($(this).is($("#slicing_configuration_dialog .modal-extra div.values p span:not(.axis)").eq(i))) {
 																				viewport.scaleLock[i] = false;
 																				break;
 																			}
@@ -5959,6 +5967,12 @@ $(function() {
 
 																		// Fix value
 																		$(this).val(parseFloat($(this).val()).toFixed(3));
+																		
+																		// Check if changing scale and value is less than zero
+																		if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("scale") && $(this).val() < 0)
+																		
+																			// Set value to zero
+																			$(this).val(0);
 
 																		// Apply changes
 																		viewport.applyChanges($(this).attr("name"), $(this).val());
@@ -5976,12 +5990,9 @@ $(function() {
 
 																	// Check if value is a number
 																	if(!isNaN(parseFloat($(this).val()))) {
-
-																		// Apply changes
-																		viewport.applyChanges($(this).attr("name"), $(this).val());
-																		
+																	
 																		// Check if changing scale
-																		if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("scale"))
+																		if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("scale")) {
 																		
 																			// Go through all inputs
 																			for(var i = 0; i < 3; i++)
@@ -5990,7 +6001,17 @@ $(function() {
 																				if(!$(this).is($("#slicing_configuration_dialog .modal-extra div.values input").eq(i)) && viewport.scaleLock[i])
 																				
 																					// Match input value
-																					$("#slicing_configuration_dialog .modal-extra div.values input").eq(i).val($(this).val());	
+																					$("#slicing_configuration_dialog .modal-extra div.values input").eq(i).val($(this).val());
+																			
+																			// Check if value is less than zero
+																			if($(this).val() < 0)
+																			
+																				// Return
+																				return;	
+																		}
+																		
+																		// Apply changes
+																		viewport.applyChanges($(this).attr("name"), $(this).val());
 																	}
 																});
 

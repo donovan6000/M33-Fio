@@ -1060,13 +1060,13 @@
 						
 					}
 					
-					if( scope.object.scale.x == 0 )
+					if( scope.object.scale.x <= 0 )
 						scope.object.scale.x = 0.000000000001;
 					
-					if( scope.object.scale.y == 0 )
+					if( scope.object.scale.y <= 0 )
 						scope.object.scale.y = 0.000000000001;
 					
-					if( scope.object.scale.z == 0 )
+					if( scope.object.scale.z <= 0 )
 						scope.object.scale.z = 0.000000000001;
 				
 				}
