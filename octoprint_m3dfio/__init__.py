@@ -2262,6 +2262,17 @@ class M3DFioPlugin(
 					self.savedCurrentPort = None
 					self.savedCurrentBaudrate = None
 					self.savedCurrentProfile = None
+					
+					# Wait until connection is established
+					while not isinstance(self._printer.get_transport(), serial.Serial) :
+						time.sleep(0.01)
+				
+					# Remove serial timeout
+					self._printer.get_transport().timeout = None
+					if float(serial.VERSION) < 3 :
+						self._printer.get_transport().writeTimeout = None
+					else :
+						self._printer.get_transport().write_timeout = None
 			
 			# Otherwise check if parameter is to pause
 			elif data["value"] == "Pause" :
@@ -4575,6 +4586,13 @@ class M3DFioPlugin(
 			while not isinstance(self._printer.get_transport(), serial.Serial) :
 				time.sleep(0.01)
 			
+			# Remove serial timeout
+			self._printer.get_transport().timeout = None
+			if float(serial.VERSION) < 3 :
+				self._printer.get_transport().writeTimeout = None
+			else :
+				self._printer.get_transport().write_timeout = None
+			
 			# Check if an error didn't occur
 			if not error :
 				
@@ -4646,13 +4664,6 @@ class M3DFioPlugin(
 			
 						# Clear invalid printer
 						self.invalidPrinter = False
-						
-						# Remove serial timeout
-						self._printer.get_transport().timeout = None
-						if float(serial.VERSION) < 3 :
-							self._printer.get_transport().writeTimeout = None
-						else :
-							self._printer.get_transport().write_timeout = None
 			
 						# Request printer information
 						self._printer.get_transport().write("M115")
