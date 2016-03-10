@@ -2856,8 +2856,8 @@ class M3DFioPlugin(
 	# Send command
 	def sendCommands(self, commands) :
 		
-		# Check if printing
-		if self._printer.is_printing() :
+		# Check if printing and communication layer is established
+		if self._printer.is_printing() and self._printer._comm is not None :
 		
 			# Make sure commands is a list
 			if not isinstance(commands, list) :
@@ -2913,9 +2913,10 @@ class M3DFioPlugin(
 	# Empty command queue
 	def emptyCommandQueue(self) :
 	
-		# Empty command queues
+		# Check if communication layer has been established
 		if self._printer._comm is not None :
 		
+			# Empty command queues
 			while not self._printer._comm._send_queue.empty() :
 				self._printer._comm._send_queue.get()
 		
@@ -3086,8 +3087,8 @@ class M3DFioPlugin(
 						except Exception :
 							error = True
 						
-						# Check if no errors occured
-						if not error :
+						# Check if no errors occured and communication layer has been established
+						if not error and self._printer._comm is not None :
 						
 							# Set setting heatbed temperature
 							self.settingHeatbedTemperature = True
@@ -4645,7 +4646,7 @@ class M3DFioPlugin(
 					else :
 						self._printer.get_transport().write_timeout = None
 				
-					# Check if printer communication layer exists
+					# Check if communication layer has been established
 					if self._printer._comm is not None :
 					
 						# Set printer state to operational
