@@ -5929,7 +5929,7 @@ class M3DFioPlugin(
 	def getBoundedTemperature(self, value) :
 	
 		# Return temperature in bounded range
-		return min(max(value, 150), 350)
+		return min(max(value, 150), 315)
 	
 	# Get distance
 	def getDistance(self, firstPoint, secondPoint) :
@@ -6558,25 +6558,23 @@ class M3DFioPlugin(
 						moveZ = self.bedHighMaxZ
 					
 					# Set move Y
-					startingMoveY = 0
-					maxMoveY = 0
+					startingMoveY = self.maxYExtruderLow
+					maxMoveY = self.bedLowMaxY
+					
 					if moveZ >= self.bedMediumMaxZ :
+						
+						if self.maxYExtruderMedium != -sys.float_info.max :
+							startingMoveY = max(startingMoveY, self.maxYExtruderMedium)
 						if self.maxYExtruderHigh != -sys.float_info.max :
-							startingMoveY = self.maxYExtruderHigh
-						elif self.maxYExtruderMedium != -sys.float_info.max :
-							startingMoveY = self.maxYExtruderMedium
-						else :
-							startingMoveY = self.maxYExtruderLow
+							startingMoveY = max(startingMoveY, self.maxYExtruderHigh)
+						
 						maxMoveY = self.bedHighMaxY
 					elif moveZ >= self.bedLowMaxZ :
+					
 						if self.maxYExtruderMedium != -sys.float_info.max :
-							startingMoveY = self.maxYExtruderMedium
-						else :
-							startingMoveY = self.maxYExtruderLow
+							startingMoveY = max(startingMoveY, self.maxYExtruderMedium)
+						
 						maxMoveY = self.bedMediumMaxY
-					else :
-						startingMoveY = self.maxYExtruderLow
-						maxMoveY = self.bedLowMaxY
 					
 					moveY = startingMoveY + 20
 					if moveY > maxMoveY :
@@ -6584,9 +6582,8 @@ class M3DFioPlugin(
 					
 					# Add outro to output
 					newCommands.append(Command("G90", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G0 Y%f Z%f F1800" % (moveY, moveZ), "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G91", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G0 E-8 F360", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G92 E0", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("G0 Y%f Z%f E-8 F1800" % (moveY, moveZ), "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 					newCommands.append(Command("M104 S0", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 
 					if self.heatbedConnected :
