@@ -950,6 +950,7 @@ body > div.page-container > div.message > div > div > span.show {
 	font-family: "Helvetica";
 	color: white;
 	text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+	white-space: nowrap;
 }
 
 #slicing_configuration_dialog.model .modal-extra > div.values {

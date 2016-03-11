@@ -1714,7 +1714,7 @@ $(function() {
 					
 								// Render
 								viewport.render();
-							}, 200);
+							}, 125);
 				
 							$(document).on("mousemove.viewport", viewport.stopRemoveSelectionTimeout);
 						}
@@ -2297,19 +2297,22 @@ $(function() {
 						viewport.measurements[0][0].geometry.vertices[0].set(boundaryBox.max.x + 1, boundaryBox.min.y - 1, boundaryBox.min.z - 1);
 						viewport.measurements[0][0].geometry.vertices[1].set(boundaryBox.min.x - 1, boundaryBox.min.y - 1, boundaryBox.min.z - 1);
 						viewport.measurements[0][1].set(boundaryBox.max.x + (boundaryBox.min.x - boundaryBox.max.x) / 2, boundaryBox.min.y, boundaryBox.min.z);
-						$("#slicing_configuration_dialog .modal-extra div.measurements > p.width").text((boundaryBox.max.x - boundaryBox.min.x).toFixed(3) + "mm");
+						var value = boundaryBox.max.x - boundaryBox.min.x;
+						$("#slicing_configuration_dialog .modal-extra div.measurements > p.width").text(value.toFixed(3) + "mm / " + (value / 25.4).toFixed(3) + "in");
 		
 						// Set depth measurement
 						viewport.measurements[1][0].geometry.vertices[0].set(boundaryBox.min.x - 1, boundaryBox.min.y - 1, boundaryBox.min.z - 1);
 						viewport.measurements[1][0].geometry.vertices[1].set(boundaryBox.min.x - 1, boundaryBox.min.y - 1, boundaryBox.max.z + 1);
 						viewport.measurements[1][1].set(boundaryBox.min.x, boundaryBox.min.y, boundaryBox.min.z + (boundaryBox.max.z - boundaryBox.min.z) / 2);
-						$("#slicing_configuration_dialog .modal-extra div.measurements > p.depth").text((boundaryBox.max.z - boundaryBox.min.z).toFixed(3) + "mm");
+						value = boundaryBox.max.z - boundaryBox.min.z;
+						$("#slicing_configuration_dialog .modal-extra div.measurements > p.depth").text(value.toFixed(3) + "mm / " + (value / 25.4).toFixed(3) + "in");
 			
 						// Set height measurement
 						viewport.measurements[2][0].geometry.vertices[0].set(boundaryBox.min.x - 1, boundaryBox.min.y - 1, boundaryBox.max.z + 1);
 						viewport.measurements[2][0].geometry.vertices[1].set(boundaryBox.min.x - 1, boundaryBox.max.y + 1, boundaryBox.max.z + 1);
 						viewport.measurements[2][1].set(boundaryBox.min.x, boundaryBox.min.y + (boundaryBox.max.y - boundaryBox.min.y) / 2, boundaryBox.max.z);
-						$("#slicing_configuration_dialog .modal-extra div.measurements > p.height").text((boundaryBox.max.y - boundaryBox.min.y).toFixed(3) + "mm");
+						value = boundaryBox.max.y - boundaryBox.min.y;
+						$("#slicing_configuration_dialog .modal-extra div.measurements > p.height").text(value.toFixed(3) + "mm / " + (value / 25.4).toFixed(3) + "in");
 			
 						// Show measurements
 						for(var i = 0; i < viewport.measurements.length; i++) {
@@ -3885,6 +3888,13 @@ $(function() {
 			$(this).mousemove();
 		});
 		
+		// Control button click event
+		$("#control button").click(function() {
+
+			// Blur self
+			$(this).blur();
+		});
+		
 		// Add mid-print filament change layer event
 		$("#gcode div.midPrintFilamentChange button").eq(0).click(function() {
 		
@@ -5069,7 +5079,7 @@ $(function() {
 													else {
 														changedSettings.push({
 															platform_adhesion: "None; None, Brim, Raft",
-															bottom_layer_speed: 6,
+															bottom_layer_speed: 5,
 															skirt_line_count: 0,
 															brim_line_count: null
 														});
@@ -5101,7 +5111,7 @@ $(function() {
 													else {
 														changedSettings.push({
 															platform_adhesion: "None; None, Brim, Raft",
-															bottom_layer_speed: 6,
+															bottom_layer_speed: 5,
 															skirt_line_count: 0,
 															brim_line_count: null
 														});
