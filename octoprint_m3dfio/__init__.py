@@ -1606,6 +1606,11 @@ class M3DFioPlugin(
 				if platform.uname()[0].startswith("Windows") :
 					destination = destination.replace('/', '\\')
 				
+				# Set first line number to zero and clear history
+				if self._printer._comm is not None :
+					self._printer._comm._gcode_M110_sending("N0")
+					self._printer._comm._long_running_command = True
+				
 				# Print test border
 				self._printer.select_file(destination, False, True)
 			
@@ -2291,6 +2296,14 @@ class M3DFioPlugin(
 			
 				# Return print information
 				return flask.jsonify(dict(value = "OK", maxXLow = self.maxXExtruderLow, maxXMedium = self.maxXExtruderMedium, maxXHigh = self.maxXExtruderHigh, maxYLow = self.maxYExtruderLow, maxYMedium = self.maxYExtruderMedium, maxYHigh = self.maxYExtruderHigh, maxZ = self.maxZExtruder, minXLow = self.minXExtruderLow, minXMedium = self.minXExtruderMedium, minXHigh = self.minXExtruderHigh, minYLow = self.minYExtruderLow, minYMedium = self.minYExtruderMedium, minYHigh = self.minYExtruderHigh, minZ = self.minZExtruder))
+			
+			# Otherwise check if parameter is starting print
+			elif data["value"] == "Starting Print" :
+			
+				# Set first line number to zero and clear history
+				if self._printer._comm is not None :
+					self._printer._comm._gcode_M110_sending("N0")
+					self._printer._comm._long_running_command = True
 		
 		# Otherwise check if command is a file
 		elif command == "file" :
@@ -2960,8 +2973,8 @@ class M3DFioPlugin(
 			# Clear sent commands
 			self.sentCommands = {}
 			
-			# Check if printing
-			if self._printer.is_printing() :
+			# Check if printing or paused
+			if self._printer.is_printing() or self._printer.is_paused() :
 			
 				# Stop printing
 				self._printer.cancel_print()
@@ -2984,8 +2997,8 @@ class M3DFioPlugin(
 				
 				time.sleep(0.01)
 			
-			# Check if printing
-			if self._printer.is_printing() :
+			# Check if printing or paused
+			if self._printer.is_printing() or self._printer.is_paused() :
 			
 				# Stop printing
 				self._printer.cancel_print()
@@ -3264,7 +3277,7 @@ class M3DFioPlugin(
 					# Store command
 					self.sentCommands[lineNumber % 0x10000] = data
 			
-			# Set long running command to prevent OctoPrint from force sending commands
+			# Set long running command to prevent force sending commands
 			if self._printer._comm is not None :
 				self._printer._comm._long_running_command = True
 			
@@ -3902,6 +3915,7 @@ class M3DFioPlugin(
 			# Set first line number to zero and clear history
 			if self._printer._comm is not None :
 				self._printer._comm._gcode_M110_sending("N0")
+				self._printer._comm._long_running_command = True
 		
 			# Empty command queue
 			self.emptyCommandQueue()
@@ -3942,6 +3956,7 @@ class M3DFioPlugin(
 			# Set first line number to zero and clear history
 			if self._printer._comm is not None :
 				self._printer._comm._gcode_M110_sending("N0")
+				self._printer._comm._long_running_command = True
 				
 			# Empty command queue
 			self.emptyCommandQueue()

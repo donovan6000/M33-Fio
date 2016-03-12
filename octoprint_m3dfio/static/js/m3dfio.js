@@ -3968,14 +3968,79 @@ $(function() {
 		var originalLoadFile = self.files.loadFile;
 		self.files.loadFile = function(file, printAfterLoad) {
 		
-			// Check if printing after load, using on the fly pre-processing, and changing settings before print
-			if(printAfterLoad && self.settings.settings.plugins.m3dfio.PreprocessOnTheFly() && self.settings.settings.plugins.m3dfio.ChangeSettingsBeforePrint()) {
+			// Check if printing after load
+			if(printAfterLoad) {
 			
-				// Show message
-				showMessage("Message", '', "Print", function() {
+				// Check if using on the fly pre-processing and changing settings before print
+				if(self.settings.settings.plugins.m3dfio.PreprocessOnTheFly() && self.settings.settings.plugins.m3dfio.ChangeSettingsBeforePrint()) {
 			
-					// Hide message
-					hideMessage();
+					// Show message
+					showMessage("Message", '', "Print", function() {
+			
+						// Hide message
+						hideMessage();
+				
+						// Send request
+						$.ajax({
+							url: API_BASEURL + "plugin/m3dfio",
+							type: "POST",
+							dataType: "json",
+							data: JSON.stringify({
+								command: "message",
+								value: "Print Settings: " + JSON.stringify({
+									filamentTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").eq(0).val(),
+									heatbedTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").eq(1).val(),
+									filamentType: $("body > div.page-container > div.message > div > div > div.printSettings select").val(),
+									useWaveBondingPreprocessor: $("body > div.page-container > div.message > div > div > div.printSettings input[type=\"checkbox\"]").is(":checked")
+								})
+							}),
+							contentType: "application/json; charset=UTF-8",
+					
+							// On success								
+							success: function() {
+					
+								// Print file
+								function printFile() {
+							
+									// Save software settings
+									self.settings.saveData();
+								
+									// Send request
+									$.ajax({
+										url: API_BASEURL + "plugin/m3dfio",
+										type: "POST",
+										dataType: "json",
+										data: JSON.stringify({
+											command: "message",
+											value: "Starting Print"
+										}),
+										contentType: "application/json; charset=UTF-8",
+				
+										// On success									
+										success: function() {
+			
+											// Load file and print
+											originalLoadFile(file, printAfterLoad);
+										}
+									});
+								}
+						
+								// Update settings
+								if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
+									self.settings.requestData(printFile);
+								else
+									self.settings.requestData().done(printFile);
+							}
+						});
+					}, "Cancel", function() {
+			
+						// Hide message
+						hideMessage();
+					});
+				}
+				
+				// Otherwise
+				else {
 				
 					// Send request
 					$.ajax({
@@ -3984,40 +4049,18 @@ $(function() {
 						dataType: "json",
 						data: JSON.stringify({
 							command: "message",
-							value: "Print Settings: " + JSON.stringify({
-								filamentTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").eq(0).val(),
-								heatbedTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").eq(1).val(),
-								filamentType: $("body > div.page-container > div.message > div > div > div.printSettings select").val(),
-								useWaveBondingPreprocessor: $("body > div.page-container > div.message > div > div > div.printSettings input[type=\"checkbox\"]").is(":checked")
-							})
+							value: "Starting Print"
 						}),
 						contentType: "application/json; charset=UTF-8",
-					
-						// On success								
+				
+						// On success									
 						success: function() {
-					
-							// Print file
-							function printFile() {
-							
-								// Save software settings
-								self.settings.saveData();
-								
-								// Load file and print
-								originalLoadFile(file, printAfterLoad);
-							}
-						
-							// Update settings
-							if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
-								self.settings.requestData(printFile);
-							else
-								self.settings.requestData().done(printFile);
+			
+							// Load file and print
+							originalLoadFile(file, printAfterLoad);
 						}
 					});
-				}, "Cancel", function() {
-			
-					// Hide message
-					hideMessage();
-				});
+				}
 			}
 			
 			// Otherwise
@@ -4073,9 +4116,25 @@ $(function() {
 									// Save software settings
 									self.settings.saveData();
 								
-									// Continue with print
-									continueWithPrint= true;
-									button.click();
+									// Send request
+									$.ajax({
+										url: API_BASEURL + "plugin/m3dfio",
+										type: "POST",
+										dataType: "json",
+										data: JSON.stringify({
+											command: "message",
+											value: "Starting Print"
+										}),
+										contentType: "application/json; charset=UTF-8",
+				
+										// On success									
+										success: function() {
+			
+											// Continue with print
+											continueWithPrint = true;
+											button.click();
+										}
+									});
 								}
 						
 								// Update settings
@@ -4094,10 +4153,26 @@ $(function() {
 			
 				// Otherwise
 				else {
+				
+					// Send request
+					$.ajax({
+						url: API_BASEURL + "plugin/m3dfio",
+						type: "POST",
+						dataType: "json",
+						data: JSON.stringify({
+							command: "message",
+							value: "Starting Print"
+						}),
+						contentType: "application/json; charset=UTF-8",
+				
+						// On success									
+						success: function() {
 			
-					// Continue with print
-					continueWithPrint= true;
-					button.click();
+							// Continue with print
+							continueWithPrint = true;
+							button.click();
+						}
+					});
 				}
 			}
 			
@@ -6246,15 +6321,84 @@ $(function() {
 							}, 300);
 						}
 					
-						// Check if printing after slicing, using on the fly pre-processing, changing settings before print, and a printer is connected
-						if(afterSlicingAction == "print" && self.settings.settings.plugins.m3dfio.PreprocessOnTheFly() && self.settings.settings.plugins.m3dfio.ChangeSettingsBeforePrint() && self.printerState.stateString() !== "Offline") {
+						// Check if printing after slicing and a printer is connected
+						if(afterSlicingAction == "print" && self.printerState.stateString() !== "Offline") {
+						
+							// Check if using on the fly pre-processing and changing settings before print
+							if(self.settings.settings.plugins.m3dfio.PreprocessOnTheFly() && self.settings.settings.plugins.m3dfio.ChangeSettingsBeforePrint()) {
 
-							// Show message
-							showMessage("Message", '', "Print", function() {
+								// Show message
+								showMessage("Message", '', "Print", function() {
 
-								// Hide message
-								hideMessage();
+									// Hide message
+									hideMessage();
 
+									// Send request
+									$.ajax({
+										url: API_BASEURL + "plugin/m3dfio",
+										type: "POST",
+										dataType: "json",
+										data: JSON.stringify({
+											command: "message",
+											value: "Print Settings: " + JSON.stringify({
+												filamentTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").eq(0).val(),
+												heatbedTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").eq(1).val(),
+												filamentType: $("body > div.page-container > div.message > div > div > div.printSettings select").val(),
+												useWaveBondingPreprocessor: $("body > div.page-container > div.message > div > div > div.printSettings input[type=\"checkbox\"]").is(":checked")
+											})
+										}),
+										contentType: "application/json; charset=UTF-8",
+
+										// On success									
+										success: function() {
+									
+											// Slice file
+											function sliceFile() {
+							
+												// Save software settings
+												if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") == -1)
+													self.settings.saveData();
+								
+												// Send request
+												$.ajax({
+													url: API_BASEURL + "plugin/m3dfio",
+													type: "POST",
+													dataType: "json",
+													data: JSON.stringify({
+														command: "message",
+														value: "Starting Print"
+													}),
+													contentType: "application/json; charset=UTF-8",
+				
+													// On success									
+													success: function() {
+			
+														// Apply changes
+														applyChanges();
+													}
+												});
+											}
+						
+											// Update settings
+											if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
+												self.settings.requestData(sliceFile);
+											else
+												self.settings.requestData().done(sliceFile);
+										}
+									});
+								}, "Cancel", function() {
+
+									// Hide message
+									hideMessage();
+								
+									// Don't slice file
+									button.prev('a').click();
+								});
+							}
+							
+							// Otherwise
+							else {
+							
 								// Send request
 								$.ajax({
 									url: API_BASEURL + "plugin/m3dfio",
@@ -6262,44 +6406,18 @@ $(function() {
 									dataType: "json",
 									data: JSON.stringify({
 										command: "message",
-										value: "Print Settings: " + JSON.stringify({
-											filamentTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").eq(0).val(),
-											heatbedTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").eq(1).val(),
-											filamentType: $("body > div.page-container > div.message > div > div > div.printSettings select").val(),
-											useWaveBondingPreprocessor: $("body > div.page-container > div.message > div > div > div.printSettings input[type=\"checkbox\"]").is(":checked")
-										})
+										value: "Starting Print"
 									}),
 									contentType: "application/json; charset=UTF-8",
-
+				
 									// On success									
 									success: function() {
-									
-										// Slice file
-										function sliceFile() {
-							
-											// Save software settings
-											if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") == -1)
-												self.settings.saveData();
-								
-											// Apply changes
-											applyChanges();
-										}
-						
-										// Update settings
-										if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
-											self.settings.requestData(sliceFile);
-										else
-											self.settings.requestData().done(sliceFile);
+			
+										// Apply changes
+										applyChanges();
 									}
 								});
-							}, "Cancel", function() {
-
-								// Hide message
-								hideMessage();
-								
-								// Don't slice file
-								button.prev('a').click();
-							});
+							}
 						}
 
 						// Otherwise
