@@ -1,6 +1,6 @@
 Changelog:
 
-V0.29 March X, 2016
+V0.29 March 11, 2016
 
 	* Added raft/brim to model editor
 	* Implemented logging functionality
@@ -12,6 +12,7 @@ V0.29 March X, 2016
 	* Model editor allows scaling multiple axis at the same time with the inputs
 	* Added buttons that allow users to see where their calibrated Z0 values are for each corner
 	* Improved connecting to printer
+	* Fixed issue where printer would hang when starting a print
 
 V0.28.2 March 4, 2016
 
