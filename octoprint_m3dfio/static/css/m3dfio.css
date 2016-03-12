@@ -1,7 +1,3 @@
-#temperature-graph {
-	background-image: url("/plugin/m3dfio/static/img/graph%20background.png")
-}
-
 #job_pause.active {
 	background-image: linear-gradient(to bottom, #FFF, #E6E6E6);
 	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05);
@@ -53,6 +49,22 @@
 #settings_plugin_m3dfio .label-important {
 	position: relative;
 	top: -1px;
+}
+
+#settings_plugin_m3dfio div.control-group.log span {
+	position: relative;
+	top: 0;
+}
+
+#settings_plugin_m3dfio div.control-group.log input {
+	position: relative;
+	top: -4px;
+}
+
+#settings_plugin_m3dfio div.control-group.log button {
+	position: relative;
+	top: -2px;
+	margin-left: 3px;
 }
 
 #settings_plugin_m3dfio h4 > span {
@@ -137,11 +149,15 @@
 	pointer-events: none;
 }
 
+#navbar {
+	margin-bottom: 44px;
+}
+
 #navbar_plugin_m3dfio {
 	display: inline;
 	position: absolute;
-	top: 0;
-	left: 158px;
+	top: 44px;
+	left: 30px;
 }
 
 #navbar_plugin_m3dfio > select {
@@ -155,7 +171,7 @@
 	cursor: default;
 	display: inline;
 	position: relative;
-	right: 30px;
+	right: 36px;
 	top: 1px;
 }
 
@@ -215,10 +231,11 @@
 #control div.jog-panel.calibration button {
 	width: 180px;
 	float: left;
+	white-space: nowrap;
 }
 
-#control div.jog-panel.calibration button:first-of-type, #control div.jog-panel.calibration button:nth-of-type(2), #control div.jog-panel.calibration button:nth-of-type(11), #control div.jog-panel.calibration button:nth-of-type(12), #control div.jog-panel.calibration button:nth-of-type(13), #control div.jog-panel.calibration button:nth-of-type(14), #control div.jog-panel.calibration button:nth-of-type(15), #control div.jog-panel.calibration button:nth-of-type(16) {
-	width: 230px;
+#control div.jog-panel.calibration button:first-of-type, #control div.jog-panel.calibration button:nth-of-type(2), #control div.jog-panel.calibration button:nth-of-type(15), #control div.jog-panel.calibration button:nth-of-type(16), #control div.jog-panel.calibration button:nth-of-type(17), #control div.jog-panel.calibration button:nth-of-type(18), #control div.jog-panel.calibration button:nth-of-type(19), #control div.jog-panel.calibration button:nth-of-type(20) {
+	width: 231px;
 	clear: both;
 }
 
@@ -227,15 +244,22 @@
 }
 
 #control div.jog-panel.calibration button.arrow {
-	clear: both;
 	width: 30px;
 	height: 30px;
+}
+
+#control div.jog-panel.calibration button.arrow:not(.point) {
+	clear: both;
 	margin-right: 15px;
 }
 
-#control div.jog-panel.calibration button:nth-of-type(4), #control div.jog-panel.calibration button:nth-of-type(6), #control div.jog-panel.calibration button:nth-of-type(8), #control div.jog-panel.calibration button:nth-of-type(10) {
+#control div.jog-panel.calibration button.arrow.point {
+}
+
+#control div.jog-panel.calibration button:nth-of-type(5), #control div.jog-panel.calibration button:nth-of-type(8), #control div.jog-panel.calibration button:nth-of-type(11), #control div.jog-panel.calibration button:nth-of-type(14) {
 	position: relative;
 	left: 5px;
+	width: 151px;
 } 
 
 #control div.jog-panel.calibration > div > button:nth-of-type(3) {
@@ -244,19 +268,19 @@
 	transform: rotate(45deg);
 }
 
-#control div.jog-panel.calibration > div > button:nth-of-type(5) {
+#control div.jog-panel.calibration > div > button:nth-of-type(6) {
 	position: relative;
 	left: 5px;
 	transform: rotate(-45deg);
 }
 
-#control div.jog-panel.calibration > div > button:nth-of-type(7) {
+#control div.jog-panel.calibration > div > button:nth-of-type(9) {
 	position: relative;
 	left: 5px;
 	transform: rotate(45deg);
 }
 
-#control div.jog-panel.calibration > div > button:nth-of-type(9) {
+#control div.jog-panel.calibration > div > button:nth-of-type(12) {
 	position: relative;
 	left: 5px;
 	transform: rotate(-45deg);
@@ -549,6 +573,10 @@ body > div.page-container > div.message > div > div > span.show {
 	display: inline;
 }
 
+#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div.disabled {
+	display: none;
+}
+
 #slicing_configuration_dialog.profile, #slicing_configuration_dialog.model {
 	width: 80% !important;
 	max-width: 900px !important;
@@ -663,7 +691,6 @@ body > div.page-container > div.message > div > div > span.show {
 	border-top: 1px solid #ddd;
 	box-shadow: inset 0 1px 0 #fff;
 	padding: 3px 0;
-	background-image: url("/plugin/m3dfio/static/img/up%20arrow.png");
 	background-position: 2px 0;
 	background-repeat: no-repeat;
 	background-size: 12px 12px;
@@ -699,7 +726,6 @@ body > div.page-container > div.message > div > div > span.show {
 
 #slicing_configuration_dialog.profile .modal-extra div.group.closed {
 	height: 8px;
-	background-image: url("/plugin/m3dfio/static/img/down%20arrow.png");
 }
 
 #slicing_configuration_dialog.profile .modal-extra div.group.advanced.closed {
@@ -756,11 +782,6 @@ body > div.page-container > div.message > div > div > span.show {
 #slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > label {
 	display: inline-block;
 	margin-top: 4px;
-}
-
-#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > label.disabled {
-	opacity: 0.5;
-	cursor: not-allowed;
 }
 
 #slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div {
@@ -930,6 +951,7 @@ body > div.page-container > div.message > div > div > span.show {
 	font-family: "Helvetica";
 	color: white;
 	text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+	white-space: nowrap;
 }
 
 #slicing_configuration_dialog.model .modal-extra > div.values {
@@ -1023,7 +1045,22 @@ body > div.page-container > div.message > div > div > span.show {
 	line-height: 16px;
 }
 
-#slicing_configuration_dialog.model .modal-extra > div.values > div > p > span {
+#slicing_configuration_dialog.model .modal-extra > div.values > div > p > span.axis.x {
+	color: #F00;
+	text-shadow: 0 1px 0 #fff;
+}
+
+#slicing_configuration_dialog.model .modal-extra > div.values > div > p > span.axis.y {
+	color: #0F0;
+	text-shadow: 0 1px 0 #fff;
+}
+
+#slicing_configuration_dialog.model .modal-extra > div.values > div > p > span.axis.z {
+	color: #00F;
+	text-shadow: 0 1px 0 #fff;
+}
+
+#slicing_configuration_dialog.model .modal-extra > div.values > div > p > span:not(.axis) {
 	border-radius: 0 4px 4px 0;
 	border: 1px solid #ccc;
 	border-left: none;
@@ -1037,7 +1074,7 @@ body > div.page-container > div.message > div > div > span.show {
 	top: 0;
 	padding: 0 2px;
 	margin: 0;
-	pointer-events: none;
+	cursor: default;
 	display: inline-block;
 	float: right;
 }
@@ -1046,12 +1083,10 @@ body > div.page-container > div.message > div > div > span.show {
 	margin-bottom: -5px;
 }
 
-#slicing_configuration_dialog.model .modal-extra > div.values.scale > div > p > span {
-	display: none;
-}
-
-#slicing_configuration_dialog.model .modal-extra > div.values.scale > div > p > input {
-	border-radius: 4px;
+#slicing_configuration_dialog.model .modal-extra > div.values.scale > div > p > span:not(.axis) {
+	width: 15px;
+	cursor: pointer;
+	text-align: center;
 }
 
 #slicing_configuration_dialog.model .modal-extra > div button {
@@ -1107,7 +1142,7 @@ body > div.page-container > div.message > div > div > span.show {
 	position: relative;
 }
 
-#slicing_configuration_dialog.model .modal-extra > div > button[disabled], #slicing_configuration_dialog.model .modal-extra > div > button.disabled.delete, #slicing_configuration_dialog.model .modal-extra > div > button.disabled.clone, #slicing_configuration_dialog.model .modal-extra > div > button.disabled.reset, #slicing_configuration_dialog.model .modal-extra > div > button.disabled.merge {
+#slicing_configuration_dialog.model .modal-extra > div > button[disabled], #slicing_configuration_dialog.model .modal-extra > div > button.disabled.delete, #slicing_configuration_dialog.model .modal-extra > div > button.disabled.clone, #slicing_configuration_dialog.model .modal-extra > div > button.disabled.reset, #slicing_configuration_dialog.model .modal-extra > div > button.disabled.merge, #slicing_configuration_dialog.model .modal-extra > div > button.cut.off {
 	opacity: 0.5;
 	pointer-events: none;
 }

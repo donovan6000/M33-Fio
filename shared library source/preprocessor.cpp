@@ -264,7 +264,7 @@ double max(double first, double second) {
 uint16_t getBoundedTemperature(uint16_t temperature) {
 
 	// Return temperature bounded by range
-	return min(max(temperature, 150), 285);
+	return min(max(temperature, 150), 315);
 }
 
 double getDistance(const Gcode &firstPoint, const Gcode &secondPoint) {
@@ -1670,19 +1670,24 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 					moveZ = bedHighMaxZ;
 				
 				// Set move Y
-				double startingMoveY = 0;
-				double maxMoveY = 0;
-				if(moveZ >= bedMediumMaxZ && maxYExtruderHigh != -DBL_MAX) {
-					startingMoveY = maxYExtruderHigh;
+				double startingMoveY = maxYExtruderLow;
+				double maxMoveY = BED_LOW_MAX_Y;
+				
+				if(moveZ >= bedMediumMaxZ) {
+				
+					if(maxYExtruderMedium != -DBL_MAX)
+						startingMoveY = max(startingMoveY, maxYExtruderMedium);
+					if(maxYExtruderHigh != -DBL_MAX)
+						startingMoveY = max(startingMoveY, maxYExtruderHigh);
+					
 					maxMoveY = BED_HIGH_MAX_Y;
 				}
-				else if(moveZ >= BED_LOW_MAX_Z && maxYExtruderMedium != -DBL_MAX) {
-					startingMoveY = maxYExtruderMedium;
+				else if(moveZ >= BED_LOW_MAX_Z) {
+				
+					if(maxYExtruderMedium != -DBL_MAX)
+						startingMoveY = max(startingMoveY, maxYExtruderMedium);
+					
 					maxMoveY = BED_MEDIUM_MAX_Y;
-				}
-				else if(maxYExtruderLow != -DBL_MAX) {
-					startingMoveY = maxYExtruderLow;
-					maxMoveY = BED_LOW_MAX_Y;
 				}
 				
 				double moveY = startingMoveY + 20;
@@ -1691,9 +1696,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 				
 				// Add outro to output
 				newCommands.push(Command("G90", PREPARATION, PREPARATION));
-				newCommands.push(Command("G0 Y" + to_string(moveY) + " Z" + to_string(moveZ) + " F1800", PREPARATION, PREPARATION));
-				newCommands.push(Command("G91", PREPARATION, PREPARATION));
-				newCommands.push(Command("G0 E-8 F360", PREPARATION, PREPARATION));
+				newCommands.push(Command("G92 E0", PREPARATION, PREPARATION));
+				newCommands.push(Command("G0 Y" + to_string(moveY) + " Z" + to_string(moveZ) + " E-8 F1800", PREPARATION, PREPARATION));
 				newCommands.push(Command("M104 S0", PREPARATION, PREPARATION));
 
 				if(usingHeatbed)
