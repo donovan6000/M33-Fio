@@ -133,6 +133,7 @@ else
 		sudo -u $SUDO_USER ditto -x -k --sequesterRsrc --rsrc shortcut.zip '/Users/'"$SUDO_USER"'/Desktop'
 		
 		# Start OctoPrint
+		rm -rf '/Users/'"$SUDO_USER"'/.python-eggs'
 		sudo -u $SUDO_USER launchctl load /Library/LaunchAgents/com.octoprint.app.plist
 		
 		# Display message
