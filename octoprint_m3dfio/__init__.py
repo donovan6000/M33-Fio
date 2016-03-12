@@ -3264,6 +3264,10 @@ class M3DFioPlugin(
 					# Store command
 					self.sentCommands[lineNumber % 0x10000] = data
 			
+			# Set long running command to prevent OctoPrint from force sending commands
+			if self._printer._comm is not None :
+				self._printer._comm._long_running_command = True
+			
 			# Set last command sent
 			self.lastCommandSent = data
 			
@@ -3895,6 +3899,10 @@ class M3DFioPlugin(
 		# Otherwise check if a print is done
 		elif event == octoprint.events.Events.PRINT_DONE :
 		
+			# Set first line number to zero and clear history
+			if self._printer._comm is not None :
+				self._printer._comm._gcode_M110_sending("N0")
+		
 			# Empty command queue
 			self.emptyCommandQueue()
 			
@@ -3930,6 +3938,10 @@ class M3DFioPlugin(
 		
 		# Otherwise check if a print failed
 		elif event == octoprint.events.Events.PRINT_FAILED :
+		
+			# Set first line number to zero and clear history
+			if self._printer._comm is not None :
+				self._printer._comm._gcode_M110_sending("N0")
 				
 			# Empty command queue
 			self.emptyCommandQueue()

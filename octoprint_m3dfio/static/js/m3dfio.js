@@ -689,6 +689,13 @@ $(function() {
 			}
 		}, 500);
 		
+		// Message button click event
+		$(document).on("click", "body > div.page-container > div.message button", function() {
+		
+			// Blur self
+			$(this).blur();
+		});
+		
 		// Get slicer profile value
 		function getSlicerProfileValue(setting) {
 		
@@ -4139,6 +4146,50 @@ $(function() {
 			
 			// Stop default behavior
 			event.stopImmediatePropagation();
+		
+			// Send request
+			$.ajax({
+				url: API_BASEURL + "plugin/m3dfio",
+				type: "POST",
+				dataType: "json",
+				data: JSON.stringify({command: "message", value: commands}),
+				contentType: "application/json; charset=UTF-8"
+			});
+		});
+		
+		// Set temperature target to preset button event
+		$(document).on("click", "#temp ul.dropdown-menu a", function(event) {
+		
+			// Get temperature
+			var temperature = 0;
+			
+			// Check if not turning off
+			if($(this).text() != "Off")
+			
+				// Set temperature
+				temperature = $(this).text().match(/\((\d*)°C\)/)[1]
+			
+			// Check if setting extruder temperature
+			if($(this).closest("tr").children("th").text() == "Hotend")
+			
+				// Set commands
+				var commands = [
+					"M104 S" + temperature + '*'
+				];
+		
+			// Otherwise check if setting heatbed temperature
+			else if($(this).closest("tr").children("th").text() == "Bed")
+		
+				// Set commands
+				var commands = [
+					"M140 S" + temperature + '*'
+				];
+		
+			// Otherwise
+			else
+		
+				// Return
+				return;
 		
 			// Send request
 			$.ajax({
