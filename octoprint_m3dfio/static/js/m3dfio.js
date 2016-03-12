@@ -25,7 +25,6 @@ $(function() {
 		var skippedMessages = 0;
 		var continueWithPrint = false;
 		var waitingCallback = null;
-		var usingHeatbed = false;
 		var self = this;
 		
 		// Get state views
@@ -911,29 +910,13 @@ $(function() {
 				// Initialize
 				init: function() {
 				
-					// Check if using a heatbed
-					if(usingHeatbed) {
-					
-						// Adjust bed Z values
-						bedLowMaxZ = 5.0 + parseFloat(self.settings.settings.plugins.m3dfio.HeatbedHeight());
-						bedLowMinZ = 0.0 + parseFloat(self.settings.settings.plugins.m3dfio.HeatbedHeight());
-						bedMediumMinZ = bedLowMaxZ;
-						bedMediumMaxZ = 73.5;
-						bedHighMaxZ = 112.0;
-						bedHighMinZ = bedMediumMaxZ;
-					}
-					
-					// otherwise
-					else {
-					
-						// Set bed Z values to defaults
-						bedLowMaxZ = 5.0;
-						bedLowMinZ = 0.0;
-						bedMediumMinZ = bedLowMaxZ;
-						bedMediumMaxZ = 73.5;
-						bedHighMaxZ = 112.0;
-						bedHighMinZ = bedMediumMaxZ;
-					}
+					// Adjust bed Z values to account for external bed height
+					bedLowMaxZ = 5.0 + parseFloat(self.settings.settings.plugins.m3dfio.ExternalBedHeight());
+					bedLowMinZ = 0.0 + parseFloat(self.settings.settings.plugins.m3dfio.ExternalBedHeight());
+					bedMediumMinZ = bedLowMaxZ;
+					bedMediumMaxZ = 73.5;
+					bedHighMaxZ = 112.0;
+					bedHighMinZ = bedMediumMaxZ;
 					
 					// Check if using Cura
 					if(slicerName == "cura") {
@@ -1015,7 +998,7 @@ $(function() {
 
 					// Create controls
 					this.orbitControls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
-					this.orbitControls.target.set(0, usingHeatbed ? 54.9 + parseFloat(self.settings.settings.plugins.m3dfio.HeatbedHeight()) : 54.9, 0);
+					this.orbitControls.target.set(0, 54.9 + parseFloat(self.settings.settings.plugins.m3dfio.ExternalBedHeight()), 0);
 					this.orbitControls.minDistance = 200;
 					this.orbitControls.maxDistance = 500;
 					this.orbitControls.minPolarAngle = 0;
@@ -2425,7 +2408,7 @@ $(function() {
 									viewport.models[i].adhesion.mesh.geometry.center();
 									
 									// Set adhesion's orientation
-									viewport.models[i].adhesion.mesh.position.set(viewport.models[i].mesh.position.x, 0, viewport.models[i].mesh.position.z);
+									viewport.models[i].adhesion.mesh.position.set(viewport.models[i].mesh.position.x, bedLowMinZ, viewport.models[i].mesh.position.z);
 									viewport.models[i].adhesion.mesh.rotation.set(0, 0, 0);
 									var boundaryBox = new THREE.Box3().setFromObject(viewport.models[i].mesh);
 									viewport.models[i].adhesion.mesh.scale.set((boundaryBox.max.x - boundaryBox.min.x + viewport.adhesionSize * 2) / (boundaryBox.max.x - boundaryBox.min.x), 0.000000000001, (boundaryBox.max.z - boundaryBox.min.z + viewport.adhesionSize * 2) / (boundaryBox.max.z - boundaryBox.min.z));
@@ -7179,30 +7162,14 @@ $(function() {
 								// On success									
 								success: function(data) {
 							
-									// Check if using a heatbed
-									if(usingHeatbed) {
-		
-										// Adjust bed Z values
-										bedLowMaxZ = 5.0;
-										bedLowMinZ = 0.0;
-										bedMediumMinZ = bedLowMaxZ;
-										bedMediumMaxZ = 73.5 - parseFloat(self.settings.settings.plugins.m3dfio.HeatbedHeight());
-										bedHighMaxZ = 112.0 - parseFloat(self.settings.settings.plugins.m3dfio.HeatbedHeight());
-										bedHighMinZ = bedMediumMaxZ;
-									}
-		
-									// Otherwise
-									else {
-		
-										// Set bed Z values to defaults
-										bedLowMaxZ = 5.0;
-										bedLowMinZ = 0.0;
-										bedMediumMinZ = bedLowMaxZ;
-										bedMediumMaxZ = 73.5;
-										bedHighMaxZ = 112.0;
-										bedHighMinZ = bedMediumMaxZ;
-									}
-							
+									// Adjust bed Z values to account for external bed height
+									bedLowMaxZ = 5.0;
+									bedLowMinZ = 0.0;
+									bedMediumMinZ = bedLowMaxZ;
+									bedMediumMaxZ = 73.5 - parseFloat(self.settings.settings.plugins.m3dfio.ExternalBedHeight());
+									bedHighMaxZ = 112.0 - parseFloat(self.settings.settings.plugins.m3dfio.ExternalBedHeight());
+									bedHighMinZ = bedMediumMaxZ;
+									
 									// Set move Z
 									var moveZ = currentZ + 3;
 									if(currentZ <= bedMediumMaxZ && moveZ >= bedHighMinZ)
@@ -9866,9 +9833,6 @@ $(function() {
 				// Display heatbed controls
 				$("#control .heatbed, #settings_plugin_m3dfio .heatbed, body > div.page-container > div.message .heatbed").css("display", "block");
 				$("#control > div.jog-panel.extruder").find("h1:not(.heatbed)").text("Tools");
-				
-				// Set using heatbed
-				usingHeatbed = true;
 			}
 			
 			// Otherwise check if data is that a heatbed is not detected
@@ -9877,9 +9841,6 @@ $(function() {
 				// Hide heatbed controls
 				$("#control .heatbed, #settings_plugin_m3dfio .heatbed, body > div.page-container > div.message .heatbed").css("display", "none");
 				$("#control > div.jog-panel.extruder").find("h1:not(.heatbed)").text("Extruder");
-				
-				// Clear using heatbed
-				usingHeatbed = false;
 			}
 			
 			// Otherwise check if data is that camera is hostable

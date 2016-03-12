@@ -1188,7 +1188,7 @@ class M3DFioPlugin(
 			GpioPin = None,
 			GpioLayer = None,
 			HeatbedTemperature = 70,
-			HeatbedHeight = 10.0,
+			ExternalBedHeight = 0,
 			HostCamera = False,
 			CameraPort = None,
 			CameraWidth = 640,
@@ -1550,7 +1550,7 @@ class M3DFioPlugin(
 						if self._settings.get_int(["GpioLayer"]) is not None :
 							self.sharedLibrary.setGpioLayer(ctypes.c_ushort(self._settings.get_int(["GpioLayer"])))
 						self.sharedLibrary.setHeatbedTemperature(ctypes.c_ushort(self._settings.get_int(["HeatbedTemperature"])))
-						self.sharedLibrary.setHeatbedHeight(ctypes.c_double(self._settings.get_float(["HeatbedHeight"])))
+						self.sharedLibrary.setExternalBedHeight(ctypes.c_double(self._settings.get_float(["ExternalBedHeight"])))
 						self.sharedLibrary.setMidPrintFilamentChangeLayers(ctypes.c_char_p(' '.join(re.findall("\\d+", str(self._settings.get(["MidPrintFilamentChangeLayers"]))))))
 									
 						# Collect print information
@@ -3824,7 +3824,7 @@ class M3DFioPlugin(
 					if self._settings.get_int(["GpioLayer"]) is not None :
 						self.sharedLibrary.setGpioLayer(ctypes.c_ushort(self._settings.get_int(["GpioLayer"])))
 					self.sharedLibrary.setHeatbedTemperature(ctypes.c_ushort(self._settings.get_int(["HeatbedTemperature"])))
-					self.sharedLibrary.setHeatbedHeight(ctypes.c_double(self._settings.get_float(["HeatbedHeight"])))
+					self.sharedLibrary.setExternalBedHeight(ctypes.c_double(self._settings.get_float(["ExternalBedHeight"])))
 					self.sharedLibrary.setMidPrintFilamentChangeLayers(ctypes.c_char_p(' '.join(re.findall("\\d+", str(self._settings.get(["MidPrintFilamentChangeLayers"]))))))
 					
 					# Collect print information
@@ -5495,7 +5495,7 @@ class M3DFioPlugin(
 				if self._settings.get_int(["GpioLayer"]) is not None :
 					self.sharedLibrary.setGpioLayer(ctypes.c_ushort(self._settings.get_int(["GpioLayer"])))
 				self.sharedLibrary.setHeatbedTemperature(ctypes.c_ushort(self._settings.get_int(["HeatbedTemperature"])))
-				self.sharedLibrary.setHeatbedHeight(ctypes.c_double(self._settings.get_float(["HeatbedHeight"])))
+				self.sharedLibrary.setExternalBedHeight(ctypes.c_double(self._settings.get_float(["ExternalBedHeight"])))
 				self.sharedLibrary.setMidPrintFilamentChangeLayers(ctypes.c_char_p(' '.join(re.findall("\\d+", str(self._settings.get(["MidPrintFilamentChangeLayers"]))))))
 				
 				# Collect print information
@@ -5616,21 +5616,10 @@ class M3DFioPlugin(
 		tier = "Low"
 		gcode = Gcode()
 		
-		# Check if using a heatbed
-		if self.heatbedConnected :
-		
-			# Adjust bed Z values
-			self.bedMediumMaxZ = 73.5 - self._settings.get_float(["HeatbedHeight"])
-			self.bedHighMaxZ = 112.0 - self._settings.get_float(["HeatbedHeight"])
-			self.bedHighMinZ = self.bedMediumMaxZ
-		
-		# Otherwise
-		else :
-		
-			# Set bed Z values to defaults
-			self.bedMediumMaxZ = 73.5
-			self.bedHighMaxZ = 112.0
-			self.bedHighMinZ = self.bedMediumMaxZ
+		# Adjust bed Z values to account for external bed height
+		self.bedMediumMaxZ = 73.5 - self._settings.get_float(["ExternalBedHeight"])
+		self.bedHighMaxZ = 112.0 - self._settings.get_float(["ExternalBedHeight"])
+		self.bedHighMinZ = self.bedMediumMaxZ
 		
 		# Reset detected fan speed
 		self.detectedFanSpeed = None

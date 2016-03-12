@@ -156,7 +156,7 @@ bool removeTemperatureCommands;
 bool useGpio;
 uint16_t gpioLayer;
 uint16_t heatbedTemperature;
-double heatbedHeight;
+double externalBedHeight;
 int16_t detectedFanSpeed;
 bool detectedMidPrintFilamentChange;
 bool objectSuccessfullyCentered;
@@ -720,10 +720,10 @@ EXPORT void setHeatbedTemperature(unsigned short value) {
 	heatbedTemperature = value;
 }
 
-EXPORT void setHeatbedHeight(double value) {
+EXPORT void setExternalBedHeight(double value) {
 
-	// Set heatbed height
-	heatbedHeight = value;
+	// Set external bed height
+	externalBedHeight = value;
 }
 
 EXPORT void setMidPrintFilamentChangeLayers(const char *value) {
@@ -926,23 +926,10 @@ EXPORT bool collectPrintInformation(const char *file) {
 		bool relativeMode = false;
 		double localX = NAN, localY = NAN, localZ = NAN;
 		
-		// Check if using a heatbed
-		if(usingHeatbed) {
-		
-			// Adjust bed Z values
-			bedMediumMaxZ = 73.5 - heatbedHeight;
-			bedHighMaxZ = 112.0 - heatbedHeight;
-			bedHighMinZ = bedMediumMaxZ;
-		}
-		
-		// Otherwise
-		else {
-		
-			// Set bed Z values to defaults
-			bedMediumMaxZ = 73.5;
-			bedHighMaxZ = 112.0;
-			bedHighMinZ = bedMediumMaxZ;
-		}
+		// Adjust bed Z values to account for external bed height
+		bedMediumMaxZ = 73.5 - externalBedHeight;
+		bedHighMaxZ = 112.0 - externalBedHeight;
+		bedHighMinZ = bedMediumMaxZ;
 		
 		// Reset detected fan speed
 		detectedFanSpeed = -1;
