@@ -619,7 +619,7 @@ body > div.page-container > div.message > div > div > span.show {
 	cursor: default;
 }
 
-#slicing_configuration_dialog .modal-footer a.link, #slicing_configuration_dialog:not(.model):not(.profile) .modal-footer a.save {
+#slicing_configuration_dialog .modal-footer a.link, #slicing_configuration_dialog:not(.model):not(.profile) .modal-footer a.save, #slicing_configuration_dialog:not(.profile) .modal-footer a.skip {
 	display: none;
 }
 

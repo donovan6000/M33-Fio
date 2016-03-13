@@ -1872,7 +1872,8 @@ class M3DFioPlugin(
 					SpeedLimitY = self._settings.get_float(["SpeedLimitY"]),
 					SpeedLimitZ = self._settings.get_float(["SpeedLimitZ"]),
 					SpeedLimitEPositive = self._settings.get_float(["SpeedLimitEPositive"]),
-					SpeedLimitENegative = self._settings.get_float(["SpeedLimitENegative"])
+					SpeedLimitENegative = self._settings.get_float(["SpeedLimitENegative"]),
+					ExternalBedHeight = self._settings.get_float(["ExternalBedHeight"])
 				)
 				
 				# Set file's destination
@@ -2002,6 +2003,9 @@ class M3DFioPlugin(
 				
 				if "SpeedLimitENegative" in printerSettings :
 					self._settings.set_float(["SpeedLimitENegative"], float(printerSettings["SpeedLimitENegative"]))
+				
+				if "ExternalBedHeight" in printerSettings :
+					self._settings.set_float(["ExternalBedHeight"], float(printerSettings["ExternalBedHeight"]))
 				
 				# Check if a Micro 3D is connected and not printing
 				if not self.invalidPrinter and not self._printer.is_printing() :

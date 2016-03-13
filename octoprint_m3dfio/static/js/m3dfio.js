@@ -25,6 +25,7 @@ $(function() {
 		var skippedMessages = 0;
 		var continueWithPrint = false;
 		var waitingCallback = null;
+		var skipModelEditor = false;
 		var self = this;
 		
 		// Get state views
@@ -3721,6 +3722,9 @@ $(function() {
 		// Add save button and warning
 		$("#slicing_configuration_dialog .modal-footer").append("<a href=\"#\" class=\"btn save\" data-dismiss=\"modal\" aria-hidden=\"true\">Save</a><a class=\"link\"></a><p class=\"warning\"></p>");
 		
+		// Add skip model editor button
+		$("#slicing_configuration_dialog > div.modal-footer > .btn-primary").before("<a href=\"#\" class=\"btn skip\" data-dismiss=\"modal\" aria-hidden=\"true\">Skip Model Editor</a>");
+		
 		// Allow positioning OctoPrint instance manager
 		$("div.navbar-inner div.container").css("position", "relative");
 		$("div.navbar-inner ul.nav.pull-right").css("position", "static");
@@ -4722,13 +4726,14 @@ $(function() {
 						if(viewport)
 							viewport.destroy();
 		
-						// Restore slicer
+						// Restore slicer dialog
 						$("#slicing_configuration_dialog").removeClass("profile model");
 						$("#slicing_configuration_dialog p.currentMenu").text("Select Profile");
 						$("#slicing_configuration_dialog .modal-extra").remove();
 						$("#slicing_configuration_dialog .modal-body").css("display", '');
 						$("#slicing_configuration_dialog .modal-cover").removeClass("show").css("z-index", '');
 						$("#slicing_configuration_dialog .modal-footer p.warning").text('');
+						skipModelEditor = false;
 						
 						// Save software settings
 						self.settings.saveData();
@@ -4736,6 +4741,22 @@ $(function() {
 				}
 			}
 		}, 300);
+		
+		// Skip model editor button click event
+		$("#slicing_configuration_dialog > div.modal-footer > a.skip").click(function(event) {
+		
+			// Stop default behavior
+			event.stopImmediatePropagation();
+			
+			// Set skip model editor
+			skipModelEditor = true;
+			
+			// Set slicer menu
+			slicerMenu = "Modify Model";
+			
+			// Skip model editor
+			$("#slicing_configuration_dialog > div.modal-footer > .btn-primary").removeClass("disabled").click();
+		});
 		
 		// Slicer next button click event
 		$("#slicing_configuration_dialog > div.modal-footer > .btn-primary").text("Next").click(function(event) {
@@ -6198,8 +6219,8 @@ $(function() {
 								// Set parameter
 								var parameter = [];
 								
-								// Check if WebGL is supported
-								if(Detector.webgl) {
+								// Check if WebGL is supported and not skipping model editor
+								if(Detector.webgl && !skipModelEditor) {
 								
 									// Export scene as an STL
 									var scene = viewport.exportScene();
@@ -6260,8 +6281,8 @@ $(function() {
 									// On success
 									success: function() {
 									
-										// Check if WebGL is supported
-										if(Detector.webgl) {
+										// Check if WebGL is supported and not skipping model editor
+										if(Detector.webgl && !skipModelEditor) {
 								
 											// Create request
 											var form = new FormData();
