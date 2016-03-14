@@ -2244,7 +2244,8 @@ class M3DFioPlugin(
 					self._printer.cancel_print()
 			
 				# Send emergency stop immediately to the printer
-				self._printer.get_transport().write("M0")
+				if isinstance(self._printer.get_transport(), serial.Serial) :
+					self._printer.get_transport().write("M0")
 			
 			# Otherwise check if parameter is ping
 			elif data["value"] == "Ping" :
@@ -3639,8 +3640,8 @@ class M3DFioPlugin(
 				# Hide shared library options
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Not Using Shared Library"))
 			
-			# Check if EEPROM was read
-			if self.eeprom is not None :
+			# Check if EEPROM was read and connection to the printer has been established
+			if self.eeprom is not None and isinstance(self._printer.get_transport(), serial.Serial) :
 			
 				# Send eeprom
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "EEPROM", eeprom = self.eeprom.encode("hex").upper()))
@@ -4723,7 +4724,7 @@ class M3DFioPlugin(
 			if "MACHINE_TYPE:The_Micro" not in data :
 				
 				# Set write and read functions back to original
-				if self.originalWrite is not None :
+				if self.originalWrite is not None and isinstance(self._printer.get_transport(), serial.Serial) :
 					self._printer.get_transport().write = self.originalWrite
 					self._printer.get_transport().readline = self.originalRead
 				
