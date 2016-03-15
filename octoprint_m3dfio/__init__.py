@@ -597,7 +597,7 @@ class M3DFioPlugin(
 			device = port[2].upper()
 			
 			# Check if port contains the correct VID and PID
-			if device.startswith("USB VID:PID=1A86:7523") :
+			if device.startswith("USB VID:PID=2341:0042") :
 			
 				# Return serial port
 				return port[0]
@@ -3295,6 +3295,7 @@ class M3DFioPlugin(
 						self.sendCommands(["N0 M110", "G90"])
 						if self._printer._comm is not None :
 							self._printer._comm._gcode_M110_sending("N1")
+							self._printer._comm._long_running_command = True
 					
 					# Set command to nothing
 					gcode.removeParameter('M')

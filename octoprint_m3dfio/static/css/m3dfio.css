@@ -99,12 +99,13 @@
 	outline: none;
 }
 
-#settings_plugin_m3dfio label.control-label {
-	cursor: default;
-}
-
 #settings_plugin_m3dfio div.input-append {
 	width: calc(100% - 24px);
+}
+
+#settings_plugin_m3dfio div.control-group.empty {
+	margin-top: 0;
+	margin-bottom: 3px;
 }
 
 #settings_plugin_m3dfio input[type="number"], #settings_plugin_m3dfio select {
@@ -545,8 +546,23 @@ body > div.page-container > div.message > div > div > div.printSettings input, b
 	width: 145px;
 }
 
-body > div.page-container > div.message > div > div > div.printSettings div.heatbed input, body > div.page-container > div.message > div > div > div.filamentSettings div.heatbed input {
+body > div.page-container > div.message > div > div > div.printSettings div.heatbed input {
 	width: 146px;
+}
+
+body > div.page-container > div.message > div > div > div.filamentSettings p {
+	text-align: center;
+	font-size: 14px;
+	cursor: default;
+	margin-top: -10px;
+}
+
+body > div.page-container > div.message > div > div > div.filamentSettings p > ul {
+	display: inline;
+	margin: 0;
+	list-style-type: none;
+	font-size: 13px;
+	color: #999;
 }
 
 body > div.page-container > div.message > div > div > div.printSettings label[title] {

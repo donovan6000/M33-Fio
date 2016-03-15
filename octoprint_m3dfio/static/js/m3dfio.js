@@ -654,6 +654,7 @@ $(function() {
 						else if(currentMessage.secondButton == "Unload" || currentMessage.secondButton == "Load" || currentMessage.secondButton == "Set") {
 							$("body > div.page-container > div.message > div > div > div.filamentSettings input").eq(0).val(self.settings.settings.plugins.m3dfio.FilamentTemperature());
 							$("body > div.page-container > div.message > div > div > div.filamentSettings label").text((currentMessage.secondButton == "Set" ? "New Print" : currentMessage.secondButton) + " Temperature");
+							$("body > div.page-container > div.message > div > div > div.filamentSettings p").html("Recommended<ul>" + (currentMessage.secondButton == "Unload" ? "<li>285°C for ABS</li><li>225°C for PLA</li><li>275°C for HIPS</li><li>255°C for FLX</li><li>255°C for TGH</li><li>210°C for CAM</li>" : "<li>275°C for ABS</li><li>215°C for PLA</li><li>265°C for HIPS</li><li>245°C for FLX</li><li>245°C for TGH</li><li>200°C for CAM</li>") + "</ul>");
 							$("body > div.page-container > div.message > div > div > div.filamentSettings").addClass("show");
 						}
 					}
@@ -3679,6 +3680,7 @@ $(function() {
 									</div>
 								</div>
 							</div>
+							<p></p>
 						</div>
 						<div>
 							<button class="btn btn-block confirm"></button>
@@ -4319,6 +4321,13 @@ $(function() {
 					contentType: "application/json; charset=UTF-8"
 				});
 			}
+		});
+		
+		// Setting label click event
+		$("#settings_plugin_m3dfio label.control-label").click(function() {
+		
+			// Focus on input
+			$(this).siblings("div.controls").find("input").focus();
 		});
 		
 		// Download log click event
@@ -7462,6 +7471,7 @@ $(function() {
 																								"G0 E" + (currentE - 0.3) + " F345",
 																								"G0 X" + currentX + " Y" + currentY + " F2000",
 																								"G0 Z" + currentZ + " F90",
+																								"G0 F300",
 																								"M65536;wait"
 																							];
 														
