@@ -1606,10 +1606,18 @@ class M3DFioPlugin(
 				if platform.uname()[0].startswith("Windows") :
 					destination = destination.replace('/', '\\')
 				
+				# Empty command queue
+				self.emptyCommandQueue()
+				
 				# Set first line number to zero and clear history
 				if self._printer._comm is not None :
 					self._printer._comm._gcode_M110_sending("N0")
 					self._printer._comm._long_running_command = True
+				
+				# Clear sent commands
+				self.sentCommands = {}
+				self.resetLineNumberCommandSent = False
+				self.numberWrapCounter = 0
 				
 				# Print test border
 				self._printer.select_file(destination, False, True)
@@ -2234,14 +2242,24 @@ class M3DFioPlugin(
 			# Otherwise check if parameter is emergency stop
 			elif data["value"] == "Emergency Stop" :
 			
-				# Empty command queue
-				self.emptyCommandQueue()
-			
 				# Check if printing or paused
 				if self._printer.is_printing() or self._printer.is_paused() :
 			
 					# Stop printing
 					self._printer.cancel_print()
+			
+				# Empty command queue
+				self.emptyCommandQueue()
+				
+				# Set first line number to zero and clear history
+				if self._printer._comm is not None :
+					self._printer._comm._gcode_M110_sending("N0")
+					self._printer._comm._long_running_command = True
+				
+				# Clear sent commands
+				self.sentCommands = {}
+				self.resetLineNumberCommandSent = False
+				self.numberWrapCounter = 0
 			
 				# Send emergency stop immediately to the printer
 				if isinstance(self._printer.get_transport(), serial.Serial) :
@@ -2305,10 +2323,18 @@ class M3DFioPlugin(
 			# Otherwise check if parameter is starting print
 			elif data["value"] == "Starting Print" :
 			
+				# Empty command queue
+				self.emptyCommandQueue()
+				
 				# Set first line number to zero and clear history
 				if self._printer._comm is not None :
 					self._printer._comm._gcode_M110_sending("N0")
 					self._printer._comm._long_running_command = True
+				
+				# Clear sent commands
+				self.sentCommands = {}
+				self.resetLineNumberCommandSent = False
+				self.numberWrapCounter = 0
 		
 		# Otherwise check if command is a file
 		elif command == "file" :
@@ -2971,18 +2997,25 @@ class M3DFioPlugin(
 		
 		# Check if request is hard emergency stop
 		if "M0" in data :
-		
-			# Empty command queue
-			self.emptyCommandQueue()
-			
-			# Clear sent commands
-			self.sentCommands = {}
 			
 			# Check if printing or paused
 			if self._printer.is_printing() or self._printer.is_paused() :
 			
 				# Stop printing
 				self._printer.cancel_print()
+			
+			# Empty command queue
+			self.emptyCommandQueue()
+			
+			# Set first line number to zero and clear history
+			if self._printer._comm is not None :
+				self._printer._comm._gcode_M110_sending("N0")
+				self._printer._comm._long_running_command = True
+			
+			# Clear sent commands
+			self.sentCommands = {}
+			self.resetLineNumberCommandSent = False
+			self.numberWrapCounter = 0
 		
 		# Otherwise check if request is soft emergency stop
 		elif "M65537" in data :
@@ -3007,6 +3040,19 @@ class M3DFioPlugin(
 			
 				# Stop printing
 				self._printer.cancel_print()
+			
+			# Empty command queue
+			self.emptyCommandQueue()
+			
+			# Set first line number to zero and clear history
+			if self._printer._comm is not None :
+				self._printer._comm._gcode_M110_sending("N0")
+				self._printer._comm._long_running_command = True
+			
+			# Clear sent commands
+			self.sentCommands = {}
+			self.resetLineNumberCommandSent = False
+			self.numberWrapCounter = 0
 		
 		# Check if request ends waiting for commands sent
 		if "M65536" in data :
@@ -3204,6 +3250,19 @@ class M3DFioPlugin(
 						# Pause print
 						if self._printer._comm is not None :
 							self._printer._comm.setPause(True)
+						
+						# Empty command queue
+						self.emptyCommandQueue()
+			
+						# Set first line number to zero and clear history
+						if self._printer._comm is not None :
+							self._printer._comm._gcode_M110_sending("N0")
+							self._printer._comm._long_running_command = True
+			
+						# Clear sent commands
+						self.sentCommands = {}
+						self.resetLineNumberCommandSent = False
+						self.numberWrapCounter = 0
 					
 					# Set command to nothing
 					gcode.removeParameter('M')
@@ -3214,6 +3273,19 @@ class M3DFioPlugin(
 				
 					# Check if paused
 					if self._printer.is_paused() :
+					
+						# Empty command queue
+						self.emptyCommandQueue()
+				
+						# Set first line number to zero and clear history
+						if self._printer._comm is not None :
+							self._printer._comm._gcode_M110_sending("N0")
+							self._printer._comm._long_running_command = True
+				
+						# Clear sent commands
+						self.sentCommands = {}
+						self.resetLineNumberCommandSent = False
+						self.numberWrapCounter = 0
 					
 						# Resume print
 						if self._printer._comm is not None :
@@ -3345,7 +3417,7 @@ class M3DFioPlugin(
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Done Waiting"))
 			
 			# Check if waiting for a command to be processed
-			if self.lastLineNumberSent in self.sentCommands :
+			if self.lastLineNumberSent is not None and self.lastLineNumberSent % 0x10000 in self.sentCommands :
 			
 				# Set response to resending command
 				response = "rs " + str(self.lastLineNumberSent) + '\n'
@@ -3917,16 +3989,18 @@ class M3DFioPlugin(
 		# Otherwise check if a print is done
 		elif event == octoprint.events.Events.PRINT_DONE :
 		
+			# Empty command queue
+			self.emptyCommandQueue()
+			
 			# Set first line number to zero and clear history
 			if self._printer._comm is not None :
 				self._printer._comm._gcode_M110_sending("N0")
 				self._printer._comm._long_running_command = True
-		
-			# Empty command queue
-			self.emptyCommandQueue()
 			
 			# Clear sent commands
 			self.sentCommands = {}
+			self.resetLineNumberCommandSent = False
+			self.numberWrapCounter = 0
 		
 			# Check if pre-processing on the fly
 			if self._settings.get_boolean(["PreprocessOnTheFly"]) :
@@ -3958,16 +4032,18 @@ class M3DFioPlugin(
 		# Otherwise check if a print failed
 		elif event == octoprint.events.Events.PRINT_FAILED :
 		
+			# Empty command queue
+			self.emptyCommandQueue()
+			
 			# Set first line number to zero and clear history
 			if self._printer._comm is not None :
 				self._printer._comm._gcode_M110_sending("N0")
 				self._printer._comm._long_running_command = True
-				
-			# Empty command queue
-			self.emptyCommandQueue()
 			
 			# Clear sent commands
 			self.sentCommands = {}
+			self.resetLineNumberCommandSent = False
+			self.numberWrapCounter = 0
 			
 			# Set commands
 			commands = [
