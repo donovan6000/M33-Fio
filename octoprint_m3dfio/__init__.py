@@ -597,7 +597,7 @@ class M3DFioPlugin(
 			device = port[2].upper()
 			
 			# Check if port contains the correct VID and PID
-			if device.startswith("USB VID:PID=2341:0042") :
+			if device.startswith("USB VID:PID=1A86:7523") :
 			
 				# Return serial port
 				return port[0]
