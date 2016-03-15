@@ -115,7 +115,7 @@ class M3DFioPlugin(
 		self.originalWrite = None
 		self.originalRead = None
 		self.invalidPrinter = True
-		self.waiting = False
+		self.waitingUntilCommandsSent = False
 		self.processingSlice = False
 		self.heatbedConnection = None
 		self.heatbedConnected = False
@@ -1300,9 +1300,9 @@ class M3DFioPlugin(
 				else :
 					noLineNumber = False
 			
-				# Set waiting if last command is to wait
+				# Set waiting until commands sent if last command is to wait
 				if data["value"][-1] == "M65536;wait" :
-					self.waiting = True
+					self.waitingUntilCommandsSent = True
 				
 				# Check if not using line numbers or printing
 				if noLineNumber or self._printer.is_printing() :
@@ -3008,12 +3008,12 @@ class M3DFioPlugin(
 				# Stop printing
 				self._printer.cancel_print()
 		
-		# Check if request ends waiting
+		# Check if request ends waiting for commands sent
 		if "M65536" in data :
 			
 			# Set to wait for a wait response
-			if self.waiting :
-				self.waiting = None
+			if self.waitingUntilCommandsSent :
+				self.waitingUntilCommandsSent = None
 			
 			# Send fake acknowledgment
 			self._printer.fake_ack()
@@ -3336,10 +3336,10 @@ class M3DFioPlugin(
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Duplicate Wait"))
 			
 			# Check if waiting for a wait response
-			if self.waiting is None :
+			if self.waitingUntilCommandsSent is None :
 			
-				# Clear waiting
-				self.waiting = False
+				# Clear waiting until commands sent
+				self.waitingUntilCommandsSent = False
 			
 				# Send message
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Done Waiting"))
