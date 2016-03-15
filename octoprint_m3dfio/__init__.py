@@ -8008,12 +8008,22 @@ class M3DFioPlugin(
 	
 			# Check if using Linux
 			if platform.uname()[0].startswith("Linux") :
-			
+				
 				# Set GPIO pin high
-				os.system("echo \"" + str(gpioPin) + "\" > /sys/class/gpio/export")
-				os.system("echo \"out\" > /sys/class/gpio/gpio" + str(gpioPin) + "/direction")
-				os.system("echo \"1\" > /sys/class/gpio/gpio" + str(gpioPin) + "/value")
-				os.system("echo \"" + str(gpioPin) + "\" > /sys/class/gpio/unexport")
+				# try gpio/wiringPi method
+				try:
+					subprocess.call(["gpio", "-g", "mode", str(gpioPin), "out"])
+					subprocess.call(["gpio", "-g", "write", str(gpioPin), "1"])
+				except OSError as e:
+				    if e.errno == os.errno.ENOENT:
+						# wiringPi not found
+						os.system("echo \"" + str(gpioPin) + "\" > /sys/class/gpio/export")
+						os.system("echo \"out\" > /sys/class/gpio/gpio" + str(gpioPin) + "/direction")
+						os.system("echo \"1\" > /sys/class/gpio/gpio" + str(gpioPin) + "/value")
+						os.system("echo \"" + str(gpioPin) + "\" > /sys/class/gpio/unexport")
+				    else:
+				        # Something else went wrong while trying to run `gpio`
+				        raise
 	
 	# Set GPIO pin low
 	def setGpioPinLow(self) :
@@ -8024,12 +8034,22 @@ class M3DFioPlugin(
 	
 			# Check if using Linux
 			if platform.uname()[0].startswith("Linux") :
-		
+				
 				# Set GPIO pin low
-				os.system("echo \"" + str(gpioPin) + "\" > /sys/class/gpio/export")
-				os.system("echo \"out\" > /sys/class/gpio/gpio" + str(gpioPin) + "/direction")
-				os.system("echo \"0\" > /sys/class/gpio/gpio" + str(gpioPin) + "/value")
-				os.system("echo \"" + str(gpioPin) + "\" > /sys/class/gpio/unexport")
+				# try gpio/wiringPi method
+				try:
+					subprocess.call(["gpio", "-g", "mode", str(gpioPin), "out"])
+					subprocess.call(["gpio", "-g", "write", str(gpioPin), "0"])
+				except OSError as e:
+					if e.errno == os.errno.ENOENT:
+						# wiringPi not found
+						os.system("echo \"" + str(gpioPin) + "\" > /sys/class/gpio/export")
+						os.system("echo \"out\" > /sys/class/gpio/gpio" + str(gpioPin) + "/direction")
+						os.system("echo \"0\" > /sys/class/gpio/gpio" + str(gpioPin) + "/value")
+						os.system("echo \"" + str(gpioPin) + "\" > /sys/class/gpio/unexport")
+					else:
+						# Something else went wrong while trying to run `gpio`
+						raise
 
 
 # Plugin info
