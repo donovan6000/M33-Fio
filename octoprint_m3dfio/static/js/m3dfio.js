@@ -10571,6 +10571,16 @@ $(function() {
 				self.settings.requestData().done(updateValues);
 		}
 		
+		// On error event
+		self.onEventError = function(payload) {
+		
+			// Check if error is an unhandled firmware error
+			if($("div.ui-pnotify:last-of-type h4.ui-pnotify-title").text() == "Unhandled firmware error")
+			
+				// Remove error
+				$("div.ui-pnotify:last-of-type").remove();
+		}
+		
 		// On print started event
 		self.onEventPrintStarted = function(payload) {
 		
