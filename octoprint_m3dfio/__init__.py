@@ -1394,6 +1394,9 @@ class M3DFioPlugin(
 				else :
 					self._printer.get_transport().write_timeout = None
 				
+				# Send printer details
+				self.sendPrinterDetails()
+				
 				# Send response
 				if error :
 					return flask.jsonify(dict(value = "Error"))
@@ -1474,6 +1477,9 @@ class M3DFioPlugin(
 					self._printer.get_transport().writeTimeout = None
 				else :
 					self._printer.get_transport().write_timeout = None
+				
+				# Send printer details
+				self.sendPrinterDetails()
 				
 				# Send response
 				if error :
@@ -1675,6 +1681,9 @@ class M3DFioPlugin(
 					self._printer.get_transport().writeTimeout = None
 				else :
 					self._printer.get_transport().write_timeout = None
+				
+				# Send printer details
+				self.sendPrinterDetails()
 				
 				# Send response
 				if self.eeprom is None :
@@ -2290,17 +2299,6 @@ class M3DFioPlugin(
 					self.savedCurrentPort = None
 					self.savedCurrentBaudrate = None
 					self.savedCurrentProfile = None
-					
-					# Wait until connection is established
-					while not isinstance(self._printer.get_transport(), serial.Serial) :
-						time.sleep(0.01)
-				
-					# Remove serial timeout
-					self._printer.get_transport().timeout = None
-					if float(serial.VERSION) < 3 :
-						self._printer.get_transport().writeTimeout = None
-					else :
-						self._printer.get_transport().write_timeout = None
 			
 			# Otherwise check if parameter is to pause
 			elif data["value"] == "Pause" :
@@ -2510,12 +2508,6 @@ class M3DFioPlugin(
 			
 			# Send firmware details
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Current Firmware", name = firmwareName, release = firmwareRelease))
-		
-		# Get serial number from EEPROM
-		serialNumber = self.eeprom[self.eepromOffsets["serialNumber"]["offset"] : self.eepromOffsets["serialNumber"]["offset"] + self.eepromOffsets["serialNumber"]["bytes"] - 1]
-		
-		# Send printer details
-		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Printer Details", serialNumber = serialNumber, serialPort = connection.port))
 		
 		# Return true
 		return True
@@ -3755,11 +3747,8 @@ class M3DFioPlugin(
 				# Send firmware details
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Current Firmware", name = firmwareName, release = firmwareRelease))
 				
-				# Get serial number from EEPROM
-				serialNumber = self.eeprom[self.eepromOffsets["serialNumber"]["offset"] : self.eepromOffsets["serialNumber"]["offset"] + self.eepromOffsets["serialNumber"]["bytes"] - 1]
-				
 				# Send printer details
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Printer Details", serialNumber = serialNumber, serialPort = self._printer.get_transport().port))
+				self.sendPrinterDetails()
 			
 			# Send message if a heatbed is detected
 			if not self.heatbedConnected :
@@ -4162,6 +4151,15 @@ class M3DFioPlugin(
 		
 		# Send OctoPrint instances
 		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Process Details", processes = processes))
+	
+	# Send printer details
+	def sendPrinterDetails(self) :
+	
+		# Get serial number from EEPROM
+		serialNumber = self.eeprom[self.eepromOffsets["serialNumber"]["offset"] : self.eepromOffsets["serialNumber"]["offset"] + self.eepromOffsets["serialNumber"]["bytes"] - 1]
+
+		# Send printer details
+		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Printer Details", serialNumber = serialNumber, serialPort = self._printer.get_transport().port))
 	
 	# Receive data to log
 	def on_printer_add_log(self, data) :
@@ -4779,13 +4777,16 @@ class M3DFioPlugin(
 							self._printer.get_transport().writeTimeout = None
 						else :
 							self._printer.get_transport().write_timeout = None
-				
+						
 						# Check if communication layer has been established
 						if self._printer._comm is not None :
-					
+						
+							# Send printer details
+							self.sendPrinterDetails()
+							
 							# Set printer state to operational
 							self._printer._comm._changeState(self._printer._comm.STATE_OPERATIONAL)
-					
+							
 							# Check if using M3D firmware
 							if self.getFirmwareDetails()[0] == "M3D" :
 		
