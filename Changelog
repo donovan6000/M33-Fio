@@ -1,5 +1,13 @@
 Changelog:
 
+V0.30 March 16, 2016
+
+	* Fixed compatibility with OctoPrint V1.2.10
+	* Fixes issue with dialog system
+	* Made pausing/resuming/canceling a print more reliable when line numbers above 65535 are being sent
+	* Prevents unhandled firmware and communication errors from being displayed
+	* Fixed issue where printer would hang when a command with a line number greater than 65535 isn't sucessfully sent to the printer
+
 V0.29 March 11, 2016
 
 	* Added raft/brim to model editor

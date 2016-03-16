@@ -175,7 +175,7 @@
 			</label>
 		</div>
 	</div>
-	<div class="control-group">
+	<div class="control-group" title="Amount of backlash compensation required for the X motor">
 		<h4>Printer Settings</h4>
 		<label class="control-label">Backlash X</label>
 		<div class="controls">
@@ -185,7 +185,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="control-group">
+	<div class="control-group" title="Amount of backlash compensation required for the Y motor">
 		<label class="control-label">Backlash Y</label>
 		<div class="controls">
 			<div class="input-append">
@@ -194,7 +194,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="control-group">
+	<div class="control-group" title="Speed of the backlash compensation">
 		<label class="control-label">Backlash Speed</label>
 		<div class="controls">
 			<div class="input-append mmPerMinute">
@@ -203,7 +203,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="control-group">
+	<div class="control-group" title="The sum of this value and the back left offset is the total vertical displacement for the back left corner">
 		<label class="control-label">Back Left Orientation</label>
 		<div class="controls">
 			<div class="input-append">
@@ -212,7 +212,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="control-group">
+	<div class="control-group" title="The sum of this value and the back right offset is the total vertical displacement for the back right corner">
 		<label class="control-label">Back Right Orientation</label>
 		<div class="controls">
 			<div class="input-append">
@@ -221,7 +221,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="control-group">
+	<div class="control-group" title="The sum of this value and the front right offset is the total vertical displacement for the front right corner">
 		<label class="control-label">Front Right Orientation</label>
 		<div class="controls">
 			<div class="input-append">
@@ -230,7 +230,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="control-group">
+	<div class="control-group" title="The sum of this value and the front left offset is the total vertical displacement for the front left corner">
 		<label class="control-label">Front Left Orientation</label>
 		<div class="controls">
 			<div class="input-append">
@@ -239,7 +239,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="control-group">
+	<div class="control-group" title="Shifts a print vertically by this value">
 		<label class="control-label">Bed Height Offset</label>
 		<div class="controls">
 			<div class="input-append">
@@ -248,7 +248,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="control-group">
+	<div class="control-group" title="The sum of this value and the back left orientation is the total vertical displacement for the back left corner">
 		<label class="control-label">Back Left Offset</label>
 		<div class="controls">
 			<div class="input-append">
@@ -257,7 +257,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="control-group">
+	<div class="control-group" title="The sum of this value and the back right orientation is the total vertical displacement for the back right corner">
 		<label class="control-label">Back Right Offset</label>
 		<div class="controls">
 			<div class="input-append">
@@ -266,7 +266,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="control-group">
+	<div class="control-group" title="The sum of this value and the front right orientation is the total vertical displacement for the front right corner">
 		<label class="control-label">Front Right Offset</label>
 		<div class="controls">
 			<div class="input-append">
@@ -275,7 +275,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="control-group">
+	<div class="control-group" title="The sum of this value and the front left orientation is the total vertical displacement for the front left corner">
 		<label class="control-label">Front Left Offset</label>
 		<div class="controls">
 			<div class="input-append">
@@ -284,7 +284,16 @@
 			</div>
 		</div>
 	</div>
-	<div class="control-group">
+	<div class="control-group" title="Height of an external object that's placed on the bed, such as a heatbed">
+		<label class="control-label">External Bed Height</label>
+		<div class="controls">
+			<div class="input-append">
+				<input type="number" step="0.01" min="0" max="50" class="input-block-level" data-bind="value: settings.plugins.m3dfio.ExternalBedHeight">
+				<span class="add-on">mm</span>
+			</div>
+		</div>
+	</div>
+	<div class="control-group" title="Extruder's printing temperature">
 		<label class="control-label">Filament Temperature</label>
 		<div class="controls">
 			<div class="input-append degreesCelsius">
@@ -293,7 +302,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="control-group heatbed">
+	<div class="control-group heatbed" title="Heatbed's printing temperature">
 		<label class="control-label">Heatbed Temperature</label>
 		<div class="controls">
 			<div class="input-append degreesCelsius">
@@ -302,16 +311,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="control-group heatbed">
-		<label class="control-label">Heatbed Height</label>
-		<div class="controls">
-			<div class="input-append">
-				<input type="number" step="0.01" min="0" max="20" class="input-block-level" data-bind="value: settings.plugins.m3dfio.HeatbedHeight">
-				<span class="add-on">mm</span>
-			</div>
-		</div>
-	</div>
-	<div class="control-group">
+	<div class="control-group" title="Type of filement being printed">
 		<label class="control-label">Filament Type</label>
 		<div class="controls">
 			<select class="input-block-level" data-bind="value: settings.plugins.m3dfio.FilamentType">
@@ -325,8 +325,10 @@
 			</select> 
 		</div>
 	</div>
-	<div class="control-group">
+	<div class="control-group empty">
 		<h4><span class="label label-important">Changes to speed limits require restarting the printer to take effect</span></h4>
+	</div>
+	<div class="control-group" title="X motor's speed limit">
 		<label class="control-label">Speed Limit X</label>
 		<div class="controls">
 			<div class="input-append mmPerMinute">
@@ -335,7 +337,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="control-group">
+	<div class="control-group" title="Y motor's speed limit">
 		<label class="control-label">Speed Limit Y</label>
 		<div class="controls">
 			<div class="input-append mmPerMinute">
@@ -344,7 +346,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="control-group">
+	<div class="control-group" title="Z motor's speed limit">
 		<label class="control-label">Speed Limit Z</label>
 		<div class="controls">
 			<div class="input-append mmPerMinute">
@@ -353,7 +355,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="control-group">
+	<div class="control-group" title="E motor's extrusion speed limit">
 		<label class="control-label">Speed Limit E+</label>
 		<div class="controls">
 			<div class="input-append mmPerMinute">
@@ -362,7 +364,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="control-group">
+	<div class="control-group" title="E motor's retraction speed limit">
 		<label class="control-label">Speed Limit E-</label>
 		<div class="controls">
 			<div class="input-append mmPerMinute">

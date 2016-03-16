@@ -46,8 +46,30 @@ import zipfile
 from .gcode import Gcode
 from .vector import Vector
 
-# Check if using OS X
-if platform.uname()[0].startswith("Darwin") :
+# Check if using Windows or Linux
+if platform.uname()[0].startswith("Windows") or platform.uname()[0].startswith("Linux") :
+
+	# Import webcam libraries
+	try :
+		import StringIO
+		from PIL import Image
+		import pygame.camera
+	
+	except ImportError :
+		pass
+	
+	# Check if using Linux
+	if platform.uname()[0].startswith("Linux") :
+
+		# Import DBus
+		try :
+			import dbus
+	
+		except ImportError :
+			pass
+
+# Otherwise check if using OS X
+elif platform.uname()[0].startswith("Darwin") :
 
 	# Import OS X frameworks
 	try :
@@ -60,29 +82,7 @@ if platform.uname()[0].startswith("Darwin") :
 	
 	except ImportError :
 		pass
-
-# Otherwise
-else :
-
-	# Import webcam libraries
-	try :
-		import StringIO
-		from PIL import Image
-		import pygame.camera
-	
-	except ImportError :
-		pass
-
-# Check if using Linux
-if platform.uname()[0].startswith("Linux") :
-
-	# Import DBus
-	try :
-		import dbus
-	
-	except ImportError :
-		pass
-
+		
 
 # Command class
 class Command(object) :
@@ -115,7 +115,7 @@ class M3DFioPlugin(
 		self.originalWrite = None
 		self.originalRead = None
 		self.invalidPrinter = True
-		self.waiting = False
+		self.waitingUntilCommandsSent = False
 		self.processingSlice = False
 		self.heatbedConnection = None
 		self.heatbedConnected = False
@@ -1188,7 +1188,7 @@ class M3DFioPlugin(
 			GpioPin = None,
 			GpioLayer = None,
 			HeatbedTemperature = 70,
-			HeatbedHeight = 10.0,
+			ExternalBedHeight = 0,
 			HostCamera = False,
 			CameraPort = None,
 			CameraWidth = 640,
@@ -1300,9 +1300,9 @@ class M3DFioPlugin(
 				else :
 					noLineNumber = False
 			
-				# Set waiting if last command is to wait
+				# Set waiting until commands sent if last command is to wait
 				if data["value"][-1] == "M65536;wait" :
-					self.waiting = True
+					self.waitingUntilCommandsSent = True
 				
 				# Check if not using line numbers or printing
 				if noLineNumber or self._printer.is_printing() :
@@ -1550,7 +1550,7 @@ class M3DFioPlugin(
 						if self._settings.get_int(["GpioLayer"]) is not None :
 							self.sharedLibrary.setGpioLayer(ctypes.c_ushort(self._settings.get_int(["GpioLayer"])))
 						self.sharedLibrary.setHeatbedTemperature(ctypes.c_ushort(self._settings.get_int(["HeatbedTemperature"])))
-						self.sharedLibrary.setHeatbedHeight(ctypes.c_double(self._settings.get_float(["HeatbedHeight"])))
+						self.sharedLibrary.setExternalBedHeight(ctypes.c_double(self._settings.get_float(["ExternalBedHeight"])))
 						self.sharedLibrary.setMidPrintFilamentChangeLayers(ctypes.c_char_p(' '.join(re.findall("\\d+", str(self._settings.get(["MidPrintFilamentChangeLayers"]))))))
 									
 						# Collect print information
@@ -1606,10 +1606,18 @@ class M3DFioPlugin(
 				if platform.uname()[0].startswith("Windows") :
 					destination = destination.replace('/', '\\')
 				
+				# Empty command queue
+				self.emptyCommandQueue()
+				
 				# Set first line number to zero and clear history
 				if self._printer._comm is not None :
 					self._printer._comm._gcode_M110_sending("N0")
 					self._printer._comm._long_running_command = True
+				
+				# Clear sent commands
+				self.sentCommands = {}
+				self.resetLineNumberCommandSent = False
+				self.numberWrapCounter = 0
 				
 				# Print test border
 				self._printer.select_file(destination, False, True)
@@ -1872,7 +1880,8 @@ class M3DFioPlugin(
 					SpeedLimitY = self._settings.get_float(["SpeedLimitY"]),
 					SpeedLimitZ = self._settings.get_float(["SpeedLimitZ"]),
 					SpeedLimitEPositive = self._settings.get_float(["SpeedLimitEPositive"]),
-					SpeedLimitENegative = self._settings.get_float(["SpeedLimitENegative"])
+					SpeedLimitENegative = self._settings.get_float(["SpeedLimitENegative"]),
+					ExternalBedHeight = self._settings.get_float(["ExternalBedHeight"])
 				)
 				
 				# Set file's destination
@@ -2002,6 +2011,9 @@ class M3DFioPlugin(
 				
 				if "SpeedLimitENegative" in printerSettings :
 					self._settings.set_float(["SpeedLimitENegative"], float(printerSettings["SpeedLimitENegative"]))
+				
+				if "ExternalBedHeight" in printerSettings :
+					self._settings.set_float(["ExternalBedHeight"], float(printerSettings["ExternalBedHeight"]))
 				
 				# Check if a Micro 3D is connected and not printing
 				if not self.invalidPrinter and not self._printer.is_printing() :
@@ -2230,17 +2242,28 @@ class M3DFioPlugin(
 			# Otherwise check if parameter is emergency stop
 			elif data["value"] == "Emergency Stop" :
 			
-				# Empty command queue
-				self.emptyCommandQueue()
-			
 				# Check if printing or paused
 				if self._printer.is_printing() or self._printer.is_paused() :
 			
 					# Stop printing
 					self._printer.cancel_print()
 			
+				# Empty command queue
+				self.emptyCommandQueue()
+				
+				# Set first line number to zero and clear history
+				if self._printer._comm is not None :
+					self._printer._comm._gcode_M110_sending("N0")
+					self._printer._comm._long_running_command = True
+				
+				# Clear sent commands
+				self.sentCommands = {}
+				self.resetLineNumberCommandSent = False
+				self.numberWrapCounter = 0
+			
 				# Send emergency stop immediately to the printer
-				self._printer.get_transport().write("M0")
+				if isinstance(self._printer.get_transport(), serial.Serial) :
+					self._printer.get_transport().write("M0")
 			
 			# Otherwise check if parameter is ping
 			elif data["value"] == "Ping" :
@@ -2300,10 +2323,18 @@ class M3DFioPlugin(
 			# Otherwise check if parameter is starting print
 			elif data["value"] == "Starting Print" :
 			
+				# Empty command queue
+				self.emptyCommandQueue()
+				
 				# Set first line number to zero and clear history
 				if self._printer._comm is not None :
 					self._printer._comm._gcode_M110_sending("N0")
 					self._printer._comm._long_running_command = True
+				
+				# Clear sent commands
+				self.sentCommands = {}
+				self.resetLineNumberCommandSent = False
+				self.numberWrapCounter = 0
 		
 		# Otherwise check if command is a file
 		elif command == "file" :
@@ -2881,16 +2912,35 @@ class M3DFioPlugin(
 				command = self._printer._comm._send_queue.get()
 				commands += [(command[0], command[2])]
 			
-			while not self._printer._comm._commandQueue.empty() :
-				command = self._printer._comm._commandQueue.get()
-				commands += [(command[0], command[1])]
+			# Check if deprecated queue name is valid
+			if hasattr(self._printer._comm, "_commandQueue") :
 			
-			# Insert list into queue
-			for command in commands :
-				if isinstance(command, tuple) :
-					self._printer._comm._commandQueue.put(command)
-				else :
-					self._printer._comm._commandQueue.put((command, None))
+				# Append all currently queued commands to list
+				while not self._printer._comm._commandQueue.empty() :
+					command = self._printer._comm._commandQueue.get()
+					commands += [(command[0], command[1])]
+			
+				# Insert list into queue
+				for command in commands :
+					if isinstance(command, tuple) :
+						self._printer._comm._commandQueue.put(command)
+					else :
+						self._printer._comm._commandQueue.put((command, None))
+			
+			# Otherwise
+			else :
+			
+				# Append all currently queued commands to list
+				while not self._printer._comm._command_queue.empty() :
+					command = self._printer._comm._command_queue.get()
+					commands += [(command[0], command[1])]
+			
+				# Insert list into queue
+				for command in commands :
+					if isinstance(command, tuple) :
+						self._printer._comm._command_queue.put(command)
+					else :
+						self._printer._comm._command_queue.put((command, None))
 		
 		# Otherwise
 		else :
@@ -2932,9 +2982,20 @@ class M3DFioPlugin(
 			# Empty command queues
 			while not self._printer._comm._send_queue.empty() :
 				self._printer._comm._send_queue.get()
-		
-			while not self._printer._comm._commandQueue.empty() :
-				self._printer._comm._commandQueue.get()
+			
+			# Check if deprecated queue name is valid
+			if hasattr(self._printer._comm, "_commandQueue") :
+			
+				# Empty command queues
+				while not self._printer._comm._commandQueue.empty() :
+					self._printer._comm._commandQueue.get()
+			
+			# Otherwise
+			else :
+			
+				# Empty command queues
+				while not self._printer._comm._command_queue.empty() :
+					self._printer._comm._command_queue.get()
 	
 	# Process write
 	def processWrite(self, data) :
@@ -2966,18 +3027,25 @@ class M3DFioPlugin(
 		
 		# Check if request is hard emergency stop
 		if "M0" in data :
-		
-			# Empty command queue
-			self.emptyCommandQueue()
-			
-			# Clear sent commands
-			self.sentCommands = {}
 			
 			# Check if printing or paused
 			if self._printer.is_printing() or self._printer.is_paused() :
 			
 				# Stop printing
 				self._printer.cancel_print()
+			
+			# Empty command queue
+			self.emptyCommandQueue()
+			
+			# Set first line number to zero and clear history
+			if self._printer._comm is not None :
+				self._printer._comm._gcode_M110_sending("N0")
+				self._printer._comm._long_running_command = True
+			
+			# Clear sent commands
+			self.sentCommands = {}
+			self.resetLineNumberCommandSent = False
+			self.numberWrapCounter = 0
 		
 		# Otherwise check if request is soft emergency stop
 		elif "M65537" in data :
@@ -3002,13 +3070,26 @@ class M3DFioPlugin(
 			
 				# Stop printing
 				self._printer.cancel_print()
+			
+			# Empty command queue
+			self.emptyCommandQueue()
+			
+			# Set first line number to zero and clear history
+			if self._printer._comm is not None :
+				self._printer._comm._gcode_M110_sending("N0")
+				self._printer._comm._long_running_command = True
+			
+			# Clear sent commands
+			self.sentCommands = {}
+			self.resetLineNumberCommandSent = False
+			self.numberWrapCounter = 0
 		
-		# Check if request ends waiting
+		# Check if request ends waiting for commands sent
 		if "M65536" in data :
 			
 			# Set to wait for a wait response
-			if self.waiting :
-				self.waiting = None
+			if self.waitingUntilCommandsSent :
+				self.waitingUntilCommandsSent = None
 			
 			# Send fake acknowledgment
 			self._printer.fake_ack()
@@ -3138,7 +3219,7 @@ class M3DFioPlugin(
 										command = "T:0.0 B:" + heatbedTemperature
 								
 									self._printer._comm._processTemperatures(command)
-									self._printer._comm._callback.on_comm_temperature_update(self._printer._comm._temp, self._printer._comm._bedTemp)
+									self._printer._comm._callback.on_comm_temperature_update(self._printer._comm.getTemp(), self._printer._comm.getBedTemp())
 									self._printer._addLog("Recv: " + command)
 								
 									# Update communication timeout to prevent other commands from being sent
@@ -3199,6 +3280,19 @@ class M3DFioPlugin(
 						# Pause print
 						if self._printer._comm is not None :
 							self._printer._comm.setPause(True)
+						
+						# Empty command queue
+						self.emptyCommandQueue()
+			
+						# Set first line number to zero and clear history
+						if self._printer._comm is not None :
+							self._printer._comm._gcode_M110_sending("N0")
+							self._printer._comm._long_running_command = True
+			
+						# Clear sent commands
+						self.sentCommands = {}
+						self.resetLineNumberCommandSent = False
+						self.numberWrapCounter = 0
 					
 					# Set command to nothing
 					gcode.removeParameter('M')
@@ -3210,6 +3304,19 @@ class M3DFioPlugin(
 					# Check if paused
 					if self._printer.is_paused() :
 					
+						# Empty command queue
+						self.emptyCommandQueue()
+				
+						# Set first line number to zero and clear history
+						if self._printer._comm is not None :
+							self._printer._comm._gcode_M110_sending("N0")
+							self._printer._comm._long_running_command = True
+				
+						# Clear sent commands
+						self.sentCommands = {}
+						self.resetLineNumberCommandSent = False
+						self.numberWrapCounter = 0
+					
 						# Resume print
 						if self._printer._comm is not None :
 							self._printer._comm.setPause(False)
@@ -3218,6 +3325,7 @@ class M3DFioPlugin(
 						self.sendCommands(["N0 M110", "G90"])
 						if self._printer._comm is not None :
 							self._printer._comm._gcode_M110_sending("N1")
+							self._printer._comm._long_running_command = True
 					
 					# Set command to nothing
 					gcode.removeParameter('M')
@@ -3331,16 +3439,16 @@ class M3DFioPlugin(
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Duplicate Wait"))
 			
 			# Check if waiting for a wait response
-			if self.waiting is None :
+			if self.waitingUntilCommandsSent is None :
 			
-				# Clear waiting
-				self.waiting = False
+				# Clear waiting until commands sent
+				self.waitingUntilCommandsSent = False
 			
 				# Send message
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Done Waiting"))
 			
 			# Check if waiting for a command to be processed
-			if self.lastLineNumberSent in self.sentCommands :
+			if self.lastLineNumberSent is not None and self.lastLineNumberSent % 0x10000 in self.sentCommands :
 			
 				# Set response to resending command
 				response = "rs " + str(self.lastLineNumberSent) + '\n'
@@ -3635,8 +3743,8 @@ class M3DFioPlugin(
 				# Hide shared library options
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Not Using Shared Library"))
 			
-			# Check if EEPROM was read
-			if self.eeprom is not None :
+			# Check if EEPROM was read and connection to the printer has been established
+			if self.eeprom is not None and isinstance(self._printer.get_transport(), serial.Serial) :
 			
 				# Send eeprom
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "EEPROM", eeprom = self.eeprom.encode("hex").upper()))
@@ -3824,7 +3932,7 @@ class M3DFioPlugin(
 					if self._settings.get_int(["GpioLayer"]) is not None :
 						self.sharedLibrary.setGpioLayer(ctypes.c_ushort(self._settings.get_int(["GpioLayer"])))
 					self.sharedLibrary.setHeatbedTemperature(ctypes.c_ushort(self._settings.get_int(["HeatbedTemperature"])))
-					self.sharedLibrary.setHeatbedHeight(ctypes.c_double(self._settings.get_float(["HeatbedHeight"])))
+					self.sharedLibrary.setExternalBedHeight(ctypes.c_double(self._settings.get_float(["ExternalBedHeight"])))
 					self.sharedLibrary.setMidPrintFilamentChangeLayers(ctypes.c_char_p(' '.join(re.findall("\\d+", str(self._settings.get(["MidPrintFilamentChangeLayers"]))))))
 					
 					# Collect print information
@@ -3912,16 +4020,18 @@ class M3DFioPlugin(
 		# Otherwise check if a print is done
 		elif event == octoprint.events.Events.PRINT_DONE :
 		
+			# Empty command queue
+			self.emptyCommandQueue()
+			
 			# Set first line number to zero and clear history
 			if self._printer._comm is not None :
 				self._printer._comm._gcode_M110_sending("N0")
 				self._printer._comm._long_running_command = True
-		
-			# Empty command queue
-			self.emptyCommandQueue()
 			
 			# Clear sent commands
 			self.sentCommands = {}
+			self.resetLineNumberCommandSent = False
+			self.numberWrapCounter = 0
 		
 			# Check if pre-processing on the fly
 			if self._settings.get_boolean(["PreprocessOnTheFly"]) :
@@ -3953,16 +4063,18 @@ class M3DFioPlugin(
 		# Otherwise check if a print failed
 		elif event == octoprint.events.Events.PRINT_FAILED :
 		
+			# Empty command queue
+			self.emptyCommandQueue()
+			
 			# Set first line number to zero and clear history
 			if self._printer._comm is not None :
 				self._printer._comm._gcode_M110_sending("N0")
 				self._printer._comm._long_running_command = True
-				
-			# Empty command queue
-			self.emptyCommandQueue()
 			
 			# Clear sent commands
 			self.sentCommands = {}
+			self.resetLineNumberCommandSent = False
+			self.numberWrapCounter = 0
 			
 			# Set commands
 			commands = [
@@ -4083,631 +4195,614 @@ class M3DFioPlugin(
 					pass
 			
 			self._printer.disconnect()
-
-			# Connect to the printer
-			connection = serial.Serial(currentPort, currentBaudrate)
 			
-			# Attempt to get current printer mode
-			try :
-				connection.write("M115")
-				bootloaderVersion = connection.read()
-				
-				if float(serial.VERSION) < 3 :
-					bootloaderVersion += connection.read(connection.inWaiting())
-				else :
-					bootloaderVersion += connection.read(connection.in_waiting)
-			
-			# Check if an error occured
-			except serial.SerialException :
-			
-				# Set error
-				error = True
-			
-			# Check if no errors occured
-			if not error :
-			
-				# Check if not in bootloader mode
-				if not bootloaderVersion.startswith('B') :
-			
-					# Save ports
-					self.savePorts(currentPort)
-					
-					# Switch to bootloader mode
-					connection.write("M115 S628")
-					
-					try :
-						gcode = Gcode("M115 S628")
-						connection.write(gcode.getBinary())
-					
-					# Check if an error occured
-					except serial.SerialException :	
-						pass
-					
-					time.sleep(1)
-					
-					# Close connection
-					connection.close()
-					
-					# Set updated port
-					currentPort = self.getPort()
-					
-					# Check if printer wasn't found
-					if currentPort is None :
-						
-						# Send message
-						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "No Micro 3D printer detected. Try cycling the printer's power and try again.", confirm = True))
-						
-						# Set error
-						error = True
-					
-					# Otherwise
-					else :
-				
-						# Re-connect; wait for the device to be available
-						connection = None
-						for i in xrange(5) :
-							try :
-								connection = serial.Serial(currentPort, currentBaudrate)
-								break
-						
-							except Exception :
-								connection = None
-								time.sleep(1)
-					
-						# Check if using OS X or Linux and the user lacks read/write access to the printer
-						if (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(currentPort, os.R_OK | os.W_OK) :
-	
-							# Send message
-							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "You don't have read/write access to " + str(port), confirm = True))
-							
-							# Set error
-							error = True
-	
-						# Otherwise check if connecting to printer failed
-						elif connection is None :
-	
-							# Send message
-							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "No Micro 3D printer detected. Try cycling the printer's power and try again.", confirm = True))
-							
-							# Set error
-							error = True
-			
-				# Check if an error hasn't occured and getting EEPROM was successful
-				if not error and self.getEeprom(connection) :
-					
-					# Get firmware CRC from EEPROM
-					index = 0
-					eepromCrc = 0
-					while index < 4 :
-						eepromCrc <<= 8
-						eepromCrc += int(ord(self.eeprom[self.eepromOffsets["firmwareCrc"]["offset"] + index]))
-						index += 1
-				
-					# Request firmware CRC from chip
-					connection.write('C')
-					connection.write('A')
-
-					# Get response
-					response = connection.read(4)
-
-					# Get chip CRC
-					index = 0
-					chipCrc = 0
-					while index < 4 :
-						chipCrc <<= 8
-						chipCrc += int(ord(response[index]))
-						index += 1
-					
-					# Get firmware details
-					firmwareName, firmwareVersion, firmwareRelease = self.getFirmwareDetails()
-					
-					# Get serial number from EEPROM
-					serialNumber = self.eeprom[self.eepromOffsets["serialNumber"]["offset"] : self.eepromOffsets["serialNumber"]["offset"] + self.eepromOffsets["serialNumber"]["bytes"] - 1]
-				
-					# Set printer color
-					color = serialNumber[0 : 2]
-					if color == "BK" :
-						self.printerColor = "Black"
-						self._settings.set(["PrinterColor"], "Black")
-					elif color == "WH" :
-						self.printerColor = "White"
-						self._settings.set(["PrinterColor"], "White")
-					elif color == "BL" :
-						self.printerColor = "Blue"
-						self._settings.set(["PrinterColor"], "Blue")
-					elif color == "GR" :
-						self.printerColor = "Green"
-						self._settings.set(["PrinterColor"], "Green")
-					elif color == "OR" :
-						self.printerColor = "Orange"
-						self._settings.set(["PrinterColor"], "Orange")
-					elif color == "CL" :
-						self.printerColor = "Clear"
-						self._settings.set(["PrinterColor"], "Clear")
-					elif color == "SL" :
-						self.printerColor = "Silver"
-						self._settings.set(["PrinterColor"], "Silver")
-					elif color == "PL" :
-						self.printerColor = "Purple"
-						self._settings.set(["PrinterColor"], "Purple")
-				
-					# Get fan type from EEPROM
-					fanType = int(ord(self.eeprom[self.eepromOffsets["fanType"]["offset"]]))
-				
-					# Check if fan hasn't been set yet
-					if fanType == 0 or fanType == 0xFF :
-		
-						# Check if device is newer
-						if int(serialNumber[2 : 8]) >= 150602 :
-		
-							# Set default newer fan
-							fanName = "Shenzhew"
-					
-						# Otherwise
-						else :
-					
-							# Set default older fan
-							fanName = "HengLiXin"
-					
-						# Check if setting fan failed
-						if not self.setFan(connection, fanName) :
-			
-							# Set error
-							error = True
-					
-						# Check if an error occured
-						if error :
-					
-							# Display error
-							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Setting fan failed", confirm = True))
-				
-					# Otherwise
-					else :
-				
-						# Set fan name
-						if fanType == 1 :
-							fanName = "HengLiXin"
-						elif fanType == 2 :
-							fanName = "Listener"
-						elif fanType == 3 :
-							fanName = "Shenzhew"
-						elif fanType == 4 :
-							fanName = "Xinyujie"
-					
-						# Check if updating fan failed
-						if not self.setFan(connection, fanName) :
-					
-							# Set error
-							error = True
-					
-							# Display error
-							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating fan settings failed", confirm = True))
-				
-					# Check if printer uses 500mA extruder current
-					shortSerialNumber = serialNumber[0 : 13]
-					if not error and (shortSerialNumber == "BK15033001100" or shortSerialNumber == "BK15040201050" or shortSerialNumber == "BK15040301050" or shortSerialNumber == "BK15040602050" or shortSerialNumber == "BK15040801050" or shortSerialNumber == "BK15040802100" or shortSerialNumber == "GR15032702100" or shortSerialNumber == "GR15033101100" or shortSerialNumber == "GR15040601100" or shortSerialNumber == "GR15040701100" or shortSerialNumber == "OR15032701100" or shortSerialNumber == "SL15032601050") :
-				
-						# Check if setting extruder current failed
-						if not self.setExtruderCurrent(connection, 500) :
-					
-							# Set error
-							error = True
-					
-							# Display error
-							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating extruder current failed", confirm = True))
-				
-					# Check if using M3D firmware and it's from before new bed orientation and adjustable backlash speed
-					if not error and firmwareName is not None and firmwareName == "M3D" and firmwareVersion < 2015080402 :
-					
-						# Go through bytes of bed offsets
-						index = 0
-						while index < 19 :
-
-							# Check if zeroing out all bed offets in EEPROM failed
-							if not error and not self.writeToEeprom(connection, self.eepromOffsets["bedOffsetBackLeft"]["offset"] + index, '\x00') :
-				
-								# Set error
-								error = True
-			
-							# Increment index
-							index += 1
-					
-						# Check if an error hasn't occured
-						if not error :
-					
-							# Convert default backlash speed to binary
-							packed = struct.pack('f', 1500)
-							backlashSpeed = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
-		
-							# Go through bytes of backlash speed
-							index = 0
-							while index < 4 :
-		
-								# Check if saving backlash speed failed
-								if not error and not self.writeToEeprom(connection, self.eepromOffsets["backlashSpeed"]["offset"] + index, chr((backlashSpeed >> 8 * index) & 0xFF)) :
-		
-									# Set error
-									error = True
-			
-								# Increment index
-								index += 1
-						
-						# Check if an error has occured
-						if error :
-					
-							# Display error
-							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating version changes failed", confirm = True))
-				
-					# Check if an error hasn't occured
-					if not error :
-				
-						# Get speed limit X
-						data = [int(ord(self.eeprom[self.eepromOffsets["speedLimitX"]["offset"]])), int(ord(self.eeprom[self.eepromOffsets["speedLimitX"]["offset"] + 1])), int(ord(self.eeprom[self.eepromOffsets["speedLimitX"]["offset"] + 2])), int(ord(self.eeprom[self.eepromOffsets["speedLimitX"]["offset"] + 3]))]
-						bytes = struct.pack("4B", *data)
-						speedLimitX = round(struct.unpack('f', bytes)[0], 6)
-				
-						# Check if speed limit X is invalid
-						if math.isnan(speedLimitX) or speedLimitX < 120 or speedLimitX > 4800 :
-				
-							# Convert default speed limit X to binary
-							packed = struct.pack('f', 1500)
-							speedLimitX = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
-				
-							# Go through bytes of speed limit X
-							index = 0
-							while index < 4 :
-				
-								# Check if saving speed limit X failed
-								if not error and not self.writeToEeprom(connection, self.eepromOffsets["speedLimitX"]["offset"] + index, chr((speedLimitX >> 8 * index) & 0xFF)) :
-				
-									# Set error
-									error = True
-				
-								# Increment index
-								index += 1
-					
-						# Check if an error hasn't occured
-						if not error :
-					
-							# Get speed limit Y
-							data = [int(ord(self.eeprom[self.eepromOffsets["speedLimitY"]["offset"]])), int(ord(self.eeprom[self.eepromOffsets["speedLimitY"]["offset"] + 1])), int(ord(self.eeprom[self.eepromOffsets["speedLimitY"]["offset"] + 2])), int(ord(self.eeprom[self.eepromOffsets["speedLimitY"]["offset"] + 3]))]
-							bytes = struct.pack("4B", *data)
-							speedLimitY = round(struct.unpack('f', bytes)[0], 6)
-				
-							# Check if speed limit Y is invalid
-							if math.isnan(speedLimitY) or speedLimitY < 120 or speedLimitY > 4800 :
-				
-								# Convert default speed limit Y to binary
-								packed = struct.pack('f', 1500)
-								speedLimitY = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
-				
-								# Go through bytes of speed limit Y
-								index = 0
-								while index < 4 :
-				
-									# Check if saving speed limit Y failed
-									if not error and not self.writeToEeprom(connection, self.eepromOffsets["speedLimitY"]["offset"] + index, chr((speedLimitY >> 8 * index) & 0xFF)) :
-				
-										# Set error
-										error = True
-				
-									# Increment index
-									index += 1
-					
-						# Check if an error hasn't occured
-						if not error :
-					
-							# Get speed limit Z
-							data = [int(ord(self.eeprom[self.eepromOffsets["speedLimitZ"]["offset"]])), int(ord(self.eeprom[self.eepromOffsets["speedLimitZ"]["offset"] + 1])), int(ord(self.eeprom[self.eepromOffsets["speedLimitZ"]["offset"] + 2])), int(ord(self.eeprom[self.eepromOffsets["speedLimitZ"]["offset"] + 3]))]
-							bytes = struct.pack("4B", *data)
-							speedLimitZ = round(struct.unpack('f', bytes)[0], 6)
-				
-							# Check if speed limit Z is invalid
-							if math.isnan(speedLimitZ) or speedLimitZ < 30 or speedLimitZ > 60 :
-							
-								# Convert default speed limit Z to binary
-								packed = struct.pack('f', 60)
-								speedLimitZ = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
-				
-								# Go through bytes of speed limit Z
-								index = 0
-								while index < 4 :
-				
-									# Check if saving speed limit Z failed
-									if not error and not self.writeToEeprom(connection, self.eepromOffsets["speedLimitZ"]["offset"] + index, chr((speedLimitZ >> 8 * index) & 0xFF)) :
-				
-										# Set error
-										error = True
-				
-									# Increment index
-									index += 1
-				
-						# Check if an error hasn't occured
-						if not error :
-					
-							# Get speed limit E positive
-							data = [int(ord(self.eeprom[self.eepromOffsets["speedLimitEPositive"]["offset"]])), int(ord(self.eeprom[self.eepromOffsets["speedLimitEPositive"]["offset"] + 1])), int(ord(self.eeprom[self.eepromOffsets["speedLimitEPositive"]["offset"] + 2])), int(ord(self.eeprom[self.eepromOffsets["speedLimitEPositive"]["offset"] + 3]))]
-							bytes = struct.pack("4B", *data)
-							speedLimitEPositive = round(struct.unpack('f', bytes)[0], 6)
-				
-							# Check if speed limit E positive is invalid
-							if math.isnan(speedLimitEPositive) or speedLimitEPositive < 60 or speedLimitEPositive > 600 :
-				
-								# Convert default speed limit E positive to binary
-								packed = struct.pack('f', 102)
-								speedLimitEPositive = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
-				
-								# Go through bytes of speed limit E positive
-								index = 0
-								while index < 4 :
-				
-									# Check if saving speed limit E positive failed
-									if not error and not self.writeToEeprom(connection, self.eepromOffsets["speedLimitEPositive"]["offset"] + index, chr((speedLimitEPositive >> 8 * index) & 0xFF)) :
-				
-										# Set error
-										error = True
-				
-									# Increment index
-									index += 1
-					
-						# Check if an error hasn't occured
-						if not error :
-					
-							# Get speed limit E negative
-							data = [int(ord(self.eeprom[self.eepromOffsets["speedLimitENegative"]["offset"]])), int(ord(self.eeprom[self.eepromOffsets["speedLimitENegative"]["offset"] + 1])), int(ord(self.eeprom[self.eepromOffsets["speedLimitENegative"]["offset"] + 2])), int(ord(self.eeprom[self.eepromOffsets["speedLimitENegative"]["offset"] + 3]))]
-							bytes = struct.pack("4B", *data)
-							speedLimitENegative = round(struct.unpack('f', bytes)[0], 6)
-				
-							# Check if speed limit E negative is invalid
-							if math.isnan(speedLimitENegative) or speedLimitENegative < 60 or speedLimitENegative > 720 :
-				
-								# Convert default speed limit E negative to binary
-								packed = struct.pack('f', 360)
-								speedLimitENegative = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
-				
-								# Go through bytes of speed limit E negative
-								index = 0
-								while index < 4 :
-				
-									# Check if saving speed limit E negative failed
-									if not error and not self.writeToEeprom(connection, self.eepromOffsets["speedLimitENegative"]["offset"] + index, chr((speedLimitENegative >> 8 * index) & 0xFF)) :
-				
-										# Set error
-										error = True
-				
-									# Increment index
-									index += 1
-				
-						# Check if an error has occured
-						if error :
-				
-							# Display error
-							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating speed limits failed", confirm = True))
-				
-					# Check if firmware is corrupt
-					if not error and eepromCrc != chipCrc :
-					
-						# Set temp firmware name
-						if firmwareName is None :
-							currentFirmwareName = "M3D"
-						else :
-							currentFirmwareName = firmwareName
-				
-						# Display message
-						self.messageResponse = None
-						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Firmware is corrupt. Update to " + currentFirmwareName + " firmware version " + self.providedFirmwares[currentFirmwareName]["Release"] + '?', response = True))
-					
-						# Wait until response is obtained
-						while self.messageResponse is None :
-							time.sleep(0.01)
-					
-						# Check if response was no
-						if not self.messageResponse :
-					
-							# Set error
-							error = True
-				
-						# Otherwise
-						else :
-					
-							# Send message
-							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating firmware"))
-					
-							# Check if updating firmware failed
-							if not self.updateToProvidedFirmware(connection, currentFirmwareName) :
-					
-								# Send message
-								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating firmware failed", confirm = True))
-							
-								# Set error
-								error = True
-						
-							# Otherwise
-							else :
-					
-								# Send message
-								self.messageResponse = None
-								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating firmware was successful", confirm = True))
-					
-								# Wait until response is obtained
-								while self.messageResponse is None :
-									time.sleep(0.01)
-					
-					# Otherwise check if firmware is outdated
-					elif not error and firmwareName is not None and firmwareVersion < int(self.providedFirmwares[firmwareName]["Version"]) :
-				
-						# Set if firmware is incompatible
-						if firmwareName == "M3D" :
-							incompatible = firmwareVersion < 2015122112
-						elif firmwareName == "iMe" :
-							incompatible = firmwareVersion < 1900000001
-						
-						# Display message
-						self.messageResponse = None
-						if incompatible :
-							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Firmware is incompatible. Update to " + firmwareName + " firmware version " + self.providedFirmwares[firmwareName]["Release"] + '?', response = True))
-						else :
-							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Newer firmware available. Update to " + firmwareName + " firmware version " + self.providedFirmwares[firmwareName]["Release"] + '?', response = True))
-					
-						# Wait until response is obtained
-						while self.messageResponse is None :
-							time.sleep(0.01)
-					
-						# Check if response was no
-						if not self.messageResponse :
-					
-							# Set error if incompatible
-							if incompatible :
-								error = True
-				
-						# Otherwise
-						else :
-					
-							# Send message
-							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating firmware"))
-							
-							# Check if updating firmware failed
-							if not self.updateToProvidedFirmware(connection, firmwareName) :
-					
-								# Send message
-								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating firmware failed", confirm = True))
-							
-								# Set error
-								error = True
-						
-							# Otherwise
-							else :
-					
-								# Send message
-								self.messageResponse = None
-								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating firmware was successful", confirm = True))
-					
-								# Wait until response is obtained
-								while self.messageResponse is None :
-									time.sleep(0.01)
-				
-					# Check if no errors occured
-					if not error :
-				
-						# Send new EEPROM
-						self.getEeprom(connection, True)
-			
-				# Otherwise
-				else :
-			
-					# Set error
-					error = True
-			
-			# Close connection
-			connection.close()
-			
-			# Check if an error has occured
-			if error :
-			
-				# Clear EEPROM
-				self.eeprom = None
-			
-			# Re-connect
-			self._printer.connect(currentPort, currentBaudrate, currentProfile)
-	
-			# Wait until connection is established
-			while not isinstance(self._printer.get_transport(), serial.Serial) :
-				time.sleep(0.01)
-			
-			# Remove serial timeout
-			self._printer.get_transport().timeout = None
-			if float(serial.VERSION) < 3 :
-				self._printer.get_transport().writeTimeout = None
-			else :
-				self._printer.get_transport().write_timeout = None
-			
-			# Check if an error didn't occur
-			if not error :
-				
-				# Close connection
-				if self._printer._comm is not None :
-				
-					try :
-						self._printer._comm.close(False, False)
-					except TypeError :
-						pass
-				
-				self._printer.disconnect()
-
-				# Connect to the printer
-				connection = serial.Serial(currentPort, currentBaudrate)
-				
-				# Save ports
-				self.savePorts(currentPort)
-				
-				# Attempt to put printer into G-code processing mode
-				connection.write("Q")
-				time.sleep(1)
-				
-				# Close connection
-				connection.close()
-	
-				# Set updated port
-				currentPort = self.getPort()
-				
-				# Check if printer wasn't found
-				if currentPort is None :
-
-					# Send message
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "No Micro 3D printer detected. Try cycling the printer's power and try again.", confirm = True))
-				
-				# Otherwise
-				else :
-	
-					# Re-connect to printer
-					self._printer.connect(currentPort, currentBaudrate, currentProfile)
-				
-					# Wait until connection is established
-					while not isinstance(self._printer.get_transport(), serial.Serial) :
-						time.sleep(0.01)
-				
-					# Remove serial timeout
-					self._printer.get_transport().timeout = None
-					if float(serial.VERSION) < 3 :
-						self._printer.get_transport().writeTimeout = None
-					else :
-						self._printer.get_transport().write_timeout = None
-				
-					# Check if communication layer has been established
-					if self._printer._comm is not None :
-					
-						# Set printer state to operational
-						self._printer._comm._changeState(self._printer._comm.STATE_OPERATIONAL)
-					
-						# Check if using M3D firmware
-						if self.getFirmwareDetails()[0] == "M3D" :
-		
-							# Save original write and read functions
-							self.originalWrite = self._printer.get_transport().write
-							self.originalRead = self._printer.get_transport().readline
-		
-							# Overwrite write and read functions to process write and read functions
-							self._printer.get_transport().write = self.processWrite
-							self._printer.get_transport().readline = self.processRead
-			
-						# Clear invalid printer
-						self.invalidPrinter = False
-			
-						# Request printer information
-						self._printer.get_transport().write("M115")
+			# Check if printer wasn't found
+			if currentPort is None :
+				
+				# Send message
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "No Micro 3D printer detected. Try cycling the printer's power and try again.", confirm = True))
 			
 			# Otherwise
 			else :
 			
+				# Connect to the printer
+				connection = serial.Serial(currentPort, currentBaudrate)
+			
+				# Attempt to get current printer mode
+				try :
+					connection.write("M115")
+					bootloaderVersion = connection.read()
+				
+					if float(serial.VERSION) < 3 :
+						bootloaderVersion += connection.read(connection.inWaiting())
+					else :
+						bootloaderVersion += connection.read(connection.in_waiting)
+			
+				# Check if an error occured
+				except serial.SerialException :
+			
+					# Set error
+					error = True
+			
+				# Check if no errors occured
+				if not error :
+			
+					# Check if not in bootloader mode
+					if not bootloaderVersion.startswith('B') :
+			
+						# Save ports
+						self.savePorts(currentPort)
+					
+						# Switch to bootloader mode
+						connection.write("M115 S628")
+					
+						try :
+							gcode = Gcode("M115 S628")
+							connection.write(gcode.getBinary())
+					
+						# Check if an error occured
+						except serial.SerialException :	
+							pass
+					
+						time.sleep(1)
+					
+						# Close connection
+						connection.close()
+					
+						# Set updated port
+						currentPort = self.getPort()
+					
+						# Check if printer wasn't found
+						if currentPort is None :
+						
+							# Send message
+							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "No Micro 3D printer detected. Try cycling the printer's power and try again.", confirm = True))
+						
+							# Set error
+							error = True
+					
+						# Otherwise
+						else :
+				
+							# Re-connect; wait for the device to be available
+							connection = None
+							for i in xrange(5) :
+								try :
+									connection = serial.Serial(currentPort, currentBaudrate)
+									break
+						
+								except Exception :
+									connection = None
+									time.sleep(1)
+					
+							# Check if using OS X or Linux and the user lacks read/write access to the printer
+							if (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(currentPort, os.R_OK | os.W_OK) :
+	
+								# Send message
+								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "You don't have read/write access to " + str(port), confirm = True))
+							
+								# Set error
+								error = True
+	
+							# Otherwise check if connecting to printer failed
+							elif connection is None :
+	
+								# Send message
+								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "No Micro 3D printer detected. Try cycling the printer's power and try again.", confirm = True))
+							
+								# Set error
+								error = True
+			
+					# Check if an error hasn't occured and getting EEPROM was successful
+					if not error and self.getEeprom(connection) :
+					
+						# Get firmware CRC from EEPROM
+						index = 0
+						eepromCrc = 0
+						while index < 4 :
+							eepromCrc <<= 8
+							eepromCrc += int(ord(self.eeprom[self.eepromOffsets["firmwareCrc"]["offset"] + index]))
+							index += 1
+				
+						# Request firmware CRC from chip
+						connection.write('C')
+						connection.write('A')
+
+						# Get response
+						response = connection.read(4)
+
+						# Get chip CRC
+						index = 0
+						chipCrc = 0
+						while index < 4 :
+							chipCrc <<= 8
+							chipCrc += int(ord(response[index]))
+							index += 1
+					
+						# Get firmware details
+						firmwareName, firmwareVersion, firmwareRelease = self.getFirmwareDetails()
+					
+						# Get serial number from EEPROM
+						serialNumber = self.eeprom[self.eepromOffsets["serialNumber"]["offset"] : self.eepromOffsets["serialNumber"]["offset"] + self.eepromOffsets["serialNumber"]["bytes"] - 1]
+				
+						# Set printer color
+						color = serialNumber[0 : 2]
+						if color == "BK" :
+							self.printerColor = "Black"
+							self._settings.set(["PrinterColor"], "Black")
+						elif color == "WH" :
+							self.printerColor = "White"
+							self._settings.set(["PrinterColor"], "White")
+						elif color == "BL" :
+							self.printerColor = "Blue"
+							self._settings.set(["PrinterColor"], "Blue")
+						elif color == "GR" :
+							self.printerColor = "Green"
+							self._settings.set(["PrinterColor"], "Green")
+						elif color == "OR" :
+							self.printerColor = "Orange"
+							self._settings.set(["PrinterColor"], "Orange")
+						elif color == "CL" :
+							self.printerColor = "Clear"
+							self._settings.set(["PrinterColor"], "Clear")
+						elif color == "SL" :
+							self.printerColor = "Silver"
+							self._settings.set(["PrinterColor"], "Silver")
+						elif color == "PL" :
+							self.printerColor = "Purple"
+							self._settings.set(["PrinterColor"], "Purple")
+				
+						# Get fan type from EEPROM
+						fanType = int(ord(self.eeprom[self.eepromOffsets["fanType"]["offset"]]))
+				
+						# Check if fan hasn't been set yet
+						if fanType == 0 or fanType == 0xFF :
+		
+							# Check if device is newer
+							if int(serialNumber[2 : 8]) >= 150602 :
+		
+								# Set default newer fan
+								fanName = "Shenzhew"
+					
+							# Otherwise
+							else :
+					
+								# Set default older fan
+								fanName = "HengLiXin"
+					
+							# Check if setting fan failed
+							if not self.setFan(connection, fanName) :
+			
+								# Set error
+								error = True
+					
+							# Check if an error occured
+							if error :
+					
+								# Display error
+								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Setting fan failed", confirm = True))
+				
+						# Otherwise
+						else :
+				
+							# Set fan name
+							if fanType == 1 :
+								fanName = "HengLiXin"
+							elif fanType == 2 :
+								fanName = "Listener"
+							elif fanType == 3 :
+								fanName = "Shenzhew"
+							elif fanType == 4 :
+								fanName = "Xinyujie"
+					
+							# Check if updating fan failed
+							if not self.setFan(connection, fanName) :
+					
+								# Set error
+								error = True
+					
+								# Display error
+								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating fan settings failed", confirm = True))
+				
+						# Check if printer uses 500mA extruder current
+						shortSerialNumber = serialNumber[0 : 13]
+						if not error and (shortSerialNumber == "BK15033001100" or shortSerialNumber == "BK15040201050" or shortSerialNumber == "BK15040301050" or shortSerialNumber == "BK15040602050" or shortSerialNumber == "BK15040801050" or shortSerialNumber == "BK15040802100" or shortSerialNumber == "GR15032702100" or shortSerialNumber == "GR15033101100" or shortSerialNumber == "GR15040601100" or shortSerialNumber == "GR15040701100" or shortSerialNumber == "OR15032701100" or shortSerialNumber == "SL15032601050") :
+				
+							# Check if setting extruder current failed
+							if not self.setExtruderCurrent(connection, 500) :
+					
+								# Set error
+								error = True
+					
+								# Display error
+								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating extruder current failed", confirm = True))
+				
+						# Check if using M3D firmware and it's from before new bed orientation and adjustable backlash speed
+						if not error and firmwareName is not None and firmwareName == "M3D" and firmwareVersion < 2015080402 :
+					
+							# Go through bytes of bed offsets
+							index = 0
+							while index < 19 :
+
+								# Check if zeroing out all bed offets in EEPROM failed
+								if not error and not self.writeToEeprom(connection, self.eepromOffsets["bedOffsetBackLeft"]["offset"] + index, '\x00') :
+				
+									# Set error
+									error = True
+			
+								# Increment index
+								index += 1
+					
+							# Check if an error hasn't occured
+							if not error :
+					
+								# Convert default backlash speed to binary
+								packed = struct.pack('f', 1500)
+								backlashSpeed = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
+		
+								# Go through bytes of backlash speed
+								index = 0
+								while index < 4 :
+		
+									# Check if saving backlash speed failed
+									if not error and not self.writeToEeprom(connection, self.eepromOffsets["backlashSpeed"]["offset"] + index, chr((backlashSpeed >> 8 * index) & 0xFF)) :
+		
+										# Set error
+										error = True
+			
+									# Increment index
+									index += 1
+						
+							# Check if an error has occured
+							if error :
+					
+								# Display error
+								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating version changes failed", confirm = True))
+				
+						# Check if an error hasn't occured
+						if not error :
+				
+							# Get speed limit X
+							data = [int(ord(self.eeprom[self.eepromOffsets["speedLimitX"]["offset"]])), int(ord(self.eeprom[self.eepromOffsets["speedLimitX"]["offset"] + 1])), int(ord(self.eeprom[self.eepromOffsets["speedLimitX"]["offset"] + 2])), int(ord(self.eeprom[self.eepromOffsets["speedLimitX"]["offset"] + 3]))]
+							bytes = struct.pack("4B", *data)
+							speedLimitX = round(struct.unpack('f', bytes)[0], 6)
+				
+							# Check if speed limit X is invalid
+							if math.isnan(speedLimitX) or speedLimitX < 120 or speedLimitX > 4800 :
+				
+								# Convert default speed limit X to binary
+								packed = struct.pack('f', 1500)
+								speedLimitX = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
+				
+								# Go through bytes of speed limit X
+								index = 0
+								while index < 4 :
+				
+									# Check if saving speed limit X failed
+									if not error and not self.writeToEeprom(connection, self.eepromOffsets["speedLimitX"]["offset"] + index, chr((speedLimitX >> 8 * index) & 0xFF)) :
+				
+										# Set error
+										error = True
+				
+									# Increment index
+									index += 1
+					
+							# Check if an error hasn't occured
+							if not error :
+					
+								# Get speed limit Y
+								data = [int(ord(self.eeprom[self.eepromOffsets["speedLimitY"]["offset"]])), int(ord(self.eeprom[self.eepromOffsets["speedLimitY"]["offset"] + 1])), int(ord(self.eeprom[self.eepromOffsets["speedLimitY"]["offset"] + 2])), int(ord(self.eeprom[self.eepromOffsets["speedLimitY"]["offset"] + 3]))]
+								bytes = struct.pack("4B", *data)
+								speedLimitY = round(struct.unpack('f', bytes)[0], 6)
+				
+								# Check if speed limit Y is invalid
+								if math.isnan(speedLimitY) or speedLimitY < 120 or speedLimitY > 4800 :
+				
+									# Convert default speed limit Y to binary
+									packed = struct.pack('f', 1500)
+									speedLimitY = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
+				
+									# Go through bytes of speed limit Y
+									index = 0
+									while index < 4 :
+				
+										# Check if saving speed limit Y failed
+										if not error and not self.writeToEeprom(connection, self.eepromOffsets["speedLimitY"]["offset"] + index, chr((speedLimitY >> 8 * index) & 0xFF)) :
+				
+											# Set error
+											error = True
+				
+										# Increment index
+										index += 1
+					
+							# Check if an error hasn't occured
+							if not error :
+					
+								# Get speed limit Z
+								data = [int(ord(self.eeprom[self.eepromOffsets["speedLimitZ"]["offset"]])), int(ord(self.eeprom[self.eepromOffsets["speedLimitZ"]["offset"] + 1])), int(ord(self.eeprom[self.eepromOffsets["speedLimitZ"]["offset"] + 2])), int(ord(self.eeprom[self.eepromOffsets["speedLimitZ"]["offset"] + 3]))]
+								bytes = struct.pack("4B", *data)
+								speedLimitZ = round(struct.unpack('f', bytes)[0], 6)
+				
+								# Check if speed limit Z is invalid
+								if math.isnan(speedLimitZ) or speedLimitZ < 30 or speedLimitZ > 60 :
+							
+									# Convert default speed limit Z to binary
+									packed = struct.pack('f', 60)
+									speedLimitZ = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
+				
+									# Go through bytes of speed limit Z
+									index = 0
+									while index < 4 :
+				
+										# Check if saving speed limit Z failed
+										if not error and not self.writeToEeprom(connection, self.eepromOffsets["speedLimitZ"]["offset"] + index, chr((speedLimitZ >> 8 * index) & 0xFF)) :
+				
+											# Set error
+											error = True
+				
+										# Increment index
+										index += 1
+				
+							# Check if an error hasn't occured
+							if not error :
+					
+								# Get speed limit E positive
+								data = [int(ord(self.eeprom[self.eepromOffsets["speedLimitEPositive"]["offset"]])), int(ord(self.eeprom[self.eepromOffsets["speedLimitEPositive"]["offset"] + 1])), int(ord(self.eeprom[self.eepromOffsets["speedLimitEPositive"]["offset"] + 2])), int(ord(self.eeprom[self.eepromOffsets["speedLimitEPositive"]["offset"] + 3]))]
+								bytes = struct.pack("4B", *data)
+								speedLimitEPositive = round(struct.unpack('f', bytes)[0], 6)
+				
+								# Check if speed limit E positive is invalid
+								if math.isnan(speedLimitEPositive) or speedLimitEPositive < 60 or speedLimitEPositive > 600 :
+				
+									# Convert default speed limit E positive to binary
+									packed = struct.pack('f', 102)
+									speedLimitEPositive = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
+				
+									# Go through bytes of speed limit E positive
+									index = 0
+									while index < 4 :
+				
+										# Check if saving speed limit E positive failed
+										if not error and not self.writeToEeprom(connection, self.eepromOffsets["speedLimitEPositive"]["offset"] + index, chr((speedLimitEPositive >> 8 * index) & 0xFF)) :
+				
+											# Set error
+											error = True
+				
+										# Increment index
+										index += 1
+					
+							# Check if an error hasn't occured
+							if not error :
+					
+								# Get speed limit E negative
+								data = [int(ord(self.eeprom[self.eepromOffsets["speedLimitENegative"]["offset"]])), int(ord(self.eeprom[self.eepromOffsets["speedLimitENegative"]["offset"] + 1])), int(ord(self.eeprom[self.eepromOffsets["speedLimitENegative"]["offset"] + 2])), int(ord(self.eeprom[self.eepromOffsets["speedLimitENegative"]["offset"] + 3]))]
+								bytes = struct.pack("4B", *data)
+								speedLimitENegative = round(struct.unpack('f', bytes)[0], 6)
+				
+								# Check if speed limit E negative is invalid
+								if math.isnan(speedLimitENegative) or speedLimitENegative < 60 or speedLimitENegative > 720 :
+				
+									# Convert default speed limit E negative to binary
+									packed = struct.pack('f', 360)
+									speedLimitENegative = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
+				
+									# Go through bytes of speed limit E negative
+									index = 0
+									while index < 4 :
+				
+										# Check if saving speed limit E negative failed
+										if not error and not self.writeToEeprom(connection, self.eepromOffsets["speedLimitENegative"]["offset"] + index, chr((speedLimitENegative >> 8 * index) & 0xFF)) :
+				
+											# Set error
+											error = True
+				
+										# Increment index
+										index += 1
+				
+							# Check if an error has occured
+							if error :
+				
+								# Display error
+								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating speed limits failed", confirm = True))
+				
+						# Check if firmware is corrupt
+						if not error and eepromCrc != chipCrc :
+					
+							# Set temp firmware name
+							if firmwareName is None :
+								currentFirmwareName = "M3D"
+							else :
+								currentFirmwareName = firmwareName
+				
+							# Display message
+							self.messageResponse = None
+							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Firmware is corrupt. Update to " + currentFirmwareName + " firmware version " + self.providedFirmwares[currentFirmwareName]["Release"] + '?', response = True))
+					
+							# Wait until response is obtained
+							while self.messageResponse is None :
+								time.sleep(0.01)
+					
+							# Check if response was no
+							if not self.messageResponse :
+					
+								# Set error
+								error = True
+				
+							# Otherwise
+							else :
+					
+								# Send message
+								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating firmware"))
+					
+								# Check if updating firmware failed
+								if not self.updateToProvidedFirmware(connection, currentFirmwareName) :
+					
+									# Send message
+									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating firmware failed", confirm = True))
+							
+									# Set error
+									error = True
+						
+								# Otherwise
+								else :
+					
+									# Send message
+									self.messageResponse = None
+									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating firmware was successful", confirm = True))
+					
+									# Wait until response is obtained
+									while self.messageResponse is None :
+										time.sleep(0.01)
+					
+						# Otherwise check if firmware is outdated
+						elif not error and firmwareName is not None and firmwareVersion < int(self.providedFirmwares[firmwareName]["Version"]) :
+				
+							# Set if firmware is incompatible
+							if firmwareName == "M3D" :
+								incompatible = firmwareVersion < 2015122112
+							elif firmwareName == "iMe" :
+								incompatible = firmwareVersion < 1900000001
+						
+							# Display message
+							self.messageResponse = None
+							if incompatible :
+								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Firmware is incompatible. Update to " + firmwareName + " firmware version " + self.providedFirmwares[firmwareName]["Release"] + '?', response = True))
+							else :
+								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Newer firmware available. Update to " + firmwareName + " firmware version " + self.providedFirmwares[firmwareName]["Release"] + '?', response = True))
+					
+							# Wait until response is obtained
+							while self.messageResponse is None :
+								time.sleep(0.01)
+					
+							# Check if response was no
+							if not self.messageResponse :
+					
+								# Set error if incompatible
+								if incompatible :
+									error = True
+				
+							# Otherwise
+							else :
+					
+								# Send message
+								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating firmware"))
+							
+								# Check if updating firmware failed
+								if not self.updateToProvidedFirmware(connection, firmwareName) :
+					
+									# Send message
+									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating firmware failed", confirm = True))
+							
+									# Set error
+									error = True
+						
+								# Otherwise
+								else :
+					
+									# Send message
+									self.messageResponse = None
+									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating firmware was successful", confirm = True))
+					
+									# Wait until response is obtained
+									while self.messageResponse is None :
+										time.sleep(0.01)
+				
+						# Check if no errors occured
+						if not error :
+				
+							# Send new EEPROM
+							self.getEeprom(connection, True)
+			
+					# Otherwise
+					else :
+			
+						# Set error
+						error = True
+			
 				# Close connection
-				if self._printer._comm is not None :
+				connection.close()
+			
+				# Check if an error has occured
+				if error :
+			
+					# Clear EEPROM
+					self.eeprom = None
 				
-					try :
-						self._printer._comm.close(False, False)
-					except TypeError :
-						pass
+					# Close connection
+					if self._printer._comm is not None :
 				
-				self._printer.disconnect()
+						try :
+							self._printer._comm.close(False, False)
+						except TypeError :
+							pass
+				
+					self._printer.disconnect()
+			
+				# Otherwise
+				else :
+
+					# Connect to the printer
+					connection = serial.Serial(currentPort, currentBaudrate)
+				
+					# Save ports
+					self.savePorts(currentPort)
+				
+					# Attempt to put printer into G-code processing mode
+					connection.write("Q")
+					time.sleep(1)
+				
+					# Close connection
+					connection.close()
+	
+					# Set updated port
+					currentPort = self.getPort()
+				
+					# Check if printer wasn't found
+					if currentPort is None :
+
+						# Send message
+						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "No Micro 3D printer detected. Try cycling the printer's power and try again.", confirm = True))
+				
+					# Otherwise
+					else :
+	
+						# Re-connect to printer
+						self._printer.connect(currentPort, currentBaudrate, currentProfile)
+				
+						# Wait until connection is established
+						while not isinstance(self._printer.get_transport(), serial.Serial) :
+							time.sleep(0.01)
+				
+						# Remove serial timeout
+						self._printer.get_transport().timeout = None
+						if float(serial.VERSION) < 3 :
+							self._printer.get_transport().writeTimeout = None
+						else :
+							self._printer.get_transport().write_timeout = None
+				
+						# Check if communication layer has been established
+						if self._printer._comm is not None :
+					
+							# Set printer state to operational
+							self._printer._comm._changeState(self._printer._comm.STATE_OPERATIONAL)
+					
+							# Check if using M3D firmware
+							if self.getFirmwareDetails()[0] == "M3D" :
+		
+								# Save original write and read functions
+								self.originalWrite = self._printer.get_transport().write
+								self.originalRead = self._printer.get_transport().readline
+		
+								# Overwrite write and read functions to process write and read functions
+								self._printer.get_transport().write = self.processWrite
+								self._printer.get_transport().readline = self.processRead
+			
+							# Clear invalid printer
+							self.invalidPrinter = False
+							
+							# Request printer information
+							time.sleep(0.5)
+							self._printer.get_transport().write("M115")
 			
 			# Enable printer callbacks
 			self._printer.register_callback(self)
@@ -4719,7 +4814,7 @@ class M3DFioPlugin(
 			if "MACHINE_TYPE:The_Micro" not in data :
 				
 				# Set write and read functions back to original
-				if self.originalWrite is not None :
+				if self.originalWrite is not None and isinstance(self._printer.get_transport(), serial.Serial) :
 					self._printer.get_transport().write = self.originalWrite
 					self._printer.get_transport().readline = self.originalRead
 				
@@ -5495,7 +5590,7 @@ class M3DFioPlugin(
 				if self._settings.get_int(["GpioLayer"]) is not None :
 					self.sharedLibrary.setGpioLayer(ctypes.c_ushort(self._settings.get_int(["GpioLayer"])))
 				self.sharedLibrary.setHeatbedTemperature(ctypes.c_ushort(self._settings.get_int(["HeatbedTemperature"])))
-				self.sharedLibrary.setHeatbedHeight(ctypes.c_double(self._settings.get_float(["HeatbedHeight"])))
+				self.sharedLibrary.setExternalBedHeight(ctypes.c_double(self._settings.get_float(["ExternalBedHeight"])))
 				self.sharedLibrary.setMidPrintFilamentChangeLayers(ctypes.c_char_p(' '.join(re.findall("\\d+", str(self._settings.get(["MidPrintFilamentChangeLayers"]))))))
 				
 				# Collect print information
@@ -5616,21 +5711,10 @@ class M3DFioPlugin(
 		tier = "Low"
 		gcode = Gcode()
 		
-		# Check if using a heatbed
-		if self.heatbedConnected :
-		
-			# Adjust bed Z values
-			self.bedMediumMaxZ = 73.5 - self._settings.get_float(["HeatbedHeight"])
-			self.bedHighMaxZ = 112.0 - self._settings.get_float(["HeatbedHeight"])
-			self.bedHighMinZ = self.bedMediumMaxZ
-		
-		# Otherwise
-		else :
-		
-			# Set bed Z values to defaults
-			self.bedMediumMaxZ = 73.5
-			self.bedHighMaxZ = 112.0
-			self.bedHighMinZ = self.bedMediumMaxZ
+		# Adjust bed Z values to account for external bed height
+		self.bedMediumMaxZ = 73.5 - self._settings.get_float(["ExternalBedHeight"])
+		self.bedHighMaxZ = 112.0 - self._settings.get_float(["ExternalBedHeight"])
+		self.bedHighMinZ = self.bedMediumMaxZ
 		
 		# Reset detected fan speed
 		self.detectedFanSpeed = None
@@ -7792,7 +7876,7 @@ class M3DFioPlugin(
 			
 			# Check if printer isn't detected
 			port = self.getPort()
-			if not port :
+			if port is None :
 			
 				# Set state to failed
 				comm_instance._log("Failed to autodetect serial port")
@@ -8014,12 +8098,22 @@ class M3DFioPlugin(
 	
 			# Check if using Linux
 			if platform.uname()[0].startswith("Linux") :
-			
+				
 				# Set GPIO pin high
-				os.system("echo \"" + str(gpioPin) + "\" > /sys/class/gpio/export")
-				os.system("echo \"out\" > /sys/class/gpio/gpio" + str(gpioPin) + "/direction")
-				os.system("echo \"1\" > /sys/class/gpio/gpio" + str(gpioPin) + "/value")
-				os.system("echo \"" + str(gpioPin) + "\" > /sys/class/gpio/unexport")
+				# try gpio/wiringPi method
+				try:
+					subprocess.call(["gpio", "-g", "mode", str(gpioPin), "out"])
+					subprocess.call(["gpio", "-g", "write", str(gpioPin), "1"])
+				except OSError as e:
+				    if e.errno == os.errno.ENOENT:
+						# wiringPi not found
+						os.system("echo \"" + str(gpioPin) + "\" > /sys/class/gpio/export")
+						os.system("echo \"out\" > /sys/class/gpio/gpio" + str(gpioPin) + "/direction")
+						os.system("echo \"1\" > /sys/class/gpio/gpio" + str(gpioPin) + "/value")
+						os.system("echo \"" + str(gpioPin) + "\" > /sys/class/gpio/unexport")
+				    else:
+				        # Something else went wrong while trying to run `gpio`
+				        raise
 	
 	# Set GPIO pin low
 	def setGpioPinLow(self) :
@@ -8030,12 +8124,22 @@ class M3DFioPlugin(
 	
 			# Check if using Linux
 			if platform.uname()[0].startswith("Linux") :
-		
+				
 				# Set GPIO pin low
-				os.system("echo \"" + str(gpioPin) + "\" > /sys/class/gpio/export")
-				os.system("echo \"out\" > /sys/class/gpio/gpio" + str(gpioPin) + "/direction")
-				os.system("echo \"0\" > /sys/class/gpio/gpio" + str(gpioPin) + "/value")
-				os.system("echo \"" + str(gpioPin) + "\" > /sys/class/gpio/unexport")
+				# try gpio/wiringPi method
+				try:
+					subprocess.call(["gpio", "-g", "mode", str(gpioPin), "out"])
+					subprocess.call(["gpio", "-g", "write", str(gpioPin), "0"])
+				except OSError as e:
+					if e.errno == os.errno.ENOENT:
+						# wiringPi not found
+						os.system("echo \"" + str(gpioPin) + "\" > /sys/class/gpio/export")
+						os.system("echo \"out\" > /sys/class/gpio/gpio" + str(gpioPin) + "/direction")
+						os.system("echo \"0\" > /sys/class/gpio/gpio" + str(gpioPin) + "/value")
+						os.system("echo \"" + str(gpioPin) + "\" > /sys/class/gpio/unexport")
+					else:
+						# Something else went wrong while trying to run `gpio`
+						raise
 
 
 # Plugin info
