@@ -10584,8 +10584,8 @@ $(function() {
 		// On error event
 		self.onEventError = function(payload) {
 		
-			// Check if error is an unhandled firmware error
-			if($("div.ui-pnotify:last-of-type h4.ui-pnotify-title").text() == "Unhandled firmware error")
+			// Check if error is an unhandled firmware or communication error
+			if($("div.ui-pnotify:last-of-type h4.ui-pnotify-title").text() == "Unhandled firmware error" || $("div.ui-pnotify:last-of-type h4.ui-pnotify-title").text() == "Unhandled communication error")
 			
 				// Remove error
 				$("div.ui-pnotify:last-of-type").remove();

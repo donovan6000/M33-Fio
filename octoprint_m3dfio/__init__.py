@@ -2912,16 +2912,35 @@ class M3DFioPlugin(
 				command = self._printer._comm._send_queue.get()
 				commands += [(command[0], command[2])]
 			
-			while not self._printer._comm._commandQueue.empty() :
-				command = self._printer._comm._commandQueue.get()
-				commands += [(command[0], command[1])]
+			# Check if deprecated queue name is valid
+			if hasattr(self._printer._comm, "_commandQueue") :
 			
-			# Insert list into queue
-			for command in commands :
-				if isinstance(command, tuple) :
-					self._printer._comm._commandQueue.put(command)
-				else :
-					self._printer._comm._commandQueue.put((command, None))
+				# Append all currently queued commands to list
+				while not self._printer._comm._commandQueue.empty() :
+					command = self._printer._comm._commandQueue.get()
+					commands += [(command[0], command[1])]
+			
+				# Insert list into queue
+				for command in commands :
+					if isinstance(command, tuple) :
+						self._printer._comm._commandQueue.put(command)
+					else :
+						self._printer._comm._commandQueue.put((command, None))
+			
+			# Otherwise
+			else :
+			
+				# Append all currently queued commands to list
+				while not self._printer._comm._command_queue.empty() :
+					command = self._printer._comm._command_queue.get()
+					commands += [(command[0], command[1])]
+			
+				# Insert list into queue
+				for command in commands :
+					if isinstance(command, tuple) :
+						self._printer._comm._command_queue.put(command)
+					else :
+						self._printer._comm._command_queue.put((command, None))
 		
 		# Otherwise
 		else :
@@ -2963,9 +2982,20 @@ class M3DFioPlugin(
 			# Empty command queues
 			while not self._printer._comm._send_queue.empty() :
 				self._printer._comm._send_queue.get()
-		
-			while not self._printer._comm._commandQueue.empty() :
-				self._printer._comm._commandQueue.get()
+			
+			# Check if deprecated queue name is valid
+			if hasattr(self._printer._comm, "_commandQueue") :
+			
+				# Empty command queues
+				while not self._printer._comm._commandQueue.empty() :
+					self._printer._comm._commandQueue.get()
+			
+			# Otherwise
+			else :
+			
+				# Empty command queues
+				while not self._printer._comm._command_queue.empty() :
+					self._printer._comm._command_queue.get()
 	
 	# Process write
 	def processWrite(self, data) :
@@ -3189,7 +3219,7 @@ class M3DFioPlugin(
 										command = "T:0.0 B:" + heatbedTemperature
 								
 									self._printer._comm._processTemperatures(command)
-									self._printer._comm._callback.on_comm_temperature_update(self._printer._comm._temp, self._printer._comm._bedTemp)
+									self._printer._comm._callback.on_comm_temperature_update(self._printer._comm.getTemp(), self._printer._comm.getBedTemp())
 									self._printer._addLog("Recv: " + command)
 								
 									# Update communication timeout to prevent other commands from being sent
@@ -4769,8 +4799,9 @@ class M3DFioPlugin(
 			
 							# Clear invalid printer
 							self.invalidPrinter = False
-			
+							
 							# Request printer information
+							time.sleep(0.5)
 							self._printer.get_transport().write("M115")
 			
 			# Enable printer callbacks

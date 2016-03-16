@@ -116,7 +116,7 @@ else
 		
 		# Get OctoPrint parameter
 		octoPrintVersion="$(/Users/$SUDO_USER/Library/Python/2.7/bin/octoprint --version | cut -d' ' -f3)"
-		if [ $octoPrintVersion = "1.2.8" ] || [ $octoPrintVersion = "1.2.9" ]; then
+		if [ $octoPrintVersion = "1.2.8" ] || [ $octoPrintVersion = "1.2.9" ] || [ $octoPrintVersion = "1.2.10" ] || [ $octoPrintVersion = "1.2.11" ]; then
 			octoPrintParameter=""
 		else
 			octoPrintParameter="<string>serve<\/string>"
