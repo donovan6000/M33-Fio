@@ -3616,8 +3616,11 @@ class M3DFioPlugin(
 	# Set file locations
 	def setFileLocations(self) :
 	
+		# Initialzie variables
+		enableSave = False
+	
 		# Check if rot running in a virtual environment and Pip isn't set
-		if not hasattr(sys, "real_prefix") and (octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._pip_caller is None or not octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._pip_caller.available) and octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.get(["pip"]) is None :
+		if not hasattr(sys, "real_prefix") and (octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._pip_caller is None or not octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._pip_caller.available) and (octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.get(["pip"]) is None or not len(octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.get(["pip"]))) :
 	
 			# Set Pip locations
 			pipLocations = []
@@ -3630,7 +3633,7 @@ class M3DFioPlugin(
 			elif platform.uname()[0].startswith("Darwin") :
 	
 				pipLocations = [
-					"/Library/Frameworks/Python.framework/Versions/*/bin/pip"
+					"/Library/Frameworks/Python.framework/Versions/2.7/bin/pip"
 				]
 	
 			elif platform.uname()[0].startswith("Linux") :
@@ -3648,6 +3651,42 @@ class M3DFioPlugin(
 		
 						# Set Pip location
 						octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.set(["pip"], location)
+						enableSave = True
+						break
+		
+		# Check if checkout folder isn't set
+		if octoprint.plugin.plugin_manager().plugin_implementations["softwareupdate"]._settings.get(["checks", "octoprint", "checkout_folder"]) is None or not len(octoprint.plugin.plugin_manager().plugin_implementations["softwareupdate"]._settings.get(["checks", "octoprint", "checkout_folder"])) :
+	
+			# Set checkout folder locations
+			checkoutFolderLocations = []
+			if platform.uname()[0].startswith("Windows") :
+	
+				checkoutFolderLocations = [
+					os.environ["SYSTEMDRIVE"] + "/Users/" + os.environ["USERNAME"] + "/AppData/Roaming/OctoPrint/checkout"
+				]
+	
+			elif platform.uname()[0].startswith("Darwin") :
+	
+				checkoutFolderLocations = [
+					"/Users/" + os.environ["USER"] + "/Library/Application Support/OctoPrint/checkout"
+				]
+	
+			elif platform.uname()[0].startswith("Linux") :
+	
+				checkoutFolderLocations = [
+					"/home/" + os.environ["USER"] + "/.octoprint/checkout"
+				]
+			
+			# Go through all checkout folder location
+			for locations in checkoutFolderLocations :
+				for location in glob.glob(locations) :
+				
+					# Check if location is a folder
+					if os.path.isdir(location) :
+		
+						# Set checkout folder location
+						octoprint.plugin.plugin_manager().plugin_implementations["softwareupdate"]._settings.set(["checks", "octoprint", "checkout_folder"], location)
+						enableSave = True
 						break
 		
 		# Check if Cura is a registered slicer
@@ -3690,7 +3729,14 @@ class M3DFioPlugin(
 					
 							# Set Cura Engine location
 							self._slicing_manager.get_slicer("cura", False)._settings.set(["cura_engine"], location)
+							enableSave = True
 							break
+		
+		# Check if saving
+		if enableSave :
+		
+			# Save software settings
+			octoprint.settings.settings().save()
 	
 	# Event monitor
 	def on_event(self, event, payload) :
