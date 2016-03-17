@@ -1223,15 +1223,15 @@ class M3DFioPlugin(
 			if newHostCamera :
 			
 				# Set camera URLs
-				octoprint.settings.settings().set(["webcam", "stream"], "http://" + socket.gethostbyname(socket.gethostname()) + ":4999/stream.mjpg")
-				octoprint.settings.settings().set(["webcam", "snapshot"], "http://" + socket.gethostbyname(socket.gethostname()) + ":4999/snapshot.jpg")
+				octoprint.settings.settings().set(["webcam", "stream"], "http://" + socket.gethostbyname(socket.gethostname()) + ":4999/stream.mjpg", True)
+				octoprint.settings.settings().set(["webcam", "snapshot"], "http://" + socket.gethostbyname(socket.gethostname()) + ":4999/snapshot.jpg", True)
 				
 			# Otherwise assume now not hosting camera
 			else :
 			
 				# Clear camera URLs
-				octoprint.settings.settings().set(["webcam", "stream"], None)
-				octoprint.settings.settings().set(["webcam", "snapshot"], None)
+				octoprint.settings.settings().set(["webcam", "stream"], None, True)
+				octoprint.settings.settings().set(["webcam", "snapshot"], None, True)
 			
 			# Save settings
 			octoprint.settings.settings().save()
@@ -3616,7 +3616,7 @@ class M3DFioPlugin(
 	# Set file locations
 	def setFileLocations(self) :
 	
-		# Initialzie variables
+		# Initialize variables
 		enableSave = False
 	
 		# Check if not running in a virtual environment
@@ -3653,7 +3653,7 @@ class M3DFioPlugin(
 						if os.path.isfile(location) :
 		
 							# Set Pip location
-							octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.set(["pip"], location)
+							octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.set(["pip"], location, True)
 							enableSave = True
 							break
 			
@@ -3661,7 +3661,7 @@ class M3DFioPlugin(
 			if (octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._pip_caller is not None and octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._pip_caller.available) or (octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.get(["pip"]) is not None and len(octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.get(["pip"]))) :
 			
 				# Set Pip parameter
-				octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.set(["pip_args"], "--user")
+				octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.set(["pip_args"], "--user", True)
 				enableSave = True
 		
 		# Check if checkout folder isn't set
@@ -3693,9 +3693,9 @@ class M3DFioPlugin(
 				
 					# Check if location is a folder
 					if os.path.isdir(location) :
-		
+						
 						# Set checkout folder location
-						octoprint.plugin.plugin_manager().plugin_implementations["softwareupdate"]._settings.set(["checks", "octoprint", "checkout_folder"], location)
+						octoprint.plugin.plugin_manager().plugin_implementations["softwareupdate"]._settings.set(["checks", "octoprint", "checkout_folder"], location, True)
 						enableSave = True
 						break
 		
@@ -3738,7 +3738,7 @@ class M3DFioPlugin(
 						if os.path.isfile(location) :
 					
 							# Set Cura Engine location
-							self._slicing_manager.get_slicer("cura", False)._settings.set(["cura_engine"], location)
+							self._slicing_manager.get_slicer("cura", False)._settings.set(["cura_engine"], location, True)
 							enableSave = True
 							break
 		

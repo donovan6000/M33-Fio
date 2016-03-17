@@ -103,7 +103,7 @@ else
 		# Install M3D Fio
 		echo 'y' | sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/pip uninstall OctoPrint-M3DFio
 		curl -LOk https://github.com/donovan6000/M3D-Fio/archive/master.zip
-		while ! sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/pip install --user master.zip
+		while ! sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/pip install master.zip --user
 		do
 			:
 		done
