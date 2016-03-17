@@ -3420,12 +3420,11 @@ $(function() {
 			});
 		}
 		
-		// Fix branch name
-		if(htmlDecode(BRANCH) == "HEAD -> master")
-			BRANCH = "master";
-		
 		// Preload images
 		preload(PLUGIN_BASEURL + "m3dfio/static/img/down%20arrow.png", PLUGIN_BASEURL + "m3dfio/static/img/up%20arrow.png");
+		
+		// Remove software update message
+		$("#settings_plugin_softwareupdate div.alert:nth-of-type(2)").remove();
 		
 		// Change temperature graph's background image
 		$("#temperature-graph").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/graph%20background.png");
@@ -9873,8 +9872,26 @@ $(function() {
 			// Otherwise check if data is that Cura isn't installed
 			else if(data.value == "Cura Not Installed") {
 			
+				// Initialize variables
+				var text = "It's recommended that you install the <a href=\"https://ultimaker.com/en/products/cura-software/list\" target=\"_blank\">latest Cura 15.04 release</a> on this server to fully utilize M3D Fio's capabilities";
+				
+				// Check if same text is currently being displayed
+				if($("body > div.page-container > div.message").find("p").html() == text)
+				
+					// Return
+					return;
+				
+				// Go through all messages
+				for(var i = 0; i < messages.length; i++)
+				
+					// Check if a message waiting to be displayed has same text
+					if(messages[i].text == text)
+					
+						// Return
+						return;
+			
 				// Show message
-				showMessage("Message", "It's recommended that you install the <a href=\"https://ultimaker.com/en/products/cura-software/list\" target=\"_blank\">latest Cura 15.04 release</a> on this server to fully utilize M3D Fio's capabilities", "OK", function() {
+				showMessage("Message", text, "OK", function() {
 					
 					// Hide message
 					hideMessage();
@@ -9893,8 +9910,26 @@ $(function() {
 			// Otherwise check if data is that sleep wont disable
 			else if(data.value == "Sleep Wont Disable") {
 			
+				// Initialize variables
+				var text = "It's recommended that you disable this server's sleep functionality while printing if it's not already disabled";
+				
+				// Check if same text is currently being displayed
+				if($("body > div.page-container > div.message").find("p").html() == text)
+				
+					// Return
+					return;
+				
+				// Go through all messages
+				for(var i = 0; i < messages.length; i++)
+				
+					// Check if a message waiting to be displayed has same text
+					if(messages[i].text == text)
+					
+						// Return
+						return;
+			
 				// Show message
-				showMessage("Message", "It's recommended that you disable this server's sleep functionality while printing if it's not already disabled", "OK", function() {
+				showMessage("Message", text, "OK", function() {
 				
 					// Hide message
 					hideMessage();
