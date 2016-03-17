@@ -619,7 +619,7 @@ $(function() {
 		
 					// Set header and text
 					message.find("h4").text(currentMessage.header);
-					message.find("p").html(currentMessage.text);
+					message.find("p").eq(0).html(currentMessage.text);
 
 					// Set first button if specified
 					var buttons = message.find("button.confirm");
@@ -9876,7 +9876,7 @@ $(function() {
 				var text = "It's recommended that you install the <a href=\"https://ultimaker.com/en/products/cura-software/list\" target=\"_blank\">latest Cura 15.04 release</a> on this server to fully utilize M3D Fio's capabilities";
 				
 				// Check if same text is currently being displayed
-				if($("body > div.page-container > div.message").find("p").html() == text)
+				if($("body > div.page-container > div.message").find("p").eq(0).html() == text)
 				
 					// Return
 					return;
@@ -9914,7 +9914,7 @@ $(function() {
 				var text = "It's recommended that you disable this server's sleep functionality while printing if it's not already disabled";
 				
 				// Check if same text is currently being displayed
-				if($("body > div.page-container > div.message").find("p").html() == text)
+				if($("body > div.page-container > div.message").find("p").eq(0).html() == text)
 				
 					// Return
 					return;
