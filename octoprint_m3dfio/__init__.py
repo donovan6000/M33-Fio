@@ -3696,7 +3696,7 @@ class M3DFioPlugin(
 						
 						# Set checkout folder location and type
 						octoprint.plugin.plugin_manager().plugin_implementations["softwareupdate"]._settings.set(["checks", "octoprint", "checkout_folder"], location, True)
-						octoprint.plugin.plugin_manager().plugin_implementations["softwareupdate"]._settings.set(["checks", "octoprint", "type"], "git_commit", True)
+						octoprint.plugin.plugin_manager().plugin_implementations["softwareupdate"]._settings.set(["checks", "octoprint", "type"], "github_release", True)
 						enableSave = True
 						break
 		

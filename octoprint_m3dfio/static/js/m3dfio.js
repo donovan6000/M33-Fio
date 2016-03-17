@@ -36,6 +36,7 @@ $(function() {
 		self.files = parameters[3];
 		self.slicing = parameters[4];
 		self.terminal = parameters[5];
+		self.loginState = parameters[6];
 		
 		// Bed dimensions
 		var bedLowMaxX = 106.0;
@@ -536,6 +537,13 @@ $(function() {
 			return $("<div>").text(value).html();
 		}
 		
+		// Decode html entities
+		function htmlDecode(value) {
+
+			// Return decoded html
+			return $("<div>").html(value).text();
+		}
+		
 		// Show message
 		function showMessage(header, text, secondButton, secondButtonCallback, firstButton, firstButtonCallback) {
 		
@@ -601,7 +609,7 @@ $(function() {
 				}
 				
 				// Check if a message can be displayed
-				if(messages.length && ((message.hasClass("show") && !message.find("button.confirm").eq(1).hasClass("show")) || message.css("z-index") != "9999")) {
+				if(messages.length && self.loginState.loggedIn() && ((message.hasClass("show") && !message.find("button.confirm").eq(1).hasClass("show")) || message.css("z-index") != "9999")) {
 				
 					// Get current message
 					var currentMessage = messages.shift();
@@ -3412,6 +3420,10 @@ $(function() {
 			});
 		}
 		
+		// Fix branch name
+		if(htmlDecode(BRANCH) == "HEAD -> master")
+			BRANCH = "master";
+		
 		// Preload images
 		preload(PLUGIN_BASEURL + "m3dfio/static/img/down%20arrow.png", PLUGIN_BASEURL + "m3dfio/static/img/up%20arrow.png");
 		
@@ -4727,6 +4739,7 @@ $(function() {
 						$("#slicing_configuration_dialog .modal-body").css("display", '');
 						$("#slicing_configuration_dialog .modal-cover").removeClass("show").css("z-index", '');
 						$("#slicing_configuration_dialog .modal-footer p.warning").text('');
+						$("#slicing_configuration_dialog .modal-footer a.skip").css("display", '');
 						skipModelEditor = false;
 						
 						// Save software settings
@@ -4984,6 +4997,7 @@ $(function() {
 											if(!Detector.webgl) {
 												button.text("Slice");
 												$("#slicing_configuration_dialog .modal-footer p.warning").text("Model editor will be skipped since your browser doesn't support WebGL");
+												$("#slicing_configuration_dialog .modal-footer a.skip").css("display", "none");
 											}
 										
 											// Update line numbers
@@ -9663,21 +9677,30 @@ $(function() {
 		// Ping
 		function ping() {
 		
-			// Send request
-			$.ajax({
-				url: API_BASEURL + "plugin/m3dfio",
-				type: "POST",
-				dataType: "json",
-				data: JSON.stringify({command: "message", value: "Ping"}),
-				contentType: "application/json; charset=UTF-8",
+			// Check if logged in
+			if(self.loginState.loggedIn())
+		
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m3dfio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({command: "message", value: "Ping"}),
+					contentType: "application/json; charset=UTF-8",
 				
-				// Complete
-				complete: function() {
+					// Complete
+					complete: function() {
 					
-					// Ping again
-					setTimeout(ping, 180 * 1000);
-				}
-			});
+						// Ping again
+						setTimeout(ping, 180 * 1000);
+					}
+				});
+			
+			// Otherwise
+			else
+			
+				// Ping again
+				setTimeout(ping, 180 * 1000);
 		}
 		setTimeout(ping, 180 * 1000);
 		
@@ -10618,6 +10641,6 @@ $(function() {
 	
 		// Constructor
 		M3DFioViewModel,
-		["printerStateViewModel", "temperatureViewModel", "settingsViewModel", "gcodeFilesViewModel", "slicingViewModel", "terminalViewModel"]
+		["printerStateViewModel", "temperatureViewModel", "settingsViewModel", "gcodeFilesViewModel", "slicingViewModel", "terminalViewModel", "loginStateViewModel"]
 	]);
 });
