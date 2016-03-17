@@ -3619,40 +3619,50 @@ class M3DFioPlugin(
 		# Initialzie variables
 		enableSave = False
 	
-		# Check if rot running in a virtual environment and Pip isn't set
-		if not hasattr(sys, "real_prefix") and (octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._pip_caller is None or not octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._pip_caller.available) and (octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.get(["pip"]) is None or not len(octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.get(["pip"]))) :
-	
-			# Set Pip locations
-			pipLocations = []
-			if platform.uname()[0].startswith("Windows") :
-	
-				pipLocations = [
-					os.environ["SYSTEMDRIVE"] + "/python/Scripts/pip.exe"
-				]
-	
-			elif platform.uname()[0].startswith("Darwin") :
-	
-				pipLocations = [
-					"/Library/Frameworks/Python.framework/Versions/2.7/bin/pip"
-				]
-	
-			elif platform.uname()[0].startswith("Linux") :
-	
-				pipLocations = [
-					"/usr/bin/pip"
-				]
-	
-			# Go through all Pip location
-			for locations in pipLocations :
-				for location in glob.glob(locations) :
-
-					# Check if location is a file
-					if os.path.isfile(location) :
+		# Check if not running in a virtual environment
+		if not hasattr(sys, "real_prefix") :
 		
-						# Set Pip location
-						octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.set(["pip"], location)
-						enableSave = True
-						break
+			# Check if Pip isn't set
+			if (octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._pip_caller is None or not octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._pip_caller.available) and (octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.get(["pip"]) is None or not len(octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.get(["pip"]))) :
+	
+				# Set Pip locations
+				pipLocations = []
+				if platform.uname()[0].startswith("Windows") :
+	
+					pipLocations = [
+						os.environ["SYSTEMDRIVE"] + "/python/Scripts/pip.exe"
+					]
+	
+				elif platform.uname()[0].startswith("Darwin") :
+	
+					pipLocations = [
+						"/Library/Frameworks/Python.framework/Versions/2.7/bin/pip"
+					]
+	
+				elif platform.uname()[0].startswith("Linux") :
+	
+					pipLocations = [
+						"/usr/bin/pip"
+					]
+	
+				# Go through all Pip location
+				for locations in pipLocations :
+					for location in glob.glob(locations) :
+
+						# Check if location is a file
+						if os.path.isfile(location) :
+		
+							# Set Pip location
+							octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.set(["pip"], location)
+							enableSave = True
+							break
+			
+			# Check if pip is set
+			if octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.get(["pip"]) is not None and len(octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.get(["pip"])) :
+			
+				# Sety Pip parameter
+				octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.set(["pip_args"], "--user")
+				enableSave = True
 		
 		# Check if checkout folder isn't set
 		if octoprint.plugin.plugin_manager().plugin_implementations["softwareupdate"]._settings.get(["checks", "octoprint", "checkout_folder"]) is None or not len(octoprint.plugin.plugin_manager().plugin_implementations["softwareupdate"]._settings.get(["checks", "octoprint", "checkout_folder"])) :
