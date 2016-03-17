@@ -97,6 +97,8 @@ else
 		cd OctoPrint-master
 		sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/python setup.py install --user
 		cd ..
+		sudo -u $SUDO_USER mkdir -p '/Users/'"$SUDO_USER"'/Library/Application Support/OctoPrint'
+		rm -rf '/Users/'"$SUDO_USER"'/Library/Application Support/OctoPrint/checkout'
 		sudo -u $SUDO_USER mv OctoPrint-master '/Users/'"$SUDO_USER"'/Library/Application Support/OctoPrint/checkout'
 		rm master.zip
 

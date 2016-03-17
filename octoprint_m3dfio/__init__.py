@@ -3694,8 +3694,9 @@ class M3DFioPlugin(
 					# Check if location is a folder
 					if os.path.isdir(location) :
 						
-						# Set checkout folder location
+						# Set checkout folder location and type
 						octoprint.plugin.plugin_manager().plugin_implementations["softwareupdate"]._settings.set(["checks", "octoprint", "checkout_folder"], location, True)
+						octoprint.plugin.plugin_manager().plugin_implementations["softwareupdate"]._settings.set(["checks", "octoprint", "type"], "git_commit", True)
 						enableSave = True
 						break
 		
