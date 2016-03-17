@@ -3658,9 +3658,9 @@ class M3DFioPlugin(
 							break
 			
 			# Check if pip is set
-			if octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.get(["pip"]) is not None and len(octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.get(["pip"])) :
+			if (octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._pip_caller is not None and octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._pip_caller.available) or (octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.get(["pip"]) is not None and len(octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.get(["pip"]))) :
 			
-				# Sety Pip parameter
+				# Set Pip parameter
 				octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.set(["pip_args"], "--user")
 				enableSave = True
 		
