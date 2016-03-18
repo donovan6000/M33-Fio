@@ -3423,8 +3423,9 @@ $(function() {
 		// Preload images
 		preload(PLUGIN_BASEURL + "m3dfio/static/img/down%20arrow.png", PLUGIN_BASEURL + "m3dfio/static/img/up%20arrow.png");
 		
-		// Remove software update message
-		$("#settings_plugin_softwareupdate div.alert:nth-of-type(2)").remove();
+		// Remove software update message if using OctoPrint's master branch
+		if(htmlDecode(BRANCH) == "HEAD -> master")
+			$("#settings_plugin_softwareupdate div.alert:nth-of-type(2)").remove();
 		
 		// Change temperature graph's background image
 		$("#temperature-graph").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/graph%20background.png");

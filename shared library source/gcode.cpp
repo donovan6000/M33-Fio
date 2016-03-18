@@ -1,81 +1,76 @@
 // Header files
-#include <cstring>
-#include <cmath>
 #include "gcode.h"
 
 
 // Definitions
-// Offsets                      1111111111 
-//                    0123456.8901....6789
+#define INVALID 0xFF
+
+
+// Global constants
 const char ORDER[] = "NMGXYZE FTSP    IJRD";
-const int ORDERlen = sizeof(ORDER)-1;
-#define _NO 0xFF
-unsigned char orderToOffset[] = {
-  /*    0 nul */ _NO,/*    1 soh */ _NO,/*    2 stx */ _NO,/*    3 etx */ _NO,/*    4 eot */ _NO,/*    5 enq */ _NO,/*    6 ack */ _NO,/*    7 bel */ _NO,
-  /*    8 bs  */ _NO,/*    9 ht  */ _NO,/*   10 nl  */ _NO,/*   11 vt  */ _NO,/*   12 np  */ _NO,/*   13 cr  */ _NO,/*   14 so  */ _NO,/*   15 si  */ _NO,
-  /*   16 dle */ _NO,/*   17 dc1 */ _NO,/*   18 dc2 */ _NO,/*   19 dc3 */ _NO,/*   20 dc4 */ _NO,/*   21 nak */ _NO,/*   22 syn */ _NO,/*   23 etb */ _NO,
-  /*   24 can */ _NO,/*   25 em  */ _NO,/*   26 sub */ _NO,/*   27 esc */ _NO,/*   28 fs  */ _NO,/*   29 gs  */ _NO,/*   30 rs  */ _NO,/*   31 us  */ _NO,
-  /*   32 sp  */ _NO,/*   33  !  */ _NO,/*   34  "  */ _NO,/*   35  #  */ _NO,/*   36  $  */ _NO,/*   37  %  */ _NO,/*   38  &  */ _NO,/*   39  '  */ _NO,
-  /*   40  (  */ _NO,/*   41  )  */ _NO,/*   42  *  */ _NO,/*   43  +  */ _NO,/*   44  ,  */ _NO,/*   45  -  */ _NO,/*   46  .  */ _NO,/*   47  /  */ _NO,
-  /*   48  0  */ _NO,/*   49  1  */ _NO,/*   50  2  */ _NO,/*   51  3  */ _NO,/*   52  4  */ _NO,/*   53  5  */ _NO,/*   54  6  */ _NO,/*   55  7  */ _NO,
-  /*   56  8  */ _NO,/*   57  9  */ _NO,/*   58  :  */ _NO,/*   59  ;  */ _NO,/*   60  <  */ _NO,/*   61  =  */ _NO,/*   62  >  */ _NO,/*   63  ?  */ _NO,
-  /*   64  @  */ _NO,/*   65  A  */ _NO,/*   66  B  */ _NO,/*   67  C  */ _NO,/*   68  D  */  19,/*   69  E  */   6,/*   70  F  */   8,/*   71  G  */   2,
-  /*   72  H  */ _NO,/*   73  I  */  16,/*   74  J  */  17,/*   75  K  */ _NO,/*   76  L  */ _NO,/*   77  M  */   1,/*   78  N  */   0,/*   79  O  */ _NO,
-  /*   80  P  */  11,/*   81  Q  */ _NO,/*   82  R  */  18,/*   83  S  */  10,/*   84  T  */   9,/*   85  U  */ _NO,/*   86  V  */ _NO,/*   87  W  */ _NO,
-  /*   88  X  */   3,/*   89  Y  */   4,/*   90  Z  */   5,/*   91  [  */ _NO,/*   92  \  */ _NO,/*   93  ]  */ _NO,/*   94  ^  */ _NO,/*   95  _  */ _NO,
-  /*   96  `  */ _NO,/*   97  a  */ _NO,/*   98  b  */ _NO,/*   99  c  */ _NO,/*  100  d  */ _NO,/*  101  e  */ _NO,/*  102  f  */ _NO,/*  103  g  */ _NO,
-  /*  104  h  */ _NO,/*  105  i  */ _NO,/*  106  j  */ _NO,/*  107  k  */ _NO,/*  108  l  */ _NO,/*  109  m  */ _NO,/*  110  n  */ _NO,/*  111  o  */ _NO,
-  /*  112  p  */ _NO,/*  113  q  */ _NO,/*  114  r  */ _NO,/*  115  s  */ _NO,/*  116  t  */ _NO,/*  117  u  */ _NO,/*  118  v  */ _NO,/*  119  w  */ _NO,
-  /*  120  x  */ _NO,/*  121  y  */ _NO,/*  122  z  */ _NO,/*  123  {  */ _NO,/*  124  |  */ _NO,/*  125  }  */ _NO,/*  126  ~  */ _NO,/*  127 del */ _NO,
-  _NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,
-  _NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,
-  _NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,
-  _NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,_NO,
-};  
+const uint8_t ORDER_LENGTH = sizeof(ORDER) - 1;
+const uint8_t orderToOffset[] = {
+	/*    0 nul */ INVALID, /*    1 soh */ INVALID, /*    2 stx */ INVALID, /*    3 etx */ INVALID, /*    4 eot */ INVALID, /*    5 enq */ INVALID, /*    6 ack */ INVALID, /*    7 bel */ INVALID,
+	/*    8 bs  */ INVALID, /*    9 ht  */ INVALID, /*   10 nl  */ INVALID, /*   11 vt  */ INVALID, /*   12 np  */ INVALID, /*   13 cr  */ INVALID, /*   14 so  */ INVALID, /*   15 si  */ INVALID,
+	/*   16 dle */ INVALID, /*   17 dc1 */ INVALID, /*   18 dc2 */ INVALID, /*   19 dc3 */ INVALID, /*   20 dc4 */ INVALID, /*   21 nak */ INVALID, /*   22 syn */ INVALID, /*   23 etb */ INVALID,
+	/*   24 can */ INVALID, /*   25 em  */ INVALID, /*   26 sub */ INVALID, /*   27 esc */ INVALID, /*   28 fs  */ INVALID, /*   29 gs  */ INVALID, /*   30 rs  */ INVALID, /*   31 us  */ INVALID,
+	/*   32 sp  */ INVALID, /*   33  !  */ INVALID, /*   34  "  */ INVALID, /*   35  #  */ INVALID, /*   36  $  */ INVALID, /*   37  %  */ INVALID, /*   38  &  */ INVALID, /*   39  '  */ INVALID,
+	/*   40  (  */ INVALID, /*   41  )  */ INVALID, /*   42  *  */ INVALID, /*   43  +  */ INVALID, /*   44  ,  */ INVALID, /*   45  -  */ INVALID, /*   46  .  */ INVALID, /*   47  /  */ INVALID,
+	/*   48  0  */ INVALID, /*   49  1  */ INVALID, /*   50  2  */ INVALID, /*   51  3  */ INVALID, /*   52  4  */ INVALID, /*   53  5  */ INVALID, /*   54  6  */ INVALID, /*   55  7  */ INVALID,
+	/*   56  8  */ INVALID, /*   57  9  */ INVALID, /*   58  :  */ INVALID, /*   59  ;  */ INVALID, /*   60  <  */ INVALID, /*   61  =  */ INVALID, /*   62  >  */ INVALID, /*   63  ?  */ INVALID,
+	/*   64  @  */ INVALID, /*   65  A  */ INVALID, /*   66  B  */ INVALID, /*   67  C  */ INVALID, /*   68  D  */   19,    /*   69  E  */    6,    /*   70  F  */    8,    /*   71  G  */    2,
+	/*   72  H  */ INVALID, /*   73  I  */   16,    /*   74  J  */   17,    /*   75  K  */ INVALID, /*   76  L  */ INVALID, /*   77  M  */    1,    /*   78  N  */    0,    /*   79  O  */ INVALID,
+	/*   80  P  */   11,    /*   81  Q  */ INVALID, /*   82  R  */   18,    /*   83  S  */   10,    /*   84  T  */    9,    /*   85  U  */ INVALID, /*   86  V  */ INVALID, /*   87  W  */ INVALID,
+	/*   88  X  */    3,    /*   89  Y  */    4,    /*   90  Z  */    5,    /*   91  [  */ INVALID, /*   92  \  */ INVALID, /*   93  ]  */ INVALID, /*   94  ^  */ INVALID, /*   95  _  */ INVALID,
+	/*   96  `  */ INVALID, /*   97  a  */ INVALID, /*   98  b  */ INVALID, /*   99  c  */ INVALID, /*  100  d  */ INVALID, /*  101  e  */ INVALID, /*  102  f  */ INVALID, /*  103  g  */ INVALID,
+	/*  104  h  */ INVALID, /*  105  i  */ INVALID, /*  106  j  */ INVALID, /*  107  k  */ INVALID, /*  108  l  */ INVALID, /*  109  m  */ INVALID, /*  110  n  */ INVALID, /*  111  o  */ INVALID,
+	/*  112  p  */ INVALID, /*  113  q  */ INVALID, /*  114  r  */ INVALID, /*  115  s  */ INVALID, /*  116  t  */ INVALID, /*  117  u  */ INVALID, /*  118  v  */ INVALID, /*  119  w  */ INVALID,
+	/*  120  x  */ INVALID, /*  121  y  */ INVALID, /*  122  z  */ INVALID, /*  123  {  */ INVALID, /*  124  |  */ INVALID, /*  125  }  */ INVALID, /*  126  ~  */ INVALID, /*  127 del */ INVALID,
+	/*  128     */ INVALID, /*  129     */ INVALID, /*  130     */ INVALID, /*  131     */ INVALID, /*  132     */ INVALID, /*  133     */ INVALID, /*  134     */ INVALID, /*  135     */ INVALID,
+	/*  136     */ INVALID, /*  137     */ INVALID, /*  138     */ INVALID, /*  139     */ INVALID, /*  140     */ INVALID, /*  141     */ INVALID, /*  142     */ INVALID, /*  143     */ INVALID,
+	/*  144     */ INVALID, /*  145     */ INVALID, /*  146     */ INVALID, /*  147     */ INVALID, /*  148     */ INVALID, /*  149     */ INVALID, /*  150     */ INVALID, /*  151     */ INVALID,
+	/*  152     */ INVALID, /*  153     */ INVALID, /*  154     */ INVALID, /*  155     */ INVALID, /*  156     */ INVALID, /*  157     */ INVALID, /*  158     */ INVALID, /*  159     */ INVALID,
+	/*  160     */ INVALID, /*  161     */ INVALID, /*  162     */ INVALID, /*  163     */ INVALID, /*  164     */ INVALID, /*  165     */ INVALID, /*  166     */ INVALID, /*  167     */ INVALID,
+	/*  168     */ INVALID, /*  169     */ INVALID, /*  170     */ INVALID, /*  171     */ INVALID, /*  172     */ INVALID, /*  173     */ INVALID, /*  174     */ INVALID, /*  175     */ INVALID,
+	/*  176     */ INVALID, /*  177     */ INVALID, /*  178     */ INVALID, /*  179     */ INVALID, /*  180     */ INVALID, /*  181     */ INVALID, /*  182     */ INVALID, /*  183     */ INVALID,
+	/*  184     */ INVALID, /*  185     */ INVALID, /*  186     */ INVALID, /*  187     */ INVALID, /*  188     */ INVALID, /*  189     */ INVALID, /*  190     */ INVALID, /*  191     */ INVALID,
+	/*  192     */ INVALID, /*  193     */ INVALID, /*  194     */ INVALID, /*  195     */ INVALID, /*  196     */ INVALID, /*  197     */ INVALID, /*  198     */ INVALID, /*  199     */ INVALID,
+	/*  200     */ INVALID, /*  201     */ INVALID, /*  202     */ INVALID, /*  203     */ INVALID, /*  204     */ INVALID, /*  205     */ INVALID, /*  206     */ INVALID, /*  207     */ INVALID,
+	/*  208     */ INVALID, /*  209     */ INVALID, /*  210     */ INVALID, /*  211     */ INVALID, /*  212     */ INVALID, /*  213     */ INVALID, /*  214     */ INVALID, /*  215     */ INVALID,
+	/*  216     */ INVALID, /*  217     */ INVALID, /*  218     */ INVALID, /*  219     */ INVALID, /*  220     */ INVALID, /*  221     */ INVALID, /*  222     */ INVALID, /*  223     */ INVALID,
+	/*  224     */ INVALID, /*  225     */ INVALID, /*  226     */ INVALID, /*  227     */ INVALID, /*  228     */ INVALID, /*  229     */ INVALID, /*  230     */ INVALID, /*  231     */ INVALID,
+	/*  232     */ INVALID, /*  233     */ INVALID, /*  234     */ INVALID, /*  235     */ INVALID, /*  236     */ INVALID, /*  237     */ INVALID, /*  238     */ INVALID, /*  239     */ INVALID,
+	/*  240     */ INVALID, /*  241     */ INVALID, /*  242     */ INVALID, /*  243     */ INVALID, /*  244     */ INVALID, /*  245     */ INVALID, /*  246     */ INVALID, /*  247     */ INVALID,
+	/*  248     */ INVALID, /*  249     */ INVALID, /*  250     */ INVALID, /*  251     */ INVALID, /*  252     */ INVALID, /*  253     */ INVALID, /*  254     */ INVALID, /*  255     */ INVALID
+};
 
 
 // Supporting function implementation
 Gcode::Gcode() :
+
 	// Set inital data type
-	// TLH Initialization syntax is preferred for constructors.
 	dataType(0x1080)
 {
+
 	// Set parameter value size
-	parameterValue.resize(ORDERlen);
-	
+	parameterValue.resize(ORDER_LENGTH);
 }
 
-// TLH the assignment statements were all backwards.
-// Also, initialization syntax is preferred for constructors.
 Gcode::Gcode(const Gcode &value) :
+
 	// Copy original command
 	originalCommand(value.originalCommand),
+	
 	// Copy parameter values
 	parameterValue(value.parameterValue),
+	
 	// Copy data type
 	dataType(value.dataType),
+	
 	// Copy host command
 	hostCommand(value.hostCommand)
 {
 }
-
-// TLH repeated substrings are expensive
-// TLH a linear search is okay once, but not repeatedly
-//	if((characterOffset = command.find('*')) != string::npos)
-//		// Remove checksum
-//		command = command.substr(0, characterOffset);
-//
-//	// Remove leading and trailing whitespace
-// TLH find_first_not_of is expensive compared to isspace()
-//	if((characterOffset = command.find_first_not_of(" \t\n\r")) != string::npos)
-//		command = command.substr(characterOffset);
-// TLH find_last_not_of is expensive compared to isspace()
-//	if((characterOffset = command.find_last_not_of(" \t\n\r")) != string::npos)
-//		command = command.substr(0, characterOffset + 1);
-//	// Check if command contains a comment
-//	if((characterOffset = command.find(';')) != string::npos)
-//		// Remove comment
-//		command = command.substr(0, characterOffset);
 
 bool Gcode::parseLine(const char *line) {
 
@@ -84,48 +79,41 @@ bool Gcode::parseLine(const char *line) {
 	
 	// Reset parameter values
 	parameterValue.clear();
-	parameterValue.resize(ORDERlen);
+	parameterValue.resize(ORDER_LENGTH);
 	
 	// Clear host command
 	hostCommand.clear();
 	
-	// Check if command contains a checksum
-	const char *line0 = line;
+	// Initialize line start and end
+	const char *lineStart = line, *lineEnd;
 
-	// remove leading whitespace
-	while (isspace(*line0))
-		line0++;
-
-	// Remove checksum
-	// If no checksum, set lineStar to end of line
-	const char *lineStar = line0;
-	const char *comment = 0;
-	while (*lineStar && (*lineStar != '*')) {
-		if (*lineStar == ';')
-			comment = lineStar;
-		lineStar++;
-	}
-
-	// Remove leading and trailing whitespace
-	while ((lineStar > line0) && isspace(lineStar[-1]))
-		lineStar--;
-
-	// Set original command
-	originalCommand = string(line0, lineStar - line0);
+	// Remove leading whitespace from line
+	while(isspace(*lineStart))
+		lineStart++;
 	
-	if (comment)
-		lineStar = comment;
+	// Remove comment and checksum from line
+	for(lineEnd = lineStart; *lineEnd && *lineEnd != ';' && *lineEnd != '*'; lineEnd++);
+	lineEnd--;
+
+	// Remove trailing whitespace from line
+	while((lineEnd >= lineStart) && isspace(*lineEnd))
+		lineEnd--;
 	
 	// Check if command is empty
-	//	if(!command.length())
-	if (line0 == lineStar)	{
+	if(++lineEnd == lineStart) {
+	
+		// Clear original command
+		originalCommand.clear();
 
 		// Return false
 		return false;
 	}
 	
-	// now(!) we can create the command string
-	string command(line0, lineStar - line0);
+	// Set command string
+	string command(lineStart, lineEnd - lineStart);
+
+	// Set original command
+	originalCommand = command;
 
 	// Check if command is a host command
 	if(command[0] == '@') {
@@ -137,26 +125,19 @@ bool Gcode::parseLine(const char *line) {
 		return true;
 	}
 	
-	// Otherwise check if command is a comment
-	else if(command[0] == ';')
-		
-		// Return false
-		return false;
-	
 	// Initialize variables used in parsing the line
 	string currentValue;
-	// size_t characterOffset;
 	unsigned char parameterIdentifier = 0;
-	int parameterOffset;
+	uint8_t parameterOffset;
 	
 	// Go through data
-	for(uint8_t i = 0; i <= command.length(); i++) {
+	for(uint8_t i = 0; i <= command.length(); i++)
 	
 		// Check if a parameter is detected
 		if(i == 0 || isupper(command[i]) || command[i] == ' ' || !command[i]) {
 		
 			// Check if valid value has been obtained for the parameter
-			if(i && (parameterOffset = orderToOffset[parameterIdentifier]) != _NO) {
+			if(i && (parameterOffset = orderToOffset[parameterIdentifier]) != INVALID) {
 			
 				// Set data type
 				dataType |= (1 << parameterOffset);
@@ -175,28 +156,19 @@ bool Gcode::parseLine(const char *line) {
 				for(; i < command.length(); i++)
 					currentValue.push_back(command[i]);
 
-				// Remove leading and trailing whitespace
-				size_t characterOffset1 = currentValue.find_first_not_of(" \t\n\r");
-				if (characterOffset1 == string::npos) characterOffset1 = 0;
-				size_t characterOffset2 = currentValue.find_last_not_of(" \t\n\r");
-				if (characterOffset2 == string::npos) characterOffset2 = currentValue.length();
-				else characterOffset2++;
-				currentValue = currentValue.substr(characterOffset1, characterOffset2 - characterOffset1);
-
-				//				if((characterOffset = currentValue.find_first_not_of(" \t\n\r")) != string::npos)
-				//					currentValue = currentValue.substr(characterOffset);
-				//				if((characterOffset = currentValue.find_last_not_of(" \t\n\r")) != string::npos)
-				//					currentValue = currentValue.substr(0, characterOffset + 1);
-
+				// Remove leading whitespace from string
+				size_t characterOffset;
+				if((characterOffset = currentValue.find_first_not_of(" \t\n\r")) != string::npos)
+					currentValue = currentValue.substr(characterOffset);
+				
 				// Set string parameter
 				parameterValue[15] = currentValue;
 
 				// Check if string exists
-				if(!parameterValue[15].empty()) {
+				if(!parameterValue[15].empty())
 
 					// Set data type
 					dataType |= (1 << 15);
-				}
 
 				// Stop parsing line
 				break;
@@ -211,7 +183,6 @@ bool Gcode::parseLine(const char *line) {
 	
 			// Get current value
 			currentValue.push_back(command[i]);
-	}
 	
 	// Return if data wasn't empty
 	return dataType != 0x1080;
@@ -223,32 +194,26 @@ bool Gcode::parseLine(const string &line) {
 	return parseLine(line.c_str());
 }
 
-// convert a float from the binary line into its string value
-static inline string grabBinaryFloat(const char *line, uint8_t &index) {
-	// tempFloat is initialized below using bit-fiddling
+inline string intToFloat(const char *line, uint8_t &index) {
+
+	// Initialize variables
 	float tempFloat;
 	int32_t *tempPointer = reinterpret_cast<int32_t *>(&tempFloat);
 
 	// Set parameter value from the binary float value
-	*tempPointer = (line[index] & 0xF0) +
-		(line[index] & 0x0F) +
-		(((line[index + 1] & 0xF0) + (line[index + 1] & 0x0F)) << 8) +
-		(((line[index + 2] & 0xF0) + (line[index + 2] & 0x0F)) << 16) +
-		(((line[index + 3] & 0xF0) + (line[index + 3] & 0x0F)) << 24);
+	*tempPointer = (line[index] & 0xFF) + ((line[index + 1] & 0xFF) << 8) + ((line[index + 2] & 0xFF) << 16) + ((line[index + 3] & 0xFF) << 24);
 
 	// Increment parameter location index
 	index += 4;
-
+	
+	// Return values float representation
 	return to_string(tempFloat);
 }
 
 bool Gcode::parseBinary(const char *line) {
 
 	// Set data type
-	dataType = (line[0] & 0xFF) +
-	  (((line[1] & 0xFF)) << 8) +
-	  (((line[2] & 0xFF)) << 16) +
-	  (((line[3] & 0xFF)) << 24);
+	dataType = (line[0] & 0xFF) + ((line[1] & 0xFF) << 8) + ((line[2] & 0xFF) << 16) + ((line[3] & 0xFF) << 24);
 	
 	// Check if command contains no data
 	if(!dataType || dataType == 0x1080)
@@ -258,14 +223,14 @@ bool Gcode::parseBinary(const char *line) {
 	
 	// Reset parameter values
 	parameterValue.clear();
-	parameterValue.resize(ORDERlen);
+	parameterValue.resize(ORDER_LENGTH);
 	
 	// Clear host command
 	hostCommand.clear();
 	
 	// Initialize parameter location index
 	uint8_t index = 4;
-
+	
 	// Check if command contains a string parameter
 	if(dataType & (1 << 15))
 	
@@ -303,29 +268,34 @@ bool Gcode::parseBinary(const char *line) {
 	}
 	
 	// Check if command contains an X value
-	if(dataType & (1 << 3)) {
-		parameterValue[3] = grabBinaryFloat(line, index);
-	}
+	if(dataType & (1 << 3))
+	
+		// Set parameter value
+		parameterValue[3] = intToFloat(line, index);
 	
 	// Check if command contains a Y value
-	if(dataType & (1 << 4)) {
-		parameterValue[4] = grabBinaryFloat(line, index);
-	}
+	if(dataType & (1 << 4))
+	
+		// Set parameter value
+		parameterValue[4] = intToFloat(line, index);
 	
 	// Check if command contains a Z value
-	if(dataType & (1 << 5)) {
-		parameterValue[5] = grabBinaryFloat(line, index);
-	}
+	if(dataType & (1 << 5))
+	
+		// Set parameter value
+		parameterValue[5] = intToFloat(line, index);
 	
 	// Check if command contains an E value
-	if(dataType & (1 << 6)) {
-		parameterValue[6] = grabBinaryFloat(line, index);
-	}
+	if(dataType & (1 << 6))
+	
+		// Set parameter value
+		parameterValue[6] = intToFloat(line, index);
 	
 	// Check if command contains an F value
-	if(dataType & (1 << 8)) {
-		parameterValue[8] = grabBinaryFloat(line, index);
-	}
+	if(dataType & (1 << 8))
+	
+		// Set parameter value
+		parameterValue[8] = intToFloat(line, index);
 	
 	// Check if command contains a T value
 	if(dataType & (1 << 9)) {
@@ -341,10 +311,7 @@ bool Gcode::parseBinary(const char *line) {
 	if(dataType & (1 << 10)) {
 	
 		// Set parameter value
-		parameterValue[10] = to_string((line[index] & 0xFF) +
-					       ((line[index + 1] & 0xFF) << 8) +
-					       ((line[index + 2] & 0xFF) << 16) +
-					       ((line[index + 3] & 0xFF) << 24));
+		parameterValue[10] = to_string((line[index] & 0xFF) + ((line[index + 1] & 0xFF) << 8) + ((line[index + 2] & 0xFF) << 16) + ((line[index + 3] & 0xFF) << 24));
 		
 		// Increment parameter location index
 		index += 4;
@@ -354,34 +321,35 @@ bool Gcode::parseBinary(const char *line) {
 	if(dataType & (1 << 11)) {
 	
 		// Set parameter value
-		parameterValue[11] = to_string((line[index] & 0xFF) +
-					       ((line[index + 1] & 0xFF) << 8) +
-					       ((line[index + 2] & 0xFF) << 16) +
-					       ((line[index + 3] & 0xFF) << 24));
+		parameterValue[11] = to_string((line[index] & 0xFF) + ((line[index + 1] & 0xFF) << 8) + ((line[index + 2] & 0xFF) << 16) + ((line[index + 3] & 0xFF) << 24));
 		
 		// Increment parameter location index
 		index += 4;
 	}
 	
 	// Check if command contains an I value
-	if(dataType & (1 << 16)) {
-		parameterValue[16] = grabBinaryFloat(line, index);
-	}
+	if(dataType & (1 << 16))
+	
+		// Set parameter value
+		parameterValue[16] = intToFloat(line, index);
 	
 	// Check if command contains a J value
-	if(dataType & (1 << 17)) {
-		parameterValue[17] = grabBinaryFloat(line, index);
-	}
+	if(dataType & (1 << 17))
+	
+		// Set parameter value
+		parameterValue[17] = intToFloat(line, index);
 	
 	// Check if command contains an R value
-	if(dataType & (1 << 18)) {
-		parameterValue[18] = grabBinaryFloat(line, index);
-	}
+	if(dataType & (1 << 18))
+	
+		// Set parameter value
+		parameterValue[18] = intToFloat(line, index);
 	
 	// Check if command contains a D value
-	if(dataType & (1 << 19)) {
-		parameterValue[19] = grabBinaryFloat(line, index);
-	}
+	if(dataType & (1 << 19))
+	
+		// Set parameter value
+		parameterValue[19] = intToFloat(line, index);
 	
 	// Check if command contains a string parameter
 	if(dataType & (1 << 15))
@@ -403,30 +371,39 @@ string Gcode::getOriginalCommand() const {
 	return originalCommand;
 }
 
-// Set 2 byte integer parameter value
-inline static void pushBackInt16(vector<uint8_t> &request, const string &value) {
+inline void pushBackInt8(vector<uint8_t> &request, const string &value) {
+
+	// Append 1 byte integer to request
+	request.push_back(stoi(value) & 0xFF);
+}
+
+inline void pushBackInt16(vector<uint8_t> &request, const string &value) {
+
+	// Append 2 byte integer to request
 	int32_t tempNumber = stoi(value);
 	request.push_back(tempNumber & 0xFF);
 	request.push_back((tempNumber >> 8) & 0xFF);
 }
 
-// Set 4 byte float parameter value
-inline static void pushBackFloat(vector<uint8_t> &request, const string &value) {
+inline void pushBackInt32(vector<uint8_t> &request, const string &value) {
+
+	// Append 4 byte integer to request
+	int32_t tempNumber = stoi(value);
+	request.push_back(tempNumber & 0xFF);
+	request.push_back((tempNumber >> 8) & 0xFF);
+	request.push_back((tempNumber >> 16) & 0xFF);
+	request.push_back((tempNumber >> 24) & 0xFF);
+}
+
+inline void pushBackFloat(vector<uint8_t> &request, const string &value) {
+
+	// Append 4 byte float to request
 	float tempFloat = stof(value);
 	int32_t *tempPointer = reinterpret_cast<int32_t *>(&tempFloat);
 	request.push_back(*tempPointer & 0xFF);
 	request.push_back((*tempPointer >> 8) & 0xFF);
 	request.push_back((*tempPointer >> 16) & 0xFF);
 	request.push_back((*tempPointer >> 24) & 0xFF);
-}
-
-// Set 4 byte integer parameter value
-inline static void pushBackRoundedInt32(vector<uint8_t> &request, const string &value) {
-	int32_t tempNumber = static_cast<int>(round(stod(value)));
-	request.push_back(tempNumber & 0xFF);
-	request.push_back((tempNumber >> 8) & 0xFF);
-	request.push_back((tempNumber >> 16) & 0xFF);
-	request.push_back((tempNumber >> 24) & 0xFF);
 }
 
 vector<uint8_t> Gcode::getBinary() const {
@@ -436,12 +413,14 @@ vector<uint8_t> Gcode::getBinary() const {
 	
 	// Check if host command
 	if(!hostCommand.empty())
+	
 		// Set request to host command
 		for(uint8_t i = 0; i < hostCommand.length(); i++)
 			request.push_back(hostCommand[i]);
 	
 	// Otherwise
 	else {
+	
 		// Fill first four bytes of request to data type
 		request.push_back(dataType);
 		request.push_back(dataType >> 8);
@@ -449,90 +428,104 @@ vector<uint8_t> Gcode::getBinary() const {
 		request.push_back(dataType >> 24);
 	
 		// Check if command contains a string parameter
-		if(!parameterValue[15].empty()) {	
+		if(!parameterValue[15].empty())
+		
 			// Set fifth byte of request to string length
 			request.push_back(parameterValue[15].length());
-		}
 		
 		// Check if command contains an N value
-		if(!parameterValue[0].empty()) {
+		if(!parameterValue[0].empty())
+		
+			// Set 2 byte integer parameter value
 			pushBackInt16(request, parameterValue[0]);
-		}
 		
 		// Check if command contains an M value
-		if(!parameterValue[1].empty()) {
+		if(!parameterValue[1].empty())
+		
+			// Set 2 byte integer parameter value
 			pushBackInt16(request, parameterValue[1]);
-		}
 		
 		// Check if command contains a G value
-		if(!parameterValue[2].empty()) {
+		if(!parameterValue[2].empty())
+		
+			// Set 2 byte integer parameter value
 			pushBackInt16(request, parameterValue[2]);
-		}
 		
 		// Check if command contains an X value
-		if(!parameterValue[3].empty()) {
+		if(!parameterValue[3].empty())
+		
+			// Set 4 byte float parameter value
 			pushBackFloat(request, parameterValue[3]);
-		}
 		
 		// Check if command contains a Y value
-		if(!parameterValue[4].empty()) {
+		if(!parameterValue[4].empty())
+		
+			// Set 4 byte float parameter value
 			pushBackFloat(request, parameterValue[4]);
-		}
 		
 		// Check if command contains a Z value
-		if(!parameterValue[5].empty()) {
+		if(!parameterValue[5].empty())
+		
+			// Set 4 byte float parameter value
 			pushBackFloat(request, parameterValue[5]);
-		}
 		
 		// Check if command contains an E value
-		if(!parameterValue[6].empty()) {
+		if(!parameterValue[6].empty())
+		
+			// Set 4 byte float parameter value
 			pushBackFloat(request, parameterValue[6]);
-		}
 		
 		// Check if command contains an F value
-		if(!parameterValue[8].empty()) {
+		if(!parameterValue[8].empty())
+		
+			// Set 4 byte float parameter value
 			pushBackFloat(request, parameterValue[8]);
-		}
 		
 		// Check if command contains a T value
-		if(!parameterValue[9].empty()) {
+		if(!parameterValue[9].empty())
+			
 			// Set 1 byte integer parameter value
-			int32_t tempNumber = stoi(parameterValue[9]);
-			request.push_back(tempNumber & 0xFF);
-		}
+			pushBackInt8(request, parameterValue[9]);
 		
 		// Check if command contains an S value
-		if(!parameterValue[10].empty()) {
-			pushBackRoundedInt32(request, parameterValue[10]);
-		}
+		if(!parameterValue[10].empty())
+		
+			// Set 4 byte integer parameter value
+			pushBackInt32(request, parameterValue[10]);
 		
 		// Check if command contains a P value
-		if(!parameterValue[11].empty()) {
-			pushBackRoundedInt32(request, parameterValue[11]);
-		}
+		if(!parameterValue[11].empty())
+		
+			// Set 4 byte integer parameter value
+			pushBackInt32(request, parameterValue[11]);
 		
 		// Check if command contains an I value
-		if(!parameterValue[16].empty()) {
+		if(!parameterValue[16].empty())
+		
+			// Set 4 byte float parameter value
 			pushBackFloat(request, parameterValue[16]);
-		}
 		
 		// Check if command contains a J value
-		if(!parameterValue[17].empty()) {
+		if(!parameterValue[17].empty())
+		
+			// Set 4 byte float parameter value
 			pushBackFloat(request, parameterValue[17]);
-		}
 		
 		// Check if command contains an R value
-		if(!parameterValue[18].empty()) {
+		if(!parameterValue[18].empty())
+		
+			// Set 4 byte float parameter value
 			pushBackFloat(request, parameterValue[18]);
-		}
 		
 		// Check if command contains a D value
-		if(!parameterValue[19].empty()) {
+		if(!parameterValue[19].empty())
+		
+			// Set 4 byte float parameter value
 			pushBackFloat(request, parameterValue[19]);
-		}
 		
 		// Check if command contains a string
 		if(!parameterValue[15].empty())
+		
 			// Set string parameter value
 			for(uint8_t i = 0; i < parameterValue[15].length(); i++)
 				request.push_back(parameterValue[15][i]);
@@ -569,21 +562,36 @@ string Gcode::getAscii() const {
 	string request;
 	
 	// Go through all values
-	for(uint8_t i = 0; i < ORDERlen; i++) {
-		
-		// Check if command contains value and value is valid
-		if(dataType & (1 << i) && 0xF0F7F & (1 << i)) {
-		
-			// Append parameter identifier and value
-			request += ORDER[i] + parameterValue[i] + ' ';
-			
-			// Check if M command contains a string
-			if(i == 1 && dataType & (1 << 15))
+	for(uint8_t i = 0; i < ORDER_LENGTH; i++)
 	
-				// Append string to request
-				request += parameterValue[15] + ' ';
+		// Check value index
+		switch(i) {
+		
+			// Check if value index is invalid
+			case 7:
+			case 12:
+			case 13:
+			case 14:
+			case 15:
+			break;
+			
+			// Otherwise
+			default:
+		
+				// Check if command contains value
+				if(dataType & (1 << i)) {
+		
+					// Append parameter identifier and value
+					request += ORDER[i] + parameterValue[i] + ' ';
+			
+					// Check if M command contains a string
+					if(i == 1 && dataType & (1 << 15))
+	
+						// Append string to request
+						request += parameterValue[15] + ' ';
+				}
 		}
-	}
+	
 	// Remove last space from request
 	if(!request.empty())
 		request.pop_back();
@@ -600,17 +608,12 @@ uint32_t Gcode::getDataType() const {
 
 bool Gcode::hasParameter(char parameter) const {
 
-  // TLH checking twice
-  //	// Check if parameter isn't a space
-  //	if(parameter != ' ') {
-
 	// Check if parameter is valid
-	int parameterOffset = orderToOffset[(unsigned char)parameter];
-	if(parameterOffset != _NO)
+	uint8_t parameterOffset = orderToOffset[static_cast<unsigned char>(parameter)];
+	if(parameterOffset != INVALID)
 	
 		// Return if value is set
 		return dataType & (1 << parameterOffset);
-  //	}
 	
 	// Return false
 	return false;
@@ -618,42 +621,32 @@ bool Gcode::hasParameter(char parameter) const {
 
 void Gcode::removeParameter(char parameter) {
 
-  // TLH checking twice
-  //	// Check if parameter isn't a space
-  //	if(parameter != ' ') {
+	// Check if parameter is valid
+	uint8_t parameterOffset = orderToOffset[static_cast<unsigned char>(parameter)];
+	if(parameterOffset != INVALID) {
 
-		// Check if parameter is valid
-		int parameterOffset = orderToOffset[(unsigned char) parameter];
-		if(parameterOffset != _NO) {
+		// Clear data type
+		dataType &= ~(1 << parameterOffset);
 
-			// Clear data type
-			dataType &= ~(1 << parameterOffset);
+		// Clear parameter value
+		parameterValue[parameterOffset].clear();
 
-			// Clear parameter value
-			parameterValue[parameterOffset].clear();
+		// Check if command is now empty
+		if(dataType == 0x1080)
 
-			// Check if command is now empty
-			if(dataType == 0x1080)
-
-				// Clear original command
-				originalCommand = "";
-		}
-  //	}
+			// Clear original command
+			originalCommand = "";
+	}
 }
 
 bool Gcode::hasValue(char parameter) const {
 
-  // TLH checking twice
-  //	// Check if parameter isn't a space
-  //	if(parameter != ' ') {
+	// Check if parameter is valid
+	uint8_t parameterOffset = orderToOffset[static_cast<unsigned char>(parameter)];
+	if(parameterOffset != INVALID)
 	
-		// Check if parameter is valid
-		int parameterOffset = orderToOffset[(unsigned char)parameter];
-		if(parameterOffset != _NO)
-	
-			// Return if parameter's value isn't empty
-			return !parameterValue[parameterOffset].empty();
-  //	}
+		// Return if parameter's value isn't empty
+		return !parameterValue[parameterOffset].empty();
 	
 	// Return false
 	return false;
@@ -661,17 +654,12 @@ bool Gcode::hasValue(char parameter) const {
 
 string Gcode::getValue(char parameter) const {
 
-  // TLH checking twice
-  //	// Check if parameter isn't a space
-  //	if(parameter != ' ') {
+	// Check if parameter is valid
+	uint8_t parameterOffset = orderToOffset[static_cast<unsigned char>(parameter)];
+	if(parameterOffset != INVALID)
 	
-		// Check if parameter is valid
-		int parameterOffset = orderToOffset[(unsigned char)parameter];
-		if(parameterOffset != _NO)
-	
-			// Return parameter's value
-			return parameterValue[parameterOffset];
-  //	}
+		// Return parameter's value
+		return parameterValue[parameterOffset];
 	
 	// Return empty
 	return "";
@@ -679,21 +667,16 @@ string Gcode::getValue(char parameter) const {
 
 void Gcode::setValue(char parameter, const string &value) {
 
-  // TLH checking twice
-  //	// Check if parameter isn't a space
-  //	if(parameter != ' ') {
+	// Check if parameter is valid
+	uint8_t parameterOffset = orderToOffset[static_cast<unsigned char>(parameter)];
+	if(parameterOffset != INVALID) {
 	
-		// Check if parameter is valid
-		int parameterOffset = orderToOffset[(unsigned char) parameter];
-		if(parameterOffset != _NO) {
-	
-			// Set data type
-			dataType |= (1 << parameterOffset);
-	
-			// Set parameter value
-			parameterValue[parameterOffset] = value;
-		}
-  //	}
+		// Set data type
+		dataType |= (1 << parameterOffset);
+
+		// Set parameter value
+		parameterValue[parameterOffset] = value;
+	}
 }
 
 bool Gcode::hasString() const {
@@ -724,7 +707,7 @@ void Gcode::clear() {
 
 	// Set parameter value size
 	parameterValue.clear();
-	parameterValue.resize(ORDERlen);
+	parameterValue.resize(ORDER_LENGTH);
 	
 	// Clear host command
 	hostCommand.clear();
