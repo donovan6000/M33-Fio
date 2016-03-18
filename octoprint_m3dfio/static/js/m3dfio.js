@@ -10398,12 +10398,30 @@ $(function() {
 			
 			// Otherwise check if data is to show message
 			else if(data.value == "Show Message" && typeof data.message !== "undefined") {
+			
+				// Initialize variables
+				var text = htmlEncode(data.message);
+			
+				// Check if same text is currently being displayed
+				if($("body > div.page-container > div.message").find("p").eq(0).html() == text)
+			
+					// Return
+					return;
+			
+				// Go through all messages
+				for(var i = 0; i < messages.length; i++)
+			
+					// Check if a message waiting to be displayed has same text
+					if(messages[i].text == text)
+				
+						// Return
+						return;
 				
 				// Check if a confirmation is requested
 				if(typeof data.confirm !== "undefined") {
 				
 					// Display message
-					showMessage("Message", htmlEncode(data.message), "OK", function() {
+					showMessage("Message", text, "OK", function() {
 					
 						// Hide message
 						hideMessage();
@@ -10414,7 +10432,7 @@ $(function() {
 				else
 				
 					// Display message
-					showMessage("Message", htmlEncode(data.message));
+					showMessage("Message", text);
 			}
 			
 			// Otherwise check if data is to hide message
