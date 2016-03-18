@@ -22,6 +22,7 @@ else
 	
 	# Uninstall OctoPrint
 	echo 'y' | sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/pip uninstall OctoPrint
+	rm -rf '/Users/'"$SUDO_USER"'/Library/Application Support/OctoPrint'
 	
 	# Uninstall PyObjC QTKit framework
 	echo 'y' | sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/pip uninstall pyobjc-framework-QTKit

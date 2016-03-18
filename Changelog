@@ -1,5 +1,10 @@
 Changelog:
 
+V0.30.1 March 17, 2016
+
+	* Installers will now setup OctoPrint's checkout folder and M3D Fio will set OctoPrint's settings to use it
+	* Dialog messages wont be displayed unless user is logged in
+
 V0.30 March 16, 2016
 
 	* Fixed compatibility with OctoPrint V1.2.10

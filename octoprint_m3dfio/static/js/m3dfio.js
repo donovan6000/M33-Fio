@@ -36,6 +36,7 @@ $(function() {
 		self.files = parameters[3];
 		self.slicing = parameters[4];
 		self.terminal = parameters[5];
+		self.loginState = parameters[6];
 		
 		// Bed dimensions
 		var bedLowMaxX = 106.0;
@@ -536,6 +537,13 @@ $(function() {
 			return $("<div>").text(value).html();
 		}
 		
+		// Decode html entities
+		function htmlDecode(value) {
+
+			// Return decoded html
+			return $("<div>").html(value).text();
+		}
+		
 		// Show message
 		function showMessage(header, text, secondButton, secondButtonCallback, firstButton, firstButtonCallback) {
 		
@@ -601,7 +609,7 @@ $(function() {
 				}
 				
 				// Check if a message can be displayed
-				if(messages.length && ((message.hasClass("show") && !message.find("button.confirm").eq(1).hasClass("show")) || message.css("z-index") != "9999")) {
+				if(messages.length && self.loginState.loggedIn() && ((message.hasClass("show") && !message.find("button.confirm").eq(1).hasClass("show")) || message.css("z-index") != "9999")) {
 				
 					// Get current message
 					var currentMessage = messages.shift();
@@ -611,7 +619,7 @@ $(function() {
 		
 					// Set header and text
 					message.find("h4").text(currentMessage.header);
-					message.find("p").html(currentMessage.text);
+					message.find("p").eq(0).html(currentMessage.text);
 
 					// Set first button if specified
 					var buttons = message.find("button.confirm");
@@ -3415,6 +3423,10 @@ $(function() {
 		// Preload images
 		preload(PLUGIN_BASEURL + "m3dfio/static/img/down%20arrow.png", PLUGIN_BASEURL + "m3dfio/static/img/up%20arrow.png");
 		
+		// Remove software update message if using OctoPrint's master branch
+		if(htmlDecode(BRANCH) == "HEAD -> master")
+			$("#settings_plugin_softwareupdate div.alert:nth-of-type(2)").remove();
+		
 		// Change temperature graph's background image
 		$("#temperature-graph").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/graph%20background.png");
 		
@@ -4727,6 +4739,7 @@ $(function() {
 						$("#slicing_configuration_dialog .modal-body").css("display", '');
 						$("#slicing_configuration_dialog .modal-cover").removeClass("show").css("z-index", '');
 						$("#slicing_configuration_dialog .modal-footer p.warning").text('');
+						$("#slicing_configuration_dialog .modal-footer a.skip").css("display", '');
 						skipModelEditor = false;
 						
 						// Save software settings
@@ -4984,6 +4997,7 @@ $(function() {
 											if(!Detector.webgl) {
 												button.text("Slice");
 												$("#slicing_configuration_dialog .modal-footer p.warning").text("Model editor will be skipped since your browser doesn't support WebGL");
+												$("#slicing_configuration_dialog .modal-footer a.skip").css("display", "none");
 											}
 										
 											// Update line numbers
@@ -9663,21 +9677,30 @@ $(function() {
 		// Ping
 		function ping() {
 		
-			// Send request
-			$.ajax({
-				url: API_BASEURL + "plugin/m3dfio",
-				type: "POST",
-				dataType: "json",
-				data: JSON.stringify({command: "message", value: "Ping"}),
-				contentType: "application/json; charset=UTF-8",
+			// Check if logged in
+			if(self.loginState.loggedIn())
+		
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m3dfio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({command: "message", value: "Ping"}),
+					contentType: "application/json; charset=UTF-8",
 				
-				// Complete
-				complete: function() {
+					// Complete
+					complete: function() {
 					
-					// Ping again
-					setTimeout(ping, 180 * 1000);
-				}
-			});
+						// Ping again
+						setTimeout(ping, 180 * 1000);
+					}
+				});
+			
+			// Otherwise
+			else
+			
+				// Ping again
+				setTimeout(ping, 180 * 1000);
 		}
 		setTimeout(ping, 180 * 1000);
 		
@@ -9850,8 +9873,26 @@ $(function() {
 			// Otherwise check if data is that Cura isn't installed
 			else if(data.value == "Cura Not Installed") {
 			
+				// Initialize variables
+				var text = "It's recommended that you install the <a href=\"https://ultimaker.com/en/products/cura-software/list\" target=\"_blank\">latest Cura 15.04 release</a> on this server to fully utilize M3D Fio's capabilities";
+				
+				// Check if same text is currently being displayed
+				if($("body > div.page-container > div.message").find("p").eq(0).html() == text)
+				
+					// Return
+					return;
+				
+				// Go through all messages
+				for(var i = 0; i < messages.length; i++)
+				
+					// Check if a message waiting to be displayed has same text
+					if(messages[i].text == text)
+					
+						// Return
+						return;
+			
 				// Show message
-				showMessage("Message", "It's recommended that you install the <a href=\"https://ultimaker.com/en/products/cura-software/list\" target=\"_blank\">latest Cura 15.04 release</a> on this server to fully utilize M3D Fio's capabilities", "OK", function() {
+				showMessage("Message", text, "OK", function() {
 					
 					// Hide message
 					hideMessage();
@@ -9870,8 +9911,26 @@ $(function() {
 			// Otherwise check if data is that sleep wont disable
 			else if(data.value == "Sleep Wont Disable") {
 			
+				// Initialize variables
+				var text = "It's recommended that you disable this server's sleep functionality while printing if it's not already disabled";
+				
+				// Check if same text is currently being displayed
+				if($("body > div.page-container > div.message").find("p").eq(0).html() == text)
+				
+					// Return
+					return;
+				
+				// Go through all messages
+				for(var i = 0; i < messages.length; i++)
+				
+					// Check if a message waiting to be displayed has same text
+					if(messages[i].text == text)
+					
+						// Return
+						return;
+			
 				// Show message
-				showMessage("Message", "It's recommended that you disable this server's sleep functionality while printing if it's not already disabled", "OK", function() {
+				showMessage("Message", text, "OK", function() {
 				
 					// Hide message
 					hideMessage();
@@ -10618,6 +10677,6 @@ $(function() {
 	
 		// Constructor
 		M3DFioViewModel,
-		["printerStateViewModel", "temperatureViewModel", "settingsViewModel", "gcodeFilesViewModel", "slicingViewModel", "terminalViewModel"]
+		["printerStateViewModel", "temperatureViewModel", "settingsViewModel", "gcodeFilesViewModel", "slicingViewModel", "terminalViewModel", "loginStateViewModel"]
 	]);
 });

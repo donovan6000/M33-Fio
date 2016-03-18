@@ -1223,15 +1223,15 @@ class M3DFioPlugin(
 			if newHostCamera :
 			
 				# Set camera URLs
-				octoprint.settings.settings().set(["webcam", "stream"], "http://" + socket.gethostbyname(socket.gethostname()) + ":4999/stream.mjpg")
-				octoprint.settings.settings().set(["webcam", "snapshot"], "http://" + socket.gethostbyname(socket.gethostname()) + ":4999/snapshot.jpg")
+				octoprint.settings.settings().set(["webcam", "stream"], "http://" + socket.gethostbyname(socket.gethostname()) + ":4999/stream.mjpg", True)
+				octoprint.settings.settings().set(["webcam", "snapshot"], "http://" + socket.gethostbyname(socket.gethostname()) + ":4999/snapshot.jpg", True)
 				
 			# Otherwise assume now not hosting camera
 			else :
 			
 				# Clear camera URLs
-				octoprint.settings.settings().set(["webcam", "stream"], None)
-				octoprint.settings.settings().set(["webcam", "snapshot"], None)
+				octoprint.settings.settings().set(["webcam", "stream"], None, True)
+				octoprint.settings.settings().set(["webcam", "snapshot"], None, True)
 			
 			# Save settings
 			octoprint.settings.settings().save()
@@ -3616,38 +3616,88 @@ class M3DFioPlugin(
 	# Set file locations
 	def setFileLocations(self) :
 	
-		# Check if rot running in a virtual environment and Pip isn't set
-		if not hasattr(sys, "real_prefix") and (octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._pip_caller is None or not octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._pip_caller.available) and octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.get(["pip"]) is None :
+		# Initialize variables
+		enableSave = False
 	
-			# Set Pip locations
-			pipLocations = []
+		# Check if not running in a virtual environment
+		if not hasattr(sys, "real_prefix") :
+		
+			# Check if Pip isn't set
+			if (octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._pip_caller is None or not octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._pip_caller.available) and (octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.get(["pip"]) is None or not len(octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.get(["pip"]))) :
+	
+				# Set Pip locations
+				pipLocations = []
+				if platform.uname()[0].startswith("Windows") :
+	
+					pipLocations = [
+						os.environ["SYSTEMDRIVE"] + "/python/Scripts/pip.exe"
+					]
+	
+				elif platform.uname()[0].startswith("Darwin") :
+	
+					pipLocations = [
+						"/Library/Frameworks/Python.framework/Versions/2.7/bin/pip"
+					]
+	
+				elif platform.uname()[0].startswith("Linux") :
+	
+					pipLocations = [
+						"/usr/bin/pip"
+					]
+	
+				# Go through all Pip location
+				for locations in pipLocations :
+					for location in glob.glob(locations) :
+
+						# Check if location is a file
+						if os.path.isfile(location) :
+		
+							# Set Pip location
+							octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.set(["pip"], location, True)
+							enableSave = True
+							break
+			
+			# Check if pip is set
+			if (octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._pip_caller is not None and octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._pip_caller.available) or (octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.get(["pip"]) is not None and len(octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.get(["pip"]))) :
+			
+				# Set Pip parameter
+				octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.set(["pip_args"], "--user", True)
+				enableSave = True
+		
+		# Check if checkout folder isn't set
+		if octoprint.plugin.plugin_manager().plugin_implementations["softwareupdate"]._settings.get(["checks", "octoprint", "checkout_folder"]) is None or not len(octoprint.plugin.plugin_manager().plugin_implementations["softwareupdate"]._settings.get(["checks", "octoprint", "checkout_folder"])) :
+	
+			# Set checkout folder locations
+			checkoutFolderLocations = []
 			if platform.uname()[0].startswith("Windows") :
 	
-				pipLocations = [
-					os.environ["SYSTEMDRIVE"] + "/python/Scripts/pip.exe"
+				checkoutFolderLocations = [
+					os.environ["SYSTEMDRIVE"] + "/Users/" + os.environ["USERNAME"] + "/AppData/Roaming/OctoPrint/checkout"
 				]
 	
 			elif platform.uname()[0].startswith("Darwin") :
 	
-				pipLocations = [
-					"/Library/Frameworks/Python.framework/Versions/*/bin/pip"
+				checkoutFolderLocations = [
+					"/Users/" + os.environ["USER"] + "/Library/Application Support/OctoPrint/checkout"
 				]
 	
 			elif platform.uname()[0].startswith("Linux") :
 	
-				pipLocations = [
-					"/usr/bin/pip"
+				checkoutFolderLocations = [
+					"/home/" + os.environ["USER"] + "/.octoprint/checkout"
 				]
-	
-			# Go through all Pip location
-			for locations in pipLocations :
+			
+			# Go through all checkout folder location
+			for locations in checkoutFolderLocations :
 				for location in glob.glob(locations) :
-
-					# Check if location is a file
-					if os.path.isfile(location) :
-		
-						# Set Pip location
-						octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.set(["pip"], location)
+				
+					# Check if location is a folder
+					if os.path.isdir(location) :
+						
+						# Set checkout folder location and type
+						octoprint.plugin.plugin_manager().plugin_implementations["softwareupdate"]._settings.set(["checks", "octoprint", "checkout_folder"], location, True)
+						octoprint.plugin.plugin_manager().plugin_implementations["softwareupdate"]._settings.set(["checks", "octoprint", "type"], "github_release", True)
+						enableSave = True
 						break
 		
 		# Check if Cura is a registered slicer
@@ -3689,8 +3739,15 @@ class M3DFioPlugin(
 						if os.path.isfile(location) :
 					
 							# Set Cura Engine location
-							self._slicing_manager.get_slicer("cura", False)._settings.set(["cura_engine"], location)
+							self._slicing_manager.get_slicer("cura", False)._settings.set(["cura_engine"], location, True)
+							enableSave = True
 							break
+		
+		# Check if saving
+		if enableSave :
+		
+			# Save software settings
+			octoprint.settings.settings().save()
 	
 	# Event monitor
 	def on_event(self, event, payload) :
@@ -8100,21 +8157,20 @@ class M3DFioPlugin(
 			# Check if using Linux
 			if platform.uname()[0].startswith("Linux") :
 				
-				# Set GPIO pin high
-				# try gpio/wiringPi method
-				try:
+				# Try using WiringPi to access the port
+				try :
 					subprocess.call(["gpio", "-g", "mode", str(gpioPin), "out"])
-					subprocess.call(["gpio", "-g", "write", str(gpioPin), "1"])
-				except OSError as e:
-				    if e.errno == os.errno.ENOENT:
-						# wiringPi not found
+					subprocess.call(["gpio", "-g", "write", str(gpioPin), '1'])
+				
+				# Check if WiringPi isn't installed
+				except OSError as exception :
+				    if exception.errno == os.errno.ENOENT :
+				    
+						# Try using file system to access the port
 						os.system("echo \"" + str(gpioPin) + "\" > /sys/class/gpio/export")
 						os.system("echo \"out\" > /sys/class/gpio/gpio" + str(gpioPin) + "/direction")
 						os.system("echo \"1\" > /sys/class/gpio/gpio" + str(gpioPin) + "/value")
 						os.system("echo \"" + str(gpioPin) + "\" > /sys/class/gpio/unexport")
-				    else:
-				        # Something else went wrong while trying to run `gpio`
-				        raise
 	
 	# Set GPIO pin low
 	def setGpioPinLow(self) :
@@ -8126,21 +8182,20 @@ class M3DFioPlugin(
 			# Check if using Linux
 			if platform.uname()[0].startswith("Linux") :
 				
-				# Set GPIO pin low
-				# try gpio/wiringPi method
+				# Try using WiringPi to access the port
 				try:
 					subprocess.call(["gpio", "-g", "mode", str(gpioPin), "out"])
-					subprocess.call(["gpio", "-g", "write", str(gpioPin), "0"])
-				except OSError as e:
-					if e.errno == os.errno.ENOENT:
-						# wiringPi not found
+					subprocess.call(["gpio", "-g", "write", str(gpioPin), '0'])
+				
+				# Check if WiringPi isn't installed
+				except OSError as exception :
+					if exception.errno == os.errno.ENOENT :
+						
+						# Try using file system to access the port
 						os.system("echo \"" + str(gpioPin) + "\" > /sys/class/gpio/export")
 						os.system("echo \"out\" > /sys/class/gpio/gpio" + str(gpioPin) + "/direction")
 						os.system("echo \"0\" > /sys/class/gpio/gpio" + str(gpioPin) + "/value")
 						os.system("echo \"" + str(gpioPin) + "\" > /sys/class/gpio/unexport")
-					else:
-						# Something else went wrong while trying to run `gpio`
-						raise
 
 
 # Plugin info
