@@ -4814,6 +4814,9 @@ class M3DFioPlugin(
 				
 					# Check if printer wasn't found
 					if currentPort is None :
+					
+						# Clear EEPROM
+						self.eeprom = None
 
 						# Send message
 						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "No Micro 3D printer detected. Try cycling the printer's power and try again.", confirm = True))
@@ -4858,9 +4861,39 @@ class M3DFioPlugin(
 							# Clear invalid printer
 							self.invalidPrinter = False
 							
-							# Request printer information
+							# Delay
 							time.sleep(0.5)
-							self._printer.get_transport().write("M115")
+							
+							# Request printer information
+							try :
+								self._printer.get_transport().write("M115")
+							except Exception :
+				
+								# Close connection
+								if self._printer._comm is not None :
+				
+									try :
+										self._printer._comm.close(False, False)
+									except TypeError :
+										pass
+				
+								self._printer.disconnect()
+					
+						# Otherwise
+						else :
+						
+							# Clear EEPROM
+							self.eeprom = None
+					
+							# Close connection
+							if self._printer._comm is not None :
+		
+								try :
+									self._printer._comm.close(False, False)
+								except TypeError :
+									pass
+		
+							self._printer.disconnect()
 			
 			# Enable printer callbacks
 			self._printer.register_callback(self)
