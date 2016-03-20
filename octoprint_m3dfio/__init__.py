@@ -1189,6 +1189,7 @@ class M3DFioPlugin(
 			GpioLayer = None,
 			HeatbedTemperature = 70,
 			ExternalBedHeight = 0,
+			ExpandPrintableRegion = False,
 			HostCamera = False,
 			CameraPort = None,
 			CameraWidth = 640,
