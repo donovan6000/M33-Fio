@@ -6961,7 +6961,7 @@ $(function() {
 							"G92"
 						];
 		
-						for(var i = 2; i <= 40; i += 2)
+						for(var i = 2; i <= 50; i += 2)
 							commands.push("G0 E-" + i + " F345");
 				
 						commands.push("M65536;wait");
@@ -7078,7 +7078,7 @@ $(function() {
 							"G92"
 						];
 		
-						for(var i = 2; i <= 40; i += 2)
+						for(var i = 2; i <= 50; i += 2)
 							commands.push("G0 E" + i + " F345");
 				
 						commands.push("M65536;wait");
@@ -7361,7 +7361,7 @@ $(function() {
 														"G92"
 													];
 
-													for(var i = 2; i <= 40; i += 2)
+													for(var i = 2; i <= 50; i += 2)
 														commands.push("G0 E-" + i + " F345");
 		
 													commands.push("M65536;wait");
@@ -7421,7 +7421,7 @@ $(function() {
 																			"G92"
 																		];
 
-																		for(var i = 2; i <= 40; i += 2)
+																		for(var i = 2; i <= 50; i += 2)
 																			commands.push("G0 E" + i + " F345");
 		
 																		commands.push("M65536;wait");
