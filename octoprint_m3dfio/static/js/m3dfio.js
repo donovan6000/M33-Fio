@@ -59,8 +59,6 @@ $(function() {
 		var bedHighMinZ = bedMediumMaxZ
 		var extruderCenterX = (bedLowMaxX + bedLowMinX) / 2;
 		var extruderCenterY = (bedLowMaxY + bedLowMinY + 14.0) / 2;
-		var modelCenterOffsetX = -2.0;
-		var modelCenterOffsetY = -2.0;
 		
 		// Set printer materials
 		var printerMaterials = {
@@ -905,13 +903,14 @@ $(function() {
 				// Initialize
 				init: function() {
 				
-					// Adjust bed Z values to account for external bed height
+					// Adjust bed bounds to account for external bed
 					bedLowMaxZ = 5.0 + parseFloat(self.settings.settings.plugins.m3dfio.ExternalBedHeight());
 					bedLowMinZ = 0.0 + parseFloat(self.settings.settings.plugins.m3dfio.ExternalBedHeight());
 					bedMediumMinZ = bedLowMaxZ;
 					bedMediumMaxZ = 73.5;
 					bedHighMaxZ = 112.0;
 					bedHighMinZ = bedMediumMaxZ;
+					bedLowMinY = self.settings.settings.plugins.m3dfio.ExpandPrintableRegion() ? bedMediumMinY : -2.0;
 					
 					// Check if using Cura
 					if(slicerName == "cura") {
@@ -1024,11 +1023,11 @@ $(function() {
 					this.scene[0].add(skyBox);
 				
 					// Create print bed
-					var mesh = new THREE.Mesh(new THREE.CubeGeometry(121, 121, bedLowMinZ), new THREE.MeshBasicMaterial({
+					var mesh = new THREE.Mesh(new THREE.CubeGeometry(121, 119 - bedLowMinY, bedLowMinZ), new THREE.MeshBasicMaterial({
 						color: 0x000000,
 						side: THREE.DoubleSide
 					}));
-					mesh.position.set(0, -0.25 + bedLowMinZ / 2, 0);
+					mesh.position.set(0, -0.25 + bedLowMinZ / 2, (bedLowMinY + 2.0) / 2);
 					mesh.rotation.set(Math.PI / 2, 0, 0);
 					mesh.renderOrder = 4;
 				
@@ -1789,8 +1788,8 @@ $(function() {
 					viewport.sceneExported = false;
 
 					// Initialize variables
-					var centerX = -(extruderCenterX - (bedLowMaxX + bedLowMinX) / 2) + modelCenterOffsetX;
-					var centerZ = extruderCenterY - (bedLowMaxY + bedLowMinY) / 2 + modelCenterOffsetY;
+					var centerX = -(extruderCenterX - (bedLowMaxX + bedLowMinX) / 2) + bedLowMinX;
+					var centerZ = extruderCenterY - (bedLowMaxY + bedLowMinY) / 2 + bedLowMinY;
 					var mergedGeometry = new THREE.Geometry();
 				
 					// Go through all models
@@ -7194,13 +7193,14 @@ $(function() {
 							// On success									
 							success: function(data) {
 						
-								// Adjust bed Z values to account for external bed height
+								// Adjust bed bounds to account for external bed
 								bedLowMaxZ = 5.0;
 								bedLowMinZ = 0.0;
 								bedMediumMinZ = bedLowMaxZ;
 								bedMediumMaxZ = 73.5 - parseFloat(self.settings.settings.plugins.m3dfio.ExternalBedHeight());
 								bedHighMaxZ = 112.0 - parseFloat(self.settings.settings.plugins.m3dfio.ExternalBedHeight());
 								bedHighMinZ = bedMediumMaxZ;
+								bedLowMinY = self.settings.settings.plugins.m3dfio.ExpandPrintableRegion() ? bedMediumMinY : -2.0;
 								
 								// Set move Z
 								var moveZ = currentZ + 3;

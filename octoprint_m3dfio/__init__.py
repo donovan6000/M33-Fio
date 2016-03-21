@@ -724,17 +724,8 @@ class M3DFioPlugin(
 			# Delay
 			time.sleep(0.5)
 	
-	# On after startup
-	def on_after_startup(self) :
-	
-		# Set reminders on initial OctoPrint instance
-		currentPort = self.getListenPort(psutil.Process(os.getpid()))
-		if currentPort is not None and self.getListenPort(psutil.Process(os.getpid())) == 5000 :
-			self.curaReminder = True
-			self.sleepReminder = True
-		else :
-			self.curaReminder = False
-			self.sleepReminder = False
+	# Save printer profile
+	def savePrinterProfile(self) :
 	
 		# Create and overwrite Micro 3D printer profile
 		printerProfile = dict(
@@ -765,7 +756,31 @@ class M3DFioPlugin(
 			)
 		)
 		self._printer_profile_manager.save(printerProfile, True, True)
+	
+	# On after startup
+	def on_after_startup(self) :
+	
+		# Set reminders on initial OctoPrint instance
+		currentPort = self.getListenPort(psutil.Process(os.getpid()))
+		if currentPort is not None and self.getListenPort(psutil.Process(os.getpid())) == 5000 :
+			self.curaReminder = True
+			self.sleepReminder = True
+		else :
+			self.curaReminder = False
+			self.sleepReminder = False
 		
+		# Adjust bed bounds to account for external bed
+		self.bedMediumMaxZ = 73.5 - self._settings.get_float(["ExternalBedHeight"])
+		self.bedHighMaxZ = 112.0 - self._settings.get_float(["ExternalBedHeight"])
+		self.bedHighMinZ = self.bedMediumMaxZ
+		if self._settings.get_boolean(["ExpandPrintableRegion"]) :
+			self.bedLowMinY = self.bedMediumMinY
+		else :
+			self.bedLowMinY = -2.0
+
+		# Save printer profile
+		self.savePrinterProfile()
+	
 		# Select Micro 3D printer profile
 		self._printer_profile_manager.select("micro_3d")
 		
@@ -1202,6 +1217,12 @@ class M3DFioPlugin(
 	# On settings save
 	def on_settings_save(self, data) :
 	
+		# Get old external bed height
+		oldExternalBedHeight = self._settings.get_float(["ExternalBedHeight"])
+	
+		# Get old expand printable region setting
+		oldExpandPrintableRegion = self._settings.get_boolean(["ExpandPrintableRegion"])
+	
 		# Get old host camera settings
 		oldHostCamera = self._settings.get_boolean(["HostCamera"])
 		
@@ -1214,14 +1235,44 @@ class M3DFioPlugin(
 		else :
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Disable GPIO"))
 		
-		# Get new host camera settings
-		newHostCamera = self._settings.get_boolean(["HostCamera"])
+		# Check if Micro 3D printer profile exists
+		if self._printer_profile_manager.exists("micro_3d") :
+		
+			# Clear profile changed
+			profileChanged = False
+		
+			# Check if external bed height setting changes
+			if oldExternalBedHeight != self._settings.get_float(["ExternalBedHeight"]) :
+		
+				# Set bounds
+				self.bedMediumMaxZ = 73.5 - self._settings.get_float(["ExternalBedHeight"])
+				self.bedHighMaxZ = 112.0 - self._settings.get_float(["ExternalBedHeight"])
+				self.bedHighMinZ = self.bedMediumMaxZ
+				
+				# Set profile changed
+				profileChanged = True
+		
+			# Check if expand printable region setting changed
+			if oldExpandPrintableRegion != self._settings.get_boolean(["ExpandPrintableRegion"]) :
+			
+				# Set bounds
+				if self._settings.get_boolean(["ExpandPrintableRegion"]) :
+					self.bedLowMinY = self.bedMediumMinY
+				else :
+					self.bedLowMinY = -2.0
+		
+				# Set profile changed
+				profileChanged = True
+		
+			# Save printer profile if profile changed
+			if profileChanged :
+				self.savePrinterProfile()
 		
 		# Check if host camera setting changed
-		if oldHostCamera != newHostCamera :
+		if oldHostCamera != self._settings.get_boolean(["HostCamera"]) :
 		
 			# Check if now hosting camera
-			if newHostCamera :
+			if self._settings.get_boolean(["HostCamera"]) :
 			
 				# Set camera URLs
 				octoprint.settings.settings().set(["webcam", "stream"], "http://" + socket.gethostbyname(socket.gethostname()) + ":4999/stream.mjpg", True)
@@ -1558,6 +1609,7 @@ class M3DFioPlugin(
 							self.sharedLibrary.setGpioLayer(ctypes.c_ushort(self._settings.get_int(["GpioLayer"])))
 						self.sharedLibrary.setHeatbedTemperature(ctypes.c_ushort(self._settings.get_int(["HeatbedTemperature"])))
 						self.sharedLibrary.setExternalBedHeight(ctypes.c_double(self._settings.get_float(["ExternalBedHeight"])))
+						self.sharedLibrary.setExpandPrintableRegion(ctypes.c_bool(self._settings.get_boolean(["ExpandPrintableRegion"])))
 						self.sharedLibrary.setMidPrintFilamentChangeLayers(ctypes.c_char_p(' '.join(re.findall("\\d+", str(self._settings.get(["MidPrintFilamentChangeLayers"]))))))
 									
 						# Collect print information
@@ -1891,7 +1943,8 @@ class M3DFioPlugin(
 					SpeedLimitZ = self._settings.get_float(["SpeedLimitZ"]),
 					SpeedLimitEPositive = self._settings.get_float(["SpeedLimitEPositive"]),
 					SpeedLimitENegative = self._settings.get_float(["SpeedLimitENegative"]),
-					ExternalBedHeight = self._settings.get_float(["ExternalBedHeight"])
+					ExternalBedHeight = self._settings.get_float(["ExternalBedHeight"]),
+					ExpandPrintableRegion = self._settings.get_boolean(["ExpandPrintableRegion"])
 				)
 				
 				# Set file's destination
@@ -2024,6 +2077,9 @@ class M3DFioPlugin(
 				
 				if "ExternalBedHeight" in printerSettings :
 					self._settings.set_float(["ExternalBedHeight"], float(printerSettings["ExternalBedHeight"]))
+				
+				if "ExpandPrintableRegion" in printerSettings :
+					self._settings.set_boolean(["ExpandPrintableRegion"], bool(printerSettings["ExpandPrintableRegion"]))
 				
 				# Check if a Micro 3D is connected and not printing
 				if not self.invalidPrinter and not self._printer.is_printing() :
@@ -3987,6 +4043,7 @@ class M3DFioPlugin(
 						self.sharedLibrary.setGpioLayer(ctypes.c_ushort(self._settings.get_int(["GpioLayer"])))
 					self.sharedLibrary.setHeatbedTemperature(ctypes.c_ushort(self._settings.get_int(["HeatbedTemperature"])))
 					self.sharedLibrary.setExternalBedHeight(ctypes.c_double(self._settings.get_float(["ExternalBedHeight"])))
+					self.sharedLibrary.setExpandPrintableRegion(ctypes.c_bool(self._settings.get_boolean(["ExpandPrintableRegion"])))
 					self.sharedLibrary.setMidPrintFilamentChangeLayers(ctypes.c_char_p(' '.join(re.findall("\\d+", str(self._settings.get(["MidPrintFilamentChangeLayers"]))))))
 					
 					# Collect print information
@@ -5719,6 +5776,7 @@ class M3DFioPlugin(
 					self.sharedLibrary.setGpioLayer(ctypes.c_ushort(self._settings.get_int(["GpioLayer"])))
 				self.sharedLibrary.setHeatbedTemperature(ctypes.c_ushort(self._settings.get_int(["HeatbedTemperature"])))
 				self.sharedLibrary.setExternalBedHeight(ctypes.c_double(self._settings.get_float(["ExternalBedHeight"])))
+				self.sharedLibrary.setExpandPrintableRegion(ctypes.c_bool(self._settings.get_boolean(["ExpandPrintableRegion"])))
 				self.sharedLibrary.setMidPrintFilamentChangeLayers(ctypes.c_char_p(' '.join(re.findall("\\d+", str(self._settings.get(["MidPrintFilamentChangeLayers"]))))))
 				
 				# Collect print information
@@ -5839,10 +5897,14 @@ class M3DFioPlugin(
 		tier = "Low"
 		gcode = Gcode()
 		
-		# Adjust bed Z values to account for external bed height
+		# Adjust bed bounds to account for external bed
 		self.bedMediumMaxZ = 73.5 - self._settings.get_float(["ExternalBedHeight"])
 		self.bedHighMaxZ = 112.0 - self._settings.get_float(["ExternalBedHeight"])
 		self.bedHighMinZ = self.bedMediumMaxZ
+		if self._settings.get_boolean(["ExpandPrintableRegion"]) :
+			self.bedLowMinY = self.bedMediumMinY
+		else :
+			self.bedLowMinY = -2.0
 		
 		# Reset detected fan speed
 		self.detectedFanSpeed = None

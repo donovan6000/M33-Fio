@@ -18,7 +18,7 @@ using namespace std;
 #define BED_LOW_MAX_X 106.0
 #define BED_LOW_MIN_X -2.0
 #define BED_LOW_MAX_Y 105.0
-#define BED_LOW_MIN_Y -2.0
+double bedLowMinY = -2.0;
 #define BED_LOW_MAX_Z 5.0
 #define BED_LOW_MIN_Z 0.0
 #define BED_MEDIUM_MAX_X 106.0
@@ -157,6 +157,7 @@ bool useGpio;
 uint16_t gpioLayer;
 uint16_t heatbedTemperature;
 double externalBedHeight;
+bool expandPrintableRegion;
 int16_t detectedFanSpeed;
 bool detectedMidPrintFilamentChange;
 bool objectSuccessfullyCentered;
@@ -726,6 +727,12 @@ EXPORT void setExternalBedHeight(double value) {
 	externalBedHeight = value;
 }
 
+EXPORT void setExpandPrintableRegion(bool value) {
+
+	// Set expand prinable region
+	expandPrintableRegion = value;
+}
+
 EXPORT void setMidPrintFilamentChangeLayers(const char *value) {
 
 	// Initialize variables
@@ -926,10 +933,11 @@ EXPORT bool collectPrintInformation(const char *file) {
 		bool relativeMode = false;
 		double localX = NAN, localY = NAN, localZ = NAN;
 		
-		// Adjust bed Z values to account for external bed height
+		// Adjust bed bounds to account for external bed
 		bedMediumMaxZ = 73.5 - externalBedHeight;
 		bedHighMaxZ = 112.0 - externalBedHeight;
 		bedHighMinZ = bedMediumMaxZ;
+		bedLowMinY = expandPrintableRegion ? BED_MEDIUM_MIN_Y : -2.0;
 		
 		// Reset detected fan speed
 		detectedFanSpeed = -1;
@@ -1045,7 +1053,7 @@ EXPORT bool collectPrintInformation(const char *file) {
 								case LOW:
 							
 									// Check if not ignoring print dimension limitations, not printing a test border or backlash calibration cylinder, centering model pre-processor isn't used, and X or Y is out of bounds
-									if(!ignorePrintDimensionLimitations && !printingTestBorder && !printingBacklashCalibrationCylinder && !useCenterModelPreprocessor && ((!std::isnan(localX) && (localX < BED_LOW_MIN_X || localX > BED_LOW_MAX_X)) || (!std::isnan(localY) && (localY < BED_LOW_MIN_Y || localY > BED_LOW_MAX_Y))))
+									if(!ignorePrintDimensionLimitations && !printingTestBorder && !printingBacklashCalibrationCylinder && !useCenterModelPreprocessor && ((!std::isnan(localX) && (localX < BED_LOW_MIN_X || localX > BED_LOW_MAX_X)) || (!std::isnan(localY) && (localY < bedLowMinY || localY > BED_LOW_MAX_Y))))
 								
 										// Return false
 										return false;
@@ -1195,7 +1203,7 @@ EXPORT bool collectPrintInformation(const char *file) {
 			
 			// Get positive displacement Y
 			double positiveDisplacementY = 0;
-			positiveDisplacementY = max(BED_LOW_MIN_Y - minYExtruderLow, positiveDisplacementY);
+			positiveDisplacementY = max(bedLowMinY - minYExtruderLow, positiveDisplacementY);
 			positiveDisplacementY = max(BED_MEDIUM_MIN_Y - minYExtruderMedium, positiveDisplacementY);
 			positiveDisplacementY = max(BED_HIGH_MIN_Y - minYExtruderHigh, positiveDisplacementY);
 			
@@ -1248,7 +1256,7 @@ EXPORT bool collectPrintInformation(const char *file) {
 			}
 			
 			// Check if not ignoring print dimension limitations and adjusted print values are out of bounds
-			if(!ignorePrintDimensionLimitations && (minZExtruder < BED_LOW_MIN_Z || maxZExtruder > bedHighMaxZ || maxXExtruderLow > BED_LOW_MAX_X || maxXExtruderMedium > BED_MEDIUM_MAX_X || maxXExtruderHigh > BED_HIGH_MAX_X || maxYExtruderLow > BED_LOW_MAX_Y || maxYExtruderMedium > BED_MEDIUM_MAX_Y || maxYExtruderHigh > BED_HIGH_MAX_Y || minXExtruderLow < BED_LOW_MIN_X || minXExtruderMedium < BED_MEDIUM_MIN_X || minXExtruderHigh < BED_HIGH_MIN_X || minYExtruderLow < BED_LOW_MIN_Y || minYExtruderMedium < BED_MEDIUM_MIN_Y || minYExtruderHigh < BED_HIGH_MIN_Y))
+			if(!ignorePrintDimensionLimitations && (minZExtruder < BED_LOW_MIN_Z || maxZExtruder > bedHighMaxZ || maxXExtruderLow > BED_LOW_MAX_X || maxXExtruderMedium > BED_MEDIUM_MAX_X || maxXExtruderHigh > BED_HIGH_MAX_X || maxYExtruderLow > BED_LOW_MAX_Y || maxYExtruderMedium > BED_MEDIUM_MAX_Y || maxYExtruderHigh > BED_HIGH_MAX_Y || minXExtruderLow < BED_LOW_MIN_X || minXExtruderMedium < BED_MEDIUM_MIN_X || minXExtruderHigh < BED_HIGH_MIN_X || minYExtruderLow < bedLowMinY || minYExtruderMedium < BED_MEDIUM_MIN_Y || minYExtruderHigh < BED_HIGH_MIN_Y))
 			
 				// Return false
 				return false;
@@ -1562,10 +1570,10 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 						cornerX = (BED_LOW_MAX_X - BED_LOW_MIN_X) / 2;
 
 					// Set corner Y
-					if(minYExtruderLow > BED_LOW_MIN_Y)
-						cornerY = -(BED_LOW_MAX_Y - BED_LOW_MIN_Y - 10) / 2;
+					if(minYExtruderLow > bedLowMinY)
+						cornerY = -(BED_LOW_MAX_Y - bedLowMinY - 10) / 2;
 					else if(maxYExtruderLow < BED_LOW_MAX_Y)
-						cornerY = (BED_LOW_MAX_Y - BED_LOW_MIN_Y - 10) / 2;
+						cornerY = (BED_LOW_MAX_Y - bedLowMinY - 10) / 2;
 				}
 				
 				// Check if both of the corners are set
