@@ -177,7 +177,7 @@ extern "C" {
 	Name: Collect print information
 	Purpose: Calculates the minimum and maximum dimensions of the file and returns if the file can successfully be printed
 	*/
-	EXPORT bool collectPrintInformation(const char *file);
+	EXPORT bool collectPrintInformation(const char *file, bool applyPreprocessors);
 
 	/*
 	Name: Pre-process

@@ -4437,6 +4437,9 @@ $(function() {
 		
 			// Stop default behavior
 			event.stopImmediatePropagation();
+			
+			// Show message
+			showMessage("Printing Status", "Canceling print");
 		
 			// Set commands
 			var commands = [
@@ -6919,87 +6922,111 @@ $(function() {
 				// Hide message
 				hideMessage();
 				
-				// Unload filament
-				function unloadFilament() {
-			
-					// Show message
-					showMessage("Filament Status", "Warming up");
-		
-					// Set commands
-					var commands = [
-						"M106",
-						"M109 S" + parseInt($("body > div.page-container > div.message > div > div > div.filamentSettings input").eq(0).val()),
-						"M65536;wait"
-					];
-			
-					// Display temperature
-					var updateTemperature = setInterval(function() {
-			
-						// Show message
-						if(self.temperature.temperatures.tool0.actual.length) {
+				// Show message
+				showMessage("Filament Status", "Positioning extruder");
 				
-							var temperature = self.temperature.temperatures.tool0.actual[self.temperature.temperatures.tool0.actual.length - 1][1];
-					
-							if(temperature != 0)
-								showMessage("Filament Status", "Warming up: " + temperature + "°C");
-						}
-					}, 1000);
+				// Set commands
+				var commands = [
+					"G90",
+					"G0 Z15 F90",
+					"G28",
+					"M65536;wait"
+				];
+				
+				// Set waiting callback
+				waitingCallback = function() {
+				
+					// Unload filament
+					function unloadFilament() {
 			
-					// Set waiting callback
-					waitingCallback = function() {
-			
-						// Stop displaying temperature
-						clearInterval(updateTemperature);
-		
 						// Show message
-						showMessage("Filament Status", "Remove filament");
-	
+						showMessage("Filament Status", "Warming up");
+		
 						// Set commands
-						commands = [
-							"G90",
-							"G92"
+						var commands = [
+							"M106",
+							"M109 S" + parseInt($("body > div.page-container > div.message > div > div > div.filamentSettings input").eq(0).val()),
+							"M65536;wait"
 						];
-		
-						for(var i = 2; i <= 50; i += 2)
-							commands.push("G0 E-" + i + " F345");
+			
+						// Display temperature
+						var updateTemperature = setInterval(function() {
+			
+							// Show message
+							if(self.temperature.temperatures.tool0.actual.length) {
 				
-						commands.push("M65536;wait");
-				
+								var temperature = self.temperature.temperatures.tool0.actual[self.temperature.temperatures.tool0.actual.length - 1][1];
+					
+								if(temperature != 0)
+									showMessage("Filament Status", "Warming up: " + temperature + "°C");
+							}
+						}, 1000);
+			
 						// Set waiting callback
 						waitingCallback = function() {
-				
-							// Show message
-							showMessage("Filament Status", "Was filament removed?", "Yes", function() {
+			
+							// Stop displaying temperature
+							clearInterval(updateTemperature);
 		
-								// Hide message
-								hideMessage();
+							// Show message
+							showMessage("Filament Status", "Remove filament");
+	
+							// Set commands
+							commands = [
+								"G90",
+								"G92"
+							];
+		
+							for(var i = 2; i <= 50; i += 2)
+								commands.push("G0 E-" + i + " F345");
+				
+							commands.push("M65536;wait");
+				
+							// Set waiting callback
+							waitingCallback = function() {
+				
+								// Show message
+								showMessage("Filament Status", "Was filament removed?", "Yes", function() {
+		
+									// Hide message
+									hideMessage();
 						
-								// Set commands
-								commands = [
-									"M18",
-									"M104 S0",
-									"M107",
-								];
+									// Set commands
+									commands = [
+										"M18",
+										"M104 S0",
+										"M107",
+									];
 						
-								// Send request
-								$.ajax({
-									url: API_BASEURL + "plugin/m3dfio",
-									type: "POST",
-									dataType: "json",
-									data: JSON.stringify({command: "message", value: commands}),
-									contentType: "application/json; charset=UTF-8"
+									// Send request
+									$.ajax({
+										url: API_BASEURL + "plugin/m3dfio",
+										type: "POST",
+										dataType: "json",
+										data: JSON.stringify({command: "message", value: commands}),
+										contentType: "application/json; charset=UTF-8"
+									});
+						
+								}, "No", function() {
+					
+									// Hide message
+									hideMessage();
+					
+									// Unload filament again
+									unloadFilament();
 								});
-						
-							}, "No", function() {
-					
-								// Hide message
-								hideMessage();
-					
-								// Unload filament again
-								unloadFilament();
+							}
+		
+							// Send request
+							$.ajax({
+								url: API_BASEURL + "plugin/m3dfio",
+								type: "POST",
+								dataType: "json",
+								data: JSON.stringify({command: "message", value: commands}),
+								contentType: "application/json; charset=UTF-8"
 							});
 						}
-		
+			
 						// Send request
 						$.ajax({
 							url: API_BASEURL + "plugin/m3dfio",
@@ -7009,17 +7036,17 @@ $(function() {
 							contentType: "application/json; charset=UTF-8"
 						});
 					}
-			
-					// Send request
-					$.ajax({
-						url: API_BASEURL + "plugin/m3dfio",
-						type: "POST",
-						dataType: "json",
-						data: JSON.stringify({command: "message", value: commands}),
-						contentType: "application/json; charset=UTF-8"
-					});
+					unloadFilament();
 				}
-				unloadFilament();
+				
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m3dfio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({command: "message", value: commands}),
+					contentType: "application/json; charset=UTF-8"
+				});
 			}, "Cancel", function() {
 			
 				// Hide message
@@ -7036,83 +7063,107 @@ $(function() {
 				// Hide message
 				hideMessage();
 				
-				// Load filament
-				function loadFilament() {
-			
-					// Show message
-					showMessage("Filament Status", "Warming up");
-		
-					// Set commands
-					var commands = [
-						"M106",
-						"M109 S" + parseInt($("body > div.page-container > div.message > div > div > div.filamentSettings input").eq(0).val()),
-						"M65536;wait"
-					];
-			
-					// Display temperature
-					var updateTemperature = setInterval(function() {
-			
-						// Show message
-						if(self.temperature.temperatures.tool0.actual.length) {
-			
-							var temperature = self.temperature.temperatures.tool0.actual[self.temperature.temperatures.tool0.actual.length - 1][1];
+				// Show message
+				showMessage("Filament Status", "Positioning extruder");
 				
-							if(temperature != 0)
-								showMessage("Filament Status", "Warming up: " + temperature + "°C");
-						}
-					}, 1000);
+				// Set commands
+				var commands = [
+					"G90",
+					"G0 Z15 F90",
+					"G28",
+					"M65536;wait"
+				];
+				
+				// Set waiting callback
+				waitingCallback = function() {
+				
+					// Load filament
+					function loadFilament() {
 			
-					// Set waiting callback
-					waitingCallback = function() {
-			
-						// Stop displaying temperature
-						clearInterval(updateTemperature);
-	
 						// Show message
-						showMessage("Filament Status", "Insert filament");
-	
+						showMessage("Filament Status", "Warming up");
+		
 						// Set commands
-						commands = [
-							"G90",
-							"G92"
+						var commands = [
+							"M106",
+							"M109 S" + parseInt($("body > div.page-container > div.message > div > div > div.filamentSettings input").eq(0).val()),
+							"M65536;wait"
 						];
-		
-						for(var i = 2; i <= 50; i += 2)
-							commands.push("G0 E" + i + " F345");
+			
+						// Display temperature
+						var updateTemperature = setInterval(function() {
+			
+							// Show message
+							if(self.temperature.temperatures.tool0.actual.length) {
+			
+								var temperature = self.temperature.temperatures.tool0.actual[self.temperature.temperatures.tool0.actual.length - 1][1];
 				
-						commands.push("M65536;wait");
-				
+								if(temperature != 0)
+									showMessage("Filament Status", "Warming up: " + temperature + "°C");
+							}
+						}, 1000);
+			
 						// Set waiting callback
 						waitingCallback = function() {
-				
+			
+							// Stop displaying temperature
+							clearInterval(updateTemperature);
+	
 							// Show message
-							showMessage("Filament Status", "Was filament inserted?", "Yes", function() {
+							showMessage("Filament Status", "Insert filament");
+	
+							// Set commands
+							commands = [
+								"G90",
+								"G92"
+							];
+		
+							for(var i = 2; i <= 50; i += 2)
+								commands.push("G0 E" + i + " F345");
 				
-								// Hide message
-								hideMessage();
+							commands.push("M65536;wait");
+				
+							// Set waiting callback
+							waitingCallback = function() {
+				
+								// Show message
+								showMessage("Filament Status", "Was filament inserted?", "Yes", function() {
+				
+									// Hide message
+									hideMessage();
 						
-								// Set commands
-								commands = [
-									"M18",
-									"M104 S0",
-									"M107"
-								];
+									// Set commands
+									commands = [
+										"M18",
+										"M104 S0",
+										"M107"
+									];
 						
-								// Send request
-								$.ajax({
-									url: API_BASEURL + "plugin/m3dfio",
-									type: "POST",
-									dataType: "json",
-									data: JSON.stringify({command: "message", value: commands}),
-									contentType: "application/json; charset=UTF-8"
+									// Send request
+									$.ajax({
+										url: API_BASEURL + "plugin/m3dfio",
+										type: "POST",
+										dataType: "json",
+										data: JSON.stringify({command: "message", value: commands}),
+										contentType: "application/json; charset=UTF-8"
+									});
+								}, "No", function() {
+				
+									// Hide message
+									hideMessage();
+				
+									// Load filament again
+									loadFilament();
 								});
-							}, "No", function() {
-				
-								// Hide message
-								hideMessage();
-				
-								// Load filament again
-								loadFilament();
+							}
+		
+							// Send request
+							$.ajax({
+								url: API_BASEURL + "plugin/m3dfio",
+								type: "POST",
+								dataType: "json",
+								data: JSON.stringify({command: "message", value: commands}),
+								contentType: "application/json; charset=UTF-8"
 							});
 						}
 		
@@ -7125,17 +7176,17 @@ $(function() {
 							contentType: "application/json; charset=UTF-8"
 						});
 					}
-		
-					// Send request
-					$.ajax({
-						url: API_BASEURL + "plugin/m3dfio",
-						type: "POST",
-						dataType: "json",
-						data: JSON.stringify({command: "message", value: commands}),
-						contentType: "application/json; charset=UTF-8"
-					});
+					loadFilament();
 				}
-				loadFilament();
+				
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m3dfio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({command: "message", value: commands}),
+					contentType: "application/json; charset=UTF-8"
+				});
 			}, "Cancel", function() {
 			
 				// Hide message

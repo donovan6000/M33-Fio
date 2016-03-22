@@ -918,7 +918,7 @@ EXPORT void resetPreprocessorSettings() {
 	backlashCompensationExtraGcode.clear();
 }
 
-EXPORT bool collectPrintInformation(const char *file) {
+EXPORT bool collectPrintInformation(const char *file, bool applyPreprocessors) {
 
 	// Initialize file
 	ifstream input(file, ios::in | ios::binary);
@@ -1030,8 +1030,8 @@ EXPORT bool collectPrintInformation(const char *file) {
 								// Set local Z
 								localZ = relativeMode ? (std::isnan(localZ) ? 0.4 : localZ) + commandZ : commandZ;
 							
-								// Check if not ignoring print dimension limitations, not printing a test border or backlash calibration cylinder, and Z is out of bounds
-								if(!ignorePrintDimensionLimitations && !printingTestBorder && !printingBacklashCalibrationCylinder && (localZ < BED_LOW_MIN_Z || localZ > bedHighMaxZ))
+								// Check if applying pre-processors, not ignoring print dimension limitations, not printing a test border or backlash calibration cylinder, and Z is out of bounds
+								if(applyPreprocessors && !ignorePrintDimensionLimitations && !printingTestBorder && !printingBacklashCalibrationCylinder && (localZ < BED_LOW_MIN_Z || localZ > bedHighMaxZ))
 							
 									// Return false
 									return false;
@@ -1052,8 +1052,8 @@ EXPORT bool collectPrintInformation(const char *file) {
 					
 								case LOW:
 							
-									// Check if not ignoring print dimension limitations, not printing a test border or backlash calibration cylinder, centering model pre-processor isn't used, and X or Y is out of bounds
-									if(!ignorePrintDimensionLimitations && !printingTestBorder && !printingBacklashCalibrationCylinder && !useCenterModelPreprocessor && ((!std::isnan(localX) && (localX < BED_LOW_MIN_X || localX > BED_LOW_MAX_X)) || (!std::isnan(localY) && (localY < bedLowMinY || localY > BED_LOW_MAX_Y))))
+									// Check if applying pre-processors, not ignoring print dimension limitations, not printing a test border or backlash calibration cylinder, centering model pre-processor isn't used, and X or Y is out of bounds
+									if(applyPreprocessors && !ignorePrintDimensionLimitations && !printingTestBorder && !printingBacklashCalibrationCylinder && !useCenterModelPreprocessor && ((!std::isnan(localX) && (localX < BED_LOW_MIN_X || localX > BED_LOW_MAX_X)) || (!std::isnan(localY) && (localY < bedLowMinY || localY > BED_LOW_MAX_Y))))
 								
 										// Return false
 										return false;
@@ -1070,8 +1070,8 @@ EXPORT bool collectPrintInformation(const char *file) {
 						
 								case MEDIUM:
 							
-									// Check if not ignoring print dimension limitations, not printing a test border or backlash calibration cylinder, centering model pre-processor isn't used, and X or Y is out of bounds
-									if(!ignorePrintDimensionLimitations && !printingTestBorder && !printingBacklashCalibrationCylinder && !useCenterModelPreprocessor && ((!std::isnan(localX) && (localX < BED_MEDIUM_MIN_X || localX > BED_MEDIUM_MAX_X)) || (!std::isnan(localY) && (localY < BED_MEDIUM_MIN_Y || localY > BED_MEDIUM_MAX_Y))))
+									// Check if applying pre-processors, not ignoring print dimension limitations, not printing a test border or backlash calibration cylinder, centering model pre-processor isn't used, and X or Y is out of bounds
+									if(applyPreprocessors && !ignorePrintDimensionLimitations && !printingTestBorder && !printingBacklashCalibrationCylinder && !useCenterModelPreprocessor && ((!std::isnan(localX) && (localX < BED_MEDIUM_MIN_X || localX > BED_MEDIUM_MAX_X)) || (!std::isnan(localY) && (localY < BED_MEDIUM_MIN_Y || localY > BED_MEDIUM_MAX_Y))))
 								
 										// Return false
 										return false;
@@ -1088,8 +1088,8 @@ EXPORT bool collectPrintInformation(const char *file) {
 
 								case HIGH:
 							
-									// Check if not ignoring print dimension limitations, not printing a test border or backlash calibration cylinder, centering model pre-processor isn't used, and X or Y is out of bounds
-									if(!ignorePrintDimensionLimitations && !printingTestBorder && !printingBacklashCalibrationCylinder && !useCenterModelPreprocessor && ((!std::isnan(localX) && (localX < BED_HIGH_MIN_X || localX > BED_HIGH_MAX_X)) || (!std::isnan(localY) && (localY < BED_HIGH_MIN_Y || localY > BED_HIGH_MAX_Y))))
+									// Check if applying pre-processors, not ignoring print dimension limitations, not printing a test border or backlash calibration cylinder, centering model pre-processor isn't used, and X or Y is out of bounds
+									if(applyPreprocessors && !ignorePrintDimensionLimitations && !printingTestBorder && !printingBacklashCalibrationCylinder && !useCenterModelPreprocessor && ((!std::isnan(localX) && (localX < BED_HIGH_MIN_X || localX > BED_HIGH_MAX_X)) || (!std::isnan(localY) && (localY < BED_HIGH_MIN_Y || localY > BED_HIGH_MAX_Y))))
 								
 										// Return false
 										return false;
@@ -1137,8 +1137,8 @@ EXPORT bool collectPrintInformation(const char *file) {
 			}
 		}
 		
-		// Check if center model pre-processor is set and not printing a test border or backlash calibration cylinder
-		if(useCenterModelPreprocessor && !printingTestBorder && !printingBacklashCalibrationCylinder) {
+		// Check if applying pre-processors, center model pre-processor is set, and not printing a test border or backlash calibration cylinder
+		if(applyPreprocessors && useCenterModelPreprocessor && !printingTestBorder && !printingBacklashCalibrationCylinder) {
 	
 			// Calculate adjustments
 			displacementX = (BED_WIDTH - BED_CENTER_OFFSET_X - max(maxXExtruderLow, max(maxXExtruderMedium, maxXExtruderHigh)) - min(minXExtruderLow, min(minXExtruderMedium, minXExtruderHigh)) - BED_CENTER_OFFSET_X) / 2;
