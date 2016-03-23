@@ -4057,7 +4057,7 @@ class M3DFioPlugin(
 				if not "cura" in self._slicing_manager.configured_slicers :
 			
 					# Send message
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Cura Not Installed"))
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Reminder", type = "Cura"))
 			
 			# Check if Cura is configured
 			if "cura" in self._slicing_manager.configured_slicers :
@@ -4087,7 +4087,7 @@ class M3DFioPlugin(
 				if not self.disableSleep() :
 				
 					# Send message
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Sleep Wont Disable"))
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Reminder", type = "Sleep"))
 				
 				# Enable sleep
 				self.enableSleep()
@@ -5134,10 +5134,6 @@ class M3DFioPlugin(
 			# Otherwise
 			else :
 			
-				# Clear invalid values
-				self.invalidBedCenter = None
-				self.invalidBedOrientation = None
-				
 				# Request printer settings
 				commands = [
 					"M117",
@@ -5176,11 +5172,17 @@ class M3DFioPlugin(
 		# Otherwise check if data contains valid Z information
 		elif "ZV:" in data :
 		
-			# Send invalid Z
+			# Check if Z is invalid
 			if data[data.find("ZV:") + 3] == '0' :
 			
 				# Set invalid bed center
 				self.invalidBedCenter = True
+			
+			# Otherwise
+			else :
+			
+				# Clear invalid bed center
+				self.invalidBedCenter = False
 		
 		# Otherwise check if data contains current Z
 		elif "Z:" in data :
@@ -5524,11 +5526,17 @@ class M3DFioPlugin(
 				if self._settings.get_boolean(["AutomaticallyObtainSettings"]) :
 					self._settings.set_float(["FrontRightOrientation"], self.printerFrontRightOrientation)
 				
-					# Send invalid bed orientation
+					# Check if bed orientation is invalid
 					if self.printerBackRightOrientation == 0 and self.printerBackLeftOrientation == 0 and self.printerFrontLeftOrientation == 0 and self.printerFrontRightOrientation == 0 :
 					
 						# Set invalid bed orientation
 						self.invalidBedOrientation = True
+					
+					# Otherwise
+					else :
+					
+						# Clear invalid bed orientation
+						self.invalidBedOrientation = False
 				
 			# Otherwise check if data is for filament type and location
 			elif "PT:" + str(self.eepromOffsets["filamentTypeAndLocation"]["offset"]) + ' ' in data :
@@ -5766,11 +5774,17 @@ class M3DFioPlugin(
 			# Otherwise check if data is for bed orientation version
 			elif "PT:" + str(self.eepromOffsets["bedOrientationVersion"]["offset"]) + ' ' in data :
 			
-				# Send invalid bed orientation if calibration question hasn't already been asked
-				if data[data.find("DT:") + 3 :] == '0' and self.invalidBedOrientation is not None :
+				# Check if using a deprecated bed orientation version or bed orientation is already invalid
+				if data[data.find("DT:") + 3 :] == '0' or self.invalidBedOrientation :
 				
 					# Set invalid bed orientation
 					self.invalidBedOrientation = True
+				
+				# Otherwise
+				else :
+				
+					# Clear invalid bed orientation
+					self.invalidBedOrientation = False
 				
 				# Check if not automatically collecting settings from printer
 				if not self._settings.get_boolean(["AutomaticallyObtainSettings"]) :

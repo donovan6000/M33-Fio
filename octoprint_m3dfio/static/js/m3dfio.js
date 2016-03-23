@@ -646,10 +646,10 @@ $(function() {
 			
 						// Show calibration menu or print settings if applicable
 						$("body > div.page-container > div.message > div > div > div.calibrate, body > div.page-container > div.message > div > div > div.printSettings, body > div.page-container > div.message > div > div > div.filamentSettings").removeClass("show");
-						if(currentMessage.secondButton == "Done") {
+						
+						if(currentMessage.secondButton == "Done")
 							$("body > div.page-container > div.message > div > div > div.calibrate").addClass("show");
-							message.find("p").eq(0).removeClass("show")
-						}
+						
 						else if(currentMessage.secondButton == "Print") {
 							$("body > div.page-container > div.message > div > div > div.printSettings input").eq(0).val(self.settings.settings.plugins.m3dfio.FilamentTemperature());
 							$("body > div.page-container > div.message > div > div > div.printSettings input").eq(1).val(self.settings.settings.plugins.m3dfio.HeatbedTemperature());
@@ -3504,9 +3504,9 @@ $(function() {
 					type: 'command',
 					command: 'M17'
 				})
-			}" title="Turns on extruder's motor">Motors on</button>
+			}" title="Turns on printer's motors">Motors on</button>
 		`);
-		$("#control > div.jog-panel.general").find("button:nth-of-type(2)").attr("title", "Turns off extruder's motor");
+		$("#control > div.jog-panel.general").find("button:nth-of-type(2)").attr("title", "Turns off printer's motors");
 		
 		// Change fan controls
 		$("#control > div.jog-panel.general").find("button:nth-of-type(2)").after(`
@@ -3716,13 +3716,14 @@ $(function() {
 						<p></p>
 						<div class="calibrate">
 							<div class="arrows">
-								<button class="btn btn-block control-box arrow up"><i class="icon-arrow-up"></i></button>
-								<button class="btn btn-block control-box arrow down"><i class="icon-arrow-down"></i></button>
+								<button class="btn btn-block control-box arrow up" title="Applies extruder's position adjustment in the positive direction"><i class="icon-arrow-up"></i></button>
+								<button class="btn btn-block control-box arrow down" title="Applies extruder's position adjustment in the negative direction"><i class="icon-arrow-down"></i></button>
 							</div>
 							<div class="distance">
-								<button type="button" class="btn distance">0.01</button>
-								<button type="button" class="btn distance active">0.1</button>
-								<button type="button" class="btn distance">1</button>
+								<button type="button" class="btn distance" title="Sets extruder's position adjustment to 0.01mm">0.01</button>
+								<button type="button" class="btn distance" title="Sets extruder's position adjustment to 0.1mm">0.1</button>
+								<button type="button" class="btn distance active" title="Sets extruder's position adjustment to 1mm">1</button>
+								<button type="button" class="btn distance" title="Sets extruder's position adjustment to 10mm">10</button>
 							</div>
 						</div>
 						<div class="printSettings">
@@ -3968,7 +3969,7 @@ $(function() {
 		});
 		
 		// Add mid-print filament change layer event
-		$("#gcode div.midPrintFilamentChange button").eq(0).click(function() {
+		$("#gcode div.midPrintFilamentChange button").eq(0).attr("title", "Appends current layer to mid-print filament change layers").click(function() {
 		
 			// Blue self
 			$(this).blur();
@@ -3988,7 +3989,7 @@ $(function() {
 		});
 		
 		// Clear all mid-print filament change layers event
-		$("#gcode div.midPrintFilamentChange button").eq(1).click(function() {
+		$("#gcode div.midPrintFilamentChange button").eq(1).attr("title", "Clears all mid-print filament change layers").click(function() {
 		
 			// Blue self
 			$(this).blur();
@@ -3998,7 +3999,7 @@ $(function() {
 		});
 		
 		// Save mid-print filament change layer event
-		$("#gcode div.midPrintFilamentChange button").eq(2).click(function() {
+		$("#gcode div.midPrintFilamentChange button").eq(2).attr("title", "Saves current mid-print filament change layers").click(function() {
 		
 			// Blue self
 			$(this).blur();
@@ -7452,6 +7453,8 @@ $(function() {
 		
 				// Set commands
 				var commands = [
+					"G91",
+					"G0 Z3 F90",
 					"G90",
 					"M109 S150",
 					"M104 S0",
@@ -7525,7 +7528,6 @@ $(function() {
 		
 				// Set commands
 				var commands = [
-					"M104 S0",
 					"G90",
 					"G0 Z3 F90",
 					"M109 S150",
@@ -8489,6 +8491,8 @@ $(function() {
 		
 				// Set commands
 				var commands = [
+					"G91",
+					"G0 Z3 F90",
 					"G90",
 					"M109 S150",
 					"M104 S0",
@@ -8514,7 +8518,6 @@ $(function() {
 	
 						// Set commands
 						commands = [
-							"M104 S0",
 							"G90",
 							"G0 Z3 F90",
 							"M109 S150",
@@ -9027,6 +9030,8 @@ $(function() {
 		
 						// Set commands
 						var commands = [
+							"G91",
+							"G0 Z3 F90",
 							"G90",
 							"M109 S150",
 							"M104 S0",
@@ -9039,22 +9044,22 @@ $(function() {
 						waitingCallback = function() {
 						
 							// Show message
-							showMessage("Calibration Status", "Now raise the print head so that you can attach the external bed, and then lower the print head until it barely touches the bed. One way to get to that point is to place a single sheet of paper on the bed under the print head, and lower the print head until the paper can no longer be moved.", "Done", function() {
+							showMessage("Calibration Status", "Now raise the print head so that you can attach the external bed, and then lower the print head until it barely touches the external bed. One way to get to that point is to place a single sheet of paper on the bed under the print head, and lower the print head until the paper can no longer be moved.", "Done", function() {
 
 								// Hide message
 								hideMessage();
-				
+			
 								// Show message
 								showMessage("Calibration Status", "Saving Z as external bed height");
-		
+	
 								// Set commands
 								commands = [
 									"M114"
 								];
-				
+			
 								// Set location callback
 								locationCallback = function() {
-			
+		
 									// Send request
 									$.ajax({
 										url: API_BASEURL + "plugin/m3dfio",
@@ -9065,19 +9070,19 @@ $(function() {
 											value: "Set External Bed Height: " + currentZ
 										}),
 										contentType: "application/json; charset=UTF-8",
-						
+					
 										// On success
 										success: function() {
-						
+					
 											// Show message
 											showMessage("Calibration Status", "Does the external bed extend the printable region to its max?", "Yes", function() {
-											
+										
 												// Hide message
 												hideMessage();
-				
+			
 												// Show message
 												showMessage("Calibration Status", "Setting expand printable region");
-												
+											
 												// Send request
 												$.ajax({
 													url: API_BASEURL + "plugin/m3dfio",
@@ -9088,48 +9093,22 @@ $(function() {
 														value: "Set Expand Printable Region: True"
 													}),
 													contentType: "application/json; charset=UTF-8",
-						
+					
 													// On success
 													success: function() {
-													
-														// Show message
-														showMessage("Calibration Status", "Positioning extruder");
-													
-														// Set commands
-														commands = [
-															"G91",
-															"G0 Z3 F90",
-															"M65536;wait"
-														];
-														
-														// Set waiting callback
-														waitingCallback = function() {
-												
-															// Continue calibration
-															continueCalibration();
-														}
-														
-														// Send request
-														$.ajax({
-															url: API_BASEURL + "plugin/m3dfio",
-															type: "POST",
-															dataType: "json",
-															data: JSON.stringify({
-																command: "message",
-																value: commands
-															}),
-															contentType: "application/json; charset=UTF-8"
-														});
+											
+														// Continue calibration
+														continueCalibration();
 													}
 												});
 											}, "No", function() {
-						
+					
 												// Hide message
 												hideMessage();
-				
+			
 												// Show message
 												showMessage("Calibration Status", "Clearing expand printable region");
-												
+											
 												// Send request
 												$.ajax({
 													url: API_BASEURL + "plugin/m3dfio",
@@ -9140,45 +9119,19 @@ $(function() {
 														value: "Set Expand Printable Region: False"
 													}),
 													contentType: "application/json; charset=UTF-8",
-						
+					
 													// On success
 													success: function() {
-												
-														// Show message
-														showMessage("Calibration Status", "Positioning extruder");
-													
-														// Set commands
-														commands = [
-															"G91",
-															"G0 Z3 F90",
-															"M65536;wait"
-														];
-														
-														// Set waiting callback
-														waitingCallback = function() {
-												
-															// Continue calibration
-															continueCalibration();
-														}
-														
-														// Send request
-														$.ajax({
-															url: API_BASEURL + "plugin/m3dfio",
-															type: "POST",
-															dataType: "json",
-															data: JSON.stringify({
-																command: "message",
-																value: commands
-															}),
-															contentType: "application/json; charset=UTF-8"
-														});
+											
+														// Continue calibration
+														continueCalibration();
 													}
 												});
 											});
 										}
 									});
 								}
-				
+			
 								// Send request
 								$.ajax({
 									url: API_BASEURL + "plugin/m3dfio",
@@ -9192,6 +9145,18 @@ $(function() {
 								});
 							});
 						}
+						
+						// Send request
+						$.ajax({
+							url: API_BASEURL + "plugin/m3dfio",
+							type: "POST",
+							dataType: "json",
+							data: JSON.stringify({
+								command: "message",
+								value: commands
+							}),
+							contentType: "application/json; charset=UTF-8"
+						});
 					});
 				}, "No", function() {
 			
@@ -10179,86 +10144,90 @@ $(function() {
 				// Hide shared library settings
 				$("#settings_plugin_m3dfio .sharedLibrary").css("display", "none");
 			
-			// Otherwise check if data is that Cura isn't installed
-			else if(data.value == "Cura Not Installed") {
+			// Otherwise check if data is a reminder
+			else if(data.value == "Reminder" && typeof data.type !== "undefined") {
 			
-				// Initialize variables
-				var text = "It's recommended that you install the <a href=\"https://ultimaker.com/en/products/cura-software/list\" target=\"_blank\">latest Cura 15.04 release</a> on this server to fully utilize M3D Fio's capabilities";
+				// Check if reminding about Cura
+				if(data.type == "Cura") {
+			
+					// Initialize variables
+					var text = "It's recommended that you install the <a href=\"https://ultimaker.com/en/products/cura-software/list\" target=\"_blank\">latest Cura 15.04 release</a> on this server to fully utilize M3D Fio's capabilities";
 				
-				// Check if same text is currently being displayed
-				if($("body > div.page-container > div.message").find("p").eq(0).html() == text)
+					// Check if same text is currently being displayed
+					if($("body > div.page-container > div.message").hasClass("show") && $("body > div.page-container > div.message").find("p").eq(0).html() == text)
 				
-					// Return
-					return;
-				
-				// Go through all messages
-				for(var i = 0; i < messages.length; i++)
-				
-					// Check if a message waiting to be displayed has same text
-					if(messages[i].text == text)
-					
 						// Return
 						return;
+				
+					// Go through all messages
+					for(var i = 0; i < messages.length; i++)
+				
+						// Check if a message waiting to be displayed has same text
+						if(messages[i].text == text)
+					
+							// Return
+							return;
 			
-				// Show message
-				showMessage("Cura Status", text, "OK", function() {
+					// Show message
+					showMessage("Cura Status", text, "OK", function() {
 					
-					// Hide message
-					hideMessage();
+						// Hide message
+						hideMessage();
 					
-					// Send request
-					$.ajax({
-						url: API_BASEURL + "plugin/m3dfio",
-						type: "POST",
-						dataType: "json",
-						data: JSON.stringify({
-							command: "message",
-							value: "Disable Reminder: Cura"
-						}),
-						contentType: "application/json; charset=UTF-8"
+						// Send request
+						$.ajax({
+							url: API_BASEURL + "plugin/m3dfio",
+							type: "POST",
+							dataType: "json",
+							data: JSON.stringify({
+								command: "message",
+								value: "Disable Reminder: Cura"
+							}),
+							contentType: "application/json; charset=UTF-8"
+						});
 					});
-				});
-			}
-			
-			// Otherwise check if data is that sleep wont disable
-			else if(data.value == "Sleep Wont Disable") {
-			
-				// Initialize variables
-				var text = "It's recommended that you disable this server's sleep functionality while printing if it's not already disabled";
+				}
 				
-				// Check if same text is currently being displayed
-				if($("body > div.page-container > div.message").find("p").eq(0).html() == text)
+				// Otherwise check if reminding about sleep
+				else if(data.type == "Sleep") {
 				
-					// Return
-					return;
+					// Initialize variables
+					var text = "It's recommended that you disable this server's sleep functionality while printing if it's not already disabled";
 				
-				// Go through all messages
-				for(var i = 0; i < messages.length; i++)
+					// Check if same text is currently being displayed
+					if($("body > div.page-container > div.message").hasClass("show") && $("body > div.page-container > div.message").find("p").eq(0).html() == text)
 				
-					// Check if a message waiting to be displayed has same text
-					if(messages[i].text == text)
-					
 						// Return
 						return;
-			
-				// Show message
-				showMessage("Sleep Status", text, "OK", function() {
 				
-					// Hide message
-					hideMessage();
+					// Go through all messages
+					for(var i = 0; i < messages.length; i++)
+				
+						// Check if a message waiting to be displayed has same text
+						if(messages[i].text == text)
 					
-					// Send request
-					$.ajax({
-						url: API_BASEURL + "plugin/m3dfio",
-						type: "POST",
-						dataType: "json",
-						data: JSON.stringify({
-							command: "message",
-							value: "Disable Reminder: Sleep"
-						}),
-						contentType: "application/json; charset=UTF-8"
+							// Return
+							return;
+			
+					// Show message
+					showMessage("Sleep Status", text, "OK", function() {
+				
+						// Hide message
+						hideMessage();
+					
+						// Send request
+						$.ajax({
+							url: API_BASEURL + "plugin/m3dfio",
+							type: "POST",
+							dataType: "json",
+							data: JSON.stringify({
+								command: "message",
+								value: "Disable Reminder: Sleep"
+							}),
+							contentType: "application/json; charset=UTF-8"
+						});
 					});
-				});
+				}
 			}
 			
 			// Otherwise check if data is that a duplicate wait was received
@@ -10478,24 +10447,41 @@ $(function() {
 					$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(6)").addClass("current");
 			}
 			
-			// Otherwise check if data is invalid values
+			// Otherwise check if data is an invalid value
 			else if(data.value == "Invalid" && typeof data.bedCenter !== "undefined" && typeof data.bedOrientation !== "undefined") {
-				
+			
 				// Calibrate bed orientation
 				function calibrateBedOrientation() {
 				
+					// Initialize variables
+					var text = "Invalid bed orientation. Calibrate?";
+		
+					// Check if same text is currently being displayed
+					if($("body > div.page-container > div.message").hasClass("show") && $("body > div.page-container > div.message").find("p").eq(0).html() == text)
+		
+						// Return
+						return;
+		
+					// Go through all messages
+					for(var i = 0; i < messages.length; i++)
+		
+						// Check if a message waiting to be displayed has same text
+						if(messages[i].text == text)
+			
+							// Return
+							return;
+		
 					// Display message
-					showMessage("Calibration Status", "Invalid bed orientation. Calibrate?", "Yes", function() {
-					
+					showMessage("Calibration Status", text, "Yes", function() {
+			
 						// Hide message
 						hideMessage();
-						
+				
 						// Show message
 						showMessage("Calibration Status", "Calibrating bed orientation");
-		
+
 						// Set commands
 						var commands = [
-							"M104 S0",
 							"G90",
 							"G0 Z3 F90",
 							"M109 S150",
@@ -10504,10 +10490,10 @@ $(function() {
 							"G32",
 							"M65536;wait"
 						];
-						
+				
 						// Set waiting callback
 						waitingCallback = function() {
-						
+				
 							// Set commands
 							commands = [
 								"M619 S" + eepromOffsets["bedOrientationBackRight"]["offset"] + " T" + eepromOffsets["bedOrientationBackRight"]["bytes"],
@@ -10519,7 +10505,7 @@ $(function() {
 
 							// Set waiting callback
 							waitingCallback = function() {
-						
+				
 								// Save settings
 								function saveSettings() {
 
@@ -10540,7 +10526,7 @@ $(function() {
 								else
 									self.settings.requestData().done(saveSettings);
 							}
-							
+					
 							// Send request
 							$.ajax({
 								url: API_BASEURL + "plugin/m3dfio",
@@ -10553,7 +10539,7 @@ $(function() {
 								contentType: "application/json; charset=UTF-8"
 							});
 						}
-		
+
 						// Send request
 						$.ajax({
 							url: API_BASEURL + "plugin/m3dfio",
@@ -10566,26 +10552,46 @@ $(function() {
 							contentType: "application/json; charset=UTF-8"
 						});
 					}, "No", function() {
-					
+			
 						// Hide message
 						hideMessage();
 					});
 				}
 				
-				// Check if bed center is invalid
+				// Check if invalid bed center
 				if(data.bedCenter) {
 				
+					// Initialize variables
+					var text = "Invalid bed center Z0. Calibrate?";
+			
+					// Check if same text is currently being displayed
+					if($("body > div.page-container > div.message").hasClass("show") && $("body > div.page-container > div.message").find("p").eq(0).html() == text)
+			
+						// Return
+						return;
+			
+					// Go through all messages
+					for(var i = 0; i < messages.length; i++)
+			
+						// Check if a message waiting to be displayed has same text
+						if(messages[i].text == text)
+				
+							// Return
+							return;
+			
 					// Display message
-					showMessage("Calibration Status", "Invalid bed center Z0. Calibrate?", "Yes", function() {
-					
+					showMessage("Calibration Status", text, "Yes", function() {
+				
 						// Hide message
 						hideMessage();
-						
+					
 						// Show message
 						showMessage("Calibration Status", "Calibrating bed center Z0");
-		
+	
 						// Set commands
 						var commands = [
+							"G91",
+							"G0 Z3 F90",
 							"G90",
 							"M109 S150",
 							"M104 S0",
@@ -10593,36 +10599,36 @@ $(function() {
 							"G30",
 							"M65536;wait"
 						];
-						
+					
 						// Set waiting callback
 						waitingCallback = function() {
-						
+					
 							// Set commands
 							commands = [
 								"M117",
 								"M65536;wait"
 							];
-				
+			
 							// Set waiting callback
 							waitingCallback = function() {
-						
-								// Check if bed orientation is invalid
+							
+								// Check if invalid bed orientation
 								if(data.bedOrientation)
-			
+				
 									// Calibrate bed orientation
 									calibrateBedOrientation();
-							
+								
 								// Otherwise
 								else
-		
+					
 									// Show message
 									showMessage("Calibration Status", "Done", "OK", function() {
-				
+		
 										// Hide message
 										hideMessage();
 									});
 							}
-							
+						
 							// Send request
 							$.ajax({
 								url: API_BASEURL + "plugin/m3dfio",
@@ -10635,7 +10641,7 @@ $(function() {
 								contentType: "application/json; charset=UTF-8"
 							});
 						}
-		
+	
 						// Send request
 						$.ajax({
 							url: API_BASEURL + "plugin/m3dfio",
@@ -10648,13 +10654,19 @@ $(function() {
 							contentType: "application/json; charset=UTF-8"
 						});
 					}, "No", function() {
-					
+				
 						// Hide message
 						hideMessage();
+						
+						// Check if invalid bed orientation
+						if(data.bedOrientation)
+				
+							// Calibrate bed orientation
+							calibrateBedOrientation();
 					});
 				}
 				
-				// Otherwise check if bed orientation is invalid
+				// Otherwise check if invalid bed orientation
 				else if(data.bedOrientation)
 				
 					// Calibrate bed orientation
@@ -10668,7 +10680,7 @@ $(function() {
 				var text = htmlEncode(data.message);
 			
 				// Check if same text is currently being displayed
-				if($("body > div.page-container > div.message").find("p").eq(0).html() == text)
+				if($("body > div.page-container > div.message").hasClass("show") && $("body > div.page-container > div.message").find("p").eq(0).html() == text)
 			
 					// Return
 					return;
@@ -10830,7 +10842,7 @@ $(function() {
 				var text = "Mid-print filament change";
 				
 				// Check if same text is currently being displayed
-				if($("body > div.page-container > div.message").find("p").eq(0).html() == text)
+				if($("body > div.page-container > div.message").hasClass("show") && $("body > div.page-container > div.message").find("p").eq(0).html() == text)
 				
 					// Return
 					return;
