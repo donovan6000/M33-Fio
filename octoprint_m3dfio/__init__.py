@@ -8404,8 +8404,13 @@ class M3DFioPlugin(
 			# Set state to detecting
 			comm_instance._changeState(comm_instance.STATE_DETECT_SERIAL)
 			
+			# Detect port
+			if self._settings.get_boolean(["UsingADifferentPrinter"]) :
+				port = comm_instance._detectPort(False)
+			else :
+				port = self.getPort()
+			
 			# Check if printer isn't detected
-			port = self.getPort()
 			if port is None :
 			
 				# Set state to failed
@@ -8414,7 +8419,10 @@ class M3DFioPlugin(
 				comm_instance._changeState(comm_instance.STATE_ERROR)
 				
 				# Send message
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "No Micro 3D printer detected. Try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
+				if self._settings.get_boolean(["UsingADifferentPrinter"]) :
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "No printer detected. Try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
+				else :
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "No Micro 3D printer detected. Try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
 				
 				# Return none
 				return None

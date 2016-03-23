@@ -10447,7 +10447,7 @@ $(function() {
 					$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(6)").addClass("current");
 			}
 			
-			// Otherwise check if data is an invalid value
+			// Otherwise check if data is invalid values
 			else if(data.value == "Invalid" && typeof data.bedCenter !== "undefined" && typeof data.bedOrientation !== "undefined") {
 			
 				// Calibrate bed orientation
