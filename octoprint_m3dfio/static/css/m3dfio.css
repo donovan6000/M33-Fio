@@ -235,7 +235,7 @@
 	white-space: nowrap;
 }
 
-#control div.jog-panel.calibration button:first-of-type, #control div.jog-panel.calibration button:nth-of-type(2), #control div.jog-panel.calibration button:nth-of-type(15), #control div.jog-panel.calibration button:nth-of-type(16), #control div.jog-panel.calibration button:nth-of-type(17), #control div.jog-panel.calibration button:nth-of-type(18), #control div.jog-panel.calibration button:nth-of-type(19), #control div.jog-panel.calibration button:nth-of-type(20) {
+#control div.jog-panel.calibration button:first-of-type, #control div.jog-panel.calibration button:nth-of-type(2), #control div.jog-panel.calibration button:nth-of-type(15), #control div.jog-panel.calibration button:nth-of-type(16), #control div.jog-panel.calibration button:nth-of-type(17), #control div.jog-panel.calibration button:nth-of-type(18), #control div.jog-panel.calibration button:nth-of-type(19), #control div.jog-panel.calibration button:nth-of-type(20), #control div.jog-panel.calibration button:nth-of-type(21) {
 	width: 231px;
 	clear: both;
 }

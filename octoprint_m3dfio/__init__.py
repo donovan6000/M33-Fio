@@ -1594,10 +1594,10 @@ class M3DFioPlugin(
 					# Set printing type and display message
 					if data["value"] == "Print Test Border" :
 						self.printingTestBorder = True
-						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Preparing test border"))
+						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Preparing test border", header = "Printing Status"))
 					else :
 						self.printingBacklashCalibrationCylinder = True
-						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Preparing backlash calibration cylinder"))
+						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Preparing backlash calibration cylinder", header = "Printing Status"))
 					
 					# Check if using shared library
 					if self.sharedLibrary and self._settings.get_boolean(["UseSharedLibrary"]) :
@@ -2120,6 +2120,30 @@ class M3DFioPlugin(
 				
 				# Send response
 				return flask.jsonify(dict(value = "OK"))
+			
+			# Otherwise check if parameter is to set external bed height
+			elif data["value"].startswith("Set External Bed Height:") :
+			
+				# Set external bed height
+				self._settings.set_float(["ExternalBedHeight"], float(data["value"][25 :]))
+			
+				# Save software settings
+				octoprint.settings.settings().save()
+			
+			# Otherwise check if parameter is to set expand printable region
+			elif data["value"].startswith("Set Expand Printable Region:") :
+			
+				# Set value
+				if data["value"][29 :] == "True" :
+					value = True
+				else :
+					value = False
+			
+				# Set expand printable region
+				self._settings.set_boolean(["ExpandPrintableRegion"], value)
+			
+				# Save software settings
+				octoprint.settings.settings().save()
 			
 			# Otherwise check if parameter is to remove temporary files
 			elif data["value"] == "Remove Temp" :
@@ -3756,7 +3780,7 @@ class M3DFioPlugin(
 				response = "ok " +  response[6 :]
 			
 			# Send message
-			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = response[3 : -1], confirm = True))
+			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = response[3 : -1], header = "Error Status", confirm = True))
 		
 		# Return response
 		return response
@@ -4114,7 +4138,7 @@ class M3DFioPlugin(
 				self.printingBacklashCalibrationCylinder = True
 		
 			# Display message
-			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Collecting print information"))
+			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Collecting print information", header = "Printing Status"))
 	
 			# Check if using shared library
 			if self.sharedLibrary and self._settings.get_boolean(["UseSharedLibrary"]) :
@@ -4427,7 +4451,7 @@ class M3DFioPlugin(
 			if currentPort is None :
 				
 				# Send message
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "No Micro 3D printer detected. Try cycling the printer's power and try again.", confirm = True))
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "No Micro 3D printer detected. Try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
 			
 			# Otherwise
 			else :
@@ -4452,7 +4476,7 @@ class M3DFioPlugin(
 					error = True
 					
 					# Send message
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. Try cycling the printer's power and try again.", confirm = True))
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. Try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
 			
 				# Check if no errors occured
 				if not error :
@@ -4489,7 +4513,7 @@ class M3DFioPlugin(
 							error = True
 							
 							# Send message
-							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "No Micro 3D printer detected. Try cycling the printer's power and try again.", confirm = True))
+							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "No Micro 3D printer detected. Try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
 					
 						# Otherwise
 						else :
@@ -4512,7 +4536,7 @@ class M3DFioPlugin(
 								error = True
 								
 								# Send message
-								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "You don't have read/write access to " + str(port), confirm = True))
+								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "You don't have read/write access to " + str(port), header = "Connection Status", confirm = True))
 	
 							# Otherwise check if connecting to printer failed
 							elif connection is None :
@@ -4521,7 +4545,7 @@ class M3DFioPlugin(
 								error = True
 								
 								# Send message
-								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. Try cycling the printer's power and try again.", confirm = True))
+								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. Try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
 			
 					# Check if an error hasn't occured
 					if not error :
@@ -4613,7 +4637,7 @@ class M3DFioPlugin(
 								if error :
 					
 									# Display error
-									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Setting fan failed", confirm = True))
+									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Setting fan failed", header = "Error Status", confirm = True))
 				
 							# Otherwise
 							else :
@@ -4635,7 +4659,7 @@ class M3DFioPlugin(
 									error = True
 					
 									# Display error
-									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating fan settings failed", confirm = True))
+									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Updating fan settings failed", header = "Error Status", confirm = True))
 				
 							# Check if printer uses 500mA extruder current
 							shortSerialNumber = serialNumber[0 : 13]
@@ -4648,7 +4672,7 @@ class M3DFioPlugin(
 									error = True
 					
 									# Display error
-									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating extruder current failed", confirm = True))
+									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Updating extruder current failed", header = "Error Status", confirm = True))
 				
 							# Check if using M3D firmware and it's from before new bed orientation and adjustable backlash speed
 							if not error and firmwareName is not None and firmwareName == "M3D" and firmwareVersion < 2015080402 :
@@ -4690,7 +4714,7 @@ class M3DFioPlugin(
 								if error :
 					
 									# Display error
-									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating version changes failed", confirm = True))
+									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Updating version changes failed", header = "Error Status", confirm = True))
 				
 							# Check if an error hasn't occured
 							if not error :
@@ -4836,7 +4860,7 @@ class M3DFioPlugin(
 								if error :
 				
 									# Display error
-									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating speed limits failed", confirm = True))
+									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Updating speed limits failed", header = "Error Status", confirm = True))
 				
 							# Check if firmware is corrupt
 							if not error and eepromCrc != chipCrc :
@@ -4849,7 +4873,7 @@ class M3DFioPlugin(
 				
 								# Display message
 								self.messageResponse = None
-								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Firmware is corrupt. Update to " + currentFirmwareName + " firmware version " + self.providedFirmwares[currentFirmwareName]["Release"] + '?', response = True))
+								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Question", message = "Firmware is corrupt. Update to " + currentFirmwareName + " firmware version " + self.providedFirmwares[currentFirmwareName]["Release"] + '?', header = "Firmware Status", response = True))
 					
 								# Wait until response is obtained
 								while self.messageResponse is None :
@@ -4865,7 +4889,7 @@ class M3DFioPlugin(
 								else :
 					
 									# Send message
-									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating firmware"))
+									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Updating firmware", header = "Firmware Status"))
 					
 									# Check if updating firmware failed
 									if not self.updateToProvidedFirmware(connection, currentFirmwareName) :
@@ -4874,14 +4898,14 @@ class M3DFioPlugin(
 										error = True
 										
 										# Send message
-										self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating firmware failed", confirm = True))
+										self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Updating firmware failed", header = "Firmware Status", confirm = True))
 						
 									# Otherwise
 									else :
 					
 										# Send message
 										self.messageResponse = None
-										self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating firmware was successful", confirm = True))
+										self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Question", message = "Updating firmware was successful", header = "Firmware Status", confirm = True))
 					
 										# Wait until response is obtained
 										while self.messageResponse is None :
@@ -4899,9 +4923,9 @@ class M3DFioPlugin(
 								# Display message
 								self.messageResponse = None
 								if incompatible :
-									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Firmware is incompatible. Update to " + firmwareName + " firmware version " + self.providedFirmwares[firmwareName]["Release"] + '?', response = True))
+									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Question", message = "Firmware is incompatible. Update to " + firmwareName + " firmware version " + self.providedFirmwares[firmwareName]["Release"] + '?', header = "Firmware Status", response = True))
 								else :
-									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Newer firmware available. Update to " + firmwareName + " firmware version " + self.providedFirmwares[firmwareName]["Release"] + '?', response = True))
+									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Question", message = "Newer firmware available. Update to " + firmwareName + " firmware version " + self.providedFirmwares[firmwareName]["Release"] + '?', header = "Firmware Status", response = True))
 					
 								# Wait until response is obtained
 								while self.messageResponse is None :
@@ -4918,7 +4942,7 @@ class M3DFioPlugin(
 								else :
 					
 									# Send message
-									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating firmware"))
+									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Updating firmware", header = "Firmware Status"))
 							
 									# Check if updating firmware failed
 									if not self.updateToProvidedFirmware(connection, firmwareName) :
@@ -4927,14 +4951,14 @@ class M3DFioPlugin(
 										error = True
 										
 										# Send message
-										self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating firmware failed", confirm = True))
+										self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Updating firmware failed", header = "Firmware Status", confirm = True))
 						
 									# Otherwise
 									else :
 					
 										# Send message
 										self.messageResponse = None
-										self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Error", message = "Updating firmware was successful", confirm = True))
+										self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Question", message = "Updating firmware was successful", header = "Firmware Status", confirm = True))
 					
 										# Wait until response is obtained
 										while self.messageResponse is None :
@@ -4947,7 +4971,7 @@ class M3DFioPlugin(
 								error = True
 						
 								# Send message
-								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. Try cycling the printer's power and try again.", confirm = True))
+								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. Try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
 			
 						# Otherwise
 						else :
@@ -4956,7 +4980,7 @@ class M3DFioPlugin(
 							error = True
 						
 							# Send message
-							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. Try cycling the printer's power and try again.", confirm = True))
+							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. Try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
 			
 				# Close connection
 				connection.close()
@@ -5003,7 +5027,7 @@ class M3DFioPlugin(
 						self.eeprom = None
 
 						# Send message
-						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "No Micro 3D printer detected. Try cycling the printer's power and try again.", confirm = True))
+						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "No Micro 3D printer detected. Try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
 				
 					# Otherwise
 					else :
@@ -5069,7 +5093,7 @@ class M3DFioPlugin(
 								self._printer.disconnect()
 								
 								# Send message
-								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. Try cycling the printer's power and try again.", confirm = True))
+								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. Try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
 					
 						# Otherwise
 						else :
@@ -5088,7 +5112,7 @@ class M3DFioPlugin(
 							self._printer.disconnect()
 							
 							# Send message
-							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. Try cycling the printer's power and try again.", confirm = True))
+							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. Try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
 			
 			# Clear initializing printer connection
 			self.initializingPrinterConnection = False
@@ -8376,7 +8400,7 @@ class M3DFioPlugin(
 				comm_instance._changeState(comm_instance.STATE_ERROR)
 				
 				# Send message
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "No Micro 3D printer detected. Try cycling the printer's power and try again.", confirm = True))
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "No Micro 3D printer detected. Try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
 				
 				# Return none
 				return None
@@ -8400,7 +8424,7 @@ class M3DFioPlugin(
 		if (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(str(port), os.R_OK | os.W_OK) :
 		
 			# Send message
-			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "You don't have read/write access to " + str(port), confirm = True))
+			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "You don't have read/write access to " + str(port), header = "Connection Status", confirm = True))
 			
 			# Clear connection
 			connection = None
@@ -8409,7 +8433,7 @@ class M3DFioPlugin(
 		elif connection is None :
 		
 			# Send message
-			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. Try cycling the printer's power and try again.", confirm = True))
+			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. Try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
 		
 		# Return connection
 		return connection

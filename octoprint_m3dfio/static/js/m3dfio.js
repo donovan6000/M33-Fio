@@ -3,7 +3,7 @@ $(function() {
 
 	// Create view model
 	function M3DFioViewModel(parameters) {
-		
+	
 		// Initialize variables
 		var eepromDisplayType = "hexadecimal";
 		var slicerOpen = false;
@@ -186,7 +186,6 @@ $(function() {
 				vec3 vNormal = normalize(normalMatrix * normal);
 				vec3 vNormel = normalize(normalMatrix * viewVector);
 				intensity = pow(c - dot(vNormal, vNormel), p);
-
 				gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 			}
 		`;
@@ -3589,6 +3588,7 @@ $(function() {
 					<button class="btn btn-block control-box arrow point" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><i class="icon-arrow-down"></i></button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Save Z as back left Z0</button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Save Z as bed center Z0</button>
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Save Z as external bed height</button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Print 0.4mm test border</button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Print backlash calibration cylinder</button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Run complete bed calibration</button>
@@ -4043,7 +4043,7 @@ $(function() {
 				if(self.settings.settings.plugins.m3dfio.PreprocessOnTheFly() && self.settings.settings.plugins.m3dfio.ChangeSettingsBeforePrint()) {
 			
 					// Show message
-					showMessage("Message", '', "Print", function() {
+					showMessage("Printing Status", '', "Print", function() {
 			
 						// Hide message
 						hideMessage();
@@ -4154,7 +4154,7 @@ $(function() {
 					event.stopImmediatePropagation();
 			
 					// Show message
-					showMessage("Message", '', "Print", function() {
+					showMessage("Printing Status", '', "Print", function() {
 			
 						// Hide message
 						hideMessage();
@@ -6458,7 +6458,7 @@ $(function() {
 							if(self.settings.settings.plugins.m3dfio.PreprocessOnTheFly() && self.settings.settings.plugins.m3dfio.ChangeSettingsBeforePrint()) {
 
 								// Show message
-								showMessage("Message", '', "Print", function() {
+								showMessage("Printing Status", '', "Print", function() {
 
 									// Hide message
 									hideMessage();
@@ -8229,8 +8229,73 @@ $(function() {
 			});
 		});
 		
+		// Set save Z as external bed height control
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(16)").attr("title", "Saves the extruder's current Z value as the external bed's height").click(function(event) {
+			
+			// Show message
+			showMessage("Calibration Status", "This will overwrite the existing external bed height. Proceed?", "Yes", function() {
+			
+				// Hide message
+				hideMessage();
+				
+				// Show message
+				showMessage("Calibration Status", "Saving Z as external bed height");
+		
+				// Set commands
+				var commands = [
+					"M114"
+				];
+				
+				// Set location callback
+				locationCallback = function() {
+			
+					// Send request
+					$.ajax({
+						url: API_BASEURL + "plugin/m3dfio",
+						type: "POST",
+						dataType: "json",
+						data: JSON.stringify({
+							command: "message",
+							value: "Set External Bed Height: " + currentZ
+						}),
+						contentType: "application/json; charset=UTF-8",
+						
+						// On success
+						success: function() {
+						
+							// Show message
+							showMessage("Calibration Status", "Done", "OK", function() {
+			
+								// Hide message
+								hideMessage();
+								
+								// Update settings
+								self.settings.requestData();
+							});
+						}
+					});
+				}
+				
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m3dfio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({
+						command: "message",
+						value: commands
+					}),
+					contentType: "application/json; charset=UTF-8"
+				});
+			}, "No", function() {
+			
+				// Hide message
+				hideMessage();
+			});
+		});
+		
 		// Set print test border control
-		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(16)").attr("title", "Prints 0.4mm test border").click(function(event) {
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(17)").attr("title", "Prints 0.4mm test border").click(function(event) {
 		
 			// Show message
 			showMessage("Calibration Status", "It's recommended to print this test border after completely calibrating the bed to ensure that the calibration is accurate.<br><br>The test border should print as a solid, even extruded border, and the 'Back Left Offset', 'Back Right Offset', 'Front Right Offset', and 'Front Left Offset' values can be adjusted to correct any issues with it. If the test border contains squiggly ripples, then it is too high. If the test border contains missing gaps, then it is too low.<br><br>It's also recommended to print a model with a raft after this is done to see if the 'Bed Height Offset' value needs to be adjusted. If the raft does not securely stick to the bed, then it is too high. If the model isn't easily removed from the raft, then it is too low.<br><br>All the referenced values can be found by clicking the 'Print settings' button in the 'General' section. Proceed?", "Yes", function() {
@@ -8242,7 +8307,7 @@ $(function() {
 				if(self.settings.settings.plugins.m3dfio.PreprocessOnTheFly() && self.settings.settings.plugins.m3dfio.ChangeSettingsBeforePrint()) {
 				
 					// Show message
-					showMessage("Message", '', "Print", function() {
+					showMessage("Printing Status", '', "Print", function() {
 			
 						// Hide message
 						hideMessage();
@@ -8322,7 +8387,7 @@ $(function() {
 		});
 		
 		// Set print backlash calibration cylinder control
-		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(17)").attr("title", "Prints backlash calibration cylinder").click(function(event) {
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(18)").attr("title", "Prints backlash calibration cylinder").click(function(event) {
 		
 			// Show message
 			showMessage("Calibration Status", "It's recommended to print this backlash calibration cylinder after the print bed has been accurately calibrated.<br><br>To start this procedure, the 'Backlash X' and 'Backlash Y' values should be set to 0 so that an uncompensated cylinder can be printed. The cylinder's X backlash signature gaps are located at 2 and 8 o'clock and Y backlash signature gaps are located at 5 and 11 o'clock. The front left corner of the cylinder's base is cut off to make identifying the cylinder's orientation easier.<br><br>After printing an initial cylinder, adjust the 'Backlash X' value to close the X signature gaps, print, and repeat if necessary to ensure the accuracy. 'Backlash X' values typically range within 0.2mm to 0.6mm.<br><br>After the 'Backlash X' value has been calibrated, adjust the 'Backlash Y' value to close the Y signature gaps, print, and repeat if necessary to ensure the accuracy. 'Backlash Y' values typically range within 0.4mm to 1.3mm. You may need fine tune the 'Backlash X' vale again after 'Backlash Y' value has been calibrated.<br><br>All the referenced values can be found by clicking the 'Print settings' button in the 'General' section. Proceed?", "Yes", function() {
@@ -8334,7 +8399,7 @@ $(function() {
 				if(self.settings.settings.plugins.m3dfio.PreprocessOnTheFly() && self.settings.settings.plugins.m3dfio.ChangeSettingsBeforePrint()) {
 				
 					// Show message
-					showMessage("Message", '', "Print", function() {
+					showMessage("Printing Status", '', "Print", function() {
 			
 						// Hide message
 						hideMessage();
@@ -8414,13 +8479,10 @@ $(function() {
 		});
 		
 		// Run complete bed calibration control
-		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(18)").attr("title", "Automatically calibrates the bed's center's Z0, automatically calibrates the bed's orientation, and manually calibrates the Z0 values for the bed's four corners").click(function(event) {
-			
-			// Show message
-			showMessage("Calibration Status", "This process can take a while to complete and will require your input during some steps. Proceed?", "Yes", function() {
-			
-				// Hide message
-				hideMessage();
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(19)").attr("title", "Manually calibrates an external bed's height, automatically calibrates the bed's center's Z0, automatically calibrates the bed's orientation, and manually calibrates the Z0 values for the bed's four corners").click(function(event) {
+		
+			// Continue calibration
+			function continueCalibration() {
 				
 				// Show message
 				showMessage("Calibration Status", "Calibrating bed center Z0");
@@ -8940,6 +9002,240 @@ $(function() {
 					}),
 					contentType: "application/json; charset=UTF-8"
 				});
+			}
+			
+			// Show message
+			showMessage("Calibration Status", "This process can take a while to complete and will require your input during some steps. Proceed?", "Yes", function() {
+			
+				// Hide message
+				hideMessage();
+				
+				// Show message
+				showMessage("Calibration Status", "Are you using an external bed, such as a heatbed or a sheet of glass?", "Yes", function() {
+				
+					// Hide message
+					hideMessage();
+					
+					// Show message
+					showMessage("Calibration Status", "Remove the external bed and make sure that the bed that came with the printer is attached", "OK", function() {
+					
+						// Hide message
+						hideMessage();
+						
+						// Show message
+						showMessage("Calibration Status", "Calibrating bed center Z0");
+		
+						// Set commands
+						var commands = [
+							"G90",
+							"M109 S150",
+							"M104 S0",
+							"M107",
+							"G30",
+							"M65536;wait"
+						];
+				
+						// Set waiting callback
+						waitingCallback = function() {
+						
+							// Show message
+							showMessage("Calibration Status", "Now raise the print head so that you can attach the external bed, and then lower the print head until it barely touches the bed. One way to get to that point is to place a single sheet of paper on the bed under the print head, and lower the print head until the paper can no longer be moved.", "Done", function() {
+
+								// Hide message
+								hideMessage();
+				
+								// Show message
+								showMessage("Calibration Status", "Saving Z as external bed height");
+		
+								// Set commands
+								commands = [
+									"M114"
+								];
+				
+								// Set location callback
+								locationCallback = function() {
+			
+									// Send request
+									$.ajax({
+										url: API_BASEURL + "plugin/m3dfio",
+										type: "POST",
+										dataType: "json",
+										data: JSON.stringify({
+											command: "message",
+											value: "Set External Bed Height: " + currentZ
+										}),
+										contentType: "application/json; charset=UTF-8",
+						
+										// On success
+										success: function() {
+						
+											// Show message
+											showMessage("Calibration Status", "Does the external bed extend the printable region to its max?", "Yes", function() {
+											
+												// Hide message
+												hideMessage();
+				
+												// Show message
+												showMessage("Calibration Status", "Setting expand printable region");
+												
+												// Send request
+												$.ajax({
+													url: API_BASEURL + "plugin/m3dfio",
+													type: "POST",
+													dataType: "json",
+													data: JSON.stringify({
+														command: "message",
+														value: "Set Expand Printable Region: True"
+													}),
+													contentType: "application/json; charset=UTF-8",
+						
+													// On success
+													success: function() {
+													
+														// Show message
+														showMessage("Calibration Status", "Positioning extruder");
+													
+														// Set commands
+														commands = [
+															"G91",
+															"G0 Z3 F90",
+															"M65536;wait"
+														];
+														
+														// Set waiting callback
+														waitingCallback = function() {
+												
+															// Continue calibration
+															continueCalibration();
+														}
+														
+														// Send request
+														$.ajax({
+															url: API_BASEURL + "plugin/m3dfio",
+															type: "POST",
+															dataType: "json",
+															data: JSON.stringify({
+																command: "message",
+																value: commands
+															}),
+															contentType: "application/json; charset=UTF-8"
+														});
+													}
+												});
+											}, "No", function() {
+						
+												// Hide message
+												hideMessage();
+				
+												// Show message
+												showMessage("Calibration Status", "Clearing expand printable region");
+												
+												// Send request
+												$.ajax({
+													url: API_BASEURL + "plugin/m3dfio",
+													type: "POST",
+													dataType: "json",
+													data: JSON.stringify({
+														command: "message",
+														value: "Set Expand Printable Region: False"
+													}),
+													contentType: "application/json; charset=UTF-8",
+						
+													// On success
+													success: function() {
+												
+														// Show message
+														showMessage("Calibration Status", "Positioning extruder");
+													
+														// Set commands
+														commands = [
+															"G91",
+															"G0 Z3 F90",
+															"M65536;wait"
+														];
+														
+														// Set waiting callback
+														waitingCallback = function() {
+												
+															// Continue calibration
+															continueCalibration();
+														}
+														
+														// Send request
+														$.ajax({
+															url: API_BASEURL + "plugin/m3dfio",
+															type: "POST",
+															dataType: "json",
+															data: JSON.stringify({
+																command: "message",
+																value: commands
+															}),
+															contentType: "application/json; charset=UTF-8"
+														});
+													}
+												});
+											});
+										}
+									});
+								}
+				
+								// Send request
+								$.ajax({
+									url: API_BASEURL + "plugin/m3dfio",
+									type: "POST",
+									dataType: "json",
+									data: JSON.stringify({
+										command: "message",
+										value: commands
+									}),
+									contentType: "application/json; charset=UTF-8"
+								});
+							});
+						}
+					});
+				}, "No", function() {
+			
+					// Hide message
+					hideMessage();
+					
+					// Show message
+					showMessage("Calibration Status", "Clearing external bed settings");
+					
+					// Send request
+					$.ajax({
+						url: API_BASEURL + "plugin/m3dfio",
+						type: "POST",
+						dataType: "json",
+						data: JSON.stringify({
+							command: "message",
+							value: "Set External Bed Height: 0"
+						}),
+						contentType: "application/json; charset=UTF-8",
+						
+						// On success
+						success: function() {
+						
+							// Send request
+							$.ajax({
+								url: API_BASEURL + "plugin/m3dfio",
+								type: "POST",
+								dataType: "json",
+								data: JSON.stringify({
+									command: "message",
+									value: "Set Expand Printable Region: False"
+								}),
+								contentType: "application/json; charset=UTF-8",
+	
+								// On success
+								success: function() {
+							
+									// Continue calibration
+									continueCalibration();
+								}
+							});
+						}
+					});
+				});
 			}, "No", function() {
 			
 				// Hide message
@@ -8948,7 +9244,7 @@ $(function() {
 		});
 		
 		// Save printer settings to file calibration control
-		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(19)").attr("title", "Saves printer settings to a file").click(function(event) {
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(20)").attr("title", "Saves printer settings to a file").click(function(event) {
 			
 			// Show message
 			showMessage("Settings Status", "Obtaining printer settings");
@@ -8992,7 +9288,7 @@ $(function() {
 		});
 		
 		// Restore printer settings from file calibration control
-		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(20)").attr("title", "Restores printer settings from a file").click(function(event) {
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(21)").attr("title", "Restores printer settings from a file").click(function(event) {
 		
 			// Open file input dialog
 			$("#control > div.jog-panel.calibration").find("div > input").click();
@@ -9216,13 +9512,13 @@ $(function() {
 		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(5)").attr("title", "Sets extruder's current to 500mA").click(function(event) {
 			
 			// Show message
-			showMessage("Extruder Status", "This will overwrite the existing extruder current settings. Proceed?", "Yes", function() {
+			showMessage("Extruder Current Status", "This will overwrite the existing extruder current settings. Proceed?", "Yes", function() {
 			
 				// Hide message
 				hideMessage();
 				
 				// Show message
-				showMessage("Extruder Status", "Setting extruder current to 500mA");
+				showMessage("Extruder Current Status", "Setting extruder current to 500mA");
 		
 				// Send request
 				$.ajax({
@@ -9239,7 +9535,7 @@ $(function() {
 					success: function(data) {
 			
 						// Show message
-						showMessage("Extruder Status", data.value == "OK" ? "Done" : "Failed", "OK", function() {
+						showMessage("Extruder Current Status", data.value == "OK" ? "Done" : "Failed", "OK", function() {
 			
 							// Hide message
 							hideMessage();
@@ -9257,13 +9553,13 @@ $(function() {
 		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(6)").attr("title", "Sets extruder's current to 660mA").click(function(event) {
 			
 			// Show message
-			showMessage("Extruder Status", "This will overwrite the existing extruder current settings. Proceed?", "Yes", function() {
+			showMessage("Extruder Current Status", "This will overwrite the existing extruder current settings. Proceed?", "Yes", function() {
 			
 				// Hide message
 				hideMessage();
 				
 				// Show message
-				showMessage("Extruder Status", "Setting extruder current to 660mA");
+				showMessage("Extruder Current Status", "Setting extruder current to 660mA");
 		
 				// Send request
 				$.ajax({
@@ -9280,7 +9576,7 @@ $(function() {
 					success: function(data) {
 			
 						// Show message
-						showMessage("Extruder Status", data.value == "OK" ? "Done" : "Failed", "OK", function() {
+						showMessage("Extruder Current Status", data.value == "OK" ? "Done" : "Failed", "OK", function() {
 			
 							// Hide message
 							hideMessage();
@@ -9461,7 +9757,7 @@ $(function() {
 			if($(this).val() == "new") {
 			
 				// Show message
-				showMessage("Message", "Creating OctoPrint instance");
+				showMessage("OctoPrint Status", "Creating OctoPrint instance");
 			
 				// Send request
 				$.ajax({
@@ -9481,7 +9777,7 @@ $(function() {
 						if(data.value == "Error") {
 						
 							// Show message
-							showMessage("Message", "Failed to create OctoPrint instance", "OK", function() {
+							showMessage("OctoPrint Status", "Failed to create OctoPrint instance", "OK", function() {
 							
 								// Hide message
 								hideMessage();
@@ -9504,7 +9800,7 @@ $(function() {
 			else if($(this).val() == "close") {
 			
 				// Show message
-				showMessage("Message", "Closing OctoPrint instance");
+				showMessage("OctoPrint Status", "Closing OctoPrint instance");
 			
 				// Send request
 				$.ajax({
@@ -9544,7 +9840,7 @@ $(function() {
 						else
 						
 							// Show message
-							showMessage("Message", "Unable to close the OctoPrint instance", "OK", function() {
+							showMessage("OctoPrint Status", "Unable to close the OctoPrint instance", "OK", function() {
 							
 								// Hide message
 								hideMessage();
@@ -9905,7 +10201,7 @@ $(function() {
 						return;
 			
 				// Show message
-				showMessage("Message", text, "OK", function() {
+				showMessage("Cura Status", text, "OK", function() {
 					
 					// Hide message
 					hideMessage();
@@ -9946,7 +10242,7 @@ $(function() {
 						return;
 			
 				// Show message
-				showMessage("Message", text, "OK", function() {
+				showMessage("Sleep Status", text, "OK", function() {
 				
 					// Hide message
 					hideMessage();
@@ -10184,186 +10480,18 @@ $(function() {
 			
 			// Otherwise check if data is invalid values
 			else if(data.value == "Invalid" && typeof data.bedCenter !== "undefined" && typeof data.bedOrientation !== "undefined") {
-			
-				// Check if bed center is invalid
-				if(data.bedCenter) {
+				
+				// Calibrate bed orientation
+				function calibrateBedOrientation() {
 				
 					// Display message
-					showMessage("Error Status", "Invalid bed center Z0. Calibrate?", "Yes", function() {
+					showMessage("Calibration Status", "Invalid bed orientation. Calibrate?", "Yes", function() {
 					
 						// Hide message
 						hideMessage();
 						
 						// Show message
-						showMessage("Error Status", "Calibrating bed center Z0");
-		
-						// Set commands
-						var commands = [
-							"G90",
-							"M109 S150",
-							"M104 S0",
-							"M107",
-							"G30",
-							"M65536;wait"
-						];
-						
-						// Set waiting callback
-						waitingCallback = function() {
-						
-							// Set commands
-							commands = [
-								"M117",
-								"M65536;wait"
-							];
-				
-							// Set waiting callback
-							waitingCallback = function() {
-						
-								// Check if bed orientation is invalid
-								if(data.bedOrientation) {
-			
-									// Display message
-									showMessage("Error Status", "Invalid bed orientation. Calibrate?", "Yes", function() {
-								
-										// Hide message
-										hideMessage();
-					
-										// Show message
-										showMessage("Error Status", "Calibrating bed orientation");
-	
-										// Set commands
-										commands = [
-											"M104 S0",
-											"G90",
-											"G0 Z3 F90",
-											"M109 S150",
-											"M104 S0",
-											"M107",
-											"G32",
-											"M65536;wait"
-										];
-									
-										// Set waiting callback
-										waitingCallback = function() {
-									
-											// Set commands
-											commands = [
-												"M619 S" + eepromOffsets["bedOrientationBackRight"]["offset"] + " T" + eepromOffsets["bedOrientationBackRight"]["bytes"],
-												"M619 S" + eepromOffsets["bedOrientationBackLeft"]["offset"] + " T" + eepromOffsets["bedOrientationBackLeft"]["bytes"],
-												"M619 S" + eepromOffsets["bedOrientationFrontLeft"]["offset"] + " T" + eepromOffsets["bedOrientationFrontLeft"]["bytes"],
-												"M619 S" + eepromOffsets["bedOrientationFrontRight"]["offset"] + " T" + eepromOffsets["bedOrientationFrontRight"]["bytes"],
-												"M65536;wait"
-											];
-			
-											// Set waiting callback
-											waitingCallback = function() {
-									
-												// Save settings
-												function saveSettings() {
-
-													// Save software settings
-													self.settings.saveData();
-
-													// Show message
-													showMessage("Error Status", "Done", "OK", function() {
-
-														// Hide message
-														hideMessage();
-													});
-												}
-
-												// Update settings
-												if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
-													self.settings.requestData(saveSettings);
-												else
-													self.settings.requestData().done(saveSettings);
-											}
-										
-											// Send request
-											$.ajax({
-												url: API_BASEURL + "plugin/m3dfio",
-												type: "POST",
-												dataType: "json",
-												data: JSON.stringify({
-													command: "message",
-													value: commands
-												}),
-												contentType: "application/json; charset=UTF-8"
-											});
-										}
-	
-										// Send request
-										$.ajax({
-											url: API_BASEURL + "plugin/m3dfio",
-											type: "POST",
-											dataType: "json",
-											data: JSON.stringify({
-												command: "message",
-												value: commands
-											}),
-											contentType: "application/json; charset=UTF-8"
-										});
-									}, "No", function() {
-				
-										// Hide message
-										hideMessage();
-									});
-								}
-							
-								// Otherwise
-								else {
-		
-									// Show message
-									showMessage("Error Status", "Done", "OK", function() {
-				
-										// Hide message
-										hideMessage();
-									});
-								}
-							}
-							
-							// Send request
-							$.ajax({
-								url: API_BASEURL + "plugin/m3dfio",
-								type: "POST",
-								dataType: "json",
-								data: JSON.stringify({
-									command: "message",
-									value: commands
-								}),
-								contentType: "application/json; charset=UTF-8"
-							});
-						}
-		
-						// Send request
-						$.ajax({
-							url: API_BASEURL + "plugin/m3dfio",
-							type: "POST",
-							dataType: "json",
-							data: JSON.stringify({
-								command: "message",
-								value: commands
-							}),
-							contentType: "application/json; charset=UTF-8"
-						});
-					}, "No", function() {
-					
-						// Hide message
-						hideMessage();
-					});
-				}
-				
-				// Otherwise check if bed orientation is invalid
-				else if(data.bedOrientation) {
-				
-					// Display message
-					showMessage("Error Status", "Invalid bed orientation. Calibrate?", "Yes", function() {
-					
-						// Hide message
-						hideMessage();
-						
-						// Show message
-						showMessage("Error Status", "Calibrating bed orientation");
+						showMessage("Calibration Status", "Calibrating bed orientation");
 		
 						// Set commands
 						var commands = [
@@ -10399,7 +10527,7 @@ $(function() {
 									self.settings.saveData();
 
 									// Show message
-									showMessage("Error Status", "Done", "OK", function() {
+									showMessage("Calibration Status", "Done", "OK", function() {
 
 										// Hide message
 										hideMessage();
@@ -10443,10 +10571,98 @@ $(function() {
 						hideMessage();
 					});
 				}
+				
+				// Check if bed center is invalid
+				if(data.bedCenter) {
+				
+					// Display message
+					showMessage("Calibration Status", "Invalid bed center Z0. Calibrate?", "Yes", function() {
+					
+						// Hide message
+						hideMessage();
+						
+						// Show message
+						showMessage("Calibration Status", "Calibrating bed center Z0");
+		
+						// Set commands
+						var commands = [
+							"G90",
+							"M109 S150",
+							"M104 S0",
+							"M107",
+							"G30",
+							"M65536;wait"
+						];
+						
+						// Set waiting callback
+						waitingCallback = function() {
+						
+							// Set commands
+							commands = [
+								"M117",
+								"M65536;wait"
+							];
+				
+							// Set waiting callback
+							waitingCallback = function() {
+						
+								// Check if bed orientation is invalid
+								if(data.bedOrientation)
+			
+									// Calibrate bed orientation
+									calibrateBedOrientation();
+							
+								// Otherwise
+								else
+		
+									// Show message
+									showMessage("Calibration Status", "Done", "OK", function() {
+				
+										// Hide message
+										hideMessage();
+									});
+							}
+							
+							// Send request
+							$.ajax({
+								url: API_BASEURL + "plugin/m3dfio",
+								type: "POST",
+								dataType: "json",
+								data: JSON.stringify({
+									command: "message",
+									value: commands
+								}),
+								contentType: "application/json; charset=UTF-8"
+							});
+						}
+		
+						// Send request
+						$.ajax({
+							url: API_BASEURL + "plugin/m3dfio",
+							type: "POST",
+							dataType: "json",
+							data: JSON.stringify({
+								command: "message",
+								value: commands
+							}),
+							contentType: "application/json; charset=UTF-8"
+						});
+					}, "No", function() {
+					
+						// Hide message
+						hideMessage();
+					});
+				}
+				
+				// Otherwise check if bed orientation is invalid
+				else if(data.bedOrientation)
+				
+					// Calibrate bed orientation
+					calibrateBedOrientation();
 			}
 			
 			// Otherwise check if data is to show message
-			else if(data.value == "Show Message" && typeof data.message !== "undefined") {
+			else if(data.value == "Show Message" && typeof data.message !== "undefined" && typeof data.header !== "undefined") {
 			
 				// Initialize variables
 				var text = htmlEncode(data.message);
@@ -10470,7 +10686,7 @@ $(function() {
 				if(typeof data.confirm !== "undefined") {
 				
 					// Display message
-					showMessage("Message", text, "OK", function() {
+					showMessage(htmlEncode(data.header), text, "OK", function() {
 					
 						// Hide message
 						hideMessage();
@@ -10481,23 +10697,17 @@ $(function() {
 				else
 				
 					// Display message
-					showMessage("Message", text);
+					showMessage(htmlEncode(data.header), text);
 			}
 			
-			// Otherwise check if data is to hide message
-			else if(data.value == "Hide Message")
-			
-				// Hide message
-				hideMessage();
-			
-			// Otherwise check if data is a status error message
-			else if(data.value == "Error" && typeof data.message !== "undefined") {
+			// Otherwise check if data is to show a question
+			else if(data.value == "Show Question" && typeof data.message !== "undefined" && typeof data.header !== "undefined") {
 
 				// Check if a response is requested
 				if(typeof data.response !== "undefined") {
 				
 					// Display message
-					showMessage("Error Status", htmlEncode(data.message), "Yes", function() {
+					showMessage(htmlEncode(data.header), htmlEncode(data.message), "Yes", function() {
 		
 						// Hide message
 						hideMessage();
@@ -10536,7 +10746,7 @@ $(function() {
 				else if(typeof data.confirm !== "undefined") {
 				
 					// Display message
-					showMessage("Error Status", htmlEncode(data.message), "OK", function() {
+					showMessage(htmlEncode(data.header), htmlEncode(data.message), "OK", function() {
 					
 						// Hide message
 						hideMessage();
@@ -10554,13 +10764,13 @@ $(function() {
 						});
 					});
 				}
-				
-				// Otherwise
-				else
-				
-					// Display message
-					showMessage("Error Status", htmlEncode(data.message));
 			}
+			
+			// Otherwise check if data is to hide message
+			else if(data.value == "Hide Message")
+			
+				// Hide message
+				hideMessage();
 			
 			// Otherwise check if data is done waiting
 			else if(data.value == "Done Waiting" && typeof waitingCallback === "function") {
