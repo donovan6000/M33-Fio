@@ -1610,8 +1610,8 @@ $(function() {
 				// Mouse down event
 				mouseDownEvent: function(event) {
 
-					// Check if not in cutting models and not clicking on a button or input
-					if(viewport.cutShape === null && !$(event.target).is("button, img, input")) {
+					// Check if not in cutting models, clicking inside the model editor, and not clicking on a button or input
+					if(viewport.cutShape === null && $(event.target).closest(".modal-extra").length && !$(event.target).is("button, img, input")) {
 
 						// Initialize variables
 						var raycaster = new THREE.Raycaster();
@@ -3156,7 +3156,7 @@ $(function() {
 						setTimeout(function() {
 							$("#slicing_configuration_dialog .modal-cover").css("z-index", '');
 						}, 200);
-					}, 300);
+					}, 600);
 				},
 				
 				// Set cut shape
@@ -3293,7 +3293,7 @@ $(function() {
 						setTimeout(function() {
 							$("#slicing_configuration_dialog .modal-cover").css("z-index", '');
 						}, 200);
-					}, 300);
+					}, 600);
 				},
 				
 				// Line geometry
@@ -4590,7 +4590,7 @@ $(function() {
 					setTimeout(function() {
 						$("#slicing_configuration_dialog .modal-cover").css("z-index", '');
 					}, 200);
-				}, 300);
+				}, 600);
 			}
 			
 			// Otherwise assume saving model
@@ -4624,7 +4624,7 @@ $(function() {
 							setTimeout(isSceneExported, 100);
 					}
 					isSceneExported();
-				}, 300);
+				}, 600);
 			}
 		});
 		
@@ -4944,727 +4944,734 @@ $(function() {
 											// Set using provided profile
 											var usingProvidedProfile = slicerName == "cura" && (slicerProfileName == "m3d_pla" || slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips" || slicerProfileName == "m3d_flx" || slicerProfileName == "m3d_tgh");
 											
-											// Hide cover
-											$("#slicing_configuration_dialog .modal-cover").addClass("noTransition").removeClass("show");
+											// Hide dialog
+											$("#slicing_configuration_dialog").removeClass("in");
+										
 											setTimeout(function() {
-												$("#slicing_configuration_dialog .modal-cover").css("z-index", '').removeClass("noTransition");
-											}, 200);
-										
-											// Display profile
-											$("#slicing_configuration_dialog").addClass("profile");
-											$("#slicing_configuration_dialog p.currentMenu").text("Modify Profile");
-											$("#slicing_configuration_dialog .modal-body").css("display", "none");
-											$("#slicing_configuration_dialog .modal-body").after(`
-												<div class="modal-extra">
-													<div class="cura">
-														<div class="group basic">
-															<h3>Basic Settings</h3>
-															<p class="quality">` + (usingProvidedProfile ? `Medium Quality` : `Unknown Quality`) + `</p>
-															<div class="quality">
-																<button title="Extra low quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/extra%20low%20quality.png"></button>
-																<button title="Low quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/low%20quality.png"></button>
-																<button title="Medium quality"` + (usingProvidedProfile ? ` class="disabled"` : ``) + `><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/medium%20quality.png"></button>
-																<button title="High quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/high%20quality.png"></button>
-																<button title="Extra high quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/extra%20high%20quality.png"></button>
+											
+												// Hide cover
+												$("#slicing_configuration_dialog .modal-cover").addClass("noTransition").removeClass("show");
+												setTimeout(function() {
+													$("#slicing_configuration_dialog .modal-cover").css("z-index", '').removeClass("noTransition");
+												}, 200);
+											
+												// Display profile editor
+												$("#slicing_configuration_dialog").addClass("profile in");
+												$("#slicing_configuration_dialog p.currentMenu").text("Modify Profile");
+												$("#slicing_configuration_dialog .modal-body").css("display", "none").after(`
+													<div class="modal-extra">
+														<div class="cura">
+															<div class="group basic">
+																<h3>Basic Settings</h3>
+																<p class="quality">` + (usingProvidedProfile ? `Medium Quality` : `Unknown Quality`) + `</p>
+																<div class="quality">
+																	<button title="Extra low quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/extra%20low%20quality.png"></button>
+																	<button title="Low quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/low%20quality.png"></button>
+																	<button title="Medium quality"` + (usingProvidedProfile ? ` class="disabled"` : ``) + `><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/medium%20quality.png"></button>
+																	<button title="High quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/high%20quality.png"></button>
+																	<button title="Extra high quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/extra%20high%20quality.png"></button>
+																</div>
+																<p class="fill">` + (usingProvidedProfile ? `Medium Fill` : `Unknown Fill`) + `</p>
+																<div class="fill">
+																	<button title="Hollow thin fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/hollow%20thin%20fill.png"></button>
+																	<button title="Hollow thick fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/hollow%20thick%20fill.png"></button>
+																	<button title="Low fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/low%20fill.png"></button>
+																	<button title="Medium fill"` + (usingProvidedProfile ? ` class="disabled"` : ``) + `><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/medium%20fill.png"></button>
+																	<button title="High fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/high%20fill.png"></button>
+																	<button title="Extra high fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/extra%20high%20fill.png"></button>
+																</div>
+																<div class="settings">
+																	<label title="Prints a breakaway support underneath overhanging parts of the model"><input class="useSupportMaterial" type="checkbox" tabindex="-1">Use support material</label>
+																	<label title="Allows support material to be created on top of models"><input class="useModelOnModelSupport" type="checkbox" tabindex="-1">Use model on model support</label>
+																	<label title="Prints a raft underneath the model"><input class="useRaft" type="checkbox" tabindex="-1">Use raft</label>
+																	<label title="Prints a brim connected to the first layer of the model"><input class="useBrim" type="checkbox" tabindex="-1">Use brim</label>
+																	<label title="Retracts the filament when moving over gaps"><input class="useRetraction" type="checkbox" tabindex="-1">Use retraction</label>
+																</div>
 															</div>
-															<p class="fill">` + (usingProvidedProfile ? `Medium Fill` : `Unknown Fill`) + `</p>
-															<div class="fill">
-																<button title="Hollow thin fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/hollow%20thin%20fill.png"></button>
-																<button title="Hollow thick fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/hollow%20thick%20fill.png"></button>
-																<button title="Low fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/low%20fill.png"></button>
-																<button title="Medium fill"` + (usingProvidedProfile ? ` class="disabled"` : ``) + `><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/medium%20fill.png"></button>
-																<button title="High fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/high%20fill.png"></button>
-																<button title="Extra high fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/extra%20high%20fill.png"></button>
-															</div>
-															<div class="settings">
-																<label title="Prints a breakaway support underneath overhanging parts of the model"><input class="useSupportMaterial" type="checkbox" tabindex="-1">Use support material</label>
-																<label title="Allows support material to be created on top of models"><input class="useModelOnModelSupport" type="checkbox" tabindex="-1">Use model on model support</label>
-																<label title="Prints a raft underneath the model"><input class="useRaft" type="checkbox" tabindex="-1">Use raft</label>
-																<label title="Prints a brim connected to the first layer of the model"><input class="useBrim" type="checkbox" tabindex="-1">Use brim</label>
-																<label title="Retracts the filament when moving over gaps"><input class="useRetraction" type="checkbox" tabindex="-1">Use retraction</label>
+															<div class="group manual">
+																<h3>Manual Settings</h3>
+																<div>
+																	<div title="Height of each layer">
+																		<label>Layer height</label>
+																		<div class="input-append">
+																			<input class="layerHeight" type="number" tabindex="-1" min="0.01" max="0.35" step="0.01">
+																			<span class="add-on">mm</span>
+																		</div>
+																	</div>
+																	<div title="Percentage of the model that is filled in">
+																		<label>Fill density</label>
+																		<div class="input-append">
+																			<input class="fillDensity" type="number" tabindex="-1" min="0" max="100" step="0.01">
+																			<span class="add-on">%</span>
+																		</div>
+																	</div>
+																	<div title="Thickness of the model">
+																		<label>Thickness</label>
+																		<div class="input-append">
+																			<input class="thickness" type="number" tabindex="-1" min="1" max="25" step="1">
+																			<span class="add-on">wall(s)</span>
+																		</div>
+																	</div>
+																	<div title="Speed of the extruder's movements while printing">
+																		<label>Print speed</label>
+																		<div class="input-append">
+																			<input class="printSpeed" type="number" tabindex="-1" min="2" max="80" step="0.01">
+																			<span class="add-on">mm/s</span>
+																		</div>
+																	</div>
+																	<div title="Number of layers that the top and bottom each consist of">
+																		<label>Top/bottom</label>
+																		<div class="input-append">
+																			<input class="topBottomLayers" type="number" tabindex="-1" min="1" max="25" step="1">
+																			<span class="add-on">layer(s)</span>
+																		</div>
+																	</div>
+																	<div title="Distance between the raft and the model">
+																		<label>Raft airgap</label>
+																		<div class="input-append">
+																			<input class="raftAirgap" type="number" tabindex="-1" min="0" max="4" step="0.01">
+																			<span class="add-on">mm</span>
+																		</div>
+																	</div>
+																	<div title="The amount of lines used for the brim">
+																		<label>Brim line count</label>
+																		<div class="input-append">
+																			<input class="brimLineCount" type="number" tabindex="-1" min="0" max="50" step="1">
+																			<span class="add-on">line(s)</span>
+																		</div>
+																	</div>
+																</div>
 															</div>
 														</div>
-														<div class="group manual">
-															<h3>Manual Settings</h3>
+														<div class="group advanced">
+															<h3>Advanced Settings</h3>
 															<div>
-																<div title="Height of each layer">
-																	<label>Layer height</label>
-																	<div class="input-append">
-																		<input class="layerHeight" type="number" tabindex="-1" min="0.01" max="0.35" step="0.01">
-																		<span class="add-on">mm</span>
-																	</div>
-																</div>
-																<div title="Percentage of the model that is filled in">
-																	<label>Fill density</label>
-																	<div class="input-append">
-																		<input class="fillDensity" type="number" tabindex="-1" min="0" max="100" step="0.01">
-																		<span class="add-on">%</span>
-																	</div>
-																</div>
-																<div title="Thickness of the model">
-																	<label>Thickness</label>
-																	<div class="input-append">
-																		<input class="thickness" type="number" tabindex="-1" min="1" max="25" step="1">
-																		<span class="add-on">wall(s)</span>
-																	</div>
-																</div>
-																<div title="Speed of the extruder's movements while printing">
-																	<label>Print speed</label>
-																	<div class="input-append">
-																		<input class="printSpeed" type="number" tabindex="-1" min="2" max="80" step="0.01">
-																		<span class="add-on">mm/s</span>
-																	</div>
-																</div>
-																<div title="Number of layers that the top and bottom each consist of">
-																	<label>Top/bottom</label>
-																	<div class="input-append">
-																		<input class="topBottomLayers" type="number" tabindex="-1" min="1" max="25" step="1">
-																		<span class="add-on">layer(s)</span>
-																	</div>
-																</div>
-																<div title="Distance between the raft and the model">
-																	<label>Raft airgap</label>
-																	<div class="input-append">
-																		<input class="raftAirgap" type="number" tabindex="-1" min="0" max="4" step="0.01">
-																		<span class="add-on">mm</span>
-																	</div>
-																</div>
-																<div title="The amount of lines used for the brim">
-																	<label>Brim line count</label>
-																	<div class="input-append">
-																		<input class="brimLineCount" type="number" tabindex="-1" min="0" max="50" step="1">
-																		<span class="add-on">line(s)</span>
-																	</div>
-																</div>
+																<aside></aside>
+																<textarea tabindex="-1" spellcheck="false"></textarea>
 															</div>
+															<span></span>
 														</div>
-													</div>
-													<div class="group advanced">
-														<h3>Advanced Settings</h3>
-														<div>
-															<aside></aside>
-															<textarea tabindex="-1" spellcheck="false"></textarea>
-														</div>
-														<span></span>
-													</div>
-												</div
-											`);
-											$("#slicing_configuration_dialog .modal-extra textarea").val(data);
+													</div
+												`);
+												$("#slicing_configuration_dialog .modal-extra textarea").val(data);
 											
-											// Set basic setting values
-											$("#slicing_configuration_dialog .modal-extra div.cura div input[type=\"checkbox\"].useSupportMaterial").prop("checked", getSlicerProfileValue("support") == "Everywhere" || getSlicerProfileValue("support") == "Touching buildplate");
-											$("#slicing_configuration_dialog .modal-extra div.cura div input[type=\"checkbox\"].useModelOnModelSupport").prop("checked", getSlicerProfileValue("support") == "Everywhere");
-											$("#slicing_configuration_dialog .modal-extra div.cura div input[type=\"checkbox\"].useRaft").prop("checked", getSlicerProfileValue("platform_adhesion") == "Raft");
-											$("#slicing_configuration_dialog .modal-extra div.cura div input[type=\"checkbox\"].useBrim").prop("checked", getSlicerProfileValue("platform_adhesion") == "Brim");
-											$("#slicing_configuration_dialog .modal-extra div.cura div input[type=\"checkbox\"].useRetraction").prop("checked", getSlicerProfileValue("retraction_enable") == "True");
+												// Set basic setting values
+												$("#slicing_configuration_dialog .modal-extra div.cura div input[type=\"checkbox\"].useSupportMaterial").prop("checked", getSlicerProfileValue("support") == "Everywhere" || getSlicerProfileValue("support") == "Touching buildplate");
+												$("#slicing_configuration_dialog .modal-extra div.cura div input[type=\"checkbox\"].useModelOnModelSupport").prop("checked", getSlicerProfileValue("support") == "Everywhere");
+												$("#slicing_configuration_dialog .modal-extra div.cura div input[type=\"checkbox\"].useRaft").prop("checked", getSlicerProfileValue("platform_adhesion") == "Raft");
+												$("#slicing_configuration_dialog .modal-extra div.cura div input[type=\"checkbox\"].useBrim").prop("checked", getSlicerProfileValue("platform_adhesion") == "Brim");
+												$("#slicing_configuration_dialog .modal-extra div.cura div input[type=\"checkbox\"].useRetraction").prop("checked", getSlicerProfileValue("retraction_enable") == "True");
 											
-											// Set manual setting values
-											$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.layerHeight").val(getSlicerProfileValue("layer_height"));
-											$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.fillDensity").val(getSlicerProfileValue("fill_density"));
-											$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.thickness").val(Math.round(parseFloat(getSlicerProfileValue("wall_thickness")) / parseFloat(getSlicerProfileValue("nozzle_size"))));
-											$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.printSpeed").val(getSlicerProfileValue("print_speed"));
-											$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.raftAirgap").val(getSlicerProfileValue("raft_airgap"));
-											$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").val(getSlicerProfileValue("brim_line_count"));
-											if(!$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").val().length)
-												$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").val(20);
-											$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.topBottomLayers").val(Math.round(parseFloat(getSlicerProfileValue("solid_layer_thickness")) / parseFloat(getSlicerProfileValue("layer_height"))));
-											if(getSlicerProfileValue("platform_adhesion") != "Raft")
-												$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.raftAirgap").parent("div").parent("div").addClass("disabled");
-											if(getSlicerProfileValue("platform_adhesion") != "Brim")
-												$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").parent("div").parent("div").addClass("disabled");
+												// Set manual setting values
+												$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.layerHeight").val(getSlicerProfileValue("layer_height"));
+												$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.fillDensity").val(getSlicerProfileValue("fill_density"));
+												$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.thickness").val(Math.round(parseFloat(getSlicerProfileValue("wall_thickness")) / parseFloat(getSlicerProfileValue("nozzle_size"))));
+												$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.printSpeed").val(getSlicerProfileValue("print_speed"));
+												$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.raftAirgap").val(getSlicerProfileValue("raft_airgap"));
+												$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").val(getSlicerProfileValue("brim_line_count"));
+												if(!$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").val().length)
+													$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").val(20);
+												$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.topBottomLayers").val(Math.round(parseFloat(getSlicerProfileValue("solid_layer_thickness")) / parseFloat(getSlicerProfileValue("layer_height"))));
+												if(getSlicerProfileValue("platform_adhesion") != "Raft")
+													$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.raftAirgap").parent("div").parent("div").addClass("disabled");
+												if(getSlicerProfileValue("platform_adhesion") != "Brim")
+													$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").parent("div").parent("div").addClass("disabled");
 											
-											// Check if using a Cura profile
-											if(slicerName == "cura")
+												// Check if using a Cura profile
+												if(slicerName == "cura")
 											
-												// Show Cura settings
-												$("#slicing_configuration_dialog .modal-extra div.cura").addClass("show");
+													// Show Cura settings
+													$("#slicing_configuration_dialog .modal-extra div.cura").addClass("show");
 											
-											// Otherwise
-											else {
+												// Otherwise
+												else {
 											
-												// Grow text area
-												$("#slicing_configuration_dialog.profile .modal-extra div.advanced").addClass("fullSpace").removeClass("closed")
-												$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced > span").css("display", "block");
-											}
-											
-											// Set slicer menu
-											slicerMenu = "Modify Profile";
-							
-											// Set button
-											button.removeClass("disabled");
-											
-											// Skip model editor and show warning if WebGL isn't supported
-											if(!Detector.webgl) {
-												button.text("Slice");
-												$("#slicing_configuration_dialog .modal-footer p.warning").text("Model editor will be skipped since your browser doesn't support WebGL");
-												$("#slicing_configuration_dialog .modal-footer a.skip").css("display", "none");
-											}
-										
-											// Update line numbers
-											var previousLineCount = 0;
-											function updateLineNumbers() {
-										
-												// Check if text area exists
-												var textArea = $("#slicing_configuration_dialog .modal-extra textarea");
-			
-												if(textArea.length) {
-			
-													// Get number of lines
-													var numberOfLines = textArea.val().match(/\n/g);
-												
-													// Fix line count if no newlines were found
-													if(numberOfLines === null)
-														numberOfLines = 1;
-													else
-														numberOfLines = numberOfLines.length + 1;
-												
-													// Get line number area
-													var lineNumberArea = textArea.siblings("aside");
-												
-													// Check if number of lines has changes
-													if(previousLineCount != numberOfLines) {
-												
-														// Clear existing line numbers
-														lineNumberArea.empty();
-												
-														// Create new line numbers
-														for(var i = 1; i <= numberOfLines; i++)
-															lineNumberArea.append(i + "<br>");
-														lineNumberArea.append("<br>");
-														lineNumberArea.append("<br>");
-													
-														// Update previous line count
-														previousLineCount = numberOfLines;
-													}
-												
-													// Update line numbers again
-													setTimeout(updateLineNumbers, 500);
+													// Grow text area
+													$("#slicing_configuration_dialog.profile .modal-extra div.advanced").addClass("fullSpace").removeClass("closed")
+													$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced > span").css("display", "block");
 												}
-											}
-											updateLineNumbers();
 											
-											// Update profile settings
-											function updateProfileSettings(settings) {
+												// Set slicer menu
+												slicerMenu = "Modify Profile";
+							
+												// Set button
+												button.removeClass("disabled");
 											
-												// Get current profile contents
-												var profile = $("#slicing_configuration_dialog .modal-extra textarea").val();
+												// Skip model editor and show warning if WebGL isn't supported
+												if(!Detector.webgl) {
+													button.text("Slice");
+													$("#slicing_configuration_dialog .modal-footer p.warning").text("Model editor will be skipped since your browser doesn't support WebGL");
+													$("#slicing_configuration_dialog .modal-footer a.skip").css("display", "none");
+												}
+										
+												// Update line numbers
+												var previousLineCount = 0;
+												function updateLineNumbers() {
+										
+													// Check if text area exists
+													var textArea = $("#slicing_configuration_dialog .modal-extra textarea");
+			
+													if(textArea.length) {
+			
+														// Get number of lines
+														var numberOfLines = textArea.val().match(/\n/g);
 												
-												// Go through all changes settings
-												for(var setting in settings) {
-												
-													// Remove setting
-													var expression = new RegExp("(^|\n)" + setting + ".*\n?", 'g');
-													profile = profile.replace(expression, "$1");
-													
-													// Check if setting exists
-													if(settings[setting] !== null) {
-													
-														// Add setting
-														if(profile.match(/(^|\n)\[profile\].*\n?/) === null)
-															profile = "[profile]\n" + setting + " = " + settings[setting] + '\n';
+														// Fix line count if no newlines were found
+														if(numberOfLines === null)
+															numberOfLines = 1;
 														else
-															profile = profile.replace(/(^|\n)\[profile\].*\n?/, "$1[profile]\n" + setting + " = " + settings[setting] + '\n');
+															numberOfLines = numberOfLines.length + 1;
+												
+														// Get line number area
+														var lineNumberArea = textArea.siblings("aside");
+												
+														// Check if number of lines has changes
+														if(previousLineCount != numberOfLines) {
+												
+															// Clear existing line numbers
+															lineNumberArea.empty();
+												
+															// Create new line numbers
+															for(var i = 1; i <= numberOfLines; i++)
+																lineNumberArea.append(i + "<br>");
+															lineNumberArea.append("<br>");
+															lineNumberArea.append("<br>");
+													
+															// Update previous line count
+															previousLineCount = numberOfLines;
+														}
+												
+														// Update line numbers again
+														setTimeout(updateLineNumbers, 500);
 													}
 												}
-												
-												// Update profile contents
-												$("#slicing_configuration_dialog .modal-extra textarea").val(profile);
-											}
+												updateLineNumbers();
 											
-											// Open and close setting groups
-											if(typeof localStorage.basicSettingsOpen === "undefined" || localStorage.basicSettingsOpen == "true")
-												$("#slicing_configuration_dialog.profile .modal-extra div.group.basic").removeClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/up%20arrow.png");
-											else
-												$("#slicing_configuration_dialog.profile .modal-extra div.group.basic").addClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/down%20arrow.png");
+												// Update profile settings
+												function updateProfileSettings(settings) {
+											
+													// Get current profile contents
+													var profile = $("#slicing_configuration_dialog .modal-extra textarea").val();
+												
+													// Go through all changes settings
+													for(var setting in settings) {
+												
+														// Remove setting
+														var expression = new RegExp("(^|\n)" + setting + ".*\n?", 'g');
+														profile = profile.replace(expression, "$1");
+													
+														// Check if setting exists
+														if(settings[setting] !== null) {
+													
+															// Add setting
+															if(profile.match(/(^|\n)\[profile\].*\n?/) === null)
+																profile = "[profile]\n" + setting + " = " + settings[setting] + '\n';
+															else
+																profile = profile.replace(/(^|\n)\[profile\].*\n?/, "$1[profile]\n" + setting + " = " + settings[setting] + '\n');
+														}
+													}
+												
+													// Update profile contents
+													$("#slicing_configuration_dialog .modal-extra textarea").val(profile);
+												}
+											
+												// Open and close setting groups
+												if(typeof localStorage.basicSettingsOpen === "undefined" || localStorage.basicSettingsOpen == "true")
+													$("#slicing_configuration_dialog.profile .modal-extra div.group.basic").removeClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/up%20arrow.png");
+												else
+													$("#slicing_configuration_dialog.profile .modal-extra div.group.basic").addClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/down%20arrow.png");
 		
-											if(typeof localStorage.manualSettingsOpen === "undefined" || localStorage.manualSettingsOpen == "false")
-												$("#slicing_configuration_dialog.profile .modal-extra div.group.manual").addClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/down%20arrow.png");
-											else
-												$("#slicing_configuration_dialog.profile .modal-extra div.group.manual").removeClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/up%20arrow.png");
+												if(typeof localStorage.manualSettingsOpen === "undefined" || localStorage.manualSettingsOpen == "false")
+													$("#slicing_configuration_dialog.profile .modal-extra div.group.manual").addClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/down%20arrow.png");
+												else
+													$("#slicing_configuration_dialog.profile .modal-extra div.group.manual").removeClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/up%20arrow.png");
 											
-											if(typeof localStorage.advancedSettingsOpen === "undefined" || localStorage.advancedSettingsOpen == "false")
-												$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced").addClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/down%20arrow.png");
-											else
-												$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced").removeClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/up%20arrow.png");
+												if(typeof localStorage.advancedSettingsOpen === "undefined" || localStorage.advancedSettingsOpen == "false")
+													$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced").addClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/down%20arrow.png");
+												else {
+													$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced").removeClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/up%20arrow.png");
+													$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced > span").css("display", "block");
+												}
 											
-											// Mouse move on group
-											$("#slicing_configuration_dialog.profile .modal-extra div.group").mousemove(function(event) {
+												// Mouse move on group
+												$("#slicing_configuration_dialog.profile .modal-extra div.group").mousemove(function(event) {
 	
-												// Set tooltip if hovering over corner
-												if($(this).offset().left - event.pageX >= -12 && $(this).offset().top - event.pageY >= -12) {
-													$(this).attr("title", $(this).hasClass("closed") ? "Open" : "Close");
-													$(this).css("cursor", "pointer");
-												}
-												else {
-													$(this).removeAttr("title");
-													$(this).css("cursor", '');
-												}
-											
-											// Mouse down on group
-											}).mousedown(function(event) {
-											
-												// Check if clicking on corner
-												if($(this).offset().left - event.pageX >= -12 && $(this).offset().top - event.pageY >= -12) {
-												
-													// Open or close group
-													if($(this).hasClass("closed")) {
-														$(this).removeClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/up%20arrow.png");
-														
-														 if($(this).hasClass("advanced"))
-															setTimeout(function() {
-																$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced > span").css("display", "block");
-															}, 100);
-														
-														// Save that group is open
-														if($(this).hasClass("basic"))
-															localStorage.basicSettingsOpen = "true";
-														else if($(this).hasClass("manual"))
-															localStorage.manualSettingsOpen = "true";
-														else if($(this).hasClass("advanced"))
-															localStorage.advancedSettingsOpen = "true";
+													// Set tooltip if hovering over corner
+													if($(this).offset().left - event.pageX >= -12 && $(this).offset().top - event.pageY >= -12) {
+														$(this).attr("title", $(this).hasClass("closed") ? "Open" : "Close");
+														$(this).css("cursor", "pointer");
 													}
 													else {
-														$(this).addClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/down%20arrow.png");
-														
-														if($(this).hasClass("advanced"))
-															setTimeout(function() {
-																$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced > span").css("display", "none");
-															}, 100);
-														
-														// Save that group is closed
-														if($(this).hasClass("basic"))
-															localStorage.basicSettingsOpen = "false";
-														else if($(this).hasClass("manual"))
-															localStorage.manualSettingsOpen = "false";
-														else if($(this).hasClass("advanced"))
-															localStorage.advancedSettingsOpen = "false";
+														$(this).removeAttr("title");
+														$(this).css("cursor", '');
 													}
+											
+												// Mouse down on group
+												}).mousedown(function(event) {
+											
+													// Check if clicking on corner
+													if($(this).offset().left - event.pageX >= -12 && $(this).offset().top - event.pageY >= -12) {
+												
+														// Open or close group
+														if($(this).hasClass("closed")) {
+															$(this).removeClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/up%20arrow.png");
+														
+															 if($(this).hasClass("advanced"))
+																setTimeout(function() {
+																	$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced > span").css("display", "block");
+																}, 100);
+														
+															// Save that group is open
+															if($(this).hasClass("basic"))
+																localStorage.basicSettingsOpen = "true";
+															else if($(this).hasClass("manual"))
+																localStorage.manualSettingsOpen = "true";
+															else if($(this).hasClass("advanced"))
+																localStorage.advancedSettingsOpen = "true";
+														}
+														else {
+															$(this).addClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/down%20arrow.png");
+														
+															if($(this).hasClass("advanced"))
+																setTimeout(function() {
+																	$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced > span").css("display", "none");
+																}, 100);
+														
+															// Save that group is closed
+															if($(this).hasClass("basic"))
+																localStorage.basicSettingsOpen = "false";
+															else if($(this).hasClass("manual"))
+																localStorage.manualSettingsOpen = "false";
+															else if($(this).hasClass("advanced"))
+																localStorage.advancedSettingsOpen = "false";
+														}
 													
-													// Update cursor and title
-													$(this).mousemove();
-												}
-											});
+														// Update cursor and title
+														$(this).mousemove();
+													}
+												});
 										
-											// Text area scroll event
-											$("#slicing_configuration_dialog .modal-extra textarea").scroll(function() {
+												// Text area scroll event
+												$("#slicing_configuration_dialog .modal-extra textarea").scroll(function() {
 										
-												// Scroll line numbers to match text area
-												$(this).siblings("aside").scrollTop($(this).scrollTop());
-											});
+													// Scroll line numbers to match text area
+													$(this).siblings("aside").scrollTop($(this).scrollTop());
+												});
 											
-											// Settings checkbox change event
-											$("#slicing_configuration_dialog .modal-extra div.cura div input[type=\"checkbox\"]").change(function() {
+												// Settings checkbox change event
+												$("#slicing_configuration_dialog .modal-extra div.cura div input[type=\"checkbox\"]").change(function() {
 											
-												// Initialize changed settings
-												var changedSettings = [];
+													// Initialize changed settings
+													var changedSettings = [];
 											
-												// Set if checked
-												var checked = $(this).is(":checked");
+													// Set if checked
+													var checked = $(this).is(":checked");
 												
-												// Set changed settings if changing use support material
-												if($(this).hasClass("useSupportMaterial")) {
+													// Set changed settings if changing use support material
+													if($(this).hasClass("useSupportMaterial")) {
 												
-													if(checked)
-														changedSettings.push({
-															support: $("#slicing_configuration_dialog .modal-extra div.cura div input.useModelOnModelSupport").is(":checked") ? "Everywhere; None, Touching buildplate, Everywhere" : "Touching buildplate; None, Touching buildplate, Everywhere"
-														});
-													else {
-														changedSettings.push({
-															support: "None; None, Touching buildplate, Everywhere"
-														});
+														if(checked)
+															changedSettings.push({
+																support: $("#slicing_configuration_dialog .modal-extra div.cura div input.useModelOnModelSupport").is(":checked") ? "Everywhere; None, Touching buildplate, Everywhere" : "Touching buildplate; None, Touching buildplate, Everywhere"
+															});
+														else {
+															changedSettings.push({
+																support: "None; None, Touching buildplate, Everywhere"
+															});
 														
-														// Uncheck model on model support basic setting
-														$("#slicing_configuration_dialog .modal-extra div.cura div input.useModelOnModelSupport").prop("checked", false);
+															// Uncheck model on model support basic setting
+															$("#slicing_configuration_dialog .modal-extra div.cura div input.useModelOnModelSupport").prop("checked", false);
+														}
 													}
-												}
 												
-												// Otherwise set changed settings if changing use model on model support
-												else if($(this).hasClass("useModelOnModelSupport")) {
+													// Otherwise set changed settings if changing use model on model support
+													else if($(this).hasClass("useModelOnModelSupport")) {
 												
-													if(checked) {
-														changedSettings.push({
-															support: "Everywhere; None, Touching buildplate, Everywhere"
-														});
+														if(checked) {
+															changedSettings.push({
+																support: "Everywhere; None, Touching buildplate, Everywhere"
+															});
 														
-														// Check use support material
-														$("#slicing_configuration_dialog .modal-extra div.cura div input.useSupportMaterial").prop("checked", true);
+															// Check use support material
+															$("#slicing_configuration_dialog .modal-extra div.cura div input.useSupportMaterial").prop("checked", true);
+														}
+														else
+															changedSettings.push({
+																support: $("#slicing_configuration_dialog .modal-extra div.cura div input.useSupportMaterial").is(":checked") ? "Touching buildplate; None, Touching buildplate, Everywhere" : "None; None, Touching buildplate, Everywhere"
+															});
 													}
-													else
-														changedSettings.push({
-															support: $("#slicing_configuration_dialog .modal-extra div.cura div input.useSupportMaterial").is(":checked") ? "Touching buildplate; None, Touching buildplate, Everywhere" : "None; None, Touching buildplate, Everywhere"
-														});
-												}
 												
-												// Otherwise set changed settings if changing use raft
-												else if($(this).hasClass("useRaft")) {
+													// Otherwise set changed settings if changing use raft
+													else if($(this).hasClass("useRaft")) {
 												
-													if(checked) {
-														changedSettings.push({
-															platform_adhesion: "Raft; None, Brim, Raft",
-															bottom_layer_speed: 12,
-															skirt_line_count: 0,
-															brim_line_count: null
-														});
+														if(checked) {
+															changedSettings.push({
+																platform_adhesion: "Raft; None, Brim, Raft",
+																bottom_layer_speed: 12,
+																skirt_line_count: 0,
+																brim_line_count: null
+															});
 														
-														if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
-															changedSettings[0]["bottom_layer_speed"] = 16;
+															if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
+																changedSettings[0]["bottom_layer_speed"] = 16;
 														
-														// Uncheck use brim basic setting, disable brim line count manual setting, and enable raft airgap manual setting
-														$("#slicing_configuration_dialog .modal-extra div.cura div input.useBrim").prop("checked", false);
-														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").parent("div").parent("div").addClass("disabled");
-														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.raftAirgap").parent("div").parent("div").removeClass("disabled");
+															// Uncheck use brim basic setting, disable brim line count manual setting, and enable raft airgap manual setting
+															$("#slicing_configuration_dialog .modal-extra div.cura div input.useBrim").prop("checked", false);
+															$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").parent("div").parent("div").addClass("disabled");
+															$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.raftAirgap").parent("div").parent("div").removeClass("disabled");
+														}
+														else {
+															changedSettings.push({
+																platform_adhesion: "None; None, Brim, Raft",
+																bottom_layer_speed: 5,
+																skirt_line_count: 0,
+																brim_line_count: null
+															});
+														
+															// Disable raft airgap manual setting
+															$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.raftAirgap").parent("div").parent("div").addClass("disabled");
+														}
 													}
-													else {
-														changedSettings.push({
-															platform_adhesion: "None; None, Brim, Raft",
-															bottom_layer_speed: 5,
-															skirt_line_count: 0,
-															brim_line_count: null
-														});
+												
+													// Otherwise set changed settings if changing use brim
+													else if($(this).hasClass("useBrim")) {
+												
+														if(checked) {
+															changedSettings.push({
+																platform_adhesion: "Brim; None, Brim, Raft",
+																bottom_layer_speed: 12,
+																skirt_line_count: null,
+																brim_line_count: $("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").val()
+															});
 														
-														// Disable raft airgap manual setting
-														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.raftAirgap").parent("div").parent("div").addClass("disabled");
+															if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
+																changedSettings[0]["bottom_layer_speed"] = 16;
+														
+															// Uncheck use raft basic setting, enable brim line count manual setting, and disable raft airgap manual setting
+															$("#slicing_configuration_dialog .modal-extra div.cura div input.useRaft").prop("checked", false);
+															$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").parent("div").parent("div").removeClass("disabled");
+															$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.raftAirgap").parent("div").parent("div").addClass("disabled");
+														}
+														else {
+															changedSettings.push({
+																platform_adhesion: "None; None, Brim, Raft",
+																bottom_layer_speed: 5,
+																skirt_line_count: 0,
+																brim_line_count: null
+															});
+														
+															// Disable brim line count manual setting
+															$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").parent("div").parent("div").addClass("disabled");
+														}
 													}
-												}
 												
-												// Otherwise set changed settings if changing use brim
-												else if($(this).hasClass("useBrim")) {
+													// Otherwise set changed settings if changing use retraction
+													else if($(this).hasClass("useRetraction")) {
 												
-													if(checked) {
-														changedSettings.push({
-															platform_adhesion: "Brim; None, Brim, Raft",
-															bottom_layer_speed: 12,
-															skirt_line_count: null,
-															brim_line_count: $("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").val()
-														});
-														
-														if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
-															changedSettings[0]["bottom_layer_speed"] = 16;
-														
-														// Uncheck use raft basic setting, enable brim line count manual setting, and disable raft airgap manual setting
-														$("#slicing_configuration_dialog .modal-extra div.cura div input.useRaft").prop("checked", false);
-														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").parent("div").parent("div").removeClass("disabled");
-														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.raftAirgap").parent("div").parent("div").addClass("disabled");
+														if(checked)
+															changedSettings.push({
+																retraction_enable: "True"
+															});
+														else
+															changedSettings.push({
+																retraction_enable: "False"
+															});
 													}
-													else {
-														changedSettings.push({
-															platform_adhesion: "None; None, Brim, Raft",
-															bottom_layer_speed: 5,
-															skirt_line_count: 0,
-															brim_line_count: null
-														});
-														
-														// Disable brim line count manual setting
-														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").parent("div").parent("div").addClass("disabled");
-													}
-												}
 												
-												// Otherwise set changed settings if changing use retraction
-												else if($(this).hasClass("useRetraction")) {
-												
-													if(checked)
-														changedSettings.push({
-															retraction_enable: "True"
-														});
-													else
-														changedSettings.push({
-															retraction_enable: "False"
-														});
-												}
-												
-												// Update profile settings
-												updateProfileSettings(changedSettings[0]);
-											});
+													// Update profile settings
+													updateProfileSettings(changedSettings[0]);
+												});
 											
-											// Settings drag image event
-											$("#slicing_configuration_dialog .modal-extra div.cura div button img").on("dragstart", function(event) {
+												// Settings drag image event
+												$("#slicing_configuration_dialog .modal-extra div.cura div button img").on("dragstart", function(event) {
 
-												// Prevent default
-												event.preventDefault();
-											});
+													// Prevent default
+													event.preventDefault();
+												});
 											
-											// Settings label click event
-											$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > label").click(function() {
+												// Settings label click event
+												$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > label").click(function() {
 											
-												// Focus on input
-												var input = $(this).next("div").children("input");
-												input.focus().val(input.val());
-											});
+													// Focus on input
+													var input = $(this).next("div").children("input");
+													input.focus().val(input.val());
+												});
 											
-											// Settings change event
-											$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input").change(function() {
+												// Settings change event
+												$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input").change(function() {
 											
-												// Initialize changed settings
-												var changedSettings = [];
+													// Initialize changed settings
+													var changedSettings = [];
 												
-												// Set changed settings if changing layer height
-												if($(this).hasClass("layerHeight")) {
+													// Set changed settings if changing layer height
+													if($(this).hasClass("layerHeight")) {
 												
-													changedSettings.push({
-														layer_height: $(this).val(),
-														solid_layer_thickness: parseFloat(parseInt($("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.topBottomLayers").val()) * parseFloat($(this).val())).toFixed(3)
-													});
-													
-													// Clear basic quality settings
-													$("#slicing_configuration_dialog .modal-extra div.cura p.quality").text("Unknown Quality");
-													$("#slicing_configuration_dialog .modal-extra div.cura div.quality button.disabled").removeClass("disabled");
-												}
-												
-												// Otherwise set changed settings if changing fill density
-												else if($(this).hasClass("fillDensity")) {
-												
-													changedSettings.push({
-														fill_density: $(this).val()
-													});
-													
-													// Clear basic fill settings
-													$("#slicing_configuration_dialog .modal-extra div.cura p.fill").text("Unknown Fill");
-													$("#slicing_configuration_dialog .modal-extra div.cura div.fill button.disabled").removeClass("disabled");
-												}
-												
-												// Otherwise set changed settings if changing thickness
-												else if($(this).hasClass("thickness")) {
-												
-													// Get nozzle size
-													var nozzleSize = getSlicerProfileValue("nozzle_size");
-												
-													changedSettings.push({
-														wall_thickness: parseFloat(parseInt($(this).val()) * parseFloat(nozzleSize == '' ? 0.35 : nozzleSize)).toFixed(3)
-													});
-													
-													if(nozzleSize == '')
-														changedSettings[0]["nozzle_size"] = 0.35;
-													
-													// Clear basic fill settings
-													$("#slicing_configuration_dialog .modal-extra div.cura p.fill").text("Unknown Fill");
-													$("#slicing_configuration_dialog .modal-extra div.cura div.fill button.disabled").removeClass("disabled");
-												}
-												
-												// Otherwise set changed settings if changing print speed
-												else if($(this).hasClass("printSpeed")) {
-												
-													changedSettings.push({
-														print_speed: $(this).val(),
-														travel_speed: parseFloat($(this).val()) + 4 <= 80 ? parseFloat(parseFloat($(this).val()) + 4).toFixed(3) : 80,
-														inset0_speed: parseFloat($(this).val()) - 4 >= 1 ? parseFloat(parseFloat($(this).val()) - 4).toFixed(3) : 1,
-														insetx_speed: parseFloat($(this).val()) - 2 >= 1 ? parseFloat(parseFloat($(this).val()) - 2).toFixed(3) : 1,
-														infill_speed: $(this).val(),
-														solidarea_speed: $(this).val()
-													});
-													
-													if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
-														changedSettings[0]["travel_speed"] = $(this).val();
-												}
-												
-												// Otherwise set changed settings if changing top/bottom layers
-												else if($(this).hasClass("topBottomLayers")) {
-												
-													// Get layer height
-													var layerHeight = getSlicerProfileValue("layer_height");
-												
-													changedSettings.push({
-														solid_layer_thickness: parseFloat(parseInt($(this).val()) * parseFloat(layerHeight == '' ? 0.15 : layerHeight)).toFixed(3)
-													});
-													
-													if(layerHeight == '')
-														changedSettings[0]["layer_height"] = 0.15;
-													
-													// Clear basic quality settings
-													$("#slicing_configuration_dialog .modal-extra div.cura p.quality").text("Unknown Quality");
-													$("#slicing_configuration_dialog .modal-extra div.cura div.quality button.disabled").removeClass("disabled");
-												}
-												
-												// Otherwise set changed settings if changing raft airgap
-												else if($(this).hasClass("raftAirgap"))
-												
-													changedSettings.push({
-														raft_airgap: $(this).val()
-													});
-												
-												// Otherwise set changed settings if changing brim line count
-												else if($(this).hasClass("brimLineCount"))
-												
-													changedSettings.push({
-														brim_line_count: $(this).val()
-													});
-												
-												// Update profile settings
-												updateProfileSettings(changedSettings[0]);
-											});
-											
-											// Settings button click event
-											$("#slicing_configuration_dialog .modal-extra div.cura div button").click(function() {
-											
-												// Select button
-												$(this).blur();
-												$(this).addClass("disabled").siblings("button").removeClass("disabled");
-												
-												// Initialize changed settings
-												var changedSettings = [];
-												
-												// Check if changing quality
-												if($(this).parent().hasClass("quality")) {
-												
-													// Set text
-													$("#slicing_configuration_dialog .modal-extra div.cura p.quality").text(capitalize($(this).attr("title")));
-												
-													// Set changed settings if extra low quality
-													if($(this).attr("title") == "Extra low quality") {
-													
 														changedSettings.push({
-															layer_height: 0.35,
-															bottom_thickness: 0.3,
-															fan_full_height: 0.301,
-															solid_layer_thickness: 2.799
+															layer_height: $(this).val(),
+															solid_layer_thickness: parseFloat(parseInt($("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.topBottomLayers").val()) * parseFloat($(this).val())).toFixed(3)
 														});
-														
-														if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
-															changedSettings[0]["fan_full_height"] = 0.651;
+													
+														// Clear basic quality settings
+														$("#slicing_configuration_dialog .modal-extra div.cura p.quality").text("Unknown Quality");
+														$("#slicing_configuration_dialog .modal-extra div.cura div.quality button.disabled").removeClass("disabled");
 													}
-													
-													// Otherwise set changed settings if low quality
-													else if($(this).attr("title") == "Low quality") {
-													
-														changedSettings.push({
-															layer_height: 0.25,
-															bottom_thickness: 0.3,
-															fan_full_height: 0.301,
-															solid_layer_thickness: 1.999
-														});
-														
-														if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
-															changedSettings[0]["fan_full_height"] = 0.551;
-													}
-													
-													// Otherwise set changed settings if medium quality
-													else if($(this).attr("title") == "Medium quality") {
-													
-														changedSettings.push({
-															layer_height: 0.15,
-															bottom_thickness: 0.3,
-															fan_full_height: 0.301,
-															solid_layer_thickness: 1.199
-														});
-														
-														if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
-															changedSettings[0]["fan_full_height"] = 0.451;
-													}
-													
-													// Otherwise set changed settings if high quality
-													else if($(this).attr("title") == "High quality") {
-													
-														changedSettings.push({
-															layer_height: 0.1,
-															bottom_thickness: 0.3,
-															fan_full_height: 0.301,
-															solid_layer_thickness: 0.799
-														});
-														
-														if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
-															changedSettings[0]["fan_full_height"] = 0.401;
-													}
-													
-													// Otherwise set changed settings if extra high quality
-													else if($(this).attr("title") == "Extra high quality") {
-													
-														changedSettings.push({
-															layer_height: 0.05,
-															bottom_thickness: 0.1,
-															fan_full_height: 0.101,
-															solid_layer_thickness: 0.399
-														});
-														
-														if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
-															changedSettings[0]["fan_full_height"] = 0.151;
-													}
-													
-													// Set layer height and top/bottom layers manual settings
-													$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.layerHeight").val(parseFloat(changedSettings[0]["layer_height"]).toFixed(2));
-													$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.topBottomLayers").val(Math.round(parseFloat(changedSettings[0]["solid_layer_thickness"]) / parseFloat(changedSettings[0]["layer_height"])));
-												}
 												
-												// Otherwise assume changing fill
-												else {
+													// Otherwise set changed settings if changing fill density
+													else if($(this).hasClass("fillDensity")) {
 												
-													// Set text
-													$("#slicing_configuration_dialog .modal-extra div.cura p.fill").text(capitalize($(this).attr("title")));
+														changedSettings.push({
+															fill_density: $(this).val()
+														});
+													
+														// Clear basic fill settings
+														$("#slicing_configuration_dialog .modal-extra div.cura p.fill").text("Unknown Fill");
+														$("#slicing_configuration_dialog .modal-extra div.cura div.fill button.disabled").removeClass("disabled");
+													}
 												
-													// Set changed settings if hollow thin fill
-													if($(this).attr("title") == "Hollow thin fill")
-													
-														changedSettings.push({
-															fill_density: 0,
-															wall_thickness: 0.35,
-															nozzle_size: 0.35,
-															infill_speed: 15
-														});
-													
-													// Otherwise set changed settings if hollow thick fill
-													else if($(this).attr("title") == "Hollow thick fill")
-													
-														changedSettings.push({
-															fill_density: 0,
-															wall_thickness: 1.05,
-															nozzle_size: 0.35,
-															infill_speed: 15
-														});
-													
-													// Otherwise set changed settings if low fill
-													else if($(this).attr("title") == "Low fill")
-													
-														changedSettings.push({
-															fill_density: 6.364,
-															wall_thickness: 1.05,
-															nozzle_size: 0.35,
-															infill_speed: null
-														});
-													
-													// Otherwise set changed settings if medium fill
-													else if($(this).attr("title") == "Medium fill")
-													
-														changedSettings.push({
-															fill_density: 8.75,
-															wall_thickness: 1.4,
-															nozzle_size: 0.35,
-															infill_speed: null
-														});
-													
-													// Otherwise set changed settings if high fill
-													else if($(this).attr("title") == "High fill")
-													
-														changedSettings.push({
-															fill_density: 14.0,
-															wall_thickness: 1.4,
-															nozzle_size: 0.35,
-															infill_speed: null
-														});
-													
-													// Otherwise set changed settings if extra high fill
-													else if($(this).attr("title") == "Extra high fill")
-													
-														changedSettings.push({
-															fill_density: 23.333,
-															wall_thickness: 1.4,
-															nozzle_size: 0.35,
-															infill_speed: null
-														});
-													
-													// Set fill density and wall thickness manual setting
-													$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.fillDensity").val(parseFloat(changedSettings[0]["fill_density"]).toFixed(2));
-													$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.thickness").val(Math.round(parseFloat(changedSettings[0]["wall_thickness"]) / parseFloat(changedSettings[0]["nozzle_size"])));
-												}
+													// Otherwise set changed settings if changing thickness
+													else if($(this).hasClass("thickness")) {
 												
-												// Update profile settings
-												updateProfileSettings(changedSettings[0]);
-											});
+														// Get nozzle size
+														var nozzleSize = getSlicerProfileValue("nozzle_size");
+												
+														changedSettings.push({
+															wall_thickness: parseFloat(parseInt($(this).val()) * parseFloat(nozzleSize == '' ? 0.35 : nozzleSize)).toFixed(3)
+														});
+													
+														if(nozzleSize == '')
+															changedSettings[0]["nozzle_size"] = 0.35;
+													
+														// Clear basic fill settings
+														$("#slicing_configuration_dialog .modal-extra div.cura p.fill").text("Unknown Fill");
+														$("#slicing_configuration_dialog .modal-extra div.cura div.fill button.disabled").removeClass("disabled");
+													}
+												
+													// Otherwise set changed settings if changing print speed
+													else if($(this).hasClass("printSpeed")) {
+												
+														changedSettings.push({
+															print_speed: $(this).val(),
+															travel_speed: parseFloat($(this).val()) + 4 <= 80 ? parseFloat(parseFloat($(this).val()) + 4).toFixed(3) : 80,
+															inset0_speed: parseFloat($(this).val()) - 4 >= 1 ? parseFloat(parseFloat($(this).val()) - 4).toFixed(3) : 1,
+															insetx_speed: parseFloat($(this).val()) - 2 >= 1 ? parseFloat(parseFloat($(this).val()) - 2).toFixed(3) : 1,
+															infill_speed: $(this).val(),
+															solidarea_speed: $(this).val()
+														});
+													
+														if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
+															changedSettings[0]["travel_speed"] = $(this).val();
+													}
+												
+													// Otherwise set changed settings if changing top/bottom layers
+													else if($(this).hasClass("topBottomLayers")) {
+												
+														// Get layer height
+														var layerHeight = getSlicerProfileValue("layer_height");
+												
+														changedSettings.push({
+															solid_layer_thickness: parseFloat(parseInt($(this).val()) * parseFloat(layerHeight == '' ? 0.15 : layerHeight)).toFixed(3)
+														});
+													
+														if(layerHeight == '')
+															changedSettings[0]["layer_height"] = 0.15;
+													
+														// Clear basic quality settings
+														$("#slicing_configuration_dialog .modal-extra div.cura p.quality").text("Unknown Quality");
+														$("#slicing_configuration_dialog .modal-extra div.cura div.quality button.disabled").removeClass("disabled");
+													}
+												
+													// Otherwise set changed settings if changing raft airgap
+													else if($(this).hasClass("raftAirgap"))
+												
+														changedSettings.push({
+															raft_airgap: $(this).val()
+														});
+												
+													// Otherwise set changed settings if changing brim line count
+													else if($(this).hasClass("brimLineCount"))
+												
+														changedSettings.push({
+															brim_line_count: $(this).val()
+														});
+												
+													// Update profile settings
+													updateProfileSettings(changedSettings[0]);
+												});
+											
+												// Settings button click event
+												$("#slicing_configuration_dialog .modal-extra div.cura div button").click(function() {
+											
+													// Select button
+													$(this).blur();
+													$(this).addClass("disabled").siblings("button").removeClass("disabled");
+												
+													// Initialize changed settings
+													var changedSettings = [];
+												
+													// Check if changing quality
+													if($(this).parent().hasClass("quality")) {
+												
+														// Set text
+														$("#slicing_configuration_dialog .modal-extra div.cura p.quality").text(capitalize($(this).attr("title")));
+												
+														// Set changed settings if extra low quality
+														if($(this).attr("title") == "Extra low quality") {
+													
+															changedSettings.push({
+																layer_height: 0.35,
+																bottom_thickness: 0.3,
+																fan_full_height: 0.301,
+																solid_layer_thickness: 2.799
+															});
+														
+															if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
+																changedSettings[0]["fan_full_height"] = 0.651;
+														}
+													
+														// Otherwise set changed settings if low quality
+														else if($(this).attr("title") == "Low quality") {
+													
+															changedSettings.push({
+																layer_height: 0.25,
+																bottom_thickness: 0.3,
+																fan_full_height: 0.301,
+																solid_layer_thickness: 1.999
+															});
+														
+															if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
+																changedSettings[0]["fan_full_height"] = 0.551;
+														}
+													
+														// Otherwise set changed settings if medium quality
+														else if($(this).attr("title") == "Medium quality") {
+													
+															changedSettings.push({
+																layer_height: 0.15,
+																bottom_thickness: 0.3,
+																fan_full_height: 0.301,
+																solid_layer_thickness: 1.199
+															});
+														
+															if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
+																changedSettings[0]["fan_full_height"] = 0.451;
+														}
+													
+														// Otherwise set changed settings if high quality
+														else if($(this).attr("title") == "High quality") {
+													
+															changedSettings.push({
+																layer_height: 0.1,
+																bottom_thickness: 0.3,
+																fan_full_height: 0.301,
+																solid_layer_thickness: 0.799
+															});
+														
+															if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
+																changedSettings[0]["fan_full_height"] = 0.401;
+														}
+													
+														// Otherwise set changed settings if extra high quality
+														else if($(this).attr("title") == "Extra high quality") {
+													
+															changedSettings.push({
+																layer_height: 0.05,
+																bottom_thickness: 0.1,
+																fan_full_height: 0.101,
+																solid_layer_thickness: 0.399
+															});
+														
+															if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
+																changedSettings[0]["fan_full_height"] = 0.151;
+														}
+													
+														// Set layer height and top/bottom layers manual settings
+														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.layerHeight").val(parseFloat(changedSettings[0]["layer_height"]).toFixed(2));
+														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.topBottomLayers").val(Math.round(parseFloat(changedSettings[0]["solid_layer_thickness"]) / parseFloat(changedSettings[0]["layer_height"])));
+													}
+												
+													// Otherwise assume changing fill
+													else {
+												
+														// Set text
+														$("#slicing_configuration_dialog .modal-extra div.cura p.fill").text(capitalize($(this).attr("title")));
+												
+														// Set changed settings if hollow thin fill
+														if($(this).attr("title") == "Hollow thin fill")
+													
+															changedSettings.push({
+																fill_density: 0,
+																wall_thickness: 0.35,
+																nozzle_size: 0.35,
+																infill_speed: 15
+															});
+													
+														// Otherwise set changed settings if hollow thick fill
+														else if($(this).attr("title") == "Hollow thick fill")
+													
+															changedSettings.push({
+																fill_density: 0,
+																wall_thickness: 1.05,
+																nozzle_size: 0.35,
+																infill_speed: 15
+															});
+													
+														// Otherwise set changed settings if low fill
+														else if($(this).attr("title") == "Low fill")
+													
+															changedSettings.push({
+																fill_density: 6.364,
+																wall_thickness: 1.05,
+																nozzle_size: 0.35,
+																infill_speed: null
+															});
+													
+														// Otherwise set changed settings if medium fill
+														else if($(this).attr("title") == "Medium fill")
+													
+															changedSettings.push({
+																fill_density: 8.75,
+																wall_thickness: 1.4,
+																nozzle_size: 0.35,
+																infill_speed: null
+															});
+													
+														// Otherwise set changed settings if high fill
+														else if($(this).attr("title") == "High fill")
+													
+															changedSettings.push({
+																fill_density: 14.0,
+																wall_thickness: 1.4,
+																nozzle_size: 0.35,
+																infill_speed: null
+															});
+													
+														// Otherwise set changed settings if extra high fill
+														else if($(this).attr("title") == "Extra high fill")
+													
+															changedSettings.push({
+																fill_density: 23.333,
+																wall_thickness: 1.4,
+																nozzle_size: 0.35,
+																infill_speed: null
+															});
+													
+														// Set fill density and wall thickness manual setting
+														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.fillDensity").val(parseFloat(changedSettings[0]["fill_density"]).toFixed(2));
+														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.thickness").val(Math.round(parseFloat(changedSettings[0]["wall_thickness"]) / parseFloat(changedSettings[0]["nozzle_size"])));
+													}
+												
+													// Update profile settings
+													updateProfileSettings(changedSettings[0]);
+												});
 							
-											// Resize window
-											$(window).resize();
+												// Resize window
+												$(window).resize();
+											}, 200);
 										}
 									});
 								}
 							});
-						}, 300);
+						}, 600);
 					}
 					
 					// Otherwise check if slicer menu is modify profile
@@ -5732,19 +5739,21 @@ $(function() {
 
 														// Check if model is loaded
 														if(viewport.modelLoaded) {
-
-															// Hide cover
-															$("#slicing_configuration_dialog .modal-cover").addClass("noTransition").removeClass("show");
-															setTimeout(function() {
-																$("#slicing_configuration_dialog .modal-cover").css("z-index", '').removeClass("noTransition");
-															}, 200);
-
+														
 															// Display model
-															$("#slicing_configuration_dialog").addClass("noTransition").removeClass("profile");
+															$("#slicing_configuration_dialog").removeClass("in");
+															
 															setTimeout(function() {
-																$("#slicing_configuration_dialog").removeClass("noTransition").addClass("model");
+															
+																// Hide cover
+																$("#slicing_configuration_dialog .modal-cover").addClass("noTransition").removeClass("show");
+																setTimeout(function() {
+																	$("#slicing_configuration_dialog .modal-cover").css("z-index", '').removeClass("noTransition");
+																}, 200);
+															
+																// Display model editor
+																$("#slicing_configuration_dialog").removeClass("profile").addClass("model in");
 																$("#slicing_configuration_dialog p.currentMenu").text("Modify Model");
-
 																$("#slicing_configuration_dialog .modal-extra").empty().append(`
 																	<div class="printer">
 																		<button data-color="Black" title="Black"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/black.png"></button>
@@ -5857,7 +5866,7 @@ $(function() {
 																				setTimeout(isModelLoaded, 100);
 																		}
 																		isModelLoaded();
-																	}, 300);
+																	}, 600);
 																});
 
 																// Button click event
@@ -5984,7 +5993,7 @@ $(function() {
 																				setTimeout(isModelLoaded, 100);
 																		}
 																		isModelLoaded();
-																	}, 300);
+																	}, 600);
 																});
 
 																// Reset button click event
@@ -6281,7 +6290,7 @@ $(function() {
 																// Resize viewport and window
 																viewport.resizeEvent();
 																$(window).resize();
-															}, 10);
+															}, 200);
 														}
 
 														// Otherwise
@@ -6298,7 +6307,7 @@ $(function() {
 											xhr.responseType = "blob";
 											xhr.setRequestHeader("X-Api-Key", UI_API_KEY);
 											xhr.send();
-										}, 300);
+										}, 600);
 									}
 								}
 								
@@ -6439,7 +6448,7 @@ $(function() {
 										}
 									}
 								});
-							}, 300);
+							}, 600);
 						}
 					
 						// Check if printing after slicing and a printer is connected

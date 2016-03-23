@@ -858,7 +858,7 @@ body > div.page-container > div.message > div > div > span.show {
 	flex-grow: 1;
 	width: 100% !important;
 	height: calc(100% - 12px) !important;
-	padding: 2px 2px 3px 5px !important;
+	padding: 2px 2px 2px 5px !important;
 	margin: 0 !important;
 	box-shadow: none !important;
 	outline: none !important;
