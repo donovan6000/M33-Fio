@@ -2,13 +2,6 @@
 	<div class="control-group">
 		<h4>General</h4>
 		<div class="controls">
-			<label class="checkbox" title="Allows uploading and printing models that are larger than the printer's max dimensions">
-				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.IgnorePrintDimensionLimitations"><span>Ignore print dimension limitations <span class="label label-important">Dangerous</span></span>
-			</label>
-		</div>
-	</div>
-	<div class="control-group">
-		<div class="controls">
 			<label class="checkbox" title="Uses settings obtained from the printer to overwrite existing settings when a Micro 3D printer connects">
 				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.AutomaticallyObtainSettings"><span>Obtain printer settings automatically when a Micro 3D printer connects</span>
 			</label>
@@ -32,6 +25,13 @@
 		<div class="controls">
 			<label class="checkbox" title="Uses the shared library pre-processor instead of the Python pre-processor to pre-process G-code files and commands">
 				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.UseSharedLibrary"><span>Use shared library</span>
+			</label>
+		</div>
+	</div>
+	<div class="control-group">
+		<div class="controls">
+			<label class="checkbox" title="Allows uploading and printing models that are larger than the printer's max dimensions">
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.IgnorePrintDimensionLimitations"><span>Ignore print dimension limitations <span class="label label-important">Dangerous</span></span>
 			</label>
 		</div>
 	</div>
@@ -138,7 +138,7 @@
 			</label>
 		</div>
 	</div>
-	<div class="control-group dependant">
+	<div class="control-group dependant gpio">
 		<div class="controls">
 			<label class="checkbox" title="Sets a GPIO pin high at the start of the specified layer and sets it low when the print is done">
 				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.UseGpio"><span>Use GPIO</span>

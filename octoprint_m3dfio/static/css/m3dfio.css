@@ -378,6 +378,9 @@
 	display: inline;
 	position: relative;
 	top: 2px;
+}
+
+#control div.jog-panel.eeprom input[type="radio"]:disabled + label {
 	cursor: default;
 }
 
@@ -386,7 +389,7 @@
 	opacity: 1 !important;
 }
 
-#control .heatbed, #settings_plugin_m3dfio .heatbed, #settings_plugin_m3dfio .camera {
+#control .heatbed, #settings_plugin_m3dfio .heatbed, #settings_plugin_m3dfio .camera, #settings_plugin_m3dfio .sharedLibrary, #settings_plugin_m3dfio .gpio, #control > div.jog-panel.general button.gpio {
 	display: none;
 }
 
@@ -445,6 +448,11 @@ body > div.page-container > div.message > div > img {
 	position: absolute;
 	right: 5px;
 	top: 5px;
+	visibility: hidden;
+}
+
+body > div.page-container > div.message > div > div > p:not(.show) {
+	height: 0px;
 	visibility: hidden;
 }
 
