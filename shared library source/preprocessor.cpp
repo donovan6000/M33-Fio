@@ -167,6 +167,7 @@ string returnValue;
 
 // General settings
 double currentE;
+string currentF;
 double currentZ;
 bool relativeMode;
 list<double>printedLayers;
@@ -851,6 +852,7 @@ EXPORT void resetPreprocessorSettings() {
 	printingBacklashCalibrationCylinder = false;
 	printerColor = BLACK;
 	currentE = 0;
+	currentF.clear();
 	currentZ = 0;
 	relativeMode = false;
 	printedLayers.clear();
@@ -2608,7 +2610,23 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 		
 		// Check if command contains valid G-code
 		if(!gcode.isEmpty()) {
-
+		
+			// Check if command is a G0 or G1 command
+			if(gcode.hasValue('G') && (gcode.getValue('G') == "0" || gcode.getValue('G') == "1")) {
+			
+				// Check if command contains an F value
+				if(gcode.hasValue('F'))
+				
+					// Set current F
+					currentF = gcode.getValue('F');
+				
+				// Otherwise check if current F is set
+				else if(!currentF.empty())
+				
+					// Set command's F value to current F
+					gcode.setValue('F', currentF);
+			}
+			
 			// Check if outputting to a file
 			if(output != NULL)
 			

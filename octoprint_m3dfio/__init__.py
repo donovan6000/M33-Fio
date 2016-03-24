@@ -411,6 +411,7 @@ class M3DFioPlugin(
 		# General settings
 		self.readyToPrint = False
 		self.currentE = 0
+		self.currentF = None
 		self.currentZ = 0
 		self.relativeMode = False
 		self.printedLayers = []
@@ -2394,11 +2395,10 @@ class M3DFioPlugin(
 				# Set commands
 				commands = [
 					"G90",
-					"G92 E" + str(self.savedE),
-					"G0 E" + str(self.savedE - 0.3) + " F345",
-					"G0 X" + str(self.savedX) + " Y" + str(self.savedY) + " F2000",
-					"G0 Z" + str(self.savedZ) + " F90",
-					"G0 F300",
+					"G92 E%f" % self.savedE,
+					"G0 E%f F345" % (self.savedE - 0.3),
+					"G0 X%f Y%f F2000" % (self.savedX, self.savedY),
+					"G0 Z%f F90" % self.savedZ,
 					"G4",
 					"M65539;hide message",
 					"M24"
@@ -3325,7 +3325,7 @@ class M3DFioPlugin(
 								
 									# Display heatbed temperature
 									if len(self._printer._comm.getTemp()) and self._printer._comm.getTemp()[0][0] is not None :
-										command = "T:" + str(self._printer._comm.getTemp()[0][0]) + " B:" + heatbedTemperature
+										command = "T:%.4f B:%s" % (self._printer._comm.getTemp()[0][0], heatbedTemperature)
 									else :
 										command = "T:0.0 B:" + heatbedTemperature
 								
@@ -5302,6 +5302,9 @@ class M3DFioPlugin(
 				
 				# Set move Z
 				moveZ = self.savedZ + 3
+				if moveZ < 15 :
+					moveZ = 15
+				
 				if self.savedZ <= self.bedMediumMaxZ and moveZ >= self.bedHighMinZ :
 					moveZ = self.bedMediumMaxZ
 				elif moveZ > self.bedHighMaxZ :
@@ -5400,8 +5403,8 @@ class M3DFioPlugin(
 					# Set commands
 					commands = [
 						"G90",
-						"G0 Z" + str(moveZ) + " E" + str(self.savedE - 5) + " F345",
-						"G0 X" + str(moveX) + " Y" + str(moveY) + " F2000",
+						"G0 Z%f E%f F345" % (moveZ, self.savedE - 5),
+						"G0 X%f Y%f F2000" % (moveX, moveY),
 						"G4",
 						"M65540;show mid-print filament change"
 					]
@@ -6612,7 +6615,7 @@ class M3DFioPlugin(
 	
 			# Set G-code to a delay command based on time
 			gcode.setValue('G', '4')
-			gcode.setValue('P', str(time))
+			gcode.setValue('P', "%u" % time)
 	
 		# Return G-code
 		return gcode
@@ -6890,7 +6893,7 @@ class M3DFioPlugin(
 				if not self.printingTestBorder and not self.printingBacklashCalibrationCylinder :
 				
 					# Set progress bar text
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Pre-processing … (" + str(input.tell() * 100 / os.fstat(input.fileno()).st_size) + "%)"))
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Pre-processing … (%u%%)" % (input.tell() * 100 / os.fstat(input.fileno()).st_size)))
 			
 			# Otherwise check if no more commands
 			elif len(commands) == 0 :
@@ -8157,7 +8160,22 @@ class M3DFioPlugin(
 			
 			# Check if command contains valid G-code
 			if not gcode.isEmpty() :
-	
+			
+				# Check if command is a G0 or G1 command
+				if gcode.hasValue('G') and (gcode.getValue('G') == "0" or gcode.getValue('G') == "1") :
+				
+					# Check if command contains an F value
+					if gcode.hasValue('F') :
+					
+						# Set current F
+						self.currentF = gcode.getValue('F')
+					
+					# Otherwise check if current F is set
+					elif self.currentF is not None :
+					
+						# Set command's F value to current F
+						gcode.setValue('F', self.currentF)
+				
 				# Check if outputting to a file
 				if output is not None :
 				
