@@ -139,6 +139,7 @@ class M3DFioPlugin(
 		self.cancelingPrint = False
 		self.startingMidPrintFilamentChange = False
 		self.showMidPrintFilamentChange = False
+		self.reconnectingToPrinter = False
 		
 		# Rom decryption and encryption tables
 		self.romDecryptionTable = [0x26, 0xE2, 0x63, 0xAC, 0x27, 0xDE, 0x0D, 0x94, 0x79, 0xAB, 0x29, 0x87, 0x14, 0x95, 0x1F, 0xAE, 0x5F, 0xED, 0x47, 0xCE, 0x60, 0xBC, 0x11, 0xC3, 0x42, 0xE3, 0x03, 0x8E, 0x6D, 0x9D, 0x6E, 0xF2, 0x4D, 0x84, 0x25, 0xFF, 0x40, 0xC0, 0x44, 0xFD, 0x0F, 0x9B, 0x67, 0x90, 0x16, 0xB4, 0x07, 0x80, 0x39, 0xFB, 0x1D, 0xF9, 0x5A, 0xCA, 0x57, 0xA9, 0x5E, 0xEF, 0x6B, 0xB6, 0x2F, 0x83, 0x65, 0x8A, 0x13, 0xF5, 0x3C, 0xDC, 0x37, 0xD3, 0x0A, 0xF4, 0x77, 0xF3, 0x20, 0xE8, 0x73, 0xDB, 0x7B, 0xBB, 0x0B, 0xFA, 0x64, 0x8F, 0x08, 0xA3, 0x7D, 0xEB, 0x5C, 0x9C, 0x3E, 0x8C, 0x30, 0xB0, 0x7F, 0xBE, 0x2A, 0xD0, 0x68, 0xA2, 0x22, 0xF7, 0x1C, 0xC2, 0x17, 0xCD, 0x78, 0xC7, 0x21, 0x9E, 0x70, 0x99, 0x1A, 0xF8, 0x58, 0xEA, 0x36, 0xB1, 0x69, 0xC9, 0x04, 0xEE, 0x3B, 0xD6, 0x34, 0xFE, 0x55, 0xE7, 0x1B, 0xA6, 0x4A, 0x9A, 0x54, 0xE6, 0x51, 0xA0, 0x4E, 0xCF, 0x32, 0x88, 0x48, 0xA4, 0x33, 0xA5, 0x5B, 0xB9, 0x62, 0xD4, 0x6F, 0x98, 0x6C, 0xE1, 0x53, 0xCB, 0x46, 0xDD, 0x01, 0xE5, 0x7A, 0x86, 0x75, 0xDF, 0x31, 0xD2, 0x02, 0x97, 0x66, 0xE4, 0x38, 0xEC, 0x12, 0xB7, 0x00, 0x93, 0x15, 0x8B, 0x6A, 0xC5, 0x71, 0x92, 0x45, 0xA1, 0x59, 0xF0, 0x06, 0xA8, 0x5D, 0x82, 0x2C, 0xC4, 0x43, 0xCC, 0x2D, 0xD5, 0x35, 0xD7, 0x3D, 0xB2, 0x74, 0xB3, 0x09, 0xC6, 0x7C, 0xBF, 0x2E, 0xB8, 0x28, 0x9F, 0x41, 0xBA, 0x10, 0xAF, 0x0C, 0xFC, 0x23, 0xD9, 0x49, 0xF6, 0x7E, 0x8D, 0x18, 0x96, 0x56, 0xD1, 0x2B, 0xAD, 0x4B, 0xC1, 0x4F, 0xC8, 0x3A, 0xF1, 0x1E, 0xBD, 0x4C, 0xDA, 0x50, 0xA7, 0x52, 0xE9, 0x76, 0xD8, 0x19, 0x91, 0x72, 0x85, 0x3F, 0x81, 0x61, 0xAA, 0x05, 0x89, 0x0E, 0xB5, 0x24, 0xE0]
@@ -822,15 +823,17 @@ class M3DFioPlugin(
 				# Get version number
 				version = file[file.find(' ') + 1 :]
 				version = version[0 : version.find('.')]
+				type = file[0 : file.find(' ')]
 				
 				# Set release
-				if file[0 : file.find(' ')] == "M3D" :
+				if type == "M3D" :
 					release = version
 				else :
 					release = version[2 : 4] + '.' + version[4 : 6] + '.' + version[6 : 8] + '.' + version[8 : 10]
 				
 				# Append provided firmware to list
-				self.providedFirmwares[file[0 : file.find(' ')]] = {
+				self.providedFirmwares[file[0 : file.find('.')]] = {
+					"Type": type,
 					"Version": version,
 					"Release": release,
 					"File": file
@@ -955,6 +958,27 @@ class M3DFioPlugin(
 				# Start webcam server
 				subprocess.Popen([sys.executable.replace('\\', '/'), self._basefolder.replace('\\', '/') + "/webcam_server.py", str(cameraPort), "4999", str(self._settings.get_int(["CameraFramesPerSecond"])), str(self._settings.get_int(["CameraWidth"])), str(self._settings.get_int(["CameraHeight"]))])
 	
+	# Get newest firmware name
+	def getNewestFirmwareName(self, firmwareType) :
+	
+		# Initialize variables
+		newestFirmwareName = None
+		
+		# Go through all firmwares
+		for firmware in self.providedFirmwares :
+		
+			# Check if current firmware is the type specified
+			if self.providedFirmwares[firmware]["Type"] == firmwareType :
+			
+				# Check if current firmware has a newer version than newest firmware
+				if newestFirmwareName is None or int(self.providedFirmwares[newestFirmwareName]["Version"]) < int(self.providedFirmwares[firmware]["Version"]) :
+				
+					# Set newest firmware name to current firmware name
+					newestFirmwareName = firmware
+		
+		# Return newest firmware name
+		return newestFirmwareName
+	
 	# Get firmware details
 	def getFirmwareDetails(self) :
 	
@@ -969,20 +993,21 @@ class M3DFioPlugin(
 				firmwareVersion += int(ord(self.eeprom[self.eepromOffsets["firmwareVersion"]["offset"] + index]))
 				index -= 1
 		
-			# Get firmware name
-			firmwareName = None
+			# Get firmware type
+			firmwareType = None
 			firmwareRelease = None
 			for firmware in self.providedFirmwares :
 				if int(self.providedFirmwares[firmware]["Version"]) / 100000000 == firmwareVersion / 100000000 :
-					firmwareName = firmware
+					firmwareType = self.providedFirmwares[firmware]["Type"]
+					break
 		
 			# Get firmware release
 			firmwareRelease = format(firmwareVersion, "010")
-			if firmwareName is None or firmwareName != "M3D" :
+			if firmwareType is None or firmwareType != "M3D" :
 				firmwareRelease = firmwareRelease[2 : 4] + '.' + firmwareRelease[4 : 6] + '.' + firmwareRelease[6 : 8] + '.' + firmwareRelease[8 : 10]
 			
 			# Return values
-			return firmwareName, firmwareVersion, firmwareRelease
+			return firmwareType, firmwareVersion, firmwareRelease
 		
 		# Return none
 		return None, None, None
@@ -1429,57 +1454,50 @@ class M3DFioPlugin(
 				# Set updated port
 				currentPort = self.getPort()
 				
-				# Return error if printer wasn't found
-				if currentPort is None :
-					return flask.jsonify(dict(value = "Error"))
+				# Return error if printer was found
+				if currentPort is not None :
 				
-				# Connect to the printer
-				connection = serial.Serial(currentPort, currentBaudrate)
+					# Connect to the printer
+					connection = serial.Serial(currentPort, currentBaudrate)
 						
-				# Check if getting EEPROM failed
-				if not self.getEeprom(connection) :
+					# Check if getting EEPROM failed
+					if not self.getEeprom(connection) :
 				
-					# Set error
-					error = True
+						# Set error
+						error = True
+				
+					# Otherwise
+					else :
+				
+						# Check if setting fan failed
+						if not self.setFan(connection, data["value"][9 :]) :
+				
+							# Set error
+							error = True
+					
+						# Otherwise
+						else :
+				
+							# Send new EEPROM
+							self.getEeprom(connection, True)
+				
+					# Close connection
+					connection.close()
+				
+					# Save connection
+					self.savedCurrentPort = currentPort
+					self.savedCurrentBaudrate = currentBaudrate
+					self.savedCurrentProfile = currentProfile
 				
 				# Otherwise
 				else :
 				
-					# Check if setting fan failed
-					if not self.setFan(connection, data["value"][9 :]) :
-				
-						# Set error
-						error = True
-					
-					# Otherwise
-					else :
-				
-						# Send new EEPROM
-						self.getEeprom(connection, True)
-				
-				# Close connection
-				connection.close()
+					# Set error
+					error = True
 				
 				# Enable printer callbacks if using a Micro 3D printer
 			    	if not self._settings.get_boolean(["UsingADifferentPrinter"]) :
 					self._printer.register_callback(self)
-			
-				# Re-connect
-				self._printer.connect(currentPort, currentBaudrate, currentProfile)
-				
-				# Wait until connection is established
-				while not isinstance(self._printer.get_transport(), serial.Serial) :
-					time.sleep(0.01)
-				
-				# Remove serial timeout
-				self._printer.get_transport().timeout = None
-				if float(serial.VERSION) < 3 :
-					self._printer.get_transport().writeTimeout = None
-				else :
-					self._printer.get_transport().write_timeout = None
-				
-				# Send printer details
-				self.sendPrinterDetails()
 				
 				# Send response
 				if error :
@@ -1513,57 +1531,50 @@ class M3DFioPlugin(
 				# Set updated port
 				currentPort = self.getPort()
 				
-				# Return error if printer wasn't found
-				if currentPort is None :
-					return flask.jsonify(dict(value = "Error"))
+				# Return error if printer was found
+				if currentPort is not None :
 				
-				# Connect to the printer
-				connection = serial.Serial(currentPort, currentBaudrate)
+					# Connect to the printer
+					connection = serial.Serial(currentPort, currentBaudrate)
 				
-				# Check if getting EEPROM failed
-				if not self.getEeprom(connection) :
+					# Check if getting EEPROM failed
+					if not self.getEeprom(connection) :
 				
-					# Set error
-					error = True
+						# Set error
+						error = True
+				
+					# Otherwise
+					else :
+				
+						# Check if setting extruder current failed
+						if not self.setExtruderCurrent(connection, int(data["value"][22 :])) :
+				
+							# Set error
+							error = True
+					
+						# Otherwise
+						else :
+					
+							# Send new EEPROM
+							self.getEeprom(connection, True)
+				
+					# Close connection
+					connection.close()
+				
+					# Save connection
+					self.savedCurrentPort = currentPort
+					self.savedCurrentBaudrate = currentBaudrate
+					self.savedCurrentProfile = currentProfile
 				
 				# Otherwise
 				else :
 				
-					# Check if setting extruder current failed
-					if not self.setExtruderCurrent(connection, int(data["value"][22 :])) :
-				
-						# Set error
-						error = True
-					
-					# Otherwise
-					else :
-					
-						# Send new EEPROM
-						self.getEeprom(connection, True)
-				
-				# Close connection
-				connection.close()
+					# Set error
+					error = True
 				
 				# Enable printer callbacks if using a Micro 3D printer
 		    		if not self._settings.get_boolean(["UsingADifferentPrinter"]) :
 					self._printer.register_callback(self)
-				
-				# Re-connect
-				self._printer.connect(currentPort, currentBaudrate, currentProfile)
-				
-				# Wait until connection is established
-				while not isinstance(self._printer.get_transport(), serial.Serial) :
-					time.sleep(0.01)
-				
-				# Remove serial timeout
-				self._printer.get_transport().timeout = None
-				if float(serial.VERSION) < 3 :
-					self._printer.get_transport().writeTimeout = None
-				else :
-					self._printer.get_transport().write_timeout = None
-				
-				# Send printer details
-				self.sendPrinterDetails()
 				
 				# Send response
 				if error :
@@ -1736,39 +1747,32 @@ class M3DFioPlugin(
 				# Set updated port
 				currentPort = self.getPort()
 				
-				# Return error if printer wasn't found
-				if currentPort is None :
-					return flask.jsonify(dict(value = "Error"))
+				# Return error if printer was found
+				if currentPort is not None :
 				
-				# Connect to the printer
-				connection = serial.Serial(currentPort, currentBaudrate)
+					# Connect to the printer
+					connection = serial.Serial(currentPort, currentBaudrate)
 				
-				# Get EEPROM and send it
-				self.getEeprom(connection, True)
+					# Get EEPROM and send it
+					self.getEeprom(connection, True)
 				
-				# Close connection
-				connection.close()
+					# Close connection
+					connection.close()
+				
+					# Save connection
+					self.savedCurrentPort = currentPort
+					self.savedCurrentBaudrate = currentBaudrate
+					self.savedCurrentProfile = currentProfile
+				
+				# Otherwise
+				else :
+				
+					# Set error
+					error = True
 				
 				# Enable printer callbacks if using a Micro 3D printer
 		    		if not self._settings.get_boolean(["UsingADifferentPrinter"]) :
 					self._printer.register_callback(self)
-				
-				# Re-connect
-				self._printer.connect(currentPort, currentBaudrate, currentProfile)
-				
-				# Wait until connection is established
-				while not isinstance(self._printer.get_transport(), serial.Serial) :
-					time.sleep(0.01)
-				
-				# Remove serial timeout
-				self._printer.get_transport().timeout = None
-				if float(serial.VERSION) < 3 :
-					self._printer.get_transport().writeTimeout = None
-				else :
-					self._printer.get_transport().write_timeout = None
-				
-				# Send printer details
-				self.sendPrinterDetails()
 				
 				# Send response
 				if self.eeprom is None :
@@ -1814,51 +1818,56 @@ class M3DFioPlugin(
 					# Set updated port
 					currentPort = self.getPort()
 					
-					# Return error if printer wasn't found
-					if currentPort is None :
-						return flask.jsonify(dict(value = "Error"))
+					# Return error if printer was found
+					if currentPort is not None :
 				
-					# Connect to the printer
-					connection = serial.Serial(currentPort, currentBaudrate)
+						# Connect to the printer
+						connection = serial.Serial(currentPort, currentBaudrate)
 					
-					# Check if getting EEPROM failed
-					if not self.getEeprom(connection) :
+						# Check if getting EEPROM failed
+						if not self.getEeprom(connection) :
 				
-						# Set error
-						error = True
+							# Set error
+							error = True
 				
+						# Otherwise
+						else :
+				
+							# Go through bytes of new EEPROM
+							index = 0
+							while index < len(newEeprom) :
+						
+								# Check if bytes in EEPROM differ
+								if self.eeprom[index] != newEeprom[index] :
+
+									# Check if updating byte in EEPROM failed
+									if not error and not self.writeToEeprom(connection, index, newEeprom[index]) :
+			
+										# Set error
+										error = True
+		
+								# Increment index
+								index += 1
+						
+							# Check if an error hasn't occured
+							if not error :
+					
+								# Clear EEPROM
+								self.eeprom = None
+				
+						# Close connection
+						connection.close()
+					
+						# Save connection
+						self.savedCurrentPort = currentPort
+						self.savedCurrentBaudrate = currentBaudrate
+						self.savedCurrentProfile = currentProfile
+					
 					# Otherwise
 					else :
-				
-						# Go through bytes of new EEPROM
-						index = 0
-						while index < len(newEeprom) :
-						
-							# Check if bytes in EEPROM differ
-							if self.eeprom[index] != newEeprom[index] :
-
-								# Check if updating byte in EEPROM failed
-								if not error and not self.writeToEeprom(connection, index, newEeprom[index]) :
-			
-									# Set error
-									error = True
-		
-							# Increment index
-							index += 1
-						
-						# Check if an error hasn't occured
-						if not error :
 					
-							# Clear EEPROM
-							self.eeprom = None
-				
-					# Close connection
-					connection.close()
-					
-					# Save connection
-					self.savedCurrentPort = currentPort
-					self.savedCurrentBaudrate = currentBaudrate
-					self.savedCurrentProfile = currentProfile
+						# Set error
+						error = True
 					
 					# Enable printer callbacks if using a Micro 3D printer
 		    			if not self._settings.get_boolean(["UsingADifferentPrinter"]) :
@@ -2185,41 +2194,46 @@ class M3DFioPlugin(
 				# Set updated port
 				currentPort = self.getPort()
 				
-				# Return error if printer wasn't found
-				if currentPort is None :
-					return flask.jsonify(dict(value = "Error"))
+				# Return error if printer was found
+				if currentPort is not None :
 		
-				# Connect to the printer
-				connection = serial.Serial(currentPort, currentBaudrate)
+					# Connect to the printer
+					connection = serial.Serial(currentPort, currentBaudrate)
 				
-				# Check if getting EEPROM failed
-				if not self.getEeprom(connection) :
+					# Check if getting EEPROM failed
+					if not self.getEeprom(connection) :
 		
-					# Set error
-					error = True
-		
-				# Otherwise
-				else :
-			
-					# Check if updating firmware failed
-					if not self.updateToProvidedFirmware(connection, firmwareName) :
-			
 						# Set error
 						error = True
-				
+		
 					# Otherwise
 					else :
-				
-						# Clear EEPROM
-						self.eeprom = None
 			
-				# Close connection
-				connection.close()
+						# Check if updating firmware failed
+						if not self.updateToProvidedFirmware(connection, firmwareName) :
+			
+							# Set error
+							error = True
 				
-				# Save connection
-				self.savedCurrentPort = currentPort
-				self.savedCurrentBaudrate = currentBaudrate
-				self.savedCurrentProfile = currentProfile
+						# Otherwise
+						else :
+				
+							# Clear EEPROM
+							self.eeprom = None
+			
+					# Close connection
+					connection.close()
+				
+					# Save connection
+					self.savedCurrentPort = currentPort
+					self.savedCurrentBaudrate = currentBaudrate
+					self.savedCurrentProfile = currentProfile
+				
+				# Otherwise
+				else :
+				
+					# Set error
+					error = True
 			
 				# Enable printer callbacks if using a Micro 3D printer
 		    		if not self._settings.get_boolean(["UsingADifferentPrinter"]) :
@@ -2369,6 +2383,9 @@ class M3DFioPlugin(
 				# Check if connection was saved
 				if hasattr(self, "savedCurrentPort") and self.savedCurrentPort is not None and hasattr(self, "savedCurrentBaudrate") and self.savedCurrentBaudrate is not None and hasattr(self, "savedCurrentProfile") and self.savedCurrentProfile is not None :
 				
+					# Set reconnecting to printer
+					self.reconnectingToPrinter = True
+					
 					# Re-connect
 					self._printer.connect(self.savedCurrentPort, self.savedCurrentBaudrate, self.savedCurrentProfile)
 					
@@ -2475,45 +2492,50 @@ class M3DFioPlugin(
 				# Set updated port
 				currentPort = self.getPort()
 				
-				# Return error if printer wasn't found
-				if currentPort is None :
-					return flask.jsonify(dict(value = "Error"))
+				# Return error if printer was found
+				if currentPort is not None :
 			
-				# Connect to the printer
-				connection = serial.Serial(currentPort, currentBaudrate)
+					# Connect to the printer
+					connection = serial.Serial(currentPort, currentBaudrate)
 				
-				# Get encrypted rom from unicode content
-				for character in data["content"] :
-					encryptedRom += chr(ord(character))
+					# Get encrypted rom from unicode content
+					for character in data["content"] :
+						encryptedRom += chr(ord(character))
 				
-				# Check if getting EEPROM failed
-				if not self.getEeprom(connection) :
+					# Check if getting EEPROM failed
+					if not self.getEeprom(connection) :
 			
-					# Set error
-					error = True
-			
-				# Otherwise
-				else :
-				
-					# Check if updating firmware failed
-					if not self.updateFirmware(connection, encryptedRom, int(data["name"][0 : 10])) :
-				
 						# Set error
 						error = True
-					
+			
 					# Otherwise
 					else :
+				
+						# Check if updating firmware failed
+						if not self.updateFirmware(connection, encryptedRom, int(data["name"][0 : 10])) :
+				
+							# Set error
+							error = True
 					
-						# Clear EEPROM
-						self.eeprom = None
+						# Otherwise
+						else :
+					
+							# Clear EEPROM
+							self.eeprom = None
 				
-				# Close connection
-				connection.close()
+					# Close connection
+					connection.close()
 				
-				# Save connection
-				self.savedCurrentPort = currentPort
-				self.savedCurrentBaudrate = currentBaudrate
-				self.savedCurrentProfile = currentProfile
+					# Save connection
+					self.savedCurrentPort = currentPort
+					self.savedCurrentBaudrate = currentBaudrate
+					self.savedCurrentProfile = currentProfile
+				
+				# Otherwise
+				else :
+		
+					# Set error
+					error = True
 			
 			# Otherwise
 			else :
@@ -2621,10 +2643,10 @@ class M3DFioPlugin(
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "EEPROM", eeprom = self.eeprom.encode("hex").upper()))
 			
 			# Get firmware details
-			firmwareName, firmwareVersion, firmwareRelease = self.getFirmwareDetails()
+			firmwareType, firmwareVersion, firmwareRelease = self.getFirmwareDetails()
 			
 			# Send firmware details
-			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Current Firmware", name = firmwareName, release = firmwareRelease))
+			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Current Firmware", type = firmwareType, release = firmwareRelease))
 		
 		# Return true
 		return True
@@ -4000,10 +4022,10 @@ class M3DFioPlugin(
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "EEPROM", eeprom = self.eeprom.encode("hex").upper()))
 				
 				# Get firmware details
-				firmwareName, firmwareVersion, firmwareRelease = self.getFirmwareDetails()
+				firmwareType, firmwareVersion, firmwareRelease = self.getFirmwareDetails()
 				
 				# Send firmware details
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Current Firmware", name = firmwareName, release = firmwareRelease))
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Current Firmware", type = firmwareType, release = firmwareRelease))
 				
 				# Send printer details
 				self.sendPrinterDetails()
@@ -4577,7 +4599,7 @@ class M3DFioPlugin(
 								index += 1
 					
 							# Get firmware details
-							firmwareName, firmwareVersion, firmwareRelease = self.getFirmwareDetails()
+							firmwareType, firmwareVersion, firmwareRelease = self.getFirmwareDetails()
 					
 							# Get serial number from EEPROM
 							serialNumber = self.eeprom[self.eepromOffsets["serialNumber"]["offset"] : self.eepromOffsets["serialNumber"]["offset"] + self.eepromOffsets["serialNumber"]["bytes"] - 1]
@@ -4675,7 +4697,7 @@ class M3DFioPlugin(
 									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Updating extruder current failed", header = "Error Status", confirm = True))
 				
 							# Check if using M3D firmware and it's from before new bed orientation and adjustable backlash speed
-							if not error and firmwareName is not None and firmwareName == "M3D" and firmwareVersion < 2015080402 :
+							if not error and firmwareType is not None and firmwareType == "M3D" and firmwareVersion < 2015080402 :
 					
 								# Go through bytes of bed offsets
 								index = 0
@@ -4861,19 +4883,19 @@ class M3DFioPlugin(
 				
 									# Display error
 									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Updating speed limits failed", header = "Error Status", confirm = True))
-				
+							
 							# Check if firmware is corrupt
 							if not error and eepromCrc != chipCrc :
 					
 								# Set temp firmware name
-								if firmwareName is None :
-									currentFirmwareName = "M3D"
+								if firmwareType is None :
+									currentFirmwareType = "M3D"
 								else :
-									currentFirmwareName = firmwareName
+									currentFirmwareType = firmwareType
 				
 								# Display message
 								self.messageResponse = None
-								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Question", message = "Firmware is corrupt. Update to " + currentFirmwareName + " firmware version " + self.providedFirmwares[currentFirmwareName]["Release"] + '?', header = "Firmware Status", response = True))
+								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Question", message = "Firmware is corrupt. Update to " + currentFirmwareType + " firmware version " + self.providedFirmwares[self.getNewestFirmwareName(currentFirmwareType)]["Release"] + '?', header = "Firmware Status", response = True))
 					
 								# Wait until response is obtained
 								while self.messageResponse is None :
@@ -4892,7 +4914,7 @@ class M3DFioPlugin(
 									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Updating firmware", header = "Firmware Status"))
 					
 									# Check if updating firmware failed
-									if not self.updateToProvidedFirmware(connection, currentFirmwareName) :
+									if not self.updateToProvidedFirmware(connection, self.getNewestFirmwareName(currentFirmwareType)) :
 					
 										# Set error
 										error = True
@@ -4912,57 +4934,60 @@ class M3DFioPlugin(
 											time.sleep(0.01)
 					
 							# Otherwise check if firmware is outdated
-							elif not error and firmwareName is not None and firmwareVersion < int(self.providedFirmwares[firmwareName]["Version"]) :
+							elif not error and firmwareType is not None and firmwareVersion < int(self.providedFirmwares[self.getNewestFirmwareName(firmwareType)]["Version"]) :
 				
 								# Set if firmware is incompatible
-								if firmwareName == "M3D" :
+								if firmwareType == "M3D" :
 									incompatible = firmwareVersion < 2015122112
-								elif firmwareName == "iMe" :
+								elif firmwareType == "iMe" :
 									incompatible = firmwareVersion < 1900000001
+								
+								# Check if printer is incompatible or not reconnecting to printer
+								if incompatible or not self.reconnectingToPrinter :
 						
-								# Display message
-								self.messageResponse = None
-								if incompatible :
-									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Question", message = "Firmware is incompatible. Update to " + firmwareName + " firmware version " + self.providedFirmwares[firmwareName]["Release"] + '?', header = "Firmware Status", response = True))
-								else :
-									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Question", message = "Newer firmware available. Update to " + firmwareName + " firmware version " + self.providedFirmwares[firmwareName]["Release"] + '?', header = "Firmware Status", response = True))
-					
-								# Wait until response is obtained
-								while self.messageResponse is None :
-									time.sleep(0.01)
-					
-								# Check if response was no
-								if not self.messageResponse :
-					
-									# Set error if incompatible
+									# Display message
+									self.messageResponse = None
 									if incompatible :
-										error = True
+										self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Question", message = "Firmware is incompatible. Update to " + firmwareType + " firmware version " + self.providedFirmwares[self.getNewestFirmwareName(firmwareType)]["Release"] + '?', header = "Firmware Status", response = True))
+									else :
+										self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Question", message = "Newer firmware available. Update to " + firmwareType + " firmware version " + self.providedFirmwares[self.getNewestFirmwareName(firmwareType)]["Release"] + '?', header = "Firmware Status", response = True))
+					
+									# Wait until response is obtained
+									while self.messageResponse is None :
+										time.sleep(0.01)
+					
+									# Check if response was no
+									if not self.messageResponse :
+					
+										# Set error if incompatible
+										if incompatible :
+											error = True
 				
-								# Otherwise
-								else :
-					
-									# Send message
-									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Updating firmware", header = "Firmware Status"))
-							
-									# Check if updating firmware failed
-									if not self.updateToProvidedFirmware(connection, firmwareName) :
-					
-										# Set error
-										error = True
-										
-										# Send message
-										self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Updating firmware failed", header = "Firmware Status", confirm = True))
-						
 									# Otherwise
 									else :
 					
 										# Send message
-										self.messageResponse = None
-										self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Question", message = "Updating firmware was successful", header = "Firmware Status", confirm = True))
+										self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Updating firmware", header = "Firmware Status"))
+							
+										# Check if updating firmware failed
+										if not self.updateToProvidedFirmware(connection, self.getNewestFirmwareName(firmwareType)) :
 					
-										# Wait until response is obtained
-										while self.messageResponse is None :
-											time.sleep(0.01)
+											# Set error
+											error = True
+										
+											# Send message
+											self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Updating firmware failed", header = "Firmware Status", confirm = True))
+						
+										# Otherwise
+										else :
+					
+											# Send message
+											self.messageResponse = None
+											self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Question", message = "Updating firmware was successful", header = "Firmware Status", confirm = True))
+					
+											# Wait until response is obtained
+											while self.messageResponse is None :
+												time.sleep(0.01)
 				
 							# Check if no errors occured and getting EEPROM failed
 							if not error and not self.getEeprom(connection, True) :
@@ -5113,6 +5138,9 @@ class M3DFioPlugin(
 							
 							# Send message
 							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. Try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
+			
+			# Clear reconnecting to printer
+			self.reconnectingToPrinter = False
 			
 			# Clear initializing printer connection
 			self.initializingPrinterConnection = False
@@ -6893,7 +6921,7 @@ class M3DFioPlugin(
 				if not self.printingTestBorder and not self.printingBacklashCalibrationCylinder :
 				
 					# Set progress bar text
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Pre-processing … (%u%%)" % (input.tell() * 100 / os.fstat(input.fileno()).st_size)))
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Pre-processing … (" + str(input.tell() * 100 / os.fstat(input.fileno()).st_size) + "%)"))
 			
 			# Otherwise check if no more commands
 			elif len(commands) == 0 :

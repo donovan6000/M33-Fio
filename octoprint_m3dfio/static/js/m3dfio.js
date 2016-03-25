@@ -3613,6 +3613,7 @@ $(function() {
 					<button class="btn btn-block control-box placeHolder" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"></button>
 					<button class="btn btn-block control-box placeHolder" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"></button>
 					<button class="btn btn-block control-box placeHolder" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"></button>
+					<button class="btn btn-block control-box placeHolder" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"></button>
 					<p></p>
 					<input type="file" accept=".rom, .bin, .hex">
 				</div>
@@ -3962,7 +3963,7 @@ $(function() {
 		});
 		
 		// Control button click event
-		$("#control button").click(function() {
+		$(document).on("click", "#control button", function() {
 
 			// Blur self
 			$(this).blur();
@@ -9340,6 +9341,18 @@ $(function() {
 			
 							// Hide message
 							hideMessage();
+							
+							// Send request
+							$.ajax({
+								url: API_BASEURL + "plugin/m3dfio",
+								type: "POST",
+								dataType: "json",
+								data: JSON.stringify({
+									command: "message",
+									value: "Reconnect To Printer"
+								}),
+								contentType: "application/json; charset=UTF-8"
+							});
 						});
 					}
 				});
@@ -9381,6 +9394,18 @@ $(function() {
 			
 							// Hide message
 							hideMessage();
+							
+							// Send request
+							$.ajax({
+								url: API_BASEURL + "plugin/m3dfio",
+								type: "POST",
+								dataType: "json",
+								data: JSON.stringify({
+									command: "message",
+									value: "Reconnect To Printer"
+								}),
+								contentType: "application/json; charset=UTF-8"
+							});
 						});
 					}
 				});
@@ -9422,6 +9447,18 @@ $(function() {
 			
 							// Hide message
 							hideMessage();
+							
+							// Send request
+							$.ajax({
+								url: API_BASEURL + "plugin/m3dfio",
+								type: "POST",
+								dataType: "json",
+								data: JSON.stringify({
+									command: "message",
+									value: "Reconnect To Printer"
+								}),
+								contentType: "application/json; charset=UTF-8"
+							});
 						});
 					}
 				});
@@ -9463,6 +9500,18 @@ $(function() {
 			
 							// Hide message
 							hideMessage();
+							
+							// Send request
+							$.ajax({
+								url: API_BASEURL + "plugin/m3dfio",
+								type: "POST",
+								dataType: "json",
+								data: JSON.stringify({
+									command: "message",
+									value: "Reconnect To Printer"
+								}),
+								contentType: "application/json; charset=UTF-8"
+							});
 						});
 					}
 				});
@@ -9504,6 +9553,18 @@ $(function() {
 			
 							// Hide message
 							hideMessage();
+							
+							// Send request
+							$.ajax({
+								url: API_BASEURL + "plugin/m3dfio",
+								type: "POST",
+								dataType: "json",
+								data: JSON.stringify({
+									command: "message",
+									value: "Reconnect To Printer"
+								}),
+								contentType: "application/json; charset=UTF-8"
+							});
 						});
 					}
 				});
@@ -9545,6 +9606,18 @@ $(function() {
 			
 							// Hide message
 							hideMessage();
+							
+							// Send request
+							$.ajax({
+								url: API_BASEURL + "plugin/m3dfio",
+								type: "POST",
+								dataType: "json",
+								data: JSON.stringify({
+									command: "message",
+									value: "Reconnect To Printer"
+								}),
+								contentType: "application/json; charset=UTF-8"
+							});
 						});
 					}
 				});
@@ -9608,6 +9681,18 @@ $(function() {
 	
 						// Hide message
 						hideMessage();
+						
+						// Send request
+						$.ajax({
+							url: API_BASEURL + "plugin/m3dfio",
+							type: "POST",
+							dataType: "json",
+							data: JSON.stringify({
+								command: "message",
+								value: "Reconnect To Printer"
+							}),
+							contentType: "application/json; charset=UTF-8"
+						});
 					});
 				}
 			});
@@ -9985,14 +10070,14 @@ $(function() {
 				return;
 			
 			// Check if data is current firmware
-			if(data.value == "Current Firmware" && typeof data.name !== "undefined" && typeof data.release !== "undefined") {
+			if(data.value == "Current Firmware" && typeof data.type !== "undefined" && typeof data.release !== "undefined") {
 			
 				// Set name to unknown if not specified
 				if(data.name === null)
 					data.name = "an unknown"
 			
 				// Set firmware text
-				$("#control div.jog-panel.advanced p").text("Currently using " + data.name + " firmware V" + data.release);
+				$("#control div.jog-panel.advanced p").text("Currently using " + data.type + " firmware V" + data.release);
 			}
 				
 			// Check if data is printer details
@@ -10297,17 +10382,20 @@ $(function() {
 				// Go to place holder buttons
 				var currentPosition = $("#control > div.jog-panel.advanced").find("div > button:nth-of-type(7)");
 				
-				// Go through all provided firmwares
-				for(firmware in data.firmwares) {
+				// Sort firmwares
+				var firmwares = Object.keys(data.firmwares).sort();
 				
+				// Go through all provided firmwares
+				for(var i = 0; i < firmwares.length; i++) {
+					
 					// Add update firmware to provided button
-					currentPosition.removeClass("placeHolder").addClass("firmware").data("name", firmware).attr("title", "Updates printer's firmware to " + firmware + " V" + data.firmwares[firmware]["Release"]).text("Update firmware to " + firmware + " V" + data.firmwares[firmware]["Release"]).off("click").click(function() {
+					currentPosition.removeClass("placeHolder").addClass("firmware").data("name", firmwares[i]).attr("title", htmlEncode("Updates printer's firmware to " + data.firmwares[firmwares[i]]["Type"] + " V" + data.firmwares[firmwares[i]]["Release"])).text("Update firmware to " + data.firmwares[firmwares[i]]["Type"] + " V" + data.firmwares[firmwares[i]]["Release"]).off("click").click(function() {
 					
 						// Set firmware name
 						var firmwareName = $(this).data("name");
 						
 						// Check if updating to functional firmware
-						if(firmwareName == "M3D") {
+						if(firmwareName.substr(0, firmwareName.indexOf(' ')) == "M3D") {
 						
 							// Show message
 							showMessage("Firmware Status", "This will update the printer's current firmware. Proceed?", "Yes", function() {
@@ -10363,7 +10451,7 @@ $(function() {
 						else {
 		
 							// Show message
-							showMessage("Firmware Status", htmlEncode(firmwareName) + " is not a fully functional firmware. It's currently only intended to be used by developers. Proceed?", "Yes", function() {
+							showMessage("Firmware Status", htmlEncode(firmwareName.substr(0, firmwareName.indexOf(' '))) + " is not a fully functional firmware. It's currently only intended to be used by developers. Proceed?", "Yes", function() {
 			
 								// Hide message
 								hideMessage();
