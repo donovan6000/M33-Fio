@@ -2377,7 +2377,7 @@ class M3DFioPlugin(
 				self.resetLineNumberCommandSent = False
 				self.numberWrapCounter = 0
 			
-				# Send emergency stop immediately to the printer
+				# Send hard emergency stop immediately to the printer
 				if isinstance(self._printer.get_transport(), serial.Serial) :
 					self._printer.get_transport().write("M0")
 			
@@ -2455,6 +2455,9 @@ class M3DFioPlugin(
 				self.sentCommands = {}
 				self.resetLineNumberCommandSent = False
 				self.numberWrapCounter = 0
+				
+				# Clear ready to print
+				self.readyToPrint = False
 			
 			# Otherwise check if parameter is to not show mid-print filament change
 			elif data["value"] == "Don't Show Mid-Print Filament Change" :
@@ -3154,8 +3157,8 @@ class M3DFioPlugin(
 			# Check if print was invalid
 			if not self._printer.is_printing() :
 			
-				# Set command to emergency stop
-				data = "M65537;stop"
+				# Set command to hard emergency stop
+				data = "M0\n"
 		
 		# Check if request is hard emergency stop
 		if "M0" in data :
@@ -4350,9 +4353,6 @@ class M3DFioPlugin(
 			# Reset print settings
 			self.resetPrintSettings()
 			
-			# Clear ready to print
-			self.readyToPrint = False
-			
 			# Enable sleep
 			self.enableSleep()
 		
@@ -4385,6 +4385,9 @@ class M3DFioPlugin(
 				commands = [
 					"M114"
 				]
+				
+				# Send commands with line numbers
+				self.sendCommandsWithLineNumbers(commands)
 			
 			# Otherwise
 			else :
@@ -4408,9 +4411,15 @@ class M3DFioPlugin(
 				else :
 					commands += ["M420 T100"]
 			
-			# Send commands with line numbers
-			self.sendCommandsWithLineNumbers(commands)
-		
+				# Send commands with line numbers
+				self.sendCommandsWithLineNumbers(commands)
+				
+				# Reset print settings
+				self.resetPrintSettings()
+			
+				# Enable sleep
+				self.enableSleep()
+	
 	# Is port open
 	def isPortOpen(self, port) :
 
@@ -5351,9 +5360,6 @@ class M3DFioPlugin(
 			
 				# Reset print settings
 				self.resetPrintSettings()
-			
-				# Clear ready to print
-				self.readyToPrint = False
 			
 				# Enable sleep
 				self.enableSleep()
