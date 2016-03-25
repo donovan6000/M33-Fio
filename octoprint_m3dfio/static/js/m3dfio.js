@@ -3614,6 +3614,7 @@ $(function() {
 					<button class="btn btn-block control-box placeHolder" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"></button>
 					<button class="btn btn-block control-box placeHolder" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"></button>
 					<button class="btn btn-block control-box placeHolder" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"></button>
+					<button class="btn btn-block control-box placeHolder" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"></button>
 					<p></p>
 					<input type="file" accept=".rom, .bin, .hex">
 				</div>
@@ -6585,9 +6586,6 @@ $(function() {
 		// Message distance buttons click event
 		$("body > div.page-container > div.message").find("button.distance").click(function() {
 		
-			// Blur self
-			$(this).blur();
-		
 			// Set active button
 			$(this).siblings().removeClass("active");
 			$(this).addClass("active");
@@ -6595,9 +6593,6 @@ $(function() {
 		
 		// Message arrow buttons click event
 		$("body > div.page-container > div.message").find("button.arrow").click(function() {
-		
-			// Blur self
-			$(this).blur();
 		
 			// Set commands
 			var commands = [

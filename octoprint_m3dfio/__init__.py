@@ -2475,7 +2475,7 @@ class M3DFioPlugin(
 			if not currentBaudrate or currentBaudrate == 0 :
 				currentBaudrate = 115200
 			
-			# Remove firmware name
+			# Remove firmware type from firmware name
 			if ' ' in data["name"] :
 				data["name"] = data["name"][data["name"].find(' ') + 1 :]
 			
@@ -4887,7 +4887,7 @@ class M3DFioPlugin(
 							# Check if firmware is corrupt
 							if not error and eepromCrc != chipCrc :
 					
-								# Set temp firmware name
+								# Set current firmware type
 								if firmwareType is None :
 									currentFirmwareType = "M3D"
 								else :
