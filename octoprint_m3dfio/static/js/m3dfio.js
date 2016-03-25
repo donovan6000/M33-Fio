@@ -993,7 +993,7 @@ $(function() {
 					// Create controls
 					this.orbitControls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
 					this.orbitControls.target.set(0, 54.9 + parseFloat(self.settings.settings.plugins.m3dfio.ExternalBedHeight()), 0);
-					this.orbitControls.minDistance = 200;
+					this.orbitControls.minDistance = 160;
 					this.orbitControls.maxDistance = 500;
 					this.orbitControls.minPolarAngle = 0;
 					this.orbitControls.maxPolarAngle = THREE.Math.degToRad(100);
@@ -6094,7 +6094,7 @@ $(function() {
 																			side: THREE.DoubleSide,
 																			depthWrite: false
 																		}));
-																		viewport.cutShape.position.set(0, bedHighMaxZ - bedLowMinZ - viewport.models[0].mesh.position.y, 0);
+																		viewport.cutShape.position.set(0, (bedHighMaxZ - bedLowMinZ) / 2 + parseFloat(self.settings.settings.plugins.m3dfio.ExternalBedHeight()), 0);
 																		viewport.cutShape.rotation.set(0, 0, 0);
 													
 																		// Create cut shape outline
