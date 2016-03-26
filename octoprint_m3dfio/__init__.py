@@ -7403,21 +7403,21 @@ class M3DFioPlugin(
 				
 				# Initialize new commands
 				newCommands = []
-
-				# Check if command contains valid G-code
-				if not gcode.isEmpty() :
 				
-					# Check if command is a G command
-					if gcode.hasValue('G') :
-					
-						# Check if on a new printed layer
-						if self.waveBondingLayerCounter < 2 and self.onNewPrintedLayer :
-		
-							# Increment layer counter
-							self.waveBondingLayerCounter += 1
+				# Check if on a new printed layer
+				if self.waveBondingLayerCounter < 2 and self.onNewPrintedLayer :
 
-						# Check if on first counted layer
-						if self.waveBondingLayerCounter == 1 :
+					# Increment layer counter
+					self.waveBondingLayerCounter += 1
+				
+				# Check if on first counted layer
+				if self.waveBondingLayerCounter == 1 :
+
+					# Check if command contains valid G-code
+					if not gcode.isEmpty() :
+				
+						# Check if command is a G command
+						if gcode.hasValue('G') :
 
 							# Check if command is G0 or G1 and it's in absolute mode
 							if (gcode.getValue('G') == "0" or gcode.getValue('G') == "1") and not self.waveBondingRelativeMode :
@@ -7674,56 +7674,56 @@ class M3DFioPlugin(
 				
 				# Initialize new commands
 				newCommands = []
-
-				# Check if command contains valid G-code
-				if not gcode.isEmpty() :
 				
-					# Check if on a new printed layer
-					if self.thermalBondingLayerCounter < 2 and self.onNewPrintedLayer :
+				# Check if on a new printed layer
+				if self.thermalBondingLayerCounter < 2 and self.onNewPrintedLayer :
+				
+					# Increment layer counter
+					self.thermalBondingLayerCounter += 1
+		
+					# Check if on first counted layer
+					if self.thermalBondingLayerCounter == 1 :
+		
+						# Check if filament type is PLA
+						if str(self._settings.get(["FilamentType"])) == "PLA" :
+		
+							# Add temperature to output
+							newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 10)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
+						
+						# Otherwise check if filament type is TGH or FLX
+						elif str(self._settings.get(["FilamentType"])) == "TGH" or str(self._settings.get(["FilamentType"])) == "FLX" :
+		
+							# Add temperature to output
+							newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) - 15)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
+			
+						# Otherwise
+						else :
+			
+							# Add temperature to output
+							newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 15)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
 					
-						# Increment layer counter
-						self.thermalBondingLayerCounter += 1
-			
-						# Check if on first counted layer
-						if self.thermalBondingLayerCounter == 1 :
-			
-							# Check if filament type is PLA
-							if str(self._settings.get(["FilamentType"])) == "PLA" :
-			
-								# Add temperature to output
-								newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 10)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
-							
-							# Otherwise check if filament type is TGH or FLX
-							elif str(self._settings.get(["FilamentType"])) == "TGH" or str(self._settings.get(["FilamentType"])) == "FLX" :
-			
-								# Add temperature to output
-								newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) - 15)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
-				
-							# Otherwise
-							else :
-				
-								# Add temperature to output
-								newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 15)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
+					# Otherwise
+					else :
+					
+						# Check if filament type is TGH
+						if str(self._settings.get(["FilamentType"])) == "TGH" :
+					
+							# Add temperature to output
+							newCommands.append(Command("M104 S" + str(self._settings.get_int(["FilamentTemperature"]) + 15), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
 						
 						# Otherwise
 						else :
-						
-							# Check if filament type is TGH
-							if str(self._settings.get(["FilamentType"])) == "TGH" :
-						
-								# Add temperature to output
-								newCommands.append(Command("M104 S" + str(self._settings.get_int(["FilamentTemperature"]) + 15), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
-							
-							# Otherwise
-							else :
-			
-								# Add temperature to output
-								newCommands.append(Command("M104 S" + str(self._settings.get_int(["FilamentTemperature"])), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
-
-					# Check if on first counted layer
-					if self.thermalBondingLayerCounter == 1 :
-
-						# Check if printing test border or wave bonding isn't being used, and line is a G command
+		
+							# Add temperature to output
+							newCommands.append(Command("M104 S" + str(self._settings.get_int(["FilamentTemperature"])), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
+				
+				# Check if on first counted layer
+				if self.thermalBondingLayerCounter == 1 :
+				
+					# Check if command contains valid G-code
+					if not gcode.isEmpty() :
+					
+						# Check if printing test border or wave bonding isn't being used, and command is a G command
 						if (self.printingTestBorder or not self._settings.get_boolean(["UseWaveBondingPreprocessor"])) and gcode.hasValue('G') :
 
 							# Check if command is G0 or G1 and it's in absolute

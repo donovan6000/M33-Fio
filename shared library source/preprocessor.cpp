@@ -1768,21 +1768,21 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			
 			// Initialize new commands
 			stack<Command> newCommands;
-
-			// Check if command contains valid G-code
-			if(!gcode.isEmpty())
 			
-				// Check if command is a G command
-				if(gcode.hasValue('G')) {
-				
-					// Check if on a new printed layer
-					if(waveBondingLayerCounter < 2 && onNewPrintedLayer)
-	
-						// Increment layer counter
-						waveBondingLayerCounter++;
+			// Check if on a new printed layer
+			if(waveBondingLayerCounter < 2 && onNewPrintedLayer)
 
-					// Check if on first counted layer
-					if(waveBondingLayerCounter == 1) {
+				// Increment layer counter
+				waveBondingLayerCounter++;
+			
+			// Check if on first counted layer
+			if(waveBondingLayerCounter == 1) {
+			
+				// Check if command contains valid G-code
+				if(!gcode.isEmpty()) {
+				
+					// Check if command is a G command
+					if(gcode.hasValue('G')) {
 
 						// Check if command is G0 or G1 and it's in absolute mode
 						if((gcode.getValue('G') == "0" || gcode.getValue('G') == "1") && !waveBondingRelativeMode) {
@@ -1843,18 +1843,18 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 
 										// Check if refrence G-codes isn't set
 										if(waveBondingRefrenceGcode.isEmpty()) {
-	
+
 											// Check if a tack point was created
 											waveBondingTackPoint = createTackPoint(gcode, waveBondingPreviousGcode);
 											if(!waveBondingTackPoint.isEmpty())
-								
+							
 												// Add tack point to output
 												newCommands.push(Command(waveBondingTackPoint.getAscii(), WAVE, WAVE));
 										}
-	
+
 										// Set refrence G-code
 										waveBondingRefrenceGcode = gcode;
-	
+
 										// Increment corner counter
 										waveBondingCornerCounter++;
 									}
@@ -1865,10 +1865,10 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 										// Check if a tack point was created
 										waveBondingTackPoint = createTackPoint(gcode, waveBondingRefrenceGcode);
 										if(!waveBondingTackPoint.isEmpty())
-							
+						
 											// Add tack point to output
 											newCommands.push(Command(waveBondingTackPoint.getAscii(), WAVE, WAVE));
-	
+
 										// Set refrence G-code
 										waveBondingRefrenceGcode = gcode;
 									}
@@ -1876,7 +1876,7 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 
 								// Go through all of the wave
 								for(uint32_t i = 1; i <= waveRatio; i++) {
-					
+				
 									// Check if at last component
 									double tempRelativeX, tempRelativeY, tempRelativeZ, tempRelativeE;
 									if(i == waveRatio) {
@@ -1904,34 +1904,34 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 										// Set extra G-code G value
 										waveBondingExtraGcode.clear();
 										waveBondingExtraGcode.setValue('G', gcode.getValue('G'));
-	
+
 										// Set extra G-code X value
 										if(gcode.hasValue('X'))
 											waveBondingExtraGcode.setValue('X', to_string(waveBondingPositionRelativeX - deltaX + tempRelativeX - relativeDifferenceX));
-	
+
 										// Set extra G-cdoe Y value
 										if(gcode.hasValue('Y'))
 											waveBondingExtraGcode.setValue('Y', to_string(waveBondingPositionRelativeY - deltaY + tempRelativeY - relativeDifferenceY));
-	
+
 										// Set extra G-code F value if first element
 										if(gcode.hasValue('F') && i == 1)
 											waveBondingExtraGcode.setValue('F', gcode.getValue('F'));
-	
+
 										// Check if plane changed
 										if(waveBondingChangesPlane)
-	
+
 											// Set extra G-code Z value
 											waveBondingExtraGcode.setValue('Z', to_string(waveBondingPositionRelativeZ - deltaZ + tempRelativeZ - relativeDifferenceZ + getCurrentAdjustmentZ()));
-	
+
 										// Otherwise check if command has a Z value and changes in Z are noticable
 										else if(gcode.hasValue('Z') && deltaZ != DBL_EPSILON)
-	
+
 											// Set extra G-code Z value
 											waveBondingExtraGcode.setValue('Z', to_string(waveBondingPositionRelativeZ - deltaZ + tempRelativeZ - relativeDifferenceZ));
-		
+	
 										// Set extra G-code E value
 										waveBondingExtraGcode.setValue('E', to_string(waveBondingPositionRelativeE - deltaE + tempRelativeE - relativeDifferenceE));
-							
+						
 										// Add extra G-code to output
 										newCommands.push(Command(waveBondingExtraGcode.getAscii(), WAVE, WAVE));
 									}
@@ -1941,22 +1941,22 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 
 										// Check if command has a Z value
 										if(gcode.hasValue('Z'))
-	
+
 											// Add to command's Z value
 											gcode.setValue('Z', to_string(stod(gcode.getValue('Z')) + getCurrentAdjustmentZ()));
-	
+
 										// Otherwise
 										else
-	
+
 											// Set command's Z value
 											gcode.setValue('Z', to_string(relativeDifferenceZ + deltaZ + getCurrentAdjustmentZ()));
 									}
 								}
 							}
-							
+						
 							// Check if no corners have occured
 							if(waveBondingCornerCounter < 1)
-							
+						
 								// Set previous G-code
 								waveBondingPreviousGcode = gcode;
 						}
@@ -2013,6 +2013,7 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 						}
 					}
 				}
+			}
 									
 			// Check if new commands exist
 			if(newCommands.size()) {
@@ -2042,58 +2043,59 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			
 			// Initialize new commands
 			stack<Command> newCommands;
-
-			// Check if command contains valid G-code
-			if(!gcode.isEmpty()) {
 			
-				// Check if on a new printed layer
-				if(thermalBondingLayerCounter < 2 && onNewPrintedLayer) {
+			// Check if on a new printed layer
+			if(thermalBondingLayerCounter < 2 && onNewPrintedLayer) {
+			
+				// Increment layer counter
+				thermalBondingLayerCounter++;
+	
+				// Check if on first counted layer
+				if(thermalBondingLayerCounter == 1) {
 				
-					// Increment layer counter
-					thermalBondingLayerCounter++;
-		
-					// Check if on first counted layer
-					if(thermalBondingLayerCounter == 1) {
+					// Check if filament type is PLA
+					if(filamentType == PLA)
 					
-						// Check if filament type is PLA
-						if(filamentType == PLA)
-						
-							// Add temperature to output
-							newCommands.push(Command("M109 S" + to_string(getBoundedTemperature(filamentTemperature + 10)), THERMAL, THERMAL));
-						
-						// Otherwise check if filament type is TGH or FLX
-						else if(filamentType == TGH || filamentType == FLX)
-						
-							// Add temperature to output
-							newCommands.push(Command("M109 S" + to_string(getBoundedTemperature(filamentTemperature - 15)), THERMAL, THERMAL));
-						
-						// Otherwise
-						else
+						// Add temperature to output
+						newCommands.push(Command("M109 S" + to_string(getBoundedTemperature(filamentTemperature + 10)), THERMAL, THERMAL));
+					
+					// Otherwise check if filament type is TGH or FLX
+					else if(filamentType == TGH || filamentType == FLX)
+					
+						// Add temperature to output
+						newCommands.push(Command("M109 S" + to_string(getBoundedTemperature(filamentTemperature - 15)), THERMAL, THERMAL));
+					
+					// Otherwise
+					else
+	
+						// Add temperature to output
+						newCommands.push(Command("M109 S" + to_string(getBoundedTemperature(filamentTemperature + 15)), THERMAL, THERMAL));
+				}
 		
-							// Add temperature to output
-							newCommands.push(Command("M109 S" + to_string(getBoundedTemperature(filamentTemperature + 15)), THERMAL, THERMAL));
-					}
-			
+				// Otherwise
+				else {
+				
+					// Check if filament type is TGH
+					if(filamentType == TGH)
+	
+						// Add temperature to output
+						newCommands.push(Command("M104 S" + to_string(filamentTemperature + 15), THERMAL, THERMAL));
+					
 					// Otherwise
 					else
 					
-						// Check if filament type is TGH
-						if(filamentType == TGH)
-		
-							// Add temperature to output
-							newCommands.push(Command("M104 S" + to_string(filamentTemperature + 15), THERMAL, THERMAL));
-						
-						// Otherwise
-						else
-						
-							// Add temperature to output
-							newCommands.push(Command("M104 S" + to_string(filamentTemperature), THERMAL, THERMAL));
+						// Add temperature to output
+						newCommands.push(Command("M104 S" + to_string(filamentTemperature), THERMAL, THERMAL));
 				}
-				
-				// Check if on first counted layer
-				if(thermalBondingLayerCounter == 1) {
+			}
+			
+			// Check if on first counted layer
+			if(thermalBondingLayerCounter == 1) {
+			
+				// Check if command contains valid G-code
+				if(!gcode.isEmpty()) {
 
-					// Check if printing test border or wave bonding isn't being used, and line is a G command
+					// Check if printing test border or wave bonding isn't being used, and commad is a G command
 					if((printingTestBorder || !useWaveBondingPreprocessor) && gcode.hasValue('G')) {
 
 						// Check if command is G0 or G1 and it's in absolute
