@@ -3615,6 +3615,8 @@ $(function() {
 					<button class="btn btn-block control-box placeHolder" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"></button>
 					<button class="btn btn-block control-box placeHolder" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"></button>
 					<button class="btn btn-block control-box placeHolder" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"></button>
+					<button class="btn btn-block control-box placeHolder" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"></button>
+					<button class="btn btn-block control-box placeHolder" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"></button>
 					<p></p>
 					<input type="file" accept=".rom, .bin, .hex">
 				</div>
@@ -4150,11 +4152,11 @@ $(function() {
 			// Check if not continuing with print 
 			if(!continueWithPrint) {
 			
+				// Stop default behavior
+				event.stopImmediatePropagation();
+			
 				// Check if using on the fly pre-processing and changing settings before print
 				if(self.settings.settings.plugins.m3dfio.PreprocessOnTheFly() && self.settings.settings.plugins.m3dfio.ChangeSettingsBeforePrint()) {
-				
-					// Stop default behavior
-					event.stopImmediatePropagation();
 			
 					// Show message
 					showMessage("Printing Status", '', "Print", function() {
@@ -9909,55 +9911,19 @@ $(function() {
 
 			// Clear input
 			$(this).val('');
-
-			// Check if file has no name
-			if(!file.name.length) {
-
+			
+			// Check if file has no name or name doesn't contain a version number
+			if(!file.name.length || file.name.search(/(^| )\d{10}(\.|$)/) == -1) {
+			
 				// Show message
 				showMessage("Firmware Status", "Invalid file name", "OK", function() {
-		
+
 					// Hide message
 					hideMessage();
 				});
-			}
-
-			// Go through each character of the file's name
-			for(var index = (file.name.indexOf(' ') != -1 ? file.name.indexOf(' ') + 1 : 0); index < file.name.length; index++) {
-
-				// Check if extension is occuring
-				if(file.name[index] == '.') {
 	
-					// Break if file name contaisn version
-					if(file.name.indexOf(' ') != -1 && index - file.name.indexOf(' ') - 1 == 10)
-						break;
-			
-					if(index == 10)
-						break;
-			
-					// Show message
-					showMessage("Firmware Status", "Invalid file name", "OK", function() {
-
-						// Hide message
-						hideMessage();
-					});
-		
-					// Return
-					return;
-				}
-	
-				// Check if current character isn't a digit or length is invalid
-				if(file.name[index] < '0' || file.name[index] > '9' || (index == file.name.length - 1 && index < 9)) {
-	
-					// Show message
-					showMessage("Firmware Status", "Invalid file name", "OK", function() {
-
-						// Hide message
-						hideMessage();
-					});
-		
-					// Return
-					return;
-				}
+				// Return
+				return;
 			}
 
 			// Check if the file is too big
@@ -10386,14 +10352,15 @@ $(function() {
 					// Add update firmware to provided button
 					currentPosition.removeClass("placeHolder").addClass("firmware").data("name", firmwares[i]).attr("title", htmlEncode("Updates printer's firmware to " + data.firmwares[firmwares[i]]["Type"] + " V" + data.firmwares[firmwares[i]]["Release"])).text("Update firmware to " + data.firmwares[firmwares[i]]["Type"] + " V" + data.firmwares[firmwares[i]]["Release"]).off("click").click(function() {
 					
-						// Set firmware name
+						// Set firmware name and type
 						var firmwareName = $(this).data("name");
+						var firmwareType = firmwareName.substr(0, firmwareName.search(/ \d{10}$/));
 						
 						// Check if updating to functional firmware
-						if(firmwareName.substr(0, firmwareName.indexOf(' ')) == "M3D") {
+						if(firmwareType == "M3D" || firmwareType == "M3D Mod") {
 						
 							// Show message
-							showMessage("Firmware Status", "This will update the printer's current firmware. Proceed?", "Yes", function() {
+							showMessage("Firmware Status", firmwareType == "M3D" ? "This will update the printer's current firmware. Proceed?" : htmlEncode(firmwareType) + " is a modified version of the M3D firmware that increases the max temperature from 285°C to 315°C. Proceed?", "Yes", function() {
 			
 								// Hide message
 								hideMessage();
@@ -10446,7 +10413,7 @@ $(function() {
 						else {
 		
 							// Show message
-							showMessage("Firmware Status", htmlEncode(firmwareName.substr(0, firmwareName.indexOf(' '))) + " is not a fully functional firmware. It's currently only intended to be used by developers. Proceed?", "Yes", function() {
+							showMessage("Firmware Status", htmlEncode(firmwareType) + " is not a fully functional firmware. It's currently only intended to be used by developers. Proceed?", "Yes", function() {
 			
 								// Hide message
 								hideMessage();

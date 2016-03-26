@@ -822,13 +822,15 @@ class M3DFioPlugin(
 			if file.endswith(".hex") :
 			
 				# Get version number
-				version = file[file.find(' ') + 1 :]
-				version = version[0 : version.find('.')]
-				type = file[0 : file.find(' ')]
+				versionMatch = re.search(" \\d{10}\\.", file)
+				version = versionMatch.group(0)[1 : -1]
+				type = file[0 : versionMatch.start()]
 				
 				# Set release
-				if type == "M3D" :
+				if type == "M3D" or type == "M3D Mod" :
 					release = version
+					if type == "M3D Mod" :
+						release = str(int(release) - 100000000)
 				else :
 					release = version[2 : 4] + '.' + version[4 : 6] + '.' + version[6 : 8] + '.' + version[8 : 10]
 				
@@ -1004,8 +1006,10 @@ class M3DFioPlugin(
 		
 			# Get firmware release
 			firmwareRelease = format(firmwareVersion, "010")
-			if firmwareType is None or firmwareType != "M3D" :
+			if firmwareType is None or (firmwareType != "M3D" and firmwareType != "M3D Mod") :
 				firmwareRelease = firmwareRelease[2 : 4] + '.' + firmwareRelease[4 : 6] + '.' + firmwareRelease[6 : 8] + '.' + firmwareRelease[8 : 10]
+			elif firmwareType == "M3D Mod" :
+				firmwareRelease= str(int(firmwareRelease) - 100000000)
 			
 			# Return values
 			return firmwareType, firmwareVersion, firmwareRelease
@@ -2482,12 +2486,12 @@ class M3DFioPlugin(
 			if not currentBaudrate or currentBaudrate == 0 :
 				currentBaudrate = 115200
 			
-			# Remove firmware type from firmware name
-			if ' ' in data["name"] :
-				data["name"] = data["name"][data["name"].find(' ') + 1 :]
+			# Check if firmware version is valid
+			firmwareVersion = re.search("(^| )\\d{10}(?=\\.|$)", data["name"])
+			if firmwareVersion is not None :
 			
-			# Check if rom version is valid ROM version
-			if len(data["name"]) >= 10 and data["name"][0 : 10].isdigit() :
+				# Set firmware version
+				firmwareVersion = firmwareVersion.group(0).strip()
 			
 				# Save ports
 				self.savePorts(currentPort)
@@ -2519,7 +2523,7 @@ class M3DFioPlugin(
 					else :
 				
 						# Check if updating firmware failed
-						if not self.updateFirmware(connection, encryptedRom, int(data["name"][0 : 10])) :
+						if not self.updateFirmware(connection, encryptedRom, int(firmwareVersion)) :
 				
 							# Set error
 							error = True
@@ -3984,6 +3988,27 @@ class M3DFioPlugin(
 		
 			# Save software settings
 			octoprint.settings.settings().save()
+		
+		# Check if Cura is configured
+		if "cura" in self._slicing_manager.configured_slicers :
+
+			# Set Cura profile location and destination
+			profileLocation = self._basefolder.replace('\\', '/') + "/static/profiles/"
+			profileDestination = self._slicing_manager.get_slicer_profile_path("cura").replace('\\', '/') + '/'
+			
+			# Remove deprecated profiles
+			for profile in glob.glob(profileDestination + "m3d_*mm.profile") :
+				os.remove(profile)
+
+			# Go through all Cura profiles
+			for profile in os.listdir(profileLocation) :
+	
+				# Set profile version, identifier, and name
+				profileIdentifier = profile[0 : profile.find('.')]
+				profileName = self._slicing_manager.get_profile_path("cura", profileIdentifier)[len(profileDestination) :].lower()
+	
+				# Save Cura profile as OctoPrint profile
+				self.convertCuraToProfile(profileLocation + profile, profileDestination + profileName, profileName, profileIdentifier, "Imported by M3D Fio on " + time.strftime("%Y-%m-%d %H:%M"))
 	
 	# Event monitor
 	def on_event(self, event, payload) :
@@ -4093,27 +4118,6 @@ class M3DFioPlugin(
 			
 					# Send message
 					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Reminder", type = "Cura"))
-			
-			# Check if Cura is configured
-			if "cura" in self._slicing_manager.configured_slicers :
-	
-				# Set Cura profile location and destination
-				profileLocation = self._basefolder.replace('\\', '/') + "/static/profiles/"
-				profileDestination = self._slicing_manager.get_slicer_profile_path("cura").replace('\\', '/') + '/'
-				
-				# Remove deprecated profiles
-				for profile in glob.glob(profileDestination + "m3d_*mm.profile") :
-					os.remove(profile)
-	
-				# Go through all Cura profiles
-				for profile in os.listdir(profileLocation) :
-		
-					# Set profile version, identifier, and name
-					profileIdentifier = profile[0 : profile.find('.')]
-					profileName = self._slicing_manager.get_profile_path("cura", profileIdentifier)[len(profileDestination) :].lower()
-		
-					# Save Cura profile as OctoPrint profile
-					self.convertCuraToProfile(profileLocation + profile, profileDestination + profileName, profileName, profileIdentifier, "Imported by M3D Fio on " + time.strftime("%Y-%m-%d %H:%M"))
 			
 			# Check if sending sleep reminder
 			if not self._printer.is_printing() and not self._printer.is_paused() and self.sleepReminder :
@@ -4755,8 +4759,8 @@ class M3DFioPlugin(
 									# Display error
 									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Updating extruder current failed", header = "Error Status", confirm = True))
 				
-							# Check if using M3D firmware and it's from before new bed orientation and adjustable backlash speed
-							if not error and firmwareType is not None and firmwareType == "M3D" and firmwareVersion < 2015080402 :
+							# Check if using M3D or M3D Mod firmware and it's from before new bed orientation and adjustable backlash speed
+							if not error and firmwareType is not None and ((firmwareType == "M3D" and firmwareVersion < 2015080402) or (firmwareType == "M3D Mod" and firmwareVersion < 2115080402)) :
 					
 								# Go through bytes of bed offsets
 								index = 0
@@ -4998,6 +5002,8 @@ class M3DFioPlugin(
 								# Set if firmware is incompatible
 								if firmwareType == "M3D" :
 									incompatible = firmwareVersion < 2015122112
+								elif firmwareType == "M3D Mod" :
+									incompatible = firmwareVersion < 2115122112
 								elif firmwareType == "iMe" :
 									incompatible = firmwareVersion < 1900000001
 								
@@ -5133,8 +5139,8 @@ class M3DFioPlugin(
 						# Check if communication layer has been established
 						if self._printer._comm is not None :
 							
-							# Check if using M3D firmware
-							if self.getFirmwareDetails()[0] == "M3D" :
+							# Check if using M3D or M3D Mod firmware
+							if self.getFirmwareDetails()[0] == "M3D" or self.getFirmwareDetails()[0] == "M3D Mod" :
 		
 								# Save original write and read functions
 								self.originalWrite = self._printer.get_transport().write
@@ -5154,8 +5160,10 @@ class M3DFioPlugin(
 								# Request printer information
 								self._printer.get_transport().write("M115")
 								
-								# Overwrite read functions to process read function
-								if self.getFirmwareDetails()[0] == "M3D" :
+								# Check if using M3D or M3D Mod firmware
+								if self.getFirmwareDetails()[0] == "M3D" or self.getFirmwareDetails()[0] == "M3D Mod" :
+								
+									# Overwrite read functions to process read function
 									self._printer.get_transport().readline = self.processRead
 								
 								# Send printer details
