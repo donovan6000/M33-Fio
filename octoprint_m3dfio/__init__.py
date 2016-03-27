@@ -616,9 +616,9 @@ class M3DFioPlugin(
 	
 		# Loop forever
 		while True :
-	
-			# Check if paused
-			if self._printer.is_paused() :
+		
+			# Check if paused and using a Micro 3D printer
+			if self._printer.is_paused() and not self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
 		
 				# Send command to keep printer from being inactive for too long
 				self._printer.commands("G4")
@@ -813,9 +813,12 @@ class M3DFioPlugin(
 
 		# Save printer profile
 		self.savePrinterProfile()
+		
+		# Check if using a Micro 3D printer
+		if not self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
 	
-		# Select Micro 3D printer profile
-		self._printer_profile_manager.select("micro_3d")
+			# Select Micro 3D printer profile
+			self._printer_profile_manager.select("micro_3d")
 		
 		# Find provided firmwares
 		for file in os.listdir(self._basefolder.replace('\\', '/') + "/static/files/") :
@@ -935,10 +938,16 @@ class M3DFioPlugin(
 	  		self.sharedLibrary.getDetectedMidPrintFilamentChange.restype = ctypes.c_bool
 	  		self.sharedLibrary.getObjectSuccessfullyCentered.restype = ctypes.c_bool
 	    	
-	    	# Set printer callbacks is using a different printer
-		if self._settings.get_boolean(["UsingADifferentPrinter"]) :
+	    	# Check if not using a Micro 3D printer
+		if self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
+		
+			# Disable printer callbacks
 			self._printer.unregister_callback(self)
+		
+		# Otherwise
 		else :
+		
+			# Enable printer callbacks
 			self._printer.register_callback(self)
 		
 		# Keep printer active
@@ -1261,7 +1270,7 @@ class M3DFioPlugin(
 			SpeedLimitEPositive = 102,
 			SpeedLimitENegative = 360,
 			ChangeSettingsBeforePrint = True,
-			UsingADifferentPrinter = False,
+			NotUsingAMicro3DPrinter = False,
 			CalibrateBeforePrint = False,
 			RemoveFanCommands = True,
 			RemoveTemperatureCommands = True,
@@ -1295,11 +1304,11 @@ class M3DFioPlugin(
 		# Save settings
 		octoprint.plugin.SettingsPlugin.on_settings_save(self, data)
 		
-		# Send message for enabling/disabling GPIO
+		# Send message for enabling/disabling GPIO buttons
 		if self._settings.get_boolean(["UseGpio"]) and self._settings.get_int(["GpioPin"]) is not None and self._settings.get_int(["GpioLayer"]) is not None :
-			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Enable GPIO"))
+			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Enable GPIO Buttons"))
 		else :
-			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Disable GPIO"))
+			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Disable GPIO Buttons"))
 		
 		# Check if Micro 3D printer profile exists
 		if self._printer_profile_manager.exists("micro_3d") :
@@ -1408,30 +1417,39 @@ class M3DFioPlugin(
 			# Check if parameter is a list of commands
 			if isinstance(data["value"], list) :
 			
-				# Set no line numbers if first command is to remove line numbers
-				if data["value"][0] == "M65538;no line numbers" :
-					noLineNumber = True
-					data["value"].pop(0)
-				
-				# Otherwise clear no line numbers
-				else :
-					noLineNumber = False
-			
-				# Set waiting until commands sent if last command is to wait
-				if data["value"][-1] == "M65536;wait" :
-					self.waitingUntilCommandsSent = True
-				
-				# Check if not using line numbers or printing
-				if noLineNumber or self._printer.is_printing() :
+				# Check if not using a Micro 3D printer
+				if self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
 				
 					# Send commands to printer
-					self.sendCommands(data["value"])
+					self._printer.commands(data["value"])
 				
 				# Otherwise
 				else :
+			
+					# Set no line numbers if first command is to remove line numbers
+					if data["value"][0] == "M65538;no line numbers" :
+						noLineNumber = True
+						data["value"].pop(0)
 				
-					# Send commands with line numbers
-					self.sendCommandsWithLineNumbers(data["value"])
+					# Otherwise clear no line numbers
+					else :
+						noLineNumber = False
+			
+					# Set waiting until commands sent if last command is to wait
+					if data["value"][-1] == "M65536;wait" :
+						self.waitingUntilCommandsSent = True
+				
+					# Check if not using line numbers or printing
+					if noLineNumber or self._printer.is_printing() :
+				
+						# Send commands to printer
+						self.sendCommands(data["value"])
+				
+					# Otherwise
+					else :
+				
+						# Send commands with line numbers
+						self.sendCommandsWithLineNumbers(data["value"])
 			
 			# Otherwise check if parameter is to set fan
 			elif data["value"].startswith("Set Fan:") :
@@ -1500,9 +1518,8 @@ class M3DFioPlugin(
 					# Set error
 					error = True
 				
-				# Enable printer callbacks if using a Micro 3D printer
-			    	if not self._settings.get_boolean(["UsingADifferentPrinter"]) :
-					self._printer.register_callback(self)
+				# Enable printer callbacks
+			    	self._printer.register_callback(self)
 				
 				# Send response
 				if error :
@@ -1577,9 +1594,8 @@ class M3DFioPlugin(
 					# Set error
 					error = True
 				
-				# Enable printer callbacks if using a Micro 3D printer
-		    		if not self._settings.get_boolean(["UsingADifferentPrinter"]) :
-					self._printer.register_callback(self)
+				# Enable printer callbacks
+			    	self._printer.register_callback(self)
 				
 				# Send response
 				if error :
@@ -1775,9 +1791,8 @@ class M3DFioPlugin(
 					# Set error
 					error = True
 				
-				# Enable printer callbacks if using a Micro 3D printer
-		    		if not self._settings.get_boolean(["UsingADifferentPrinter"]) :
-					self._printer.register_callback(self)
+				# Enable printer callbacks
+			    	self._printer.register_callback(self)
 				
 				# Send response
 				if self.eeprom is None :
@@ -1874,9 +1889,8 @@ class M3DFioPlugin(
 						# Set error
 						error = True
 					
-					# Enable printer callbacks if using a Micro 3D printer
-		    			if not self._settings.get_boolean(["UsingADifferentPrinter"]) :
-						self._printer.register_callback(self)
+					# Enable printer callbacks
+			    		self._printer.register_callback(self)
 				
 				# Send response
 				if error :
@@ -1887,17 +1901,35 @@ class M3DFioPlugin(
 			# Otherwise check if parameter is to saved settings
 			elif data["value"] == "Saved Settings" :
 			
-				# Set printer callbacks is using a different printer
-				if self._settings.get_boolean(["UsingADifferentPrinter"]) :
+				# Check if not using a Micro 3D printer
+				if self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
+				
+					# Disable printer callbacks
 					self._printer.unregister_callback(self)
+					
+					# Check if a Micro 3D is connected and not printing or paused
+					if not self.invalidPrinter and not self._printer.is_printing() and not self._printer.is_paused() :
+					
+						# Close connection
+						if self._printer._comm is not None :
+			
+							try :
+								self._printer._comm.close(False, False)
+							except TypeError :
+								pass
+			
+						self._printer.disconnect()
+				# Otherwise
 				else :
+				
+					# Enable printer callbacks
 					self._printer.register_callback(self)
 			
-				# Check if a Micro 3D is connected and not printing
-				if not self.invalidPrinter and not self._printer.is_printing() :
+					# Check if a Micro 3D is connected and not printing
+					if not self.invalidPrinter and not self._printer.is_printing() :
 				
-					# Save settings to the printer
-					self.sendCommands(self.getSaveCommands())
+						# Save settings to the printer
+						self.sendCommands(self.getSaveCommands())
 			
 			# Otherwise check if parameter is a response to a message
 			elif data["value"] == "OK" or data["value"] == "Yes" or data["value"] == "No" :
@@ -2240,9 +2272,8 @@ class M3DFioPlugin(
 					# Set error
 					error = True
 			
-				# Enable printer callbacks if using a Micro 3D printer
-		    		if not self._settings.get_boolean(["UsingADifferentPrinter"]) :
-					self._printer.register_callback(self)
+				# Enable printer callbacks
+			    	self._printer.register_callback(self)
 			
 				# Send response
 				if error :
@@ -2439,9 +2470,9 @@ class M3DFioPlugin(
 				self.sendCommandsWithLineNumbers(commands)
 			
 			# Otherwise check if parameter is to get print information
-			elif data["value"] == "Print Information" :
-			
-				# Return print information
+			elif data["value"] == "Print Information" and hasattr(self, "maxXExtruderLow") and hasattr(self, "maxXExtruderMedium") and hasattr(self, "maxXExtruderHigh") and hasattr(self, "maxYExtruderLow") and hasattr(self, "maxYExtruderMedium") and hasattr(self, "maxYExtruderHigh") and hasattr(self, "maxZExtruder") and hasattr(self, "minXExtruderLow") and hasattr(self, "minXExtruderMedium") and hasattr(self, "minXExtruderHigh") and hasattr(self, "minYExtruderLow") and hasattr(self, "minYExtruderMedium") and hasattr(self, "minYExtruderHigh") and hasattr(self, "minZExtruder") :
+			 
+			 	# Return print information
 				return flask.jsonify(dict(value = "OK", maxXLow = self.maxXExtruderLow, maxXMedium = self.maxXExtruderMedium, maxXHigh = self.maxXExtruderHigh, maxYLow = self.maxYExtruderLow, maxYMedium = self.maxYExtruderMedium, maxYHigh = self.maxYExtruderHigh, maxZ = self.maxZExtruder, minXLow = self.minXExtruderLow, minXMedium = self.minXExtruderMedium, minXHigh = self.minXExtruderHigh, minYLow = self.minYExtruderLow, minYMedium = self.minYExtruderMedium, minYHigh = self.minYExtruderHigh, minZ = self.minZExtruder))
 			
 			# Otherwise check if parameter is starting print
@@ -2554,9 +2585,8 @@ class M3DFioPlugin(
 				# Set error
 				error = True
 			
-			# Enable printer callbacks if using a Micro 3D printer
-		    	if not self._settings.get_boolean(["UsingADifferentPrinter"]) :
-				self._printer.register_callback(self)
+			# Enable printer callbacks
+			self._printer.register_callback(self)
 			
 			# Send response
 			if error :
@@ -4110,8 +4140,8 @@ class M3DFioPlugin(
 			else :
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Disable GPIO Buttons"))
 			
-			# Check if sending Cura reminder
-			if self.curaReminder :
+			# Check if sending Cura reminder and using a Micro 3D printer
+			if self.curaReminder and not self._settings.get_boolean(["NotUsingAMicro3DPrinter"]):
 			
 				# Check if Cura is not configured
 				if not "cura" in self._slicing_manager.configured_slicers :
@@ -4160,202 +4190,196 @@ class M3DFioPlugin(
 			
 			# Erase log files
 			self.eraseLogFiles()
-		
-			# Reset pre-processor settings
-			self.resetPreprocessorSettings()
 			
-			# Check if printing test border
-			if payload["filename"] == os.path.basename(self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "test border.gcode").replace('\\', '/')) :
-	
-				# Set printing test border
-				self.printingTestBorder = True
-	
-			# Otherwise check if printing backlash calibration cylinder
-			elif payload["filename"] == os.path.basename(self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "backlash calibration cylinder.gcode").replace('\\', '/')) :
-	
-				# Set printing backlash calibration cylinder
-				self.printingBacklashCalibrationCylinder = True
+			# Check if using a Micro 3D printer
+			if not self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
 		
-			# Display message
-			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Collecting print information", header = "Printing Status"))
-	
-			# Check if using shared library
-			if self.sharedLibrary and self._settings.get_boolean(["UseSharedLibrary"]) :
-	
 				# Reset pre-processor settings
-				self.sharedLibrary.resetPreprocessorSettings()
-
-				# Set values
-				self.sharedLibrary.setBacklashX(ctypes.c_double(self._settings.get_float(["BacklashX"])))
-				self.sharedLibrary.setBacklashY(ctypes.c_double(self._settings.get_float(["BacklashY"])))
-				self.sharedLibrary.setBacklashSpeed(ctypes.c_double(self._settings.get_float(["BacklashSpeed"])))
-				self.sharedLibrary.setBackRightOrientation(ctypes.c_double(self._settings.get_float(["BackRightOrientation"])))
-				self.sharedLibrary.setBackLeftOrientation(ctypes.c_double(self._settings.get_float(["BackLeftOrientation"])))
-				self.sharedLibrary.setFrontLeftOrientation(ctypes.c_double(self._settings.get_float(["FrontLeftOrientation"])))
-				self.sharedLibrary.setFrontRightOrientation(ctypes.c_double(self._settings.get_float(["FrontRightOrientation"])))
-				self.sharedLibrary.setBedHeightOffset(ctypes.c_double(self._settings.get_float(["BedHeightOffset"])))
-				self.sharedLibrary.setBackRightOffset(ctypes.c_double(self._settings.get_float(["BackRightOffset"])))
-				self.sharedLibrary.setBackLeftOffset(ctypes.c_double(self._settings.get_float(["BackLeftOffset"])))
-				self.sharedLibrary.setFrontLeftOffset(ctypes.c_double(self._settings.get_float(["FrontLeftOffset"])))
-				self.sharedLibrary.setFrontRightOffset(ctypes.c_double(self._settings.get_float(["FrontRightOffset"])))
-				self.sharedLibrary.setFilamentTemperature(ctypes.c_ushort(self._settings.get_int(["FilamentTemperature"])))
-				self.sharedLibrary.setFilamentType(ctypes.c_char_p(str(self._settings.get(["FilamentType"]))))
-				self.sharedLibrary.setUseValidationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseValidationPreprocessor"])))
-				self.sharedLibrary.setUsePreparationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UsePreparationPreprocessor"])))
-				self.sharedLibrary.setUseWaveBondingPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseWaveBondingPreprocessor"])))
-				self.sharedLibrary.setUseThermalBondingPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseThermalBondingPreprocessor"])))
-				self.sharedLibrary.setUseBedCompensationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseBedCompensationPreprocessor"])))
-				self.sharedLibrary.setUseBacklashCompensationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseBacklashCompensationPreprocessor"])))
-				self.sharedLibrary.setUseCenterModelPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseCenterModelPreprocessor"])))
-				self.sharedLibrary.setIgnorePrintDimensionLimitations(ctypes.c_bool(self._settings.get_boolean(["IgnorePrintDimensionLimitations"])))
-				self.sharedLibrary.setUsingHeatbed(ctypes.c_bool(self.heatbedConnected))
-				self.sharedLibrary.setPrintingTestBorder(ctypes.c_bool(self.printingTestBorder))
-				self.sharedLibrary.setPrintingBacklashCalibrationCylinder(ctypes.c_bool(self.printingBacklashCalibrationCylinder))
-				self.sharedLibrary.setPrinterColor(ctypes.c_char_p(self.printerColor))
-				self.sharedLibrary.setCalibrateBeforePrint(ctypes.c_bool(self._settings.get_boolean(["CalibrateBeforePrint"])))
-				self.sharedLibrary.setRemoveFanCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveFanCommands"])))
-				self.sharedLibrary.setRemoveTemperatureCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveTemperatureCommands"])))
-				self.sharedLibrary.setUseGpio(ctypes.c_bool(self._settings.get_boolean(["UseGpio"])))
-				if self._settings.get_int(["GpioLayer"]) is not None :
-					self.sharedLibrary.setGpioLayer(ctypes.c_ushort(self._settings.get_int(["GpioLayer"])))
-				self.sharedLibrary.setHeatbedTemperature(ctypes.c_ushort(self._settings.get_int(["HeatbedTemperature"])))
-				self.sharedLibrary.setExternalBedHeight(ctypes.c_double(self._settings.get_float(["ExternalBedHeight"])))
-				self.sharedLibrary.setExpandPrintableRegion(ctypes.c_bool(self._settings.get_boolean(["ExpandPrintableRegion"])))
-				self.sharedLibrary.setMidPrintFilamentChangeLayers(ctypes.c_char_p(' '.join(re.findall("\\d+", str(self._settings.get(["MidPrintFilamentChangeLayers"]))))))
-				
-				# Collect print information
-				printIsValid = self.sharedLibrary.collectPrintInformation(ctypes.c_char_p(payload["file"]), ctypes.c_bool(self._settings.get_boolean(["PreprocessOnTheFly"])))
-				
-				# Get extruder min and max movements
-				self.maxXExtruderLow = self.sharedLibrary.getMaxXExtruderLow()
-				self.maxXExtruderMedium = self.sharedLibrary.getMaxXExtruderMedium()
-				self.maxXExtruderHigh = self.sharedLibrary.getMaxXExtruderHigh()
-				self.maxYExtruderLow = self.sharedLibrary.getMaxYExtruderLow()
-				self.maxYExtruderMedium = self.sharedLibrary.getMaxYExtruderMedium()
-				self.maxYExtruderHigh = self.sharedLibrary.getMaxYExtruderHigh()
-				self.maxZExtruder = self.sharedLibrary.getMaxZExtruder()
-				self.minXExtruderLow = self.sharedLibrary.getMinXExtruderLow()
-				self.minXExtruderMedium = self.sharedLibrary.getMinXExtruderMedium()
-				self.minXExtruderHigh = self.sharedLibrary.getMinXExtruderHigh()
-				self.minYExtruderLow = self.sharedLibrary.getMinYExtruderLow()
-				self.minYExtruderMedium = self.sharedLibrary.getMinYExtruderMedium()
-				self.minYExtruderHigh = self.sharedLibrary.getMinYExtruderHigh()
-				self.minZExtruder = self.sharedLibrary.getMinZExtruder()
-				
-				# Get detected fan speed
-				self.detectedFanSpeed = self.sharedLibrary.getDetectedFanSpeed()
-				
-				# Get detected mid-print filament change
-				self.detectedMidPrintFilamentChange = self.sharedLibrary.getDetectedMidPrintFilamentChange()
-				
-				# Get object successfully centered
-				self.objectSuccessfullyCentered = self.sharedLibrary.getObjectSuccessfullyCentered()
-
-			# Otherwise
-			else :
+				self.resetPreprocessorSettings()
+			
+				# Check if printing test border
+				if payload["filename"] == os.path.basename(self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "test border.gcode").replace('\\', '/')) :
 	
-				# Collect print information
-				printIsValid = self.collectPrintInformation(payload["file"], self._settings.get_boolean(["PreprocessOnTheFly"]))
-			
-			# Check if pre-processing on the fly
-			if self._settings.get_boolean(["PreprocessOnTheFly"]) :
+					# Set printing test border
+					self.printingTestBorder = True
+	
+				# Otherwise check if printing backlash calibration cylinder
+				elif payload["filename"] == os.path.basename(self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "backlash calibration cylinder.gcode").replace('\\', '/')) :
+	
+					# Set printing backlash calibration cylinder
+					self.printingBacklashCalibrationCylinder = True
+		
+				# Display message
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Collecting print information", header = "Printing Status"))
+	
+				# Check if using shared library
+				if self.sharedLibrary and self._settings.get_boolean(["UseSharedLibrary"]) :
+	
+					# Reset pre-processor settings
+					self.sharedLibrary.resetPreprocessorSettings()
 
-				# Check if print goes out of bounds
-				if not printIsValid :
+					# Set values
+					self.sharedLibrary.setBacklashX(ctypes.c_double(self._settings.get_float(["BacklashX"])))
+					self.sharedLibrary.setBacklashY(ctypes.c_double(self._settings.get_float(["BacklashY"])))
+					self.sharedLibrary.setBacklashSpeed(ctypes.c_double(self._settings.get_float(["BacklashSpeed"])))
+					self.sharedLibrary.setBackRightOrientation(ctypes.c_double(self._settings.get_float(["BackRightOrientation"])))
+					self.sharedLibrary.setBackLeftOrientation(ctypes.c_double(self._settings.get_float(["BackLeftOrientation"])))
+					self.sharedLibrary.setFrontLeftOrientation(ctypes.c_double(self._settings.get_float(["FrontLeftOrientation"])))
+					self.sharedLibrary.setFrontRightOrientation(ctypes.c_double(self._settings.get_float(["FrontRightOrientation"])))
+					self.sharedLibrary.setBedHeightOffset(ctypes.c_double(self._settings.get_float(["BedHeightOffset"])))
+					self.sharedLibrary.setBackRightOffset(ctypes.c_double(self._settings.get_float(["BackRightOffset"])))
+					self.sharedLibrary.setBackLeftOffset(ctypes.c_double(self._settings.get_float(["BackLeftOffset"])))
+					self.sharedLibrary.setFrontLeftOffset(ctypes.c_double(self._settings.get_float(["FrontLeftOffset"])))
+					self.sharedLibrary.setFrontRightOffset(ctypes.c_double(self._settings.get_float(["FrontRightOffset"])))
+					self.sharedLibrary.setFilamentTemperature(ctypes.c_ushort(self._settings.get_int(["FilamentTemperature"])))
+					self.sharedLibrary.setFilamentType(ctypes.c_char_p(str(self._settings.get(["FilamentType"]))))
+					self.sharedLibrary.setUseValidationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseValidationPreprocessor"])))
+					self.sharedLibrary.setUsePreparationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UsePreparationPreprocessor"])))
+					self.sharedLibrary.setUseWaveBondingPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseWaveBondingPreprocessor"])))
+					self.sharedLibrary.setUseThermalBondingPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseThermalBondingPreprocessor"])))
+					self.sharedLibrary.setUseBedCompensationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseBedCompensationPreprocessor"])))
+					self.sharedLibrary.setUseBacklashCompensationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseBacklashCompensationPreprocessor"])))
+					self.sharedLibrary.setUseCenterModelPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseCenterModelPreprocessor"])))
+					self.sharedLibrary.setIgnorePrintDimensionLimitations(ctypes.c_bool(self._settings.get_boolean(["IgnorePrintDimensionLimitations"])))
+					self.sharedLibrary.setUsingHeatbed(ctypes.c_bool(self.heatbedConnected))
+					self.sharedLibrary.setPrintingTestBorder(ctypes.c_bool(self.printingTestBorder))
+					self.sharedLibrary.setPrintingBacklashCalibrationCylinder(ctypes.c_bool(self.printingBacklashCalibrationCylinder))
+					self.sharedLibrary.setPrinterColor(ctypes.c_char_p(self.printerColor))
+					self.sharedLibrary.setCalibrateBeforePrint(ctypes.c_bool(self._settings.get_boolean(["CalibrateBeforePrint"])))
+					self.sharedLibrary.setRemoveFanCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveFanCommands"])))
+					self.sharedLibrary.setRemoveTemperatureCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveTemperatureCommands"])))
+					self.sharedLibrary.setUseGpio(ctypes.c_bool(self._settings.get_boolean(["UseGpio"])))
+					if self._settings.get_int(["GpioLayer"]) is not None :
+						self.sharedLibrary.setGpioLayer(ctypes.c_ushort(self._settings.get_int(["GpioLayer"])))
+					self.sharedLibrary.setHeatbedTemperature(ctypes.c_ushort(self._settings.get_int(["HeatbedTemperature"])))
+					self.sharedLibrary.setExternalBedHeight(ctypes.c_double(self._settings.get_float(["ExternalBedHeight"])))
+					self.sharedLibrary.setExpandPrintableRegion(ctypes.c_bool(self._settings.get_boolean(["ExpandPrintableRegion"])))
+					self.sharedLibrary.setMidPrintFilamentChangeLayers(ctypes.c_char_p(' '.join(re.findall("\\d+", str(self._settings.get(["MidPrintFilamentChangeLayers"]))))))
+				
+					# Collect print information
+					printIsValid = self.sharedLibrary.collectPrintInformation(ctypes.c_char_p(payload["file"]), ctypes.c_bool(self._settings.get_boolean(["PreprocessOnTheFly"])))
+				
+					# Get extruder min and max movements
+					self.maxXExtruderLow = self.sharedLibrary.getMaxXExtruderLow()
+					self.maxXExtruderMedium = self.sharedLibrary.getMaxXExtruderMedium()
+					self.maxXExtruderHigh = self.sharedLibrary.getMaxXExtruderHigh()
+					self.maxYExtruderLow = self.sharedLibrary.getMaxYExtruderLow()
+					self.maxYExtruderMedium = self.sharedLibrary.getMaxYExtruderMedium()
+					self.maxYExtruderHigh = self.sharedLibrary.getMaxYExtruderHigh()
+					self.maxZExtruder = self.sharedLibrary.getMaxZExtruder()
+					self.minXExtruderLow = self.sharedLibrary.getMinXExtruderLow()
+					self.minXExtruderMedium = self.sharedLibrary.getMinXExtruderMedium()
+					self.minXExtruderHigh = self.sharedLibrary.getMinXExtruderHigh()
+					self.minYExtruderLow = self.sharedLibrary.getMinYExtruderLow()
+					self.minYExtruderMedium = self.sharedLibrary.getMinYExtruderMedium()
+					self.minYExtruderHigh = self.sharedLibrary.getMinYExtruderHigh()
+					self.minZExtruder = self.sharedLibrary.getMinZExtruder()
+				
+					# Get detected fan speed
+					self.detectedFanSpeed = self.sharedLibrary.getDetectedFanSpeed()
+				
+					# Get detected mid-print filament change
+					self.detectedMidPrintFilamentChange = self.sharedLibrary.getDetectedMidPrintFilamentChange()
+				
+					# Get object successfully centered
+					self.objectSuccessfullyCentered = self.sharedLibrary.getObjectSuccessfullyCentered()
 
-					# Create message
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "error", title = "Print failed", text = "Could not print the file. The dimensions of the model go outside the bounds of the printer."))
-					
-					# Clear perform cancel print movement
-					self.performCancelPrintMovement = False
-					
-					# Stop printing
-					self._printer.cancel_print()
-			
 				# Otherwise
 				else :
+	
+					# Collect print information
+					printIsValid = self.collectPrintInformation(payload["file"], self._settings.get_boolean(["PreprocessOnTheFly"]))
 			
-					# Check if detected fan speed is 0
-					if self.detectedFanSpeed == 0 :
-			
+				# Check if pre-processing on the fly
+				if self._settings.get_boolean(["PreprocessOnTheFly"]) :
+
+					# Check if print goes out of bounds
+					if not printIsValid :
+
 						# Create message
-						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "notice", title = "Print warning", text = "No fan speed has been detected in this file which could cause the print to fail"))
+						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "error", title = "Print failed", text = "Could not print the file. The dimensions of the model go outside the bounds of the printer."))
+					
+						# Clear perform cancel print movement
+						self.performCancelPrintMovement = False
+					
+						# Stop printing
+						self._printer.cancel_print()
+			
+					# Otherwise
+					else :
+			
+						# Check if detected fan speed is 0
+						if self.detectedFanSpeed == 0 :
+			
+							# Create message
+							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "notice", title = "Print warning", text = "No fan speed has been detected in this file which could cause the print to fail"))
 				
-					# Check if detected mid-print filament change
-					if self.detectedMidPrintFilamentChange :
+						# Check if detected mid-print filament change
+						if self.detectedMidPrintFilamentChange :
 		
-						# Create message
-						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "notice", title = "Print warning", text = "This file uses mid-print filament change commands"))
+							# Create message
+							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "notice", title = "Print warning", text = "This file uses mid-print filament change commands"))
 				
-					# Check if objected couldn't be centered
-					if self._settings.get_boolean(["UseCenterModelPreprocessor"]) and not self.objectSuccessfullyCentered :
+						# Check if objected couldn't be centered
+						if self._settings.get_boolean(["UseCenterModelPreprocessor"]) and not self.objectSuccessfullyCentered :
 		
-						# Create message
-						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "notice", title = "Print warning", text = "Object too large to center on print bed"))
+							# Create message
+							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "notice", title = "Print warning", text = "Object too large to center on print bed"))
 			
-			# Set ready to print
-			self.readyToPrint = True
+				# Set ready to print
+				self.readyToPrint = True
 			
-			# Hide message
-			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Hide Message"))
-		
-		# Otherwise check if a print is paused
-		elif event == octoprint.events.Events.PRINT_PAUSED :
-		
-			# Enable sleep
-			self.enableSleep()
-		
-		# Otherwise check if a print is resumed
-		elif event == octoprint.events.Events.PRINT_RESUMED :
-		
-			# Disable sleep
-			self.disableSleep()
+				# Hide message
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Hide Message"))
 		
 		# Otherwise check if a print is done
 		elif event == octoprint.events.Events.PRINT_DONE :
 		
-			# Wait until all sent commands have been processed
-			while len(self.sentCommands) :
+			# Check if using a Micro 3D printer
+			if not self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
+		
+				# Wait until all sent commands have been processed
+				while len(self.sentCommands) :
 			
-				# Update communication timeout to prevent other commands from being sent
+					# Update communication timeout to prevent other commands from being sent
+					if self._printer._comm is not None :
+						self._printer._comm._gcode_G4_sent("G4")
+				
+					time.sleep(0.01)
+		
+				# Empty command queue
+				self.emptyCommandQueue()
+			
+				# Set first line number to zero and clear history
 				if self._printer._comm is not None :
-					self._printer._comm._gcode_G4_sent("G4")
-				
-				time.sleep(0.01)
+					self._printer._comm._gcode_M110_sending("N0")
+					self._printer._comm._long_running_command = True
+			
+				# Clear sent commands
+				self.sentCommands = {}
+				self.resetLineNumberCommandSent = False
+				self.numberWrapCounter = 0
 		
-			# Empty command queue
-			self.emptyCommandQueue()
+				# Check if pre-processing on the fly
+				if self._settings.get_boolean(["PreprocessOnTheFly"]) :
+				
+					# Check if using shared library
+					if self.sharedLibrary and self._settings.get_boolean(["UseSharedLibrary"]) :
+				
+						# Pre-process command
+						commands = self.sharedLibrary.preprocess(ctypes.c_char_p("G4"), ctypes.c_char_p(None), ctypes.c_bool(True)).split(',')
+				
+					# Otherwise
+					else :
+				
+						# Pre-process command
+						commands = self.preprocess("G4", None, True)
+				
+					# Send commands with line numbers
+					self.sendCommandsWithLineNumbers(commands)
 			
-			# Set first line number to zero and clear history
-			if self._printer._comm is not None :
-				self._printer._comm._gcode_M110_sending("N0")
-				self._printer._comm._long_running_command = True
-			
-			# Clear sent commands
-			self.sentCommands = {}
-			self.resetLineNumberCommandSent = False
-			self.numberWrapCounter = 0
-		
-			# Check if pre-processing on the fly
-			if self._settings.get_boolean(["PreprocessOnTheFly"]) :
-				
-				# Check if using shared library
-				if self.sharedLibrary and self._settings.get_boolean(["UseSharedLibrary"]) :
-				
-					# Pre-process command
-					commands = self.sharedLibrary.preprocess(ctypes.c_char_p("G4"), ctypes.c_char_p(None), ctypes.c_bool(True)).split(',')
-				
-				# Otherwise
-				else :
-				
-					# Pre-process command
-					commands = self.preprocess("G4", None, True)
-				
-				# Send commands with line numbers
-				self.sendCommandsWithLineNumbers(commands)
-			
-			# Reset print settings
-			self.resetPrintSettings()
+				# Reset print settings
+				self.resetPrintSettings()
 			
 			# Enable sleep
 			self.enableSleep()
@@ -4363,64 +4387,73 @@ class M3DFioPlugin(
 		# Otherwise check if a print failed
 		elif event == octoprint.events.Events.PRINT_FAILED :
 		
-			# Empty command queue
-			self.emptyCommandQueue()
+			# Check if using a Micro 3D printer
+			if not self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
+		
+				# Empty command queue
+				self.emptyCommandQueue()
 			
-			# Set first line number to zero and clear history
-			if self._printer._comm is not None :
-				self._printer._comm._gcode_M110_sending("N0")
-				self._printer._comm._long_running_command = True
+				# Set first line number to zero and clear history
+				if self._printer._comm is not None :
+					self._printer._comm._gcode_M110_sending("N0")
+					self._printer._comm._long_running_command = True
 			
-			# Clear sent commands
-			self.sentCommands = {}
-			self.resetLineNumberCommandSent = False
-			self.numberWrapCounter = 0
+				# Clear sent commands
+				self.sentCommands = {}
+				self.resetLineNumberCommandSent = False
+				self.numberWrapCounter = 0
 			
-			# Check if performing cancel print movement
-			if self.performCancelPrintMovement :
+				# Check if performing cancel print movement
+				if self.performCancelPrintMovement :
 			
-				# Clear perform cancel print movement
-				self.performCancelPrintMovement = False
+					# Clear perform cancel print movement
+					self.performCancelPrintMovement = False
 			
-				# Set canceling print
-				self.cancelingPrint = True
+					# Set canceling print
+					self.cancelingPrint = True
 			
-				# Set commands
-				commands = [
-					"M114"
-				]
+					# Set commands
+					commands = [
+						"M114"
+					]
 				
-				# Send commands with line numbers
-				self.sendCommandsWithLineNumbers(commands)
+					# Send commands with line numbers
+					self.sendCommandsWithLineNumbers(commands)
 			
+				# Otherwise
+				else :
+			
+					# Set commands
+					commands = [
+						"M104 S0"
+					]
+
+					if self.heatbedConnected :
+						commands += ["M140 S0"]
+			
+					if self._settings.get_boolean(["UseGpio"]) :
+						commands += ["M107 T1"]
+
+					commands += ["M18"]
+					commands += ["M107"]
+			
+					if self.printerColor == "Clear" :
+						commands += ["M420 T20"]
+					else :
+						commands += ["M420 T100"]
+			
+					# Send commands with line numbers
+					self.sendCommandsWithLineNumbers(commands)
+				
+					# Reset print settings
+					self.resetPrintSettings()
+			
+					# Enable sleep
+					self.enableSleep()
+					
 			# Otherwise
 			else :
-			
-				# Set commands
-				commands = [
-					"M104 S0"
-				]
-
-				if self.heatbedConnected :
-					commands += ["M140 S0"]
-			
-				if self._settings.get_boolean(["UseGpio"]) :
-					commands += ["M107 T1"]
-
-				commands += ["M18"]
-				commands += ["M107"]
-			
-				if self.printerColor == "Clear" :
-					commands += ["M420 T20"]
-				else :
-					commands += ["M420 T100"]
-			
-				# Send commands with line numbers
-				self.sendCommandsWithLineNumbers(commands)
-				
-				# Reset print settings
-				self.resetPrintSettings()
-			
+		
 				# Enable sleep
 				self.enableSleep()
 	
@@ -6147,8 +6180,8 @@ class M3DFioPlugin(
 	# Pre-process G-code
 	def preprocessGcode(self, path, file_object, links = None, printer_profile = None, allow_overwrite = True, *args, **kwargs) :
 	
-		# Check if file is not G-code
-		if not octoprint.filemanager.valid_file_type(path, "gcode") :
+		# Check if file is not G-code or not using a Micro 3D printer
+		if not octoprint.filemanager.valid_file_type(path, "gcode") or self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
 		
 			# Return unmodified file
 			return file_object
@@ -8504,8 +8537,8 @@ class M3DFioPlugin(
 	# Auto connect
 	def autoConnect(self, comm_instance, port, baudrate, read_timeout, *args, **kwargs) :
 	
-		# Check if using a different printer
-		if self._settings.get_boolean(["UsingADifferentPrinter"]) :
+		# Check if not using a Micro 3D printer
+		if self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
 		
 			# Return
 			return

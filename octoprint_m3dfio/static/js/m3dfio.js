@@ -3467,12 +3467,9 @@ $(function() {
 		if(htmlDecode(BRANCH) == "HEAD -> master")
 			$("#settings_plugin_softwareupdate div.alert:nth-of-type(2)").remove();
 		
-		// Change temperature graph's background image
-		$("#temperature-graph").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/graph%20background.png");
-		
 		// Add mid-print filament change settings
 		$("#gcode div.progress").after(`
-			<div class="midPrintFilamentChange">
+			<div class="midPrintFilamentChange micro3d">
 				<h1>Mid-Print Filament Change</h1>
 				<label title="Mid-print filament change commands will be added at the start of each specified layer. Layer numbers should be seperated by a space.">Layers<input type="text" pattern="[\\d\\s]*" class="input-block-level"></label>
 				<button class="btn btn-block control-box" data-bind="enable: loginState.isUser() && enableReload">Add current layer</button>
@@ -3510,18 +3507,8 @@ $(function() {
 		
 		// Change fan controls
 		$("#control > div.jog-panel.general").find("button:nth-of-type(2)").after(`
-			<button class="btn btn-block control-box" data-bind="enable: isOperational() && loginState.isUser(), click: function() {
-				$root.sendCustomCommand({
-					type: 'command',
-					command: 'M106 S255*'
-				})
-			}" title="Turns on extruder's fan">Fan on</button>
-			<button class="btn btn-block control-box" data-bind="enable: isOperational() && loginState.isUser(), click: function() {
-				$root.sendCustomCommand({
-					type: 'command',
-					command: 'M107*'
-				})
-			}" title="Turns off extruder's fan">Fan off</button>
+			<button class="btn btn-block control-box" data-bind="enable: isOperational() && loginState.isUser()">Fan on</button>
+			<button class="btn btn-block control-box" data-bind="enable: isOperational() && loginState.isUser()">Fan off</button>
 		`);
 		$("#control > div.jog-panel.general").find("button:nth-of-type(5)").remove();
 		$("#control > div.jog-panel.general").find("button:nth-of-type(5)").remove();
@@ -3540,15 +3527,15 @@ $(function() {
 					command: 'G91'
 				})
 			}" title="Sets extruder to use relative positioning">Relative mode</button>
-			<button class="btn btn-block control-box" data-bind="enable: loginState.isUser()">Print settings</button>
-			<button class="btn btn-block control-box" data-bind="enable: isOperational() && loginState.isUser()">Emergency stop</button>
-			<button class="btn btn-block control-box gpio" data-bind="enable: isOperational() && loginState.isUser(), click: function() {
+			<button class="btn btn-block control-box micro3d" data-bind="enable: loginState.isUser()">Print settings</button>
+			<button class="btn btn-block control-box micro3d" data-bind="enable: isOperational() && loginState.isUser()">Emergency stop</button>
+			<button class="btn btn-block control-box gpio micro3d" data-bind="enable: isOperational() && loginState.isUser(), click: function() {
 				$root.sendCustomCommand({
 					type: 'command',
 					command: 'M106 T1*'
 				})
 			}" title="Sets GPIO pin high">GPIO high</button>
-			<button class="btn btn-block control-box gpio" data-bind="enable: isOperational() && loginState.isUser(), click: function() {
+			<button class="btn btn-block control-box gpio micro3d" data-bind="enable: isOperational() && loginState.isUser(), click: function() {
 				$root.sendCustomCommand({
 					type: 'command',
 					command: 'M107 T1*'
@@ -3558,7 +3545,7 @@ $(function() {
 	
 		// Add filament controls
 		$("#control > div.jog-panel.general").after(`
-			<div class="jog-panel filament" data-bind="visible: loginState.isUser">
+			<div class="jog-panel filament micro3d" data-bind="visible: loginState.isUser">
 				<h1>Filament</h1>
 				<div>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Unload</button>
@@ -3570,7 +3557,7 @@ $(function() {
 	
 		// Add calibration controls
 		$("#control > div.jog-panel.filament").after(`
-			<div class="jog-panel calibration" data-bind="visible: loginState.isUser">
+			<div class="jog-panel calibration micro3d" data-bind="visible: loginState.isUser">
 				<h1>Calibration</h1>
 				<div>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Calibrate bed center Z0</button>
@@ -3601,7 +3588,7 @@ $(function() {
 	
 		// Add advanced controls
 		$("#control > div.jog-panel.calibration").after(`
-			<div class="jog-panel advanced" data-bind="visible: loginState.isUser">
+			<div class="jog-panel advanced micro3d" data-bind="visible: loginState.isUser">
 				<h1>Advanced</h1>
 				<div>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/hengLiXin.png">HengLiXin fan</button>
@@ -3651,7 +3638,7 @@ $(function() {
 		
 		// Add EEPROM controls
 		$("#control > div.jog-panel.advanced").after(`
-			<div class="jog-panel eeprom" data-bind="visible: loginState.isUser">
+			<div class="jog-panel eeprom micro3d" data-bind="visible: loginState.isUser">
 				<h1>EEPROM</h1>
 				<div>
 					<table><tbody>` + table + `</tbody></table>
@@ -4040,8 +4027,8 @@ $(function() {
 		var originalLoadFile = self.files.loadFile;
 		self.files.loadFile = function(file, printAfterLoad) {
 		
-			// Check if printing after load
-			if(printAfterLoad) {
+			// Check if printing after load and using a Micro 3D printer
+			if(printAfterLoad && !self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter()) {
 			
 				// Check if using on the fly pre-processing and changing settings before print
 				if(self.settings.settings.plugins.m3dfio.PreprocessOnTheFly() && self.settings.settings.plugins.m3dfio.ChangeSettingsBeforePrint()) {
@@ -4148,8 +4135,8 @@ $(function() {
 			// Initialize variables
 			var button = $(this);
 			
-			// Check if not continuing with print 
-			if(!continueWithPrint) {
+			// Check if not continuing with print and using a Micro 3D printer
+			if(!continueWithPrint && !self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter()) {
 			
 				// Stop default behavior
 				event.stopImmediatePropagation();
@@ -4258,178 +4245,190 @@ $(function() {
 		// Set temperature target or offset button event
 		$(document).on("click", "#temp button[type=\"submit\"]", function(event) {
 		
-			// Get temperature
-			var temperature = 0;
-			
-			$(this).closest("tr").find("input").each(function() {
-			
-				if(!isNaN(parseInt($(this).val())))
-					temperature += parseInt($(this).val());
-				else if(!isNaN(parseInt($(this).attr("placeholder"))))
-					temperature += parseInt($(this).attr("placeholder"));
-			});
-			
-			// Check if setting extruder temperature
-			if($(this).closest("tr").children("th").text() == "Hotend")
-				
-				// Set commands
-				var commands = [
-					"M104 S" + temperature + '*'
-				];
-			
-			// Otherwise check if setting heatbed temperature
-			else if($(this).closest("tr").children("th").text() == "Bed")
-			
-				// Set commands
-				var commands = [
-					"M140 S" + temperature + '*'
-				];
-			
-			// Otherwise
-			else
-			
-				// Return
-				return;
-			
-			// Stop default behavior
-			event.stopImmediatePropagation();
+			// Check if using a Micro 3D printer
+			if(!self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter()) {
 		
-			// Send request
-			$.ajax({
-				url: API_BASEURL + "plugin/m3dfio",
-				type: "POST",
-				dataType: "json",
-				data: JSON.stringify({
-					command: "message",
-					value: commands
-				}),
-				contentType: "application/json; charset=UTF-8"
-			});
+				// Get temperature
+				var temperature = 0;
+			
+				$(this).closest("tr").find("input").each(function() {
+			
+					if(!isNaN(parseInt($(this).val())))
+						temperature += parseInt($(this).val());
+					else if(!isNaN(parseInt($(this).attr("placeholder"))))
+						temperature += parseInt($(this).attr("placeholder"));
+				});
+			
+				// Check if setting extruder temperature
+				if($(this).closest("tr").children("th").text() == "Hotend")
+				
+					// Set commands
+					var commands = [
+						"M104 S" + temperature + '*'
+					];
+			
+				// Otherwise check if setting heatbed temperature
+				else if($(this).closest("tr").children("th").text() == "Bed")
+			
+					// Set commands
+					var commands = [
+						"M140 S" + temperature + '*'
+					];
+			
+				// Otherwise
+				else
+			
+					// Return
+					return;
+			
+				// Stop default behavior
+				event.stopImmediatePropagation();
+		
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m3dfio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({
+						command: "message",
+						value: commands
+					}),
+					contentType: "application/json; charset=UTF-8"
+				});
+			}
 		});
 		
 		// Set temperature target to preset button event
 		$(document).on("click", "#temp ul.dropdown-menu a", function(event) {
 		
-			// Get temperature
-			var temperature = 0;
+			// Check if using a Micro 3D printer
+			if(!self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter()) {
+		
+				// Get temperature
+				var temperature = 0;
 			
-			// Check if not turning off
-			if($(this).text() != "Off")
+				// Check if not turning off
+				if($(this).text() != "Off")
 			
-				// Set temperature
-				temperature = $(this).text().match(/\((\d*)°C\)/)[1]
+					// Set temperature
+					temperature = $(this).text().match(/\((\d*)°C\)/)[1]
 			
-			// Check if setting extruder temperature
-			if($(this).closest("tr").children("th").text() == "Hotend")
+				// Check if setting extruder temperature
+				if($(this).closest("tr").children("th").text() == "Hotend")
 			
-				// Set commands
-				var commands = [
-					"M104 S" + temperature + '*'
-				];
+					// Set commands
+					var commands = [
+						"M104 S" + temperature + '*'
+					];
 		
-			// Otherwise check if setting heatbed temperature
-			else if($(this).closest("tr").children("th").text() == "Bed")
+				// Otherwise check if setting heatbed temperature
+				else if($(this).closest("tr").children("th").text() == "Bed")
 		
-				// Set commands
-				var commands = [
-					"M140 S" + temperature + '*'
-				];
+					// Set commands
+					var commands = [
+						"M140 S" + temperature + '*'
+					];
 		
-			// Otherwise
-			else
+				// Otherwise
+				else
 		
-				// Return
-				return;
+					// Return
+					return;
 		
-			// Send request
-			$.ajax({
-				url: API_BASEURL + "plugin/m3dfio",
-				type: "POST",
-				dataType: "json",
-				data: JSON.stringify({
-					command: "message",
-					value: commands
-				}),
-				contentType: "application/json; charset=UTF-8"
-			});
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m3dfio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({
+						command: "message",
+						value: commands
+					}),
+					contentType: "application/json; charset=UTF-8"
+				});
+			}
 		});
 		
 		// Pause print button click event
 		$("#job_pause").click(function(event) {
 		
-			// Stop default behavior
-			event.stopImmediatePropagation();
+			// Check if using a Micro 3D printer
+			if(!self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter()) {
+		
+				// Stop default behavior
+				event.stopImmediatePropagation();
 			
-			// Check if not paused
-			if(self.printerState.isPaused() !== true) {
+				// Check if not paused
+				if(self.printerState.isPaused() !== true) {
 			
-				// Show message
-				showMessage("Printing Status", "Pausing print");
+					// Show message
+					showMessage("Printing Status", "Pausing print");
 				
-				// Wait until paused
-				function waitUntilPaused() {
+					// Wait until paused
+					function waitUntilPaused() {
 			
-					// Check if paused
-					if(self.printerState.isPaused() === true)
+						// Check if paused
+						if(self.printerState.isPaused() === true)
 					
-						// Hide message
-						hideMessage();
+							// Hide message
+							hideMessage();
 				
-					// Otherwise
-					else
+						// Otherwise
+						else
 					
-						// Check if paused again
-						setTimeout(waitUntilPaused, 100);
+							// Check if paused again
+							setTimeout(waitUntilPaused, 100);
+					}
+					waitUntilPaused();
+				
+					// Send request
+					$.ajax({
+						url: API_BASEURL + "plugin/m3dfio",
+						type: "POST",
+						dataType: "json",
+						data: JSON.stringify({
+							command: "message",
+							value: "Pause"
+						}),
+						contentType: "application/json; charset=UTF-8"
+					});
 				}
-				waitUntilPaused();
+			
+				// Otherwise
+				else {
+			
+					// Show message
+					showMessage("Printing Status", "Resuming print");
 				
-				// Send request
-				$.ajax({
-					url: API_BASEURL + "plugin/m3dfio",
-					type: "POST",
-					dataType: "json",
-					data: JSON.stringify({
-						command: "message",
-						value: "Pause"
-					}),
-					contentType: "application/json; charset=UTF-8"
-				});
-			}
+					// Wait until resumed
+					function waitUntilResumed() {
 			
-			// Otherwise
-			else {
-			
-				// Show message
-				showMessage("Printing Status", "Resuming print");
-				
-				// Wait until resumed
-				function waitUntilResumed() {
-			
-					// Check if printing
-					if(self.printerState.isPrinting() === true)
+						// Check if printing
+						if(self.printerState.isPrinting() === true)
 					
-						// Hide message
-						hideMessage();
+							// Hide message
+							hideMessage();
 				
-					// Otherwise
-					else
+						// Otherwise
+						else
 						
-						// Check if resumed again
-						setTimeout(waitUntilResumed, 100);
-				}
-				waitUntilResumed();
+							// Check if resumed again
+							setTimeout(waitUntilResumed, 100);
+					}
+					waitUntilResumed();
 				
-				// Send request
-				$.ajax({
-					url: API_BASEURL + "plugin/m3dfio",
-					type: "POST",
-					dataType: "json",
-					data: JSON.stringify({
-						command: "message",
-						value: "Resume"
-					}),
-					contentType: "application/json; charset=UTF-8"
-				});
+					// Send request
+					$.ajax({
+						url: API_BASEURL + "plugin/m3dfio",
+						type: "POST",
+						dataType: "json",
+						data: JSON.stringify({
+							command: "message",
+							value: "Resume"
+						}),
+						contentType: "application/json; charset=UTF-8"
+					});
+				}
 			}
 		});
 		
@@ -4534,28 +4533,32 @@ $(function() {
 		// Cancel print button click event
 		$("#job_cancel").click(function(event) {
 		
-			// Stop default behavior
-			event.stopImmediatePropagation();
-			
-			// Show message
-			showMessage("Printing Status", "Canceling print");
+			// Check if using a Micro 3D printer
+			if(!self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter()) {
 		
-			// Set commands
-			var commands = [
-				"M65537;stop"
-			];
+				// Stop default behavior
+				event.stopImmediatePropagation();
+			
+				// Show message
+				showMessage("Printing Status", "Canceling print");
+		
+				// Set commands
+				var commands = [
+					"M65537;stop"
+				];
 	
-			// Send request
-			$.ajax({
-				url: API_BASEURL + "plugin/m3dfio",
-				type: "POST",
-				dataType: "json",
-				data: JSON.stringify({
-					command: "message",
-					value: commands
-				}),
-				contentType: "application/json; charset=UTF-8"
-			});
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m3dfio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({
+						command: "message",
+						value: commands
+					}),
+					contentType: "application/json; charset=UTF-8"
+				});
+			}
 		});
 		
 		// Save button click event
@@ -5823,6 +5826,8 @@ $(function() {
 																$("#slicing_configuration_dialog .modal-extra div.printer button[data-color=\"" + self.settings.settings.plugins.m3dfio.PrinterColor() + "\"]").addClass("disabled");
 																$("#slicing_configuration_dialog .modal-extra div.filament button[data-color=\"" + self.settings.settings.plugins.m3dfio.FilamentColor() + "\"]").addClass("disabled");
 																$("#slicing_configuration_dialog .modal-extra").append(viewport.renderer.domElement);
+																if(self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter())
+																	$("#slicing_configuration_dialog .modal-footer p.warning").text("Boundary dimensions are designed for a Micro 3D printer");
 
 																// Image drag event
 																$("#slicing_configuration_dialog .modal-extra img").on("dragstart", function(event) {
@@ -6455,8 +6460,8 @@ $(function() {
 							}, 600);
 						}
 					
-						// Check if printing after slicing and a printer is connected
-						if(afterSlicingAction == "print" && self.printerState.stateString() !== "Offline") {
+						// Check if printing after slicing, a printer is connected, and using a Micro 3D printer
+						if(afterSlicingAction == "print" && self.printerState.stateString() !== "Offline" && !self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter()) {
 						
 							// Check if using on the fly pre-processing and changing settings before print
 							if(self.settings.settings.plugins.m3dfio.PreprocessOnTheFly() && self.settings.settings.plugins.m3dfio.ChangeSettingsBeforePrint()) {
@@ -6641,8 +6646,8 @@ $(function() {
 		// Send command
 		function sendCommand(event) {
 		
-			// Check if printing
-			if(self.printerState.isPrinting() === true) {
+			// Check if printing and using a Micro 3D printer
+			if(self.printerState.isPrinting() === true && !self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter()) {
 		
 				// Stop default behavior
 				event.stopImmediatePropagation();
@@ -6957,8 +6962,8 @@ $(function() {
 		// Set extruder temperature control
 		$("#control > div.jog-panel.extruder > div > button:nth-of-type(4)").attr("title", "Sets extruder's temperature to the specified amount").click(function(event) {
 			
-			// Check if not printing
-			if(self.printerState.isPrinting() !== true) {
+			// Check if not printing and using a Micro 3D printer
+			if(self.printerState.isPrinting() !== true && !self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter()) {
 				
 				// Set commands
 				var commands = [
@@ -7002,7 +7007,7 @@ $(function() {
 			
 				// Set commands
 				var commands = [
-					"M104 S" + parseInt($(this).text().substr(12)) + '*'
+					"M104 S" + parseInt($(this).text().substr(12)) + (!self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter() ? '*' : '')
 				];
 		
 			// Send request
@@ -7021,8 +7026,8 @@ $(function() {
 		// Set heatbed temperature control
 		$("#control > div.jog-panel.extruder").find("div > div.heatbed > button:first-of-type").attr("title", "Sets heatbed's temperature to the specified amount").click(function(event) {
 			
-			// Check if not printing
-			if(self.printerState.isPrinting() !== true) {
+			// Check if not printing and using a Micro 3D printer
+			if(self.printerState.isPrinting() !== true && !self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter()) {
 			
 				// Set commands
 				var commands = [
@@ -7066,8 +7071,50 @@ $(function() {
 			
 				// Set commands
 				var commands = [
-					"M140 S" + parseInt($(this).text().substr(12)) + '*'
+					"M140 S" + parseInt($(this).text().substr(12)) + (!self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter() ? '*' : '')
 				];
+		
+			// Send request
+			$.ajax({
+				url: API_BASEURL + "plugin/m3dfio",
+				type: "POST",
+				dataType: "json",
+				data: JSON.stringify({
+					command: "message",
+					value: commands
+				}),
+				contentType: "application/json; charset=UTF-8"
+			});
+		});
+		
+		// Fan on control
+		$("#control > div.jog-panel.general").find("button:nth-of-type(3)").attr("title", "Turns on extruder's fan").click(function() {
+			
+			// Set commands
+			var commands = [
+				"M106 S255" + (!self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter() ? '*' : '')
+			];
+		
+			// Send request
+			$.ajax({
+				url: API_BASEURL + "plugin/m3dfio",
+				type: "POST",
+				dataType: "json",
+				data: JSON.stringify({
+					command: "message",
+					value: commands
+				}),
+				contentType: "application/json; charset=UTF-8"
+			});
+		});
+		
+		// Fan off control
+		$("#control > div.jog-panel.general").find("button:nth-of-type(4)").attr("title", "Turns off extruder's fan").click(function() {
+			
+			// Set commands
+			var commands = [
+				"M107" + (!self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter() ? '*' : '')
+			];
 		
 			// Send request
 			$.ajax({
@@ -11210,7 +11257,17 @@ $(function() {
 		
 			// Set mid-print filament change layer input
 			$("#gcode div.midPrintFilamentChange input").val(self.settings.settings.plugins.m3dfio.MidPrintFilamentChangeLayers());
-		
+			
+			// Enable/disable Micro 3D printer specific features
+			if(self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter()) {
+				$(".micro3d").addClass("notUsingAMicro3DPrinter");
+				$("#temperature-graph").css("background-image", '');
+			}
+			else {
+				$(".micro3d").removeClass("notUsingAMicro3DPrinter");
+				$("#temperature-graph").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/graph%20background.png");
+			}
+			
 			// Check if printing or paused
 			if(self.printerState.isPrinting() === true || self.printerState.isPaused() === true)
 		
@@ -11297,6 +11354,16 @@ $(function() {
 
 				// Update mid-print filament change layer input
 				$("#gcode div.midPrintFilamentChange input").val(self.settings.settings.plugins.m3dfio.MidPrintFilamentChangeLayers());
+				
+				// Enable/disable Micro 3D printer specific features
+				if(self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter()) {
+					$(".micro3d").addClass("notUsingAMicro3DPrinter");
+					$("#temperature-graph").css("background-image", '');
+				}
+				else {
+					$(".micro3d").removeClass("notUsingAMicro3DPrinter");
+					$("#temperature-graph").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/graph%20background.png");
+				}
 			}
 
 			// Update settings
@@ -11309,8 +11376,8 @@ $(function() {
 		// On error event
 		self.onEventError = function(payload) {
 		
-			// Check if error is an unhandled firmware or communication error
-			if($("div.ui-pnotify:last-of-type h4.ui-pnotify-title").text() == "Unhandled firmware error" || $("div.ui-pnotify:last-of-type h4.ui-pnotify-title").text() == "Unhandled communication error")
+			// Check if using an Micro 3D printer and error is an unhandled firmware or communication error
+			if(!self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter() && ($("div.ui-pnotify:last-of-type h4.ui-pnotify-title").text() == "Unhandled firmware error" || $("div.ui-pnotify:last-of-type h4.ui-pnotify-title").text() == "Unhandled communication error"))
 			
 				// Remove error
 				$("div.ui-pnotify:last-of-type").remove();

@@ -103,7 +103,7 @@
 	width: calc(100% - 24px);
 }
 
-#settings_plugin_m3dfio div.control-group.empty {
+#settings_plugin_m3dfio div.control-group.empty, #settings_plugin_m3dfio div.control-group.title {
 	margin-top: 0;
 	margin-bottom: 3px;
 }
@@ -1228,4 +1228,8 @@ body > div.page-container > div.message > div > div > span.show {
 
 .noTransition {
 	transition: none !important;
+}
+
+.notUsingAMicro3DPrinter {
+	display: none !important;
 }
