@@ -2095,7 +2095,7 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 				// Check if command contains valid G-code
 				if(!gcode.isEmpty()) {
 
-					// Check if printing test border or wave bonding isn't being used, and commad is a G command
+					// Check if printing test border or wave bonding isn't being used, and command is a G command
 					if((printingTestBorder || !useWaveBondingPreprocessor) && gcode.hasValue('G')) {
 
 						// Check if command is G0 or G1 and it's in absolute

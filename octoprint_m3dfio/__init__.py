@@ -8504,6 +8504,12 @@ class M3DFioPlugin(
 	# Auto connect
 	def autoConnect(self, comm_instance, port, baudrate, read_timeout, *args, **kwargs) :
 	
+		# Check if using a different printer
+		if self._settings.get_boolean(["UsingADifferentPrinter"]) :
+		
+			# Return
+			return
+	
 		# Set baudrate if not specified
 		if not baudrate or baudrate == 0 :
 			baudrate = 115200
@@ -8515,10 +8521,7 @@ class M3DFioPlugin(
 			comm_instance._changeState(comm_instance.STATE_DETECT_SERIAL)
 			
 			# Detect port
-			if self._settings.get_boolean(["UsingADifferentPrinter"]) :
-				port = comm_instance._detectPort(False)
-			else :
-				port = self.getPort()
+			port = self.getPort()
 			
 			# Check if printer isn't detected
 			if port is None :
@@ -8529,10 +8532,7 @@ class M3DFioPlugin(
 				comm_instance._changeState(comm_instance.STATE_ERROR)
 				
 				# Send message
-				if self._settings.get_boolean(["UsingADifferentPrinter"]) :
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "No printer detected. Try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
-				else :
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "No Micro 3D printer detected. Try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "No Micro 3D printer detected. Try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
 				
 				# Return none
 				return None
