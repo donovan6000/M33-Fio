@@ -6826,62 +6826,66 @@ $(function() {
 	
 		// Override X Y home control
 		$("#control #control-xyhome").attr("title", "Set extruder's X position to 54 and Y position to 50").click(function(event) {
-	
-			// Stop default behavior
-			event.stopImmediatePropagation();
+		
+			// Check if using a Micro 3D printer
+			if(!self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter()) {
 			
-			// Set commands
-			var commands = [
-				"M114"
-			];
+				// Stop default behavior
+				event.stopImmediatePropagation();
 			
-			// Set location callback
-			locationCallback = function() {
+				// Set commands
+				var commands = [
+					"M114"
+				];
 			
-				// Check if extruder is too high to successfully home
-				if(currentZ >= bedMediumMaxZ - parseFloat(self.settings.settings.plugins.m3dfio.ExternalBedHeight()))
+				// Set location callback
+				locationCallback = function() {
+			
+					// Check if extruder is too high to successfully home
+					if(currentZ >= bedMediumMaxZ - parseFloat(self.settings.settings.plugins.m3dfio.ExternalBedHeight()))
 				
-					// Show message
-					showMessage("Movement Status", "Extruder is too high to home without running into the printer's frame", "OK", function() {
+						// Show message
+						showMessage("Movement Status", "Extruder is too high to home without running into the printer's frame", "OK", function() {
 					
-						// Hide message
-						hideMessage();
-					});
+							// Hide message
+							hideMessage();
+						});
 				
-				// Otherwise
-				else {
+					// Otherwise
+					else {
 		
-					// Set commands
-					var commands = [
-						"G90",
-						"G28"
-					];
+						// Set commands
+						var commands = [
+							"G90",
+							"G28"
+						];
 		
-					// Send request
-					$.ajax({
-						url: API_BASEURL + "plugin/m3dfio",
-						type: "POST",
-						dataType: "json",
-						data: JSON.stringify({
-							command: "message",
-							value: commands
-						}),
-						contentType: "application/json; charset=UTF-8"
-					});
+						// Send request
+						$.ajax({
+							url: API_BASEURL + "plugin/m3dfio",
+							type: "POST",
+							dataType: "json",
+							data: JSON.stringify({
+								command: "message",
+								value: commands
+							}),
+							contentType: "application/json; charset=UTF-8"
+						});
+					}
 				}
-			}
 						
-			// Send request
-			$.ajax({
-				url: API_BASEURL + "plugin/m3dfio",
-				type: "POST",
-				dataType: "json",
-				data: JSON.stringify({
-					command: "message",
-					value: commands
-				}),
-				contentType: "application/json; charset=UTF-8"
-			});
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m3dfio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({
+						command: "message",
+						value: commands
+					}),
+					contentType: "application/json; charset=UTF-8"
+				});
+			}
 		});
 	
 		// Override Z home control
