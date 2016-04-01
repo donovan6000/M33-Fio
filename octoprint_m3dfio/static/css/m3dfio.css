@@ -103,7 +103,7 @@
 	width: calc(100% - 24px);
 }
 
-#settings_plugin_m3dfio div.control-group.empty {
+#settings_plugin_m3dfio div.control-group.empty, #settings_plugin_m3dfio div.control-group.title {
 	margin-top: 0;
 	margin-bottom: 3px;
 }
@@ -235,7 +235,7 @@
 	white-space: nowrap;
 }
 
-#control div.jog-panel.calibration button:first-of-type, #control div.jog-panel.calibration button:nth-of-type(2), #control div.jog-panel.calibration button:nth-of-type(15), #control div.jog-panel.calibration button:nth-of-type(16), #control div.jog-panel.calibration button:nth-of-type(17), #control div.jog-panel.calibration button:nth-of-type(18), #control div.jog-panel.calibration button:nth-of-type(19), #control div.jog-panel.calibration button:nth-of-type(20) {
+#control div.jog-panel.calibration button:first-of-type, #control div.jog-panel.calibration button:nth-of-type(2), #control div.jog-panel.calibration button:nth-of-type(15), #control div.jog-panel.calibration button:nth-of-type(16), #control div.jog-panel.calibration button:nth-of-type(17), #control div.jog-panel.calibration button:nth-of-type(18), #control div.jog-panel.calibration button:nth-of-type(19), #control div.jog-panel.calibration button:nth-of-type(20), #control div.jog-panel.calibration button:nth-of-type(21) {
 	width: 231px;
 	clear: both;
 }
@@ -378,6 +378,9 @@
 	display: inline;
 	position: relative;
 	top: 2px;
+}
+
+#control div.jog-panel.eeprom input[type="radio"]:disabled + label {
 	cursor: default;
 }
 
@@ -386,7 +389,7 @@
 	opacity: 1 !important;
 }
 
-#control .heatbed, #settings_plugin_m3dfio .heatbed, #settings_plugin_m3dfio .camera {
+#control .heatbed, #settings_plugin_m3dfio .heatbed, #settings_plugin_m3dfio .camera, #settings_plugin_m3dfio .sharedLibrary, #settings_plugin_m3dfio .gpio, #control > div.jog-panel.general button.gpio {
 	display: none;
 }
 
@@ -448,6 +451,11 @@ body > div.page-container > div.message > div > img {
 	visibility: hidden;
 }
 
+body > div.page-container > div.message > div > div > p:not(.show) {
+	height: 0px;
+	visibility: hidden;
+}
+
 body > div.page-container > div.message > div > div {
 	border: 1px solid #e5e5e5;
 	border-radius: 0 0 4px 4px;
@@ -498,7 +506,7 @@ body > div.page-container > div.message > div > div > div.calibrate > div.distan
 	display: inline;
 	margin: 0 -2px;
 	border-radius: 0;
-	width: 55px;
+	width: 49px;
 }
 
 body > div.page-container > div.message > div > div > div.calibrate > div.distance > button:first-of-type {
@@ -850,7 +858,7 @@ body > div.page-container > div.message > div > div > span.show {
 	flex-grow: 1;
 	width: 100% !important;
 	height: calc(100% - 12px) !important;
-	padding: 2px 2px 3px 5px !important;
+	padding: 2px 2px 2px 5px !important;
 	margin: 0 !important;
 	box-shadow: none !important;
 	outline: none !important;
@@ -1220,4 +1228,8 @@ body > div.page-container > div.message > div > div > span.show {
 
 .noTransition {
 	transition: none !important;
+}
+
+.notUsingAMicro3DPrinter {
+	display: none !important;
 }

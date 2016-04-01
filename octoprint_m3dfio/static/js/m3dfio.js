@@ -3,7 +3,7 @@ $(function() {
 
 	// Create view model
 	function M3DFioViewModel(parameters) {
-		
+	
 		// Initialize variables
 		var eepromDisplayType = "hexadecimal";
 		var slicerOpen = false;
@@ -56,11 +56,9 @@ $(function() {
 		var bedHighMaxY = 85.0;
 		var bedHighMinY = 9.0;
 		var bedHighMaxZ = 112.0;
-		var bedHighMinZ = bedMediumMaxZ
+		var bedHighMinZ = bedMediumMaxZ;
 		var extruderCenterX = (bedLowMaxX + bedLowMinX) / 2;
 		var extruderCenterY = (bedLowMaxY + bedLowMinY + 14.0) / 2;
-		var modelCenterOffsetX = -2.0;
-		var modelCenterOffsetY = -2.0;
 		
 		// Set printer materials
 		var printerMaterials = {
@@ -188,7 +186,6 @@ $(function() {
 				vec3 vNormal = normalize(normalMatrix * normal);
 				vec3 vNormel = normalize(normalMatrix * viewVector);
 				intensity = pow(c - dot(vNormal, vNormel), p);
-
 				gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 			}
 		`;
@@ -222,307 +219,307 @@ $(function() {
 		
 		// EEPROM offsets
 		var eepromOffsets = {
-			firmwareVersion : {
+			firmwareVersion: {
 				name: "Firmware Version",
 				offset: 0x00,
 				bytes: 4,
 				color: "rgb(245, 160, 245)"
 			},
-			firmwareCrc : {
+			firmwareCrc: {
 				name: "Firmware CRC",
 				offset: 0x04,
 				bytes: 4,
 				color: "rgb(245, 245, 160)"
 			},
-			lastRecordedZValue : {
+			lastRecordedZValue: {
 				name: "Last Recorded Z Value",
 				offset: 0x08,
 				bytes: 4,
 				color: "rgb(230, 210, 230)"
 			},
-			backlashX : {
+			backlashX: {
 				name: "Backlash X",
 				offset: 0x0C,
 				bytes: 4,
 				color: "rgb(200, 150, 150)"
 			},
-			backlashY : {
+			backlashY: {
 				name: "Backlash Y",
 				offset: 0x10,
 				bytes: 4,
 				color: "rgb(150, 200, 150)"
 			},
-			bedOrientationBackRight : {
+			bedOrientationBackRight: {
 				name: "Bed Orientation Back Right",
 				offset: 0x14,
 				bytes: 4,
 				color: "rgb(200, 200, 150)"
 			},
-			bedOrientationBackLeft : {
+			bedOrientationBackLeft: {
 				name: "Bed Orientation Back Left",
 				offset: 0x18,
 				bytes: 4,
 				color: "rgb(150, 150, 200)"
 			},
-			bedOrientationFrontLeft : {
+			bedOrientationFrontLeft: {
 				name: "Bed Orientation Front Left",
 				offset: 0x1C,
 				bytes: 4,
 				color: "rgb(200, 150, 200)"
 			},
-			bedOrientationFrontRight : {
+			bedOrientationFrontRight: {
 				name: "Bed Orientation Front Right",
 				offset: 0x20,
 				bytes: 4,
 				color: "rgb(150, 200, 200)"
 			},
-			filamentColor : {
+			filamentColor: {
 				name: "Filament Color",
 				offset: 0x24,
 				bytes: 4,
 				color: "rgb(250, 210, 230)"
 			},
-			filamentTypeAndLocation : {
+			filamentTypeAndLocation: {
 				name: "Filament Type And Location",
 				offset: 0x28,
 				bytes: 1,
 				color: "rgb(160, 160, 245)"
 			},
-			filamentTemperature : {
+			filamentTemperature: {
 				name: "Filament Temperature",
 				offset: 0x29,
 				bytes: 1,
 				color: "rgb(160, 245, 160)"
 			},
-			filamentAmount : {
+			filamentAmount: {
 				name: "Filament Amount",
 				offset: 0x2A,
 				bytes: 4,
 				color: "rgb(245, 160, 160)"
 			},
-			backlashExpansionXPositive : {
+			backlashExpansionXPositive: {
 				name: "Backlash Expansion X+",
 				offset: 0x2E,
 				bytes: 4,
 				color: "rgb(200, 255, 200)"
 			},
-			backlashExpansionYLPositive : {
+			backlashExpansionYLPositive: {
 				name: "Backlash Expansion  YL+",
 				offset: 0x32,
 				bytes: 4,
 				color: "rgb(200, 200, 255)"
 			},
-			backlashExpansionYRPositive : {
+			backlashExpansionYRPositive: {
 				name: "Backlash Expansion YR+",
 				offset: 0x36,
 				bytes: 4,
 				color: "rgb(255, 200, 255)"
 			},
-			backlashExpansionYRNegative : {
+			backlashExpansionYRNegative: {
 				name: "Backlash Expansion YR-",
 				offset: 0x3A,
 				bytes: 4,
 				color: "rgb(255, 255, 200)"
 			},
-			backlashExpansionZ : {
+			backlashExpansionZ: {
 				name: "Backlash Expansion Z",
 				offset: 0x3E,
 				bytes: 4,
 				color: "rgb(200, 255, 255)"
 			},
-			backlashExpansionE : {
+			backlashExpansionE: {
 				name: "Backlash Expansion E",
 				offset: 0x42,
 				bytes: 4,
 				color: "rgb(255, 200, 200)"
 			},
-			bedOffsetBackLeft : {
+			bedOffsetBackLeft: {
 				name: "Bed Offset Back Left",
 				offset: 0x46,
 				bytes: 4,
 				color: "rgb(170, 220, 220)"
 			},
-			bedOffsetBackRight : {
+			bedOffsetBackRight: {
 				name: "Bed Offset Back Right",
 				offset: 0x4A,
 				bytes: 4,
 				color: "rgb(190, 165, 165)"
 			},
-			bedOffsetFrontRight : {
+			bedOffsetFrontRight: {
 				name: "Bed Offset Front Right",
 				offset: 0x4E,
 				bytes: 4,
 				color: "rgb(165, 165, 190)"
 			},
-			bedOffsetFrontLeft : {
+			bedOffsetFrontLeft: {
 				name: "Bed Offset Front Left",
 				offset: 0x52,
 				bytes: 4,
 				color: "rgb(165, 190, 165)"
 			},
-			bedHeightOffset : {
+			bedHeightOffset: {
 				name: "Bed Height Offset",
 				offset: 0x56,
 				bytes: 4,
 				color: "rgb(190, 190, 165)"
 			},
-			reserved : {
+			reserved: {
 				name: "Reserved",
 				offset: 0x5A,
 				bytes: 4,
 				color: "rgb(250, 190, 165)"
 			},
-			backlashSpeed : {
+			backlashSpeed: {
 				name: "Backlash Speed",
 				offset: 0x5E,
 				bytes: 4,
 				color: "rgb(200, 200, 200)"
 			},
-			bedOrientationVersion : {
+			bedOrientationVersion: {
 				name: "Bed Orientation Version",
 				offset: 0x62,
 				bytes: 1,
 				color: "rgb(230, 180, 180)"
 			},
-			speedLimitX : {
+			speedLimitX: {
 				name: "Speed Limit X",
 				offset: 0x66,
 				bytes: 4,
 				color: "rgb(240, 160, 160)"
 			},
-			speedLimitY : {
+			speedLimitY: {
 				name: "Speed Limit Y",
 				offset: 0x6A,
 				bytes: 4,
 				color: "rgb(160, 240, 160)"
 			},
-			speedLimitZ : {
+			speedLimitZ: {
 				name: "Speed Limit Z",
 				offset: 0x6E,
 				bytes: 4,
 				color: "rgb(160, 160, 240)"
 			},
-			speedLimitEPositive : {
+			speedLimitEPositive: {
 				name: "Speed Limit E Positive",
 				offset: 0x72,
 				bytes: 4,
 				color: "rgb(240, 240, 160)"
 			},
-			speedLimitENegative : {
+			speedLimitENegative: {
 				name: "Speed Limit E Negative",
 				offset: 0x76,
 				bytes: 4,
 				color: "rgb(240, 160, 240)"
 			},
-			bedOrientationFirstSample : {
+			bedOrientationFirstSample: {
 				name: "Bed Orientation First Sample",
 				offset: 0x106,
 				bytes: 4,
 				color: "rgb(200, 200, 200)"
 			},
-			fanType : {
+			fanType: {
 				name: "Fan Type",
 				offset: 0x2AB,
 				bytes: 1,
 				color: "rgb(180, 230, 230)"
 			},
-			fanOffset : {
+			fanOffset: {
 				name: "Fan Offset",
 				offset: 0x2AC,
 				bytes: 1,
 				color: "rgb(230, 230, 180)"
 			},
-			fanScale : {
+			fanScale: {
 				name: "Fan Scale",
 				offset: 0x2AD,
 				bytes: 4,
 				color: "rgb(230, 180, 230)"
 			},
-			heaterCalibrationMode : {
+			heaterCalibrationMode: {
 				name: "Heater Calibration Mode",
 				offset: 0x2B1,
 				bytes: 1,
 				color: "rgb(160, 240, 240)"
 			},
-			xMotorCurrent : {
+			xMotorCurrent: {
 				name: "X Motor Current",
 				offset: 0x2B2,
 				bytes: 2,
 				color: "rgb(170, 220, 170)"
 			},
-			yMotorCurrent : {
+			yMotorCurrent: {
 				name: "Y Motor Current",
 				offset: 0x2B4,
 				bytes: 2,
 				color: "rgb(220, 220, 170)"
 			},
-			zMotorCurrent : {
+			zMotorCurrent: {
 				name: "Z Motor Current",
 				offset: 0x2B6,
 				bytes: 2,
 				color: "rgb(190, 165, 190)"
 			},
-			hardwareStatus : {
+			hardwareStatus: {
 				name: "Hardware Status",
 				offset: 0x2B8,
 				bytes: 2,
 				color: "rgb(160, 245, 245)"
 			},
-			heaterTemperatureMeasurementB : {
+			heaterTemperatureMeasurementB: {
 				name: "Heater Temperature Measurement B",
 				offset: 0x2BA,
 				bytes: 4,
 				color: "rgb(210, 210, 230)"
 			},
-			hoursCounter : {
+			hoursCounter: {
 				name: "Hours Counter",
 				offset: 0x2C0,
 				bytes: 4,
 				color: "rgb(230, 230, 110)"
 			},
-			xAxisStepsPerMm : {
+			xAxisStepsPerMm: {
 				name: "X Axis Steps Per MM",
 				offset: 0x2D6,
 				bytes: 4,
 				color: "rgb(220, 170, 170)"
 			},
-			yAxisStepsPerMm : {
+			yAxisStepsPerMm: {
 				name: "Y Axis Steps Per MM",
 				offset: 0x2DA,
 				bytes: 4,
 				color: "rgb(170, 170, 220)"
 			},
-			zAxisStepsPerMm : {
+			zAxisStepsPerMm: {
 				name: "Z Axis Steps Per MM",
 				offset: 0x2DE,
 				bytes: 4,
 				color: "rgb(220, 170, 220)"
 			},
-			eAxisStepsPerMm : {
+			eAxisStepsPerMm: {
 				name: "E Axis Steps Per MM",
 				offset: 0x2E2,
 				bytes: 4,
 				color: "rgb(180, 230, 180)"
 			},
-			savedZState : {
+			savedZState: {
 				name: "Saved Z State",
 				offset: 0x2E6,
 				bytes: 2,
 				color: "rgb(210, 230, 230)"
 			},
-			extruderCurrent : {
+			extruderCurrent: {
 				name: "Extruder Current",
 				offset: 0x2E8,
 				bytes: 2,
 				color: "rgb(180, 180, 230)"
 			},
-			heaterResistanceM : {
+			heaterResistanceM: {
 				name: "Heater Resistance M",
 				offset: 0x2EA,
 				bytes: 4,
 				color: "rgb(210, 230, 210)"
 			},
-			serialNumber : {
+			serialNumber: {
 				name: "Serial Number",
 				offset: 0x2EF,
 				bytes: 17,
@@ -619,8 +616,8 @@ $(function() {
 		
 					// Set header and text
 					message.find("h4").text(currentMessage.header);
-					message.find("p").eq(0).html(currentMessage.text);
-
+					message.find("p").eq(0).html(currentMessage.text).addClass("show");
+					
 					// Set first button if specified
 					var buttons = message.find("button.confirm");
 					if(typeof currentMessage.firstButton === "undefined")
@@ -649,14 +646,17 @@ $(function() {
 			
 						// Show calibration menu or print settings if applicable
 						$("body > div.page-container > div.message > div > div > div.calibrate, body > div.page-container > div.message > div > div > div.printSettings, body > div.page-container > div.message > div > div > div.filamentSettings").removeClass("show");
+						
 						if(currentMessage.secondButton == "Done")
 							$("body > div.page-container > div.message > div > div > div.calibrate").addClass("show");
+						
 						else if(currentMessage.secondButton == "Print") {
 							$("body > div.page-container > div.message > div > div > div.printSettings input").eq(0).val(self.settings.settings.plugins.m3dfio.FilamentTemperature());
 							$("body > div.page-container > div.message > div > div > div.printSettings input").eq(1).val(self.settings.settings.plugins.m3dfio.HeatbedTemperature());
 							$("body > div.page-container > div.message > div > div > div.printSettings select").val(self.settings.settings.plugins.m3dfio.FilamentType());
 							$("body > div.page-container > div.message > div > div > div.printSettings input[type=\"checkbox\"]").prop("checked", self.settings.settings.plugins.m3dfio.UseWaveBondingPreprocessor());
 							$("body > div.page-container > div.message > div > div > div.printSettings").addClass("show");
+							message.find("p").eq(0).removeClass("show")
 						}
 						
 						else if(currentMessage.secondButton == "Unload" || currentMessage.secondButton == "Load" || currentMessage.secondButton == "Set") {
@@ -664,6 +664,7 @@ $(function() {
 							$("body > div.page-container > div.message > div > div > div.filamentSettings label").text((currentMessage.secondButton == "Set" ? "New Print" : currentMessage.secondButton) + " Temperature");
 							$("body > div.page-container > div.message > div > div > div.filamentSettings p").html("Recommended<ul>" + (currentMessage.secondButton == "Unload" ? "<li>285°C for ABS</li><li>225°C for PLA</li><li>275°C for HIPS</li><li>255°C for FLX</li><li>255°C for TGH</li><li>210°C for CAM</li>" : "<li>275°C for ABS</li><li>215°C for PLA</li><li>265°C for HIPS</li><li>245°C for FLX</li><li>245°C for TGH</li><li>200°C for CAM</li>") + "</ul>");
 							$("body > div.page-container > div.message > div > div > div.filamentSettings").addClass("show");
+							message.find("p").eq(0).removeClass("show")
 						}
 					}
 			
@@ -698,7 +699,7 @@ $(function() {
 			var matches = expression.exec($("#slicing_configuration_dialog .modal-extra textarea").length ? $("#slicing_configuration_dialog .modal-extra textarea").val() : slicerProfileContent);
 			
 			// Return setting's value if it exists
-			return matches !== null && matches.length > 2 ? matches[2].indexOf(';') != -1 ? matches[2].substr(0, matches[2].indexOf(';')) : matches[2] : '';
+			return matches !== null && matches.length > 2 ? (matches[2].indexOf(';') != -1 ? matches[2].substr(0, matches[2].indexOf(';')) : matches[2]) : '';
 		}
 		
 		// Capitalize
@@ -905,13 +906,11 @@ $(function() {
 				// Initialize
 				init: function() {
 				
-					// Adjust bed Z values to account for external bed height
+					// Adjust bed bounds to account for external bed
 					bedLowMaxZ = 5.0 + parseFloat(self.settings.settings.plugins.m3dfio.ExternalBedHeight());
 					bedLowMinZ = 0.0 + parseFloat(self.settings.settings.plugins.m3dfio.ExternalBedHeight());
 					bedMediumMinZ = bedLowMaxZ;
-					bedMediumMaxZ = 73.5;
-					bedHighMaxZ = 112.0;
-					bedHighMinZ = bedMediumMaxZ;
+					bedLowMinY = self.settings.settings.plugins.m3dfio.ExpandPrintableRegion() ? bedMediumMinY : -2.0;
 					
 					// Check if using Cura
 					if(slicerName == "cura") {
@@ -994,7 +993,7 @@ $(function() {
 					// Create controls
 					this.orbitControls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
 					this.orbitControls.target.set(0, 54.9 + parseFloat(self.settings.settings.plugins.m3dfio.ExternalBedHeight()), 0);
-					this.orbitControls.minDistance = 200;
+					this.orbitControls.minDistance = 160;
 					this.orbitControls.maxDistance = 500;
 					this.orbitControls.minPolarAngle = 0;
 					this.orbitControls.maxPolarAngle = THREE.Math.degToRad(100);
@@ -1024,11 +1023,11 @@ $(function() {
 					this.scene[0].add(skyBox);
 				
 					// Create print bed
-					var mesh = new THREE.Mesh(new THREE.CubeGeometry(121, 121, bedLowMinZ), new THREE.MeshBasicMaterial({
+					var mesh = new THREE.Mesh(new THREE.CubeGeometry(121, 119 - bedLowMinY, bedLowMinZ), new THREE.MeshBasicMaterial({
 						color: 0x000000,
 						side: THREE.DoubleSide
 					}));
-					mesh.position.set(0, -0.25 + bedLowMinZ / 2, 0);
+					mesh.position.set(0, -0.25 + bedLowMinZ / 2, (bedLowMinY + 2.0) / 2);
 					mesh.rotation.set(Math.PI / 2, 0, 0);
 					mesh.renderOrder = 4;
 				
@@ -1049,7 +1048,12 @@ $(function() {
 						mesh.renderOrder = 3;
 		
 						// Append model to list
-						viewport.models.push({mesh: mesh, type: "stl", glow: null, adhesion: null});
+						viewport.models.push({
+							mesh: mesh,
+							type: "stl",
+							glow: null,
+							adhesion: null
+						});
 	
 						// Add printer to scene
 						viewport.scene[0].add(mesh);
@@ -1389,7 +1393,12 @@ $(function() {
 						viewport.scene[0].add(mesh);
 		
 						// Append model to list
-						viewport.models.push({mesh: mesh, type: type, glow: null, adhesion: viewport.createPlatformAdhesion(mesh)});
+						viewport.models.push({
+							mesh: mesh,
+							type: type,
+							glow: null,
+							adhesion: viewport.createPlatformAdhesion(mesh)
+						});
 					
 						// Select model
 						viewport.removeSelection();
@@ -1600,8 +1609,8 @@ $(function() {
 				// Mouse down event
 				mouseDownEvent: function(event) {
 
-					// Check if not in cutting models and not clicking on a button or input
-					if(viewport.cutShape === null && !$(event.target).is("button, img, input")) {
+					// Check if not in cutting models, clicking inside the model editor, and not clicking on a button or input
+					if(viewport.cutShape === null && $(event.target).closest(".modal-extra").length && !$(event.target).is("button, img, input")) {
 
 						// Initialize variables
 						var raycaster = new THREE.Raycaster();
@@ -1789,8 +1798,8 @@ $(function() {
 					viewport.sceneExported = false;
 
 					// Initialize variables
-					var centerX = -(extruderCenterX - (bedLowMaxX + bedLowMinX) / 2) + modelCenterOffsetX;
-					var centerZ = extruderCenterY - (bedLowMaxY + bedLowMinY) / 2 + modelCenterOffsetY;
+					var centerX = -(extruderCenterX - (bedLowMaxX + bedLowMinX) / 2) + bedLowMinX;
+					var centerZ = extruderCenterY - (bedLowMaxY + bedLowMinY) / 2 + bedLowMinY;
 					var mergedGeometry = new THREE.Geometry();
 				
 					// Go through all models
@@ -1928,7 +1937,12 @@ $(function() {
 							viewport.scene[0].add(clonedModel);
 		
 							// Append model to list
-							viewport.models.push({mesh: clonedModel, type: viewport.models[i].type, glow: null, adhesion: viewport.createPlatformAdhesion(clonedModel)});
+							viewport.models.push({
+								mesh: clonedModel,
+								type: viewport.models[i].type,
+								glow: null,
+								adhesion: viewport.createPlatformAdhesion(clonedModel)
+							});
 					
 							// Append cloned model to list
 							if(viewport.models[i].mesh == viewport.transformControls.object)
@@ -3043,7 +3057,11 @@ $(function() {
 								meshDifference.position.set(meshDifference.position.x + positionBefore.x - positionAfter.x, meshDifference.position.y + positionBefore.y - positionAfter.y, meshDifference.position.z + positionBefore.z - positionAfter.z);
 						
 								// Add difference mesh to list
-								differences.push({mesh: meshDifference, type: type, glow: null});
+								differences.push({
+									mesh: meshDifference,
+									type: type,
+									glow: null
+								});
 							}
 				
 							// Check if intersection mesh exists
@@ -3062,7 +3080,11 @@ $(function() {
 								meshIntersection.position.set(meshIntersection.position.x + positionBefore.x - positionAfter.x, meshIntersection.position.y + positionBefore.y - positionAfter.y, meshIntersection.position.z + positionBefore.z - positionAfter.z);
 						
 								// Add intersection mesh to list
-								intersections.push({mesh: meshIntersection, type: type, glow: null});
+								intersections.push({
+									mesh: meshIntersection,
+									type: type,
+									glow: null
+								});
 							}
 						}
 				
@@ -3081,7 +3103,12 @@ $(function() {
 							viewport.scene[0].add(intersections[i].mesh);
 				
 							// Add intersection mesh to list
-							viewport.models.push({mesh: intersections[i].mesh, type: intersections[i].type, glow: null, adhesion: viewport.createPlatformAdhesion(intersections[i].mesh)});
+							viewport.models.push({
+								mesh: intersections[i].mesh,
+								type: intersections[i].type,
+								glow: null,
+								adhesion: viewport.createPlatformAdhesion(intersections[i].mesh)
+							});
 				
 							// Select intersection mesh
 							viewport.selectModel(intersections[i].mesh);
@@ -3094,7 +3121,12 @@ $(function() {
 							viewport.scene[0].add(differences[i].mesh);
 				
 							// Add difference mesh to list
-							viewport.models.push({mesh: differences[i].mesh, type: differences[i].type, glow: null, adhesion: viewport.createPlatformAdhesion(differences[i].mesh)});
+							viewport.models.push({
+								mesh: differences[i].mesh,
+								type: differences[i].type,
+								glow: null,
+								adhesion: viewport.createPlatformAdhesion(differences[i].mesh)
+							});
 				
 							// Select difference mesh
 							viewport.selectModel(differences[i].mesh);
@@ -3123,7 +3155,7 @@ $(function() {
 						setTimeout(function() {
 							$("#slicing_configuration_dialog .modal-cover").css("z-index", '');
 						}, 200);
-					}, 300);
+					}, 600);
 				},
 				
 				// Set cut shape
@@ -3242,7 +3274,12 @@ $(function() {
 						viewport.scene[0].add(meshUnion);
 			
 						// Add union mesh to list
-						viewport.models.push({mesh: meshUnion, type: type, glow: null, adhesion: viewport.createPlatformAdhesion(meshUnion)});
+						viewport.models.push({
+							mesh: meshUnion,
+							type: type,
+							glow: null,
+							adhesion: viewport.createPlatformAdhesion(meshUnion)
+						});
 			
 						// Select union mesh
 						viewport.selectModel(meshUnion);
@@ -3255,7 +3292,7 @@ $(function() {
 						setTimeout(function() {
 							$("#slicing_configuration_dialog .modal-cover").css("z-index", '');
 						}, 200);
-					}, 300);
+					}, 600);
 				},
 				
 				// Line geometry
@@ -3350,7 +3387,10 @@ $(function() {
 						// Position measurement values
 						for(var j = 0; j < 3; j++) {
 							var position = viewport.get2dPosition(viewport.measurements[j][1]);
-							$("#slicing_configuration_dialog .modal-extra div.measurements > p").eq(j).css({"top" : position.y - 3 + "px", "left" : position.x - $("#slicing_configuration_dialog .modal-extra div.measurements > p").eq(j).width() / 2 + "px"});
+							$("#slicing_configuration_dialog .modal-extra div.measurements > p").eq(j).css({
+								"top": position.y - 3 + "px",
+								"left": position.x - $("#slicing_configuration_dialog .modal-extra div.measurements > p").eq(j).width() / 2 + "px"
+							});
 						}
 		
 						// Go through all models
@@ -3427,12 +3467,9 @@ $(function() {
 		if(htmlDecode(BRANCH) == "HEAD -> master")
 			$("#settings_plugin_softwareupdate div.alert:nth-of-type(2)").remove();
 		
-		// Change temperature graph's background image
-		$("#temperature-graph").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/graph%20background.png");
-		
 		// Add mid-print filament change settings
 		$("#gcode div.progress").after(`
-			<div class="midPrintFilamentChange">
+			<div class="midPrintFilamentChange micro3d">
 				<h1>Mid-Print Filament Change</h1>
 				<label title="Mid-print filament change commands will be added at the start of each specified layer. Layer numbers should be seperated by a space.">Layers<input type="text" pattern="[\\d\\s]*" class="input-block-level"></label>
 				<button class="btn btn-block control-box" data-bind="enable: loginState.isUser() && enableReload">Add current layer</button>
@@ -3459,31 +3496,56 @@ $(function() {
 
 		// Create motor on control
 		$("#control > div.jog-panel").eq(2).addClass("general").find("div").prepend(`
-			<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M17'}) }" title="Turns on extruder's motor">Motors on</button>
+			<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() {
+				$root.sendCustomCommand({
+					type: 'command',
+					command: 'M17'
+				})
+			}" title="Turns on printer's motors">Motors on</button>
 		`);
-		$("#control > div.jog-panel.general").find("button:nth-of-type(2)").attr("title", "Turns off extruder's motor");
+		$("#control > div.jog-panel.general").find("button:nth-of-type(2)").attr("title", "Turns off printer's motors");
 		
 		// Change fan controls
 		$("#control > div.jog-panel.general").find("button:nth-of-type(2)").after(`
-			<button class="btn btn-block control-box" data-bind="enable: isOperational() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M106 S255*'}) }" title="Turns on extruder's fan">Fan on</button>
-			<button class="btn btn-block control-box" data-bind="enable: isOperational() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M107*'}) }" title="Turns off extruder's fan">Fan off</button>
+			<button class="btn btn-block control-box" data-bind="enable: isOperational() && loginState.isUser()">Fan on</button>
+			<button class="btn btn-block control-box" data-bind="enable: isOperational() && loginState.isUser()">Fan off</button>
 		`);
 		$("#control > div.jog-panel.general").find("button:nth-of-type(5)").remove();
 		$("#control > div.jog-panel.general").find("button:nth-of-type(5)").remove();
 		
 		// Create absolute and relative controls, print settings, and emergency stop
 		$("#control > div.jog-panel.general").find("div").append(`
-			<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'G90'}) }" title="Sets extruder to use absolute positioning">Absolute mode</button>
-			<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'G91'}) }" title="Sets extruder to use relative positioning">Relative mode</button>
-			<button class="btn btn-block control-box" data-bind="enable: loginState.isUser()">Print settings</button>
-			<button class="btn btn-block control-box" data-bind="enable: isOperational() && loginState.isUser()">Emergency stop</button>
-			<button class="btn btn-block control-box gpio" data-bind="enable: isOperational() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M106 T1*'}) }" title="Sets GPIO pin high">GPIO high</button>
-			<button class="btn btn-block control-box gpio" data-bind="enable: isOperational() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M107 T1*'}) }" title="Sets GPIO pin low">GPIO low</button>
+			<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() {
+				$root.sendCustomCommand({
+					type: 'command',
+					command: 'G90'
+				})
+			}" title="Sets extruder to use absolute positioning">Absolute mode</button>
+			<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() {
+				$root.sendCustomCommand({
+					type: 'command',
+					command: 'G91'
+				})
+			}" title="Sets extruder to use relative positioning">Relative mode</button>
+			<button class="btn btn-block control-box micro3d" data-bind="enable: loginState.isUser()">Print settings</button>
+			<button class="btn btn-block control-box micro3d" data-bind="enable: isOperational() && loginState.isUser()">Emergency stop</button>
+			<button class="btn btn-block control-box gpio micro3d" data-bind="enable: isOperational() && loginState.isUser(), click: function() {
+				$root.sendCustomCommand({
+					type: 'command',
+					command: 'M106 T1*'
+				})
+			}" title="Sets GPIO pin high">GPIO high</button>
+			<button class="btn btn-block control-box gpio micro3d" data-bind="enable: isOperational() && loginState.isUser(), click: function() {
+				$root.sendCustomCommand({
+					type: 'command',
+					command: 'M107 T1*'
+				})
+			}" title="Sets GPIO pin low">GPIO low</button>
 		`);
 	
 		// Add filament controls
 		$("#control > div.jog-panel.general").after(`
-			<div class="jog-panel filament" data-bind="visible: loginState.isUser">
+			<div class="jog-panel filament micro3d" data-bind="visible: loginState.isUser">
 				<h1>Filament</h1>
 				<div>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Unload</button>
@@ -3495,7 +3557,7 @@ $(function() {
 	
 		// Add calibration controls
 		$("#control > div.jog-panel.filament").after(`
-			<div class="jog-panel calibration" data-bind="visible: loginState.isUser">
+			<div class="jog-panel calibration micro3d" data-bind="visible: loginState.isUser">
 				<h1>Calibration</h1>
 				<div>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Calibrate bed center Z0</button>
@@ -3513,6 +3575,7 @@ $(function() {
 					<button class="btn btn-block control-box arrow point" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><i class="icon-arrow-down"></i></button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Save Z as back left Z0</button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Save Z as bed center Z0</button>
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Save Z as external bed height</button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Print 0.4mm test border</button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Print backlash calibration cylinder</button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Run complete bed calibration</button>
@@ -3525,7 +3588,7 @@ $(function() {
 	
 		// Add advanced controls
 		$("#control > div.jog-panel.calibration").after(`
-			<div class="jog-panel advanced" data-bind="visible: loginState.isUser">
+			<div class="jog-panel advanced micro3d" data-bind="visible: loginState.isUser">
 				<h1>Advanced</h1>
 				<div>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/hengLiXin.png">HengLiXin fan</button>
@@ -3534,6 +3597,9 @@ $(function() {
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/xinyujie.png">Xinyujie fan</button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">500mA extruder current</button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">660mA extruder current</button>
+					<button class="btn btn-block control-box placeHolder" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"></button>
+					<button class="btn btn-block control-box placeHolder" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"></button>
+					<button class="btn btn-block control-box placeHolder" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"></button>
 					<button class="btn btn-block control-box placeHolder" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"></button>
 					<button class="btn btn-block control-box placeHolder" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"></button>
 					<button class="btn btn-block control-box placeHolder" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"></button>
@@ -3572,7 +3638,7 @@ $(function() {
 		
 		// Add EEPROM controls
 		$("#control > div.jog-panel.advanced").after(`
-			<div class="jog-panel eeprom" data-bind="visible: loginState.isUser">
+			<div class="jog-panel eeprom micro3d" data-bind="visible: loginState.isUser">
 				<h1>EEPROM</h1>
 				<div>
 					<table><tbody>` + table + `</tbody></table>
@@ -3600,7 +3666,12 @@ $(function() {
 				<input style="width: 100px;" data-bind="slider: {min: 100, max: 265, step: 1, value: flowRate, tooltip: 'hide'}" type="number">
 			</div>
 			<button class="btn btn-block control-box" data-bind="enable: isOperational() && loginState.isUser()">Temperature:<span data-bind="text: flowRate() + 50 + '°C'"></span></button>
-			<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M104 S0'}) }" title="Turns off extruder's heater">Heater off</button>
+			<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() {
+				$root.sendCustomCommand({
+					type: 'command',
+					command: 'M104 S0'
+				})
+			}" title="Turns off extruder's heater">Heater off</button>
 			<div class="heatbed">
 				<h1 class="heatbed">Heatbed</h1>
 				<div style="width: 114px;" class="slider slider-horizontal">
@@ -3616,7 +3687,12 @@ $(function() {
 					<input style="width: 100px;" data-bind="slider: {min: 100, max: 170, step: 1, value: feedRate, tooltip: 'hide'}" type="number">
 				</div>
 				<button class="btn btn-block control-box" data-bind="enable: isOperational() && loginState.isUser()">Temperature:<span data-bind="text: feedRate() -60 + '°C'"></span></button>
-				<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M140 S0'}) }" title="Turns off heatbed's heater">Heater off</button>
+				<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() {
+					$root.sendCustomCommand({
+						type: 'command',
+						command: 'M140 S0'
+					})
+				}" title="Turns off heatbed's heater">Heater off</button>
 			<div>
 		`);
 		
@@ -3630,13 +3706,14 @@ $(function() {
 						<p></p>
 						<div class="calibrate">
 							<div class="arrows">
-								<button class="btn btn-block control-box arrow up"><i class="icon-arrow-up"></i></button>
-								<button class="btn btn-block control-box arrow down"><i class="icon-arrow-down"></i></button>
+								<button class="btn btn-block control-box arrow up" title="Applies extruder's position adjustment in the positive direction"><i class="icon-arrow-up"></i></button>
+								<button class="btn btn-block control-box arrow down" title="Applies extruder's position adjustment in the negative direction"><i class="icon-arrow-down"></i></button>
 							</div>
 							<div class="distance">
-								<button type="button" class="btn distance">0.01</button>
-								<button type="button" class="btn distance active">0.1</button>
-								<button type="button" class="btn distance">1</button>
+								<button type="button" class="btn distance" title="Sets extruder's position adjustment to 0.01mm">0.01</button>
+								<button type="button" class="btn distance" title="Sets extruder's position adjustment to 0.1mm">0.1</button>
+								<button type="button" class="btn distance active" title="Sets extruder's position adjustment to 1mm">1</button>
+								<button type="button" class="btn distance" title="Sets extruder's position adjustment to 10mm">10</button>
 							</div>
 						</div>
 						<div class="printSettings">
@@ -3727,13 +3804,6 @@ $(function() {
 		// Allow positioning OctoPrint instance manager
 		$("div.navbar-inner div.container").css("position", "relative");
 		$("div.navbar-inner ul.nav.pull-right").css("position", "static");
-		
-		// Add audio
-		$("body").append(`
-			<audio class="notification">
-				<source src="` + PLUGIN_BASEURL + `m3dfio/static/files/notification.mp3" type="audio/mpeg">
-			</audio>
-		`);
 		
 		// Wrap movement controls in section
 		$("#control > div.jog-panel.controls > *").wrapAll("<div></div>");
@@ -3882,14 +3952,14 @@ $(function() {
 		});
 		
 		// Control button click event
-		$("#control button").click(function() {
+		$(document).on("click", "#control button", function() {
 
 			// Blur self
 			$(this).blur();
 		});
 		
 		// Add mid-print filament change layer event
-		$("#gcode div.midPrintFilamentChange button").eq(0).click(function() {
+		$("#gcode div.midPrintFilamentChange button").eq(0).attr("title", "Appends current layer to mid-print filament change layers").click(function() {
 		
 			// Blue self
 			$(this).blur();
@@ -3909,7 +3979,7 @@ $(function() {
 		});
 		
 		// Clear all mid-print filament change layers event
-		$("#gcode div.midPrintFilamentChange button").eq(1).click(function() {
+		$("#gcode div.midPrintFilamentChange button").eq(1).attr("title", "Clears all mid-print filament change layers").click(function() {
 		
 			// Blue self
 			$(this).blur();
@@ -3919,7 +3989,7 @@ $(function() {
 		});
 		
 		// Save mid-print filament change layer event
-		$("#gcode div.midPrintFilamentChange button").eq(2).click(function() {
+		$("#gcode div.midPrintFilamentChange button").eq(2).attr("title", "Saves current mid-print filament change layers").click(function() {
 		
 			// Blue self
 			$(this).blur();
@@ -3934,7 +4004,10 @@ $(function() {
 					url: API_BASEURL + "plugin/m3dfio",
 					type: "POST",
 					dataType: "json",
-					data: JSON.stringify({command: "message", value: "Mid-Print Filament Change Layers:" + $("#gcode div.midPrintFilamentChange input").val()}),
+					data: JSON.stringify({
+						command: "message",
+						value: "Mid-Print Filament Change Layers:" + $("#gcode div.midPrintFilamentChange input").val()
+					}),
 					contentType: "application/json; charset=UTF-8",
 				
 					// On success
@@ -3954,14 +4027,14 @@ $(function() {
 		var originalLoadFile = self.files.loadFile;
 		self.files.loadFile = function(file, printAfterLoad) {
 		
-			// Check if printing after load
-			if(printAfterLoad) {
+			// Check if printing after load and using a Micro 3D printer
+			if(printAfterLoad && !self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter()) {
 			
 				// Check if using on the fly pre-processing and changing settings before print
 				if(self.settings.settings.plugins.m3dfio.PreprocessOnTheFly() && self.settings.settings.plugins.m3dfio.ChangeSettingsBeforePrint()) {
 			
 					// Show message
-					showMessage("Message", '', "Print", function() {
+					showMessage("Printing Status", '', "Print", function() {
 			
 						// Hide message
 						hideMessage();
@@ -4062,17 +4135,17 @@ $(function() {
 			// Initialize variables
 			var button = $(this);
 			
-			// Check if not continuing with print 
-			if(!continueWithPrint) {
+			// Check if not continuing with print and using a Micro 3D printer
+			if(!continueWithPrint && !self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter()) {
+			
+				// Stop default behavior
+				event.stopImmediatePropagation();
 			
 				// Check if using on the fly pre-processing and changing settings before print
 				if(self.settings.settings.plugins.m3dfio.PreprocessOnTheFly() && self.settings.settings.plugins.m3dfio.ChangeSettingsBeforePrint()) {
-				
-					// Stop default behavior
-					event.stopImmediatePropagation();
 			
 					// Show message
-					showMessage("Message", '', "Print", function() {
+					showMessage("Printing Status", '', "Print", function() {
 			
 						// Hide message
 						hideMessage();
@@ -4172,166 +4245,190 @@ $(function() {
 		// Set temperature target or offset button event
 		$(document).on("click", "#temp button[type=\"submit\"]", function(event) {
 		
-			// Get temperature
-			var temperature = 0;
-			
-			$(this).closest("tr").find("input").each(function() {
-			
-				if(!isNaN(parseInt($(this).val())))
-					temperature += parseInt($(this).val());
-				else if(!isNaN(parseInt($(this).attr("placeholder"))))
-					temperature += parseInt($(this).attr("placeholder"));
-			});
-			
-			// Check if setting extruder temperature
-			if($(this).closest("tr").children("th").text() == "Hotend")
-				
-				// Set commands
-				var commands = [
-					"M104 S" + temperature + '*'
-				];
-			
-			// Otherwise check if setting heatbed temperature
-			else if($(this).closest("tr").children("th").text() == "Bed")
-			
-				// Set commands
-				var commands = [
-					"M140 S" + temperature + '*'
-				];
-			
-			// Otherwise
-			else
-			
-				// Return
-				return;
-			
-			// Stop default behavior
-			event.stopImmediatePropagation();
+			// Check if using a Micro 3D printer
+			if(!self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter()) {
 		
-			// Send request
-			$.ajax({
-				url: API_BASEURL + "plugin/m3dfio",
-				type: "POST",
-				dataType: "json",
-				data: JSON.stringify({command: "message", value: commands}),
-				contentType: "application/json; charset=UTF-8"
-			});
+				// Get temperature
+				var temperature = 0;
+			
+				$(this).closest("tr").find("input").each(function() {
+			
+					if(!isNaN(parseInt($(this).val())))
+						temperature += parseInt($(this).val());
+					else if(!isNaN(parseInt($(this).attr("placeholder"))))
+						temperature += parseInt($(this).attr("placeholder"));
+				});
+			
+				// Check if setting extruder temperature
+				if($(this).closest("tr").children("th").text() == "Hotend")
+				
+					// Set commands
+					var commands = [
+						"M104 S" + temperature + '*'
+					];
+			
+				// Otherwise check if setting heatbed temperature
+				else if($(this).closest("tr").children("th").text() == "Bed")
+			
+					// Set commands
+					var commands = [
+						"M140 S" + temperature + '*'
+					];
+			
+				// Otherwise
+				else
+			
+					// Return
+					return;
+			
+				// Stop default behavior
+				event.stopImmediatePropagation();
+		
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m3dfio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({
+						command: "message",
+						value: commands
+					}),
+					contentType: "application/json; charset=UTF-8"
+				});
+			}
 		});
 		
 		// Set temperature target to preset button event
 		$(document).on("click", "#temp ul.dropdown-menu a", function(event) {
 		
-			// Get temperature
-			var temperature = 0;
+			// Check if using a Micro 3D printer
+			if(!self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter()) {
+		
+				// Get temperature
+				var temperature = 0;
 			
-			// Check if not turning off
-			if($(this).text() != "Off")
+				// Check if not turning off
+				if($(this).text() != "Off")
 			
-				// Set temperature
-				temperature = $(this).text().match(/\((\d*)°C\)/)[1]
+					// Set temperature
+					temperature = $(this).text().match(/\((\d*)°C\)/)[1]
 			
-			// Check if setting extruder temperature
-			if($(this).closest("tr").children("th").text() == "Hotend")
+				// Check if setting extruder temperature
+				if($(this).closest("tr").children("th").text() == "Hotend")
 			
-				// Set commands
-				var commands = [
-					"M104 S" + temperature + '*'
-				];
+					// Set commands
+					var commands = [
+						"M104 S" + temperature + '*'
+					];
 		
-			// Otherwise check if setting heatbed temperature
-			else if($(this).closest("tr").children("th").text() == "Bed")
+				// Otherwise check if setting heatbed temperature
+				else if($(this).closest("tr").children("th").text() == "Bed")
 		
-				// Set commands
-				var commands = [
-					"M140 S" + temperature + '*'
-				];
+					// Set commands
+					var commands = [
+						"M140 S" + temperature + '*'
+					];
 		
-			// Otherwise
-			else
+				// Otherwise
+				else
 		
-				// Return
-				return;
+					// Return
+					return;
 		
-			// Send request
-			$.ajax({
-				url: API_BASEURL + "plugin/m3dfio",
-				type: "POST",
-				dataType: "json",
-				data: JSON.stringify({command: "message", value: commands}),
-				contentType: "application/json; charset=UTF-8"
-			});
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m3dfio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({
+						command: "message",
+						value: commands
+					}),
+					contentType: "application/json; charset=UTF-8"
+				});
+			}
 		});
 		
 		// Pause print button click event
 		$("#job_pause").click(function(event) {
 		
-			// Stop default behavior
-			event.stopImmediatePropagation();
+			// Check if using a Micro 3D printer
+			if(!self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter()) {
+		
+				// Stop default behavior
+				event.stopImmediatePropagation();
 			
-			// Check if not paused
-			if(self.printerState.isPaused() !== true) {
+				// Check if not paused
+				if(self.printerState.isPaused() !== true) {
 			
-				// Show message
-				showMessage("Printing Status", "Pausing print");
+					// Show message
+					showMessage("Printing Status", "Pausing print");
 				
-				// Wait until paused
-				function waitUntilPaused() {
+					// Wait until paused
+					function waitUntilPaused() {
 			
-					// Check if paused
-					if(self.printerState.isPaused() === true)
+						// Check if paused
+						if(self.printerState.isPaused() === true)
 					
-						// Hide message
-						hideMessage();
+							// Hide message
+							hideMessage();
 				
-					// Otherwise
-					else
+						// Otherwise
+						else
 					
-						// Check if paused again
-						setTimeout(waitUntilPaused, 100);
+							// Check if paused again
+							setTimeout(waitUntilPaused, 100);
+					}
+					waitUntilPaused();
+				
+					// Send request
+					$.ajax({
+						url: API_BASEURL + "plugin/m3dfio",
+						type: "POST",
+						dataType: "json",
+						data: JSON.stringify({
+							command: "message",
+							value: "Pause"
+						}),
+						contentType: "application/json; charset=UTF-8"
+					});
 				}
-				waitUntilPaused();
+			
+				// Otherwise
+				else {
+			
+					// Show message
+					showMessage("Printing Status", "Resuming print");
 				
-				// Send request
-				$.ajax({
-					url: API_BASEURL + "plugin/m3dfio",
-					type: "POST",
-					dataType: "json",
-					data: JSON.stringify({command: "message", value: "Pause"}),
-					contentType: "application/json; charset=UTF-8"
-				});
-			}
+					// Wait until resumed
+					function waitUntilResumed() {
 			
-			// Otherwise
-			else {
-			
-				// Show message
-				showMessage("Printing Status", "Resuming print");
-				
-				// Wait until resumed
-				function waitUntilResumed() {
-			
-					// Check if printing
-					if(self.printerState.isPrinting() === true)
+						// Check if printing
+						if(self.printerState.isPrinting() === true)
 					
-						// Hide message
-						hideMessage();
+							// Hide message
+							hideMessage();
 				
-					// Otherwise
-					else
+						// Otherwise
+						else
 						
-						// Check if resumed again
-						setTimeout(waitUntilResumed, 100);
-				}
-				waitUntilResumed();
+							// Check if resumed again
+							setTimeout(waitUntilResumed, 100);
+					}
+					waitUntilResumed();
 				
-				// Send request
-				$.ajax({
-					url: API_BASEURL + "plugin/m3dfio",
-					type: "POST",
-					dataType: "json",
-					data: JSON.stringify({command: "message", value: "Resume"}),
-					contentType: "application/json; charset=UTF-8"
-				});
+					// Send request
+					$.ajax({
+						url: API_BASEURL + "plugin/m3dfio",
+						type: "POST",
+						dataType: "json",
+						data: JSON.stringify({
+							command: "message",
+							value: "Resume"
+						}),
+						contentType: "application/json; charset=UTF-8"
+					});
+				}
 			}
 		});
 		
@@ -4436,22 +4533,32 @@ $(function() {
 		// Cancel print button click event
 		$("#job_cancel").click(function(event) {
 		
-			// Stop default behavior
-			event.stopImmediatePropagation();
+			// Check if using a Micro 3D printer
+			if(!self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter()) {
 		
-			// Set commands
-			var commands = [
-				"M65537;stop"
-			];
+				// Stop default behavior
+				event.stopImmediatePropagation();
+			
+				// Show message
+				showMessage("Printing Status", "Canceling print");
+		
+				// Set commands
+				var commands = [
+					"M65537;stop"
+				];
 	
-			// Send request
-			$.ajax({
-				url: API_BASEURL + "plugin/m3dfio",
-				type: "POST",
-				dataType: "json",
-				data: JSON.stringify({command: "message", value: commands}),
-				contentType: "application/json; charset=UTF-8"
-			});
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m3dfio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({
+						command: "message",
+						value: commands
+					}),
+					contentType: "application/json; charset=UTF-8"
+				});
+			}
 		});
 		
 		// Save button click event
@@ -4490,7 +4597,7 @@ $(function() {
 					setTimeout(function() {
 						$("#slicing_configuration_dialog .modal-cover").css("z-index", '');
 					}, 200);
-				}, 300);
+				}, 600);
 			}
 			
 			// Otherwise assume saving model
@@ -4524,7 +4631,7 @@ $(function() {
 							setTimeout(isSceneExported, 100);
 					}
 					isSceneExported();
-				}, 300);
+				}, 600);
 			}
 		});
 		
@@ -4716,7 +4823,10 @@ $(function() {
 						url: API_BASEURL + "plugin/m3dfio",
 						type: "POST",
 						dataType: "json",
-						data: JSON.stringify({command: "message", value: "Remove Temp"}),
+						data: JSON.stringify({
+							command: "message",
+							value: "Remove Temp"
+						}),
 						contentType: "application/json; charset=UTF-8"
 					});
 					
@@ -4758,11 +4868,8 @@ $(function() {
 			// Set skip model editor
 			skipModelEditor = true;
 			
-			// Set slicer menu
-			slicerMenu = "Modify Model";
-			
 			// Skip model editor
-			$("#slicing_configuration_dialog > div.modal-footer > .btn-primary").removeClass("disabled").click();
+			$("#slicing_configuration_dialog > div.modal-footer > .btn-primary").click();
 		});
 		
 		// Slicer next button click event
@@ -4844,727 +4951,734 @@ $(function() {
 											// Set using provided profile
 											var usingProvidedProfile = slicerName == "cura" && (slicerProfileName == "m3d_pla" || slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips" || slicerProfileName == "m3d_flx" || slicerProfileName == "m3d_tgh");
 											
-											// Hide cover
-											$("#slicing_configuration_dialog .modal-cover").addClass("noTransition").removeClass("show");
+											// Hide dialog
+											$("#slicing_configuration_dialog").removeClass("in");
+										
 											setTimeout(function() {
-												$("#slicing_configuration_dialog .modal-cover").css("z-index", '').removeClass("noTransition");
-											}, 200);
-										
-											// Display profile
-											$("#slicing_configuration_dialog").addClass("profile");
-											$("#slicing_configuration_dialog p.currentMenu").text("Modify Profile");
-											$("#slicing_configuration_dialog .modal-body").css("display", "none");
-											$("#slicing_configuration_dialog .modal-body").after(`
-												<div class="modal-extra">
-													<div class="cura">
-														<div class="group basic">
-															<h3>Basic Settings</h3>
-															<p class="quality">` + (usingProvidedProfile ? `Medium Quality` : `Unknown Quality`) + `</p>
-															<div class="quality">
-																<button title="Extra low quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/extra%20low%20quality.png"></button>
-																<button title="Low quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/low%20quality.png"></button>
-																<button title="Medium quality"` + (usingProvidedProfile ? ` class="disabled"` : ``) + `><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/medium%20quality.png"></button>
-																<button title="High quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/high%20quality.png"></button>
-																<button title="Extra high quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/extra%20high%20quality.png"></button>
+											
+												// Hide cover
+												$("#slicing_configuration_dialog .modal-cover").addClass("noTransition").removeClass("show");
+												setTimeout(function() {
+													$("#slicing_configuration_dialog .modal-cover").css("z-index", '').removeClass("noTransition");
+												}, 200);
+											
+												// Display profile editor
+												$("#slicing_configuration_dialog").addClass("profile in");
+												$("#slicing_configuration_dialog p.currentMenu").text("Modify Profile");
+												$("#slicing_configuration_dialog .modal-body").css("display", "none").after(`
+													<div class="modal-extra">
+														<div class="cura">
+															<div class="group basic">
+																<h3>Basic Settings</h3>
+																<p class="quality">` + (usingProvidedProfile ? `Medium Quality` : `Unknown Quality`) + `</p>
+																<div class="quality">
+																	<button title="Extra low quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/extra%20low%20quality.png"></button>
+																	<button title="Low quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/low%20quality.png"></button>
+																	<button title="Medium quality"` + (usingProvidedProfile ? ` class="disabled"` : ``) + `><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/medium%20quality.png"></button>
+																	<button title="High quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/high%20quality.png"></button>
+																	<button title="Extra high quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/extra%20high%20quality.png"></button>
+																</div>
+																<p class="fill">` + (usingProvidedProfile ? `Medium Fill` : `Unknown Fill`) + `</p>
+																<div class="fill">
+																	<button title="Hollow thin fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/hollow%20thin%20fill.png"></button>
+																	<button title="Hollow thick fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/hollow%20thick%20fill.png"></button>
+																	<button title="Low fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/low%20fill.png"></button>
+																	<button title="Medium fill"` + (usingProvidedProfile ? ` class="disabled"` : ``) + `><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/medium%20fill.png"></button>
+																	<button title="High fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/high%20fill.png"></button>
+																	<button title="Extra high fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/extra%20high%20fill.png"></button>
+																</div>
+																<div class="settings">
+																	<label title="Prints a breakaway support underneath overhanging parts of the model"><input class="useSupportMaterial" type="checkbox" tabindex="-1">Use support material</label>
+																	<label title="Allows support material to be created on top of models"><input class="useModelOnModelSupport" type="checkbox" tabindex="-1">Use model on model support</label>
+																	<label title="Prints a raft underneath the model"><input class="useRaft" type="checkbox" tabindex="-1">Use raft</label>
+																	<label title="Prints a brim connected to the first layer of the model"><input class="useBrim" type="checkbox" tabindex="-1">Use brim</label>
+																	<label title="Retracts the filament when moving over gaps"><input class="useRetraction" type="checkbox" tabindex="-1">Use retraction</label>
+																</div>
 															</div>
-															<p class="fill">` + (usingProvidedProfile ? `Medium Fill` : `Unknown Fill`) + `</p>
-															<div class="fill">
-																<button title="Hollow thin fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/hollow%20thin%20fill.png"></button>
-																<button title="Hollow thick fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/hollow%20thick%20fill.png"></button>
-																<button title="Low fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/low%20fill.png"></button>
-																<button title="Medium fill"` + (usingProvidedProfile ? ` class="disabled"` : ``) + `><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/medium%20fill.png"></button>
-																<button title="High fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/high%20fill.png"></button>
-																<button title="Extra high fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/extra%20high%20fill.png"></button>
-															</div>
-															<div class="settings">
-																<label title="Prints a breakaway support underneath overhanging parts of the model"><input class="useSupportMaterial" type="checkbox" tabindex="-1">Use support material</label>
-																<label title="Allows support material to be created on top of models"><input class="useModelOnModelSupport" type="checkbox" tabindex="-1">Use model on model support</label>
-																<label title="Prints a raft underneath the model"><input class="useRaft" type="checkbox" tabindex="-1">Use raft</label>
-																<label title="Prints a brim connected to the first layer of the model"><input class="useBrim" type="checkbox" tabindex="-1">Use brim</label>
-																<label title="Retracts the filament when moving over gaps"><input class="useRetraction" type="checkbox" tabindex="-1">Use retraction</label>
+															<div class="group manual">
+																<h3>Manual Settings</h3>
+																<div>
+																	<div title="Height of each layer">
+																		<label>Layer height</label>
+																		<div class="input-append">
+																			<input class="layerHeight" type="number" tabindex="-1" min="0.01" max="0.35" step="0.01">
+																			<span class="add-on">mm</span>
+																		</div>
+																	</div>
+																	<div title="Percentage of the model that is filled in">
+																		<label>Fill density</label>
+																		<div class="input-append">
+																			<input class="fillDensity" type="number" tabindex="-1" min="0" max="100" step="0.01">
+																			<span class="add-on">%</span>
+																		</div>
+																	</div>
+																	<div title="Thickness of the model">
+																		<label>Thickness</label>
+																		<div class="input-append">
+																			<input class="thickness" type="number" tabindex="-1" min="1" max="25" step="1">
+																			<span class="add-on">wall(s)</span>
+																		</div>
+																	</div>
+																	<div title="Speed of the extruder's movements while printing">
+																		<label>Print speed</label>
+																		<div class="input-append">
+																			<input class="printSpeed" type="number" tabindex="-1" min="2" max="80" step="0.01">
+																			<span class="add-on">mm/s</span>
+																		</div>
+																	</div>
+																	<div title="Number of layers that the top and bottom each consist of">
+																		<label>Top/bottom</label>
+																		<div class="input-append">
+																			<input class="topBottomLayers" type="number" tabindex="-1" min="1" max="25" step="1">
+																			<span class="add-on">layer(s)</span>
+																		</div>
+																	</div>
+																	<div title="Distance between the raft and the model">
+																		<label>Raft airgap</label>
+																		<div class="input-append">
+																			<input class="raftAirgap" type="number" tabindex="-1" min="0" max="4" step="0.01">
+																			<span class="add-on">mm</span>
+																		</div>
+																	</div>
+																	<div title="The amount of lines used for the brim">
+																		<label>Brim line count</label>
+																		<div class="input-append">
+																			<input class="brimLineCount" type="number" tabindex="-1" min="0" max="50" step="1">
+																			<span class="add-on">line(s)</span>
+																		</div>
+																	</div>
+																</div>
 															</div>
 														</div>
-														<div class="group manual">
-															<h3>Manual Settings</h3>
+														<div class="group advanced">
+															<h3>Advanced Settings</h3>
 															<div>
-																<div title="Height of each layer">
-																	<label>Layer height</label>
-																	<div class="input-append">
-																		<input class="layerHeight" type="number" tabindex="-1" min="0.01" max="0.35" step="0.01">
-																		<span class="add-on">mm</span>
-																	</div>
-																</div>
-																<div title="Percentage of the model that is filled in">
-																	<label>Fill density</label>
-																	<div class="input-append">
-																		<input class="fillDensity" type="number" tabindex="-1" min="0" max="100" step="0.01">
-																		<span class="add-on">%</span>
-																	</div>
-																</div>
-																<div title="Thickness of the model">
-																	<label>Thickness</label>
-																	<div class="input-append">
-																		<input class="thickness" type="number" tabindex="-1" min="1" max="25" step="1">
-																		<span class="add-on">wall(s)</span>
-																	</div>
-																</div>
-																<div title="Speed of the extruder's movements while printing">
-																	<label>Print speed</label>
-																	<div class="input-append">
-																		<input class="printSpeed" type="number" tabindex="-1" min="2" max="80" step="0.01">
-																		<span class="add-on">mm/s</span>
-																	</div>
-																</div>
-																<div title="Number of layers that the top and bottom each consist of">
-																	<label>Top/bottom</label>
-																	<div class="input-append">
-																		<input class="topBottomLayers" type="number" tabindex="-1" min="1" max="25" step="1">
-																		<span class="add-on">layer(s)</span>
-																	</div>
-																</div>
-																<div title="Distance between the raft and the model">
-																	<label>Raft airgap</label>
-																	<div class="input-append">
-																		<input class="raftAirgap" type="number" tabindex="-1" min="0" max="4" step="0.01">
-																		<span class="add-on">mm</span>
-																	</div>
-																</div>
-																<div title="The amount of lines used for the brim">
-																	<label>Brim line count</label>
-																	<div class="input-append">
-																		<input class="brimLineCount" type="number" tabindex="-1" min="0" max="50" step="1">
-																		<span class="add-on">line(s)</span>
-																	</div>
-																</div>
+																<aside></aside>
+																<textarea tabindex="-1" spellcheck="false"></textarea>
 															</div>
+															<span></span>
 														</div>
-													</div>
-													<div class="group advanced">
-														<h3>Advanced Settings</h3>
-														<div>
-															<aside></aside>
-															<textarea tabindex="-1" spellcheck="false"></textarea>
-														</div>
-														<span></span>
-													</div>
-												</div
-											`);
-											$("#slicing_configuration_dialog .modal-extra textarea").val(data);
+													</div
+												`);
+												$("#slicing_configuration_dialog .modal-extra textarea").val(data);
 											
-											// Set basic setting values
-											$("#slicing_configuration_dialog .modal-extra div.cura div input[type=\"checkbox\"].useSupportMaterial").prop("checked", getSlicerProfileValue("support") == "Everywhere" || getSlicerProfileValue("support") == "Touching buildplate");
-											$("#slicing_configuration_dialog .modal-extra div.cura div input[type=\"checkbox\"].useModelOnModelSupport").prop("checked", getSlicerProfileValue("support") == "Everywhere");
-											$("#slicing_configuration_dialog .modal-extra div.cura div input[type=\"checkbox\"].useRaft").prop("checked", getSlicerProfileValue("platform_adhesion") == "Raft");
-											$("#slicing_configuration_dialog .modal-extra div.cura div input[type=\"checkbox\"].useBrim").prop("checked", getSlicerProfileValue("platform_adhesion") == "Brim");
-											$("#slicing_configuration_dialog .modal-extra div.cura div input[type=\"checkbox\"].useRetraction").prop("checked", getSlicerProfileValue("retraction_enable") == "True");
+												// Set basic setting values
+												$("#slicing_configuration_dialog .modal-extra div.cura div input[type=\"checkbox\"].useSupportMaterial").prop("checked", getSlicerProfileValue("support") == "Everywhere" || getSlicerProfileValue("support") == "Touching buildplate");
+												$("#slicing_configuration_dialog .modal-extra div.cura div input[type=\"checkbox\"].useModelOnModelSupport").prop("checked", getSlicerProfileValue("support") == "Everywhere");
+												$("#slicing_configuration_dialog .modal-extra div.cura div input[type=\"checkbox\"].useRaft").prop("checked", getSlicerProfileValue("platform_adhesion") == "Raft");
+												$("#slicing_configuration_dialog .modal-extra div.cura div input[type=\"checkbox\"].useBrim").prop("checked", getSlicerProfileValue("platform_adhesion") == "Brim");
+												$("#slicing_configuration_dialog .modal-extra div.cura div input[type=\"checkbox\"].useRetraction").prop("checked", getSlicerProfileValue("retraction_enable") == "True");
 											
-											// Set manual setting values
-											$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.layerHeight").val(getSlicerProfileValue("layer_height"));
-											$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.fillDensity").val(getSlicerProfileValue("fill_density"));
-											$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.thickness").val(Math.round(parseFloat(getSlicerProfileValue("wall_thickness")) / parseFloat(getSlicerProfileValue("nozzle_size"))));
-											$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.printSpeed").val(getSlicerProfileValue("print_speed"));
-											$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.raftAirgap").val(getSlicerProfileValue("raft_airgap"));
-											$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").val(getSlicerProfileValue("brim_line_count"));
-											if(!$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").val().length)
-												$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").val(20);
-											$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.topBottomLayers").val(Math.round(parseFloat(getSlicerProfileValue("solid_layer_thickness")) / parseFloat(getSlicerProfileValue("layer_height"))));
-											if(getSlicerProfileValue("platform_adhesion") != "Raft")
-												$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.raftAirgap").parent("div").parent("div").addClass("disabled");
-											if(getSlicerProfileValue("platform_adhesion") != "Brim")
-												$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").parent("div").parent("div").addClass("disabled");
+												// Set manual setting values
+												$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.layerHeight").val(getSlicerProfileValue("layer_height"));
+												$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.fillDensity").val(getSlicerProfileValue("fill_density"));
+												$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.thickness").val(Math.round(parseFloat(getSlicerProfileValue("wall_thickness")) / parseFloat(getSlicerProfileValue("nozzle_size"))));
+												$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.printSpeed").val(getSlicerProfileValue("print_speed"));
+												$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.raftAirgap").val(getSlicerProfileValue("raft_airgap"));
+												$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").val(getSlicerProfileValue("brim_line_count"));
+												if(!$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").val().length)
+													$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").val(20);
+												$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.topBottomLayers").val(Math.round(parseFloat(getSlicerProfileValue("solid_layer_thickness")) / parseFloat(getSlicerProfileValue("layer_height"))));
+												if(getSlicerProfileValue("platform_adhesion") != "Raft")
+													$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.raftAirgap").parent("div").parent("div").addClass("disabled");
+												if(getSlicerProfileValue("platform_adhesion") != "Brim")
+													$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").parent("div").parent("div").addClass("disabled");
 											
-											// Check if using a Cura profile
-											if(slicerName == "cura")
+												// Check if using a Cura profile
+												if(slicerName == "cura")
 											
-												// Show Cura settings
-												$("#slicing_configuration_dialog .modal-extra div.cura").addClass("show");
+													// Show Cura settings
+													$("#slicing_configuration_dialog .modal-extra div.cura").addClass("show");
 											
-											// Otherwise
-											else {
+												// Otherwise
+												else {
 											
-												// Grow text area
-												$("#slicing_configuration_dialog.profile .modal-extra div.advanced").addClass("fullSpace").removeClass("closed")
-												$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced > span").css("display", "block");
-											}
-											
-											// Set slicer menu
-											slicerMenu = "Modify Profile";
-							
-											// Set button
-											button.removeClass("disabled");
-											
-											// Skip model editor and show warning if WebGL isn't supported
-											if(!Detector.webgl) {
-												button.text("Slice");
-												$("#slicing_configuration_dialog .modal-footer p.warning").text("Model editor will be skipped since your browser doesn't support WebGL");
-												$("#slicing_configuration_dialog .modal-footer a.skip").css("display", "none");
-											}
-										
-											// Update line numbers
-											var previousLineCount = 0;
-											function updateLineNumbers() {
-										
-												// Check if text area exists
-												var textArea = $("#slicing_configuration_dialog .modal-extra textarea");
-			
-												if(textArea.length) {
-			
-													// Get number of lines
-													var numberOfLines = textArea.val().match(/\n/g);
-												
-													// Fix line count if no newlines were found
-													if(numberOfLines === null)
-														numberOfLines = 1;
-													else
-														numberOfLines = numberOfLines.length + 1;
-												
-													// Get line number area
-													var lineNumberArea = textArea.siblings("aside");
-												
-													// Check if number of lines has changes
-													if(previousLineCount != numberOfLines) {
-												
-														// Clear existing line numbers
-														lineNumberArea.empty();
-												
-														// Create new line numbers
-														for(var i = 1; i <= numberOfLines; i++)
-															lineNumberArea.append(i + "<br>");
-														lineNumberArea.append("<br>");
-														lineNumberArea.append("<br>");
-													
-														// Update previous line count
-														previousLineCount = numberOfLines;
-													}
-												
-													// Update line numbers again
-													setTimeout(updateLineNumbers, 500);
+													// Grow text area
+													$("#slicing_configuration_dialog.profile .modal-extra div.advanced").addClass("fullSpace").removeClass("closed")
+													$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced > span").css("display", "block");
 												}
-											}
-											updateLineNumbers();
 											
-											// Update profile settings
-											function updateProfileSettings(settings) {
+												// Set slicer menu
+												slicerMenu = "Modify Profile";
+							
+												// Set button
+												button.removeClass("disabled");
 											
-												// Get current profile contents
-												var profile = $("#slicing_configuration_dialog .modal-extra textarea").val();
+												// Skip model editor and show warning if WebGL isn't supported
+												if(!Detector.webgl) {
+													button.text("Slice");
+													$("#slicing_configuration_dialog .modal-footer p.warning").text("Model editor will be skipped since your browser doesn't support WebGL");
+													$("#slicing_configuration_dialog .modal-footer a.skip").css("display", "none");
+												}
+										
+												// Update line numbers
+												var previousLineCount = 0;
+												function updateLineNumbers() {
+										
+													// Check if text area exists
+													var textArea = $("#slicing_configuration_dialog .modal-extra textarea");
+			
+													if(textArea.length) {
+			
+														// Get number of lines
+														var numberOfLines = textArea.val().match(/\n/g);
 												
-												// Go through all changes settings
-												for(var setting in settings) {
-												
-													// Remove setting
-													var expression = new RegExp("(^|\n)" + setting + ".*\n?", 'g');
-													profile = profile.replace(expression, "$1");
-													
-													// Check if setting exists
-													if(settings[setting] !== null) {
-													
-														// Add setting
-														if(profile.match(/(^|\n)\[profile\].*\n?/) === null)
-															profile = "[profile]\n" + setting + " = " + settings[setting] + '\n';
+														// Fix line count if no newlines were found
+														if(numberOfLines === null)
+															numberOfLines = 1;
 														else
-															profile = profile.replace(/(^|\n)\[profile\].*\n?/, "$1[profile]\n" + setting + " = " + settings[setting] + '\n');
+															numberOfLines = numberOfLines.length + 1;
+												
+														// Get line number area
+														var lineNumberArea = textArea.siblings("aside");
+												
+														// Check if number of lines has changes
+														if(previousLineCount != numberOfLines) {
+												
+															// Clear existing line numbers
+															lineNumberArea.empty();
+												
+															// Create new line numbers
+															for(var i = 1; i <= numberOfLines; i++)
+																lineNumberArea.append(i + "<br>");
+															lineNumberArea.append("<br>");
+															lineNumberArea.append("<br>");
+													
+															// Update previous line count
+															previousLineCount = numberOfLines;
+														}
+												
+														// Update line numbers again
+														setTimeout(updateLineNumbers, 500);
 													}
 												}
-												
-												// Update profile contents
-												$("#slicing_configuration_dialog .modal-extra textarea").val(profile);
-											}
+												updateLineNumbers();
 											
-											// Open and close setting groups
-											if(typeof localStorage.basicSettingsOpen === "undefined" || localStorage.basicSettingsOpen == "true")
-												$("#slicing_configuration_dialog.profile .modal-extra div.group.basic").removeClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/up%20arrow.png");
-											else
-												$("#slicing_configuration_dialog.profile .modal-extra div.group.basic").addClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/down%20arrow.png");
+												// Update profile settings
+												function updateProfileSettings(settings) {
+											
+													// Get current profile contents
+													var profile = $("#slicing_configuration_dialog .modal-extra textarea").val();
+												
+													// Go through all changes settings
+													for(var setting in settings) {
+												
+														// Remove setting
+														var expression = new RegExp("(^|\n)" + setting + ".*\n?", 'g');
+														profile = profile.replace(expression, "$1");
+													
+														// Check if setting exists
+														if(settings[setting] !== null) {
+													
+															// Add setting
+															if(profile.match(/(^|\n)\[profile\].*\n?/) === null)
+																profile = "[profile]\n" + setting + " = " + settings[setting] + '\n';
+															else
+																profile = profile.replace(/(^|\n)\[profile\].*\n?/, "$1[profile]\n" + setting + " = " + settings[setting] + '\n');
+														}
+													}
+												
+													// Update profile contents
+													$("#slicing_configuration_dialog .modal-extra textarea").val(profile);
+												}
+											
+												// Open and close setting groups
+												if(typeof localStorage.basicSettingsOpen === "undefined" || localStorage.basicSettingsOpen == "true")
+													$("#slicing_configuration_dialog.profile .modal-extra div.group.basic").removeClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/up%20arrow.png");
+												else
+													$("#slicing_configuration_dialog.profile .modal-extra div.group.basic").addClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/down%20arrow.png");
 		
-											if(typeof localStorage.manualSettingsOpen === "undefined" || localStorage.manualSettingsOpen == "false")
-												$("#slicing_configuration_dialog.profile .modal-extra div.group.manual").addClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/down%20arrow.png");
-											else
-												$("#slicing_configuration_dialog.profile .modal-extra div.group.manual").removeClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/up%20arrow.png");
+												if(typeof localStorage.manualSettingsOpen === "undefined" || localStorage.manualSettingsOpen == "false")
+													$("#slicing_configuration_dialog.profile .modal-extra div.group.manual").addClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/down%20arrow.png");
+												else
+													$("#slicing_configuration_dialog.profile .modal-extra div.group.manual").removeClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/up%20arrow.png");
 											
-											if(typeof localStorage.advancedSettingsOpen === "undefined" || localStorage.advancedSettingsOpen == "false")
-												$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced").addClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/down%20arrow.png");
-											else
-												$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced").removeClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/up%20arrow.png");
+												if(typeof localStorage.advancedSettingsOpen === "undefined" || localStorage.advancedSettingsOpen == "false")
+													$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced").addClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/down%20arrow.png");
+												else {
+													$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced").removeClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/up%20arrow.png");
+													$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced > span").css("display", "block");
+												}
 											
-											// Mouse move on group
-											$("#slicing_configuration_dialog.profile .modal-extra div.group").mousemove(function(event) {
+												// Mouse move on group
+												$("#slicing_configuration_dialog.profile .modal-extra div.group").mousemove(function(event) {
 	
-												// Set tooltip if hovering over corner
-												if($(this).offset().left - event.pageX >= -12 && $(this).offset().top - event.pageY >= -12) {
-													$(this).attr("title", $(this).hasClass("closed") ? "Open" : "Close");
-													$(this).css("cursor", "pointer");
-												}
-												else {
-													$(this).removeAttr("title");
-													$(this).css("cursor", '');
-												}
-											
-											// Mouse down on group
-											}).mousedown(function(event) {
-											
-												// Check if clicking on corner
-												if($(this).offset().left - event.pageX >= -12 && $(this).offset().top - event.pageY >= -12) {
-												
-													// Open or close group
-													if($(this).hasClass("closed")) {
-														$(this).removeClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/up%20arrow.png");
-														
-														 if($(this).hasClass("advanced"))
-															setTimeout(function() {
-																$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced > span").css("display", "block");
-															}, 100);
-														
-														// Save that group is open
-														if($(this).hasClass("basic"))
-															localStorage.basicSettingsOpen = "true";
-														else if($(this).hasClass("manual"))
-															localStorage.manualSettingsOpen = "true";
-														else if($(this).hasClass("advanced"))
-															localStorage.advancedSettingsOpen = "true";
+													// Set tooltip if hovering over corner
+													if($(this).offset().left - event.pageX >= -12 && $(this).offset().top - event.pageY >= -12) {
+														$(this).attr("title", $(this).hasClass("closed") ? "Open" : "Close");
+														$(this).css("cursor", "pointer");
 													}
 													else {
-														$(this).addClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/down%20arrow.png");
-														
-														if($(this).hasClass("advanced"))
-															setTimeout(function() {
-																$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced > span").css("display", "none");
-															}, 100);
-														
-														// Save that group is closed
-														if($(this).hasClass("basic"))
-															localStorage.basicSettingsOpen = "false";
-														else if($(this).hasClass("manual"))
-															localStorage.manualSettingsOpen = "false";
-														else if($(this).hasClass("advanced"))
-															localStorage.advancedSettingsOpen = "false";
+														$(this).removeAttr("title");
+														$(this).css("cursor", '');
 													}
+											
+												// Mouse down on group
+												}).mousedown(function(event) {
+											
+													// Check if clicking on corner
+													if($(this).offset().left - event.pageX >= -12 && $(this).offset().top - event.pageY >= -12) {
+												
+														// Open or close group
+														if($(this).hasClass("closed")) {
+															$(this).removeClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/up%20arrow.png");
+														
+															 if($(this).hasClass("advanced"))
+																setTimeout(function() {
+																	$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced > span").css("display", "block");
+																}, 100);
+														
+															// Save that group is open
+															if($(this).hasClass("basic"))
+																localStorage.basicSettingsOpen = "true";
+															else if($(this).hasClass("manual"))
+																localStorage.manualSettingsOpen = "true";
+															else if($(this).hasClass("advanced"))
+																localStorage.advancedSettingsOpen = "true";
+														}
+														else {
+															$(this).addClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/down%20arrow.png");
+														
+															if($(this).hasClass("advanced"))
+																setTimeout(function() {
+																	$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced > span").css("display", "none");
+																}, 100);
+														
+															// Save that group is closed
+															if($(this).hasClass("basic"))
+																localStorage.basicSettingsOpen = "false";
+															else if($(this).hasClass("manual"))
+																localStorage.manualSettingsOpen = "false";
+															else if($(this).hasClass("advanced"))
+																localStorage.advancedSettingsOpen = "false";
+														}
 													
-													// Update cursor and title
-													$(this).mousemove();
-												}
-											});
+														// Update cursor and title
+														$(this).mousemove();
+													}
+												});
 										
-											// Text area scroll event
-											$("#slicing_configuration_dialog .modal-extra textarea").scroll(function() {
+												// Text area scroll event
+												$("#slicing_configuration_dialog .modal-extra textarea").scroll(function() {
 										
-												// Scroll line numbers to match text area
-												$(this).siblings("aside").scrollTop($(this).scrollTop());
-											});
+													// Scroll line numbers to match text area
+													$(this).siblings("aside").scrollTop($(this).scrollTop());
+												});
 											
-											// Settings checkbox change event
-											$("#slicing_configuration_dialog .modal-extra div.cura div input[type=\"checkbox\"]").change(function() {
+												// Settings checkbox change event
+												$("#slicing_configuration_dialog .modal-extra div.cura div input[type=\"checkbox\"]").change(function() {
 											
-												// Initialize changed settings
-												var changedSettings = [];
+													// Initialize changed settings
+													var changedSettings = [];
 											
-												// Set if checked
-												var checked = $(this).is(":checked");
+													// Set if checked
+													var checked = $(this).is(":checked");
 												
-												// Set changed settings if changing use support material
-												if($(this).hasClass("useSupportMaterial")) {
+													// Set changed settings if changing use support material
+													if($(this).hasClass("useSupportMaterial")) {
 												
-													if(checked)
-														changedSettings.push({
-															support: $("#slicing_configuration_dialog .modal-extra div.cura div input.useModelOnModelSupport").is(":checked") ? "Everywhere; None, Touching buildplate, Everywhere" : "Touching buildplate; None, Touching buildplate, Everywhere"
-														});
-													else {
-														changedSettings.push({
-															support: "None; None, Touching buildplate, Everywhere"
-														});
+														if(checked)
+															changedSettings.push({
+																support: $("#slicing_configuration_dialog .modal-extra div.cura div input.useModelOnModelSupport").is(":checked") ? "Everywhere; None, Touching buildplate, Everywhere" : "Touching buildplate; None, Touching buildplate, Everywhere"
+															});
+														else {
+															changedSettings.push({
+																support: "None; None, Touching buildplate, Everywhere"
+															});
 														
-														// Uncheck model on model support basic setting
-														$("#slicing_configuration_dialog .modal-extra div.cura div input.useModelOnModelSupport").prop("checked", false);
+															// Uncheck model on model support basic setting
+															$("#slicing_configuration_dialog .modal-extra div.cura div input.useModelOnModelSupport").prop("checked", false);
+														}
 													}
-												}
 												
-												// Otherwise set changed settings if changing use model on model support
-												else if($(this).hasClass("useModelOnModelSupport")) {
+													// Otherwise set changed settings if changing use model on model support
+													else if($(this).hasClass("useModelOnModelSupport")) {
 												
-													if(checked) {
-														changedSettings.push({
-															support: "Everywhere; None, Touching buildplate, Everywhere"
-														});
+														if(checked) {
+															changedSettings.push({
+																support: "Everywhere; None, Touching buildplate, Everywhere"
+															});
 														
-														// Check use support material
-														$("#slicing_configuration_dialog .modal-extra div.cura div input.useSupportMaterial").prop("checked", true);
+															// Check use support material
+															$("#slicing_configuration_dialog .modal-extra div.cura div input.useSupportMaterial").prop("checked", true);
+														}
+														else
+															changedSettings.push({
+																support: $("#slicing_configuration_dialog .modal-extra div.cura div input.useSupportMaterial").is(":checked") ? "Touching buildplate; None, Touching buildplate, Everywhere" : "None; None, Touching buildplate, Everywhere"
+															});
 													}
-													else
-														changedSettings.push({
-															support: $("#slicing_configuration_dialog .modal-extra div.cura div input.useSupportMaterial").is(":checked") ? "Touching buildplate; None, Touching buildplate, Everywhere" : "None; None, Touching buildplate, Everywhere"
-														});
-												}
 												
-												// Otherwise set changed settings if changing use raft
-												else if($(this).hasClass("useRaft")) {
+													// Otherwise set changed settings if changing use raft
+													else if($(this).hasClass("useRaft")) {
 												
-													if(checked) {
-														changedSettings.push({
-															platform_adhesion: "Raft; None, Brim, Raft",
-															bottom_layer_speed: 12,
-															skirt_line_count: 0,
-															brim_line_count: null
-														});
+														if(checked) {
+															changedSettings.push({
+																platform_adhesion: "Raft; None, Brim, Raft",
+																bottom_layer_speed: 12,
+																skirt_line_count: 0,
+																brim_line_count: null
+															});
 														
-														if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
-															changedSettings[0]["bottom_layer_speed"] = 16;
+															if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
+																changedSettings[0]["bottom_layer_speed"] = 16;
 														
-														// Uncheck use brim basic setting, disable brim line count manual setting, and enable raft airgap manual setting
-														$("#slicing_configuration_dialog .modal-extra div.cura div input.useBrim").prop("checked", false);
-														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").parent("div").parent("div").addClass("disabled");
-														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.raftAirgap").parent("div").parent("div").removeClass("disabled");
+															// Uncheck use brim basic setting, disable brim line count manual setting, and enable raft airgap manual setting
+															$("#slicing_configuration_dialog .modal-extra div.cura div input.useBrim").prop("checked", false);
+															$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").parent("div").parent("div").addClass("disabled");
+															$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.raftAirgap").parent("div").parent("div").removeClass("disabled");
+														}
+														else {
+															changedSettings.push({
+																platform_adhesion: "None; None, Brim, Raft",
+																bottom_layer_speed: 5,
+																skirt_line_count: 0,
+																brim_line_count: null
+															});
+														
+															// Disable raft airgap manual setting
+															$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.raftAirgap").parent("div").parent("div").addClass("disabled");
+														}
 													}
-													else {
-														changedSettings.push({
-															platform_adhesion: "None; None, Brim, Raft",
-															bottom_layer_speed: 5,
-															skirt_line_count: 0,
-															brim_line_count: null
-														});
+												
+													// Otherwise set changed settings if changing use brim
+													else if($(this).hasClass("useBrim")) {
+												
+														if(checked) {
+															changedSettings.push({
+																platform_adhesion: "Brim; None, Brim, Raft",
+																bottom_layer_speed: 12,
+																skirt_line_count: null,
+																brim_line_count: $("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").val()
+															});
 														
-														// Disable raft airgap manual setting
-														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.raftAirgap").parent("div").parent("div").addClass("disabled");
+															if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
+																changedSettings[0]["bottom_layer_speed"] = 16;
+														
+															// Uncheck use raft basic setting, enable brim line count manual setting, and disable raft airgap manual setting
+															$("#slicing_configuration_dialog .modal-extra div.cura div input.useRaft").prop("checked", false);
+															$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").parent("div").parent("div").removeClass("disabled");
+															$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.raftAirgap").parent("div").parent("div").addClass("disabled");
+														}
+														else {
+															changedSettings.push({
+																platform_adhesion: "None; None, Brim, Raft",
+																bottom_layer_speed: 5,
+																skirt_line_count: 0,
+																brim_line_count: null
+															});
+														
+															// Disable brim line count manual setting
+															$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").parent("div").parent("div").addClass("disabled");
+														}
 													}
-												}
 												
-												// Otherwise set changed settings if changing use brim
-												else if($(this).hasClass("useBrim")) {
+													// Otherwise set changed settings if changing use retraction
+													else if($(this).hasClass("useRetraction")) {
 												
-													if(checked) {
-														changedSettings.push({
-															platform_adhesion: "Brim; None, Brim, Raft",
-															bottom_layer_speed: 12,
-															skirt_line_count: null,
-															brim_line_count: $("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").val()
-														});
-														
-														if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
-															changedSettings[0]["bottom_layer_speed"] = 16;
-														
-														// Uncheck use raft basic setting, enable brim line count manual setting, and disable raft airgap manual setting
-														$("#slicing_configuration_dialog .modal-extra div.cura div input.useRaft").prop("checked", false);
-														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").parent("div").parent("div").removeClass("disabled");
-														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.raftAirgap").parent("div").parent("div").addClass("disabled");
+														if(checked)
+															changedSettings.push({
+																retraction_enable: "True"
+															});
+														else
+															changedSettings.push({
+																retraction_enable: "False"
+															});
 													}
-													else {
-														changedSettings.push({
-															platform_adhesion: "None; None, Brim, Raft",
-															bottom_layer_speed: 5,
-															skirt_line_count: 0,
-															brim_line_count: null
-														});
-														
-														// Disable brim line count manual setting
-														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").parent("div").parent("div").addClass("disabled");
-													}
-												}
 												
-												// Otherwise set changed settings if changing use retraction
-												else if($(this).hasClass("useRetraction")) {
-												
-													if(checked)
-														changedSettings.push({
-															retraction_enable: "True"
-														});
-													else
-														changedSettings.push({
-															retraction_enable: "False"
-														});
-												}
-												
-												// Update profile settings
-												updateProfileSettings(changedSettings[0]);
-											});
+													// Update profile settings
+													updateProfileSettings(changedSettings[0]);
+												});
 											
-											// Settings drag image event
-											$("#slicing_configuration_dialog .modal-extra div.cura div button img").on("dragstart", function(event) {
+												// Settings drag image event
+												$("#slicing_configuration_dialog .modal-extra div.cura div button img").on("dragstart", function(event) {
 
-												// Prevent default
-												event.preventDefault();
-											});
+													// Prevent default
+													event.preventDefault();
+												});
 											
-											// Settings label click event
-											$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > label").click(function() {
+												// Settings label click event
+												$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > label").click(function() {
 											
-												// Focus on input
-												var input = $(this).next("div").children("input");
-												input.focus().val(input.val());
-											});
+													// Focus on input
+													var input = $(this).next("div").children("input");
+													input.focus().val(input.val());
+												});
 											
-											// Settings change event
-											$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input").change(function() {
+												// Settings change event
+												$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input").change(function() {
 											
-												// Initialize changed settings
-												var changedSettings = [];
+													// Initialize changed settings
+													var changedSettings = [];
 												
-												// Set changed settings if changing layer height
-												if($(this).hasClass("layerHeight")) {
+													// Set changed settings if changing layer height
+													if($(this).hasClass("layerHeight")) {
 												
-													changedSettings.push({
-														layer_height: $(this).val(),
-														solid_layer_thickness: parseFloat(parseInt($("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.topBottomLayers").val()) * parseFloat($(this).val())).toFixed(3)
-													});
-													
-													// Clear basic quality settings
-													$("#slicing_configuration_dialog .modal-extra div.cura p.quality").text("Unknown Quality");
-													$("#slicing_configuration_dialog .modal-extra div.cura div.quality button.disabled").removeClass("disabled");
-												}
-												
-												// Otherwise set changed settings if changing fill density
-												else if($(this).hasClass("fillDensity")) {
-												
-													changedSettings.push({
-														fill_density: $(this).val()
-													});
-													
-													// Clear basic fill settings
-													$("#slicing_configuration_dialog .modal-extra div.cura p.fill").text("Unknown Fill");
-													$("#slicing_configuration_dialog .modal-extra div.cura div.fill button.disabled").removeClass("disabled");
-												}
-												
-												// Otherwise set changed settings if changing thickness
-												else if($(this).hasClass("thickness")) {
-												
-													// Get nozzle size
-													var nozzleSize = getSlicerProfileValue("nozzle_size");
-												
-													changedSettings.push({
-														wall_thickness: parseFloat(parseInt($(this).val()) * parseFloat(nozzleSize == '' ? 0.35 : nozzleSize)).toFixed(3)
-													});
-													
-													if(nozzleSize == '')
-														changedSettings[0]["nozzle_size"] = 0.35;
-													
-													// Clear basic fill settings
-													$("#slicing_configuration_dialog .modal-extra div.cura p.fill").text("Unknown Fill");
-													$("#slicing_configuration_dialog .modal-extra div.cura div.fill button.disabled").removeClass("disabled");
-												}
-												
-												// Otherwise set changed settings if changing print speed
-												else if($(this).hasClass("printSpeed")) {
-												
-													changedSettings.push({
-														print_speed: $(this).val(),
-														travel_speed: parseFloat($(this).val()) + 4 <= 80 ? parseFloat(parseFloat($(this).val()) + 4).toFixed(3) : 80,
-														inset0_speed: parseFloat($(this).val()) - 4 >= 1 ? parseFloat(parseFloat($(this).val()) - 4).toFixed(3) : 1,
-														insetx_speed: parseFloat($(this).val()) - 2 >= 1 ? parseFloat(parseFloat($(this).val()) - 2).toFixed(3) : 1,
-														infill_speed: $(this).val(),
-														solidarea_speed: $(this).val()
-													});
-													
-													if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
-														changedSettings[0]["travel_speed"] = $(this).val();
-												}
-												
-												// Otherwise set changed settings if changing top/bottom layers
-												else if($(this).hasClass("topBottomLayers")) {
-												
-													// Get layer height
-													var layerHeight = getSlicerProfileValue("layer_height");
-												
-													changedSettings.push({
-														solid_layer_thickness: parseFloat(parseInt($(this).val()) * parseFloat(layerHeight == '' ? 0.15 : layerHeight)).toFixed(3)
-													});
-													
-													if(layerHeight == '')
-														changedSettings[0]["layer_height"] = 0.15;
-													
-													// Clear basic quality settings
-													$("#slicing_configuration_dialog .modal-extra div.cura p.quality").text("Unknown Quality");
-													$("#slicing_configuration_dialog .modal-extra div.cura div.quality button.disabled").removeClass("disabled");
-												}
-												
-												// Otherwise set changed settings if changing raft airgap
-												else if($(this).hasClass("raftAirgap"))
-												
-													changedSettings.push({
-														raft_airgap: $(this).val()
-													});
-												
-												// Otherwise set changed settings if changing brim line count
-												else if($(this).hasClass("brimLineCount"))
-												
-													changedSettings.push({
-														brim_line_count: $(this).val()
-													});
-												
-												// Update profile settings
-												updateProfileSettings(changedSettings[0]);
-											});
-											
-											// Settings button click event
-											$("#slicing_configuration_dialog .modal-extra div.cura div button").click(function() {
-											
-												// Select button
-												$(this).blur();
-												$(this).addClass("disabled").siblings("button").removeClass("disabled");
-												
-												// Initialize changed settings
-												var changedSettings = [];
-												
-												// Check if changing quality
-												if($(this).parent().hasClass("quality")) {
-												
-													// Set text
-													$("#slicing_configuration_dialog .modal-extra div.cura p.quality").text(capitalize($(this).attr("title")));
-												
-													// Set changed settings if extra low quality
-													if($(this).attr("title") == "Extra low quality") {
-													
 														changedSettings.push({
-															layer_height: 0.35,
-															bottom_thickness: 0.3,
-															fan_full_height: 0.301,
-															solid_layer_thickness: 2.799
+															layer_height: $(this).val(),
+															solid_layer_thickness: parseFloat(parseInt($("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.topBottomLayers").val()) * parseFloat($(this).val())).toFixed(3)
 														});
-														
-														if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
-															changedSettings[0]["fan_full_height"] = 0.651;
+													
+														// Clear basic quality settings
+														$("#slicing_configuration_dialog .modal-extra div.cura p.quality").text("Unknown Quality");
+														$("#slicing_configuration_dialog .modal-extra div.cura div.quality button.disabled").removeClass("disabled");
 													}
-													
-													// Otherwise set changed settings if low quality
-													else if($(this).attr("title") == "Low quality") {
-													
-														changedSettings.push({
-															layer_height: 0.25,
-															bottom_thickness: 0.3,
-															fan_full_height: 0.301,
-															solid_layer_thickness: 1.999
-														});
-														
-														if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
-															changedSettings[0]["fan_full_height"] = 0.551;
-													}
-													
-													// Otherwise set changed settings if medium quality
-													else if($(this).attr("title") == "Medium quality") {
-													
-														changedSettings.push({
-															layer_height: 0.15,
-															bottom_thickness: 0.3,
-															fan_full_height: 0.301,
-															solid_layer_thickness: 1.199
-														});
-														
-														if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
-															changedSettings[0]["fan_full_height"] = 0.451;
-													}
-													
-													// Otherwise set changed settings if high quality
-													else if($(this).attr("title") == "High quality") {
-													
-														changedSettings.push({
-															layer_height: 0.1,
-															bottom_thickness: 0.3,
-															fan_full_height: 0.301,
-															solid_layer_thickness: 0.799
-														});
-														
-														if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
-															changedSettings[0]["fan_full_height"] = 0.401;
-													}
-													
-													// Otherwise set changed settings if extra high quality
-													else if($(this).attr("title") == "Extra high quality") {
-													
-														changedSettings.push({
-															layer_height: 0.05,
-															bottom_thickness: 0.1,
-															fan_full_height: 0.101,
-															solid_layer_thickness: 0.399
-														});
-														
-														if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
-															changedSettings[0]["fan_full_height"] = 0.151;
-													}
-													
-													// Set layer height and top/bottom layers manual settings
-													$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.layerHeight").val(parseFloat(changedSettings[0]["layer_height"]).toFixed(2));
-													$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.topBottomLayers").val(Math.round(parseFloat(changedSettings[0]["solid_layer_thickness"]) / parseFloat(changedSettings[0]["layer_height"])));
-												}
 												
-												// Otherwise assume changing fill
-												else {
+													// Otherwise set changed settings if changing fill density
+													else if($(this).hasClass("fillDensity")) {
 												
-													// Set text
-													$("#slicing_configuration_dialog .modal-extra div.cura p.fill").text(capitalize($(this).attr("title")));
+														changedSettings.push({
+															fill_density: $(this).val()
+														});
+													
+														// Clear basic fill settings
+														$("#slicing_configuration_dialog .modal-extra div.cura p.fill").text("Unknown Fill");
+														$("#slicing_configuration_dialog .modal-extra div.cura div.fill button.disabled").removeClass("disabled");
+													}
 												
-													// Set changed settings if hollow thin fill
-													if($(this).attr("title") == "Hollow thin fill")
-													
-														changedSettings.push({
-															fill_density: 0,
-															wall_thickness: 0.35,
-															nozzle_size: 0.35,
-															infill_speed: 15
-														});
-													
-													// Otherwise set changed settings if hollow thick fill
-													else if($(this).attr("title") == "Hollow thick fill")
-													
-														changedSettings.push({
-															fill_density: 0,
-															wall_thickness: 1.05,
-															nozzle_size: 0.35,
-															infill_speed: 15
-														});
-													
-													// Otherwise set changed settings if low fill
-													else if($(this).attr("title") == "Low fill")
-													
-														changedSettings.push({
-															fill_density: 6.364,
-															wall_thickness: 1.05,
-															nozzle_size: 0.35,
-															infill_speed: null
-														});
-													
-													// Otherwise set changed settings if medium fill
-													else if($(this).attr("title") == "Medium fill")
-													
-														changedSettings.push({
-															fill_density: 8.75,
-															wall_thickness: 1.4,
-															nozzle_size: 0.35,
-															infill_speed: null
-														});
-													
-													// Otherwise set changed settings if high fill
-													else if($(this).attr("title") == "High fill")
-													
-														changedSettings.push({
-															fill_density: 14.0,
-															wall_thickness: 1.4,
-															nozzle_size: 0.35,
-															infill_speed: null
-														});
-													
-													// Otherwise set changed settings if extra high fill
-													else if($(this).attr("title") == "Extra high fill")
-													
-														changedSettings.push({
-															fill_density: 23.333,
-															wall_thickness: 1.4,
-															nozzle_size: 0.35,
-															infill_speed: null
-														});
-													
-													// Set fill density and wall thickness manual setting
-													$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.fillDensity").val(parseFloat(changedSettings[0]["fill_density"]).toFixed(2));
-													$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.thickness").val(Math.round(parseFloat(changedSettings[0]["wall_thickness"]) / parseFloat(changedSettings[0]["nozzle_size"])));
-												}
+													// Otherwise set changed settings if changing thickness
+													else if($(this).hasClass("thickness")) {
 												
-												// Update profile settings
-												updateProfileSettings(changedSettings[0]);
-											});
+														// Get nozzle size
+														var nozzleSize = getSlicerProfileValue("nozzle_size");
+												
+														changedSettings.push({
+															wall_thickness: parseFloat(parseInt($(this).val()) * parseFloat(nozzleSize == '' ? 0.35 : nozzleSize)).toFixed(3)
+														});
+													
+														if(nozzleSize == '')
+															changedSettings[0]["nozzle_size"] = 0.35;
+													
+														// Clear basic fill settings
+														$("#slicing_configuration_dialog .modal-extra div.cura p.fill").text("Unknown Fill");
+														$("#slicing_configuration_dialog .modal-extra div.cura div.fill button.disabled").removeClass("disabled");
+													}
+												
+													// Otherwise set changed settings if changing print speed
+													else if($(this).hasClass("printSpeed")) {
+												
+														changedSettings.push({
+															print_speed: $(this).val(),
+															travel_speed: parseFloat($(this).val()) + 4 <= 80 ? parseFloat(parseFloat($(this).val()) + 4).toFixed(3) : 80,
+															inset0_speed: parseFloat($(this).val()) - 4 >= 1 ? parseFloat(parseFloat($(this).val()) - 4).toFixed(3) : 1,
+															insetx_speed: parseFloat($(this).val()) - 2 >= 1 ? parseFloat(parseFloat($(this).val()) - 2).toFixed(3) : 1,
+															infill_speed: $(this).val(),
+															solidarea_speed: $(this).val()
+														});
+													
+														if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
+															changedSettings[0]["travel_speed"] = $(this).val();
+													}
+												
+													// Otherwise set changed settings if changing top/bottom layers
+													else if($(this).hasClass("topBottomLayers")) {
+												
+														// Get layer height
+														var layerHeight = getSlicerProfileValue("layer_height");
+												
+														changedSettings.push({
+															solid_layer_thickness: parseFloat(parseInt($(this).val()) * parseFloat(layerHeight == '' ? 0.15 : layerHeight)).toFixed(3)
+														});
+													
+														if(layerHeight == '')
+															changedSettings[0]["layer_height"] = 0.15;
+													
+														// Clear basic quality settings
+														$("#slicing_configuration_dialog .modal-extra div.cura p.quality").text("Unknown Quality");
+														$("#slicing_configuration_dialog .modal-extra div.cura div.quality button.disabled").removeClass("disabled");
+													}
+												
+													// Otherwise set changed settings if changing raft airgap
+													else if($(this).hasClass("raftAirgap"))
+												
+														changedSettings.push({
+															raft_airgap: $(this).val()
+														});
+												
+													// Otherwise set changed settings if changing brim line count
+													else if($(this).hasClass("brimLineCount"))
+												
+														changedSettings.push({
+															brim_line_count: $(this).val()
+														});
+												
+													// Update profile settings
+													updateProfileSettings(changedSettings[0]);
+												});
+											
+												// Settings button click event
+												$("#slicing_configuration_dialog .modal-extra div.cura div button").click(function() {
+											
+													// Select button
+													$(this).blur();
+													$(this).addClass("disabled").siblings("button").removeClass("disabled");
+												
+													// Initialize changed settings
+													var changedSettings = [];
+												
+													// Check if changing quality
+													if($(this).parent().hasClass("quality")) {
+												
+														// Set text
+														$("#slicing_configuration_dialog .modal-extra div.cura p.quality").text(capitalize($(this).attr("title")));
+												
+														// Set changed settings if extra low quality
+														if($(this).attr("title") == "Extra low quality") {
+													
+															changedSettings.push({
+																layer_height: 0.35,
+																bottom_thickness: 0.3,
+																fan_full_height: 0.301,
+																solid_layer_thickness: 2.799
+															});
+														
+															if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
+																changedSettings[0]["fan_full_height"] = 0.651;
+														}
+													
+														// Otherwise set changed settings if low quality
+														else if($(this).attr("title") == "Low quality") {
+													
+															changedSettings.push({
+																layer_height: 0.25,
+																bottom_thickness: 0.3,
+																fan_full_height: 0.301,
+																solid_layer_thickness: 1.999
+															});
+														
+															if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
+																changedSettings[0]["fan_full_height"] = 0.551;
+														}
+													
+														// Otherwise set changed settings if medium quality
+														else if($(this).attr("title") == "Medium quality") {
+													
+															changedSettings.push({
+																layer_height: 0.15,
+																bottom_thickness: 0.3,
+																fan_full_height: 0.301,
+																solid_layer_thickness: 1.199
+															});
+														
+															if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
+																changedSettings[0]["fan_full_height"] = 0.451;
+														}
+													
+														// Otherwise set changed settings if high quality
+														else if($(this).attr("title") == "High quality") {
+													
+															changedSettings.push({
+																layer_height: 0.1,
+																bottom_thickness: 0.3,
+																fan_full_height: 0.301,
+																solid_layer_thickness: 0.799
+															});
+														
+															if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
+																changedSettings[0]["fan_full_height"] = 0.401;
+														}
+													
+														// Otherwise set changed settings if extra high quality
+														else if($(this).attr("title") == "Extra high quality") {
+													
+															changedSettings.push({
+																layer_height: 0.05,
+																bottom_thickness: 0.1,
+																fan_full_height: 0.101,
+																solid_layer_thickness: 0.399
+															});
+														
+															if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
+																changedSettings[0]["fan_full_height"] = 0.151;
+														}
+													
+														// Set layer height and top/bottom layers manual settings
+														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.layerHeight").val(parseFloat(changedSettings[0]["layer_height"]).toFixed(2));
+														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.topBottomLayers").val(Math.round(parseFloat(changedSettings[0]["solid_layer_thickness"]) / parseFloat(changedSettings[0]["layer_height"])));
+													}
+												
+													// Otherwise assume changing fill
+													else {
+												
+														// Set text
+														$("#slicing_configuration_dialog .modal-extra div.cura p.fill").text(capitalize($(this).attr("title")));
+												
+														// Set changed settings if hollow thin fill
+														if($(this).attr("title") == "Hollow thin fill")
+													
+															changedSettings.push({
+																fill_density: 0,
+																wall_thickness: 0.35,
+																nozzle_size: 0.35,
+																infill_speed: 15
+															});
+													
+														// Otherwise set changed settings if hollow thick fill
+														else if($(this).attr("title") == "Hollow thick fill")
+													
+															changedSettings.push({
+																fill_density: 0,
+																wall_thickness: 1.05,
+																nozzle_size: 0.35,
+																infill_speed: 15
+															});
+													
+														// Otherwise set changed settings if low fill
+														else if($(this).attr("title") == "Low fill")
+													
+															changedSettings.push({
+																fill_density: 6.364,
+																wall_thickness: 1.05,
+																nozzle_size: 0.35,
+																infill_speed: null
+															});
+													
+														// Otherwise set changed settings if medium fill
+														else if($(this).attr("title") == "Medium fill")
+													
+															changedSettings.push({
+																fill_density: 8.75,
+																wall_thickness: 1.4,
+																nozzle_size: 0.35,
+																infill_speed: null
+															});
+													
+														// Otherwise set changed settings if high fill
+														else if($(this).attr("title") == "High fill")
+													
+															changedSettings.push({
+																fill_density: 14.0,
+																wall_thickness: 1.4,
+																nozzle_size: 0.35,
+																infill_speed: null
+															});
+													
+														// Otherwise set changed settings if extra high fill
+														else if($(this).attr("title") == "Extra high fill")
+													
+															changedSettings.push({
+																fill_density: 23.333,
+																wall_thickness: 1.4,
+																nozzle_size: 0.35,
+																infill_speed: null
+															});
+													
+														// Set fill density and wall thickness manual setting
+														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.fillDensity").val(parseFloat(changedSettings[0]["fill_density"]).toFixed(2));
+														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.thickness").val(Math.round(parseFloat(changedSettings[0]["wall_thickness"]) / parseFloat(changedSettings[0]["nozzle_size"])));
+													}
+												
+													// Update profile settings
+													updateProfileSettings(changedSettings[0]);
+												});
 							
-											// Resize window
-											$(window).resize();
+												// Resize window
+												$(window).resize();
+											}, 200);
 										}
 									});
 								}
 							});
-						}, 300);
+						}, 600);
 					}
 					
 					// Otherwise check if slicer menu is modify profile
@@ -5599,8 +5713,8 @@ $(function() {
 								// Check if modified profile is valid
 								if(data.value == "OK") {
 								
-									// Check if WebGL isn't supported
-									if(!Detector.webgl) {
+									// Check if WebGL isn't supported or skipping model editor
+									if(!Detector.webgl || skipModelEditor) {
 									
 										// Set slicer menu
 										slicerMenu = "Modify Model";
@@ -5632,19 +5746,21 @@ $(function() {
 
 														// Check if model is loaded
 														if(viewport.modelLoaded) {
-
-															// Hide cover
-															$("#slicing_configuration_dialog .modal-cover").addClass("noTransition").removeClass("show");
-															setTimeout(function() {
-																$("#slicing_configuration_dialog .modal-cover").css("z-index", '').removeClass("noTransition");
-															}, 200);
-
+														
 															// Display model
-															$("#slicing_configuration_dialog").addClass("noTransition").removeClass("profile");
+															$("#slicing_configuration_dialog").removeClass("in");
+															
 															setTimeout(function() {
-																$("#slicing_configuration_dialog").removeClass("noTransition").addClass("model");
+															
+																// Hide cover
+																$("#slicing_configuration_dialog .modal-cover").addClass("noTransition").removeClass("show");
+																setTimeout(function() {
+																	$("#slicing_configuration_dialog .modal-cover").css("z-index", '').removeClass("noTransition");
+																}, 200);
+															
+																// Display model editor
+																$("#slicing_configuration_dialog").removeClass("profile").addClass("model in");
 																$("#slicing_configuration_dialog p.currentMenu").text("Modify Model");
-
 																$("#slicing_configuration_dialog .modal-extra").empty().append(`
 																	<div class="printer">
 																		<button data-color="Black" title="Black"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/black.png"></button>
@@ -5710,6 +5826,8 @@ $(function() {
 																$("#slicing_configuration_dialog .modal-extra div.printer button[data-color=\"" + self.settings.settings.plugins.m3dfio.PrinterColor() + "\"]").addClass("disabled");
 																$("#slicing_configuration_dialog .modal-extra div.filament button[data-color=\"" + self.settings.settings.plugins.m3dfio.FilamentColor() + "\"]").addClass("disabled");
 																$("#slicing_configuration_dialog .modal-extra").append(viewport.renderer.domElement);
+																if(self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter())
+																	$("#slicing_configuration_dialog .modal-footer p.warning").text("Boundary dimensions are designed for a Micro 3D printer");
 
 																// Image drag event
 																$("#slicing_configuration_dialog .modal-extra img").on("dragstart", function(event) {
@@ -5757,7 +5875,7 @@ $(function() {
 																				setTimeout(isModelLoaded, 100);
 																		}
 																		isModelLoaded();
-																	}, 300);
+																	}, 600);
 																});
 
 																// Button click event
@@ -5884,7 +6002,7 @@ $(function() {
 																				setTimeout(isModelLoaded, 100);
 																		}
 																		isModelLoaded();
-																	}, 300);
+																	}, 600);
 																});
 
 																// Reset button click event
@@ -5982,7 +6100,7 @@ $(function() {
 																			side: THREE.DoubleSide,
 																			depthWrite: false
 																		}));
-																		viewport.cutShape.position.set(0, bedHighMaxZ - bedLowMinZ - viewport.models[0].mesh.position.y, 0);
+																		viewport.cutShape.position.set(0, (bedHighMaxZ - bedLowMinZ) / 2 + parseFloat(self.settings.settings.plugins.m3dfio.ExternalBedHeight()), 0);
 																		viewport.cutShape.rotation.set(0, 0, 0);
 													
 																		// Create cut shape outline
@@ -6047,7 +6165,10 @@ $(function() {
 																		url: API_BASEURL + "plugin/m3dfio",
 																		type: "POST",
 																		dataType: "json",
-																		data: JSON.stringify({command: "message", value: "Set Printer Color: " + $(this).data("color")}),
+																		data: JSON.stringify({
+																			command: "message",
+																			value: "Set Printer Color: " + $(this).data("color")
+																		}),
 																		contentType: "application/json; charset=UTF-8",
 																	
 																		success: function() {
@@ -6073,7 +6194,10 @@ $(function() {
 																		url: API_BASEURL + "plugin/m3dfio",
 																		type: "POST",
 																		dataType: "json",
-																		data: JSON.stringify({command: "message", value: "Set Filament Color: " + $(this).data("color")}),
+																		data: JSON.stringify({
+																			command: "message",
+																			value: "Set Filament Color: " + $(this).data("color")
+																		}),
 																		contentType: "application/json; charset=UTF-8",
 																	
 																		success: function() {
@@ -6175,7 +6299,7 @@ $(function() {
 																// Resize viewport and window
 																viewport.resizeEvent();
 																$(window).resize();
-															}, 10);
+															}, 200);
 														}
 
 														// Otherwise
@@ -6192,12 +6316,15 @@ $(function() {
 											xhr.responseType = "blob";
 											xhr.setRequestHeader("X-Api-Key", UI_API_KEY);
 											xhr.send();
-										}, 300);
+										}, 600);
 									}
 								}
 								
 								// Otherwise
 								else {
+								
+									// Clear skip model editor
+									skipModelEditor = false;
 								
 									// Show message
 									showMessage("Slicer Status", "Invalid profile", "OK", function() {
@@ -6330,17 +6457,17 @@ $(function() {
 										}
 									}
 								});
-							}, 300);
+							}, 600);
 						}
 					
-						// Check if printing after slicing and a printer is connected
-						if(afterSlicingAction == "print" && self.printerState.stateString() !== "Offline") {
+						// Check if printing after slicing, a printer is connected, and using a Micro 3D printer
+						if(afterSlicingAction == "print" && self.printerState.stateString() !== "Offline" && !self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter()) {
 						
 							// Check if using on the fly pre-processing and changing settings before print
 							if(self.settings.settings.plugins.m3dfio.PreprocessOnTheFly() && self.settings.settings.plugins.m3dfio.ChangeSettingsBeforePrint()) {
 
 								// Show message
-								showMessage("Message", '', "Print", function() {
+								showMessage("Printing Status", '', "Print", function() {
 
 									// Hide message
 									hideMessage();
@@ -6465,9 +6592,6 @@ $(function() {
 		// Message distance buttons click event
 		$("body > div.page-container > div.message").find("button.distance").click(function() {
 		
-			// Blur self
-			$(this).blur();
-		
 			// Set active button
 			$(this).siblings().removeClass("active");
 			$(this).addClass("active");
@@ -6475,9 +6599,6 @@ $(function() {
 		
 		// Message arrow buttons click event
 		$("body > div.page-container > div.message").find("button.arrow").click(function() {
-		
-			// Blur self
-			$(this).blur();
 		
 			// Set commands
 			var commands = [
@@ -6490,7 +6611,10 @@ $(function() {
 				url: API_BASEURL + "plugin/m3dfio",
 				type: "POST",
 				dataType: "json",
-				data: JSON.stringify({command: "message", value: commands}),
+				data: JSON.stringify({
+					command: "message",
+					value: commands
+				}),
 				contentType: "application/json; charset=UTF-8"
 			});
 		});
@@ -6522,8 +6646,8 @@ $(function() {
 		// Send command
 		function sendCommand(event) {
 		
-			// Check if printing
-			if(self.printerState.isPrinting() === true) {
+			// Check if printing and using a Micro 3D printer
+			if(self.printerState.isPrinting() === true && !self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter()) {
 		
 				// Stop default behavior
 				event.stopImmediatePropagation();
@@ -6538,7 +6662,10 @@ $(function() {
 					url: API_BASEURL + "plugin/m3dfio",
 					type: "POST",
 					dataType: "json",
-					data: JSON.stringify({command: "message", value: commands}),
+					data: JSON.stringify({
+						command: "message",
+						value: commands
+					}),
 					contentType: "application/json; charset=UTF-8"
 				});
 				
@@ -6564,7 +6691,10 @@ $(function() {
 				url: API_BASEURL + "plugin/m3dfio",
 				type: "POST",
 				dataType: "json",
-				data: JSON.stringify({command: "message", value: commands}),
+				data: JSON.stringify({
+					command: "message",
+					value: commands
+				}),
 				contentType: "application/json; charset=UTF-8"
 			});
 		});
@@ -6586,7 +6716,10 @@ $(function() {
 				url: API_BASEURL + "plugin/m3dfio",
 				type: "POST",
 				dataType: "json",
-				data: JSON.stringify({command: "message", value: commands}),
+				data: JSON.stringify({
+					command: "message",
+					value: commands
+				}),
 				contentType: "application/json; charset=UTF-8"
 			});
 		});
@@ -6608,7 +6741,10 @@ $(function() {
 				url: API_BASEURL + "plugin/m3dfio",
 				type: "POST",
 				dataType: "json",
-				data: JSON.stringify({command: "message", value: commands}),
+				data: JSON.stringify({
+					command: "message",
+					value: commands
+				}),
 				contentType: "application/json; charset=UTF-8"
 			});
 		});
@@ -6630,7 +6766,10 @@ $(function() {
 				url: API_BASEURL + "plugin/m3dfio",
 				type: "POST",
 				dataType: "json",
-				data: JSON.stringify({command: "message", value: commands}),
+				data: JSON.stringify({
+					command: "message",
+					value: commands
+				}),
 				contentType: "application/json; charset=UTF-8"
 			});
 		});
@@ -6652,7 +6791,10 @@ $(function() {
 				url: API_BASEURL + "plugin/m3dfio",
 				type: "POST",
 				dataType: "json",
-				data: JSON.stringify({command: "message", value: commands}),
+				data: JSON.stringify({
+					command: "message",
+					value: commands
+				}),
 				contentType: "application/json; charset=UTF-8"
 			});
 		});
@@ -6674,31 +6816,76 @@ $(function() {
 				url: API_BASEURL + "plugin/m3dfio",
 				type: "POST",
 				dataType: "json",
-				data: JSON.stringify({command: "message", value: commands}),
+				data: JSON.stringify({
+					command: "message",
+					value: commands
+				}),
 				contentType: "application/json; charset=UTF-8"
 			});
 		});
 	
 		// Override X Y home control
 		$("#control #control-xyhome").attr("title", "Set extruder's X position to 54 and Y position to 50").click(function(event) {
-	
-			// Stop default behavior
-			event.stopImmediatePropagation();
 		
-			// Set commands
-			var commands = [
-				"G90",
-				"G28"
-			];
+			// Check if using a Micro 3D printer
+			if(!self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter()) {
+			
+				// Stop default behavior
+				event.stopImmediatePropagation();
+			
+				// Set commands
+				var commands = [
+					"M114"
+				];
+			
+				// Set location callback
+				locationCallback = function() {
+			
+					// Check if extruder is too high to successfully home
+					if(currentZ >= bedMediumMaxZ - parseFloat(self.settings.settings.plugins.m3dfio.ExternalBedHeight()))
+				
+						// Show message
+						showMessage("Movement Status", "Extruder is too high to home without running into the printer's frame", "OK", function() {
+					
+							// Hide message
+							hideMessage();
+						});
+				
+					// Otherwise
+					else {
 		
-			// Send request
-			$.ajax({
-				url: API_BASEURL + "plugin/m3dfio",
-				type: "POST",
-				dataType: "json",
-				data: JSON.stringify({command: "message", value: commands}),
-				contentType: "application/json; charset=UTF-8"
-			});
+						// Set commands
+						var commands = [
+							"G90",
+							"G28"
+						];
+		
+						// Send request
+						$.ajax({
+							url: API_BASEURL + "plugin/m3dfio",
+							type: "POST",
+							dataType: "json",
+							data: JSON.stringify({
+								command: "message",
+								value: commands
+							}),
+							contentType: "application/json; charset=UTF-8"
+						});
+					}
+				}
+						
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m3dfio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({
+						command: "message",
+						value: commands
+					}),
+					contentType: "application/json; charset=UTF-8"
+				});
+			}
 		});
 	
 		// Override Z home control
@@ -6718,7 +6905,10 @@ $(function() {
 				url: API_BASEURL + "plugin/m3dfio",
 				type: "POST",
 				dataType: "json",
-				data: JSON.stringify({command: "message", value: commands}),
+				data: JSON.stringify({
+					command: "message",
+					value: commands
+				}),
 				contentType: "application/json; charset=UTF-8"
 			});
 		});
@@ -6740,7 +6930,10 @@ $(function() {
 				url: API_BASEURL + "plugin/m3dfio",
 				type: "POST",
 				dataType: "json",
-				data: JSON.stringify({command: "message", value: commands}),
+				data: JSON.stringify({
+					command: "message",
+					value: commands
+				}),
 				contentType: "application/json; charset=UTF-8"
 			});
 		});
@@ -6762,7 +6955,10 @@ $(function() {
 				url: API_BASEURL + "plugin/m3dfio",
 				type: "POST",
 				dataType: "json",
-				data: JSON.stringify({command: "message", value: commands}),
+				data: JSON.stringify({
+					command: "message",
+					value: commands
+				}),
 				contentType: "application/json; charset=UTF-8"
 			});
 		});
@@ -6770,8 +6966,8 @@ $(function() {
 		// Set extruder temperature control
 		$("#control > div.jog-panel.extruder > div > button:nth-of-type(4)").attr("title", "Sets extruder's temperature to the specified amount").click(function(event) {
 			
-			// Check if not printing
-			if(self.printerState.isPrinting() !== true) {
+			// Check if not printing and using a Micro 3D printer
+			if(self.printerState.isPrinting() !== true && !self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter()) {
 				
 				// Set commands
 				var commands = [
@@ -6815,7 +7011,7 @@ $(function() {
 			
 				// Set commands
 				var commands = [
-					"M104 S" + parseInt($(this).text().substr(12)) + '*'
+					"M104 S" + parseInt($(this).text().substr(12)) + (!self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter() ? '*' : '')
 				];
 		
 			// Send request
@@ -6823,7 +7019,10 @@ $(function() {
 				url: API_BASEURL + "plugin/m3dfio",
 				type: "POST",
 				dataType: "json",
-				data: JSON.stringify({command: "message", value: commands}),
+				data: JSON.stringify({
+					command: "message",
+					value: commands
+				}),
 				contentType: "application/json; charset=UTF-8"
 			});
 		});
@@ -6831,8 +7030,8 @@ $(function() {
 		// Set heatbed temperature control
 		$("#control > div.jog-panel.extruder").find("div > div.heatbed > button:first-of-type").attr("title", "Sets heatbed's temperature to the specified amount").click(function(event) {
 			
-			// Check if not printing
-			if(self.printerState.isPrinting() !== true) {
+			// Check if not printing and using a Micro 3D printer
+			if(self.printerState.isPrinting() !== true && !self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter()) {
 			
 				// Set commands
 				var commands = [
@@ -6876,7 +7075,7 @@ $(function() {
 			
 				// Set commands
 				var commands = [
-					"M140 S" + parseInt($(this).text().substr(12)) + '*'
+					"M140 S" + parseInt($(this).text().substr(12)) + (!self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter() ? '*' : '')
 				];
 		
 			// Send request
@@ -6884,7 +7083,52 @@ $(function() {
 				url: API_BASEURL + "plugin/m3dfio",
 				type: "POST",
 				dataType: "json",
-				data: JSON.stringify({command: "message", value: commands}),
+				data: JSON.stringify({
+					command: "message",
+					value: commands
+				}),
+				contentType: "application/json; charset=UTF-8"
+			});
+		});
+		
+		// Fan on control
+		$("#control > div.jog-panel.general").find("button:nth-of-type(3)").attr("title", "Turns on extruder's fan").click(function() {
+			
+			// Set commands
+			var commands = [
+				"M106 S255" + (!self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter() ? '*' : '')
+			];
+		
+			// Send request
+			$.ajax({
+				url: API_BASEURL + "plugin/m3dfio",
+				type: "POST",
+				dataType: "json",
+				data: JSON.stringify({
+					command: "message",
+					value: commands
+				}),
+				contentType: "application/json; charset=UTF-8"
+			});
+		});
+		
+		// Fan off control
+		$("#control > div.jog-panel.general").find("button:nth-of-type(4)").attr("title", "Turns off extruder's fan").click(function() {
+			
+			// Set commands
+			var commands = [
+				"M107" + (!self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter() ? '*' : '')
+			];
+		
+			// Send request
+			$.ajax({
+				url: API_BASEURL + "plugin/m3dfio",
+				type: "POST",
+				dataType: "json",
+				data: JSON.stringify({
+					command: "message",
+					value: commands
+				}),
 				contentType: "application/json; charset=UTF-8"
 			});
 		});
@@ -6906,7 +7150,10 @@ $(function() {
 				url: API_BASEURL + "plugin/m3dfio",
 				type: "POST",
 				dataType: "json",
-				data: JSON.stringify({command: "message", value: "Emergency Stop"}),
+				data: JSON.stringify({
+					command: "message",
+					value: "Emergency Stop"
+				}),
 				contentType: "application/json; charset=UTF-8"
 			});
 		});
@@ -6920,107 +7167,143 @@ $(function() {
 				// Hide message
 				hideMessage();
 				
-				// Unload filament
-				function unloadFilament() {
-			
-					// Show message
-					showMessage("Filament Status", "Warming up");
-		
-					// Set commands
-					var commands = [
-						"M106",
-						"M109 S" + parseInt($("body > div.page-container > div.message > div > div > div.filamentSettings input").eq(0).val()),
-						"M65536;wait"
-					];
-			
-					// Display temperature
-					var updateTemperature = setInterval(function() {
-			
-						// Show message
-						if(self.temperature.temperatures.tool0.actual.length) {
+				// Show message
+				showMessage("Filament Status", "Positioning extruder");
 				
-							var temperature = self.temperature.temperatures.tool0.actual[self.temperature.temperatures.tool0.actual.length - 1][1];
-					
-							if(temperature != 0)
-								showMessage("Filament Status", "Warming up: " + temperature + "°C");
-						}
-					}, 1000);
+				// Set commands
+				var commands = [
+					"G90",
+					"G0 Z15 F90",
+					"G28",
+					"M65536;wait"
+				];
+				
+				// Set waiting callback
+				waitingCallback = function() {
+				
+					// Unload filament
+					function unloadFilament() {
 			
-					// Set waiting callback
-					waitingCallback = function() {
-			
-						// Stop displaying temperature
-						clearInterval(updateTemperature);
-		
 						// Show message
-						showMessage("Filament Status", "Remove filament");
-	
+						showMessage("Filament Status", "Warming up");
+		
 						// Set commands
-						commands = [
-							"G90",
-							"G92"
+						var commands = [
+							"M106",
+							"M109 S" + parseInt($("body > div.page-container > div.message > div > div > div.filamentSettings input").eq(0).val()),
+							"M65536;wait"
 						];
-		
-						for(var i = 2; i <= 40; i += 2)
-							commands.push("G0 E-" + i + " F345");
+			
+						// Display temperature
+						var updateTemperature = setInterval(function() {
+			
+							// Show message
+							if(self.temperature.temperatures.tool0.actual.length) {
 				
-						commands.push("M65536;wait");
-				
+								var temperature = self.temperature.temperatures.tool0.actual[self.temperature.temperatures.tool0.actual.length - 1][1];
+					
+								if(temperature != 0)
+									showMessage("Filament Status", "Warming up: " + temperature + "°C");
+							}
+						}, 1000);
+			
 						// Set waiting callback
 						waitingCallback = function() {
-				
-							// Show message
-							showMessage("Filament Status", "Was filament removed?", "Yes", function() {
+			
+							// Stop displaying temperature
+							clearInterval(updateTemperature);
 		
-								// Hide message
-								hideMessage();
+							// Show message
+							showMessage("Filament Status", "Remove filament");
+	
+							// Set commands
+							commands = [
+								"G90",
+								"G92"
+							];
+		
+							for(var i = 2; i <= 50; i += 2)
+								commands.push("G0 E-" + i + " F345");
+				
+							commands.push("M65536;wait");
+				
+							// Set waiting callback
+							waitingCallback = function() {
+				
+								// Show message
+								showMessage("Filament Status", "Was filament removed?", "Yes", function() {
+		
+									// Hide message
+									hideMessage();
 						
-								// Set commands
-								commands = [
-									"M18",
-									"M104 S0",
-									"M107",
-								];
+									// Set commands
+									commands = [
+										"M18",
+										"M104 S0",
+										"M107",
+									];
 						
-								// Send request
-								$.ajax({
-									url: API_BASEURL + "plugin/m3dfio",
-									type: "POST",
-									dataType: "json",
-									data: JSON.stringify({command: "message", value: commands}),
-									contentType: "application/json; charset=UTF-8"
+									// Send request
+									$.ajax({
+										url: API_BASEURL + "plugin/m3dfio",
+										type: "POST",
+										dataType: "json",
+										data: JSON.stringify({
+											command: "message",
+											value: commands
+										}),
+										contentType: "application/json; charset=UTF-8"
+									});
+						
+								}, "No", function() {
+					
+									// Hide message
+									hideMessage();
+					
+									// Unload filament again
+									unloadFilament();
 								});
-						
-							}, "No", function() {
-					
-								// Hide message
-								hideMessage();
-					
-								// Unload filament again
-								unloadFilament();
+							}
+		
+							// Send request
+							$.ajax({
+								url: API_BASEURL + "plugin/m3dfio",
+								type: "POST",
+								dataType: "json",
+								data: JSON.stringify({
+									command: "message",
+									value: commands
+								}),
+								contentType: "application/json; charset=UTF-8"
 							});
 						}
-		
+			
 						// Send request
 						$.ajax({
 							url: API_BASEURL + "plugin/m3dfio",
 							type: "POST",
 							dataType: "json",
-							data: JSON.stringify({command: "message", value: commands}),
+							data: JSON.stringify({
+								command: "message",
+								value: commands
+							}),
 							contentType: "application/json; charset=UTF-8"
 						});
 					}
-			
-					// Send request
-					$.ajax({
-						url: API_BASEURL + "plugin/m3dfio",
-						type: "POST",
-						dataType: "json",
-						data: JSON.stringify({command: "message", value: commands}),
-						contentType: "application/json; charset=UTF-8"
-					});
+					unloadFilament();
 				}
-				unloadFilament();
+				
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m3dfio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({
+						command: "message",
+						value: commands
+					}),
+					contentType: "application/json; charset=UTF-8"
+				});
 			}, "Cancel", function() {
 			
 				// Hide message
@@ -7037,83 +7320,113 @@ $(function() {
 				// Hide message
 				hideMessage();
 				
-				// Load filament
-				function loadFilament() {
-			
-					// Show message
-					showMessage("Filament Status", "Warming up");
-		
-					// Set commands
-					var commands = [
-						"M106",
-						"M109 S" + parseInt($("body > div.page-container > div.message > div > div > div.filamentSettings input").eq(0).val()),
-						"M65536;wait"
-					];
-			
-					// Display temperature
-					var updateTemperature = setInterval(function() {
-			
-						// Show message
-						if(self.temperature.temperatures.tool0.actual.length) {
-			
-							var temperature = self.temperature.temperatures.tool0.actual[self.temperature.temperatures.tool0.actual.length - 1][1];
+				// Show message
+				showMessage("Filament Status", "Positioning extruder");
 				
-							if(temperature != 0)
-								showMessage("Filament Status", "Warming up: " + temperature + "°C");
-						}
-					}, 1000);
+				// Set commands
+				var commands = [
+					"G90",
+					"G0 Z15 F90",
+					"G28",
+					"M65536;wait"
+				];
+				
+				// Set waiting callback
+				waitingCallback = function() {
+				
+					// Load filament
+					function loadFilament() {
 			
-					// Set waiting callback
-					waitingCallback = function() {
-			
-						// Stop displaying temperature
-						clearInterval(updateTemperature);
-	
 						// Show message
-						showMessage("Filament Status", "Insert filament");
-	
+						showMessage("Filament Status", "Warming up");
+		
 						// Set commands
-						commands = [
-							"G90",
-							"G92"
+						var commands = [
+							"M106",
+							"M109 S" + parseInt($("body > div.page-container > div.message > div > div > div.filamentSettings input").eq(0).val()),
+							"M65536;wait"
 						];
-		
-						for(var i = 2; i <= 40; i += 2)
-							commands.push("G0 E" + i + " F345");
+			
+						// Display temperature
+						var updateTemperature = setInterval(function() {
+			
+							// Show message
+							if(self.temperature.temperatures.tool0.actual.length) {
+			
+								var temperature = self.temperature.temperatures.tool0.actual[self.temperature.temperatures.tool0.actual.length - 1][1];
 				
-						commands.push("M65536;wait");
-				
+								if(temperature != 0)
+									showMessage("Filament Status", "Warming up: " + temperature + "°C");
+							}
+						}, 1000);
+			
 						// Set waiting callback
 						waitingCallback = function() {
-				
+			
+							// Stop displaying temperature
+							clearInterval(updateTemperature);
+	
 							// Show message
-							showMessage("Filament Status", "Was filament inserted?", "Yes", function() {
+							showMessage("Filament Status", "Insert filament");
+	
+							// Set commands
+							commands = [
+								"G90",
+								"G92"
+							];
+		
+							for(var i = 2; i <= 50; i += 2)
+								commands.push("G0 E" + i + " F345");
 				
-								// Hide message
-								hideMessage();
+							commands.push("M65536;wait");
+				
+							// Set waiting callback
+							waitingCallback = function() {
+				
+								// Show message
+								showMessage("Filament Status", "Was filament inserted?", "Yes", function() {
+				
+									// Hide message
+									hideMessage();
 						
-								// Set commands
-								commands = [
-									"M18",
-									"M104 S0",
-									"M107"
-								];
+									// Set commands
+									commands = [
+										"M18",
+										"M104 S0",
+										"M107"
+									];
 						
-								// Send request
-								$.ajax({
-									url: API_BASEURL + "plugin/m3dfio",
-									type: "POST",
-									dataType: "json",
-									data: JSON.stringify({command: "message", value: commands}),
-									contentType: "application/json; charset=UTF-8"
+									// Send request
+									$.ajax({
+										url: API_BASEURL + "plugin/m3dfio",
+										type: "POST",
+										dataType: "json",
+										data: JSON.stringify({
+											command: "message",
+											value: commands
+										}),
+										contentType: "application/json; charset=UTF-8"
+									});
+								}, "No", function() {
+				
+									// Hide message
+									hideMessage();
+				
+									// Load filament again
+									loadFilament();
 								});
-							}, "No", function() {
-				
-								// Hide message
-								hideMessage();
-				
-								// Load filament again
-								loadFilament();
+							}
+		
+							// Send request
+							$.ajax({
+								url: API_BASEURL + "plugin/m3dfio",
+								type: "POST",
+								dataType: "json",
+								data: JSON.stringify({
+									command: "message",
+									value: commands
+								}),
+								contentType: "application/json; charset=UTF-8"
 							});
 						}
 		
@@ -7122,21 +7435,27 @@ $(function() {
 							url: API_BASEURL + "plugin/m3dfio",
 							type: "POST",
 							dataType: "json",
-							data: JSON.stringify({command: "message", value: commands}),
+							data: JSON.stringify({
+								command: "message",
+								value: commands
+							}),
 							contentType: "application/json; charset=UTF-8"
 						});
 					}
-		
-					// Send request
-					$.ajax({
-						url: API_BASEURL + "plugin/m3dfio",
-						type: "POST",
-						dataType: "json",
-						data: JSON.stringify({command: "message", value: commands}),
-						contentType: "application/json; charset=UTF-8"
-					});
+					loadFilament();
 				}
-				loadFilament();
+				
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m3dfio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({
+						command: "message",
+						value: commands
+					}),
+					contentType: "application/json; charset=UTF-8"
+				});
 			}, "Cancel", function() {
 			
 				// Hide message
@@ -7147,489 +7466,27 @@ $(function() {
 		// Set mid-print change filament control
 		$("#control > div.jog-panel.filament").find("div > button:nth-of-type(3)").attr("title", "Changes filament during a print").click(function(event) {
 		
-			// Change filament mid-print
-			midPrintFilementChange();	
-		});
-		
-		// Mid-print filament change
-		function midPrintFilementChange() {
-			
 			// Show message
-			showMessage("Filament Status", "Pausing print");
+			showMessage("Filament Status", "Starting mid-print filament change");
 			
-			// Wait until paused
-			function waitUntilPaused() {
-			
-				// Check if paused
-				if(self.printerState.isPaused() === true) {
-		
-					// Show message
-					showMessage("Filament Status", "Moving extruder away from print");
-				
-					// Set commands
-					var commands = [
-						"M114"
-					];
-					
-					// Set location callback
-					locationCallback = function() {
-					
-						// Check if X, Y, and E positions weren't specified
-						if(currentX === null && currentY === null && currentE == null) {
-						
-							// Set default values
-							currentX = 54;
-							currentY = 50;
-							currentE = 0;
-						}
-					
-						// Send request
-						$.ajax({
-							url: API_BASEURL + "plugin/m3dfio",
-							type: "POST",
-							dataType: "json",
-							data: JSON.stringify({command: "message", value: "Print Information"}),
-							contentType: "application/json; charset=UTF-8",
-				
-							// On success									
-							success: function(data) {
-						
-								// Adjust bed Z values to account for external bed height
-								bedLowMaxZ = 5.0;
-								bedLowMinZ = 0.0;
-								bedMediumMinZ = bedLowMaxZ;
-								bedMediumMaxZ = 73.5 - parseFloat(self.settings.settings.plugins.m3dfio.ExternalBedHeight());
-								bedHighMaxZ = 112.0 - parseFloat(self.settings.settings.plugins.m3dfio.ExternalBedHeight());
-								bedHighMinZ = bedMediumMaxZ;
-								
-								// Set move Z
-								var moveZ = currentZ + 3;
-								if(currentZ <= bedMediumMaxZ && moveZ >= bedHighMinZ)
-									moveZ = bedMediumMaxZ;
-								else if(moveZ > bedHighMaxZ)
-									moveZ = bedHighMaxZ;
-						
-								// Get min and max X and Y values
-								var minModelX, maxModelX, minMoveX, maxMoveX;
-								var minModelY, maxModelY, minMoveY, maxMoveY;
-								if(moveZ >= bedHighMinZ) {
-						
-									minModelX = Math.min(data.minXLow, data.minXMedium, data.minXHigh);
-									maxModelX = Math.max(data.maxXLow, data.maxXMedium, data.maxXHigh);
-									minMoveX = bedHighMinX;
-									maxMoveX = bedHighMaxX;
-							
-									minModelY = Math.min(data.minYLow, data.minYMedium, data.minYHigh);
-									maxModelY = Math.max(data.maxYLow, data.maxYMedium, data.maxYHigh);
-									minMoveY = bedHighMinY;
-									maxMoveY = bedHighMaxY;
-							
-									if(minMoveY < bedLowMinY)
-										minMoveY = bedLowMinY;
-								}
-								else if(moveZ >= bedMediumMinZ) {
-						
-									minModelX = Math.min(data.minXLow, data.minXMedium);
-									maxModelX = Math.max(data.maxXLow, data.maxXMedium);
-									minMoveX = bedMediumMinX;
-									maxMoveX = bedMediumMaxX;
-							
-									minModelY = Math.min(data.minYLow, data.minYMedium);
-									maxModelY = Math.max(data.maxYLow, data.maxYMedium);
-									minMoveY = bedMediumMinY;
-									maxMoveY = bedMediumMaxY;
-							
-									if(minMoveY < bedLowMinY)
-										minMoveY = bedLowMinY;
-								}
-								else {
-						
-									minModelX = data.minXLow;
-									maxModelX = data.maxXLow;
-									minMoveX = bedLowMinX;
-									maxMoveX = bedLowMaxX;
-							
-									minModelY = data.minYLow;
-									maxModelY = data.maxYLow;
-									minMoveY = bedLowMinY;
-									maxMoveY = bedLowMaxY;
-								}
-						
-								// Set move X
-								var moveX = null;
-								if(minModelX > minMoveX) {
-									moveX = minModelX - 20;
-									if(moveX < minMoveX)
-										moveX = minMoveX;
-								}
-								else if(maxModelX < maxMoveX) {
-									moveX = maxModelX + 20;
-									if(moveX > maxMoveX)
-										moveX = maxMoveX;
-								}
-						
-								// Set move Y
-								var moveY = null;
-								if(minModelY > minMoveY) {
-									moveY = minModelY - 20;
-									if(moveY < minMoveY)
-										moveY = minMoveY;
-								}
-								else if(maxModelY < maxMoveY) {
-									moveY = maxModelY + 20;
-									if(moveY > maxMoveY)
-										moveY = maxMoveY;
-								}
-							
-								// Check if an X or Y movement isn't possible
-								if(moveX === null || moveY === null) {
-						
-									// Show message
-									showMessage("Filament Status", "The filament can't be changed since the extruder can't be moved away from the print. The print will now resume.", "OK", function() {
-							
-										// Hide message
-										hideMessage();
-									
-										// Send request
-										$.ajax({
-											url: API_BASEURL + "plugin/m3dfio",
-											type: "POST",
-											dataType: "json",
-											data: JSON.stringify({command: "message", value: "Resume"}),
-											contentType: "application/json; charset=UTF-8"
-										});
-									});
-								}
-						
-								// Otherwise
-								else {
-						
-									// Set commands
-									commands = [
-										"G90",
-										"G0 Z" + moveZ + " E" + (currentE - 5) + " F345",
-										"G0 X" + moveX + " Y" + moveY + " F2000",
-										"M65536;wait"
-									];
-								
-									// Set waiting callback
-									waitingCallback = function() {
-									
-										// Show message
-										showMessage("Filament Status", '', "Unload", function() {
-	
-											// Hide message
-											hideMessage();
-			
-											// Unload filament
-											function unloadFilament() {
-			
-												// Show message
-												showMessage("Filament Status", "Warming up");
-
-												// Set commands
-												commands = [
-													"M109 S" + parseInt($("body > div.page-container > div.message > div > div > div.filamentSettings input").eq(0).val()),
-													"M65536;wait"
-												];
-	
-												// Display temperature
-												var updateTemperature = setInterval(function() {
-	
-													// Show message
-													if(self.temperature.temperatures.tool0.actual.length) {
-	
-														var temperature = self.temperature.temperatures.tool0.actual[self.temperature.temperatures.tool0.actual.length - 1][1];
-		
-														if(temperature != 0)
-															showMessage("Filament Status", "Warming up: " + temperature + "°C");
-													}
-												}, 1000);
-	
-												// Set waiting callback
-												waitingCallback = function() {
-	
-													// Stop displaying temperature
-													clearInterval(updateTemperature);
-
-													// Show message
-													showMessage("Filament Status", "Remove filament");
-
-													// Set commands
-													commands = [
-														"G90",
-														"G92"
-													];
-
-													for(var i = 2; i <= 40; i += 2)
-														commands.push("G0 E-" + i + " F345");
-		
-													commands.push("M65536;wait");
-		
-													// Set waiting callback
-													waitingCallback = function() {
-		
-														// Show message
-														showMessage("Filament Status", "Was filament removed?", "Yes", function() {
-		
-															// Hide message
-															hideMessage();
-															
-															// Show message
-															showMessage("Filament Status", '', "Load", function() {
-	
-																// Hide message
-																hideMessage();
-				
-																// Load filament
-																function loadFilament() {
-			
-																	// Show message
-																	showMessage("Filament Status", "Warming up");
-
-																	// Set commands
-																	commands = [
-																		"M109 S" + parseInt($("body > div.page-container > div.message > div > div > div.filamentSettings input").eq(0).val()),
-																		"M65536;wait"
-																	];
-	
-																	// Display temperature
-																	updateTemperature = setInterval(function() {
-	
-																		// Show message
-																		if(self.temperature.temperatures.tool0.actual.length) {
-	
-																			var temperature = self.temperature.temperatures.tool0.actual[self.temperature.temperatures.tool0.actual.length - 1][1];
-		
-																			if(temperature != 0)
-																				showMessage("Filament Status", "Warming up: " + temperature + "°C");
-																		}
-																	}, 1000);
-	
-																	// Set waiting callback
-																	waitingCallback = function() {
-	
-																		// Stop displaying temperature
-																		clearInterval(updateTemperature);
-
-																		// Show message
-																		showMessage("Filament Status", "Insert filament");
-
-																		// Set commands
-																		commands = [
-																			"G90",
-																			"G92"
-																		];
-
-																		for(var i = 2; i <= 40; i += 2)
-																			commands.push("G0 E" + i + " F345");
-		
-																		commands.push("M65536;wait");
-		
-																		// Set waiting callback
-																		waitingCallback = function() {
-		
-																			// Show message
-																			showMessage("Filament Status", "Was filament inserted?", "Yes", function() {
-		
-																				// Hide message
-																				hideMessage();
-																				
-																				// Show message
-																				showMessage("Filament Status", '', "Set", function() {
-
-																					// Hide message
-																					hideMessage();
-				
-																					// Show message
-																					showMessage("Filament Status", "Warming up");
-
-																					// Set commands
-																					commands = [
-																						"M109 S" + parseInt($("body > div.page-container > div.message > div > div > div.filamentSettings input").eq(0).val()),
-																						"M65536;wait"
-																					];
-	
-																					// Display temperature
-																					updateTemperature = setInterval(function() {
-	
-																						// Show message
-																						if(self.temperature.temperatures.tool0.actual.length) {
-	
-																							var temperature = self.temperature.temperatures.tool0.actual[self.temperature.temperatures.tool0.actual.length - 1][1];
-		
-																							if(temperature != 0)
-																								showMessage("Filament Status", "Warming up: " + temperature + "°C");
-																						}
-																					}, 1000);
-	
-																					// Set waiting callback
-																					waitingCallback = function() {
-	
-																						// Stop displaying temperature
-																						clearInterval(updateTemperature);
-												
-																						// Show message
-																						showMessage("Filament Status", "Make sure the nozzle is clean before continuing. It will be hot, so be careful.", "OK", function() {
-													
-																							// Hide message
-																							hideMessage();
-				
-																							// Show message
-																							showMessage("Filament Status", "Resuming print");
-
-																							// Set commands
-																							commands = [
-																								"G90",
-																								"G92 E" + currentE,
-																								"G0 E" + (currentE - 0.3) + " F345",
-																								"G0 X" + currentX + " Y" + currentY + " F2000",
-																								"G0 Z" + currentZ + " F90",
-																								"G0 F300",
-																								"M65536;wait"
-																							];
-														
-																							// Set waiting callback
-																							waitingCallback = function() {
-												
-																								// Hide message
-																								hideMessage();
-													
-																								// Send request
-																								$.ajax({
-																									url: API_BASEURL + "plugin/m3dfio",
-																									type: "POST",
-																									dataType: "json",
-																									data: JSON.stringify({command: "message", value: "Resume"}),
-																									contentType: "application/json; charset=UTF-8"
-																								});
-																							}
-														
-																							// Send request
-																							$.ajax({
-																								url: API_BASEURL + "plugin/m3dfio",
-																								type: "POST",
-																								dataType: "json",
-																								data: JSON.stringify({command: "message", value: commands}),
-																								contentType: "application/json; charset=UTF-8"
-																							});
-																						});
-																					}
-												
-																					// Send request
-																					$.ajax({
-																						url: API_BASEURL + "plugin/m3dfio",
-																						type: "POST",
-																						dataType: "json",
-																						data: JSON.stringify({command: "message", value: commands}),
-																						contentType: "application/json; charset=UTF-8"
-																					});
-																				});
-																			}, "No", function() {
-		
-																				// Hide message
-																				hideMessage();
-		
-																				// Load filament again
-																				loadFilament()
-																			});
-																		}
-
-																		// Send request
-																		$.ajax({
-																			url: API_BASEURL + "plugin/m3dfio",
-																			type: "POST",
-																			dataType: "json",
-																			data: JSON.stringify({command: "message", value: commands}),
-																			contentType: "application/json; charset=UTF-8"
-																		});
-																	}
-
-																	// Send request
-																	$.ajax({
-																		url: API_BASEURL + "plugin/m3dfio",
-																		type: "POST",
-																		dataType: "json",
-																		data: JSON.stringify({command: "message", value: commands}),
-																		contentType: "application/json; charset=UTF-8"
-																	});
-																}
-																loadFilament();
-															});
-														}, "No", function() {
-		
-															// Hide message
-															hideMessage();
-		
-															// Unload filament again
-															unloadFilament()
-														});
-													}
-
-													// Send request
-													$.ajax({
-														url: API_BASEURL + "plugin/m3dfio",
-														type: "POST",
-														dataType: "json",
-														data: JSON.stringify({command: "message", value: commands}),
-														contentType: "application/json; charset=UTF-8"
-													});
-												}
-
-												// Send request
-												$.ajax({
-													url: API_BASEURL + "plugin/m3dfio",
-													type: "POST",
-													dataType: "json",
-													data: JSON.stringify({command: "message", value: commands}),
-													contentType: "application/json; charset=UTF-8"
-												});
-											}
-											unloadFilament();
-										});
-									}
-								
-									// Send request
-									$.ajax({
-										url: API_BASEURL + "plugin/m3dfio",
-										type: "POST",
-										dataType: "json",
-										data: JSON.stringify({command: "message", value: commands}),
-										contentType: "application/json; charset=UTF-8"
-									});
-								}
-							}
-						});
-					}
-					
-					// Send request
-					$.ajax({
-						url: API_BASEURL + "plugin/m3dfio",
-						type: "POST",
-						dataType: "json",
-						data: JSON.stringify({command: "message", value: commands}),
-						contentType: "application/json; charset=UTF-8"
-					});
-				}
-				
-				// Otherwise
-				else
-				
-					// Check if paused again
-					setTimeout(waitUntilPaused, 100);
-			}
-			waitUntilPaused();
+			// Set commands
+			var commands = [
+				"M600"
+			];
 			
 			// Send request
 			$.ajax({
 				url: API_BASEURL + "plugin/m3dfio",
 				type: "POST",
 				dataType: "json",
-				data: JSON.stringify({command: "message", value: "Pause"}),
+				data: JSON.stringify({
+					command: "message",
+					value: commands
+				}),
 				contentType: "application/json; charset=UTF-8"
 			});
-		}
-	
+		});
+		
 		// Set calibrate bed center Z0 control
 		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(1)").attr("title", "Automatically calibrates the bed's center's Z0").click(function(event) {
 		
@@ -7644,6 +7501,8 @@ $(function() {
 		
 				// Set commands
 				var commands = [
+					"G91",
+					"G0 Z3 F90",
 					"G90",
 					"M109 S150",
 					"M104 S0",
@@ -7677,7 +7536,10 @@ $(function() {
 						url: API_BASEURL + "plugin/m3dfio",
 						type: "POST",
 						dataType: "json",
-						data: JSON.stringify({command: "message", value: commands}),
+						data: JSON.stringify({
+							command: "message",
+							value: commands
+						}),
 						contentType: "application/json; charset=UTF-8"
 					});
 				}
@@ -7687,7 +7549,10 @@ $(function() {
 					url: API_BASEURL + "plugin/m3dfio",
 					type: "POST",
 					dataType: "json",
-					data: JSON.stringify({command: "message", value: commands}),
+					data: JSON.stringify({
+						command: "message",
+						value: commands
+					}),
 					contentType: "application/json; charset=UTF-8"
 				});
 			}, "No", function() {
@@ -7711,7 +7576,6 @@ $(function() {
 		
 				// Set commands
 				var commands = [
-					"M104 S0",
 					"G90",
 					"G0 Z3 F90",
 					"M109 S150",
@@ -7762,7 +7626,10 @@ $(function() {
 						url: API_BASEURL + "plugin/m3dfio",
 						type: "POST",
 						dataType: "json",
-						data: JSON.stringify({command: "message", value: commands}),
+						data: JSON.stringify({
+							command: "message",
+							value: commands
+						}),
 						contentType: "application/json; charset=UTF-8"
 					});
 				}
@@ -7772,7 +7639,10 @@ $(function() {
 					url: API_BASEURL + "plugin/m3dfio",
 					type: "POST",
 					dataType: "json",
-					data: JSON.stringify({command: "message", value: commands}),
+					data: JSON.stringify({
+						command: "message",
+						value: commands
+					}),
 					contentType: "application/json; charset=UTF-8"
 				});
 			}, "No", function() {
@@ -7798,7 +7668,10 @@ $(function() {
 				url: API_BASEURL + "plugin/m3dfio",
 				type: "POST",
 				dataType: "json",
-				data: JSON.stringify({command: "message", value: commands}),
+				data: JSON.stringify({
+					command: "message",
+					value: commands
+				}),
 				contentType: "application/json; charset=UTF-8"
 			});
 		});
@@ -7819,7 +7692,10 @@ $(function() {
 				url: API_BASEURL + "plugin/m3dfio",
 				type: "POST",
 				dataType: "json",
-				data: JSON.stringify({command: "message", value: commands}),
+				data: JSON.stringify({
+					command: "message",
+					value: commands
+				}),
 				contentType: "application/json; charset=UTF-8"
 			});
 		});
@@ -7840,7 +7716,10 @@ $(function() {
 				url: API_BASEURL + "plugin/m3dfio",
 				type: "POST",
 				dataType: "json",
-				data: JSON.stringify({command: "message", value: commands}),
+				data: JSON.stringify({
+					command: "message",
+					value: commands
+				}),
 				contentType: "application/json; charset=UTF-8"
 			});
 		});
@@ -7861,7 +7740,10 @@ $(function() {
 				url: API_BASEURL + "plugin/m3dfio",
 				type: "POST",
 				dataType: "json",
-				data: JSON.stringify({command: "message", value: commands}),
+				data: JSON.stringify({
+					command: "message",
+					value: commands
+				}),
 				contentType: "application/json; charset=UTF-8"
 			});
 		});
@@ -7886,7 +7768,10 @@ $(function() {
 					url: API_BASEURL + "plugin/m3dfio",
 					type: "POST",
 					dataType: "json",
-					data: JSON.stringify({command: "message", value: commands}),
+					data: JSON.stringify({
+						command: "message",
+						value: commands
+					}),
 					contentType: "application/json; charset=UTF-8"
 				});
 			}, "No", function() {
@@ -7916,7 +7801,10 @@ $(function() {
 					url: API_BASEURL + "plugin/m3dfio",
 					type: "POST",
 					dataType: "json",
-					data: JSON.stringify({command: "message", value: commands}),
+					data: JSON.stringify({
+						command: "message",
+						value: commands
+					}),
 					contentType: "application/json; charset=UTF-8"
 				});
 			}, "No", function() {
@@ -7946,7 +7834,10 @@ $(function() {
 					url: API_BASEURL + "plugin/m3dfio",
 					type: "POST",
 					dataType: "json",
-					data: JSON.stringify({command: "message", value: commands}),
+					data: JSON.stringify({
+						command: "message",
+						value: commands
+					}),
 					contentType: "application/json; charset=UTF-8"
 				});
 			}, "No", function() {
@@ -7976,7 +7867,10 @@ $(function() {
 					url: API_BASEURL + "plugin/m3dfio",
 					type: "POST",
 					dataType: "json",
-					data: JSON.stringify({command: "message", value: commands}),
+					data: JSON.stringify({
+						command: "message",
+						value: commands
+					}),
 					contentType: "application/json; charset=UTF-8"
 				});
 			}, "No", function() {
@@ -8042,7 +7936,10 @@ $(function() {
 						url: API_BASEURL + "plugin/m3dfio",
 						type: "POST",
 						dataType: "json",
-						data: JSON.stringify({command: "message", value: commands}),
+						data: JSON.stringify({
+							command: "message",
+							value: commands
+						}),
 						contentType: "application/json; charset=UTF-8"
 					});
 				}
@@ -8052,7 +7949,10 @@ $(function() {
 					url: API_BASEURL + "plugin/m3dfio",
 					type: "POST",
 					dataType: "json",
-					data: JSON.stringify({command: "message", value: commands}),
+					data: JSON.stringify({
+						command: "message",
+						value: commands
+					}),
 					contentType: "application/json; charset=UTF-8"
 				});
 			}, "No", function() {
@@ -8118,7 +8018,10 @@ $(function() {
 						url: API_BASEURL + "plugin/m3dfio",
 						type: "POST",
 						dataType: "json",
-						data: JSON.stringify({command: "message", value: commands}),
+						data: JSON.stringify({
+							command: "message",
+							value: commands
+						}),
 						contentType: "application/json; charset=UTF-8"
 					});
 				}
@@ -8128,7 +8031,10 @@ $(function() {
 					url: API_BASEURL + "plugin/m3dfio",
 					type: "POST",
 					dataType: "json",
-					data: JSON.stringify({command: "message", value: commands}),
+					data: JSON.stringify({
+						command: "message",
+						value: commands
+					}),
 					contentType: "application/json; charset=UTF-8"
 				});
 			}, "No", function() {
@@ -8194,7 +8100,10 @@ $(function() {
 						url: API_BASEURL + "plugin/m3dfio",
 						type: "POST",
 						dataType: "json",
-						data: JSON.stringify({command: "message", value: commands}),
+						data: JSON.stringify({
+							command: "message",
+							value: commands
+						}),
 						contentType: "application/json; charset=UTF-8"
 					});
 				}
@@ -8204,7 +8113,10 @@ $(function() {
 					url: API_BASEURL + "plugin/m3dfio",
 					type: "POST",
 					dataType: "json",
-					data: JSON.stringify({command: "message", value: commands}),
+					data: JSON.stringify({
+						command: "message",
+						value: commands
+					}),
 					contentType: "application/json; charset=UTF-8"
 				});
 			}, "No", function() {
@@ -8270,7 +8182,10 @@ $(function() {
 						url: API_BASEURL + "plugin/m3dfio",
 						type: "POST",
 						dataType: "json",
-						data: JSON.stringify({command: "message", value: commands}),
+						data: JSON.stringify({
+							command: "message",
+							value: commands
+						}),
 						contentType: "application/json; charset=UTF-8"
 					});
 				}
@@ -8280,7 +8195,10 @@ $(function() {
 					url: API_BASEURL + "plugin/m3dfio",
 					type: "POST",
 					dataType: "json",
-					data: JSON.stringify({command: "message", value: commands}),
+					data: JSON.stringify({
+						command: "message",
+						value: commands
+					}),
 					contentType: "application/json; charset=UTF-8"
 				});
 			}, "No", function() {
@@ -8335,7 +8253,10 @@ $(function() {
 						url: API_BASEURL + "plugin/m3dfio",
 						type: "POST",
 						dataType: "json",
-						data: JSON.stringify({command: "message", value: commands}),
+						data: JSON.stringify({
+							command: "message",
+							value: commands
+						}),
 						contentType: "application/json; charset=UTF-8"
 					});
 				}
@@ -8345,7 +8266,75 @@ $(function() {
 					url: API_BASEURL + "plugin/m3dfio",
 					type: "POST",
 					dataType: "json",
-					data: JSON.stringify({command: "message", value: commands}),
+					data: JSON.stringify({
+						command: "message",
+						value: commands
+					}),
+					contentType: "application/json; charset=UTF-8"
+				});
+			}, "No", function() {
+			
+				// Hide message
+				hideMessage();
+			});
+		});
+		
+		// Set save Z as external bed height control
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(16)").attr("title", "Saves the extruder's current Z value as the external bed's height").click(function(event) {
+			
+			// Show message
+			showMessage("Calibration Status", "This will overwrite the existing external bed height. Proceed?", "Yes", function() {
+			
+				// Hide message
+				hideMessage();
+				
+				// Show message
+				showMessage("Calibration Status", "Saving Z as external bed height");
+		
+				// Set commands
+				var commands = [
+					"M114"
+				];
+				
+				// Set location callback
+				locationCallback = function() {
+			
+					// Send request
+					$.ajax({
+						url: API_BASEURL + "plugin/m3dfio",
+						type: "POST",
+						dataType: "json",
+						data: JSON.stringify({
+							command: "message",
+							value: "Set External Bed Height: " + currentZ
+						}),
+						contentType: "application/json; charset=UTF-8",
+						
+						// On success
+						success: function() {
+						
+							// Show message
+							showMessage("Calibration Status", "Done", "OK", function() {
+			
+								// Hide message
+								hideMessage();
+								
+								// Update settings
+								self.settings.requestData();
+							});
+						}
+					});
+				}
+				
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m3dfio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({
+						command: "message",
+						value: commands
+					}),
 					contentType: "application/json; charset=UTF-8"
 				});
 			}, "No", function() {
@@ -8356,7 +8345,7 @@ $(function() {
 		});
 		
 		// Set print test border control
-		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(16)").attr("title", "Prints 0.4mm test border").click(function(event) {
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(17)").attr("title", "Prints 0.4mm test border").click(function(event) {
 		
 			// Show message
 			showMessage("Calibration Status", "It's recommended to print this test border after completely calibrating the bed to ensure that the calibration is accurate.<br><br>The test border should print as a solid, even extruded border, and the 'Back Left Offset', 'Back Right Offset', 'Front Right Offset', and 'Front Left Offset' values can be adjusted to correct any issues with it. If the test border contains squiggly ripples, then it is too high. If the test border contains missing gaps, then it is too low.<br><br>It's also recommended to print a model with a raft after this is done to see if the 'Bed Height Offset' value needs to be adjusted. If the raft does not securely stick to the bed, then it is too high. If the model isn't easily removed from the raft, then it is too low.<br><br>All the referenced values can be found by clicking the 'Print settings' button in the 'General' section. Proceed?", "Yes", function() {
@@ -8368,7 +8357,7 @@ $(function() {
 				if(self.settings.settings.plugins.m3dfio.PreprocessOnTheFly() && self.settings.settings.plugins.m3dfio.ChangeSettingsBeforePrint()) {
 				
 					// Show message
-					showMessage("Message", '', "Print", function() {
+					showMessage("Printing Status", '', "Print", function() {
 			
 						// Hide message
 						hideMessage();
@@ -8403,7 +8392,10 @@ $(function() {
 										url: API_BASEURL + "plugin/m3dfio",
 										type: "POST",
 										dataType: "json",
-										data: JSON.stringify({command: "message", value: "Print Test Border"}),
+										data: JSON.stringify({
+											command: "message",
+											value: "Print Test Border"
+										}),
 										contentType: "application/json; charset=UTF-8"
 									});
 								}
@@ -8430,7 +8422,10 @@ $(function() {
 						url: API_BASEURL + "plugin/m3dfio",
 						type: "POST",
 						dataType: "json",
-						data: JSON.stringify({command: "message", value: "Print Test Border"}),
+						data: JSON.stringify({
+							command: "message",
+							value: "Print Test Border"
+						}),
 						contentType: "application/json; charset=UTF-8"
 					});
 				
@@ -8442,7 +8437,7 @@ $(function() {
 		});
 		
 		// Set print backlash calibration cylinder control
-		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(17)").attr("title", "Prints backlash calibration cylinder").click(function(event) {
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(18)").attr("title", "Prints backlash calibration cylinder").click(function(event) {
 		
 			// Show message
 			showMessage("Calibration Status", "It's recommended to print this backlash calibration cylinder after the print bed has been accurately calibrated.<br><br>To start this procedure, the 'Backlash X' and 'Backlash Y' values should be set to 0 so that an uncompensated cylinder can be printed. The cylinder's X backlash signature gaps are located at 2 and 8 o'clock and Y backlash signature gaps are located at 5 and 11 o'clock. The front left corner of the cylinder's base is cut off to make identifying the cylinder's orientation easier.<br><br>After printing an initial cylinder, adjust the 'Backlash X' value to close the X signature gaps, print, and repeat if necessary to ensure the accuracy. 'Backlash X' values typically range within 0.2mm to 0.6mm.<br><br>After the 'Backlash X' value has been calibrated, adjust the 'Backlash Y' value to close the Y signature gaps, print, and repeat if necessary to ensure the accuracy. 'Backlash Y' values typically range within 0.4mm to 1.3mm. You may need fine tune the 'Backlash X' vale again after 'Backlash Y' value has been calibrated.<br><br>All the referenced values can be found by clicking the 'Print settings' button in the 'General' section. Proceed?", "Yes", function() {
@@ -8454,7 +8449,7 @@ $(function() {
 				if(self.settings.settings.plugins.m3dfio.PreprocessOnTheFly() && self.settings.settings.plugins.m3dfio.ChangeSettingsBeforePrint()) {
 				
 					// Show message
-					showMessage("Message", '', "Print", function() {
+					showMessage("Printing Status", '', "Print", function() {
 			
 						// Hide message
 						hideMessage();
@@ -8489,7 +8484,10 @@ $(function() {
 										url: API_BASEURL + "plugin/m3dfio",
 										type: "POST",
 										dataType: "json",
-										data: JSON.stringify({command: "message", value: "Print Backlash Calibration Cylinder"}),
+										data: JSON.stringify({
+											command: "message",
+											value: "Print Backlash Calibration Cylinder"
+										}),
 										contentType: "application/json; charset=UTF-8"
 									});
 								}
@@ -8516,7 +8514,10 @@ $(function() {
 						url: API_BASEURL + "plugin/m3dfio",
 						type: "POST",
 						dataType: "json",
-						data: JSON.stringify({command: "message", value: "Print Backlash Calibration Cylinder"}),
+						data: JSON.stringify({
+							command: "message",
+							value: "Print Backlash Calibration Cylinder"
+						}),
 						contentType: "application/json; charset=UTF-8"
 					});
 			
@@ -8528,19 +8529,18 @@ $(function() {
 		});
 		
 		// Run complete bed calibration control
-		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(18)").attr("title", "Automatically calibrates the bed's center's Z0, automatically calibrates the bed's orientation, and manually calibrates the Z0 values for the bed's four corners").click(function(event) {
-			
-			// Show message
-			showMessage("Calibration Status", "This process can take a while to complete and will require your input during some steps. Proceed?", "Yes", function() {
-			
-				// Hide message
-				hideMessage();
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(19)").attr("title", "Manually calibrates an external bed's height, automatically calibrates the bed's center's Z0, automatically calibrates the bed's orientation, and manually calibrates the Z0 values for the bed's four corners").click(function(event) {
+		
+			// Continue calibration
+			function continueCalibration() {
 				
 				// Show message
 				showMessage("Calibration Status", "Calibrating bed center Z0");
 		
 				// Set commands
 				var commands = [
+					"G91",
+					"G0 Z3 F90",
 					"G90",
 					"M109 S150",
 					"M104 S0",
@@ -8566,7 +8566,6 @@ $(function() {
 	
 						// Set commands
 						commands = [
-							"M104 S0",
 							"G90",
 							"G0 Z3 F90",
 							"M109 S150",
@@ -8816,7 +8815,10 @@ $(function() {
 																											url: API_BASEURL + "plugin/m3dfio",
 																											type: "POST",
 																											dataType: "json",
-																											data: JSON.stringify({command: "message", value: commands}),
+																											data: JSON.stringify({
+																												command: "message",
+																												value: commands
+																											}),
 																											contentType: "application/json; charset=UTF-8"
 																										});
 																									}
@@ -8826,7 +8828,10 @@ $(function() {
 																										url: API_BASEURL + "plugin/m3dfio",
 																										type: "POST",
 																										dataType: "json",
-																										data: JSON.stringify({command: "message", value: commands}),
+																										data: JSON.stringify({
+																											command: "message",
+																											value: commands
+																										}),
 																										contentType: "application/json; charset=UTF-8"
 																									});
 																								}
@@ -8836,7 +8841,10 @@ $(function() {
 																									url: API_BASEURL + "plugin/m3dfio",
 																									type: "POST",
 																									dataType: "json",
-																									data: JSON.stringify({command: "message", value: commands}),
+																									data: JSON.stringify({
+																										command: "message",
+																										value: commands
+																									}),
 																									contentType: "application/json; charset=UTF-8"
 																								});
 																							}
@@ -8846,7 +8854,10 @@ $(function() {
 																								url: API_BASEURL + "plugin/m3dfio",
 																								type: "POST",
 																								dataType: "json",
-																								data: JSON.stringify({command: "message", value: commands}),
+																								data: JSON.stringify({
+																									command: "message",
+																									value: commands
+																								}),
 																								contentType: "application/json; charset=UTF-8"
 																							});
 																						});
@@ -8857,7 +8868,10 @@ $(function() {
 																						url: API_BASEURL + "plugin/m3dfio",
 																						type: "POST",
 																						dataType: "json",
-																						data: JSON.stringify({command: "message", value: commands}),
+																						data: JSON.stringify({
+																							command: "message",
+																							value: commands
+																						}),
 																						contentType: "application/json; charset=UTF-8"
 																					});
 																				}
@@ -8867,7 +8881,10 @@ $(function() {
 																					url: API_BASEURL + "plugin/m3dfio",
 																					type: "POST",
 																					dataType: "json",
-																					data: JSON.stringify({command: "message", value: commands}),
+																					data: JSON.stringify({
+																						command: "message",
+																						value: commands
+																					}),
 																					contentType: "application/json; charset=UTF-8"
 																				});
 																			}
@@ -8877,7 +8894,10 @@ $(function() {
 																				url: API_BASEURL + "plugin/m3dfio",
 																				type: "POST",
 																				dataType: "json",
-																				data: JSON.stringify({command: "message", value: commands}),
+																				data: JSON.stringify({
+																					command: "message",
+																					value: commands
+																				}),
 																				contentType: "application/json; charset=UTF-8"
 																			});
 																		});
@@ -8888,7 +8908,10 @@ $(function() {
 																		url: API_BASEURL + "plugin/m3dfio",
 																		type: "POST",
 																		dataType: "json",
-																		data: JSON.stringify({command: "message", value: commands}),
+																		data: JSON.stringify({
+																			command: "message",
+																			value: commands
+																		}),
 																		contentType: "application/json; charset=UTF-8"
 																	});
 																}
@@ -8898,7 +8921,10 @@ $(function() {
 																	url: API_BASEURL + "plugin/m3dfio",
 																	type: "POST",
 																	dataType: "json",
-																	data: JSON.stringify({command: "message", value: commands}),
+																	data: JSON.stringify({
+																		command: "message",
+																		value: commands
+																	}),
 																	contentType: "application/json; charset=UTF-8"
 																});
 															}
@@ -8908,7 +8934,10 @@ $(function() {
 																url: API_BASEURL + "plugin/m3dfio",
 																type: "POST",
 																dataType: "json",
-																data: JSON.stringify({command: "message", value: commands}),
+																data: JSON.stringify({
+																	command: "message",
+																	value: commands
+																}),
 																contentType: "application/json; charset=UTF-8"
 															});
 														});
@@ -8919,7 +8948,10 @@ $(function() {
 														url: API_BASEURL + "plugin/m3dfio",
 														type: "POST",
 														dataType: "json",
-														data: JSON.stringify({command: "message", value: commands}),
+														data: JSON.stringify({
+															command: "message",
+															value: commands
+														}),
 														contentType: "application/json; charset=UTF-8"
 													});
 												}
@@ -8929,7 +8961,10 @@ $(function() {
 													url: API_BASEURL + "plugin/m3dfio",
 													type: "POST",
 													dataType: "json",
-													data: JSON.stringify({command: "message", value: commands}),
+													data: JSON.stringify({
+														command: "message",
+														value: commands
+													}),
 													contentType: "application/json; charset=UTF-8"
 												});
 											}
@@ -8939,7 +8974,10 @@ $(function() {
 												url: API_BASEURL + "plugin/m3dfio",
 												type: "POST",
 												dataType: "json",
-												data: JSON.stringify({command: "message", value: commands}),
+												data: JSON.stringify({
+													command: "message",
+													value: commands
+												}),
 												contentType: "application/json; charset=UTF-8"
 											});
 										});
@@ -8950,7 +8988,10 @@ $(function() {
 										url: API_BASEURL + "plugin/m3dfio",
 										type: "POST",
 										dataType: "json",
-										data: JSON.stringify({command: "message", value: commands}),
+										data: JSON.stringify({
+											command: "message",
+											value: commands
+										}),
 										contentType: "application/json; charset=UTF-8"
 									});
 								}
@@ -8967,7 +9008,10 @@ $(function() {
 								url: API_BASEURL + "plugin/m3dfio",
 								type: "POST",
 								dataType: "json",
-								data: JSON.stringify({command: "message", value: commands}),
+								data: JSON.stringify({
+									command: "message",
+									value: commands
+								}),
 								contentType: "application/json; charset=UTF-8"
 							});
 						}
@@ -8977,7 +9021,10 @@ $(function() {
 							url: API_BASEURL + "plugin/m3dfio",
 							type: "POST",
 							dataType: "json",
-							data: JSON.stringify({command: "message", value: commands}),
+							data: JSON.stringify({
+								command: "message",
+								value: commands
+							}),
 							contentType: "application/json; charset=UTF-8"
 						});
 					}
@@ -8987,7 +9034,10 @@ $(function() {
 						url: API_BASEURL + "plugin/m3dfio",
 						type: "POST",
 						dataType: "json",
-						data: JSON.stringify({command: "message", value: commands}),
+						data: JSON.stringify({
+							command: "message",
+							value: commands
+						}),
 						contentType: "application/json; charset=UTF-8"
 					});
 				}
@@ -8997,8 +9047,207 @@ $(function() {
 					url: API_BASEURL + "plugin/m3dfio",
 					type: "POST",
 					dataType: "json",
-					data: JSON.stringify({command: "message", value: commands}),
+					data: JSON.stringify({
+						command: "message",
+						value: commands
+					}),
 					contentType: "application/json; charset=UTF-8"
+				});
+			}
+			
+			// Show message
+			showMessage("Calibration Status", "This process can take a while to complete and will require your input during some steps. Proceed?", "Yes", function() {
+			
+				// Hide message
+				hideMessage();
+				
+				// Show message
+				showMessage("Calibration Status", "Are you using an external bed, such as a heatbed or a sheet of glass?", "Yes", function() {
+				
+					// Hide message
+					hideMessage();
+					
+					// Show message
+					showMessage("Calibration Status", "Remove the external bed and make sure that the bed that came with the printer is attached", "OK", function() {
+					
+						// Hide message
+						hideMessage();
+						
+						// Show message
+						showMessage("Calibration Status", "Calibrating bed center Z0");
+		
+						// Set commands
+						var commands = [
+							"G91",
+							"G0 Z3 F90",
+							"G90",
+							"M109 S150",
+							"M104 S0",
+							"M107",
+							"G30",
+							"M65536;wait"
+						];
+				
+						// Set waiting callback
+						waitingCallback = function() {
+						
+							// Show message
+							showMessage("Calibration Status", "Now raise the print head so that you can attach the external bed, and then lower the print head until it barely touches the external bed. One way to get to that point is to place a single sheet of paper on the bed under the print head, and lower the print head until the paper can no longer be moved.", "Done", function() {
+
+								// Hide message
+								hideMessage();
+			
+								// Show message
+								showMessage("Calibration Status", "Saving Z as external bed height");
+	
+								// Set commands
+								commands = [
+									"M114"
+								];
+			
+								// Set location callback
+								locationCallback = function() {
+		
+									// Send request
+									$.ajax({
+										url: API_BASEURL + "plugin/m3dfio",
+										type: "POST",
+										dataType: "json",
+										data: JSON.stringify({
+											command: "message",
+											value: "Set External Bed Height: " + currentZ
+										}),
+										contentType: "application/json; charset=UTF-8",
+					
+										// On success
+										success: function() {
+					
+											// Show message
+											showMessage("Calibration Status", "Does the external bed extend the printable region to its max?", "Yes", function() {
+										
+												// Hide message
+												hideMessage();
+			
+												// Show message
+												showMessage("Calibration Status", "Setting expand printable region");
+											
+												// Send request
+												$.ajax({
+													url: API_BASEURL + "plugin/m3dfio",
+													type: "POST",
+													dataType: "json",
+													data: JSON.stringify({
+														command: "message",
+														value: "Set Expand Printable Region: True"
+													}),
+													contentType: "application/json; charset=UTF-8",
+					
+													// On success
+													success: function() {
+											
+														// Continue calibration
+														continueCalibration();
+													}
+												});
+											}, "No", function() {
+					
+												// Hide message
+												hideMessage();
+			
+												// Show message
+												showMessage("Calibration Status", "Clearing expand printable region");
+											
+												// Send request
+												$.ajax({
+													url: API_BASEURL + "plugin/m3dfio",
+													type: "POST",
+													dataType: "json",
+													data: JSON.stringify({
+														command: "message",
+														value: "Set Expand Printable Region: False"
+													}),
+													contentType: "application/json; charset=UTF-8",
+					
+													// On success
+													success: function() {
+											
+														// Continue calibration
+														continueCalibration();
+													}
+												});
+											});
+										}
+									});
+								}
+			
+								// Send request
+								$.ajax({
+									url: API_BASEURL + "plugin/m3dfio",
+									type: "POST",
+									dataType: "json",
+									data: JSON.stringify({
+										command: "message",
+										value: commands
+									}),
+									contentType: "application/json; charset=UTF-8"
+								});
+							});
+						}
+						
+						// Send request
+						$.ajax({
+							url: API_BASEURL + "plugin/m3dfio",
+							type: "POST",
+							dataType: "json",
+							data: JSON.stringify({
+								command: "message",
+								value: commands
+							}),
+							contentType: "application/json; charset=UTF-8"
+						});
+					});
+				}, "No", function() {
+			
+					// Hide message
+					hideMessage();
+					
+					// Show message
+					showMessage("Calibration Status", "Clearing external bed settings");
+					
+					// Send request
+					$.ajax({
+						url: API_BASEURL + "plugin/m3dfio",
+						type: "POST",
+						dataType: "json",
+						data: JSON.stringify({
+							command: "message",
+							value: "Set External Bed Height: 0"
+						}),
+						contentType: "application/json; charset=UTF-8",
+						
+						// On success
+						success: function() {
+						
+							// Send request
+							$.ajax({
+								url: API_BASEURL + "plugin/m3dfio",
+								type: "POST",
+								dataType: "json",
+								data: JSON.stringify({
+									command: "message",
+									value: "Set Expand Printable Region: False"
+								}),
+								contentType: "application/json; charset=UTF-8",
+	
+								// On success
+								success: function() {
+							
+									// Continue calibration
+									continueCalibration();
+								}
+							});
+						}
+					});
 				});
 			}, "No", function() {
 			
@@ -9008,7 +9257,7 @@ $(function() {
 		});
 		
 		// Save printer settings to file calibration control
-		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(19)").attr("title", "Saves printer settings to a file").click(function(event) {
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(20)").attr("title", "Saves printer settings to a file").click(function(event) {
 			
 			// Show message
 			showMessage("Settings Status", "Obtaining printer settings");
@@ -9052,7 +9301,7 @@ $(function() {
 		});
 		
 		// Restore printer settings from file calibration control
-		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(20)").attr("title", "Restores printer settings from a file").click(function(event) {
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(21)").attr("title", "Restores printer settings from a file").click(function(event) {
 		
 			// Open file input dialog
 			$("#control > div.jog-panel.calibration").find("div > input").click();
@@ -9125,7 +9374,10 @@ $(function() {
 					url: API_BASEURL + "plugin/m3dfio",
 					type: "POST",
 					dataType: "json",
-					data: JSON.stringify({command: "message", value: "Set Fan: HengLiXin"}),
+					data: JSON.stringify({
+						command: "message",
+						value: "Set Fan: HengLiXin"
+					}),
 					contentType: "application/json; charset=UTF-8",
 			
 					// On success
@@ -9136,6 +9388,18 @@ $(function() {
 			
 							// Hide message
 							hideMessage();
+							
+							// Send request
+							$.ajax({
+								url: API_BASEURL + "plugin/m3dfio",
+								type: "POST",
+								dataType: "json",
+								data: JSON.stringify({
+									command: "message",
+									value: "Reconnect To Printer"
+								}),
+								contentType: "application/json; charset=UTF-8"
+							});
 						});
 					}
 				});
@@ -9163,7 +9427,10 @@ $(function() {
 					url: API_BASEURL + "plugin/m3dfio",
 					type: "POST",
 					dataType: "json",
-					data: JSON.stringify({command: "message", value: "Set Fan: Listener"}),
+					data: JSON.stringify({
+						command: "message",
+						value: "Set Fan: Listener"
+					}),
 					contentType: "application/json; charset=UTF-8",
 			
 					// On success
@@ -9174,6 +9441,18 @@ $(function() {
 			
 							// Hide message
 							hideMessage();
+							
+							// Send request
+							$.ajax({
+								url: API_BASEURL + "plugin/m3dfio",
+								type: "POST",
+								dataType: "json",
+								data: JSON.stringify({
+									command: "message",
+									value: "Reconnect To Printer"
+								}),
+								contentType: "application/json; charset=UTF-8"
+							});
 						});
 					}
 				});
@@ -9201,7 +9480,10 @@ $(function() {
 					url: API_BASEURL + "plugin/m3dfio",
 					type: "POST",
 					dataType: "json",
-					data: JSON.stringify({command: "message", value: "Set Fan: Shenzhew"}),
+					data: JSON.stringify({
+						command: "message",
+						value: "Set Fan: Shenzhew"
+					}),
 					contentType: "application/json; charset=UTF-8",
 			
 					// On success
@@ -9212,6 +9494,18 @@ $(function() {
 			
 							// Hide message
 							hideMessage();
+							
+							// Send request
+							$.ajax({
+								url: API_BASEURL + "plugin/m3dfio",
+								type: "POST",
+								dataType: "json",
+								data: JSON.stringify({
+									command: "message",
+									value: "Reconnect To Printer"
+								}),
+								contentType: "application/json; charset=UTF-8"
+							});
 						});
 					}
 				});
@@ -9239,7 +9533,10 @@ $(function() {
 					url: API_BASEURL + "plugin/m3dfio",
 					type: "POST",
 					dataType: "json",
-					data: JSON.stringify({command: "message", value: "Set Fan: Xinyujie"}),
+					data: JSON.stringify({
+						command: "message",
+						value: "Set Fan: Xinyujie"
+					}),
 					contentType: "application/json; charset=UTF-8",
 			
 					// On success
@@ -9250,6 +9547,18 @@ $(function() {
 			
 							// Hide message
 							hideMessage();
+							
+							// Send request
+							$.ajax({
+								url: API_BASEURL + "plugin/m3dfio",
+								type: "POST",
+								dataType: "json",
+								data: JSON.stringify({
+									command: "message",
+									value: "Reconnect To Printer"
+								}),
+								contentType: "application/json; charset=UTF-8"
+							});
 						});
 					}
 				});
@@ -9264,30 +9573,45 @@ $(function() {
 		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(5)").attr("title", "Sets extruder's current to 500mA").click(function(event) {
 			
 			// Show message
-			showMessage("Extruder Status", "This will overwrite the existing extruder current settings. Proceed?", "Yes", function() {
+			showMessage("Extruder Current Status", "This will overwrite the existing extruder current settings. Proceed?", "Yes", function() {
 			
 				// Hide message
 				hideMessage();
 				
 				// Show message
-				showMessage("Extruder Status", "Setting extruder current to 500mA");
+				showMessage("Extruder Current Status", "Setting extruder current to 500mA");
 		
 				// Send request
 				$.ajax({
 					url: API_BASEURL + "plugin/m3dfio",
 					type: "POST",
 					dataType: "json",
-					data: JSON.stringify({command: "message", value: "Set Extruder Current: 500"}),
+					data: JSON.stringify({
+						command: "message",
+						value: "Set Extruder Current: 500"
+					}),
 					contentType: "application/json; charset=UTF-8",
 			
 					// On success
 					success: function(data) {
 			
 						// Show message
-						showMessage("Extruder Status", data.value == "OK" ? "Done" : "Failed", "OK", function() {
+						showMessage("Extruder Current Status", data.value == "OK" ? "Done" : "Failed", "OK", function() {
 			
 							// Hide message
 							hideMessage();
+							
+							// Send request
+							$.ajax({
+								url: API_BASEURL + "plugin/m3dfio",
+								type: "POST",
+								dataType: "json",
+								data: JSON.stringify({
+									command: "message",
+									value: "Reconnect To Printer"
+								}),
+								contentType: "application/json; charset=UTF-8"
+							});
 						});
 					}
 				});
@@ -9302,30 +9626,45 @@ $(function() {
 		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(6)").attr("title", "Sets extruder's current to 660mA").click(function(event) {
 			
 			// Show message
-			showMessage("Extruder Status", "This will overwrite the existing extruder current settings. Proceed?", "Yes", function() {
+			showMessage("Extruder Current Status", "This will overwrite the existing extruder current settings. Proceed?", "Yes", function() {
 			
 				// Hide message
 				hideMessage();
 				
 				// Show message
-				showMessage("Extruder Status", "Setting extruder current to 660mA");
+				showMessage("Extruder Current Status", "Setting extruder current to 660mA");
 		
 				// Send request
 				$.ajax({
 					url: API_BASEURL + "plugin/m3dfio",
 					type: "POST",
 					dataType: "json",
-					data: JSON.stringify({command: "message", value: "Set Extruder Current: 660"}),
+					data: JSON.stringify({
+						command: "message",
+						value: "Set Extruder Current: 660"
+					}),
 					contentType: "application/json; charset=UTF-8",
 			
 					// On success
 					success: function(data) {
 			
 						// Show message
-						showMessage("Extruder Status", data.value == "OK" ? "Done" : "Failed", "OK", function() {
+						showMessage("Extruder Current Status", data.value == "OK" ? "Done" : "Failed", "OK", function() {
 			
 							// Hide message
 							hideMessage();
+							
+							// Send request
+							$.ajax({
+								url: API_BASEURL + "plugin/m3dfio",
+								type: "POST",
+								dataType: "json",
+								data: JSON.stringify({
+									command: "message",
+									value: "Reconnect To Printer"
+								}),
+								contentType: "application/json; charset=UTF-8"
+							});
 						});
 					}
 				});
@@ -9337,9 +9676,9 @@ $(function() {
 		});
 		
 		// Change EEPROM display control
-		$("#control > div.jog-panel.eeprom").find("input[type=\"radio\"]").eq(0).attr("title", "Displays EEPROM as hexadecimal values");
-		$("#control > div.jog-panel.eeprom").find("input[type=\"radio\"]").eq(1).attr("title", "Displays EEPROM as decimal values");
-		$("#control > div.jog-panel.eeprom").find("input[type=\"radio\"]").eq(2).attr("title", "Displays EEPROM as ASCII values");
+		$("#control > div.jog-panel.eeprom").find("input[type=\"radio\"]").eq(0).attr("title", "Displays EEPROM as hexadecimal values").next("label").attr("title", "Displays EEPROM as hexadecimal values");
+		$("#control > div.jog-panel.eeprom").find("input[type=\"radio\"]").eq(1).attr("title", "Displays EEPROM as decimal values").next("label").attr("title", "Displays EEPROM as decimal values");
+		$("#control > div.jog-panel.eeprom").find("input[type=\"radio\"]").eq(2).attr("title", "Displays EEPROM as ASCII values").next("label").attr("title", "Displays EEPROM as ASCII values");
 		$("#control > div.jog-panel.eeprom").find("input[type=\"radio\"]").click(function() {
 		
 			// Update EEPROM table
@@ -9347,6 +9686,21 @@ $(function() {
 			
 			// Update EEPROM display type
 			eepromDisplayType = $(this).val();
+		});
+		
+		$("#control > div.jog-panel.eeprom").find("input[type=\"radio\"]").next("label").click(function() {
+		
+			// Set checkbox
+			var checkbox = $(this).prev("input[type=\"radio\"]");
+			
+			// Check checkbox
+			checkbox.prop("checked", true);
+		
+			// Update EEPROM table
+			updateEepromTable();
+			
+			// Update EEPROM display type
+			eepromDisplayType = checkbox.val();
 		});
 		
 		// Read EEPROM control
@@ -9360,7 +9714,10 @@ $(function() {
 				url: API_BASEURL + "plugin/m3dfio",
 				type: "POST",
 				dataType: "json",
-				data: JSON.stringify({command: "message", value: "Read EEPROM"}),
+				data: JSON.stringify({
+					command: "message",
+					value: "Read EEPROM"
+				}),
 				contentType: "application/json; charset=UTF-8",
 			
 				// On success
@@ -9371,6 +9728,18 @@ $(function() {
 	
 						// Hide message
 						hideMessage();
+						
+						// Send request
+						$.ajax({
+							url: API_BASEURL + "plugin/m3dfio",
+							type: "POST",
+							dataType: "json",
+							data: JSON.stringify({
+								command: "message",
+								value: "Reconnect To Printer"
+							}),
+							contentType: "application/json; charset=UTF-8"
+						});
 					});
 				}
 			});
@@ -9441,7 +9810,10 @@ $(function() {
 						url: API_BASEURL + "plugin/m3dfio",
 						type: "POST",
 						dataType: "json",
-						data: JSON.stringify({command: "message", value: "Write EEPROM:" + eeprom}),
+						data: JSON.stringify({
+							command: "message",
+							value: "Write EEPROM:" + eeprom
+						}),
 						contentType: "application/json; charset=UTF-8",
 			
 						// On success
@@ -9458,7 +9830,10 @@ $(function() {
 									url: API_BASEURL + "plugin/m3dfio",
 									type: "POST",
 									dataType: "json",
-									data: JSON.stringify({command: "message", value: "Reconnect"}),
+									data: JSON.stringify({
+										command: "message",
+										value: "Reconnect To Printer"
+									}),
 									contentType: "application/json; charset=UTF-8"
 								});
 							});
@@ -9479,14 +9854,17 @@ $(function() {
 			if($(this).val() == "new") {
 			
 				// Show message
-				showMessage("Message", "Creating OctoPrint instance");
+				showMessage("OctoPrint Status", "Creating OctoPrint instance");
 			
 				// Send request
 				$.ajax({
 					url: API_BASEURL + "plugin/m3dfio",
 					type: "POST",
 					dataType: "json",
-					data: JSON.stringify({command: "message", value: "Create OctoPrint Instance"}),
+					data: JSON.stringify({
+						command: "message",
+						value: "Create OctoPrint Instance"
+					}),
 					contentType: "application/json; charset=UTF-8",
 					
 					// On success
@@ -9496,7 +9874,7 @@ $(function() {
 						if(data.value == "Error") {
 						
 							// Show message
-							showMessage("Message", "Failed to create OctoPrint instance", "OK", function() {
+							showMessage("OctoPrint Status", "Failed to create OctoPrint instance", "OK", function() {
 							
 								// Hide message
 								hideMessage();
@@ -9519,35 +9897,51 @@ $(function() {
 			else if($(this).val() == "close") {
 			
 				// Show message
-				showMessage("Message", "Closing OctoPrint instance");
+				showMessage("OctoPrint Status", "Closing OctoPrint instance");
 			
 				// Send request
 				$.ajax({
 					url: API_BASEURL + "plugin/m3dfio",
 					type: "POST",
 					dataType: "json",
-					data: JSON.stringify({command: "message", value: "Close OctoPrint Instance: " + window.location.port}),
+					data: JSON.stringify({
+						command: "message",
+						value: "Close OctoPrint Instance: " + window.location.port
+					}),
 					contentType: "application/json; charset=UTF-8",
 					
 					// On success
 					success: function(data) {
 					
-						// Go through all options
-						$("#navbar_plugin_m3dfio > select > option").each(function() {
+						// Check if OctoPrint instance was closed
+						if(data.value == "OK")
+					
+							// Go through all options
+							$("#navbar_plugin_m3dfio > select > option").each(function() {
 						
-							// Check if another OctoPrint instance exists
-							if($(this).attr("value") != "new" && $(this).attr("value") != "close" && $(this).attr("value") != window.location.port) {
+								// Check if another OctoPrint instance exists
+								if($(this).attr("value") != "new" && $(this).attr("value") != "close" && $(this).attr("value") != window.location.port) {
 							
-								var port = $(this).attr("value")
-								setTimeout(function() {
+									var port = $(this).attr("value")
+									setTimeout(function() {
 				
-									// Go to OctoPrint instance
-									window.location.port = port;
-								}, 1000);
+										// Go to OctoPrint instance
+										window.location.port = port;
+									}, 1000);
 							
-								return false;
-							}
-						});
+									return false;
+								}
+							});
+						
+						// Otherwise
+						else
+						
+							// Show message
+							showMessage("OctoPrint Status", "Unable to close the OctoPrint instance", "OK", function() {
+							
+								// Hide message
+								hideMessage();
+							});
 					}
 				});
 			}
@@ -9567,55 +9961,19 @@ $(function() {
 
 			// Clear input
 			$(this).val('');
-
-			// Check if file has no name
-			if(!file.name.length) {
-
+			
+			// Check if file has no name or name doesn't contain a version number
+			if(!file.name.length || file.name.search(/(^| )\d{10}(\.|$)/) == -1) {
+			
 				// Show message
 				showMessage("Firmware Status", "Invalid file name", "OK", function() {
-		
+
 					// Hide message
 					hideMessage();
 				});
-			}
-
-			// Go through each character of the file's name
-			for(var index = (file.name.indexOf(' ') != -1 ? file.name.indexOf(' ') + 1 : 0); index < file.name.length; index++) {
-
-				// Check if extension is occuring
-				if(file.name[index] == '.') {
 	
-					// Break if file name contaisn version
-					if(file.name.indexOf(' ') != -1 && index - file.name.indexOf(' ') - 1 == 10)
-						break;
-			
-					if(index == 10)
-						break;
-			
-					// Show message
-					showMessage("Firmware Status", "Invalid file name", "OK", function() {
-
-						// Hide message
-						hideMessage();
-					});
-		
-					// Return
-					return;
-				}
-	
-				// Check if current character isn't a digit or length is invalid
-				if(file.name[index] < '0' || file.name[index] > '9' || (index == file.name.length - 1 && index < 9)) {
-	
-					// Show message
-					showMessage("Firmware Status", "Invalid file name", "OK", function() {
-
-						// Hide message
-						hideMessage();
-					});
-		
-					// Return
-					return;
-				}
+				// Return
+				return;
 			}
 
 			// Check if the file is too big
@@ -9647,7 +10005,10 @@ $(function() {
 						url: API_BASEURL + "plugin/m3dfio",
 						type: "POST",
 						dataType: "json",
-						data: JSON.stringify({command: "file", name: file.name, content: event.target.result}),
+						data: JSON.stringify({
+							command: "file",
+							name: file.name, content: event.target.result
+						}),
 						contentType: "application/json; charset=UTF-8",
 	
 						// On success
@@ -9664,7 +10025,10 @@ $(function() {
 									url: API_BASEURL + "plugin/m3dfio",
 									type: "POST",
 									dataType: "json",
-									data: JSON.stringify({command: "message", value: "Reconnect"}),
+									data: JSON.stringify({
+										command: "message",
+										value: "Reconnect To Printer"
+									}),
 									contentType: "application/json; charset=UTF-8"
 								});
 							});
@@ -9685,7 +10049,10 @@ $(function() {
 					url: API_BASEURL + "plugin/m3dfio",
 					type: "POST",
 					dataType: "json",
-					data: JSON.stringify({command: "message", value: "Ping"}),
+					data: JSON.stringify({
+						command: "message",
+						value: "Ping"
+					}),
 					contentType: "application/json; charset=UTF-8",
 				
 					// Complete
@@ -9714,14 +10081,14 @@ $(function() {
 				return;
 			
 			// Check if data is current firmware
-			if(data.value == "Current Firmware" && typeof data.name !== "undefined" && typeof data.release !== "undefined") {
+			if(data.value == "Current Firmware" && typeof data.type !== "undefined" && typeof data.release !== "undefined") {
 			
 				// Set name to unknown if not specified
 				if(data.name === null)
 					data.name = "an unknown"
 			
 				// Set firmware text
-				$("#control div.jog-panel.advanced p").text("Currently using " + data.name + " firmware V" + data.release);
+				$("#control div.jog-panel.advanced p").text("Currently using " + data.type + " firmware V" + data.release);
 			}
 				
 			// Check if data is printer details
@@ -9816,7 +10183,7 @@ $(function() {
 			}
 			
 			// Otherwise check if data is to change progress bar percent
-			else if(data.value == "Progress bar percent" && typeof data.percent !== "undefined")
+			else if(data.value == "Progress bar percent" && typeof data.percent !== "undefined") {
 			
 				// Check if percent is 0
 				if(data.percent == '0') {
@@ -9826,12 +10193,15 @@ $(function() {
 					$("#gcode_upload_progress").removeClass("progress-striped active");
 					$("#gcode_upload_progress > div.bar").text('');
 				}
+				
+				// Otherwise
 				else {
 			
 					// Set progress bar percent
 					$("#gcode_upload_progress").addClass("progress-striped active");
 					$("#gcode_upload_progress > div.bar").width(data.percent + '%').text("Uploading ...");
 				}
+			}
 			
 			// Otherwise check if data is to change progress text
 			else if(data.value == "Progress bar text" && typeof data.text !== "undefined")
@@ -9870,80 +10240,90 @@ $(function() {
 				// Hide shared library settings
 				$("#settings_plugin_m3dfio .sharedLibrary").css("display", "none");
 			
-			// Otherwise check if data is that Cura isn't installed
-			else if(data.value == "Cura Not Installed") {
+			// Otherwise check if data is a reminder
+			else if(data.value == "Reminder" && typeof data.type !== "undefined") {
 			
-				// Initialize variables
-				var text = "It's recommended that you install the <a href=\"https://ultimaker.com/en/products/cura-software/list\" target=\"_blank\">latest Cura 15.04 release</a> on this server to fully utilize M3D Fio's capabilities";
+				// Check if reminding about Cura
+				if(data.type == "Cura") {
+			
+					// Initialize variables
+					var text = "It's recommended that you install the <a href=\"https://ultimaker.com/en/products/cura-software/list\" target=\"_blank\">latest Cura 15.04 release</a> on this server to fully utilize M3D Fio's capabilities";
 				
-				// Check if same text is currently being displayed
-				if($("body > div.page-container > div.message").find("p").eq(0).html() == text)
+					// Check if same text is currently being displayed
+					if($("body > div.page-container > div.message").hasClass("show") && $("body > div.page-container > div.message").find("p").eq(0).html() == text)
 				
-					// Return
-					return;
-				
-				// Go through all messages
-				for(var i = 0; i < messages.length; i++)
-				
-					// Check if a message waiting to be displayed has same text
-					if(messages[i].text == text)
-					
 						// Return
 						return;
+				
+					// Go through all messages
+					for(var i = 0; i < messages.length; i++)
+				
+						// Check if a message waiting to be displayed has same text
+						if(messages[i].text == text)
+					
+							// Return
+							return;
 			
-				// Show message
-				showMessage("Message", text, "OK", function() {
+					// Show message
+					showMessage("Cura Status", text, "OK", function() {
 					
-					// Hide message
-					hideMessage();
+						// Hide message
+						hideMessage();
 					
-					// Send request
-					$.ajax({
-						url: API_BASEURL + "plugin/m3dfio",
-						type: "POST",
-						dataType: "json",
-						data: JSON.stringify({command: "message", value: "Disable Reminder: Cura"}),
-						contentType: "application/json; charset=UTF-8"
+						// Send request
+						$.ajax({
+							url: API_BASEURL + "plugin/m3dfio",
+							type: "POST",
+							dataType: "json",
+							data: JSON.stringify({
+								command: "message",
+								value: "Disable Reminder: Cura"
+							}),
+							contentType: "application/json; charset=UTF-8"
+						});
 					});
-				});
-			}
-			
-			// Otherwise check if data is that sleep wont disable
-			else if(data.value == "Sleep Wont Disable") {
-			
-				// Initialize variables
-				var text = "It's recommended that you disable this server's sleep functionality while printing if it's not already disabled";
+				}
 				
-				// Check if same text is currently being displayed
-				if($("body > div.page-container > div.message").find("p").eq(0).html() == text)
+				// Otherwise check if reminding about sleep
+				else if(data.type == "Sleep") {
 				
-					// Return
-					return;
+					// Initialize variables
+					var text = "It's recommended that you disable this server's sleep functionality while printing if it's not already disabled";
 				
-				// Go through all messages
-				for(var i = 0; i < messages.length; i++)
+					// Check if same text is currently being displayed
+					if($("body > div.page-container > div.message").hasClass("show") && $("body > div.page-container > div.message").find("p").eq(0).html() == text)
 				
-					// Check if a message waiting to be displayed has same text
-					if(messages[i].text == text)
-					
 						// Return
 						return;
-			
-				// Show message
-				showMessage("Message", text, "OK", function() {
 				
-					// Hide message
-					hideMessage();
+					// Go through all messages
+					for(var i = 0; i < messages.length; i++)
+				
+						// Check if a message waiting to be displayed has same text
+						if(messages[i].text == text)
 					
-					// Send request
-					$.ajax({
-						url: API_BASEURL + "plugin/m3dfio",
-						type: "POST",
-						dataType: "json",
-						data: JSON.stringify({command: "message", value: "Disable Reminder: Sleep"}),
-						contentType: "application/json; charset=UTF-8"
+							// Return
+							return;
+			
+					// Show message
+					showMessage("Sleep Status", text, "OK", function() {
+				
+						// Hide message
+						hideMessage();
+					
+						// Send request
+						$.ajax({
+							url: API_BASEURL + "plugin/m3dfio",
+							type: "POST",
+							dataType: "json",
+							data: JSON.stringify({
+								command: "message",
+								value: "Disable Reminder: Sleep"
+							}),
+							contentType: "application/json; charset=UTF-8"
+						});
 					});
-				});
+				}
 			}
 			
 			// Otherwise check if data is that a duplicate wait was received
@@ -10013,20 +10393,24 @@ $(function() {
 				// Go to place holder buttons
 				var currentPosition = $("#control > div.jog-panel.advanced").find("div > button:nth-of-type(7)");
 				
-				// Go through all provided firmwares
-				for(firmware in data.firmwares) {
+				// Sort firmwares
+				var firmwares = Object.keys(data.firmwares).sort();
 				
-					// Add update firmware to provided button
-					currentPosition.removeClass("placeHolder").addClass("firmware").data("name", firmware).attr("title", "Updates printer's firmware to " + firmware + " V" + data.firmwares[firmware]["Release"]).text("Update firmware to " + firmware + " V" + data.firmwares[firmware]["Release"]).off("click").click(function() {
+				// Go through all provided firmwares
+				for(var i = 0; i < firmwares.length; i++) {
 					
-						// Set firmware name
+					// Add update firmware to provided button
+					currentPosition.removeClass("placeHolder").addClass("firmware").data("name", firmwares[i]).attr("title", htmlEncode("Updates printer's firmware to " + data.firmwares[firmwares[i]]["Type"] + " V" + data.firmwares[firmwares[i]]["Release"])).text("Update firmware to " + data.firmwares[firmwares[i]]["Type"] + " V" + data.firmwares[firmwares[i]]["Release"]).off("click").click(function() {
+					
+						// Set firmware name and type
 						var firmwareName = $(this).data("name");
+						var firmwareType = firmwareName.substr(0, firmwareName.search(/ \d{10}$/));
 						
 						// Check if updating to functional firmware
-						if(firmwareName == "M3D") {
+						if(firmwareType == "M3D" || firmwareType == "M3D Mod") {
 						
 							// Show message
-							showMessage("Firmware Status", "This will update the printer's current firmware. Proceed?", "Yes", function() {
+							showMessage("Firmware Status", firmwareType == "M3D" ? "This will update the printer's current firmware. Proceed?" : htmlEncode(firmwareType) + " is a modified version of the M3D firmware that increases the max temperature from 285°C to 315°C. Proceed?", "Yes", function() {
 			
 								// Hide message
 								hideMessage();
@@ -10039,7 +10423,10 @@ $(function() {
 									url: API_BASEURL + "plugin/m3dfio",
 									type: "POST",
 									dataType: "json",
-									data: JSON.stringify({command: "message", value: "Update Firmware To Provided: " + firmwareName}),
+									data: JSON.stringify({
+										command: "message",
+										value: "Update Firmware To Provided: " + firmwareName
+									}),
 									contentType: "application/json; charset=UTF-8",
 
 									// On success
@@ -10056,7 +10443,10 @@ $(function() {
 												url: API_BASEURL + "plugin/m3dfio",
 												type: "POST",
 												dataType: "json",
-												data: JSON.stringify({command: "message", value: "Reconnect"}),
+												data: JSON.stringify({
+													command: "message",
+													value: "Reconnect To Printer"
+												}),
 												contentType: "application/json; charset=UTF-8"
 											});
 										});
@@ -10073,7 +10463,7 @@ $(function() {
 						else {
 		
 							// Show message
-							showMessage("Firmware Status", htmlEncode(firmwareName) + " is not a fully functional firmware. It's currently only intended to be used by developers. Proceed?", "Yes", function() {
+							showMessage("Firmware Status", htmlEncode(firmwareType) + " is not a fully functional firmware. It's currently only intended to be used by developers. Proceed?", "Yes", function() {
 			
 								// Hide message
 								hideMessage();
@@ -10086,7 +10476,10 @@ $(function() {
 									url: API_BASEURL + "plugin/m3dfio",
 									type: "POST",
 									dataType: "json",
-									data: JSON.stringify({command: "message", value: "Update Firmware To Provided: " + firmwareName}),
+									data: JSON.stringify({
+										command: "message",
+										value: "Update Firmware To Provided: " + firmwareName
+									}),
 									contentType: "application/json; charset=UTF-8",
 
 									// On success
@@ -10103,7 +10496,10 @@ $(function() {
 												url: API_BASEURL + "plugin/m3dfio",
 												type: "POST",
 												dataType: "json",
-												data: JSON.stringify({command: "message", value: "Reconnect"}),
+												data: JSON.stringify({
+													command: "message",
+													value: "Reconnect To Printer"
+												}),
 												contentType: "application/json; charset=UTF-8"
 											});
 										});
@@ -10154,177 +10550,38 @@ $(function() {
 			// Otherwise check if data is invalid values
 			else if(data.value == "Invalid" && typeof data.bedCenter !== "undefined" && typeof data.bedOrientation !== "undefined") {
 			
-				// Check if bed center is invalid
-				if(data.bedCenter) {
+				// Calibrate bed orientation
+				function calibrateBedOrientation() {
 				
+					// Initialize variables
+					var text = "Invalid bed orientation. Calibrate?";
+		
+					// Check if same text is currently being displayed
+					if($("body > div.page-container > div.message").hasClass("show") && $("body > div.page-container > div.message").find("p").eq(0).html() == text)
+		
+						// Return
+						return;
+		
+					// Go through all messages
+					for(var i = 0; i < messages.length; i++)
+		
+						// Check if a message waiting to be displayed has same text
+						if(messages[i].text == text)
+			
+							// Return
+							return;
+		
 					// Display message
-					showMessage("Error Status", "Invalid bed center Z0. Calibrate?", "Yes", function() {
-					
+					showMessage("Calibration Status", text, "Yes", function() {
+			
 						// Hide message
 						hideMessage();
-						
+				
 						// Show message
-						showMessage("Error Status", "Calibrating bed center Z0");
-		
+						showMessage("Calibration Status", "Calibrating bed orientation");
+
 						// Set commands
 						var commands = [
-							"G90",
-							"M109 S150",
-							"M104 S0",
-							"M107",
-							"G30",
-							"M65536;wait"
-						];
-						
-						// Set waiting callback
-						waitingCallback = function() {
-						
-							// Set commands
-							commands = [
-								"M117",
-								"M65536;wait"
-							];
-				
-							// Set waiting callback
-							waitingCallback = function() {
-						
-								// Check if bed orientation is invalid
-								if(data.bedOrientation) {
-			
-									// Display message
-									showMessage("Error Status", "Invalid bed orientation. Calibrate?", "Yes", function() {
-								
-										// Hide message
-										hideMessage();
-					
-										// Show message
-										showMessage("Error Status", "Calibrating bed orientation");
-	
-										// Set commands
-										commands = [
-											"M104 S0",
-											"G90",
-											"G0 Z3 F90",
-											"M109 S150",
-											"M104 S0",
-											"M107",
-											"G32",
-											"M65536;wait"
-										];
-									
-										// Set waiting callback
-										waitingCallback = function() {
-									
-											// Set commands
-											commands = [
-												"M619 S" + eepromOffsets["bedOrientationBackRight"]["offset"] + " T" + eepromOffsets["bedOrientationBackRight"]["bytes"],
-												"M619 S" + eepromOffsets["bedOrientationBackLeft"]["offset"] + " T" + eepromOffsets["bedOrientationBackLeft"]["bytes"],
-												"M619 S" + eepromOffsets["bedOrientationFrontLeft"]["offset"] + " T" + eepromOffsets["bedOrientationFrontLeft"]["bytes"],
-												"M619 S" + eepromOffsets["bedOrientationFrontRight"]["offset"] + " T" + eepromOffsets["bedOrientationFrontRight"]["bytes"],
-												"M65536;wait"
-											];
-			
-											// Set waiting callback
-											waitingCallback = function() {
-									
-												// Save settings
-												function saveSettings() {
-
-													// Save software settings
-													self.settings.saveData();
-
-													// Show message
-													showMessage("Error Status", "Done", "OK", function() {
-
-														// Hide message
-														hideMessage();
-													});
-												}
-
-												// Update settings
-												if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
-													self.settings.requestData(saveSettings);
-												else
-													self.settings.requestData().done(saveSettings);
-											}
-										
-											// Send request
-											$.ajax({
-												url: API_BASEURL + "plugin/m3dfio",
-												type: "POST",
-												dataType: "json",
-												data: JSON.stringify({command: "message", value: commands}),
-												contentType: "application/json; charset=UTF-8"
-											});
-										}
-	
-										// Send request
-										$.ajax({
-											url: API_BASEURL + "plugin/m3dfio",
-											type: "POST",
-											dataType: "json",
-											data: JSON.stringify({command: "message", value: commands}),
-											contentType: "application/json; charset=UTF-8"
-										});
-									}, "No", function() {
-				
-										// Hide message
-										hideMessage();
-									});
-								}
-							
-								// Otherwise
-								else {
-		
-									// Show message
-									showMessage("Error Status", "Done", "OK", function() {
-				
-										// Hide message
-										hideMessage();
-									});
-								}
-							}
-							
-							// Send request
-							$.ajax({
-								url: API_BASEURL + "plugin/m3dfio",
-								type: "POST",
-								dataType: "json",
-								data: JSON.stringify({command: "message", value: commands}),
-								contentType: "application/json; charset=UTF-8"
-							});
-						}
-		
-						// Send request
-						$.ajax({
-							url: API_BASEURL + "plugin/m3dfio",
-							type: "POST",
-							dataType: "json",
-							data: JSON.stringify({command: "message", value: commands}),
-							contentType: "application/json; charset=UTF-8"
-						});
-					}, "No", function() {
-					
-						// Hide message
-						hideMessage();
-					});
-				}
-				
-				// Otherwise check if bed orientation is invalid
-				else if(data.bedOrientation) {
-				
-					// Display message
-					showMessage("Error Status", "Invalid bed orientation. Calibrate?", "Yes", function() {
-					
-						// Hide message
-						hideMessage();
-						
-						// Show message
-						showMessage("Error Status", "Calibrating bed orientation");
-		
-						// Set commands
-						var commands = [
-							"M104 S0",
 							"G90",
 							"G0 Z3 F90",
 							"M109 S150",
@@ -10333,10 +10590,10 @@ $(function() {
 							"G32",
 							"M65536;wait"
 						];
-						
+				
 						// Set waiting callback
 						waitingCallback = function() {
-						
+				
 							// Set commands
 							commands = [
 								"M619 S" + eepromOffsets["bedOrientationBackRight"]["offset"] + " T" + eepromOffsets["bedOrientationBackRight"]["bytes"],
@@ -10348,7 +10605,7 @@ $(function() {
 
 							// Set waiting callback
 							waitingCallback = function() {
-						
+				
 								// Save settings
 								function saveSettings() {
 
@@ -10356,7 +10613,7 @@ $(function() {
 									self.settings.saveData();
 
 									// Show message
-									showMessage("Error Status", "Done", "OK", function() {
+									showMessage("Calibration Status", "Done", "OK", function() {
 
 										// Hide message
 										hideMessage();
@@ -10369,41 +10626,161 @@ $(function() {
 								else
 									self.settings.requestData().done(saveSettings);
 							}
-							
+					
 							// Send request
 							$.ajax({
 								url: API_BASEURL + "plugin/m3dfio",
 								type: "POST",
 								dataType: "json",
-								data: JSON.stringify({command: "message", value: commands}),
+								data: JSON.stringify({
+									command: "message",
+									value: commands
+								}),
 								contentType: "application/json; charset=UTF-8"
 							});
 						}
-		
+
 						// Send request
 						$.ajax({
 							url: API_BASEURL + "plugin/m3dfio",
 							type: "POST",
 							dataType: "json",
-							data: JSON.stringify({command: "message", value: commands}),
+							data: JSON.stringify({
+								command: "message",
+								value: commands
+							}),
 							contentType: "application/json; charset=UTF-8"
 						});
 					}, "No", function() {
-					
+			
 						// Hide message
 						hideMessage();
 					});
 				}
+				
+				// Check if invalid bed center
+				if(data.bedCenter) {
+				
+					// Initialize variables
+					var text = "Invalid bed center Z0. Calibrate?";
+			
+					// Check if same text is currently being displayed
+					if($("body > div.page-container > div.message").hasClass("show") && $("body > div.page-container > div.message").find("p").eq(0).html() == text)
+			
+						// Return
+						return;
+			
+					// Go through all messages
+					for(var i = 0; i < messages.length; i++)
+			
+						// Check if a message waiting to be displayed has same text
+						if(messages[i].text == text)
+				
+							// Return
+							return;
+			
+					// Display message
+					showMessage("Calibration Status", text, "Yes", function() {
+				
+						// Hide message
+						hideMessage();
+					
+						// Show message
+						showMessage("Calibration Status", "Calibrating bed center Z0");
+	
+						// Set commands
+						var commands = [
+							"G91",
+							"G0 Z3 F90",
+							"G90",
+							"M109 S150",
+							"M104 S0",
+							"M107",
+							"G30",
+							"M65536;wait"
+						];
+					
+						// Set waiting callback
+						waitingCallback = function() {
+					
+							// Set commands
+							commands = [
+								"M117",
+								"M65536;wait"
+							];
+			
+							// Set waiting callback
+							waitingCallback = function() {
+							
+								// Check if invalid bed orientation
+								if(data.bedOrientation)
+				
+									// Calibrate bed orientation
+									calibrateBedOrientation();
+								
+								// Otherwise
+								else
+					
+									// Show message
+									showMessage("Calibration Status", "Done", "OK", function() {
+		
+										// Hide message
+										hideMessage();
+									});
+							}
+						
+							// Send request
+							$.ajax({
+								url: API_BASEURL + "plugin/m3dfio",
+								type: "POST",
+								dataType: "json",
+								data: JSON.stringify({
+									command: "message",
+									value: commands
+								}),
+								contentType: "application/json; charset=UTF-8"
+							});
+						}
+	
+						// Send request
+						$.ajax({
+							url: API_BASEURL + "plugin/m3dfio",
+							type: "POST",
+							dataType: "json",
+							data: JSON.stringify({
+								command: "message",
+								value: commands
+							}),
+							contentType: "application/json; charset=UTF-8"
+						});
+					}, "No", function() {
+				
+						// Hide message
+						hideMessage();
+						
+						// Check if invalid bed orientation
+						if(data.bedOrientation)
+				
+							// Calibrate bed orientation
+							calibrateBedOrientation();
+					});
+				}
+				
+				// Otherwise check if invalid bed orientation
+				else if(data.bedOrientation)
+				
+					// Calibrate bed orientation
+					calibrateBedOrientation();
 			}
 			
 			// Otherwise check if data is to show message
-			else if(data.value == "Show Message" && typeof data.message !== "undefined") {
+			else if(data.value == "Show Message" && typeof data.message !== "undefined" && typeof data.header !== "undefined") {
 			
 				// Initialize variables
 				var text = htmlEncode(data.message);
 			
 				// Check if same text is currently being displayed
-				if($("body > div.page-container > div.message").find("p").eq(0).html() == text)
+				if($("body > div.page-container > div.message").hasClass("show") && $("body > div.page-container > div.message").find("p").eq(0).html() == text)
 			
 					// Return
 					return;
@@ -10421,7 +10798,7 @@ $(function() {
 				if(typeof data.confirm !== "undefined") {
 				
 					// Display message
-					showMessage("Message", text, "OK", function() {
+					showMessage(htmlEncode(data.header), text, "OK", function() {
 					
 						// Hide message
 						hideMessage();
@@ -10432,23 +10809,17 @@ $(function() {
 				else
 				
 					// Display message
-					showMessage("Message", text);
+					showMessage(htmlEncode(data.header), text);
 			}
 			
-			// Otherwise check if data is to hide message
-			else if(data.value == "Hide Message")
-			
-				// Hide message
-				hideMessage();
-			
-			// Otherwise check if data is a status error message
-			else if(data.value == "Error" && typeof data.message !== "undefined") {
+			// Otherwise check if data is to show a question
+			else if(data.value == "Show Question" && typeof data.message !== "undefined" && typeof data.header !== "undefined") {
 
 				// Check if a response is requested
 				if(typeof data.response !== "undefined") {
 				
 					// Display message
-					showMessage("Error Status", htmlEncode(data.message), "Yes", function() {
+					showMessage(htmlEncode(data.header), htmlEncode(data.message), "Yes", function() {
 		
 						// Hide message
 						hideMessage();
@@ -10458,7 +10829,10 @@ $(function() {
 							url: API_BASEURL + "plugin/m3dfio",
 							type: "POST",
 							dataType: "json",
-							data: JSON.stringify({command: "message", value: "Yes"}),
+							data: JSON.stringify({
+								command: "message",
+								value: "Yes"
+							}),
 							contentType: "application/json; charset=UTF-8"
 						});
 					}, "No", function() {
@@ -10471,7 +10845,10 @@ $(function() {
 							url: API_BASEURL + "plugin/m3dfio",
 							type: "POST",
 							dataType: "json",
-							data: JSON.stringify({command: "message", value: "No"}),
+							data: JSON.stringify({
+								command: "message",
+								value: "No"
+							}),
 							contentType: "application/json; charset=UTF-8"
 						});
 					});
@@ -10481,7 +10858,7 @@ $(function() {
 				else if(typeof data.confirm !== "undefined") {
 				
 					// Display message
-					showMessage("Error Status", htmlEncode(data.message), "OK", function() {
+					showMessage(htmlEncode(data.header), htmlEncode(data.message), "OK", function() {
 					
 						// Hide message
 						hideMessage();
@@ -10491,18 +10868,21 @@ $(function() {
 							url: API_BASEURL + "plugin/m3dfio",
 							type: "POST",
 							dataType: "json",
-							data: JSON.stringify({command: "message", value: $(this).text()}),
+							data: JSON.stringify({
+								command: "message",
+								value: $(this).text()
+							}),
 							contentType: "application/json; charset=UTF-8"
 						});
 					});
 				}
-				
-				// Otherwise
-				else
-				
-					// Display message
-					showMessage("Error Status", htmlEncode(data.message));
 			}
+			
+			// Otherwise check if data is to hide message
+			else if(data.value == "Hide Message")
+			
+				// Hide message
+				hideMessage();
 			
 			// Otherwise check if data is done waiting
 			else if(data.value == "Done Waiting" && typeof waitingCallback === "function") {
@@ -10515,30 +10895,346 @@ $(function() {
 				temp();
 			}
 			
-			// Otherwise check if data is to enable GPIO
-			else if(data.value == "Enable GPIO")
+			// Otherwise check if data is to enable GPIO settings
+			else if(data.value == "Enable GPIO Settings")
+			
+				// Show GPIO buttons
+				$("#settings_plugin_m3dfio .gpio").css("display", "block");
+			
+			// Otherwise check if data is to disable GPIO settings
+			else if(data.value == "Disable GPIO Settings")
+			
+				// Hide GPIO buttons
+				$("#settings_plugin_m3dfio .gpio").css("display", "none");
+			
+			// Otherwise check if data is to enable GPIO buttons
+			else if(data.value == "Enable GPIO Buttons")
 			
 				// Show GPIO buttons
 				$("#control > div.jog-panel.general button.gpio").css("display", "block");
 			
-			// Otherwise check if data is to disable GPIO
-			else if(data.value == "Disable GPIO")
+			// Otherwise check if data is to disable GPIO buttons
+			else if(data.value == "Disable GPIO Buttons")
 			
 				// Hide GPIO buttons
 				$("#control > div.jog-panel.general button.gpio").css("display", "none");
 			
-			// Otherwise check if data is to change filament mid-print
-			else if(data.value == "Mid-Print Filament Change") {
+			// Otherwise check if data is starting change filament mid-print
+			else if(data.value == "Starting Mid-Print Filament Change")
 			
-				// Check if audio can play
-				var audio = $("body > audio.notification")[0];
-				if(audio.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA)
+				// Show message
+				showMessage("Filament Status", "Starting mid-print filament change");
+			
+			// Otherwise check if data is failed to change filament mid-print
+			else if(data.value == "Failed Mid-Print Filament Change")
+			
+				// Show message
+				showMessage("Filament Status", "The filament can't be changed since the extruder can't be moved away from the print", "OK", function() {
+			
+					// Hide message
+					hideMessage();
+				});
+			
+			// Otherwise check if data is to show mid-print filament change
+			else if(data.value == "Show Mid-Print Filament Change") {
+			
+				// Initialize variables
+				var text = "Mid-print filament change";
+				
+				// Check if same text is currently being displayed
+				if($("body > div.page-container > div.message").hasClass("show") && $("body > div.page-container > div.message").find("p").eq(0).html() == text)
+				
+					// Return
+					return;
+				
+				// Go through all messages
+				for(var i = 0; i < messages.length; i++)
+				
+					// Check if a message waiting to be displayed has same text
+					if(messages[i].text == text)
 					
-					// Play audio
-					audio.play();
+						// Return
+						return;
+				
+				// Show message
+				showMessage("Filament Status", text, "Unload", function() {
+
+					// Hide message
+					hideMessage();
+					
+					// Send request
+					$.ajax({
+						url: API_BASEURL + "plugin/m3dfio",
+						type: "POST",
+						dataType: "json",
+						data: JSON.stringify({
+							command: "message",
+							value: "Don't Show Mid-Print Filament Change"
+						}),
+						contentType: "application/json; charset=UTF-8",
+						
+						// On success
+						success: function() {
+						
+							// Unload filament
+							function unloadFilament() {
+
+								// Show message
+								showMessage("Filament Status", "Warming up");
+
+								// Set commands
+								commands = [
+									"M109 S" + parseInt($("body > div.page-container > div.message > div > div > div.filamentSettings input").eq(0).val()),
+									"M65536;wait"
+								];
+
+								// Display temperature
+								var updateTemperature = setInterval(function() {
+
+									// Show message
+									if(self.temperature.temperatures.tool0.actual.length) {
+
+										var temperature = self.temperature.temperatures.tool0.actual[self.temperature.temperatures.tool0.actual.length - 1][1];
+
+										if(temperature != 0)
+											showMessage("Filament Status", "Warming up: " + temperature + "°C");
+									}
+								}, 1000);
+
+								// Set waiting callback
+								waitingCallback = function() {
+
+									// Stop displaying temperature
+									clearInterval(updateTemperature);
+
+									// Show message
+									showMessage("Filament Status", "Remove filament");
+
+									// Set commands
+									commands = [
+										"G90",
+										"G92"
+									];
+
+									for(var i = 2; i <= 50; i += 2)
+										commands.push("G0 E-" + i + " F345");
+
+									commands.push("M65536;wait");
+
+									// Set waiting callback
+									waitingCallback = function() {
+
+										// Show message
+										showMessage("Filament Status", "Was filament removed?", "Yes", function() {
+
+											// Hide message
+											hideMessage();
+					
+											// Show message
+											showMessage("Filament Status", '', "Load", function() {
+
+												// Hide message
+												hideMessage();
+
+												// Load filament
+												function loadFilament() {
+
+													// Show message
+													showMessage("Filament Status", "Warming up");
+
+													// Set commands
+													commands = [
+														"M109 S" + parseInt($("body > div.page-container > div.message > div > div > div.filamentSettings input").eq(0).val()),
+														"M65536;wait"
+													];
+
+													// Display temperature
+													updateTemperature = setInterval(function() {
+
+														// Show message
+														if(self.temperature.temperatures.tool0.actual.length) {
+
+															var temperature = self.temperature.temperatures.tool0.actual[self.temperature.temperatures.tool0.actual.length - 1][1];
+
+															if(temperature != 0)
+																showMessage("Filament Status", "Warming up: " + temperature + "°C");
+														}
+													}, 1000);
+
+													// Set waiting callback
+													waitingCallback = function() {
+
+														// Stop displaying temperature
+														clearInterval(updateTemperature);
+
+														// Show message
+														showMessage("Filament Status", "Insert filament");
+
+														// Set commands
+														commands = [
+															"G90",
+															"G92"
+														];
+
+														for(var i = 2; i <= 50; i += 2)
+															commands.push("G0 E" + i + " F345");
+
+														commands.push("M65536;wait");
+
+														// Set waiting callback
+														waitingCallback = function() {
+
+															// Show message
+															showMessage("Filament Status", "Was filament inserted?", "Yes", function() {
+
+																// Hide message
+																hideMessage();
+										
+																// Show message
+																showMessage("Filament Status", '', "Set", function() {
+
+																	// Hide message
+																	hideMessage();
+
+																	// Show message
+																	showMessage("Filament Status", "Warming up");
+
+																	// Set commands
+																	commands = [
+																		"M109 S" + parseInt($("body > div.page-container > div.message > div > div > div.filamentSettings input").eq(0).val()),
+																		"M65536;wait"
+																	];
+
+																	// Display temperature
+																	updateTemperature = setInterval(function() {
+
+																		// Show message
+																		if(self.temperature.temperatures.tool0.actual.length) {
+
+																			var temperature = self.temperature.temperatures.tool0.actual[self.temperature.temperatures.tool0.actual.length - 1][1];
+
+																			if(temperature != 0)
+																				showMessage("Filament Status", "Warming up: " + temperature + "°C");
+																		}
+																	}, 1000);
+
+																	// Set waiting callback
+																	waitingCallback = function() {
+
+																		// Stop displaying temperature
+																		clearInterval(updateTemperature);
+		
+																		// Show message
+																		showMessage("Filament Status", "Make sure the nozzle is clean before continuing. It will be hot, so be careful.", "OK", function() {
 			
-				// Change filament mid-print
-				midPrintFilementChange();
+																			// Hide message
+																			hideMessage();
+
+																			// Show message
+																			showMessage("Filament Status", "Resuming print");
+
+																			// Send request
+																			$.ajax({
+																				url: API_BASEURL + "plugin/m3dfio",
+																				type: "POST",
+																				dataType: "json",
+																				data: JSON.stringify({
+																					command: "message",
+																					value: "Resume After Mid-Print Filament Change"
+																				}),
+																				contentType: "application/json; charset=UTF-8"
+																			});
+																		});
+																	}
+		
+																	// Send request
+																	$.ajax({
+																		url: API_BASEURL + "plugin/m3dfio",
+																		type: "POST",
+																		dataType: "json",
+																		data: JSON.stringify({
+																			command: "message",
+																			value: commands
+																		}),
+																		contentType: "application/json; charset=UTF-8"
+																	});
+																});
+															}, "No", function() {
+
+																// Hide message
+																hideMessage();
+
+																// Load filament again
+																loadFilament()
+															});
+														}
+
+														// Send request
+														$.ajax({
+															url: API_BASEURL + "plugin/m3dfio",
+															type: "POST",
+															dataType: "json",
+															data: JSON.stringify({
+																command: "message",
+																value: commands
+															}),
+															contentType: "application/json; charset=UTF-8"
+														});
+													}
+
+													// Send request
+													$.ajax({
+														url: API_BASEURL + "plugin/m3dfio",
+														type: "POST",
+														dataType: "json",
+														data: JSON.stringify({
+															command: "message",
+															value: commands
+														}),
+														contentType: "application/json; charset=UTF-8"
+													});
+												}
+												loadFilament();
+											});
+										}, "No", function() {
+
+											// Hide message
+											hideMessage();
+
+											// Unload filament again
+											unloadFilament()
+										});
+									}
+
+									// Send request
+									$.ajax({
+										url: API_BASEURL + "plugin/m3dfio",
+										type: "POST",
+										dataType: "json",
+										data: JSON.stringify({
+											command: "message",
+											value: commands
+										}),
+										contentType: "application/json; charset=UTF-8"
+									});
+								}
+
+								// Send request
+								$.ajax({
+									url: API_BASEURL + "plugin/m3dfio",
+									type: "POST",
+									dataType: "json",
+									data: JSON.stringify({
+										command: "message",
+										value: commands
+									}),
+									contentType: "application/json; charset=UTF-8"
+								});
+							}
+							unloadFilament();
+						}
+					});
+				});
 			}
 		}
 		
@@ -10565,7 +11261,17 @@ $(function() {
 		
 			// Set mid-print filament change layer input
 			$("#gcode div.midPrintFilamentChange input").val(self.settings.settings.plugins.m3dfio.MidPrintFilamentChangeLayers());
-		
+			
+			// Enable/disable Micro 3D printer specific features
+			if(self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter()) {
+				$(".micro3d").addClass("notUsingAMicro3DPrinter");
+				$("#temperature-graph").css("background-image", '');
+			}
+			else {
+				$(".micro3d").removeClass("notUsingAMicro3DPrinter");
+				$("#temperature-graph").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/graph%20background.png");
+			}
+			
 			// Check if printing or paused
 			if(self.printerState.isPrinting() === true || self.printerState.isPaused() === true)
 		
@@ -10640,7 +11346,10 @@ $(function() {
 				url: API_BASEURL + "plugin/m3dfio",
 				type: "POST",
 				dataType: "json",
-				data: JSON.stringify({command: "message", value: "Saved Settings"}),
+				data: JSON.stringify({
+					command: "message",
+					value: "Saved Settings"
+				}),
 				contentType: "application/json; charset=UTF-8"
 			});
 			
@@ -10649,6 +11358,16 @@ $(function() {
 
 				// Update mid-print filament change layer input
 				$("#gcode div.midPrintFilamentChange input").val(self.settings.settings.plugins.m3dfio.MidPrintFilamentChangeLayers());
+				
+				// Enable/disable Micro 3D printer specific features
+				if(self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter()) {
+					$(".micro3d").addClass("notUsingAMicro3DPrinter");
+					$("#temperature-graph").css("background-image", '');
+				}
+				else {
+					$(".micro3d").removeClass("notUsingAMicro3DPrinter");
+					$("#temperature-graph").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/graph%20background.png");
+				}
 			}
 
 			// Update settings
@@ -10661,8 +11380,8 @@ $(function() {
 		// On error event
 		self.onEventError = function(payload) {
 		
-			// Check if error is an unhandled firmware or communication error
-			if($("div.ui-pnotify:last-of-type h4.ui-pnotify-title").text() == "Unhandled firmware error" || $("div.ui-pnotify:last-of-type h4.ui-pnotify-title").text() == "Unhandled communication error")
+			// Check if using an Micro 3D printer and error is an unhandled firmware or communication error
+			if(!self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter() && ($("div.ui-pnotify:last-of-type h4.ui-pnotify-title").text() == "Unhandled firmware error" || $("div.ui-pnotify:last-of-type h4.ui-pnotify-title").text() == "Unhandled communication error"))
 			
 				// Remove error
 				$("div.ui-pnotify:last-of-type").remove();

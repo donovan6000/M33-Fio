@@ -18,7 +18,7 @@ using namespace std;
 #define BED_LOW_MAX_X 106.0
 #define BED_LOW_MIN_X -2.0
 #define BED_LOW_MAX_Y 105.0
-#define BED_LOW_MIN_Y -2.0
+double bedLowMinY = -2.0;
 #define BED_LOW_MAX_Z 5.0
 #define BED_LOW_MIN_Z 0.0
 #define BED_MEDIUM_MAX_X 106.0
@@ -157,6 +157,7 @@ bool useGpio;
 uint16_t gpioLayer;
 uint16_t heatbedTemperature;
 double externalBedHeight;
+bool expandPrintableRegion;
 int16_t detectedFanSpeed;
 bool detectedMidPrintFilamentChange;
 bool objectSuccessfullyCentered;
@@ -166,6 +167,7 @@ string returnValue;
 
 // General settings
 double currentE;
+string currentF;
 double currentZ;
 bool relativeMode;
 list<double>printedLayers;
@@ -726,6 +728,12 @@ EXPORT void setExternalBedHeight(double value) {
 	externalBedHeight = value;
 }
 
+EXPORT void setExpandPrintableRegion(bool value) {
+
+	// Set expand prinable region
+	expandPrintableRegion = value;
+}
+
 EXPORT void setMidPrintFilamentChangeLayers(const char *value) {
 
 	// Initialize variables
@@ -844,6 +852,7 @@ EXPORT void resetPreprocessorSettings() {
 	printingBacklashCalibrationCylinder = false;
 	printerColor = BLACK;
 	currentE = 0;
+	currentF.clear();
 	currentZ = 0;
 	relativeMode = false;
 	printedLayers.clear();
@@ -911,7 +920,7 @@ EXPORT void resetPreprocessorSettings() {
 	backlashCompensationExtraGcode.clear();
 }
 
-EXPORT bool collectPrintInformation(const char *file) {
+EXPORT bool collectPrintInformation(const char *file, bool applyPreprocessors) {
 
 	// Initialize file
 	ifstream input(file, ios::in | ios::binary);
@@ -926,10 +935,11 @@ EXPORT bool collectPrintInformation(const char *file) {
 		bool relativeMode = false;
 		double localX = NAN, localY = NAN, localZ = NAN;
 		
-		// Adjust bed Z values to account for external bed height
+		// Adjust bed bounds to account for external bed
 		bedMediumMaxZ = 73.5 - externalBedHeight;
 		bedHighMaxZ = 112.0 - externalBedHeight;
 		bedHighMinZ = bedMediumMaxZ;
+		bedLowMinY = expandPrintableRegion ? BED_MEDIUM_MIN_Y : -2.0;
 		
 		// Reset detected fan speed
 		detectedFanSpeed = -1;
@@ -1022,8 +1032,8 @@ EXPORT bool collectPrintInformation(const char *file) {
 								// Set local Z
 								localZ = relativeMode ? (std::isnan(localZ) ? 0.4 : localZ) + commandZ : commandZ;
 							
-								// Check if not ignoring print dimension limitations, not printing a test border or backlash calibration cylinder, and Z is out of bounds
-								if(!ignorePrintDimensionLimitations && !printingTestBorder && !printingBacklashCalibrationCylinder && (localZ < BED_LOW_MIN_Z || localZ > bedHighMaxZ))
+								// Check if applying pre-processors, not ignoring print dimension limitations, not printing a test border or backlash calibration cylinder, and Z is out of bounds
+								if(applyPreprocessors && !ignorePrintDimensionLimitations && !printingTestBorder && !printingBacklashCalibrationCylinder && (localZ < BED_LOW_MIN_Z || localZ > bedHighMaxZ))
 							
 									// Return false
 									return false;
@@ -1044,8 +1054,8 @@ EXPORT bool collectPrintInformation(const char *file) {
 					
 								case LOW:
 							
-									// Check if not ignoring print dimension limitations, not printing a test border or backlash calibration cylinder, centering model pre-processor isn't used, and X or Y is out of bounds
-									if(!ignorePrintDimensionLimitations && !printingTestBorder && !printingBacklashCalibrationCylinder && !useCenterModelPreprocessor && ((!std::isnan(localX) && (localX < BED_LOW_MIN_X || localX > BED_LOW_MAX_X)) || (!std::isnan(localY) && (localY < BED_LOW_MIN_Y || localY > BED_LOW_MAX_Y))))
+									// Check if applying pre-processors, not ignoring print dimension limitations, not printing a test border or backlash calibration cylinder, centering model pre-processor isn't used, and X or Y is out of bounds
+									if(applyPreprocessors && !ignorePrintDimensionLimitations && !printingTestBorder && !printingBacklashCalibrationCylinder && !useCenterModelPreprocessor && ((!std::isnan(localX) && (localX < BED_LOW_MIN_X || localX > BED_LOW_MAX_X)) || (!std::isnan(localY) && (localY < bedLowMinY || localY > BED_LOW_MAX_Y))))
 								
 										// Return false
 										return false;
@@ -1062,8 +1072,8 @@ EXPORT bool collectPrintInformation(const char *file) {
 						
 								case MEDIUM:
 							
-									// Check if not ignoring print dimension limitations, not printing a test border or backlash calibration cylinder, centering model pre-processor isn't used, and X or Y is out of bounds
-									if(!ignorePrintDimensionLimitations && !printingTestBorder && !printingBacklashCalibrationCylinder && !useCenterModelPreprocessor && ((!std::isnan(localX) && (localX < BED_MEDIUM_MIN_X || localX > BED_MEDIUM_MAX_X)) || (!std::isnan(localY) && (localY < BED_MEDIUM_MIN_Y || localY > BED_MEDIUM_MAX_Y))))
+									// Check if applying pre-processors, not ignoring print dimension limitations, not printing a test border or backlash calibration cylinder, centering model pre-processor isn't used, and X or Y is out of bounds
+									if(applyPreprocessors && !ignorePrintDimensionLimitations && !printingTestBorder && !printingBacklashCalibrationCylinder && !useCenterModelPreprocessor && ((!std::isnan(localX) && (localX < BED_MEDIUM_MIN_X || localX > BED_MEDIUM_MAX_X)) || (!std::isnan(localY) && (localY < BED_MEDIUM_MIN_Y || localY > BED_MEDIUM_MAX_Y))))
 								
 										// Return false
 										return false;
@@ -1080,8 +1090,8 @@ EXPORT bool collectPrintInformation(const char *file) {
 
 								case HIGH:
 							
-									// Check if not ignoring print dimension limitations, not printing a test border or backlash calibration cylinder, centering model pre-processor isn't used, and X or Y is out of bounds
-									if(!ignorePrintDimensionLimitations && !printingTestBorder && !printingBacklashCalibrationCylinder && !useCenterModelPreprocessor && ((!std::isnan(localX) && (localX < BED_HIGH_MIN_X || localX > BED_HIGH_MAX_X)) || (!std::isnan(localY) && (localY < BED_HIGH_MIN_Y || localY > BED_HIGH_MAX_Y))))
+									// Check if applying pre-processors, not ignoring print dimension limitations, not printing a test border or backlash calibration cylinder, centering model pre-processor isn't used, and X or Y is out of bounds
+									if(applyPreprocessors && !ignorePrintDimensionLimitations && !printingTestBorder && !printingBacklashCalibrationCylinder && !useCenterModelPreprocessor && ((!std::isnan(localX) && (localX < BED_HIGH_MIN_X || localX > BED_HIGH_MAX_X)) || (!std::isnan(localY) && (localY < BED_HIGH_MIN_Y || localY > BED_HIGH_MAX_Y))))
 								
 										// Return false
 										return false;
@@ -1129,8 +1139,8 @@ EXPORT bool collectPrintInformation(const char *file) {
 			}
 		}
 		
-		// Check if center model pre-processor is set and not printing a test border or backlash calibration cylinder
-		if(useCenterModelPreprocessor && !printingTestBorder && !printingBacklashCalibrationCylinder) {
+		// Check if applying pre-processors, center model pre-processor is set, and not printing a test border or backlash calibration cylinder
+		if(applyPreprocessors && useCenterModelPreprocessor && !printingTestBorder && !printingBacklashCalibrationCylinder) {
 	
 			// Calculate adjustments
 			displacementX = (BED_WIDTH - BED_CENTER_OFFSET_X - max(maxXExtruderLow, max(maxXExtruderMedium, maxXExtruderHigh)) - min(minXExtruderLow, min(minXExtruderMedium, minXExtruderHigh)) - BED_CENTER_OFFSET_X) / 2;
@@ -1195,7 +1205,7 @@ EXPORT bool collectPrintInformation(const char *file) {
 			
 			// Get positive displacement Y
 			double positiveDisplacementY = 0;
-			positiveDisplacementY = max(BED_LOW_MIN_Y - minYExtruderLow, positiveDisplacementY);
+			positiveDisplacementY = max(bedLowMinY - minYExtruderLow, positiveDisplacementY);
 			positiveDisplacementY = max(BED_MEDIUM_MIN_Y - minYExtruderMedium, positiveDisplacementY);
 			positiveDisplacementY = max(BED_HIGH_MIN_Y - minYExtruderHigh, positiveDisplacementY);
 			
@@ -1248,7 +1258,7 @@ EXPORT bool collectPrintInformation(const char *file) {
 			}
 			
 			// Check if not ignoring print dimension limitations and adjusted print values are out of bounds
-			if(!ignorePrintDimensionLimitations && (minZExtruder < BED_LOW_MIN_Z || maxZExtruder > bedHighMaxZ || maxXExtruderLow > BED_LOW_MAX_X || maxXExtruderMedium > BED_MEDIUM_MAX_X || maxXExtruderHigh > BED_HIGH_MAX_X || maxYExtruderLow > BED_LOW_MAX_Y || maxYExtruderMedium > BED_MEDIUM_MAX_Y || maxYExtruderHigh > BED_HIGH_MAX_Y || minXExtruderLow < BED_LOW_MIN_X || minXExtruderMedium < BED_MEDIUM_MIN_X || minXExtruderHigh < BED_HIGH_MIN_X || minYExtruderLow < BED_LOW_MIN_Y || minYExtruderMedium < BED_MEDIUM_MIN_Y || minYExtruderHigh < BED_HIGH_MIN_Y))
+			if(!ignorePrintDimensionLimitations && (minZExtruder < BED_LOW_MIN_Z || maxZExtruder > bedHighMaxZ || maxXExtruderLow > BED_LOW_MAX_X || maxXExtruderMedium > BED_MEDIUM_MAX_X || maxXExtruderHigh > BED_HIGH_MAX_X || maxYExtruderLow > BED_LOW_MAX_Y || maxYExtruderMedium > BED_MEDIUM_MAX_Y || maxYExtruderHigh > BED_HIGH_MAX_Y || minXExtruderLow < BED_LOW_MIN_X || minXExtruderMedium < BED_MEDIUM_MIN_X || minXExtruderHigh < BED_HIGH_MIN_X || minYExtruderLow < bedLowMinY || minYExtruderMedium < BED_MEDIUM_MIN_Y || minYExtruderHigh < BED_HIGH_MIN_Y))
 			
 				// Return false
 				return false;
@@ -1562,10 +1572,10 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 						cornerX = (BED_LOW_MAX_X - BED_LOW_MIN_X) / 2;
 
 					// Set corner Y
-					if(minYExtruderLow > BED_LOW_MIN_Y)
-						cornerY = -(BED_LOW_MAX_Y - BED_LOW_MIN_Y - 10) / 2;
+					if(minYExtruderLow > bedLowMinY)
+						cornerY = -(BED_LOW_MAX_Y - bedLowMinY - 10) / 2;
 					else if(maxYExtruderLow < BED_LOW_MAX_Y)
-						cornerY = (BED_LOW_MAX_Y - BED_LOW_MIN_Y - 10) / 2;
+						cornerY = (BED_LOW_MAX_Y - bedLowMinY - 10) / 2;
 				}
 				
 				// Check if both of the corners are set
@@ -1758,21 +1768,21 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			
 			// Initialize new commands
 			stack<Command> newCommands;
-
-			// Check if command contains valid G-code
-			if(!gcode.isEmpty())
 			
-				// Check if command is a G command
-				if(gcode.hasValue('G')) {
-				
-					// Check if on a new printed layer
-					if(waveBondingLayerCounter < 2 && onNewPrintedLayer)
-	
-						// Increment layer counter
-						waveBondingLayerCounter++;
+			// Check if on a new printed layer
+			if(waveBondingLayerCounter < 2 && onNewPrintedLayer)
 
-					// Check if on first counted layer
-					if(waveBondingLayerCounter == 1) {
+				// Increment layer counter
+				waveBondingLayerCounter++;
+			
+			// Check if on first counted layer
+			if(waveBondingLayerCounter == 1) {
+			
+				// Check if command contains valid G-code
+				if(!gcode.isEmpty()) {
+				
+					// Check if command is a G command
+					if(gcode.hasValue('G')) {
 
 						// Check if command is G0 or G1 and it's in absolute mode
 						if((gcode.getValue('G') == "0" || gcode.getValue('G') == "1") && !waveBondingRelativeMode) {
@@ -1833,18 +1843,18 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 
 										// Check if refrence G-codes isn't set
 										if(waveBondingRefrenceGcode.isEmpty()) {
-	
+
 											// Check if a tack point was created
 											waveBondingTackPoint = createTackPoint(gcode, waveBondingPreviousGcode);
 											if(!waveBondingTackPoint.isEmpty())
-								
+							
 												// Add tack point to output
 												newCommands.push(Command(waveBondingTackPoint.getAscii(), WAVE, WAVE));
 										}
-	
+
 										// Set refrence G-code
 										waveBondingRefrenceGcode = gcode;
-	
+
 										// Increment corner counter
 										waveBondingCornerCounter++;
 									}
@@ -1855,10 +1865,10 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 										// Check if a tack point was created
 										waveBondingTackPoint = createTackPoint(gcode, waveBondingRefrenceGcode);
 										if(!waveBondingTackPoint.isEmpty())
-							
+						
 											// Add tack point to output
 											newCommands.push(Command(waveBondingTackPoint.getAscii(), WAVE, WAVE));
-	
+
 										// Set refrence G-code
 										waveBondingRefrenceGcode = gcode;
 									}
@@ -1866,7 +1876,7 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 
 								// Go through all of the wave
 								for(uint32_t i = 1; i <= waveRatio; i++) {
-					
+				
 									// Check if at last component
 									double tempRelativeX, tempRelativeY, tempRelativeZ, tempRelativeE;
 									if(i == waveRatio) {
@@ -1894,34 +1904,34 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 										// Set extra G-code G value
 										waveBondingExtraGcode.clear();
 										waveBondingExtraGcode.setValue('G', gcode.getValue('G'));
-	
+
 										// Set extra G-code X value
 										if(gcode.hasValue('X'))
 											waveBondingExtraGcode.setValue('X', to_string(waveBondingPositionRelativeX - deltaX + tempRelativeX - relativeDifferenceX));
-	
+
 										// Set extra G-cdoe Y value
 										if(gcode.hasValue('Y'))
 											waveBondingExtraGcode.setValue('Y', to_string(waveBondingPositionRelativeY - deltaY + tempRelativeY - relativeDifferenceY));
-	
+
 										// Set extra G-code F value if first element
 										if(gcode.hasValue('F') && i == 1)
 											waveBondingExtraGcode.setValue('F', gcode.getValue('F'));
-	
+
 										// Check if plane changed
 										if(waveBondingChangesPlane)
-	
+
 											// Set extra G-code Z value
 											waveBondingExtraGcode.setValue('Z', to_string(waveBondingPositionRelativeZ - deltaZ + tempRelativeZ - relativeDifferenceZ + getCurrentAdjustmentZ()));
-	
+
 										// Otherwise check if command has a Z value and changes in Z are noticable
 										else if(gcode.hasValue('Z') && deltaZ != DBL_EPSILON)
-	
+
 											// Set extra G-code Z value
 											waveBondingExtraGcode.setValue('Z', to_string(waveBondingPositionRelativeZ - deltaZ + tempRelativeZ - relativeDifferenceZ));
-		
+	
 										// Set extra G-code E value
 										waveBondingExtraGcode.setValue('E', to_string(waveBondingPositionRelativeE - deltaE + tempRelativeE - relativeDifferenceE));
-							
+						
 										// Add extra G-code to output
 										newCommands.push(Command(waveBondingExtraGcode.getAscii(), WAVE, WAVE));
 									}
@@ -1931,22 +1941,22 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 
 										// Check if command has a Z value
 										if(gcode.hasValue('Z'))
-	
+
 											// Add to command's Z value
 											gcode.setValue('Z', to_string(stod(gcode.getValue('Z')) + getCurrentAdjustmentZ()));
-	
+
 										// Otherwise
 										else
-	
+
 											// Set command's Z value
 											gcode.setValue('Z', to_string(relativeDifferenceZ + deltaZ + getCurrentAdjustmentZ()));
 									}
 								}
 							}
-							
+						
 							// Check if no corners have occured
 							if(waveBondingCornerCounter < 1)
-							
+						
 								// Set previous G-code
 								waveBondingPreviousGcode = gcode;
 						}
@@ -2003,6 +2013,7 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 						}
 					}
 				}
+			}
 									
 			// Check if new commands exist
 			if(newCommands.size()) {
@@ -2032,58 +2043,59 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			
 			// Initialize new commands
 			stack<Command> newCommands;
-
-			// Check if command contains valid G-code
-			if(!gcode.isEmpty()) {
 			
-				// Check if on a new printed layer
-				if(thermalBondingLayerCounter < 2 && onNewPrintedLayer) {
+			// Check if on a new printed layer
+			if(thermalBondingLayerCounter < 2 && onNewPrintedLayer) {
+			
+				// Increment layer counter
+				thermalBondingLayerCounter++;
+	
+				// Check if on first counted layer
+				if(thermalBondingLayerCounter == 1) {
 				
-					// Increment layer counter
-					thermalBondingLayerCounter++;
-		
-					// Check if on first counted layer
-					if(thermalBondingLayerCounter == 1) {
+					// Check if filament type is PLA
+					if(filamentType == PLA)
 					
-						// Check if filament type is PLA
-						if(filamentType == PLA)
-						
-							// Add temperature to output
-							newCommands.push(Command("M109 S" + to_string(getBoundedTemperature(filamentTemperature + 10)), THERMAL, THERMAL));
-						
-						// Otherwise check if filament type is TGH or FLX
-						else if(filamentType == TGH || filamentType == FLX)
-						
-							// Add temperature to output
-							newCommands.push(Command("M109 S" + to_string(getBoundedTemperature(filamentTemperature - 15)), THERMAL, THERMAL));
-						
-						// Otherwise
-						else
+						// Add temperature to output
+						newCommands.push(Command("M109 S" + to_string(getBoundedTemperature(filamentTemperature + 10)), THERMAL, THERMAL));
+					
+					// Otherwise check if filament type is TGH or FLX
+					else if(filamentType == TGH || filamentType == FLX)
+					
+						// Add temperature to output
+						newCommands.push(Command("M109 S" + to_string(getBoundedTemperature(filamentTemperature - 15)), THERMAL, THERMAL));
+					
+					// Otherwise
+					else
+	
+						// Add temperature to output
+						newCommands.push(Command("M109 S" + to_string(getBoundedTemperature(filamentTemperature + 15)), THERMAL, THERMAL));
+				}
 		
-							// Add temperature to output
-							newCommands.push(Command("M109 S" + to_string(getBoundedTemperature(filamentTemperature + 15)), THERMAL, THERMAL));
-					}
-			
+				// Otherwise
+				else {
+				
+					// Check if filament type is TGH
+					if(filamentType == TGH)
+	
+						// Add temperature to output
+						newCommands.push(Command("M104 S" + to_string(filamentTemperature + 15), THERMAL, THERMAL));
+					
 					// Otherwise
 					else
 					
-						// Check if filament type is TGH
-						if(filamentType == TGH)
-		
-							// Add temperature to output
-							newCommands.push(Command("M104 S" + to_string(filamentTemperature + 15), THERMAL, THERMAL));
-						
-						// Otherwise
-						else
-						
-							// Add temperature to output
-							newCommands.push(Command("M104 S" + to_string(filamentTemperature), THERMAL, THERMAL));
+						// Add temperature to output
+						newCommands.push(Command("M104 S" + to_string(filamentTemperature), THERMAL, THERMAL));
 				}
-				
-				// Check if on first counted layer
-				if(thermalBondingLayerCounter == 1) {
+			}
+			
+			// Check if on first counted layer
+			if(thermalBondingLayerCounter == 1) {
+			
+				// Check if command contains valid G-code
+				if(!gcode.isEmpty()) {
 
-					// Check if printing test border or wave bonding isn't being used, and line is a G command
+					// Check if printing test border or wave bonding isn't being used, and command is a G command
 					if((printingTestBorder || !useWaveBondingPreprocessor) && gcode.hasValue('G')) {
 
 						// Check if command is G0 or G1 and it's in absolute
@@ -2600,7 +2612,23 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 		
 		// Check if command contains valid G-code
 		if(!gcode.isEmpty()) {
-
+		
+			// Check if command is a G0 or G1 command
+			if(gcode.hasValue('G') && (gcode.getValue('G') == "0" || gcode.getValue('G') == "1")) {
+			
+				// Check if command contains an F value
+				if(gcode.hasValue('F'))
+				
+					// Set current F
+					currentF = gcode.getValue('F');
+				
+				// Otherwise check if current F is set
+				else if(!currentF.empty())
+				
+					// Set command's F value to current F
+					gcode.setValue('F', currentF);
+			}
+			
 			// Check if outputting to a file
 			if(output != NULL)
 			

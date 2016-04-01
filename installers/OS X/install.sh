@@ -116,18 +116,9 @@ else
 		installer -pkg CH34x_Install.pkg -target /
 		rm CH34x_Install.pkg
 		
-		# Get OctoPrint parameter
-		octoPrintVersion="$(/Users/$SUDO_USER/Library/Python/2.7/bin/octoprint --version | cut -d' ' -f3)"
-		if [ $octoPrintVersion = "1.2.8" ] || [ $octoPrintVersion = "1.2.9" ] || [ $octoPrintVersion = "1.2.10" ] || [ $octoPrintVersion = "1.2.11" ]; then
-			octoPrintParameter=""
-		else
-			octoPrintParameter="<string>serve<\/string>"
-		fi
-		
 		# Add OctoPrint to startup programs
 		curl -O 'https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/OS%20X/com.octoprint.app.plist'
 		sed -i '' -e 's/path to octoprint/\/Users\/'"$SUDO_USER"'\/Library\/Python\/2.7\/bin\/octoprint/g' com.octoprint.app.plist
-		sed -i '' -e 's/<string>octoprint parameter<\/string>/'"$octoPrintParameter"'/g' com.octoprint.app.plist
 		mv com.octoprint.app.plist '/Library/LaunchAgents'
 		
 		# Create URL link on desktop

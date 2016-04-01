@@ -1,6 +1,36 @@
 <form class="form-horizontal">
-	<div class="control-group">
+	<div class="control-group title">
 		<h4>General</h4>
+	</div>
+	<div class="control-group micro3d">
+		<div class="controls">
+			<label class="checkbox" title="Uses settings obtained from the printer to overwrite existing settings when a Micro 3D printer connects">
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.AutomaticallyObtainSettings"><span>Obtain printer settings automatically when a Micro 3D printer connects</span>
+			</label>
+		</div>
+	</div>
+	<div class="control-group micro3d">
+		<div class="controls">
+			<label class="checkbox" title="Pre-processes each G-code command right before being sent to the printer instead of having the entire G-code file pre-processed when being uploaded or sliced">
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.PreprocessOnTheFly"><span>Pre-process on the fly</span>
+			</label>
+		</div>
+	</div>
+	<div class="control-group dependant micro3d">
+		<div class="controls">
+			<label class="checkbox" title="A dialog box will appear right before printing to allow changing print settings">
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.ChangeSettingsBeforePrint"><span>Change settings before print</span>
+			</label>
+		</div>
+	</div>
+	<div class="control-group sharedLibrary micro3d">
+		<div class="controls">
+			<label class="checkbox" title="Uses the shared library pre-processor instead of the Python pre-processor to pre-process G-code files and commands">
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.UseSharedLibrary"><span>Use shared library</span>
+			</label>
+		</div>
+	</div>
+	<div class="control-group micro3d">
 		<div class="controls">
 			<label class="checkbox" title="Allows uploading and printing models that are larger than the printer's max dimensions">
 				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.IgnorePrintDimensionLimitations"><span>Ignore print dimension limitations <span class="label label-important">Dangerous</span></span>
@@ -9,40 +39,12 @@
 	</div>
 	<div class="control-group">
 		<div class="controls">
-			<label class="checkbox" title="Uses settings obtained from the printer to overwrite existing settings when a Micro 3D printer connects">
-				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.AutomaticallyObtainSettings"><span>Obtain printer settings automatically when a Micro 3D printer connects</span>
+			<label class="checkbox" title="Disables all the Micro 3D printer specific features which allows using other types of printers">
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.NotUsingAMicro3DPrinter"><span>Not using a Micro 3D printer</span>
 			</label>
 		</div>
 	</div>
-	<div class="control-group">
-		<div class="controls">
-			<label class="checkbox" title="Pre-processes each G-code command right before being sent to the printer instead of having the entire G-code file pre-processed when being uploaded or sliced">
-				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.PreprocessOnTheFly"><span>Pre-process on the fly</span>
-			</label>
-		</div>
-	</div>
-	<div class="control-group dependant">
-		<div class="controls">
-			<label class="checkbox" title="A dialog box will appear right before printing to allow changing print settings">
-				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.ChangeSettingsBeforePrint"><span>Change settings before print</span>
-			</label>
-		</div>
-	</div>
-	<div class="control-group sharedLibrary">
-		<div class="controls">
-			<label class="checkbox" title="Uses the shared library pre-processor instead of the Python pre-processor to pre-process G-code files and commands">
-				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.UseSharedLibrary"><span>Use shared library</span>
-			</label>
-		</div>
-	</div>
-	<div class="control-group">
-		<div class="controls">
-			<label class="checkbox" title="Disables the Micro 3D printer connecting procedure which allows using other types of printers">
-				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.UsingADifferentPrinter"><span>Not using a Micro 3D printer</span>
-			</label>
-		</div>
-	</div>
-	<div class="control-group log">
+	<div class="control-group log micro3d">
 		<div class="controls">
 			<label class="checkbox" title="Logs everything sent/received to/from the printer. This log is clear at the beginning of every print.">
 				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.LogSentReceivedData"><span>Log sent/received data</span>
@@ -87,8 +89,10 @@
 			</div>
 		</div>
 	</div>
-	<div class="control-group">
+	<div class="control-group title micro3d">
 		<h4>Pre-Processor Stages</h4>
+	</div>
+	<div class="control-group micro3d">
 		<div class="controls">
 			<label title="Adds in mid-print filament change commands at the start of each specified layer. Layer numbers should be seperated by a space.">
 				<span class="noCheckbox">Mid-print filament change layers</span>
@@ -96,49 +100,49 @@
 			</label>
 		</div>
 	</div>
-	<div class="control-group">
+	<div class="control-group micro3d">
 		<div class="controls">
 			<label class="checkbox" title="Positions the printed object in the middle of the print bed. If possible, the centered model will be repositioned if it goes out of bounds.">
 				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.UseCenterModelPreprocessor"><span>Center Model</span>
 			</label>
 		</div>
 	</div>
-	<div class="control-group">
+	<div class="control-group micro3d">
 		<div class="controls">
 			<label class="checkbox" title="Removes G-code commands that are not compatible with the Micro 3D printer">
 				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.UseValidationPreprocessor"><span>Validation</span>
 			</label>
 		</div>
 	</div>
-	<div class="control-group dependant">
+	<div class="control-group dependant micro3d">
 		<div class="controls">
 			<label class="checkbox" title="Removes all fan commands">
 				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.RemoveFanCommands"><span>Remove fan commands</span>
 			</label>
 		</div>
 	</div>
-	<div class="control-group dependant">
+	<div class="control-group dependant micro3d">
 		<div class="controls">
 			<label class="checkbox" title="Removes all temperature commands">
 				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.RemoveTemperatureCommands"><span>Remove temperature commands</span>
 			</label>
 		</div>
 	</div>
-	<div class="control-group">
+	<div class="control-group micro3d">
 		<div class="controls">
 			<label class="checkbox" title="Adds in G-code intro and outro">
 				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.UsePreparationPreprocessor"><span>Preparation</span>
 			</label>
 		</div>
 	</div>
-	<div class="control-group dependant">
+	<div class="control-group dependant micro3d">
 		<div class="controls">
 			<label class="checkbox" title="Performs the bed center Z0 calibration procedure before printing. Avoid leaving the printer unmonitored until after the print starts in case the resulting calibration is inaccurate.">
 				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.CalibrateBeforePrint"><span>Calibrate before print  <span class="label label-important">Caution</span></span>
 			</label>
 		</div>
 	</div>
-	<div class="control-group dependant">
+	<div class="control-group dependant gpio micro3d">
 		<div class="controls">
 			<label class="checkbox" title="Sets a GPIO pin high at the start of the specified layer and sets it low when the print is done">
 				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.UseGpio"><span>Use GPIO</span>
@@ -147,36 +151,38 @@
 			</label>
 		</div>
 	</div>
-	<div class="control-group">
+	<div class="control-group micro3d">
 		<div class="controls">
 			<label class="checkbox" title="Adds dwell times and higher temperatures to the first few layers">
 				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.UseThermalBondingPreprocessor"><span>Thermal Bonding</span>
 			</label>
 		</div>
 	</div>
-	<div class="control-group">
+	<div class="control-group micro3d">
 		<div class="controls">
 			<label class="checkbox" title="Smooths out the bottom layer">
 				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.UseWaveBondingPreprocessor"><span>Wave Bonding</span>
 			</label>
 		</div>
 	</div>
-	<div class="control-group">
+	<div class="control-group micro3d">
 		<div class="controls">
 			<label class="checkbox" title="Adjusts the Z value of every G-code command to account for bed offsets">
 				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.UseBedCompensationPreprocessor"><span>Bed Compensation</span>
 			</label>
 		</div>
 	</div>
-	<div class="control-group">
+	<div class="control-group micro3d">
 		<div class="controls">
 			<label class="checkbox" title="Adjusts the X and Y values of certain G-code commands to account for backlash when changing directions">
 				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.UseBacklashCompensationPreprocessor"><span>Backlash Compensation</span>
 			</label>
 		</div>
 	</div>
-	<div class="control-group" title="Amount of backlash compensation required for the X motor">
+	<div class="control-group title micro3d">
 		<h4>Printer Settings</h4>
+	</div>
+	<div class="control-group micro3d" title="Amount of backlash compensation required for the X motor">
 		<label class="control-label">Backlash X</label>
 		<div class="controls">
 			<div class="input-append">
@@ -185,7 +191,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="control-group" title="Amount of backlash compensation required for the Y motor">
+	<div class="control-group micro3d" title="Amount of backlash compensation required for the Y motor">
 		<label class="control-label">Backlash Y</label>
 		<div class="controls">
 			<div class="input-append">
@@ -194,7 +200,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="control-group" title="Speed of the backlash compensation">
+	<div class="control-group micro3d" title="Speed of the backlash compensation">
 		<label class="control-label">Backlash Speed</label>
 		<div class="controls">
 			<div class="input-append mmPerMinute">
@@ -203,7 +209,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="control-group" title="The sum of this value and the back left offset is the total vertical displacement for the back left corner">
+	<div class="control-group micro3d" title="The sum of this value and the back left offset is the total vertical displacement for the back left corner">
 		<label class="control-label">Back Left Orientation</label>
 		<div class="controls">
 			<div class="input-append">
@@ -212,7 +218,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="control-group" title="The sum of this value and the back right offset is the total vertical displacement for the back right corner">
+	<div class="control-group micro3d" title="The sum of this value and the back right offset is the total vertical displacement for the back right corner">
 		<label class="control-label">Back Right Orientation</label>
 		<div class="controls">
 			<div class="input-append">
@@ -221,7 +227,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="control-group" title="The sum of this value and the front right offset is the total vertical displacement for the front right corner">
+	<div class="control-group micro3d" title="The sum of this value and the front right offset is the total vertical displacement for the front right corner">
 		<label class="control-label">Front Right Orientation</label>
 		<div class="controls">
 			<div class="input-append">
@@ -230,7 +236,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="control-group" title="The sum of this value and the front left offset is the total vertical displacement for the front left corner">
+	<div class="control-group micro3d" title="The sum of this value and the front left offset is the total vertical displacement for the front left corner">
 		<label class="control-label">Front Left Orientation</label>
 		<div class="controls">
 			<div class="input-append">
@@ -239,7 +245,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="control-group" title="Shifts a print vertically by this value">
+	<div class="control-group micro3d" title="Shifts a print vertically by this value">
 		<label class="control-label">Bed Height Offset</label>
 		<div class="controls">
 			<div class="input-append">
@@ -248,7 +254,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="control-group" title="The sum of this value and the back left orientation is the total vertical displacement for the back left corner">
+	<div class="control-group micro3d" title="The sum of this value and the back left orientation is the total vertical displacement for the back left corner">
 		<label class="control-label">Back Left Offset</label>
 		<div class="controls">
 			<div class="input-append">
@@ -257,7 +263,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="control-group" title="The sum of this value and the back right orientation is the total vertical displacement for the back right corner">
+	<div class="control-group micro3d" title="The sum of this value and the back right orientation is the total vertical displacement for the back right corner">
 		<label class="control-label">Back Right Offset</label>
 		<div class="controls">
 			<div class="input-append">
@@ -266,7 +272,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="control-group" title="The sum of this value and the front right orientation is the total vertical displacement for the front right corner">
+	<div class="control-group micro3d" title="The sum of this value and the front right orientation is the total vertical displacement for the front right corner">
 		<label class="control-label">Front Right Offset</label>
 		<div class="controls">
 			<div class="input-append">
@@ -275,7 +281,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="control-group" title="The sum of this value and the front left orientation is the total vertical displacement for the front left corner">
+	<div class="control-group micro3d" title="The sum of this value and the front left orientation is the total vertical displacement for the front left corner">
 		<label class="control-label">Front Left Offset</label>
 		<div class="controls">
 			<div class="input-append">
@@ -284,16 +290,23 @@
 			</div>
 		</div>
 	</div>
-	<div class="control-group" title="Height of an external object that's placed on the bed, such as a heatbed">
+	<div class="control-group micro3d" title="Height of an external object that's placed on the bed, such as a heatbed">
 		<label class="control-label">External Bed Height</label>
 		<div class="controls">
 			<div class="input-append">
-				<input type="number" step="0.01" min="0" max="50" class="input-block-level" data-bind="value: settings.plugins.m3dfio.ExternalBedHeight">
+				<input type="number" step="0.000001" min="0" max="50" class="input-block-level" data-bind="value: settings.plugins.m3dfio.ExternalBedHeight">
 				<span class="add-on">mm</span>
 			</div>
 		</div>
 	</div>
-	<div class="control-group" title="Extruder's printing temperature">
+	<div class="control-group micro3d">
+		<div class="controls">
+			<label class="checkbox" title="Expands printable region to include everywhere the extruder can move">
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.ExpandPrintableRegion"><span>External bed expands printable region to max</span>
+			</label>
+		</div>
+	</div>
+	<div class="control-group micro3d" title="Extruder's printing temperature">
 		<label class="control-label">Filament Temperature</label>
 		<div class="controls">
 			<div class="input-append degreesCelsius">
@@ -302,7 +315,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="control-group heatbed" title="Heatbed's printing temperature">
+	<div class="control-group heatbed micro3d" title="Heatbed's printing temperature">
 		<label class="control-label">Heatbed Temperature</label>
 		<div class="controls">
 			<div class="input-append degreesCelsius">
@@ -311,7 +324,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="control-group" title="Type of filement being printed">
+	<div class="control-group micro3d" title="Type of filement being printed">
 		<label class="control-label">Filament Type</label>
 		<div class="controls">
 			<select class="input-block-level" data-bind="value: settings.plugins.m3dfio.FilamentType">
@@ -325,10 +338,10 @@
 			</select> 
 		</div>
 	</div>
-	<div class="control-group empty">
+	<div class="control-group empty micro3d">
 		<h4><span class="label label-important">Changes to speed limits require restarting the printer to take effect</span></h4>
 	</div>
-	<div class="control-group" title="X motor's speed limit">
+	<div class="control-group micro3d" title="X motor's speed limit">
 		<label class="control-label">Speed Limit X</label>
 		<div class="controls">
 			<div class="input-append mmPerMinute">
@@ -337,7 +350,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="control-group" title="Y motor's speed limit">
+	<div class="control-group micro3d" title="Y motor's speed limit">
 		<label class="control-label">Speed Limit Y</label>
 		<div class="controls">
 			<div class="input-append mmPerMinute">
@@ -346,7 +359,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="control-group" title="Z motor's speed limit">
+	<div class="control-group micro3d" title="Z motor's speed limit">
 		<label class="control-label">Speed Limit Z</label>
 		<div class="controls">
 			<div class="input-append mmPerMinute">
@@ -355,7 +368,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="control-group" title="E motor's extrusion speed limit">
+	<div class="control-group micro3d" title="E motor's extrusion speed limit">
 		<label class="control-label">Speed Limit E+</label>
 		<div class="controls">
 			<div class="input-append mmPerMinute">
@@ -364,7 +377,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="control-group" title="E motor's retraction speed limit">
+	<div class="control-group micro3d" title="E motor's retraction speed limit">
 		<label class="control-label">Speed Limit E-</label>
 		<div class="controls">
 			<div class="input-append mmPerMinute">
