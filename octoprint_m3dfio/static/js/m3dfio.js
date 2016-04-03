@@ -11341,18 +11341,6 @@ $(function() {
 		// On settings hidden
 		self.onSettingsHidden = function() {
 		
-			// Send request
-			$.ajax({
-				url: API_BASEURL + "plugin/m3dfio",
-				type: "POST",
-				dataType: "json",
-				data: JSON.stringify({
-					command: "message",
-					value: "Saved Settings"
-				}),
-				contentType: "application/json; charset=UTF-8"
-			});
-			
 			// Update values
 			function updateValues() {
 

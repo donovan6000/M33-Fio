@@ -1362,6 +1362,36 @@ class M3DFioPlugin(
 			
 			# Save settings
 			octoprint.settings.settings().save()
+		
+		# Check if not using a Micro 3D printer
+		if self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
+		
+			# Disable printer callbacks
+			self._printer.unregister_callback(self)
+			
+			# Check if a Micro 3D is connected and not printing or paused
+			if not self.invalidPrinter and not self._printer.is_printing() and not self._printer.is_paused() :
+			
+				# Close connection
+				if self._printer._comm is not None :
+	
+					try :
+						self._printer._comm.close(False, False)
+					except TypeError :
+						pass
+	
+				self._printer.disconnect()
+		# Otherwise
+		else :
+		
+			# Enable printer callbacks
+			self._printer.register_callback(self)
+	
+			# Check if a Micro 3D is connected and not printing
+			if not self.invalidPrinter and not self._printer.is_printing() :
+		
+				# Save settings to the printer
+				self.sendCommands(self.getSaveCommands())
 	
 	# Template manager
 	def get_template_configs(self) :
@@ -1897,39 +1927,6 @@ class M3DFioPlugin(
 					return flask.jsonify(dict(value = "Error"))
 				else :
 					return flask.jsonify(dict(value = "OK"))
-			
-			# Otherwise check if parameter is to saved settings
-			elif data["value"] == "Saved Settings" :
-			
-				# Check if not using a Micro 3D printer
-				if self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
-				
-					# Disable printer callbacks
-					self._printer.unregister_callback(self)
-					
-					# Check if a Micro 3D is connected and not printing or paused
-					if not self.invalidPrinter and not self._printer.is_printing() and not self._printer.is_paused() :
-					
-						# Close connection
-						if self._printer._comm is not None :
-			
-							try :
-								self._printer._comm.close(False, False)
-							except TypeError :
-								pass
-			
-						self._printer.disconnect()
-				# Otherwise
-				else :
-				
-					# Enable printer callbacks
-					self._printer.register_callback(self)
-			
-					# Check if a Micro 3D is connected and not printing
-					if not self.invalidPrinter and not self._printer.is_printing() :
-				
-						# Save settings to the printer
-						self.sendCommands(self.getSaveCommands())
 			
 			# Otherwise check if parameter is a response to a message
 			elif data["value"] == "OK" or data["value"] == "Yes" or data["value"] == "No" :
