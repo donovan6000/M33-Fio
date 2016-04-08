@@ -3122,7 +3122,8 @@ class M3DFioPlugin(
 	
 		# Initialize line number
 		lineNumber = 1
-		self.sendCommands("N0 M110")
+		command = "N0 M110"
+		self.sendCommands(command + '*' + str(self.calculateChecksum(command)))
 	
 		# Go through all commands
 		for command in commands :
@@ -3137,10 +3138,22 @@ class M3DFioPlugin(
 			else :
 		
 				# Send command with line number to printer
-				self.sendCommands('N' + str(lineNumber) + ' ' + command)
+				command = 'N' + str(lineNumber) + ' ' + command
+				self.sendCommands(command + '*' + str(self.calculateChecksum(command)))
 		
 				# Increment line number
 				lineNumber += 1
+	
+	# Calculate checksum
+	def calculateChecksum(self, command) :
+	
+		# Calculate checksum
+		checksum = 0;
+		for character in command :
+			checksum ^= ord(character)
+		
+		# Return checksum
+		return checksum
 	
 	# Empty command queue
 	def emptyCommandQueue(self) :
@@ -5668,18 +5681,20 @@ class M3DFioPlugin(
 			
 				# Convert data to value
 				value = int(data[data.find("DT:") + 3 :])
-				if value & 0x3F == 1 :
+				if value & 0x3F == 0x01 :
 					filamentType = "ABS"
-				elif value & 0x3F == 2 :
+				elif value & 0x3F == 0x02 :
 					filamentType = "PLA"
-				elif value & 0x3F == 3 :
+				elif value & 0x3F == 0x03 :
 					filamentType = "HIPS"
-				elif value & 0x3F == 5 :
+				elif value & 0x3F == 0x05 :
 					filamentType = "FLX"
-				elif value & 0x3F == 6 :
+				elif value & 0x3F == 0x06 :
 					filamentType = "TGH"
-				elif value & 0x3F == 7 :
+				elif value & 0x3F == 0x07 :
 					filamentType = "CAM"
+				elif value & 0x3F == 0x08 :
+					filamentType = "ABS-R"
 				else :
 					filamentType = "OTHER"
 				self.printerFilamentType = filamentType
@@ -6128,6 +6143,8 @@ class M3DFioPlugin(
 				newValue |= 0x06
 			elif softwareFilamentType == "CAM" :
 				newValue |= 0x07
+			elif softwareFilamentType == "ABS-R" :
+				newValue |= 0x08
 			
 			commandList += ["M618 S" + str(self.eepromOffsets["filamentTypeAndLocation"]["offset"]) + " T" + str(self.eepromOffsets["filamentTypeAndLocation"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.eepromOffsets["filamentTypeAndLocation"]["offset"]) + " T" + str(self.eepromOffsets["filamentTypeAndLocation"]["bytes"])]
 		
@@ -7735,8 +7752,8 @@ class M3DFioPlugin(
 					# Otherwise
 					else :
 					
-						# Check if filament type is TGH
-						if str(self._settings.get(["FilamentType"])) == "TGH" :
+						# Check if filament type is TGH or FLX
+						if str(self._settings.get(["FilamentType"])) == "TGH" or str(self._settings.get(["FilamentType"])) == "FLX" :
 					
 							# Add temperature to output
 							newCommands.append(Command("M104 S" + str(self._settings.get_int(["FilamentTemperature"]) + 15), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
@@ -7759,8 +7776,8 @@ class M3DFioPlugin(
 							# Check if command is G0 or G1 and it's in absolute
 							if (gcode.getValue('G') == "0" or gcode.getValue('G') == "1") and not self.thermalBondingRelativeMode :
 
-								# Check if previous command exists and filament is ABS, HIPS, PLA, TGH, or FLX
-								if not self.thermalBondingPreviousGcode.isEmpty() and (str(self._settings.get(["FilamentType"])) == "ABS" or str(self._settings.get(["FilamentType"])) == "HIPS" or str(self._settings.get(["FilamentType"])) == "PLA" or str(self._settings.get(["FilamentType"])) == "FLX" or str(self._settings.get(["FilamentType"])) == "TGH" or str(self._settings.get(["FilamentType"])) == "CAM") :
+								# Check if previous command exists
+								if not self.thermalBondingPreviousGcode.isEmpty() :
 	
 									# Check if first sharp corner
 									if self.thermalBondingCornerCounter < 1 and self.isSharpCornerForThermalBonding(gcode, self.thermalBondingPreviousGcode) :

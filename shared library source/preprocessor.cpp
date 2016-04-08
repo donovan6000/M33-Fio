@@ -50,7 +50,7 @@ double bedHighMinZ = bedMediumMaxZ;
 // Enumerations
 
 // Filament types
-enum filamentTypes {NO_TYPE, ABS, PLA, HIPS, OTHER, FLX, TGH, CAM};
+enum filamentTypes {NO_TYPE, ABS, PLA, HIPS, OTHER, FLX, TGH, CAM, ABS_R};
 
 // Directions
 enum directions {POSITIVE, NEGATIVE, NEITHER};
@@ -595,6 +595,8 @@ EXPORT void setFilamentType(const char *value) {
 		filamentType = TGH;
 	else if(!strcmp(value, "CAM"))
 		filamentType = CAM;
+	else if(!strcmp(value, "ABS-R"))
+		filamentType = ABS_R;
 	else
 		filamentType = OTHER;
 }
@@ -2075,8 +2077,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 				// Otherwise
 				else {
 				
-					// Check if filament type is TGH
-					if(filamentType == TGH)
+					// Check if filament type is TGH or FLX
+					if(filamentType == TGH || filamentType == FLX)
 	
 						// Add temperature to output
 						newCommands.push(Command("M104 S" + to_string(filamentTemperature + 15), THERMAL, THERMAL));
@@ -2101,8 +2103,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 						// Check if command is G0 or G1 and it's in absolute
 						if((gcode.getValue('G') == "0" || gcode.getValue('G') == "1") && !thermalBondingRelativeMode) {
 
-							// Check if previous command exists and filament is ABS, HIPS, PLA, TGH, or FLX
-							if(!thermalBondingPreviousGcode.isEmpty() && (filamentType == ABS || filamentType == HIPS || filamentType == PLA || filamentType == FLX || filamentType == TGH || filamentType == CAM)) {
+							// Check if previous command exists
+							if(!thermalBondingPreviousGcode.isEmpty()) {
 
 								// Check if first sharp corner
 								if(thermalBondingCornerCounter < 1 && isSharpCornerForThermalBonding(gcode, thermalBondingPreviousGcode)) {

@@ -662,7 +662,7 @@ $(function() {
 						else if(currentMessage.secondButton == "Unload" || currentMessage.secondButton == "Load" || currentMessage.secondButton == "Set") {
 							$("body > div.page-container > div.message > div > div > div.filamentSettings input").eq(0).val(self.settings.settings.plugins.m3dfio.FilamentTemperature());
 							$("body > div.page-container > div.message > div > div > div.filamentSettings label").text((currentMessage.secondButton == "Set" ? "New Print" : currentMessage.secondButton) + " Temperature");
-							$("body > div.page-container > div.message > div > div > div.filamentSettings p").html("Recommended<ul>" + (currentMessage.secondButton == "Unload" ? "<li>285°C for ABS</li><li>225°C for PLA</li><li>275°C for HIPS</li><li>255°C for FLX</li><li>255°C for TGH</li><li>210°C for CAM</li>" : "<li>275°C for ABS</li><li>215°C for PLA</li><li>265°C for HIPS</li><li>245°C for FLX</li><li>245°C for TGH</li><li>200°C for CAM</li>") + "</ul>");
+							$("body > div.page-container > div.message > div > div > div.filamentSettings p").html("Recommended<ul>" + (currentMessage.secondButton == "Unload" ? "<li>285°C for ABS</li><li>225°C for PLA</li><li>275°C for HIPS</li><li>230°C for FLX</li><li>230°C for TGH</li><li>210°C for CAM</li><li>250°C for ABS-R</li>" : "<li>275°C for ABS</li><li>215°C for PLA</li><li>265°C for HIPS</li><li>220°C for FLX</li><li>220°C for TGH</li><li>200°C for CAM</li><li>240°C for ABS-R</li>") + "</ul>");
 							$("body > div.page-container > div.message > div > div > div.filamentSettings").addClass("show");
 							message.find("p").eq(0).removeClass("show")
 						}
@@ -3743,9 +3743,10 @@ $(function() {
 										<option value="ABS">ABS (Recommended 275°C)</option>
 										<option value="PLA">PLA (Recommended 215°C)</option>
 										<option value="HIPS">HIPS (Recommended 265°C)</option>
-										<option value="FLX">FLX (Recommended 245°C)</option>
-										<option value="TGH">TGH (Recommended 245°C)</option>
+										<option value="FLX">FLX (Recommended 220°C)</option>
+										<option value="TGH">TGH (Recommended 220°C)</option>
 										<option value="CAM">CAM (Recommended 200°C)</option>
+										<option value="ABS-R">ABS-R (Recommended 240°C)</option>
 										<option value="OTHER">Other</option>
 									</select> 
 								</div>
@@ -4949,7 +4950,7 @@ $(function() {
 										success: function(data) {
 										
 											// Set using provided profile
-											var usingProvidedProfile = slicerName == "cura" && (slicerProfileName == "m3d_pla" || slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips" || slicerProfileName == "m3d_flx" || slicerProfileName == "m3d_tgh");
+											var usingProvidedProfile = slicerName == "cura" && (slicerProfileName == "m3d_pla" || slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips" || slicerProfileName == "m3d_flx" || slicerProfileName == "m3d_tgh" || slicerProfileName == "m3d_abs-r");
 											
 											// Hide dialog
 											$("#slicing_configuration_dialog").removeClass("in");
@@ -4986,6 +4987,7 @@ $(function() {
 																	<button title="Medium fill"` + (usingProvidedProfile ? ` class="disabled"` : ``) + `><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/medium%20fill.png"></button>
 																	<button title="High fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/high%20fill.png"></button>
 																	<button title="Extra high fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/extra%20high%20fill.png"></button>
+																	<button title="Full fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/full%20fill.png"></button>
 																</div>
 																<div class="settings">
 																	<label title="Prints a breakaway support underneath overhanging parts of the model"><input class="useSupportMaterial" type="checkbox" tabindex="-1">Use support material</label>
@@ -5531,7 +5533,7 @@ $(function() {
 																solid_layer_thickness: 2.799
 															});
 														
-															if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
+															if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips" || slicerProfileName == "m3d_abs-r"))
 																changedSettings[0]["fan_full_height"] = 0.651;
 														}
 													
@@ -5545,7 +5547,7 @@ $(function() {
 																solid_layer_thickness: 1.999
 															});
 														
-															if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
+															if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips" || slicerProfileName == "m3d_abs-r"))
 																changedSettings[0]["fan_full_height"] = 0.551;
 														}
 													
@@ -5559,7 +5561,7 @@ $(function() {
 																solid_layer_thickness: 1.199
 															});
 														
-															if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
+															if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips" || slicerProfileName == "m3d_abs-r"))
 																changedSettings[0]["fan_full_height"] = 0.451;
 														}
 													
@@ -5573,7 +5575,7 @@ $(function() {
 																solid_layer_thickness: 0.799
 															});
 														
-															if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
+															if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips" || slicerProfileName == "m3d_abs-r"))
 																changedSettings[0]["fan_full_height"] = 0.401;
 														}
 													
@@ -5587,7 +5589,7 @@ $(function() {
 																solid_layer_thickness: 0.399
 															});
 														
-															if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
+															if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips" || slicerProfileName == "m3d_abs-r"))
 																changedSettings[0]["fan_full_height"] = 0.151;
 														}
 													
@@ -5657,6 +5659,16 @@ $(function() {
 													
 															changedSettings.push({
 																fill_density: 23.333,
+																wall_thickness: 1.4,
+																nozzle_size: 0.35,
+																infill_speed: null
+															});
+														
+														// Otherwise set changed settings if full fill
+														else if($(this).attr("title") == "Full fill")
+													
+															changedSettings.push({
+																fill_density: 100,
 																wall_thickness: 1.4,
 																nozzle_size: 0.35,
 																infill_speed: null

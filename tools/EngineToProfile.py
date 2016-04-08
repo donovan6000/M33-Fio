@@ -176,7 +176,7 @@ for line in open(sys.argv[1], "rb") :
 			output.write("raft_interface_linewidth = " + str(float(value) / 2000) + '\n')
 		
 		elif key == "raftAirGapLayer0" :
-			output.write("raft_airgap = " + str(float(value) / 1000) + '\n')
+			output.write("raft_airgap = " + str((float(value)  + 0.7) / 1000) + '\n')
 		
 		elif key == "raftSurfaceLayers" :
 			output.write("raft_surface_layers = " + str(int(value)) + '\n')
