@@ -55,7 +55,7 @@ extern "C" {
 	Name: Get bounded temperature
 	Purpose: Gets temperature bounded within a range
 	*/
-	uint16_t getBoundedTemperature(uint16_t temperature);
+	uint16_t getBoundedTemperature(uint16_t temperature, uint16_t maxTemperature);
 	
 	/*
 	Name: Get distance

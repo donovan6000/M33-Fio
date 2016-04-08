@@ -418,6 +418,8 @@ class M3DFioPlugin(
 		self.relativeMode = False
 		self.printedLayers = []
 		self.onNewPrintedLayer = False
+		self.tackPointAngle = 0.0
+		self.tackPointTime = 0.0
 		
 		# Print settings
 		self.resetPrintSettings()
@@ -440,7 +442,6 @@ class M3DFioPlugin(
 		self.waveBondingRelativeMode = False
 		self.waveBondingLayerCounter = 0
 		self.waveBondingChangesPlane = False
-		self.waveBondingCornerCounter = 0
 		self.waveBondingPositionRelativeX = 0
 		self.waveBondingPositionRelativeY = 0
 		self.waveBondingPositionRelativeZ = 0
@@ -453,7 +454,6 @@ class M3DFioPlugin(
 		# Thermal bonding pre-processor settings
 		self.thermalBondingRelativeMode = False
 		self.thermalBondingLayerCounter = 0
-		self.thermalBondingCornerCounter = 0
 		self.thermalBondingPreviousGcode = Gcode()
 		self.thermalBondingRefrenceGcode = Gcode()
 		self.thermalBondingTackPoint = Gcode()
@@ -3123,7 +3123,7 @@ class M3DFioPlugin(
 		# Initialize line number
 		lineNumber = 1
 		command = "N0 M110"
-		self.sendCommands(command + '*' + str(self.calculateChecksum(command)))
+		self.sendCommands(command + self.calculateChecksum(command))
 	
 		# Go through all commands
 		for command in commands :
@@ -3139,7 +3139,7 @@ class M3DFioPlugin(
 		
 				# Send command with line number to printer
 				command = 'N' + str(lineNumber) + ' ' + command
-				self.sendCommands(command + '*' + str(self.calculateChecksum(command)))
+				self.sendCommands(command + self.calculateChecksum(command))
 		
 				# Increment line number
 				lineNumber += 1
@@ -3150,10 +3150,12 @@ class M3DFioPlugin(
 		# Calculate checksum
 		checksum = 0;
 		for character in command :
+			if character == '*' :
+				return str(checksum)
 			checksum ^= ord(character)
 		
 		# Return checksum
-		return checksum
+		return '*' + str(checksum)
 	
 	# Empty command queue
 	def emptyCommandQueue(self) :
@@ -3591,8 +3593,18 @@ class M3DFioPlugin(
 					gcode.removeParameter('M')
 					gcode.setValue('G', '4')
 				
-				# Get the command's binary representation
-				data = gcode.getBinary()
+				# Check if using M3D or M3D Mod firmware
+				if self.getFirmwareDetails()[0] == "M3D" or self.getFirmwareDetails()[0] == "M3D Mod" :
+				
+					# Get the command's binary representation
+					data = gcode.getBinary()
+				
+				# Otherwise
+				else :
+				
+					# Get the command's ASCII representation with checksum
+					data = gcode.getAscii()
+					data += self.calculateChecksum(data)
 				
 				# Log sent data
 				if self._settings.get_boolean(["LogSentReceivedData"]) :
@@ -4589,7 +4601,7 @@ class M3DFioPlugin(
 			
 				# Attempt to get current printer mode
 				try :
-					connection.write("M115")
+					connection.write("M110")
 					bootloaderVersion = connection.read()
 				
 					if float(serial.VERSION) < 3 :
@@ -5182,15 +5194,12 @@ class M3DFioPlugin(
 						# Check if communication layer has been established
 						if self._printer._comm is not None :
 							
-							# Check if using M3D or M3D Mod firmware
-							if self.getFirmwareDetails()[0] == "M3D" or self.getFirmwareDetails()[0] == "M3D Mod" :
-		
-								# Save original write and read functions
-								self.originalWrite = self._printer.get_transport().write
-								self.originalRead = self._printer.get_transport().readline
-		
-								# Overwrite write functions to process write function
-								self._printer.get_transport().write = self.processWrite
+							# Save original write and read functions
+							self.originalWrite = self._printer.get_transport().write
+							self.originalRead = self._printer.get_transport().readline
+	
+							# Overwrite write functions to process write function
+							self._printer.get_transport().write = self.processWrite
 							
 							# Delay
 							time.sleep(1)
@@ -5203,11 +5212,8 @@ class M3DFioPlugin(
 								# Request printer information
 								self._printer.get_transport().write("M115")
 								
-								# Check if using M3D or M3D Mod firmware
-								if self.getFirmwareDetails()[0] == "M3D" or self.getFirmwareDetails()[0] == "M3D Mod" :
-								
-									# Overwrite read functions to process read function
-									self._printer.get_transport().readline = self.processRead
+								# Overwrite read functions to process read function
+								self._printer.get_transport().readline = self.processRead
 								
 								# Send printer details
 								self.sendPrinterDetails()
@@ -6705,14 +6711,21 @@ class M3DFioPlugin(
 			# Set mid-print filament change
 			self.detectedMidPrintFilamentChange = True
 		
+		# Check if filement type is PLA, ABS, HIPS, FLX, TGH, CAM, or ABS-R
+		if str(self._settings.get(["FilamentType"])) == "PLA" or str(self._settings.get(["FilamentType"])) == "ABS" or str(self._settings.get(["FilamentType"])) == "HIPS" or str(self._settings.get(["FilamentType"])) == "FLX" or str(self._settings.get(["FilamentType"])) == "TGH" or str(self._settings.get(["FilamentType"])) == "CAM" or str(self._settings.get(["FilamentType"])) == "ABS-R" :
+		
+			# Set tack point angle and time
+			self.tackPointAngle = 90.0
+			self.tackPointTime = 0.01
+		
 		# Return true
 		return True
 	
 	# Get bounded temperature
-	def getBoundedTemperature(self, value) :
+	def getBoundedTemperature(self, value, maxTemperature) :
 	
 		# Return temperature in bounded range
-		return min(max(value, 150), 315)
+		return min(max(value, 150), maxTemperature)
 	
 	# Get distance
 	def getDistance(self, firstPoint, secondPoint) :
@@ -6742,25 +6755,47 @@ class M3DFioPlugin(
 		# Return distance between the two values
 		return math.sqrt(math.pow(firstX - secondX, 2) + math.pow(firstY - secondY, 2))
 	
-	# Create tack point
-	def createTackPoint(self, point, refrence) :
+	# Create tack point for thermal bonding
+	def createTackPointForThermalBonding(self, point, refrence, time) :
 	
 		# Initialize variables
 		gcode = Gcode()
-		time = math.ceil(self.getDistance(point, refrence))
+		distance = math.ceil(self.getDistance(point, refrence))
 	
-		# Check if time is greater than 5
-		if time > 5 :
+		# Check if distance is applicable
+		if distance > time / 1000 :
+		
+			# Get seconds and milliseconds
+			seconds = int(time)
+			milliseconds = int((time - seconds) * 1000)
+		
+			# Set G-code to dwell G-code
+			gcode.setValue('G', '4')
+			gcode.setValue('S', str(seconds))
+			gcode.setValue('P', str(milliseconds))
+	
+		# Return G-code
+		return gcode
+	
+	# Create tack point for wave bonding
+	def createTackPointForWaveBonding(self, point, refrence) :
+	
+		# Initialize variables
+		gcode = Gcode()
+		distance = math.ceil(self.getDistance(point, refrence))
+	
+		# Check if distance is applicable
+		if distance > 5 :
 	
 			# Set G-code to a delay command based on time
 			gcode.setValue('G', '4')
-			gcode.setValue('P', "%u" % time)
+			gcode.setValue('P', "%u" % distance)
 	
 		# Return G-code
 		return gcode
 	
 	# Is sharp corner for thermal bonding
-	def isSharpCornerForThermalBonding(self, point, refrence) :
+	def isSharpCornerForThermalBonding(self, point, refrence, angle) :
 
 		# Get point coordinates
 		if point.hasValue('X') :
@@ -6805,7 +6840,7 @@ class M3DFioPlugin(
 				return False
 		
 		# Return if sharp corner
-		return value > 0 and value < math.pi / 2
+		return value > 0 and value < angle / 180 * math.pi
 	
 	# Is sharp corner for wave bonding
 	def isSharpCornerForWaveBonding(self, point, refrence) :
@@ -7258,7 +7293,7 @@ class M3DFioPlugin(
 					# Check if both of the corners are set
 					if cornerX != 0 and cornerY != 0 :
 					
-						# Set cornet Z
+						# Set corner Z
 						if cornerX > 0 and cornerY > 0 :
 							cornerZ = self._settings.get_float(["BackRightOrientation"]) + self._settings.get_float(["BackRightOffset"])
 						elif cornerX < 0 and cornerY > 0 :
@@ -7532,40 +7567,18 @@ class M3DFioPlugin(
 								# Check if delta E is greater than zero 
 								if deltaE > 0 :
 
-									# Check if previous G-code is not empty
-									if not self.waveBondingPreviousGcode.isEmpty() :
+									# Check if at a sharp corner
+									if not self.waveBondingPreviousGcode.isEmpty() and self.isSharpCornerForWaveBonding(gcode, self.waveBondingPreviousGcode) :
 
-										# Check if first sharp corner
-										if self.waveBondingCornerCounter < 1 and self.isSharpCornerForWaveBonding(gcode, self.waveBondingPreviousGcode) :
+										# Check if a tack point was created
+										self.waveBondingTackPoint = self.createTackPointForWaveBonding(gcode, self.waveBondingRefrenceGcode)
+										if not self.waveBondingTackPoint.isEmpty() :
+							
+											# Add tack point to output
+											newCommands.append(Command(self.waveBondingTackPoint.getAscii(), "WAVE", "MID-PRINT CENTER VALIDATION PREPARATION WAVE"))
 	
-											# Check if refrence G-codes isn't set
-											if self.waveBondingRefrenceGcode.isEmpty() :
-		
-												# Check if a tack point was created
-												self.waveBondingTackPoint = self.createTackPoint(gcode, self.waveBondingPreviousGcode)
-												if not self.waveBondingTackPoint.isEmpty() :
-									
-													# Add tack point to output
-													newCommands.append(Command(self.waveBondingTackPoint.getAscii(), "WAVE", "MID-PRINT CENTER VALIDATION PREPARATION WAVE"))
-		
-											# Set refrence G-code
-											self.waveBondingRefrenceGcode = copy.deepcopy(gcode)
-		
-											# Increment corner counter
-											self.waveBondingCornerCounter += 1
-	
-										# Otherwise check if sharp corner
-										elif self.isSharpCornerForWaveBonding(gcode, self.waveBondingRefrenceGcode) :
-	
-											# Check if a tack point was created
-											self.waveBondingTackPoint = self.createTackPoint(gcode, self.waveBondingRefrenceGcode)
-											if not self.waveBondingTackPoint.isEmpty() :
-								
-												# Add tack point to output
-												newCommands.append(Command(self.waveBondingTackPoint.getAscii(), "WAVE", "MID-PRINT CENTER VALIDATION PREPARATION WAVE"))
-		
-											# Set refrence G-code
-											self.waveBondingRefrenceGcode = copy.deepcopy(gcode)
+										# Set refrence G-code
+										self.waveBondingRefrenceGcode = copy.deepcopy(gcode)
 
 									# Go through all of the wave
 									index = 1
@@ -7644,11 +7657,12 @@ class M3DFioPlugin(
 										# Increment index
 										index += 1
 							
-								# Check if no corners have occured
-								if self.waveBondingCornerCounter < 1 :
-
-									# Set previous G-code
-									self.waveBondingPreviousGcode = copy.deepcopy(gcode)
+								# Set previous G-code
+								self.waveBondingPreviousGcode = copy.deepcopy(gcode)
+								
+								# Set refrence G-codes if it isn't set
+								if self.waveBondingRefrenceGcode.isEmpty() :
+									self.waveBondingRefrenceGcode = copy.deepcopy(gcode)
 						
 							# Otherwise check if command is G28
 							elif gcode.getValue('G') == "28" :
@@ -7731,38 +7745,38 @@ class M3DFioPlugin(
 					# Check if on first counted layer
 					if self.thermalBondingLayerCounter == 1 :
 		
-						# Check if filament type is PLA
-						if str(self._settings.get(["FilamentType"])) == "PLA" :
+						# Check if filament type is ABS-R
+						if str(self._settings.get(["FilamentType"])) == "ABS-R" :
 		
 							# Add temperature to output
-							newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 10)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
+							if self._settings.get_int(["FilamentTemperature"]) <= 285 :
+								newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 15, 285)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
+							else :
+								newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 15, 315)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
 						
 						# Otherwise check if filament type is TGH or FLX
 						elif str(self._settings.get(["FilamentType"])) == "TGH" or str(self._settings.get(["FilamentType"])) == "FLX" :
 		
 							# Add temperature to output
-							newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) - 15)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
-			
+							if self._settings.get_int(["FilamentTemperature"]) <= 285 :
+								newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) - 15, 285)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
+							else :
+								newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) - 15, 315)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
+							
 						# Otherwise
 						else :
 			
 							# Add temperature to output
-							newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 15)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
+							if self._settings.get_int(["FilamentTemperature"]) <= 285 :
+								newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 10, 285)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
+							else :
+								newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 10, 315)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
 					
 					# Otherwise
 					else :
 					
-						# Check if filament type is TGH or FLX
-						if str(self._settings.get(["FilamentType"])) == "TGH" or str(self._settings.get(["FilamentType"])) == "FLX" :
-					
-							# Add temperature to output
-							newCommands.append(Command("M104 S" + str(self._settings.get_int(["FilamentTemperature"]) + 15), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
-						
-						# Otherwise
-						else :
-		
-							# Add temperature to output
-							newCommands.append(Command("M104 S" + str(self._settings.get_int(["FilamentTemperature"])), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
+						# Add temperature to output
+						newCommands.append(Command("M104 S" + str(self._settings.get_int(["FilamentTemperature"])), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
 				
 				# Check if on first counted layer
 				if self.thermalBondingLayerCounter == 1 :
@@ -7775,47 +7789,29 @@ class M3DFioPlugin(
 
 							# Check if command is G0 or G1 and it's in absolute
 							if (gcode.getValue('G') == "0" or gcode.getValue('G') == "1") and not self.thermalBondingRelativeMode :
+							
+								# Check if tack points can be created
+								if self.tackPointAngle != 0 and self.tackPointTime >= 0.001 :
 
-								# Check if previous command exists
-								if not self.thermalBondingPreviousGcode.isEmpty() :
-	
-									# Check if first sharp corner
-									if self.thermalBondingCornerCounter < 1 and self.isSharpCornerForThermalBonding(gcode, self.thermalBondingPreviousGcode) :
-			
-										# Check if refrence G-codes isn't set
-										if self.thermalBondingRefrenceGcode.isEmpty() :
-			
-											# Check if a tack point was created
-											self.thermalBondingTackPoint = self.createTackPoint(gcode, self.thermalBondingPreviousGcode)
-											if not self.thermalBondingTackPoint.isEmpty() :
-									
-												# Add tack point to output
-												newCommands.append(Command(self.thermalBondingTackPoint.getAscii(), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
-										
-										# Set refrence G-code
-										self.thermalBondingRefrenceGcode = copy.deepcopy(gcode)
-			
-										# Increment corner count
-										self.thermalBondingCornerCounter += 1
-		
-									# Otherwise check if sharp corner
-									elif self.isSharpCornerForThermalBonding(gcode, self.thermalBondingRefrenceGcode) :
+									# Check if at a sharp corner
+									if not self.thermalBondingPreviousGcode.isEmpty() and self.isSharpCornerForThermalBonding(gcode, self.thermalBondingPreviousGcode, self.tackPointAngle) :
 		
 										# Check if a tack point was created
-										self.thermalBondingTackPoint = self.createTackPoint(gcode, self.thermalBondingRefrenceGcode)
+										self.thermalBondingTackPoint = self.createTackPointForThermalBonding(gcode, self.thermalBondingRefrenceGcode, self.tackPointTime)
 										if not self.thermalBondingTackPoint.isEmpty() :
-								
+							
 											# Add tack point to output
 											newCommands.append(Command(self.thermalBondingTackPoint.getAscii(), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
-									
+								
 										# Set refrence G-code
 										self.thermalBondingRefrenceGcode = copy.deepcopy(gcode)
 								
-								# Check if no corners have occured
-								if self.thermalBondingCornerCounter < 1 :
-
 									# Set previous G-code
 									self.thermalBondingPreviousGcode = copy.deepcopy(gcode)
+									
+									# Set refrence G-codes if it isn't set
+									if self.thermalBondingRefrenceGcode.isEmpty() :
+										self.thermalBondingRefrenceGcode = copy.deepcopy(gcode)
 
 							# Otherwise check if command is G90
 							elif gcode.getValue('G') == "90" :

@@ -919,11 +919,23 @@ $(function() {
 						this.platformAdhesion = getSlicerProfileValue("platform_adhesion");
 					
 						// Check if platform adhesion isn't set
-						if(!this.platformAdhesion.length) {
-					
+						if(!this.platformAdhesion.length || this.platformAdhesion == "None") {
+						
+							// Check if using a skirt
+							if(getSlicerProfileValue("skirt_line_count") == "True")
+								this.adhesionSize = getSlicerProfileValue("skirt_gap");
+							
 							// Set default platform adhesion
-							this.platformAdhesion = "None";
-							this.adhesionSize = 0;
+							if(!this.adhesionSize.length) {
+								this.adhesionSize = 0;
+								this.platformAdhesion = "None";
+							}
+							
+							// Otherwise set skirt platform adhesion
+							else {
+								this.adhesionSize = parseFloat(this.adhesionSize);
+								this.platformAdhesion = "Skirt";
+							}
 						}
 					
 						// Otherwise
@@ -1415,8 +1427,8 @@ $(function() {
 				// Create platform adhesion
 				createPlatformAdhesion: function(mesh) {
 				
-					// Check if using a raft or a brim
-					if(viewport.platformAdhesion == "Raft" || viewport.platformAdhesion == "Brim") {
+					// Check if using platform adhesion
+					if(viewport.platformAdhesion != "None") {
 					
 						// Create adhesion mesh
 						var adhesionMesh = new THREE.Mesh(mesh.geometry.clone(), filamentMaterials[self.settings.settings.plugins.m3dfio.FilamentColor()]);
@@ -4994,6 +5006,7 @@ $(function() {
 																	<label title="Allows support material to be created on top of models"><input class="useModelOnModelSupport" type="checkbox" tabindex="-1">Use model on model support</label>
 																	<label title="Prints a raft underneath the model"><input class="useRaft" type="checkbox" tabindex="-1">Use raft</label>
 																	<label title="Prints a brim connected to the first layer of the model"><input class="useBrim" type="checkbox" tabindex="-1">Use brim</label>
+																	<label title="Prints an outline around the model"><input class="useSkirt" type="checkbox" tabindex="-1">Use skirt</label>
 																	<label title="Retracts the filament when moving over gaps"><input class="useRetraction" type="checkbox" tabindex="-1">Use retraction</label>
 																</div>
 															</div>
@@ -5049,6 +5062,13 @@ $(function() {
 																			<span class="add-on">line(s)</span>
 																		</div>
 																	</div>
+																	<div title="How far away the skirt is from the model">
+																		<label>Skirt gap</label>
+																		<div class="input-append">
+																			<input class="skirtGap" type="number" tabindex="-1" min="0" max="100" step="0.01">
+																			<span class="add-on">mm</span>
+																		</div>
+																	</div>
 																</div>
 															</div>
 														</div>
@@ -5069,6 +5089,7 @@ $(function() {
 												$("#slicing_configuration_dialog .modal-extra div.cura div input[type=\"checkbox\"].useModelOnModelSupport").prop("checked", getSlicerProfileValue("support") == "Everywhere");
 												$("#slicing_configuration_dialog .modal-extra div.cura div input[type=\"checkbox\"].useRaft").prop("checked", getSlicerProfileValue("platform_adhesion") == "Raft");
 												$("#slicing_configuration_dialog .modal-extra div.cura div input[type=\"checkbox\"].useBrim").prop("checked", getSlicerProfileValue("platform_adhesion") == "Brim");
+												$("#slicing_configuration_dialog .modal-extra div.cura div input[type=\"checkbox\"].useSkirt").prop("checked", getSlicerProfileValue("skirt_line_count") == "True");
 												$("#slicing_configuration_dialog .modal-extra div.cura div input[type=\"checkbox\"].useRetraction").prop("checked", getSlicerProfileValue("retraction_enable") == "True");
 											
 												// Set manual setting values
@@ -5080,11 +5101,16 @@ $(function() {
 												$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").val(getSlicerProfileValue("brim_line_count"));
 												if(!$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").val().length)
 													$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").val(20);
+												$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.skirtGap").val(getSlicerProfileValue("skirt_gap"));
+												if(!$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.skirtGap").val().length)
+													$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.skirtGap").val(3);
 												$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.topBottomLayers").val(Math.round(parseFloat(getSlicerProfileValue("solid_layer_thickness")) / parseFloat(getSlicerProfileValue("layer_height"))));
 												if(getSlicerProfileValue("platform_adhesion") != "Raft")
 													$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.raftAirgap").parent("div").parent("div").addClass("disabled");
 												if(getSlicerProfileValue("platform_adhesion") != "Brim")
 													$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").parent("div").parent("div").addClass("disabled");
+												if(getSlicerProfileValue("platform_adhesion") != "None" || !$("#slicing_configuration_dialog .modal-extra div.cura div input[type=\"checkbox\"].useSkirt").prop("checked"))
+													$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.skirtGap").parent("div").parent("div").addClass("disabled");
 											
 												// Check if using a Cura profile
 												if(slicerName == "cura")
@@ -5317,23 +5343,24 @@ $(function() {
 															changedSettings.push({
 																platform_adhesion: "Raft; None, Brim, Raft",
 																bottom_layer_speed: 12,
-																skirt_line_count: 0,
+																skirt_line_count: "False",
 																brim_line_count: null
 															});
 														
 															if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
 																changedSettings[0]["bottom_layer_speed"] = 16;
 														
-															// Uncheck use brim basic setting, disable brim line count manual setting, and enable raft airgap manual setting
-															$("#slicing_configuration_dialog .modal-extra div.cura div input.useBrim").prop("checked", false);
+															// Uncheck use brim and use skirt basic setting, disable brim line count and skirt gap manual setting, and enable raft airgap manual setting
+															$("#slicing_configuration_dialog .modal-extra div.cura div input.useBrim, #slicing_configuration_dialog .modal-extra div.cura div input.useSkirt").prop("checked", false);
 															$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").parent("div").parent("div").addClass("disabled");
+															$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.skirtGap").parent("div").parent("div").addClass("disabled");
 															$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.raftAirgap").parent("div").parent("div").removeClass("disabled");
 														}
 														else {
 															changedSettings.push({
 																platform_adhesion: "None; None, Brim, Raft",
 																bottom_layer_speed: 5,
-																skirt_line_count: 0,
+																skirt_line_count: "False",
 																brim_line_count: null
 															});
 														
@@ -5356,21 +5383,52 @@ $(function() {
 															if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
 																changedSettings[0]["bottom_layer_speed"] = 16;
 														
-															// Uncheck use raft basic setting, enable brim line count manual setting, and disable raft airgap manual setting
-															$("#slicing_configuration_dialog .modal-extra div.cura div input.useRaft").prop("checked", false);
+															// Uncheck use raft and skirt basic setting, enable brim line count manual setting, and disable raft airgap and skirt gap manual setting
+															$("#slicing_configuration_dialog .modal-extra div.cura div input.useRaft, #slicing_configuration_dialog .modal-extra div.cura div input.useSkirt").prop("checked", false);
 															$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").parent("div").parent("div").removeClass("disabled");
 															$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.raftAirgap").parent("div").parent("div").addClass("disabled");
+															$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.skirtGap").parent("div").parent("div").addClass("disabled");
 														}
 														else {
 															changedSettings.push({
 																platform_adhesion: "None; None, Brim, Raft",
 																bottom_layer_speed: 5,
-																skirt_line_count: 0,
+																skirt_line_count: "False",
 																brim_line_count: null
 															});
 														
 															// Disable brim line count manual setting
 															$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").parent("div").parent("div").addClass("disabled");
+														}
+													}
+													
+													// Otherwise set changed settings if changing use skirt
+													else if($(this).hasClass("useSkirt")) {
+												
+														if(checked) {
+															changedSettings.push({
+																platform_adhesion: "None; None, Brim, Raft",
+																bottom_layer_speed: 5,
+																skirt_line_count: "True",
+																brim_line_count: null
+															});
+														
+															// Uncheck use raft and brim basic setting, enable skirt gap manual setting, and disable raft airgap and brim line count manual setting
+															$("#slicing_configuration_dialog .modal-extra div.cura div input.useRaft, #slicing_configuration_dialog .modal-extra div.cura div input.useBrim").prop("checked", false);
+															$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.skirtGap").parent("div").parent("div").removeClass("disabled");
+															$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.raftAirgap").parent("div").parent("div").addClass("disabled");
+															$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").parent("div").parent("div").addClass("disabled");
+														}
+														else {
+															changedSettings.push({
+																platform_adhesion: "None; None, Brim, Raft",
+																bottom_layer_speed: 5,
+																skirt_line_count: "False",
+																brim_line_count: null
+															});
+														
+															// Disable skirt gap manual setting
+															$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.skirtGap").parent("div").parent("div").addClass("disabled");
 														}
 													}
 												
@@ -5501,6 +5559,13 @@ $(function() {
 												
 														changedSettings.push({
 															brim_line_count: $(this).val()
+														});
+													
+													// Otherwise set changed settings if changing skirt gap
+													else if($(this).hasClass("skirtGap"))
+												
+														changedSettings.push({
+															skirt_gap: $(this).val()
 														});
 												
 													// Update profile settings
