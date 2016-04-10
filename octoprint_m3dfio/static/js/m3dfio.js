@@ -926,7 +926,7 @@ $(function() {
 								this.adhesionSize = getSlicerProfileValue("skirt_gap");
 							
 							// Set default platform adhesion
-							if(!this.adhesionSize.length) {
+							if(this.adhesionSize == null || !this.adhesionSize.length) {
 								this.adhesionSize = 0;
 								this.platformAdhesion = "None";
 							}
