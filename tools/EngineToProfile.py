@@ -158,7 +158,8 @@ for line in open(sys.argv[1], "rb") :
 			output.write("platform_adhesion = Raft\n")
 		
 		elif key == "raftLineSpacing" :
-			output.write("raft_line_spacing = " + str(float(value) / 2000) + '\n')
+			#output.write("raft_line_spacing = " + str(float(value) / 1000) + '\n')
+			output.write("raft_line_spacing = 2.0\n")
 		
 		elif key == "raftBaseThickness" :
 			output.write("raft_base_thickness = " + str(float(value) / 1000) + '\n')
@@ -167,13 +168,16 @@ for line in open(sys.argv[1], "rb") :
 			output.write("raft_base_linewidth = " + str(float(value) / 1000) + '\n')
 		
 		elif key == "raftInterfaceThickness" :
-			output.write("raft_interface_thickness = " + str(float(value) / 2000) + '\n')
+			#output.write("raft_interface_thickness = " + str(float(value) / 1000) + '\n')
+			output.write("raft_interface_thickness = 0.2\n")
 		
 		elif key == "raftInterfaceLinewidth" :
-			output.write("raft_interface_linewidth = " + str(float(value) / 4000) + '\n')
+			#output.write("raft_interface_linewidth = " + str(float(value) / 1000) + '\n')
+			output.write("raft_interface_linewidth = 0.5\n")
 		
 		elif key == "raftAirGapLayer0" :
-			output.write("raft_airgap = " + str((float(value) + 700) / 1000) + '\n')
+			#output.write("raft_airgap = " + str(float(value) / 1000) + '\n')
+			output.write("raft_airgap = 0.35\n")
 		
 		elif key == "raftSurfaceLayers" :
 			output.write("raft_surface_layers = " + str(int(value)) + '\n')
@@ -250,9 +254,11 @@ for line in open(sys.argv[1], "rb") :
 		elif key == "enableCombing" :
 		
 			if int(value) == 0 :
-				output.write("retraction_combing = False\n")
+				output.write("retraction_combing = Off\n")
+			elif int(value) == 1 :
+				output.write("retraction_combing = All\n")
 			else :
-				output.write("retraction_combing = True\n")
+				output.write("retraction_combing = No Skin\n")
 		
 		elif key == "enableOozeShield" :
 		

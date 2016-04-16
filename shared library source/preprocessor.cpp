@@ -1619,7 +1619,7 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 				// Check if both of the corners are set
 				if(cornerX && cornerY) {
 				
-					// Set cornet Z
+					// Set corner Z
 					if(cornerX > 0 && cornerY > 0)
 						cornerZ = backRightOrientation + backRightOffset;
 					else if(cornerX < 0 && cornerY > 0)

@@ -662,7 +662,7 @@ $(function() {
 						else if(currentMessage.secondButton == "Unload" || currentMessage.secondButton == "Load" || currentMessage.secondButton == "Set") {
 							$("body > div.page-container > div.message > div > div > div.filamentSettings input").eq(0).val(self.settings.settings.plugins.m3dfio.FilamentTemperature());
 							$("body > div.page-container > div.message > div > div > div.filamentSettings label").text((currentMessage.secondButton == "Set" ? "New Print" : currentMessage.secondButton) + " Temperature");
-							$("body > div.page-container > div.message > div > div > div.filamentSettings p").html("Recommended<ul>" + (currentMessage.secondButton == "Unload" ? "<li>285°C for ABS</li><li>225°C for PLA</li><li>275°C for HIPS</li><li>230°C for FLX</li><li>230°C for TGH</li><li>210°C for CAM</li><li>250°C for ABS-R</li>" : "<li>275°C for ABS</li><li>215°C for PLA</li><li>265°C for HIPS</li><li>220°C for FLX</li><li>220°C for TGH</li><li>200°C for CAM</li><li>240°C for ABS-R</li>") + "</ul>");
+							$("body > div.page-container > div.message > div > div > div.filamentSettings p").html("Recommended<ul>" + (currentMessage.secondButton == "Unload" ? "<li>285°C for ABS</li><li>225°C for PLA</li><li>275°C for HIPS</li><li>230°C for FLX</li><li>230°C for TGH</li><li>225°C for CAM</li><li>250°C for ABS-R</li>" : "<li>275°C for ABS</li><li>215°C for PLA</li><li>265°C for HIPS</li><li>220°C for FLX</li><li>220°C for TGH</li><li>215°C for CAM</li><li>240°C for ABS-R</li>") + "</ul>");
 							$("body > div.page-container > div.message > div > div > div.filamentSettings").addClass("show");
 							message.find("p").eq(0).removeClass("show")
 						}
@@ -3757,7 +3757,7 @@ $(function() {
 										<option value="HIPS">HIPS (Recommended 265°C)</option>
 										<option value="FLX">FLX (Recommended 220°C)</option>
 										<option value="TGH">TGH (Recommended 220°C)</option>
-										<option value="CAM">CAM (Recommended 200°C)</option>
+										<option value="CAM">CAM (Recommended 215°C)</option>
 										<option value="ABS-R">ABS-R (Recommended 240°C)</option>
 										<option value="OTHER">Other</option>
 									</select> 
