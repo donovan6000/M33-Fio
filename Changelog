@@ -1,5 +1,15 @@
 Changelog:
 
+V0.32 April 19, 2016
+
+	* Improved raft settings in slicer profiles
+	* Fixed the retraction_combing slicer profile setting. Thanks Muele!
+	* Support for ABS-R and the newest TGH filaments. Thanks Banjo!
+	* Provides M3D's V2016040401 printer firmware
+	* Added images to test border and backlash calibration instructions
+	* Skirt option in slicer profile editor
+	* Replaced the backlash calibration cylinder with Muele's backlash calibration method
+
 V0.31 March 31, 2016
 
 	* Made it so that you don't have to be connected when a mid-print filament change starts
