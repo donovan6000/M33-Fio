@@ -18,13 +18,13 @@ endif
 ifeq ($(TARGET_PLATFORM), WINDOWS32)
 	PROG = $(LIBRARY_NAME)_i386.dll
 	CC = i686-w64-mingw32-g++
-	CFLAGS = -DM_PI_2=1.57079632679489661923 -static-libgcc -O3 -Wl,-soname,$(PROG)$(VER) -static-libstdc++
+	CFLAGS = -static-libgcc -O3 -Wl,-soname,$(PROG)$(VER) -static-libstdc++
 endif
 
 ifeq ($(TARGET_PLATFORM), WINDOWS64)
 	PROG = $(LIBRARY_NAME)_x86-64.dll
 	CC = x86_64-w64-mingw32-g++
-	CFLAGS = -DM_PI_2=1.57079632679489661923 -static-libgcc -O3 -Wl,-soname,$(PROG)$(VER) -static-libstdc++
+	CFLAGS = -static-libgcc -O3 -Wl,-soname,$(PROG)$(VER) -static-libstdc++
 endif
 
 ifeq ($(TARGET_PLATFORM), PI)

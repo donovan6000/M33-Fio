@@ -114,7 +114,6 @@ class M3DFioPlugin(
 		self.originalWrite = None
 		self.originalRead = None
 		self.invalidPrinter = True
-		self.waitingUntilCommandsSent = False
 		self.processingSlice = False
 		self.heatbedConnection = None
 		self.heatbedConnected = False
@@ -402,7 +401,7 @@ class M3DFioPlugin(
 	
 		# General settings
 		self.printingTestBorder = False
-		self.printingBacklashCalibrationCylinder = False
+		self.printingBacklashCalibration = False
 		self.sentCommands = {}
 		self.resetLineNumberCommandSent = False
 		self.numberWrapCounter = 0
@@ -418,6 +417,8 @@ class M3DFioPlugin(
 		self.relativeMode = False
 		self.printedLayers = []
 		self.onNewPrintedLayer = False
+		self.tackPointAngle = 0.0
+		self.tackPointTime = 0.0
 		
 		# Print settings
 		self.resetPrintSettings()
@@ -440,7 +441,6 @@ class M3DFioPlugin(
 		self.waveBondingRelativeMode = False
 		self.waveBondingLayerCounter = 0
 		self.waveBondingChangesPlane = False
-		self.waveBondingCornerCounter = 0
 		self.waveBondingPositionRelativeX = 0
 		self.waveBondingPositionRelativeY = 0
 		self.waveBondingPositionRelativeZ = 0
@@ -453,7 +453,6 @@ class M3DFioPlugin(
 		# Thermal bonding pre-processor settings
 		self.thermalBondingRelativeMode = False
 		self.thermalBondingLayerCounter = 0
-		self.thermalBondingCornerCounter = 0
 		self.thermalBondingPreviousGcode = Gcode()
 		self.thermalBondingRefrenceGcode = Gcode()
 		self.thermalBondingTackPoint = Gcode()
@@ -788,6 +787,10 @@ class M3DFioPlugin(
 				)
 			)
 		)
+		
+		if self.heatbedConnected :
+			printerProfile["heatedBed"] = True
+		
 		self._printer_profile_manager.save(printerProfile, True, True)
 	
 	# On after startup
@@ -1289,6 +1292,15 @@ class M3DFioPlugin(
 			LogSentReceivedData = False
 		)
 	
+	# Get IP address
+	def getIpAddress(self) :
+	
+		# Return IP address
+		try :
+			return [l for l in ([ip for ip in socket.gethostbyname_ex(socket.gethostname())[2] if not ip.startswith("127.")][:1], [[(s.connect(("8.8.8.8", 53)), s.getsockname()[0], s.close()) for s in [socket.socket(socket.AF_INET, socket.SOCK_DGRAM)]][0][1]]) if l][0][0]
+		except Exception :
+			return socket.gethostbyname(socket.gethostname())
+	
 	# On settings save
 	def on_settings_save(self, data) :
 	
@@ -1350,8 +1362,8 @@ class M3DFioPlugin(
 			if self._settings.get_boolean(["HostCamera"]) :
 			
 				# Set camera URLs
-				octoprint.settings.settings().set(["webcam", "stream"], "http://" + socket.gethostbyname(socket.gethostname()) + ":4999/stream.mjpg", True)
-				octoprint.settings.settings().set(["webcam", "snapshot"], "http://" + socket.gethostbyname(socket.gethostname()) + ":4999/snapshot.jpg", True)
+				octoprint.settings.settings().set(["webcam", "stream"], "http://" + self.getIpAddress() + ":4999/stream.mjpg", True)
+				octoprint.settings.settings().set(["webcam", "snapshot"], "http://" + self.getIpAddress() + ":4999/snapshot.jpg", True)
 				
 			# Otherwise assume now not hosting camera
 			else :
@@ -1362,6 +1374,37 @@ class M3DFioPlugin(
 			
 			# Save settings
 			octoprint.settings.settings().save()
+		
+		# Check if not using a Micro 3D printer
+		if self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
+		
+			# Disable printer callbacks
+			self._printer.unregister_callback(self)
+			
+			# Check if a Micro 3D is connected and not printing or paused
+			if not self.invalidPrinter and not self._printer.is_printing() and not self._printer.is_paused() :
+			
+				# Close connection
+				if self._printer._comm is not None :
+	
+					try :
+						self._printer._comm.close(False, False)
+					except TypeError :
+						pass
+	
+				self._printer.disconnect()
+		
+		# Otherwise
+		else :
+		
+			# Enable printer callbacks
+			self._printer.register_callback(self)
+	
+			# Check if a Micro 3D is connected and not printing
+			if not self.invalidPrinter and not self._printer.is_printing() :
+		
+				# Save settings to the printer
+				self.sendCommands(self.getSaveCommands())
 	
 	# Template manager
 	def get_template_configs(self) :
@@ -1434,10 +1477,6 @@ class M3DFioPlugin(
 					# Otherwise clear no line numbers
 					else :
 						noLineNumber = False
-			
-					# Set waiting until commands sent if last command is to wait
-					if data["value"][-1] == "M65536;wait" :
-						self.waitingUntilCommandsSent = True
 				
 					# Check if not using line numbers or printing
 					if noLineNumber or self._printer.is_printing() :
@@ -1603,16 +1642,25 @@ class M3DFioPlugin(
 				else :
 					return flask.jsonify(dict(value = "OK"))
 			
-			# Otherwise check if parameter is to print test border or backlash calibration cylinder
-			elif data["value"] == "Print Test Border" or data["value"] == "Print Backlash Calibration Cylinder" :
+			# Otherwise check if parameter is to print test border or print backlash calibration
+			elif data["value"] == "Print Test Border" or data["value"] == "Print Backlash Calibration X 0.0-0.99" or data["value"] == "Print Backlash Calibration X 0.70-1.69" or data["value"] == "Print Backlash Calibration Y 0.0-0.99" or data["value"] == "Print Backlash Calibration Y 0.70-1.69" :
 			
 				# Set file location and destination
 				if data["value"] == "Print Test Border" :
 					location = self._basefolder.replace('\\', '/') + "/static/files/test border.gcode"
 					destination = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "test border.gcode").replace('\\', '/')
-				else :
-					location = self._basefolder.replace('\\', '/') + "/static/files/backlash calibration cylinder.gcode"
-					destination = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "backlash calibration cylinder.gcode").replace('\\', '/')
+				elif data["value"] == "Print Backlash Calibration X 0.0-0.99" :
+					location = self._basefolder.replace('\\', '/') + "/static/files/QuickBacklash_X_0.0-0.99.gcode"
+					destination = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "QuickBacklash_X_0.0-0.99.gcode").replace('\\', '/')
+				elif data["value"] == "Print Backlash Calibration X 0.70-1.69" :
+					location = self._basefolder.replace('\\', '/') + "/static/files/QuickBacklash_X_0.70-1.69.gcode"
+					destination = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "QuickBacklash_X_0.70-1.69.gcode").replace('\\', '/')
+				elif data["value"] == "Print Backlash Calibration Y 0.0-0.99" :
+					location = self._basefolder.replace('\\', '/') + "/static/files/QuickBacklash_Y_0.0-0.99.gcode"
+					destination = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "QuickBacklash_Y_0.0-0.99.gcode").replace('\\', '/')
+				elif data["value"] == "Print Backlash Calibration Y 0.70-1.69" :
+					location = self._basefolder.replace('\\', '/') + "/static/files/QuickBacklash_Y_0.70-1.69.gcode"
+					destination = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "QuickBacklash_Y_0.70-1.69.gcode").replace('\\', '/')
 				
 				# Remove destination file if it already exists
 				if os.path.isfile(destination) :
@@ -1627,10 +1675,10 @@ class M3DFioPlugin(
 					# Set printing type and display message
 					if data["value"] == "Print Test Border" :
 						self.printingTestBorder = True
-						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Preparing test border", header = "Printing Status"))
+						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Preparing test border print", header = "Printing Status"))
 					else :
-						self.printingBacklashCalibrationCylinder = True
-						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Preparing backlash calibration cylinder", header = "Printing Status"))
+						self.printingBacklashCalibration = True
+						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Preparing backlash calibration print", header = "Printing Status"))
 					
 					# Check if using shared library
 					if self.sharedLibrary and self._settings.get_boolean(["UseSharedLibrary"]) :
@@ -1663,7 +1711,7 @@ class M3DFioPlugin(
 						self.sharedLibrary.setIgnorePrintDimensionLimitations(ctypes.c_bool(self._settings.get_boolean(["IgnorePrintDimensionLimitations"])))
 						self.sharedLibrary.setUsingHeatbed(ctypes.c_bool(self.heatbedConnected))
 						self.sharedLibrary.setPrintingTestBorder(ctypes.c_bool(self.printingTestBorder))
-						self.sharedLibrary.setPrintingBacklashCalibrationCylinder(ctypes.c_bool(self.printingBacklashCalibrationCylinder))
+						self.sharedLibrary.setPrintingBacklashCalibration(ctypes.c_bool(self.printingBacklashCalibration))
 						self.sharedLibrary.setPrinterColor(ctypes.c_char_p(self.printerColor))
 						self.sharedLibrary.setCalibrateBeforePrint(ctypes.c_bool(self._settings.get_boolean(["CalibrateBeforePrint"])))
 						self.sharedLibrary.setRemoveFanCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveFanCommands"])))
@@ -1897,39 +1945,6 @@ class M3DFioPlugin(
 					return flask.jsonify(dict(value = "Error"))
 				else :
 					return flask.jsonify(dict(value = "OK"))
-			
-			# Otherwise check if parameter is to saved settings
-			elif data["value"] == "Saved Settings" :
-			
-				# Check if not using a Micro 3D printer
-				if self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
-				
-					# Disable printer callbacks
-					self._printer.unregister_callback(self)
-					
-					# Check if a Micro 3D is connected and not printing or paused
-					if not self.invalidPrinter and not self._printer.is_printing() and not self._printer.is_paused() :
-					
-						# Close connection
-						if self._printer._comm is not None :
-			
-							try :
-								self._printer._comm.close(False, False)
-							except TypeError :
-								pass
-			
-						self._printer.disconnect()
-				# Otherwise
-				else :
-				
-					# Enable printer callbacks
-					self._printer.register_callback(self)
-			
-					# Check if a Micro 3D is connected and not printing
-					if not self.invalidPrinter and not self._printer.is_printing() :
-				
-						# Save settings to the printer
-						self.sendCommands(self.getSaveCommands())
 			
 			# Otherwise check if parameter is a response to a message
 			elif data["value"] == "OK" or data["value"] == "Yes" or data["value"] == "No" :
@@ -3125,7 +3140,8 @@ class M3DFioPlugin(
 	
 		# Initialize line number
 		lineNumber = 1
-		self.sendCommands("N0 M110")
+		command = "N0 M110"
+		self.sendCommands(command + self.calculateChecksum(command))
 	
 		# Go through all commands
 		for command in commands :
@@ -3140,10 +3156,24 @@ class M3DFioPlugin(
 			else :
 		
 				# Send command with line number to printer
-				self.sendCommands('N' + str(lineNumber) + ' ' + command)
+				command = 'N' + str(lineNumber) + ' ' + command
+				self.sendCommands(command + self.calculateChecksum(command))
 		
 				# Increment line number
 				lineNumber += 1
+	
+	# Calculate checksum
+	def calculateChecksum(self, command) :
+	
+		# Calculate checksum
+		checksum = 0;
+		for character in command :
+			if character == '*' :
+				return str(checksum)
+			checksum ^= ord(character)
+		
+		# Return checksum
+		return '*' + str(checksum)
 	
 	# Empty command queue
 	def emptyCommandQueue(self) :
@@ -3259,16 +3289,6 @@ class M3DFioPlugin(
 			self.resetLineNumberCommandSent = False
 			self.numberWrapCounter = 0
 		
-		# Check if request ends waiting for commands sent
-		if "M65536" in data :
-			
-			# Set to wait for a wait response after all commands are sent
-			if self.waitingUntilCommandsSent :
-				self.waitingUntilCommandsSent = None
-			
-			# Send fake acknowledgment
-			self._printer.fake_ack()
-		
 		# Otherwise check if request is invalid
 		elif (not self._printer.is_printing() and (data.startswith("N0 M110 N0") or data.startswith("M110"))) or data == "M21\n" or data == "M84\n" :
 		
@@ -3279,6 +3299,7 @@ class M3DFioPlugin(
 		else :
 		
 			# Initialize variables
+			endWaitingAfterSend = False
 			hideMessageAfterSend = False
 			showMidPrintFilamentChangeAfterSend = False
 			sendCommandMultipleTimes = False
@@ -3560,6 +3581,16 @@ class M3DFioPlugin(
 					# Set command to nothing
 					gcode.removeParameter('M')
 					gcode.setValue('G', '4')
+				
+				# Otherwise check if request ends waiting for commands sent
+				elif gcode.getValue('M') == "65536" :
+				
+					# Set end waiting after send
+					endWaitingAfterSend = True
+					
+					# Set command to nothing
+					gcode.removeParameter('M')
+					gcode.setValue('G', '4')
 					
 				# Otherwise check if hide message command
 				elif gcode.getValue('M') == "65539" :
@@ -3581,8 +3612,18 @@ class M3DFioPlugin(
 					gcode.removeParameter('M')
 					gcode.setValue('G', '4')
 				
-				# Get the command's binary representation
-				data = gcode.getBinary()
+				# Check if using M3D or M3D Mod firmware
+				if self.getFirmwareDetails()[0] == "M3D" or self.getFirmwareDetails()[0] == "M3D Mod" :
+				
+					# Get the command's binary representation
+					data = gcode.getBinary()
+				
+				# Otherwise
+				else :
+				
+					# Get the command's ASCII representation with checksum
+					data = gcode.getAscii()
+					data += self.calculateChecksum(data)
 				
 				# Log sent data
 				if self._settings.get_boolean(["LogSentReceivedData"]) :
@@ -3633,8 +3674,14 @@ class M3DFioPlugin(
 				for i in xrange(4) :
 					self.originalWrite(data)
 			
-			# Check if hide message after send
-			if hideMessageAfterSend :
+			# Check if end waiting after send
+			if endWaitingAfterSend :
+			
+				# End waiting
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Done Waiting"))
+			
+			# Otherwise check if hide message after send
+			elif hideMessageAfterSend :
 			
 				# Hide message
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Hide Message"))
@@ -3690,15 +3737,6 @@ class M3DFioPlugin(
 			
 				# Send message
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Duplicate Wait"))
-			
-			# Check if waiting for a wait response for all commands to be sent
-			if self.waitingUntilCommandsSent is None and not len(self.sentCommands) :
-			
-				# Clear waiting until commands sent
-				self.waitingUntilCommandsSent = False
-			
-				# Send message
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Done Waiting"))
 			
 			# Check if waiting for a command to be processed
 			if self.lastLineNumberSent is not None and self.lastLineNumberSent % 0x10000 in self.sentCommands :
@@ -4203,11 +4241,11 @@ class M3DFioPlugin(
 					# Set printing test border
 					self.printingTestBorder = True
 	
-				# Otherwise check if printing backlash calibration cylinder
-				elif payload["filename"] == os.path.basename(self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "backlash calibration cylinder.gcode").replace('\\', '/')) :
-	
-					# Set printing backlash calibration cylinder
-					self.printingBacklashCalibrationCylinder = True
+				# Otherwise check if printing backlash calibration
+				elif payload["filename"] == os.path.basename(self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "QuickBacklash_X_0.0-0.99.gcode").replace('\\', '/')) or payload["filename"] == os.path.basename(self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "QuickBacklash_X_0.70-1.69.gcode").replace('\\', '/')) or payload["filename"] == os.path.basename(self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "QuickBacklash_Y_0.0-0.99.gcode").replace('\\', '/')) or payload["filename"] == os.path.basename(self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "QuickBacklash_Y_0.70-1.69.gcode").replace('\\', '/')) :
+				
+					# Set printing backlash calibration
+					self.printingBacklashCalibration = True
 		
 				# Display message
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Collecting print information", header = "Printing Status"))
@@ -4243,7 +4281,7 @@ class M3DFioPlugin(
 					self.sharedLibrary.setIgnorePrintDimensionLimitations(ctypes.c_bool(self._settings.get_boolean(["IgnorePrintDimensionLimitations"])))
 					self.sharedLibrary.setUsingHeatbed(ctypes.c_bool(self.heatbedConnected))
 					self.sharedLibrary.setPrintingTestBorder(ctypes.c_bool(self.printingTestBorder))
-					self.sharedLibrary.setPrintingBacklashCalibrationCylinder(ctypes.c_bool(self.printingBacklashCalibrationCylinder))
+					self.sharedLibrary.setPrintingBacklashCalibration(ctypes.c_bool(self.printingBacklashCalibration))
 					self.sharedLibrary.setPrinterColor(ctypes.c_char_p(self.printerColor))
 					self.sharedLibrary.setCalibrateBeforePrint(ctypes.c_bool(self._settings.get_boolean(["CalibrateBeforePrint"])))
 					self.sharedLibrary.setRemoveFanCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveFanCommands"])))
@@ -4579,7 +4617,7 @@ class M3DFioPlugin(
 			
 				# Attempt to get current printer mode
 				try :
-					connection.write("M115")
+					connection.write("M110")
 					bootloaderVersion = connection.read()
 				
 					if float(serial.VERSION) < 3 :
@@ -5172,15 +5210,12 @@ class M3DFioPlugin(
 						# Check if communication layer has been established
 						if self._printer._comm is not None :
 							
-							# Check if using M3D or M3D Mod firmware
-							if self.getFirmwareDetails()[0] == "M3D" or self.getFirmwareDetails()[0] == "M3D Mod" :
-		
-								# Save original write and read functions
-								self.originalWrite = self._printer.get_transport().write
-								self.originalRead = self._printer.get_transport().readline
-		
-								# Overwrite write functions to process write function
-								self._printer.get_transport().write = self.processWrite
+							# Save original write and read functions
+							self.originalWrite = self._printer.get_transport().write
+							self.originalRead = self._printer.get_transport().readline
+	
+							# Overwrite write functions to process write function
+							self._printer.get_transport().write = self.processWrite
 							
 							# Delay
 							time.sleep(1)
@@ -5193,11 +5228,8 @@ class M3DFioPlugin(
 								# Request printer information
 								self._printer.get_transport().write("M115")
 								
-								# Check if using M3D or M3D Mod firmware
-								if self.getFirmwareDetails()[0] == "M3D" or self.getFirmwareDetails()[0] == "M3D Mod" :
-								
-									# Overwrite read functions to process read function
-									self._printer.get_transport().readline = self.processRead
+								# Overwrite read functions to process read function
+								self._printer.get_transport().readline = self.processRead
 								
 								# Send printer details
 								self.sendPrinterDetails()
@@ -5671,18 +5703,20 @@ class M3DFioPlugin(
 			
 				# Convert data to value
 				value = int(data[data.find("DT:") + 3 :])
-				if value & 0x3F == 1 :
+				if value & 0x3F == 0x01 :
 					filamentType = "ABS"
-				elif value & 0x3F == 2 :
+				elif value & 0x3F == 0x02 :
 					filamentType = "PLA"
-				elif value & 0x3F == 3 :
+				elif value & 0x3F == 0x03 :
 					filamentType = "HIPS"
-				elif value & 0x3F == 5 :
+				elif value & 0x3F == 0x05 :
 					filamentType = "FLX"
-				elif value & 0x3F == 6 :
+				elif value & 0x3F == 0x06 :
 					filamentType = "TGH"
-				elif value & 0x3F == 7 :
+				elif value & 0x3F == 0x07 :
 					filamentType = "CAM"
+				elif value & 0x3F == 0x08 :
+					filamentType = "ABS-R"
 				else :
 					filamentType = "OTHER"
 				self.printerFilamentType = filamentType
@@ -6131,6 +6165,8 @@ class M3DFioPlugin(
 				newValue |= 0x06
 			elif softwareFilamentType == "CAM" :
 				newValue |= 0x07
+			elif softwareFilamentType == "ABS-R" :
+				newValue |= 0x08
 			
 			commandList += ["M618 S" + str(self.eepromOffsets["filamentTypeAndLocation"]["offset"]) + " T" + str(self.eepromOffsets["filamentTypeAndLocation"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.eepromOffsets["filamentTypeAndLocation"]["offset"]) + " T" + str(self.eepromOffsets["filamentTypeAndLocation"]["bytes"])]
 		
@@ -6234,7 +6270,7 @@ class M3DFioPlugin(
 				self.sharedLibrary.setIgnorePrintDimensionLimitations(ctypes.c_bool(self._settings.get_boolean(["IgnorePrintDimensionLimitations"])))
 				self.sharedLibrary.setUsingHeatbed(ctypes.c_bool(self.heatbedConnected))
 				self.sharedLibrary.setPrintingTestBorder(ctypes.c_bool(self.printingTestBorder))
-				self.sharedLibrary.setPrintingBacklashCalibrationCylinder(ctypes.c_bool(self.printingBacklashCalibrationCylinder))
+				self.sharedLibrary.setPrintingBacklashCalibration(ctypes.c_bool(self.printingBacklashCalibration))
 				self.sharedLibrary.setPrinterColor(ctypes.c_char_p(self.printerColor))
 				self.sharedLibrary.setCalibrateBeforePrint(ctypes.c_bool(self._settings.get_boolean(["CalibrateBeforePrint"])))
 				self.sharedLibrary.setRemoveFanCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveFanCommands"])))
@@ -6470,8 +6506,8 @@ class M3DFioPlugin(
 							else :
 								localZ = commandZ
 			
-							# Check if applying pre-processors, not ignoring print dimension limitations, not printing a test border or backlash calibration cylinder, and Z is out of bounds
-							if applyPreprocessors and not self._settings.get_boolean(["IgnorePrintDimensionLimitations"]) and not self.printingTestBorder and not self.printingBacklashCalibrationCylinder and (localZ < self.bedLowMinZ or localZ > self.bedHighMaxZ) :
+							# Check if applying pre-processors, not ignoring print dimension limitations, not printing a test border or backlash calibration, and Z is out of bounds
+							if applyPreprocessors and not self._settings.get_boolean(["IgnorePrintDimensionLimitations"]) and not self.printingTestBorder and not self.printingBacklashCalibration and (localZ < self.bedLowMinZ or localZ > self.bedHighMaxZ) :
 				
 								# Return false
 								return False
@@ -6486,8 +6522,8 @@ class M3DFioPlugin(
 							else :
 								tier = "High"
 				
-						# Check if applying pre-processors, not ignoring print dimension limitations, not printing a test border or backlash calibration cylinder, and centering model pre-processor isn't used
-						if applyPreprocessors and not self._settings.get_boolean(["IgnorePrintDimensionLimitations"]) and not self.printingTestBorder and not self.printingBacklashCalibrationCylinder and not self._settings.get_boolean(["UseCenterModelPreprocessor"]) :
+						# Check if applying pre-processors, not ignoring print dimension limitations, not printing a test border or backlash calibration, and centering model pre-processor isn't used
+						if applyPreprocessors and not self._settings.get_boolean(["IgnorePrintDimensionLimitations"]) and not self.printingTestBorder and not self.printingBacklashCalibration and not self._settings.get_boolean(["UseCenterModelPreprocessor"]) :
 			
 							# Return false if X or Y are out of bounds				
 							if tier == "Low" and ((localX is not None and (localX < self.bedLowMinX or localX > self.bedLowMaxX)) or (localY is not None and (localY < self.bedLowMinY or localY > self.bedLowMaxY))) :
@@ -6544,8 +6580,8 @@ class M3DFioPlugin(
 						# Set relative mode
 						relativeMode = True
 	
-		# Check if applying pre-processors, center model pre-processor is set, and not printing a test border or backlash calibration cylinder
-		if applyPreprocessors and self._settings.get_boolean(["UseCenterModelPreprocessor"]) and not self.printingTestBorder and not self.printingBacklashCalibrationCylinder :
+		# Check if applying pre-processors, center model pre-processor is set, and not printing a test border or backlash calibration
+		if applyPreprocessors and self._settings.get_boolean(["UseCenterModelPreprocessor"]) and not self.printingTestBorder and not self.printingBacklashCalibration :
 	
 			# Calculate adjustments
 			self.displacementX = (self.bedWidth - self.bedCenterOffsetX - max(self.maxXExtruderLow, max(self.maxXExtruderMedium, self.maxXExtruderHigh)) - min(self.minXExtruderLow, min(self.minXExtruderMedium, self.minXExtruderHigh)) - self.bedCenterOffsetX) / 2
@@ -6673,8 +6709,8 @@ class M3DFioPlugin(
 			# Set detected fan speed
 			self.detectedFanSpeed = 0
 		
-		# Check if using preparation pre-processor or printing a test border or backlash calibration cylinder
-		if self._settings.get_boolean(["UsePreparationPreprocessor"]) or self.printingTestBorder or self.printingBacklashCalibrationCylinder :
+		# Check if using preparation pre-processor or printing a test border or backlash calibration
+		if self._settings.get_boolean(["UsePreparationPreprocessor"]) or self.printingTestBorder or self.printingBacklashCalibration :
 		
 			# Set detected fan speed
 			if str(self._settings.get(["FilamentType"])) == "PLA" or str(self._settings.get(["FilamentType"])) == "FLX" or str(self._settings.get(["FilamentType"])) == "TGH" :
@@ -6691,14 +6727,21 @@ class M3DFioPlugin(
 			# Set mid-print filament change
 			self.detectedMidPrintFilamentChange = True
 		
+		# Check if filement type is PLA, ABS, HIPS, FLX, TGH, CAM, or ABS-R
+		if str(self._settings.get(["FilamentType"])) == "PLA" or str(self._settings.get(["FilamentType"])) == "ABS" or str(self._settings.get(["FilamentType"])) == "HIPS" or str(self._settings.get(["FilamentType"])) == "FLX" or str(self._settings.get(["FilamentType"])) == "TGH" or str(self._settings.get(["FilamentType"])) == "CAM" or str(self._settings.get(["FilamentType"])) == "ABS-R" :
+		
+			# Set tack point angle and time
+			self.tackPointAngle = 90.0
+			self.tackPointTime = 0.01
+		
 		# Return true
 		return True
 	
 	# Get bounded temperature
-	def getBoundedTemperature(self, value) :
+	def getBoundedTemperature(self, value, maxTemperature) :
 	
 		# Return temperature in bounded range
-		return min(max(value, 150), 315)
+		return min(max(value, 150), maxTemperature)
 	
 	# Get distance
 	def getDistance(self, firstPoint, secondPoint) :
@@ -6728,25 +6771,47 @@ class M3DFioPlugin(
 		# Return distance between the two values
 		return math.sqrt(math.pow(firstX - secondX, 2) + math.pow(firstY - secondY, 2))
 	
-	# Create tack point
-	def createTackPoint(self, point, refrence) :
+	# Create tack point for thermal bonding
+	def createTackPointForThermalBonding(self, point, refrence, time) :
 	
 		# Initialize variables
 		gcode = Gcode()
-		time = math.ceil(self.getDistance(point, refrence))
+		distance = math.ceil(self.getDistance(point, refrence))
 	
-		# Check if time is greater than 5
-		if time > 5 :
+		# Check if distance is applicable
+		if distance > time / 1000 :
+		
+			# Get seconds and milliseconds
+			seconds = int(time)
+			milliseconds = int((time - seconds) * 1000)
+		
+			# Set G-code to dwell G-code
+			gcode.setValue('G', '4')
+			gcode.setValue('S', str(seconds))
+			gcode.setValue('P', str(milliseconds))
+	
+		# Return G-code
+		return gcode
+	
+	# Create tack point for wave bonding
+	def createTackPointForWaveBonding(self, point, refrence) :
+	
+		# Initialize variables
+		gcode = Gcode()
+		distance = math.ceil(self.getDistance(point, refrence))
+	
+		# Check if distance is applicable
+		if distance > 5 :
 	
 			# Set G-code to a delay command based on time
 			gcode.setValue('G', '4')
-			gcode.setValue('P', "%u" % time)
+			gcode.setValue('P', "%u" % distance)
 	
 		# Return G-code
 		return gcode
 	
 	# Is sharp corner for thermal bonding
-	def isSharpCornerForThermalBonding(self, point, refrence) :
+	def isSharpCornerForThermalBonding(self, point, refrence, angle) :
 
 		# Get point coordinates
 		if point.hasValue('X') :
@@ -6791,7 +6856,7 @@ class M3DFioPlugin(
 				return False
 		
 		# Return if sharp corner
-		return value > 0 and value < math.pi / 2
+		return value > 0 and value < angle / 180 * math.pi
 	
 	# Is sharp corner for wave bonding
 	def isSharpCornerForWaveBonding(self, point, refrence) :
@@ -7014,8 +7079,8 @@ class M3DFioPlugin(
 						# Break
 						break
 				
-				# Check if not printing test border or backlash calibration cylinder
-				if not self.printingTestBorder and not self.printingBacklashCalibrationCylinder :
+				# Check if not printing test border or backlash calibration
+				if not self.printingTestBorder and not self.printingBacklashCalibration :
 				
 					# Set progress bar text
 					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Pre-processing … (" + str(input.tell() * 100 / os.fstat(input.fileno()).st_size) + "%)"))
@@ -7109,8 +7174,8 @@ class M3DFioPlugin(
 					# Set current E
 					self.currentE = newE
 			
-			# Check if not printing test border or backlash calibration cylinder and using mid-print filament change pre-processor
-			if not self.printingTestBorder and not self.printingBacklashCalibrationCylinder and len(self.midPrintFilamentChangeLayers) and "MID-PRINT" not in command.skip :
+			# Check if not printing test border or backlash calibration and using mid-print filament change pre-processor
+			if not self.printingTestBorder and not self.printingBacklashCalibration and len(self.midPrintFilamentChangeLayers) and "MID-PRINT" not in command.skip :
 			
 				# Set command skip
 				command.skip += " MID-PRINT"
@@ -7143,8 +7208,8 @@ class M3DFioPlugin(
 						# Process next command
 						continue
 			
-			# Check if not printing test border or backlash calibration cylinder and using center model pre-processor
-			if not self.printingTestBorder and not self.printingBacklashCalibrationCylinder and self._settings.get_boolean(["UseCenterModelPreprocessor"]) and "CENTER" not in command.skip :
+			# Check if not printing test border or backlash calibration and using center model pre-processor
+			if not self.printingTestBorder and not self.printingBacklashCalibration and self._settings.get_boolean(["UseCenterModelPreprocessor"]) and "CENTER" not in command.skip :
 			
 				# Set command skip
 				command.skip += " CENTER"
@@ -7167,8 +7232,8 @@ class M3DFioPlugin(
 							# Adjust Y value
 							gcode.setValue('Y', "%f" % (float(gcode.getValue('Y')) + self.displacementY))
 
-			# Check if printing test border or backlash calibration cylinder or using validation pre-processor
-			if (self.printingTestBorder or self.printingBacklashCalibrationCylinder or self._settings.get_boolean(["UseValidationPreprocessor"])) and "VALIDATION" not in command.skip :
+			# Check if printing test border or backlash calibration or using validation pre-processor
+			if (self.printingTestBorder or self.printingBacklashCalibration or self._settings.get_boolean(["UseValidationPreprocessor"])) and "VALIDATION" not in command.skip :
 			
 				# Set command skip
 				command.skip += " VALIDATION"
@@ -7210,8 +7275,8 @@ class M3DFioPlugin(
 						# Get next line
 						continue
 			
-			# Check if printing test border or backlash calibration cylinder or using preparation pre-processor
-			if (self.printingTestBorder or self.printingBacklashCalibrationCylinder or self._settings.get_boolean(["UsePreparationPreprocessor"])) and "PREPARATION" not in command.skip :
+			# Check if printing test border or backlash calibration or using preparation pre-processor
+			if (self.printingTestBorder or self.printingBacklashCalibration or self._settings.get_boolean(["UsePreparationPreprocessor"])) and "PREPARATION" not in command.skip :
 
 				# Set command skip
 				command.skip += " PREPARATION"
@@ -7244,7 +7309,7 @@ class M3DFioPlugin(
 					# Check if both of the corners are set
 					if cornerX != 0 and cornerY != 0 :
 					
-						# Set cornet Z
+						# Set corner Z
 						if cornerX > 0 and cornerY > 0 :
 							cornerZ = self._settings.get_float(["BackRightOrientation"]) + self._settings.get_float(["BackRightOffset"])
 						elif cornerX < 0 and cornerY > 0 :
@@ -7428,8 +7493,8 @@ class M3DFioPlugin(
 							# Get next command
 							continue
 			
-			# Check if not printing test border or backlash calibration cylinder and using wave bonding pre-processor
-			if not self.printingTestBorder and not self.printingBacklashCalibrationCylinder and self._settings.get_boolean(["UseWaveBondingPreprocessor"]) and "WAVE" not in command.skip :
+			# Check if not printing test border or backlash calibration and using wave bonding pre-processor
+			if not self.printingTestBorder and not self.printingBacklashCalibration and self._settings.get_boolean(["UseWaveBondingPreprocessor"]) and "WAVE" not in command.skip :
 
 				# Set command skip
 				command.skip += " WAVE"
@@ -7518,40 +7583,18 @@ class M3DFioPlugin(
 								# Check if delta E is greater than zero 
 								if deltaE > 0 :
 
-									# Check if previous G-code is not empty
-									if not self.waveBondingPreviousGcode.isEmpty() :
+									# Check if at a sharp corner
+									if not self.waveBondingPreviousGcode.isEmpty() and self.isSharpCornerForWaveBonding(gcode, self.waveBondingPreviousGcode) :
 
-										# Check if first sharp corner
-										if self.waveBondingCornerCounter < 1 and self.isSharpCornerForWaveBonding(gcode, self.waveBondingPreviousGcode) :
+										# Check if a tack point was created
+										self.waveBondingTackPoint = self.createTackPointForWaveBonding(gcode, self.waveBondingRefrenceGcode)
+										if not self.waveBondingTackPoint.isEmpty() :
+							
+											# Add tack point to output
+											newCommands.append(Command(self.waveBondingTackPoint.getAscii(), "WAVE", "MID-PRINT CENTER VALIDATION PREPARATION WAVE"))
 	
-											# Check if refrence G-codes isn't set
-											if self.waveBondingRefrenceGcode.isEmpty() :
-		
-												# Check if a tack point was created
-												self.waveBondingTackPoint = self.createTackPoint(gcode, self.waveBondingPreviousGcode)
-												if not self.waveBondingTackPoint.isEmpty() :
-									
-													# Add tack point to output
-													newCommands.append(Command(self.waveBondingTackPoint.getAscii(), "WAVE", "MID-PRINT CENTER VALIDATION PREPARATION WAVE"))
-		
-											# Set refrence G-code
-											self.waveBondingRefrenceGcode = copy.deepcopy(gcode)
-		
-											# Increment corner counter
-											self.waveBondingCornerCounter += 1
-	
-										# Otherwise check if sharp corner
-										elif self.isSharpCornerForWaveBonding(gcode, self.waveBondingRefrenceGcode) :
-	
-											# Check if a tack point was created
-											self.waveBondingTackPoint = self.createTackPoint(gcode, self.waveBondingRefrenceGcode)
-											if not self.waveBondingTackPoint.isEmpty() :
-								
-												# Add tack point to output
-												newCommands.append(Command(self.waveBondingTackPoint.getAscii(), "WAVE", "MID-PRINT CENTER VALIDATION PREPARATION WAVE"))
-		
-											# Set refrence G-code
-											self.waveBondingRefrenceGcode = copy.deepcopy(gcode)
+										# Set refrence G-code
+										self.waveBondingRefrenceGcode = copy.deepcopy(gcode)
 
 									# Go through all of the wave
 									index = 1
@@ -7630,11 +7673,12 @@ class M3DFioPlugin(
 										# Increment index
 										index += 1
 							
-								# Check if no corners have occured
-								if self.waveBondingCornerCounter < 1 :
-
-									# Set previous G-code
-									self.waveBondingPreviousGcode = copy.deepcopy(gcode)
+								# Set previous G-code
+								self.waveBondingPreviousGcode = copy.deepcopy(gcode)
+								
+								# Set refrence G-codes if it isn't set
+								if self.waveBondingRefrenceGcode.isEmpty() :
+									self.waveBondingRefrenceGcode = copy.deepcopy(gcode)
 						
 							# Otherwise check if command is G28
 							elif gcode.getValue('G') == "28" :
@@ -7699,8 +7743,8 @@ class M3DFioPlugin(
 					# Get next command
 					continue
 
-			# Check if printing test border or backlash calibration cylinder or using thermal bonding pre-processor
-			if (self.printingTestBorder or self.printingBacklashCalibrationCylinder or self._settings.get_boolean(["UseThermalBondingPreprocessor"])) and "THERMAL" not in command.skip :
+			# Check if printing test border or backlash calibration or using thermal bonding pre-processor
+			if (self.printingTestBorder or self.printingBacklashCalibration or self._settings.get_boolean(["UseThermalBondingPreprocessor"])) and "THERMAL" not in command.skip :
 
 				# Set command skip
 				command.skip += " THERMAL"
@@ -7717,38 +7761,38 @@ class M3DFioPlugin(
 					# Check if on first counted layer
 					if self.thermalBondingLayerCounter == 1 :
 		
-						# Check if filament type is PLA
-						if str(self._settings.get(["FilamentType"])) == "PLA" :
+						# Check if filament type is ABS-R
+						if str(self._settings.get(["FilamentType"])) == "ABS-R" :
 		
 							# Add temperature to output
-							newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 10)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
+							if self._settings.get_int(["FilamentTemperature"]) <= 285 :
+								newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 15, 285)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
+							else :
+								newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 15, 315)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
 						
 						# Otherwise check if filament type is TGH or FLX
 						elif str(self._settings.get(["FilamentType"])) == "TGH" or str(self._settings.get(["FilamentType"])) == "FLX" :
 		
 							# Add temperature to output
-							newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) - 15)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
-			
+							if self._settings.get_int(["FilamentTemperature"]) <= 285 :
+								newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) - 15, 285)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
+							else :
+								newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) - 15, 315)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
+							
 						# Otherwise
 						else :
 			
 							# Add temperature to output
-							newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 15)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
+							if self._settings.get_int(["FilamentTemperature"]) <= 285 :
+								newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 10, 285)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
+							else :
+								newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 10, 315)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
 					
 					# Otherwise
 					else :
 					
-						# Check if filament type is TGH
-						if str(self._settings.get(["FilamentType"])) == "TGH" :
-					
-							# Add temperature to output
-							newCommands.append(Command("M104 S" + str(self._settings.get_int(["FilamentTemperature"]) + 15), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
-						
-						# Otherwise
-						else :
-		
-							# Add temperature to output
-							newCommands.append(Command("M104 S" + str(self._settings.get_int(["FilamentTemperature"])), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
+						# Add temperature to output
+						newCommands.append(Command("M104 S" + str(self._settings.get_int(["FilamentTemperature"])), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
 				
 				# Check if on first counted layer
 				if self.thermalBondingLayerCounter == 1 :
@@ -7761,47 +7805,29 @@ class M3DFioPlugin(
 
 							# Check if command is G0 or G1 and it's in absolute
 							if (gcode.getValue('G') == "0" or gcode.getValue('G') == "1") and not self.thermalBondingRelativeMode :
+							
+								# Check if tack points can be created
+								if self.tackPointAngle != 0 and self.tackPointTime >= 0.001 :
 
-								# Check if previous command exists and filament is ABS, HIPS, PLA, TGH, or FLX
-								if not self.thermalBondingPreviousGcode.isEmpty() and (str(self._settings.get(["FilamentType"])) == "ABS" or str(self._settings.get(["FilamentType"])) == "HIPS" or str(self._settings.get(["FilamentType"])) == "PLA" or str(self._settings.get(["FilamentType"])) == "FLX" or str(self._settings.get(["FilamentType"])) == "TGH" or str(self._settings.get(["FilamentType"])) == "CAM") :
-	
-									# Check if first sharp corner
-									if self.thermalBondingCornerCounter < 1 and self.isSharpCornerForThermalBonding(gcode, self.thermalBondingPreviousGcode) :
-			
-										# Check if refrence G-codes isn't set
-										if self.thermalBondingRefrenceGcode.isEmpty() :
-			
-											# Check if a tack point was created
-											self.thermalBondingTackPoint = self.createTackPoint(gcode, self.thermalBondingPreviousGcode)
-											if not self.thermalBondingTackPoint.isEmpty() :
-									
-												# Add tack point to output
-												newCommands.append(Command(self.thermalBondingTackPoint.getAscii(), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
-										
-										# Set refrence G-code
-										self.thermalBondingRefrenceGcode = copy.deepcopy(gcode)
-			
-										# Increment corner count
-										self.thermalBondingCornerCounter += 1
-		
-									# Otherwise check if sharp corner
-									elif self.isSharpCornerForThermalBonding(gcode, self.thermalBondingRefrenceGcode) :
+									# Check if at a sharp corner
+									if not self.thermalBondingPreviousGcode.isEmpty() and self.isSharpCornerForThermalBonding(gcode, self.thermalBondingPreviousGcode, self.tackPointAngle) :
 		
 										# Check if a tack point was created
-										self.thermalBondingTackPoint = self.createTackPoint(gcode, self.thermalBondingRefrenceGcode)
+										self.thermalBondingTackPoint = self.createTackPointForThermalBonding(gcode, self.thermalBondingRefrenceGcode, self.tackPointTime)
 										if not self.thermalBondingTackPoint.isEmpty() :
-								
+							
 											# Add tack point to output
 											newCommands.append(Command(self.thermalBondingTackPoint.getAscii(), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
-									
+								
 										# Set refrence G-code
 										self.thermalBondingRefrenceGcode = copy.deepcopy(gcode)
 								
-								# Check if no corners have occured
-								if self.thermalBondingCornerCounter < 1 :
-
 									# Set previous G-code
 									self.thermalBondingPreviousGcode = copy.deepcopy(gcode)
+									
+									# Set refrence G-codes if it isn't set
+									if self.thermalBondingRefrenceGcode.isEmpty() :
+										self.thermalBondingRefrenceGcode = copy.deepcopy(gcode)
 
 							# Otherwise check if command is G90
 							elif gcode.getValue('G') == "90" :
@@ -7831,8 +7857,8 @@ class M3DFioPlugin(
 					# Get next command
 					continue
 
-			# Check if printing test border or backlash calibration cylinder or using bed compensation pre-processor
-			if (self.printingTestBorder or self.printingBacklashCalibrationCylinder or self._settings.get_boolean(["UseBedCompensationPreprocessor"])) and "BED" not in command.skip :
+			# Check if printing test border or backlash calibration or using bed compensation pre-processor
+			if (self.printingTestBorder or self.printingBacklashCalibration or self._settings.get_boolean(["UseBedCompensationPreprocessor"])) and "BED" not in command.skip :
 
 				# Set command skip
 				command.skip += " BED"
@@ -8093,8 +8119,8 @@ class M3DFioPlugin(
 					# Get next command
 					continue
 
-			# Check if printing test border or backlash calibration cylinder or using backlash compentation pre-processor
-			if (self.printingTestBorder or self.printingBacklashCalibrationCylinder or self._settings.get_boolean(["UseBacklashCompensationPreprocessor"])) and "BACKLASH" not in command.skip :
+			# Check if not printing backlash calibration and printing test border or using backlash compentation pre-processor
+			if not self.printingBacklashCalibration and (self.printingTestBorder or self._settings.get_boolean(["UseBacklashCompensationPreprocessor"])) and "BACKLASH" not in command.skip :
 
 				# Set command skip
 				command.skip += " BACKLASH"

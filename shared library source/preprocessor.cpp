@@ -13,6 +13,12 @@ using namespace std;
 
 
 // Definitions
+#ifndef M_PI
+	#define M_PI 3.14159265358979323846
+#endif
+#ifndef M_PI_2
+	#define M_PI_2 1.57079632679489661923
+#endif
 
 // Bed dimensions
 #define BED_LOW_MAX_X 106.0
@@ -50,7 +56,7 @@ double bedHighMinZ = bedMediumMaxZ;
 // Enumerations
 
 // Filament types
-enum filamentTypes {NO_TYPE, ABS, PLA, HIPS, OTHER, FLX, TGH, CAM};
+enum filamentTypes {NO_TYPE, ABS, PLA, HIPS, OTHER, FLX, TGH, CAM, ABS_R};
 
 // Directions
 enum directions {POSITIVE, NEGATIVE, NEITHER};
@@ -148,7 +154,7 @@ bool useCenterModelPreprocessor;
 bool ignorePrintDimensionLimitations;
 bool usingHeatbed;
 bool printingTestBorder;
-bool printingBacklashCalibrationCylinder;
+bool printingBacklashCalibration;
 printerColors printerColor;
 bool calibrateBeforePrint;
 bool removeFanCommands;
@@ -172,6 +178,8 @@ double currentZ;
 bool relativeMode;
 list<double>printedLayers;
 bool onNewPrintedLayer;
+double tackPointAngle;
+double tackPointTime;
 
 // Mid-print filament change pre-processor settings
 uint64_t midPrintFilamentChangeLayerCounter;
@@ -191,7 +199,6 @@ uint8_t waveStep;
 bool waveBondingRelativeMode;
 uint8_t waveBondingLayerCounter;
 bool waveBondingChangesPlane;
-uint32_t waveBondingCornerCounter;
 double waveBondingPositionRelativeX;
 double waveBondingPositionRelativeY;
 double waveBondingPositionRelativeZ;
@@ -204,7 +211,6 @@ Gcode waveBondingExtraGcode;
 // Thermal bonding pre-processor settings
 bool thermalBondingRelativeMode;
 uint8_t thermalBondingLayerCounter;
-uint32_t thermalBondingCornerCounter;
 Gcode thermalBondingPreviousGcode;
 Gcode thermalBondingRefrenceGcode;
 Gcode thermalBondingTackPoint;
@@ -263,10 +269,10 @@ double max(double first, double second) {
 	return first > second ? first : second;
 }
 
-uint16_t getBoundedTemperature(uint16_t temperature) {
+uint16_t getBoundedTemperature(uint16_t temperature, uint16_t maxTemperature) {
 
 	// Return temperature bounded by range
-	return min(max(temperature, 150), 315);
+	return min(max(temperature, 150), maxTemperature);
 }
 
 double getDistance(const Gcode &firstPoint, const Gcode &secondPoint) {
@@ -283,25 +289,48 @@ double getDistance(const Gcode &firstPoint, const Gcode &secondPoint) {
 	return sqrt(pow(firstX - secondX, 2) + pow(firstY - secondY, 2));
 }
 
-Gcode createTackPoint(const Gcode &point, const Gcode &refrence) {
+Gcode createTackPointForThermalBonding(const Gcode &point, const Gcode &refrence, float time) {
 
 	// Initialize variables
 	Gcode gcode;
-	uint16_t time = ceil(getDistance(point, refrence));
+	uint16_t distance = ceil(getDistance(point, refrence));
 	
-	// Check if time is greater than 5
-	if(time > 5) {
+	// Check if distance is applicable
+	if(distance > time / 1000) {
 	
-		// Set G-code to a delay command based on time
+		// Get seconds and milliseconds
+		uint32_t seconds = time;
+		uint32_t milliseconds = (time - seconds) * 1000;
+	
+		// Set G-code to dwell G-code
 		gcode.setValue('G', "4");
-		gcode.setValue('P', to_string(time));
+		gcode.setValue('S', to_string(seconds));
+		gcode.setValue('P', to_string(milliseconds));
 	}
 	
 	// Return gcode
 	return gcode;
 }
 
-bool isSharpCornerForThermalBonding(const Gcode &point, const Gcode &refrence) {
+Gcode createTackPointForWaveBonding(const Gcode &point, const Gcode &refrence) {
+
+	// Initialize variables
+	Gcode gcode;
+	uint16_t distance = ceil(getDistance(point, refrence));
+	
+	// Check if distance is applicable
+	if(distance > 5) {
+	
+		// Set G-code to a delay command based on time
+		gcode.setValue('G', "4");
+		gcode.setValue('P', to_string(distance));
+	}
+	
+	// Return gcode
+	return gcode;
+}
+
+bool isSharpCornerForThermalBonding(const Gcode &point, const Gcode &refrence, float angle) {
 
 	// Initialize variables
 	double value;
@@ -334,7 +363,7 @@ bool isSharpCornerForThermalBonding(const Gcode &point, const Gcode &refrence) {
 		return false;
 	
 	// Return if sharp corner
-	return value > 0 && value < M_PI_2;
+	return value > 0 && value < angle / 180 * M_PI;
 }
 
 bool isSharpCornerForWaveBonding(const Gcode &point, const Gcode &refrence) {
@@ -595,6 +624,8 @@ EXPORT void setFilamentType(const char *value) {
 		filamentType = TGH;
 	else if(!strcmp(value, "CAM"))
 		filamentType = CAM;
+	else if(!strcmp(value, "ABS-R"))
+		filamentType = ABS_R;
 	else
 		filamentType = OTHER;
 }
@@ -659,10 +690,10 @@ EXPORT void setPrintingTestBorder(bool value) {
 	printingTestBorder = value;
 }
 
-EXPORT void setPrintingBacklashCalibrationCylinder(bool value) {
+EXPORT void setPrintingBacklashCalibration(bool value) {
 
-	// Set printing backlash calibration cylinder
-	printingBacklashCalibrationCylinder = value;
+	// Set printing backlash calibration
+	printingBacklashCalibration = value;
 }
 
 EXPORT void setPrinterColor(const char *value) {
@@ -849,7 +880,7 @@ EXPORT void resetPreprocessorSettings() {
 
 	// General settings
 	printingTestBorder = false;
-	printingBacklashCalibrationCylinder = false;
+	printingBacklashCalibration = false;
 	printerColor = BLACK;
 	currentE = 0;
 	currentF.clear();
@@ -857,6 +888,8 @@ EXPORT void resetPreprocessorSettings() {
 	relativeMode = false;
 	printedLayers.clear();
 	onNewPrintedLayer = false;
+	tackPointAngle = 0;
+	tackPointTime = 0;
 	
 	// Mid-print filament change pre-processor
 	midPrintFilamentChangeLayerCounter = 0;
@@ -877,7 +910,6 @@ EXPORT void resetPreprocessorSettings() {
 	waveBondingRelativeMode = false;
 	waveBondingLayerCounter = 0;
 	waveBondingChangesPlane = false;
-	waveBondingCornerCounter = 0;
 	waveBondingPositionRelativeX = 0;
 	waveBondingPositionRelativeY = 0;
 	waveBondingPositionRelativeZ = 0;
@@ -890,7 +922,6 @@ EXPORT void resetPreprocessorSettings() {
 	// Thermal bonding pre-processor settings
 	thermalBondingRelativeMode = false;
 	thermalBondingLayerCounter = 0;
-	thermalBondingCornerCounter = 0;
 	thermalBondingPreviousGcode.clear();
 	thermalBondingRefrenceGcode.clear();
 	thermalBondingTackPoint.clear();
@@ -1032,8 +1063,8 @@ EXPORT bool collectPrintInformation(const char *file, bool applyPreprocessors) {
 								// Set local Z
 								localZ = relativeMode ? (std::isnan(localZ) ? 0.4 : localZ) + commandZ : commandZ;
 							
-								// Check if applying pre-processors, not ignoring print dimension limitations, not printing a test border or backlash calibration cylinder, and Z is out of bounds
-								if(applyPreprocessors && !ignorePrintDimensionLimitations && !printingTestBorder && !printingBacklashCalibrationCylinder && (localZ < BED_LOW_MIN_Z || localZ > bedHighMaxZ))
+								// Check if applying pre-processors, not ignoring print dimension limitations, not printing a test border or backlash calibration, and Z is out of bounds
+								if(applyPreprocessors && !ignorePrintDimensionLimitations && !printingTestBorder && !printingBacklashCalibration && (localZ < BED_LOW_MIN_Z || localZ > bedHighMaxZ))
 							
 									// Return false
 									return false;
@@ -1054,8 +1085,8 @@ EXPORT bool collectPrintInformation(const char *file, bool applyPreprocessors) {
 					
 								case LOW:
 							
-									// Check if applying pre-processors, not ignoring print dimension limitations, not printing a test border or backlash calibration cylinder, centering model pre-processor isn't used, and X or Y is out of bounds
-									if(applyPreprocessors && !ignorePrintDimensionLimitations && !printingTestBorder && !printingBacklashCalibrationCylinder && !useCenterModelPreprocessor && ((!std::isnan(localX) && (localX < BED_LOW_MIN_X || localX > BED_LOW_MAX_X)) || (!std::isnan(localY) && (localY < bedLowMinY || localY > BED_LOW_MAX_Y))))
+									// Check if applying pre-processors, not ignoring print dimension limitations, not printing a test border or backlash calibration, centering model pre-processor isn't used, and X or Y is out of bounds
+									if(applyPreprocessors && !ignorePrintDimensionLimitations && !printingTestBorder && !printingBacklashCalibration && !useCenterModelPreprocessor && ((!std::isnan(localX) && (localX < BED_LOW_MIN_X || localX > BED_LOW_MAX_X)) || (!std::isnan(localY) && (localY < bedLowMinY || localY > BED_LOW_MAX_Y))))
 								
 										// Return false
 										return false;
@@ -1072,8 +1103,8 @@ EXPORT bool collectPrintInformation(const char *file, bool applyPreprocessors) {
 						
 								case MEDIUM:
 							
-									// Check if applying pre-processors, not ignoring print dimension limitations, not printing a test border or backlash calibration cylinder, centering model pre-processor isn't used, and X or Y is out of bounds
-									if(applyPreprocessors && !ignorePrintDimensionLimitations && !printingTestBorder && !printingBacklashCalibrationCylinder && !useCenterModelPreprocessor && ((!std::isnan(localX) && (localX < BED_MEDIUM_MIN_X || localX > BED_MEDIUM_MAX_X)) || (!std::isnan(localY) && (localY < BED_MEDIUM_MIN_Y || localY > BED_MEDIUM_MAX_Y))))
+									// Check if applying pre-processors, not ignoring print dimension limitations, not printing a test border or backlash calibration, centering model pre-processor isn't used, and X or Y is out of bounds
+									if(applyPreprocessors && !ignorePrintDimensionLimitations && !printingTestBorder && !printingBacklashCalibration && !useCenterModelPreprocessor && ((!std::isnan(localX) && (localX < BED_MEDIUM_MIN_X || localX > BED_MEDIUM_MAX_X)) || (!std::isnan(localY) && (localY < BED_MEDIUM_MIN_Y || localY > BED_MEDIUM_MAX_Y))))
 								
 										// Return false
 										return false;
@@ -1090,8 +1121,8 @@ EXPORT bool collectPrintInformation(const char *file, bool applyPreprocessors) {
 
 								case HIGH:
 							
-									// Check if applying pre-processors, not ignoring print dimension limitations, not printing a test border or backlash calibration cylinder, centering model pre-processor isn't used, and X or Y is out of bounds
-									if(applyPreprocessors && !ignorePrintDimensionLimitations && !printingTestBorder && !printingBacklashCalibrationCylinder && !useCenterModelPreprocessor && ((!std::isnan(localX) && (localX < BED_HIGH_MIN_X || localX > BED_HIGH_MAX_X)) || (!std::isnan(localY) && (localY < BED_HIGH_MIN_Y || localY > BED_HIGH_MAX_Y))))
+									// Check if applying pre-processors, not ignoring print dimension limitations, not printing a test border or backlash calibration, centering model pre-processor isn't used, and X or Y is out of bounds
+									if(applyPreprocessors && !ignorePrintDimensionLimitations && !printingTestBorder && !printingBacklashCalibration && !useCenterModelPreprocessor && ((!std::isnan(localX) && (localX < BED_HIGH_MIN_X || localX > BED_HIGH_MAX_X)) || (!std::isnan(localY) && (localY < BED_HIGH_MIN_Y || localY > BED_HIGH_MAX_Y))))
 								
 										// Return false
 										return false;
@@ -1139,8 +1170,8 @@ EXPORT bool collectPrintInformation(const char *file, bool applyPreprocessors) {
 			}
 		}
 		
-		// Check if applying pre-processors, center model pre-processor is set, and not printing a test border or backlash calibration cylinder
-		if(applyPreprocessors && useCenterModelPreprocessor && !printingTestBorder && !printingBacklashCalibrationCylinder) {
+		// Check if applying pre-processors, center model pre-processor is set, and not printing a test border or backlash calibration
+		if(applyPreprocessors && useCenterModelPreprocessor && !printingTestBorder && !printingBacklashCalibration) {
 	
 			// Calculate adjustments
 			displacementX = (BED_WIDTH - BED_CENTER_OFFSET_X - max(maxXExtruderLow, max(maxXExtruderMedium, maxXExtruderHigh)) - min(minXExtruderLow, min(minXExtruderMedium, minXExtruderHigh)) - BED_CENTER_OFFSET_X) / 2;
@@ -1270,8 +1301,8 @@ EXPORT bool collectPrintInformation(const char *file, bool applyPreprocessors) {
 			// Set detected fan speed
 			detectedFanSpeed = 0;
 		
-		// Check if using preparation pre-processor or printing a test border or backlash calibration cylinder
-		if(usePreparationPreprocessor || printingTestBorder || printingBacklashCalibrationCylinder) {
+		// Check if using preparation pre-processor or printing a test border or backlash calibration
+		if(usePreparationPreprocessor || printingTestBorder || printingBacklashCalibration) {
 		
 			// Set detected fan speed
 			if(filamentType == PLA || filamentType == FLX || filamentType == TGH)
@@ -1285,6 +1316,13 @@ EXPORT bool collectPrintInformation(const char *file, bool applyPreprocessors) {
 		
 			// Set mid-print filament change
 			detectedMidPrintFilamentChange = true;
+		
+		// Check if filement type is PLA, ABS, HIPS, FLX, TGH, CAM, or ABS-R
+		if(filamentType == PLA || filamentType == ABS || filamentType == HIPS || filamentType == FLX || filamentType == TGH || filamentType == CAM || filamentType == ABS_R)
+		
+			// Set tack point angle and time
+			tackPointAngle = 90;
+			tackPointTime = 0.01;
 		
 		// Return true
 		return true;
@@ -1435,8 +1473,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			}
 		}
 		
-		// Check if not printing test border or backlash calibration cylinder and using mid-print filament change pre-processor
-		if(!printingTestBorder && !printingBacklashCalibrationCylinder && midPrintFilamentChangeLayers.size() && command.skip < MID_PRINT) {
+		// Check if not printing test border or backlash calibration and using mid-print filament change pre-processor
+		if(!printingTestBorder && !printingBacklashCalibration && midPrintFilamentChangeLayers.size() && command.skip < MID_PRINT) {
 		
 			// Set command skip
 			command.skip = MID_PRINT;
@@ -1474,8 +1512,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			}
 		}
 
-		// Check if not printing test border or backlash calibration cylinder and using center model pre-processor
-		if(!printingTestBorder && !printingBacklashCalibrationCylinder && useCenterModelPreprocessor && command.skip < CENTER) {
+		// Check if not printing test border or backlash calibration and using center model pre-processor
+		if(!printingTestBorder && !printingBacklashCalibration && useCenterModelPreprocessor && command.skip < CENTER) {
 
 			// Set command skip
 			command.skip = CENTER;
@@ -1500,8 +1538,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 				}
 		}
 
-		// Check if printing test border or backlash calibration cylinder or using validation pre-processor
-		if((printingTestBorder || printingBacklashCalibrationCylinder || useValidationPreprocessor) && command.skip < VALIDATION) {
+		// Check if printing test border or backlash calibration or using validation pre-processor
+		if((printingTestBorder || printingBacklashCalibration || useValidationPreprocessor) && command.skip < VALIDATION) {
 
 			// Set command skip
 			command.skip = VALIDATION;
@@ -1546,8 +1584,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			}
 		}
 
-		// Check if printing test border or backlash calibration cylinder or using preparation pre-processor
-		if((printingTestBorder || printingBacklashCalibrationCylinder || usePreparationPreprocessor) && command.skip < PREPARATION) {
+		// Check if printing test border or backlash calibration or using preparation pre-processor
+		if((printingTestBorder || printingBacklashCalibration || usePreparationPreprocessor) && command.skip < PREPARATION) {
 
 			// Set command skip
 			command.skip = PREPARATION;
@@ -1581,7 +1619,7 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 				// Check if both of the corners are set
 				if(cornerX && cornerY) {
 				
-					// Set cornet Z
+					// Set corner Z
 					if(cornerX > 0 && cornerY > 0)
 						cornerZ = backRightOrientation + backRightOffset;
 					else if(cornerX < 0 && cornerY > 0)
@@ -1760,8 +1798,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			}
 		}
 
-		// Check if not printing test border or backlash calibration cylinder and using wave bonding pre-processor
-		if(!printingTestBorder && !printingBacklashCalibrationCylinder && useWaveBondingPreprocessor && command.skip < WAVE) {
+		// Check if not printing test border or backlash calibration and using wave bonding pre-processor
+		if(!printingTestBorder && !printingBacklashCalibration && useWaveBondingPreprocessor && command.skip < WAVE) {
 		
 			// Set command skip
 			command.skip = WAVE;
@@ -1835,43 +1873,18 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 							// Check if delta E is greater than zero 
 							if(deltaE > 0) {
 
-								// Check if previous G-code is not empty
-								if(!waveBondingPreviousGcode.isEmpty()) {
+								//Check if at a sharp corner
+								if(!waveBondingPreviousGcode.isEmpty() && isSharpCornerForWaveBonding(gcode, waveBondingPreviousGcode)) {
 
-									//Check if first sharp corner
-									if(waveBondingCornerCounter < 1 && isSharpCornerForWaveBonding(gcode, waveBondingPreviousGcode)) {
+									// Check if a tack point was created
+									waveBondingTackPoint = createTackPointForWaveBonding(gcode, waveBondingRefrenceGcode);
+									if(!waveBondingTackPoint.isEmpty())
+					
+										// Add tack point to output
+										newCommands.push(Command(waveBondingTackPoint.getAscii(), WAVE, WAVE));
 
-										// Check if refrence G-codes isn't set
-										if(waveBondingRefrenceGcode.isEmpty()) {
-
-											// Check if a tack point was created
-											waveBondingTackPoint = createTackPoint(gcode, waveBondingPreviousGcode);
-											if(!waveBondingTackPoint.isEmpty())
-							
-												// Add tack point to output
-												newCommands.push(Command(waveBondingTackPoint.getAscii(), WAVE, WAVE));
-										}
-
-										// Set refrence G-code
-										waveBondingRefrenceGcode = gcode;
-
-										// Increment corner counter
-										waveBondingCornerCounter++;
-									}
-
-									// Otherwise check if sharp corner
-									else if(isSharpCornerForWaveBonding(gcode, waveBondingRefrenceGcode)) {
-
-										// Check if a tack point was created
-										waveBondingTackPoint = createTackPoint(gcode, waveBondingRefrenceGcode);
-										if(!waveBondingTackPoint.isEmpty())
-						
-											// Add tack point to output
-											newCommands.push(Command(waveBondingTackPoint.getAscii(), WAVE, WAVE));
-
-										// Set refrence G-code
-										waveBondingRefrenceGcode = gcode;
-									}
+									// Set refrence G-code
+									waveBondingRefrenceGcode = gcode;
 								}
 
 								// Go through all of the wave
@@ -1954,11 +1967,12 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 								}
 							}
 						
-							// Check if no corners have occured
-							if(waveBondingCornerCounter < 1)
-						
-								// Set previous G-code
-								waveBondingPreviousGcode = gcode;
+							// Set previous G-code
+							waveBondingPreviousGcode = gcode;
+							
+							// Set refrence G-codes if it isn't set
+							if(waveBondingRefrenceGcode.isEmpty())
+								waveBondingRefrenceGcode = gcode;
 						}
 
 						// Otherwise check if command is G28
@@ -2035,8 +2049,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			}
 		}
 
-		// Check if printing test border or backlash calibration cylinder or using thermal bonding pre-processor
-		if((printingTestBorder || printingBacklashCalibrationCylinder || useThermalBondingPreprocessor) && command.skip < THERMAL) {
+		// Check if printing test border or backlash calibration or using thermal bonding pre-processor
+		if((printingTestBorder || printingBacklashCalibration || useThermalBondingPreprocessor) && command.skip < THERMAL) {
 
 			// Set command skip
 			command.skip = THERMAL;
@@ -2053,40 +2067,30 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 				// Check if on first counted layer
 				if(thermalBondingLayerCounter == 1) {
 				
-					// Check if filament type is PLA
-					if(filamentType == PLA)
+					// Check if filament type is ABS-R
+					if(filamentType == ABS_R)
 					
 						// Add temperature to output
-						newCommands.push(Command("M109 S" + to_string(getBoundedTemperature(filamentTemperature + 10)), THERMAL, THERMAL));
+						newCommands.push(Command("M109 S" + to_string(getBoundedTemperature(filamentTemperature + 15, filamentTemperature <= 285 ? 285 : 315)), THERMAL, THERMAL));
 					
 					// Otherwise check if filament type is TGH or FLX
 					else if(filamentType == TGH || filamentType == FLX)
 					
 						// Add temperature to output
-						newCommands.push(Command("M109 S" + to_string(getBoundedTemperature(filamentTemperature - 15)), THERMAL, THERMAL));
+						newCommands.push(Command("M109 S" + to_string(getBoundedTemperature(filamentTemperature - 15, filamentTemperature <= 285 ? 285 : 315)), THERMAL, THERMAL));
 					
 					// Otherwise
 					else
 	
 						// Add temperature to output
-						newCommands.push(Command("M109 S" + to_string(getBoundedTemperature(filamentTemperature + 15)), THERMAL, THERMAL));
+						newCommands.push(Command("M109 S" + to_string(getBoundedTemperature(filamentTemperature + 10, filamentTemperature <= 285 ? 285 : 315)), THERMAL, THERMAL));
 				}
 		
 				// Otherwise
-				else {
+				else
 				
-					// Check if filament type is TGH
-					if(filamentType == TGH)
-	
-						// Add temperature to output
-						newCommands.push(Command("M104 S" + to_string(filamentTemperature + 15), THERMAL, THERMAL));
-					
-					// Otherwise
-					else
-					
-						// Add temperature to output
-						newCommands.push(Command("M104 S" + to_string(filamentTemperature), THERMAL, THERMAL));
-				}
+					// Add temperature to output
+					newCommands.push(Command("M104 S" + to_string(filamentTemperature), THERMAL, THERMAL));
 			}
 			
 			// Check if on first counted layer
@@ -2100,51 +2104,31 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 
 						// Check if command is G0 or G1 and it's in absolute
 						if((gcode.getValue('G') == "0" || gcode.getValue('G') == "1") && !thermalBondingRelativeMode) {
+							
+							// Check if tack points can be created
+							if(tackPointAngle != 0 && tackPointTime >= 0.001) {
 
-							// Check if previous command exists and filament is ABS, HIPS, PLA, TGH, or FLX
-							if(!thermalBondingPreviousGcode.isEmpty() && (filamentType == ABS || filamentType == HIPS || filamentType == PLA || filamentType == FLX || filamentType == TGH || filamentType == CAM)) {
-
-								// Check if first sharp corner
-								if(thermalBondingCornerCounter < 1 && isSharpCornerForThermalBonding(gcode, thermalBondingPreviousGcode)) {
-		
-									// Check if refrence G-codes isn't set
-									if(thermalBondingRefrenceGcode.isEmpty()) {
-		
-										// Check if a tack point was created
-										thermalBondingTackPoint = createTackPoint(gcode, thermalBondingPreviousGcode);
-										if(!thermalBondingTackPoint.isEmpty())
-								
-											// Add tack point to output
-											newCommands.push(Command(thermalBondingTackPoint.getAscii(), THERMAL, THERMAL));
-									}
-									
-									// Set refrence G-code
-									thermalBondingRefrenceGcode = gcode;
-		
-									// Increment corner count
-									thermalBondingCornerCounter++;
-								}
-	
-								// Otherwise check if sharp corner
-								else if(isSharpCornerForThermalBonding(gcode, thermalBondingRefrenceGcode)) {
+								// Check if at a sharp corner
+								if(!thermalBondingPreviousGcode.isEmpty() && isSharpCornerForThermalBonding(gcode, thermalBondingPreviousGcode, tackPointAngle)) {
 	
 									// Check if a tack point was created
-									thermalBondingTackPoint = createTackPoint(gcode, thermalBondingRefrenceGcode);
+									thermalBondingTackPoint = createTackPointForThermalBonding(gcode, thermalBondingRefrenceGcode, tackPointTime);
 									if(!thermalBondingTackPoint.isEmpty())
-							
+						
 										// Add tack point to output
 										newCommands.push(Command(thermalBondingTackPoint.getAscii(), THERMAL, THERMAL));
-								
+							
 									// Set refrence G-code
 									thermalBondingRefrenceGcode = gcode;
 								}
-							}
-							
-							// Check if no corners have occured
-							if(thermalBondingCornerCounter < 1)
-							
+								
 								// Set previous G-code
 								thermalBondingPreviousGcode = gcode;
+								
+								// Set refrence G-codes if it isn't set
+								if(thermalBondingRefrenceGcode.isEmpty())
+									thermalBondingRefrenceGcode = gcode;
+							}
 						}
 
 						// Otherwise check if command is G90
@@ -2182,8 +2166,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			}
 		}
 
-		// Check if printing test border or backlash calibration cylinder or using bed compensation pre-processor
-		if((printingTestBorder || printingBacklashCalibrationCylinder || useBedCompensationPreprocessor) && command.skip < BED) {
+		// Check if printing test border or backlash calibration or using bed compensation pre-processor
+		if((printingTestBorder || printingBacklashCalibration || useBedCompensationPreprocessor) && command.skip < BED) {
 
 			// Set command skip
 			command.skip = BED;
@@ -2443,8 +2427,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			}
 		}
 
-		// Check if printing test border or backlash calibration cylinder or using backlash compentation pre-processor
-		if((printingTestBorder || printingBacklashCalibrationCylinder || useBacklashCompensationPreprocessor) && command.skip < BACKLASH) {
+		// Check if not printing backlash calibration and printing test border or using backlash compentation pre-processor
+		if(!printingBacklashCalibration && (printingTestBorder || useBacklashCompensationPreprocessor) && command.skip < BACKLASH) {
 
 			// Set command skip
 			command.skip = BACKLASH;

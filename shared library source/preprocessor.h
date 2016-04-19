@@ -55,7 +55,7 @@ extern "C" {
 	Name: Get bounded temperature
 	Purpose: Gets temperature bounded within a range
 	*/
-	uint16_t getBoundedTemperature(uint16_t temperature);
+	uint16_t getBoundedTemperature(uint16_t temperature, uint16_t maxTemperature);
 	
 	/*
 	Name: Get distance
@@ -136,7 +136,7 @@ extern "C" {
 	EXPORT void setIgnorePrintDimensionLimitations(bool value);
 	EXPORT void setUsingHeatbed(bool value);
 	EXPORT void setPrintingTestBorder(bool value);
-	EXPORT void setPrintingBacklashCalibrationCylinder(bool value);
+	EXPORT void setPrintingBacklashCalibration(bool value);
 	EXPORT void setPrinterColor(const char *value);
 	EXPORT void setCalibrateBeforePrint(bool value);
 	EXPORT void setRemoveFanCommands(bool value);

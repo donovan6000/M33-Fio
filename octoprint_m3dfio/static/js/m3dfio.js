@@ -662,7 +662,7 @@ $(function() {
 						else if(currentMessage.secondButton == "Unload" || currentMessage.secondButton == "Load" || currentMessage.secondButton == "Set") {
 							$("body > div.page-container > div.message > div > div > div.filamentSettings input").eq(0).val(self.settings.settings.plugins.m3dfio.FilamentTemperature());
 							$("body > div.page-container > div.message > div > div > div.filamentSettings label").text((currentMessage.secondButton == "Set" ? "New Print" : currentMessage.secondButton) + " Temperature");
-							$("body > div.page-container > div.message > div > div > div.filamentSettings p").html("Recommended<ul>" + (currentMessage.secondButton == "Unload" ? "<li>285°C for ABS</li><li>225°C for PLA</li><li>275°C for HIPS</li><li>255°C for FLX</li><li>255°C for TGH</li><li>210°C for CAM</li>" : "<li>275°C for ABS</li><li>215°C for PLA</li><li>265°C for HIPS</li><li>245°C for FLX</li><li>245°C for TGH</li><li>200°C for CAM</li>") + "</ul>");
+							$("body > div.page-container > div.message > div > div > div.filamentSettings p").html("Recommended<ul>" + (currentMessage.secondButton == "Unload" ? "<li>285°C for ABS</li><li>225°C for PLA</li><li>275°C for HIPS</li><li>230°C for FLX</li><li>230°C for TGH</li><li>225°C for CAM</li><li>250°C for ABS-R</li>" : "<li>275°C for ABS</li><li>215°C for PLA</li><li>265°C for HIPS</li><li>220°C for FLX</li><li>220°C for TGH</li><li>215°C for CAM</li><li>240°C for ABS-R</li>") + "</ul>");
 							$("body > div.page-container > div.message > div > div > div.filamentSettings").addClass("show");
 							message.find("p").eq(0).removeClass("show")
 						}
@@ -919,11 +919,23 @@ $(function() {
 						this.platformAdhesion = getSlicerProfileValue("platform_adhesion");
 					
 						// Check if platform adhesion isn't set
-						if(!this.platformAdhesion.length) {
-					
+						if(!this.platformAdhesion.length || this.platformAdhesion == "None") {
+						
+							// Check if using a skirt
+							if(getSlicerProfileValue("skirt_line_count") == "True")
+								this.adhesionSize = getSlicerProfileValue("skirt_gap");
+							
 							// Set default platform adhesion
-							this.platformAdhesion = "None";
-							this.adhesionSize = 0;
+							if(this.adhesionSize === null || !this.adhesionSize.length) {
+								this.adhesionSize = 0;
+								this.platformAdhesion = "None";
+							}
+							
+							// Otherwise set skirt platform adhesion
+							else {
+								this.adhesionSize = parseFloat(this.adhesionSize);
+								this.platformAdhesion = "Skirt";
+							}
 						}
 					
 						// Otherwise
@@ -1415,8 +1427,8 @@ $(function() {
 				// Create platform adhesion
 				createPlatformAdhesion: function(mesh) {
 				
-					// Check if using a raft or a brim
-					if(viewport.platformAdhesion == "Raft" || viewport.platformAdhesion == "Brim") {
+					// Check if using platform adhesion
+					if(viewport.platformAdhesion != "None") {
 					
 						// Create adhesion mesh
 						var adhesionMesh = new THREE.Mesh(mesh.geometry.clone(), filamentMaterials[self.settings.settings.plugins.m3dfio.FilamentColor()]);
@@ -3577,7 +3589,7 @@ $(function() {
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Save Z as bed center Z0</button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Save Z as external bed height</button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Print 0.4mm test border</button>
-					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Print backlash calibration cylinder</button>
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Print backlash calibration</button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Run complete bed calibration</button>
 					<button class="btn btn-block control-box" data-bind="enable: loginState.isUser() && !isPrinting()">Save printer settings to file</button>
 					<button class="btn btn-block control-box" data-bind="enable: loginState.isUser() && !isPrinting()">Restore printer settings from file</button>
@@ -3743,9 +3755,10 @@ $(function() {
 										<option value="ABS">ABS (Recommended 275°C)</option>
 										<option value="PLA">PLA (Recommended 215°C)</option>
 										<option value="HIPS">HIPS (Recommended 265°C)</option>
-										<option value="FLX">FLX (Recommended 245°C)</option>
-										<option value="TGH">TGH (Recommended 245°C)</option>
-										<option value="CAM">CAM (Recommended 200°C)</option>
+										<option value="FLX">FLX (Recommended 220°C)</option>
+										<option value="TGH">TGH (Recommended 220°C)</option>
+										<option value="CAM">CAM (Recommended 215°C)</option>
+										<option value="ABS-R">ABS-R (Recommended 240°C)</option>
 										<option value="OTHER">Other</option>
 									</select> 
 								</div>
@@ -4949,7 +4962,7 @@ $(function() {
 										success: function(data) {
 										
 											// Set using provided profile
-											var usingProvidedProfile = slicerName == "cura" && (slicerProfileName == "m3d_pla" || slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips" || slicerProfileName == "m3d_flx" || slicerProfileName == "m3d_tgh");
+											var usingProvidedProfile = slicerName == "cura" && (slicerProfileName == "m3d_pla" || slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips" || slicerProfileName == "m3d_flx" || slicerProfileName == "m3d_tgh" || slicerProfileName == "m3d_abs-r");
 											
 											// Hide dialog
 											$("#slicing_configuration_dialog").removeClass("in");
@@ -4986,12 +4999,14 @@ $(function() {
 																	<button title="Medium fill"` + (usingProvidedProfile ? ` class="disabled"` : ``) + `><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/medium%20fill.png"></button>
 																	<button title="High fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/high%20fill.png"></button>
 																	<button title="Extra high fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/extra%20high%20fill.png"></button>
+																	<button title="Full fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/full%20fill.png"></button>
 																</div>
 																<div class="settings">
 																	<label title="Prints a breakaway support underneath overhanging parts of the model"><input class="useSupportMaterial" type="checkbox" tabindex="-1">Use support material</label>
 																	<label title="Allows support material to be created on top of models"><input class="useModelOnModelSupport" type="checkbox" tabindex="-1">Use model on model support</label>
 																	<label title="Prints a raft underneath the model"><input class="useRaft" type="checkbox" tabindex="-1">Use raft</label>
 																	<label title="Prints a brim connected to the first layer of the model"><input class="useBrim" type="checkbox" tabindex="-1">Use brim</label>
+																	<label title="Prints an outline around the model"><input class="useSkirt" type="checkbox" tabindex="-1">Use skirt</label>
 																	<label title="Retracts the filament when moving over gaps"><input class="useRetraction" type="checkbox" tabindex="-1">Use retraction</label>
 																</div>
 															</div>
@@ -5047,6 +5062,13 @@ $(function() {
 																			<span class="add-on">line(s)</span>
 																		</div>
 																	</div>
+																	<div title="How far away the skirt is from the model">
+																		<label>Skirt gap</label>
+																		<div class="input-append">
+																			<input class="skirtGap" type="number" tabindex="-1" min="0" max="100" step="0.01">
+																			<span class="add-on">mm</span>
+																		</div>
+																	</div>
 																</div>
 															</div>
 														</div>
@@ -5067,6 +5089,7 @@ $(function() {
 												$("#slicing_configuration_dialog .modal-extra div.cura div input[type=\"checkbox\"].useModelOnModelSupport").prop("checked", getSlicerProfileValue("support") == "Everywhere");
 												$("#slicing_configuration_dialog .modal-extra div.cura div input[type=\"checkbox\"].useRaft").prop("checked", getSlicerProfileValue("platform_adhesion") == "Raft");
 												$("#slicing_configuration_dialog .modal-extra div.cura div input[type=\"checkbox\"].useBrim").prop("checked", getSlicerProfileValue("platform_adhesion") == "Brim");
+												$("#slicing_configuration_dialog .modal-extra div.cura div input[type=\"checkbox\"].useSkirt").prop("checked", getSlicerProfileValue("skirt_line_count") == "True");
 												$("#slicing_configuration_dialog .modal-extra div.cura div input[type=\"checkbox\"].useRetraction").prop("checked", getSlicerProfileValue("retraction_enable") == "True");
 											
 												// Set manual setting values
@@ -5078,11 +5101,16 @@ $(function() {
 												$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").val(getSlicerProfileValue("brim_line_count"));
 												if(!$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").val().length)
 													$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").val(20);
+												$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.skirtGap").val(getSlicerProfileValue("skirt_gap"));
+												if(!$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.skirtGap").val().length)
+													$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.skirtGap").val(3);
 												$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.topBottomLayers").val(Math.round(parseFloat(getSlicerProfileValue("solid_layer_thickness")) / parseFloat(getSlicerProfileValue("layer_height"))));
 												if(getSlicerProfileValue("platform_adhesion") != "Raft")
 													$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.raftAirgap").parent("div").parent("div").addClass("disabled");
 												if(getSlicerProfileValue("platform_adhesion") != "Brim")
 													$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").parent("div").parent("div").addClass("disabled");
+												if(getSlicerProfileValue("platform_adhesion") != "None" || !$("#slicing_configuration_dialog .modal-extra div.cura div input[type=\"checkbox\"].useSkirt").prop("checked"))
+													$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.skirtGap").parent("div").parent("div").addClass("disabled");
 											
 												// Check if using a Cura profile
 												if(slicerName == "cura")
@@ -5315,23 +5343,24 @@ $(function() {
 															changedSettings.push({
 																platform_adhesion: "Raft; None, Brim, Raft",
 																bottom_layer_speed: 12,
-																skirt_line_count: 0,
+																skirt_line_count: "False",
 																brim_line_count: null
 															});
 														
 															if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
 																changedSettings[0]["bottom_layer_speed"] = 16;
 														
-															// Uncheck use brim basic setting, disable brim line count manual setting, and enable raft airgap manual setting
-															$("#slicing_configuration_dialog .modal-extra div.cura div input.useBrim").prop("checked", false);
+															// Uncheck use brim and use skirt basic setting, disable brim line count and skirt gap manual setting, and enable raft airgap manual setting
+															$("#slicing_configuration_dialog .modal-extra div.cura div input.useBrim, #slicing_configuration_dialog .modal-extra div.cura div input.useSkirt").prop("checked", false);
 															$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").parent("div").parent("div").addClass("disabled");
+															$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.skirtGap").parent("div").parent("div").addClass("disabled");
 															$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.raftAirgap").parent("div").parent("div").removeClass("disabled");
 														}
 														else {
 															changedSettings.push({
 																platform_adhesion: "None; None, Brim, Raft",
 																bottom_layer_speed: 5,
-																skirt_line_count: 0,
+																skirt_line_count: "False",
 																brim_line_count: null
 															});
 														
@@ -5354,21 +5383,52 @@ $(function() {
 															if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
 																changedSettings[0]["bottom_layer_speed"] = 16;
 														
-															// Uncheck use raft basic setting, enable brim line count manual setting, and disable raft airgap manual setting
-															$("#slicing_configuration_dialog .modal-extra div.cura div input.useRaft").prop("checked", false);
+															// Uncheck use raft and skirt basic setting, enable brim line count manual setting, and disable raft airgap and skirt gap manual setting
+															$("#slicing_configuration_dialog .modal-extra div.cura div input.useRaft, #slicing_configuration_dialog .modal-extra div.cura div input.useSkirt").prop("checked", false);
 															$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").parent("div").parent("div").removeClass("disabled");
 															$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.raftAirgap").parent("div").parent("div").addClass("disabled");
+															$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.skirtGap").parent("div").parent("div").addClass("disabled");
 														}
 														else {
 															changedSettings.push({
 																platform_adhesion: "None; None, Brim, Raft",
 																bottom_layer_speed: 5,
-																skirt_line_count: 0,
+																skirt_line_count: "False",
 																brim_line_count: null
 															});
 														
 															// Disable brim line count manual setting
 															$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").parent("div").parent("div").addClass("disabled");
+														}
+													}
+													
+													// Otherwise set changed settings if changing use skirt
+													else if($(this).hasClass("useSkirt")) {
+												
+														if(checked) {
+															changedSettings.push({
+																platform_adhesion: "None; None, Brim, Raft",
+																bottom_layer_speed: 5,
+																skirt_line_count: "True",
+																brim_line_count: null
+															});
+														
+															// Uncheck use raft and brim basic setting, enable skirt gap manual setting, and disable raft airgap and brim line count manual setting
+															$("#slicing_configuration_dialog .modal-extra div.cura div input.useRaft, #slicing_configuration_dialog .modal-extra div.cura div input.useBrim").prop("checked", false);
+															$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.skirtGap").parent("div").parent("div").removeClass("disabled");
+															$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.raftAirgap").parent("div").parent("div").addClass("disabled");
+															$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.brimLineCount").parent("div").parent("div").addClass("disabled");
+														}
+														else {
+															changedSettings.push({
+																platform_adhesion: "None; None, Brim, Raft",
+																bottom_layer_speed: 5,
+																skirt_line_count: "False",
+																brim_line_count: null
+															});
+														
+															// Disable skirt gap manual setting
+															$("#slicing_configuration_dialog.profile .modal-extra div.group.manual > div > div > div > input.skirtGap").parent("div").parent("div").addClass("disabled");
 														}
 													}
 												
@@ -5500,6 +5560,13 @@ $(function() {
 														changedSettings.push({
 															brim_line_count: $(this).val()
 														});
+													
+													// Otherwise set changed settings if changing skirt gap
+													else if($(this).hasClass("skirtGap"))
+												
+														changedSettings.push({
+															skirt_gap: $(this).val()
+														});
 												
 													// Update profile settings
 													updateProfileSettings(changedSettings[0]);
@@ -5531,7 +5598,7 @@ $(function() {
 																solid_layer_thickness: 2.799
 															});
 														
-															if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
+															if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips" || slicerProfileName == "m3d_abs-r"))
 																changedSettings[0]["fan_full_height"] = 0.651;
 														}
 													
@@ -5545,7 +5612,7 @@ $(function() {
 																solid_layer_thickness: 1.999
 															});
 														
-															if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
+															if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips" || slicerProfileName == "m3d_abs-r"))
 																changedSettings[0]["fan_full_height"] = 0.551;
 														}
 													
@@ -5559,7 +5626,7 @@ $(function() {
 																solid_layer_thickness: 1.199
 															});
 														
-															if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
+															if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips" || slicerProfileName == "m3d_abs-r"))
 																changedSettings[0]["fan_full_height"] = 0.451;
 														}
 													
@@ -5573,7 +5640,7 @@ $(function() {
 																solid_layer_thickness: 0.799
 															});
 														
-															if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
+															if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips" || slicerProfileName == "m3d_abs-r"))
 																changedSettings[0]["fan_full_height"] = 0.401;
 														}
 													
@@ -5587,7 +5654,7 @@ $(function() {
 																solid_layer_thickness: 0.399
 															});
 														
-															if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips"))
+															if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips" || slicerProfileName == "m3d_abs-r"))
 																changedSettings[0]["fan_full_height"] = 0.151;
 														}
 													
@@ -5657,6 +5724,16 @@ $(function() {
 													
 															changedSettings.push({
 																fill_density: 23.333,
+																wall_thickness: 1.4,
+																nozzle_size: 0.35,
+																infill_speed: null
+															});
+														
+														// Otherwise set changed settings if full fill
+														else if($(this).attr("title") == "Full fill")
+													
+															changedSettings.push({
+																fill_density: 100,
 																wall_thickness: 1.4,
 																nozzle_size: 0.35,
 																infill_speed: null
@@ -8348,7 +8425,7 @@ $(function() {
 		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(17)").attr("title", "Prints 0.4mm test border").click(function(event) {
 		
 			// Show message
-			showMessage("Calibration Status", "It's recommended to print this test border after completely calibrating the bed to ensure that the calibration is accurate.<br><br>The test border should print as a solid, even extruded border, and the 'Back Left Offset', 'Back Right Offset', 'Front Right Offset', and 'Front Left Offset' values can be adjusted to correct any issues with it. If the test border contains squiggly ripples, then it is too high. If the test border contains missing gaps, then it is too low.<br><br>It's also recommended to print a model with a raft after this is done to see if the 'Bed Height Offset' value needs to be adjusted. If the raft does not securely stick to the bed, then it is too high. If the model isn't easily removed from the raft, then it is too low.<br><br>All the referenced values can be found by clicking the 'Print settings' button in the 'General' section. Proceed?", "Yes", function() {
+			showMessage("Calibration Status", "It's recommended to print this test border after completely calibrating the bed to ensure that the calibration is accurate. The test border should print as a solid, even extruded border.<img src=\"" + PLUGIN_BASEURL + "m3dfio/static/img/test%20border%20good.png\">The 'Back Left Offset', 'Back Right Offset', 'Front Right Offset', and 'Front Left Offset' values can be adjusted to correct any issues with it. If the test border contains squiggly ripples, then it is too high.<img src=\"" + PLUGIN_BASEURL + "m3dfio/static/img/test%20border%20high.png\">If the test border contains missing gaps, then it is too low.<img src=\"" + PLUGIN_BASEURL + "m3dfio/static/img/test%20border%20low.png\">It's also recommended to print a model with a raft after this is done to see if the 'Bed Height Offset' value needs to be adjusted. If the raft does not securely stick to the bed, then it is too high. If the model isn't easily removed from the raft, then it is too low.<br><br>All the referenced values can be found by clicking the 'Print settings' button in the 'General' section. Proceed?", "Yes", function() {
 			
 				// Hide message
 				hideMessage();
@@ -8436,79 +8513,53 @@ $(function() {
 			});
 		});
 		
-		// Set print backlash calibration cylinder control
-		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(18)").attr("title", "Prints backlash calibration cylinder").click(function(event) {
+		// Set print backlash calibration control
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(18)").attr("title", "Prints a specified backlash calibration").click(function(event) {
 		
 			// Show message
-			showMessage("Calibration Status", "It's recommended to print this backlash calibration cylinder after the print bed has been accurately calibrated.<br><br>To start this procedure, the 'Backlash X' and 'Backlash Y' values should be set to 0 so that an uncompensated cylinder can be printed. The cylinder's X backlash signature gaps are located at 2 and 8 o'clock and Y backlash signature gaps are located at 5 and 11 o'clock. The front left corner of the cylinder's base is cut off to make identifying the cylinder's orientation easier.<br><br>After printing an initial cylinder, adjust the 'Backlash X' value to close the X signature gaps, print, and repeat if necessary to ensure the accuracy. 'Backlash X' values typically range within 0.2mm to 0.6mm.<br><br>After the 'Backlash X' value has been calibrated, adjust the 'Backlash Y' value to close the Y signature gaps, print, and repeat if necessary to ensure the accuracy. 'Backlash Y' values typically range within 0.4mm to 1.3mm. You may need fine tune the 'Backlash X' vale again after 'Backlash Y' value has been calibrated.<br><br>All the referenced values can be found by clicking the 'Print settings' button in the 'General' section. Proceed?", "Yes", function() {
+			showMessage("Calibration Status", "It's recommended to print the backlash calibration prints after the print bed has been accurately calibrated. The selected backlash calibration print will be printed without any backlash compensation applied to it, and the X backlash calibration prints and Y backlash calibration prints each assist in determining the X and Y backlash respecitvley.<br><br>The backlash values can be detemined by finding the sample with the highest possible value that doesn't curve.<img src=\"" + PLUGIN_BASEURL + "m3dfio/static/img/backlash.png\">If none of the samples curve when using the 0.0‑0.99 prints then use the 0.70‑1.69 prints.<br><br>Choose a backlash calibration print to continue.<span class=\"backlash\"><button class=\"btn btn-block\">X 0.0‑0.99</button><button class=\"btn btn-block\">X 0.70‑1.69</button><button class=\"btn btn-block\">Y 0.0‑0.99</button><button class=\"btn btn-block\">Y 0.70‑1.69</button></span>", "Cancel", function() {
 			
 				// Hide message
 				hideMessage();
-				
-				// Check if using on the fly pre-processing and changing settings before print
-				if(self.settings.settings.plugins.m3dfio.PreprocessOnTheFly() && self.settings.settings.plugins.m3dfio.ChangeSettingsBeforePrint()) {
-				
-					// Show message
-					showMessage("Printing Status", '', "Print", function() {
+			});
+		});
+		
+		// Backlash calibration print click event
+		$(document).on("click", "body > div.page-container > div.message > div > div > p span.backlash > button", function() {
+		
+			// Hide message
+			hideMessage();
 			
-						// Hide message
-						hideMessage();
-				
-						// Send request
-						$.ajax({
-							url: API_BASEURL + "plugin/m3dfio",
-							type: "POST",
-							dataType: "json",
-							data: JSON.stringify({
-								command: "message",
-								value: "Print Settings: " + JSON.stringify({
-									filamentTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").eq(0).val(),
-									heatbedTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").eq(1).val(),
-									filamentType: $("body > div.page-container > div.message > div > div > div.printSettings select").val(),
-									useWaveBondingPreprocessor: $("body > div.page-container > div.message > div > div > div.printSettings input[type=\"checkbox\"]").is(":checked")
-								})
-							}),
-							contentType: "application/json; charset=UTF-8",
-					
-							// On success									
-							success: function() {
-					
-								// Print file
-								function printFile() {
-							
-									// Save software settings
-									self.settings.saveData();
-								
-									// Send request
-									$.ajax({
-										url: API_BASEURL + "plugin/m3dfio",
-										type: "POST",
-										dataType: "json",
-										data: JSON.stringify({
-											command: "message",
-											value: "Print Backlash Calibration Cylinder"
-										}),
-										contentType: "application/json; charset=UTF-8"
-									});
-								}
-						
-								// Update settings
-								if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
-									self.settings.requestData(printFile);
-								else
-									self.settings.requestData().done(printFile);
-							}
-						});
-					}, "Cancel", function() {
+			// Set command
+			var command;
+			switch($(this).index()) {
 			
-						// Hide message
-						hideMessage();
-					});
-				}
+				case 0:
+					command = "Print Backlash Calibration X 0.0-0.99";
+				break;
 				
-				// Otherwise
-				else
+				case 1:
+					command = "Print Backlash Calibration X 0.70-1.69";
+				break;
 				
+				case 2:
+					command = "Print Backlash Calibration Y 0.0-0.99";
+				break;
+				
+				case 3:
+					command = "Print Backlash Calibration Y 0.70-1.69";
+				break;
+			}
+			
+			// Check if using on the fly pre-processing and changing settings before print
+			if(self.settings.settings.plugins.m3dfio.PreprocessOnTheFly() && self.settings.settings.plugins.m3dfio.ChangeSettingsBeforePrint()) {
+			
+				// Show message
+				showMessage("Printing Status", '', "Print", function() {
+		
+					// Hide message
+					hideMessage();
+			
 					// Send request
 					$.ajax({
 						url: API_BASEURL + "plugin/m3dfio",
@@ -8516,16 +8567,65 @@ $(function() {
 						dataType: "json",
 						data: JSON.stringify({
 							command: "message",
-							value: "Print Backlash Calibration Cylinder"
+							value: "Print Settings: " + JSON.stringify({
+								filamentTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").eq(0).val(),
+								heatbedTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").eq(1).val(),
+								filamentType: $("body > div.page-container > div.message > div > div > div.printSettings select").val(),
+								useWaveBondingPreprocessor: $("body > div.page-container > div.message > div > div > div.printSettings input[type=\"checkbox\"]").is(":checked")
+							})
 						}),
-						contentType: "application/json; charset=UTF-8"
+						contentType: "application/json; charset=UTF-8",
+				
+						// On success									
+						success: function() {
+				
+							// Print file
+							function printFile() {
+						
+								// Save software settings
+								self.settings.saveData();
+							
+								// Send request
+								$.ajax({
+									url: API_BASEURL + "plugin/m3dfio",
+									type: "POST",
+									dataType: "json",
+									data: JSON.stringify({
+										command: "message",
+										value: command
+									}),
+									contentType: "application/json; charset=UTF-8"
+								});
+							}
+					
+							// Update settings
+							if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
+								self.settings.requestData(printFile);
+							else
+								self.settings.requestData().done(printFile);
+						}
 					});
+				}, "Cancel", function() {
+		
+					// Hide message
+					hideMessage();
+				});
+			}
 			
-			}, "No", function() {
+			// Otherwise
+			else
 			
-				// Hide message
-				hideMessage();
-			});
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m3dfio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({
+						command: "message",
+						value: command
+					}),
+					contentType: "application/json; charset=UTF-8"
+				});
 		});
 		
 		// Run complete bed calibration control
@@ -11341,18 +11441,6 @@ $(function() {
 		// On settings hidden
 		self.onSettingsHidden = function() {
 		
-			// Send request
-			$.ajax({
-				url: API_BASEURL + "plugin/m3dfio",
-				type: "POST",
-				dataType: "json",
-				data: JSON.stringify({
-					command: "message",
-					value: "Saved Settings"
-				}),
-				contentType: "application/json; charset=UTF-8"
-			});
-			
 			// Update values
 			function updateValues() {
 
