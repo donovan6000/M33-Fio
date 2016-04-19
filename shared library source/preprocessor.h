@@ -136,7 +136,7 @@ extern "C" {
 	EXPORT void setIgnorePrintDimensionLimitations(bool value);
 	EXPORT void setUsingHeatbed(bool value);
 	EXPORT void setPrintingTestBorder(bool value);
-	EXPORT void setPrintingBacklashCalibrationCylinder(bool value);
+	EXPORT void setPrintingBacklashCalibration(bool value);
 	EXPORT void setPrinterColor(const char *value);
 	EXPORT void setCalibrateBeforePrint(bool value);
 	EXPORT void setRemoveFanCommands(bool value);

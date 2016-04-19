@@ -411,6 +411,7 @@ body > div.page-container > div.message {
 	transition: visibility 0.3s linear, opacity 0.3s linear;
 	-moz-user-select: none;
 	user-select: none;
+	overflow: hidden;
 }
 
 body > div.page-container > div.message > div {
@@ -451,6 +452,34 @@ body > div.page-container > div.message > div > img {
 	visibility: hidden;
 }
 
+body > div.page-container > div.message > div > div > p {
+	overflow: auto;
+	overflow-x: hidden;
+	max-height: 500px;
+}
+
+body > div.page-container > div.message > div > div > p img {
+	width: 90%;
+	height: auto;
+	display: block;
+	margin: 2px auto;
+	border: 1px solid white; 
+	box-shadow: 0 0 2px rgba(0, 0, 0, 1), 0 0 3px rgba(0, 0, 0, 0.2);
+	background-color: white;
+	pointer-events: none;
+}
+
+body > div.page-container > div.message > div > div > p span.backlash {
+	display: block;
+	text-align: center;
+}
+
+body > div.page-container > div.message > div > div > p span.backlash > button {
+	display: inline;
+	width: 100px;
+	margin: 2px;
+}
+
 body > div.page-container > div.message > div > div > p:not(.show) {
 	height: 0px;
 	visibility: hidden;
@@ -462,7 +491,7 @@ body > div.page-container > div.message > div > div {
 	margin: 0 1px 1px 1px;
 	padding: 8px 12px 0 12px;
 	min-width: 200px;
-	max-width: 400px;
+	max-width: 500px;
 }
 
 body > div.page-container > div.message > div > div > div:not(.calibrate) {
@@ -479,7 +508,7 @@ body > div.page-container > div.message > div > div > div:not(.calibrate) > butt
 	display: inline;
 	width: 70px;
 	visibility: hidden;
-	margin:0 1px 0 0;
+	margin: 0 1px 0 0;
 }
 
 body > div.page-container > div.message > div > div > div.calibrate, body > div.page-container > div.message > div > div > div.printSettings, body > div.page-container > div.message > div > div > div.filamentSettings {

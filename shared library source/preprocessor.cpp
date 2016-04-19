@@ -154,7 +154,7 @@ bool useCenterModelPreprocessor;
 bool ignorePrintDimensionLimitations;
 bool usingHeatbed;
 bool printingTestBorder;
-bool printingBacklashCalibrationCylinder;
+bool printingBacklashCalibration;
 printerColors printerColor;
 bool calibrateBeforePrint;
 bool removeFanCommands;
@@ -690,10 +690,10 @@ EXPORT void setPrintingTestBorder(bool value) {
 	printingTestBorder = value;
 }
 
-EXPORT void setPrintingBacklashCalibrationCylinder(bool value) {
+EXPORT void setPrintingBacklashCalibration(bool value) {
 
-	// Set printing backlash calibration cylinder
-	printingBacklashCalibrationCylinder = value;
+	// Set printing backlash calibration
+	printingBacklashCalibration = value;
 }
 
 EXPORT void setPrinterColor(const char *value) {
@@ -880,7 +880,7 @@ EXPORT void resetPreprocessorSettings() {
 
 	// General settings
 	printingTestBorder = false;
-	printingBacklashCalibrationCylinder = false;
+	printingBacklashCalibration = false;
 	printerColor = BLACK;
 	currentE = 0;
 	currentF.clear();
@@ -1063,8 +1063,8 @@ EXPORT bool collectPrintInformation(const char *file, bool applyPreprocessors) {
 								// Set local Z
 								localZ = relativeMode ? (std::isnan(localZ) ? 0.4 : localZ) + commandZ : commandZ;
 							
-								// Check if applying pre-processors, not ignoring print dimension limitations, not printing a test border or backlash calibration cylinder, and Z is out of bounds
-								if(applyPreprocessors && !ignorePrintDimensionLimitations && !printingTestBorder && !printingBacklashCalibrationCylinder && (localZ < BED_LOW_MIN_Z || localZ > bedHighMaxZ))
+								// Check if applying pre-processors, not ignoring print dimension limitations, not printing a test border or backlash calibration, and Z is out of bounds
+								if(applyPreprocessors && !ignorePrintDimensionLimitations && !printingTestBorder && !printingBacklashCalibration && (localZ < BED_LOW_MIN_Z || localZ > bedHighMaxZ))
 							
 									// Return false
 									return false;
@@ -1085,8 +1085,8 @@ EXPORT bool collectPrintInformation(const char *file, bool applyPreprocessors) {
 					
 								case LOW:
 							
-									// Check if applying pre-processors, not ignoring print dimension limitations, not printing a test border or backlash calibration cylinder, centering model pre-processor isn't used, and X or Y is out of bounds
-									if(applyPreprocessors && !ignorePrintDimensionLimitations && !printingTestBorder && !printingBacklashCalibrationCylinder && !useCenterModelPreprocessor && ((!std::isnan(localX) && (localX < BED_LOW_MIN_X || localX > BED_LOW_MAX_X)) || (!std::isnan(localY) && (localY < bedLowMinY || localY > BED_LOW_MAX_Y))))
+									// Check if applying pre-processors, not ignoring print dimension limitations, not printing a test border or backlash calibration, centering model pre-processor isn't used, and X or Y is out of bounds
+									if(applyPreprocessors && !ignorePrintDimensionLimitations && !printingTestBorder && !printingBacklashCalibration && !useCenterModelPreprocessor && ((!std::isnan(localX) && (localX < BED_LOW_MIN_X || localX > BED_LOW_MAX_X)) || (!std::isnan(localY) && (localY < bedLowMinY || localY > BED_LOW_MAX_Y))))
 								
 										// Return false
 										return false;
@@ -1103,8 +1103,8 @@ EXPORT bool collectPrintInformation(const char *file, bool applyPreprocessors) {
 						
 								case MEDIUM:
 							
-									// Check if applying pre-processors, not ignoring print dimension limitations, not printing a test border or backlash calibration cylinder, centering model pre-processor isn't used, and X or Y is out of bounds
-									if(applyPreprocessors && !ignorePrintDimensionLimitations && !printingTestBorder && !printingBacklashCalibrationCylinder && !useCenterModelPreprocessor && ((!std::isnan(localX) && (localX < BED_MEDIUM_MIN_X || localX > BED_MEDIUM_MAX_X)) || (!std::isnan(localY) && (localY < BED_MEDIUM_MIN_Y || localY > BED_MEDIUM_MAX_Y))))
+									// Check if applying pre-processors, not ignoring print dimension limitations, not printing a test border or backlash calibration, centering model pre-processor isn't used, and X or Y is out of bounds
+									if(applyPreprocessors && !ignorePrintDimensionLimitations && !printingTestBorder && !printingBacklashCalibration && !useCenterModelPreprocessor && ((!std::isnan(localX) && (localX < BED_MEDIUM_MIN_X || localX > BED_MEDIUM_MAX_X)) || (!std::isnan(localY) && (localY < BED_MEDIUM_MIN_Y || localY > BED_MEDIUM_MAX_Y))))
 								
 										// Return false
 										return false;
@@ -1121,8 +1121,8 @@ EXPORT bool collectPrintInformation(const char *file, bool applyPreprocessors) {
 
 								case HIGH:
 							
-									// Check if applying pre-processors, not ignoring print dimension limitations, not printing a test border or backlash calibration cylinder, centering model pre-processor isn't used, and X or Y is out of bounds
-									if(applyPreprocessors && !ignorePrintDimensionLimitations && !printingTestBorder && !printingBacklashCalibrationCylinder && !useCenterModelPreprocessor && ((!std::isnan(localX) && (localX < BED_HIGH_MIN_X || localX > BED_HIGH_MAX_X)) || (!std::isnan(localY) && (localY < BED_HIGH_MIN_Y || localY > BED_HIGH_MAX_Y))))
+									// Check if applying pre-processors, not ignoring print dimension limitations, not printing a test border or backlash calibration, centering model pre-processor isn't used, and X or Y is out of bounds
+									if(applyPreprocessors && !ignorePrintDimensionLimitations && !printingTestBorder && !printingBacklashCalibration && !useCenterModelPreprocessor && ((!std::isnan(localX) && (localX < BED_HIGH_MIN_X || localX > BED_HIGH_MAX_X)) || (!std::isnan(localY) && (localY < BED_HIGH_MIN_Y || localY > BED_HIGH_MAX_Y))))
 								
 										// Return false
 										return false;
@@ -1170,8 +1170,8 @@ EXPORT bool collectPrintInformation(const char *file, bool applyPreprocessors) {
 			}
 		}
 		
-		// Check if applying pre-processors, center model pre-processor is set, and not printing a test border or backlash calibration cylinder
-		if(applyPreprocessors && useCenterModelPreprocessor && !printingTestBorder && !printingBacklashCalibrationCylinder) {
+		// Check if applying pre-processors, center model pre-processor is set, and not printing a test border or backlash calibration
+		if(applyPreprocessors && useCenterModelPreprocessor && !printingTestBorder && !printingBacklashCalibration) {
 	
 			// Calculate adjustments
 			displacementX = (BED_WIDTH - BED_CENTER_OFFSET_X - max(maxXExtruderLow, max(maxXExtruderMedium, maxXExtruderHigh)) - min(minXExtruderLow, min(minXExtruderMedium, minXExtruderHigh)) - BED_CENTER_OFFSET_X) / 2;
@@ -1301,8 +1301,8 @@ EXPORT bool collectPrintInformation(const char *file, bool applyPreprocessors) {
 			// Set detected fan speed
 			detectedFanSpeed = 0;
 		
-		// Check if using preparation pre-processor or printing a test border or backlash calibration cylinder
-		if(usePreparationPreprocessor || printingTestBorder || printingBacklashCalibrationCylinder) {
+		// Check if using preparation pre-processor or printing a test border or backlash calibration
+		if(usePreparationPreprocessor || printingTestBorder || printingBacklashCalibration) {
 		
 			// Set detected fan speed
 			if(filamentType == PLA || filamentType == FLX || filamentType == TGH)
@@ -1473,8 +1473,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			}
 		}
 		
-		// Check if not printing test border or backlash calibration cylinder and using mid-print filament change pre-processor
-		if(!printingTestBorder && !printingBacklashCalibrationCylinder && midPrintFilamentChangeLayers.size() && command.skip < MID_PRINT) {
+		// Check if not printing test border or backlash calibration and using mid-print filament change pre-processor
+		if(!printingTestBorder && !printingBacklashCalibration && midPrintFilamentChangeLayers.size() && command.skip < MID_PRINT) {
 		
 			// Set command skip
 			command.skip = MID_PRINT;
@@ -1512,8 +1512,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			}
 		}
 
-		// Check if not printing test border or backlash calibration cylinder and using center model pre-processor
-		if(!printingTestBorder && !printingBacklashCalibrationCylinder && useCenterModelPreprocessor && command.skip < CENTER) {
+		// Check if not printing test border or backlash calibration and using center model pre-processor
+		if(!printingTestBorder && !printingBacklashCalibration && useCenterModelPreprocessor && command.skip < CENTER) {
 
 			// Set command skip
 			command.skip = CENTER;
@@ -1538,8 +1538,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 				}
 		}
 
-		// Check if printing test border or backlash calibration cylinder or using validation pre-processor
-		if((printingTestBorder || printingBacklashCalibrationCylinder || useValidationPreprocessor) && command.skip < VALIDATION) {
+		// Check if printing test border or backlash calibration or using validation pre-processor
+		if((printingTestBorder || printingBacklashCalibration || useValidationPreprocessor) && command.skip < VALIDATION) {
 
 			// Set command skip
 			command.skip = VALIDATION;
@@ -1584,8 +1584,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			}
 		}
 
-		// Check if printing test border or backlash calibration cylinder or using preparation pre-processor
-		if((printingTestBorder || printingBacklashCalibrationCylinder || usePreparationPreprocessor) && command.skip < PREPARATION) {
+		// Check if printing test border or backlash calibration or using preparation pre-processor
+		if((printingTestBorder || printingBacklashCalibration || usePreparationPreprocessor) && command.skip < PREPARATION) {
 
 			// Set command skip
 			command.skip = PREPARATION;
@@ -1798,8 +1798,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			}
 		}
 
-		// Check if not printing test border or backlash calibration cylinder and using wave bonding pre-processor
-		if(!printingTestBorder && !printingBacklashCalibrationCylinder && useWaveBondingPreprocessor && command.skip < WAVE) {
+		// Check if not printing test border or backlash calibration and using wave bonding pre-processor
+		if(!printingTestBorder && !printingBacklashCalibration && useWaveBondingPreprocessor && command.skip < WAVE) {
 		
 			// Set command skip
 			command.skip = WAVE;
@@ -2049,8 +2049,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			}
 		}
 
-		// Check if printing test border or backlash calibration cylinder or using thermal bonding pre-processor
-		if((printingTestBorder || printingBacklashCalibrationCylinder || useThermalBondingPreprocessor) && command.skip < THERMAL) {
+		// Check if printing test border or backlash calibration or using thermal bonding pre-processor
+		if((printingTestBorder || printingBacklashCalibration || useThermalBondingPreprocessor) && command.skip < THERMAL) {
 
 			// Set command skip
 			command.skip = THERMAL;
@@ -2166,8 +2166,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			}
 		}
 
-		// Check if printing test border or backlash calibration cylinder or using bed compensation pre-processor
-		if((printingTestBorder || printingBacklashCalibrationCylinder || useBedCompensationPreprocessor) && command.skip < BED) {
+		// Check if printing test border or backlash calibration or using bed compensation pre-processor
+		if((printingTestBorder || printingBacklashCalibration || useBedCompensationPreprocessor) && command.skip < BED) {
 
 			// Set command skip
 			command.skip = BED;
@@ -2427,8 +2427,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			}
 		}
 
-		// Check if printing test border or backlash calibration cylinder or using backlash compentation pre-processor
-		if((printingTestBorder || printingBacklashCalibrationCylinder || useBacklashCompensationPreprocessor) && command.skip < BACKLASH) {
+		// Check if not printing backlash calibration and printing test border or using backlash compentation pre-processor
+		if(!printingBacklashCalibration && (printingTestBorder || useBacklashCompensationPreprocessor) && command.skip < BACKLASH) {
 
 			// Set command skip
 			command.skip = BACKLASH;
