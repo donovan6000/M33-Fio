@@ -1289,7 +1289,8 @@ class M3DFioPlugin(
 			CameraHeight = 480,
 			CameraFramesPerSecond = 20,
 			MidPrintFilamentChangeLayers = '',
-			LogSentReceivedData = False
+			LogSentReceivedData = False,
+			ChangeLedBrightness = True
 		)
 	
 	# Get IP address
@@ -1716,13 +1717,16 @@ class M3DFioPlugin(
 						self.sharedLibrary.setCalibrateBeforePrint(ctypes.c_bool(self._settings.get_boolean(["CalibrateBeforePrint"])))
 						self.sharedLibrary.setRemoveFanCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveFanCommands"])))
 						self.sharedLibrary.setRemoveTemperatureCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveTemperatureCommands"])))
-						self.sharedLibrary.setUseGpio(ctypes.c_bool(self._settings.get_boolean(["UseGpio"])))
 						if self._settings.get_int(["GpioLayer"]) is not None :
+							self.sharedLibrary.setUseGpio(ctypes.c_bool(self._settings.get_boolean(["UseGpio"])))
 							self.sharedLibrary.setGpioLayer(ctypes.c_ushort(self._settings.get_int(["GpioLayer"])))
+						else :
+							self.sharedLibrary.setUseGpio(ctypes.c_bool(False))
 						self.sharedLibrary.setHeatbedTemperature(ctypes.c_ushort(self._settings.get_int(["HeatbedTemperature"])))
 						self.sharedLibrary.setExternalBedHeight(ctypes.c_double(self._settings.get_float(["ExternalBedHeight"])))
 						self.sharedLibrary.setExpandPrintableRegion(ctypes.c_bool(self._settings.get_boolean(["ExpandPrintableRegion"])))
 						self.sharedLibrary.setMidPrintFilamentChangeLayers(ctypes.c_char_p(' '.join(re.findall("\\d+", str(self._settings.get(["MidPrintFilamentChangeLayers"]))))))
+						self.sharedLibrary.setChangeLedBrightness(ctypes.c_bool(self._settings.get_boolean(["ChangeLedBrightness"])))
 									
 						# Collect print information
 						self.sharedLibrary.collectPrintInformation(ctypes.c_char_p(location), ctypes.c_bool(True))
@@ -4286,13 +4290,16 @@ class M3DFioPlugin(
 					self.sharedLibrary.setCalibrateBeforePrint(ctypes.c_bool(self._settings.get_boolean(["CalibrateBeforePrint"])))
 					self.sharedLibrary.setRemoveFanCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveFanCommands"])))
 					self.sharedLibrary.setRemoveTemperatureCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveTemperatureCommands"])))
-					self.sharedLibrary.setUseGpio(ctypes.c_bool(self._settings.get_boolean(["UseGpio"])))
 					if self._settings.get_int(["GpioLayer"]) is not None :
+						self.sharedLibrary.setUseGpio(ctypes.c_bool(self._settings.get_boolean(["UseGpio"])))
 						self.sharedLibrary.setGpioLayer(ctypes.c_ushort(self._settings.get_int(["GpioLayer"])))
+					else :
+						self.sharedLibrary.setUseGpio(ctypes.c_bool(False))
 					self.sharedLibrary.setHeatbedTemperature(ctypes.c_ushort(self._settings.get_int(["HeatbedTemperature"])))
 					self.sharedLibrary.setExternalBedHeight(ctypes.c_double(self._settings.get_float(["ExternalBedHeight"])))
 					self.sharedLibrary.setExpandPrintableRegion(ctypes.c_bool(self._settings.get_boolean(["ExpandPrintableRegion"])))
 					self.sharedLibrary.setMidPrintFilamentChangeLayers(ctypes.c_char_p(' '.join(re.findall("\\d+", str(self._settings.get(["MidPrintFilamentChangeLayers"]))))))
+					self.sharedLibrary.setChangeLedBrightness(ctypes.c_bool(self._settings.get_boolean(["ChangeLedBrightness"])))
 				
 					# Collect print information
 					printIsValid = self.sharedLibrary.collectPrintInformation(ctypes.c_char_p(payload["file"]), ctypes.c_bool(self._settings.get_boolean(["PreprocessOnTheFly"])))
@@ -4475,10 +4482,11 @@ class M3DFioPlugin(
 					commands += ["M18"]
 					commands += ["M107"]
 			
-					if self.printerColor == "Clear" :
-						commands += ["M420 T20"]
-					else :
-						commands += ["M420 T100"]
+					if self._settings.get_boolean(["ChangeLedBrightness"]) :
+						if self.printerColor == "Clear" :
+							commands += ["M420 T20"]
+						else :
+							commands += ["M420 T100"]
 			
 					# Send commands with line numbers
 					self.sendCommandsWithLineNumbers(commands)
@@ -5420,11 +5428,13 @@ class M3DFioPlugin(
 
 				commands += ["M18"]
 				commands += ["M107"]
-			
-				if self.printerColor == "Clear" :
-					commands += ["M420 T20"]
-				else :
-					commands += ["M420 T100"]
+				
+				if self._settings.get_boolean(["ChangeLedBrightness"]) :
+					if self.printerColor == "Clear" :
+						commands += ["M420 T20"]
+					else :
+						commands += ["M420 T100"]
+				
 				commands += ["G4"]
 				commands += ["M65539;hide message"]
 				
@@ -6275,13 +6285,16 @@ class M3DFioPlugin(
 				self.sharedLibrary.setCalibrateBeforePrint(ctypes.c_bool(self._settings.get_boolean(["CalibrateBeforePrint"])))
 				self.sharedLibrary.setRemoveFanCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveFanCommands"])))
 				self.sharedLibrary.setRemoveTemperatureCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveTemperatureCommands"])))
-				self.sharedLibrary.setUseGpio(ctypes.c_bool(self._settings.get_boolean(["UseGpio"])))
 				if self._settings.get_int(["GpioLayer"]) is not None :
+					self.sharedLibrary.setUseGpio(ctypes.c_bool(self._settings.get_boolean(["UseGpio"])))
 					self.sharedLibrary.setGpioLayer(ctypes.c_ushort(self._settings.get_int(["GpioLayer"])))
+				else :
+					self.sharedLibrary.setUseGpio(ctypes.c_bool(False))
 				self.sharedLibrary.setHeatbedTemperature(ctypes.c_ushort(self._settings.get_int(["HeatbedTemperature"])))
 				self.sharedLibrary.setExternalBedHeight(ctypes.c_double(self._settings.get_float(["ExternalBedHeight"])))
 				self.sharedLibrary.setExpandPrintableRegion(ctypes.c_bool(self._settings.get_boolean(["ExpandPrintableRegion"])))
 				self.sharedLibrary.setMidPrintFilamentChangeLayers(ctypes.c_char_p(' '.join(re.findall("\\d+", str(self._settings.get(["MidPrintFilamentChangeLayers"]))))))
+				self.sharedLibrary.setChangeLedBrightness(ctypes.c_bool(self._settings.get_boolean(["ChangeLedBrightness"])))
 				
 				# Collect print information
 				printIsValid = self.sharedLibrary.collectPrintInformation(ctypes.c_char_p(input), ctypes.c_bool(True))
@@ -7321,7 +7334,8 @@ class M3DFioPlugin(
 					
 					# Add intro to output
 					newCommands.append(Command("G90", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("M420 T1", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					if self._settings.get_boolean(["ChangeLedBrightness"]) :
+						newCommands.append(Command("M420 T1", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 					if self._settings.get_boolean(["CalibrateBeforePrint"]) :
 						newCommands.append(Command("G30", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 					if str(self._settings.get(["FilamentType"])) == "PLA" or str(self._settings.get(["FilamentType"])) == "FLX" or str(self._settings.get(["FilamentType"])) == "TGH" :
@@ -7429,31 +7443,32 @@ class M3DFioPlugin(
 					newCommands.append(Command("M18", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 					newCommands.append(Command("M107", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 					
-					if self.printerColor == "Clear" :
-						newCommands.append(Command("M420 T20", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
-					else :
-						newCommands.append(Command("M420 T100", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G4 P500", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("M420 T1", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G4 P500", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
-					if self.printerColor == "Clear" :
-						newCommands.append(Command("M420 T20", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
-					else :
-						newCommands.append(Command("M420 T100", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G4 P500", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("M420 T1", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G4 P500", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
-					if self.printerColor == "Clear" :
-						newCommands.append(Command("M420 T20", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
-					else :
-						newCommands.append(Command("M420 T100", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G4 P500", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("M420 T1", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G4 P500", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
-					if self.printerColor == "Clear" :
-						newCommands.append(Command("M420 T20", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
-					else :
-						newCommands.append(Command("M420 T100", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					if self._settings.get_boolean(["ChangeLedBrightness"]) :
+						if self.printerColor == "Clear" :
+							newCommands.append(Command("M420 T20", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						else :
+							newCommands.append(Command("M420 T100", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G4 P500", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M420 T1", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G4 P500", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						if self.printerColor == "Clear" :
+							newCommands.append(Command("M420 T20", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						else :
+							newCommands.append(Command("M420 T100", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G4 P500", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M420 T1", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G4 P500", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						if self.printerColor == "Clear" :
+							newCommands.append(Command("M420 T20", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						else :
+							newCommands.append(Command("M420 T100", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G4 P500", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M420 T1", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G4 P500", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						if self.printerColor == "Clear" :
+							newCommands.append(Command("M420 T20", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						else :
+							newCommands.append(Command("M420 T100", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 			
 					# Append new commands to commands
 					while len(newCommands) :
