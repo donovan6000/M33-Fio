@@ -26,6 +26,8 @@ $(function() {
 		var continueWithPrint = false;
 		var waitingCallback = null;
 		var locationCallback = null;
+		var connectCallback = null;
+		var failedToConnectCallback = null;
 		var skipModelEditor = false;
 		var self = this;
 		
@@ -647,7 +649,7 @@ $(function() {
 						// Show calibration menu or print settings if applicable
 						$("body > div.page-container > div.message > div > div > div.calibrate, body > div.page-container > div.message > div > div > div.printSettings, body > div.page-container > div.message > div > div > div.filamentSettings").removeClass("show");
 						
-						if(currentMessage.secondButton == "Done")
+						if(currentMessage.secondButton == "Done" && currentMessage.header != "Fan Status")
 							$("body > div.page-container > div.message > div > div > div.calibrate").addClass("show");
 						
 						else if(currentMessage.secondButton == "Print") {
@@ -3607,6 +3609,7 @@ $(function() {
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/listener.png">Listener fan</button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/shenzhew.png">Shenzhew fan</button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/xinyujie.png">Xinyujie fan</button>
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/custom.png">Custom fan</button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">500mA extruder current</button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">660mA extruder current</button>
 					<button class="btn btn-block control-box placeHolder" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"></button>
@@ -9668,9 +9671,153 @@ $(function() {
 				hideMessage();
 			});
 		});
+		
+		// Set custom fan control
+		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(5)").attr("title", "Sets fan to a manually calibrated custom fan").click(function(event) {
+			
+			// Show message
+			showMessage("Fan Status", "This will overwrite the existing fan settings. Proceed?", "Yes", function() {
+			
+				// Hide message
+				hideMessage();
+				
+				// Show message
+				showMessage("Fan Status", "Setting fan to custom");
+		
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m3dfio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({
+						command: "message",
+						value: "Set Fan: Custom"
+					}),
+					contentType: "application/json; charset=UTF-8",
+			
+					// On success
+					success: function(data) {
+					
+						// Check if setting fan failed
+						if(data.value != "OK")
+						
+							// Show message
+							showMessage("Fan Status", "Failed", "OK", function() {
+		
+								// Hide message
+								hideMessage();
+							});
+						
+						// Otherwise
+						else {
+					
+							// Set connect callback
+							connectCallback = function() {
+						
+								// Show message
+								showMessage("Fan Status", "Increase this value until the fan starts spinning<span class=\"fan\"><input type=\"number\" step=\"1\" min=\"0\" max=\"255\" value=\"0\"></span>", "Done", function() {
+			
+									// Set fan offset
+									var fanOffset = $("body > div.page-container > div.message > div > div > p span.fan > input").val();
+									
+									// Hide message
+									hideMessage();
+				
+									// Show message
+									showMessage("Fan Status", "Setting custom fan calibration");
+		
+									// Send request
+									$.ajax({
+										url: API_BASEURL + "plugin/m3dfio",
+										type: "POST",
+										dataType: "json",
+										data: JSON.stringify({
+											command: "message",
+											value: "Set Fan Calibration: " + fanOffset
+										}),
+										contentType: "application/json; charset=UTF-8",
+			
+										// On success
+										success: function(data) {
+										
+											// Show message
+											showMessage("Fan Status", data.value == "OK" ? "Done" : "Failed", "OK", function() {
+			
+												// Hide message
+												hideMessage();
+							
+												// Send request
+												$.ajax({
+													url: API_BASEURL + "plugin/m3dfio",
+													type: "POST",
+													dataType: "json",
+													data: JSON.stringify({
+														command: "message",
+														value: "Reconnect To Printer"
+													}),
+													contentType: "application/json; charset=UTF-8"
+												});
+											});
+										}
+									});
+								});
+							}
+							
+							// Set failed to connect callback
+							failedToConnectCallback = function() {
+							
+								// Show message
+								showMessage("Fan Status", "Failed", "OK", function() {
+	
+									// Hide message
+									hideMessage();
+								});
+							}
+							
+							// Send request
+							$.ajax({
+								url: API_BASEURL + "plugin/m3dfio",
+								type: "POST",
+								dataType: "json",
+								data: JSON.stringify({
+									command: "message",
+									value: "Reconnect To Printer"
+								}),
+								contentType: "application/json; charset=UTF-8"
+							});
+						}
+					}
+				});
+			}, "No", function() {
+			
+				// Hide message
+				hideMessage();
+			});
+		});
+		
+		// Custom fan calibration change event
+		$(document).on("change", "body > div.page-container > div.message > div > div > p span.fan > input", function() {
+		
+			// Set commands
+			var commands = [
+				"M106 S" + $(this).val()
+			];
+		
+			// Send request
+			$.ajax({
+				url: API_BASEURL + "plugin/m3dfio",
+				type: "POST",
+				dataType: "json",
+				data: JSON.stringify({
+					command: "message",
+					value: commands
+				}),
+				contentType: "application/json; charset=UTF-8"
+			});
+		});
 	
 		// Set 500mA extruder current control
-		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(5)").attr("title", "Sets extruder's current to 500mA").click(function(event) {
+		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(6)").attr("title", "Sets extruder's current to 500mA").click(function(event) {
 			
 			// Show message
 			showMessage("Extruder Current Status", "This will overwrite the existing extruder current settings. Proceed?", "Yes", function() {
@@ -9723,7 +9870,7 @@ $(function() {
 		});
 	
 		// Set 660mA extruder current control
-		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(6)").attr("title", "Sets extruder's current to 660mA").click(function(event) {
+		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(7)").attr("title", "Sets extruder's current to 660mA").click(function(event) {
 			
 			// Show message
 			showMessage("Extruder Current Status", "This will overwrite the existing extruder current settings. Proceed?", "Yes", function() {
@@ -10491,7 +10638,7 @@ $(function() {
 			else if(data.value == "Provided Firmwares" && typeof data.firmwares !== "undefined") {
 			
 				// Go to place holder buttons
-				var currentPosition = $("#control > div.jog-panel.advanced").find("div > button:nth-of-type(7)");
+				var currentPosition = $("#control > div.jog-panel.advanced").find("div > button:nth-of-type(8)");
 				
 				// Sort firmwares
 				var firmwares = Object.keys(data.firmwares).sort();
@@ -10638,13 +10785,15 @@ $(function() {
 				var fanType = (parseInt(data.eeprom[eepromOffsets["fanType"].offset * 2], 16) << 4) | parseInt(data.eeprom[eepromOffsets["fanType"].offset * 2 + 1], 16);
 				if(fanType >= 1 && fanType <= 4)
 					$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(" + fanType + ")").addClass("current");
+				else if(fanType == 254)
+					$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(5)").addClass("current");
 					
 				// Indicate current extruder current
 				var extruderCurrent = ((parseInt(data.eeprom[eepromOffsets["extruderCurrent"].offset * 2], 16) << 4) | parseInt(data.eeprom[eepromOffsets["extruderCurrent"].offset * 2 + 1], 16)) | (((parseInt(data.eeprom[(eepromOffsets["extruderCurrent"].offset + 1) * 2], 16) << 4) | parseInt(data.eeprom[(eepromOffsets["extruderCurrent"].offset + 1) * 2 + 1], 16)) << 8)
 				if(extruderCurrent == 500)
-					$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(5)").addClass("current");
-				else if(extruderCurrent == 660)
 					$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(6)").addClass("current");
+				else if(extruderCurrent == 660)
+					$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(7)").addClass("current");
 			}
 			
 			// Otherwise check if data is invalid values
@@ -10876,40 +11025,58 @@ $(function() {
 			// Otherwise check if data is to show message
 			else if(data.value == "Show Message" && typeof data.message !== "undefined" && typeof data.header !== "undefined") {
 			
-				// Initialize variables
-				var text = htmlEncode(data.message);
+				// Check if failed to connect and callback is set
+				if(data.header == "Connection Status" && typeof failedToConnectCallback === "function") {
 			
-				// Check if same text is currently being displayed
-				if($("body > div.page-container > div.message").hasClass("show") && $("body > div.page-container > div.message").find("p").eq(0).html() == text)
+					// Clear connect callback
+					connectCallback = null;
 			
-					// Return
-					return;
+					// Clear failed to connect callback
+					var temp = failedToConnectCallback;
+					failedToConnectCallback = null;
 			
-				// Go through all messages
-				for(var i = 0; i < messages.length; i++)
-			
-					// Check if a message waiting to be displayed has same text
-					if(messages[i].text == text)
-				
-						// Return
-						return;
-				
-				// Check if a confirmation is requested
-				if(typeof data.confirm !== "undefined") {
-				
-					// Display message
-					showMessage(htmlEncode(data.header), text, "OK", function() {
-					
-						// Hide message
-						hideMessage();
-					});
+					// Call failed to connect callback
+					temp();
 				}
 				
 				// Otherwise
-				else
+				else {
 				
-					// Display message
-					showMessage(htmlEncode(data.header), text);
+					// Initialize variables
+					var text = htmlEncode(data.message);
+			
+					// Check if same text is currently being displayed
+					if($("body > div.page-container > div.message").hasClass("show") && $("body > div.page-container > div.message").find("p").eq(0).html() == text)
+			
+						// Return
+						return;
+			
+					// Go through all messages
+					for(var i = 0; i < messages.length; i++)
+			
+						// Check if a message waiting to be displayed has same text
+						if(messages[i].text == text)
+				
+							// Return
+							return;
+				
+					// Check if a confirmation is requested
+					if(typeof data.confirm !== "undefined") {
+				
+						// Display message
+						showMessage(htmlEncode(data.header), text, "OK", function() {
+					
+							// Hide message
+							hideMessage();
+						});
+					}
+				
+					// Otherwise
+					else
+				
+						// Display message
+						showMessage(htmlEncode(data.header), text);
+				}
 			}
 			
 			// Otherwise check if data is to show a question
@@ -10992,6 +11159,20 @@ $(function() {
 				waitingCallback = null;
 			
 				// Call waiting callback
+				temp();
+			}
+			
+			// Otherwise check if data is connected to printer
+			else if(data.value == "Connected To Printer" && typeof connectCallback === "function") {
+			
+				// Clear failed to connect callback
+				failedToConnectCallback = null;
+			
+				// Clear connect callback
+				var temp = connectCallback;
+				connectCallback = null;
+			
+				// Call connect callback
 				temp();
 			}
 			

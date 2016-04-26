@@ -1567,6 +1567,86 @@ class M3DFioPlugin(
 				else :
 					return flask.jsonify(dict(value = "OK"))
 			
+			# Otherwise check if parameter is to set fan calibration
+			elif data["value"].startswith("Set Fan Calibration:") :
+			
+				# Initialize variables
+				error = False
+				
+				# Disable printer callbacks
+				self._printer.unregister_callback(self)
+				
+				# Get current printer connection state
+				currentState, currentPort, currentBaudrate, currentProfile = self._printer.get_current_connection()
+				
+				# Set baudrate if invalid
+				if not currentBaudrate or currentBaudrate == 0 :
+					currentBaudrate = 115200
+				
+				# Save ports
+				self.savePorts(currentPort)
+				
+				# Switch into bootloader mode
+				self.sendCommands("M115 S628")
+				time.sleep(1)
+				
+				# Set updated port
+				currentPort = self.getPort()
+				
+				# Return error if printer was found
+				if currentPort is not None :
+				
+					# Connect to the printer
+					connection = serial.Serial(currentPort, currentBaudrate)
+						
+					# Check if getting EEPROM failed
+					if not self.getEeprom(connection) :
+				
+						# Set error
+						error = True
+				
+					# Otherwise
+					else :
+					
+						# Set fan offset and scale
+						fanOffset = int(data["value"][21 :])
+						fanScale = float(255 - fanOffset) / 255
+				
+						# Check if setting fan failed
+						if not self.setFan(connection, "Custom", fanOffset, fanScale) :
+				
+							# Set error
+							error = True
+					
+						# Otherwise
+						else :
+				
+							# Send new EEPROM
+							self.getEeprom(connection, True)
+				
+					# Close connection
+					connection.close()
+				
+					# Save connection
+					self.savedCurrentPort = currentPort
+					self.savedCurrentBaudrate = currentBaudrate
+					self.savedCurrentProfile = currentProfile
+				
+				# Otherwise
+				else :
+				
+					# Set error
+					error = True
+				
+				# Enable printer callbacks
+			    	self._printer.register_callback(self)
+				
+				# Send response
+				if error :
+					return flask.jsonify(dict(value = "Error"))
+				else :
+					return flask.jsonify(dict(value = "OK"))
+			
 			# Otherwise check if parameter is to set extruder current
 			elif data["value"].startswith("Set Extruder Current:") :
 			
@@ -2992,7 +3072,7 @@ class M3DFioPlugin(
 		return True
 	
 	# Set fan
-	def setFan(self, connection, name) :
+	def setFan(self, connection, name, newFanOffset = None, newFanScale = None) :
 	
 		# Clear error
 		error = False
@@ -3017,6 +3097,17 @@ class M3DFioPlugin(
 			fanType = 4
 			fanOffset = 200
 			fanScale = 0.2165354
+		
+		elif name == "Custom" :
+			fanType = 254
+			if newFanOffset is None :
+				fanOffset = 0
+			else :
+				fanOffset = newFanOffset
+			if newFanScale is None :
+				fanScale = 1
+			else :
+				fanScale = newFanScale
 		
 		else :
 			return False
@@ -4807,6 +4898,7 @@ class M3DFioPlugin(
 							else :
 				
 								# Set fan name
+								fanName = None
 								if fanType == 1 :
 									fanName = "HengLiXin"
 								elif fanType == 2 :
@@ -4817,7 +4909,7 @@ class M3DFioPlugin(
 									fanName = "Xinyujie"
 					
 								# Check if updating fan failed
-								if not self.setFan(connection, fanName) :
+								if fanName is not None and not self.setFan(connection, fanName) :
 					
 									# Set error
 									error = True
@@ -5244,6 +5336,9 @@ class M3DFioPlugin(
 								
 								# Set printer state to operational
 								self._printer._comm._changeState(self._printer._comm.STATE_OPERATIONAL)
+								
+								# Send message
+								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Connected To Printer"))
 									
 							except Exception :
 				
