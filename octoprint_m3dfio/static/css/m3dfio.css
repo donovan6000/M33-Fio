@@ -480,6 +480,16 @@ body > div.page-container > div.message > div > div > p span.backlash > button {
 	margin: 2px;
 }
 
+body > div.page-container > div.message > div > div > p span.fan {
+	display: block;
+	text-align: center;
+}
+
+body > div.page-container > div.message > div > div > p span.fan > input {
+	width: 50px;
+	margin: 5px 0 0 0;
+}
+
 body > div.page-container > div.message > div > div > p:not(.show) {
 	height: 0px;
 	visibility: hidden;

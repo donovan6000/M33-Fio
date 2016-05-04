@@ -167,6 +167,7 @@ bool expandPrintableRegion;
 int16_t detectedFanSpeed;
 bool detectedMidPrintFilamentChange;
 bool objectSuccessfullyCentered;
+bool changeLedBrightness;
 
 // Return value
 string returnValue;
@@ -790,6 +791,12 @@ EXPORT void setMidPrintFilamentChangeLayers(const char *value) {
 		
 			// Append character to temp
 			temp.push_back(value[i]);
+}
+
+EXPORT void setChangeLedBrightness(bool value) {
+
+	// Set change led brightness
+	changeLedBrightness = value;
 }
 
 EXPORT double getMaxXExtruderLow() {
@@ -1632,7 +1639,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			
 				// Add intro to output
 				newCommands.push(Command("G90", PREPARATION, PREPARATION));
-				newCommands.push(Command("M420 T1", PREPARATION, PREPARATION));
+				if(changeLedBrightness)
+					newCommands.push(Command("M420 T1", PREPARATION, PREPARATION));
 				if(calibrateBeforePrint)
 					newCommands.push(Command("G30", PREPARATION, PREPARATION));
 				newCommands.push(Command("M106 S" + static_cast<string>(filamentType == PLA || filamentType == FLX || filamentType == TGH ? "255" : "50"), PREPARATION, PREPARATION));
@@ -1744,19 +1752,21 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 				newCommands.push(Command("M18", PREPARATION, PREPARATION));
 				newCommands.push(Command("M107", PREPARATION, PREPARATION));
 				
-				newCommands.push(Command("M420 T" + static_cast<string>(printerColor == CLEAR ? "20" : "100"), PREPARATION, PREPARATION));
-				newCommands.push(Command("G4 P500", PREPARATION, PREPARATION));
-				newCommands.push(Command("M420 T1", PREPARATION, PREPARATION));
-				newCommands.push(Command("G4 P500", PREPARATION, PREPARATION));
-				newCommands.push(Command("M420 T" + static_cast<string>(printerColor == CLEAR ? "20" : "100"), PREPARATION, PREPARATION));
-				newCommands.push(Command("G4 P500", PREPARATION, PREPARATION));
-				newCommands.push(Command("M420 T1", PREPARATION, PREPARATION));
-				newCommands.push(Command("G4 P500", PREPARATION, PREPARATION));
-				newCommands.push(Command("M420 T" + static_cast<string>(printerColor == CLEAR ? "20" : "100"), PREPARATION, PREPARATION));
-				newCommands.push(Command("G4 P500", PREPARATION, PREPARATION));
-				newCommands.push(Command("M420 T1", PREPARATION, PREPARATION));
-				newCommands.push(Command("G4 P500", PREPARATION, PREPARATION));
-				newCommands.push(Command("M420 T" + static_cast<string>(printerColor == CLEAR ? "20" : "100"), PREPARATION, PREPARATION));
+				if(changeLedBrightness) {
+					newCommands.push(Command("M420 T" + static_cast<string>(printerColor == CLEAR ? "20" : "100"), PREPARATION, PREPARATION));
+					newCommands.push(Command("G4 P500", PREPARATION, PREPARATION));
+					newCommands.push(Command("M420 T1", PREPARATION, PREPARATION));
+					newCommands.push(Command("G4 P500", PREPARATION, PREPARATION));
+					newCommands.push(Command("M420 T" + static_cast<string>(printerColor == CLEAR ? "20" : "100"), PREPARATION, PREPARATION));
+					newCommands.push(Command("G4 P500", PREPARATION, PREPARATION));
+					newCommands.push(Command("M420 T1", PREPARATION, PREPARATION));
+					newCommands.push(Command("G4 P500", PREPARATION, PREPARATION));
+					newCommands.push(Command("M420 T" + static_cast<string>(printerColor == CLEAR ? "20" : "100"), PREPARATION, PREPARATION));
+					newCommands.push(Command("G4 P500", PREPARATION, PREPARATION));
+					newCommands.push(Command("M420 T1", PREPARATION, PREPARATION));
+					newCommands.push(Command("G4 P500", PREPARATION, PREPARATION));
+					newCommands.push(Command("M420 T" + static_cast<string>(printerColor == CLEAR ? "20" : "100"), PREPARATION, PREPARATION));
+				}
 				
 				// Append new commands to commands
 				while(newCommands.size()) {

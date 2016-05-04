@@ -2,9 +2,9 @@ Changelog:
 
 V0.32 April 19, 2016
 
-	* Improved raft settings in slicer profiles
+	* Improved raft settings in slicer profiles. Thanks Banjo!
 	* Fixed the retraction_combing slicer profile setting. Thanks Muele!
-	* Support for ABS-R and the newest TGH filaments. Thanks Banjo!
+	* Support for ABS-R and the newest TGH filaments
 	* Provides M3D's V2016040401 printer firmware
 	* Added images to test border and backlash calibration instructions
 	* Skirt option in slicer profile editor
