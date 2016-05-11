@@ -49,6 +49,7 @@
 #settings_plugin_m3dfio .label-important {
 	position: relative;
 	top: -1px;
+	text-align: center;
 }
 
 #settings_plugin_m3dfio div.control-group.log span {

@@ -122,6 +122,7 @@ class M3DFioPlugin(
 		self.eeprom = None
 		self.messageResponse = None
 		self.invalidBedCenter = False
+		self.invalidBedPlane = False
 		self.invalidBedOrientation = False
 		self.slicerChanges = None
 		self.sharedLibrary = None
@@ -280,6 +281,30 @@ class M3DFioPlugin(
 				offset = 0x106,
 				bytes = 4
 			),
+			lastRecordedXValue = dict(
+				offset = 0x29F,
+				bytes = 4
+			),
+			lastRecordedYValue = dict(
+				offset = 0x2A3,
+				bytes = 4
+			),
+			lastRecordedXDirection = dict(
+				offset = 0x2A7,
+				bytes = 1
+			),
+			lastRecordedYDirection = dict(
+				offset = 0x2A8,
+				bytes = 1
+			),
+			savedXState = dict(
+				offset = 0x2A9,
+				bytes = 1
+			),
+			savedYState = dict(
+				offset = 0x2AA,
+				bytes = 1
+			),
 			fanType = dict(
 				offset = 0x2AB,
 				bytes = 1
@@ -340,7 +365,7 @@ class M3DFioPlugin(
 				offset = 0x2E6,
 				bytes = 2
 			),
-			extruderCurrent = dict(
+			eMotorCurrent = dict(
 				offset = 0x2E8,
 				bytes = 2
 			),
@@ -1478,7 +1503,13 @@ class M3DFioPlugin(
 					# Otherwise clear no line numbers
 					else :
 						noLineNumber = False
-				
+					
+					# Check if waiting for commands to be sent
+					if data["value"][-1] == "M65536;wait" :
+					
+						# Append a command that receives a confirmation to the end of list
+						data["value"].insert(len(data["value"]) - 1, "G4");
+					
 					# Check if not using line numbers or printing
 					if noLineNumber or self._printer.is_printing() :
 				
@@ -3168,10 +3199,10 @@ class M3DFioPlugin(
 	def setExtruderCurrent(self, connection, value) :
 	
 		# Check if extruder current values differ
-		if int(ord(self.eeprom[self.eepromOffsets["extruderCurrent"]["offset"]])) + (int(ord(self.eeprom[self.eepromOffsets["extruderCurrent"]["offset"] + 1])) << 8) != value :
+		if int(ord(self.eeprom[self.eepromOffsets["eMotorCurrent"]["offset"]])) + (int(ord(self.eeprom[self.eepromOffsets["eMotorCurrent"]["offset"] + 1])) << 8) != value :
 	
 			# Check if saving extruder current failed
-			if not self.writeToEeprom(connection, self.eepromOffsets["extruderCurrent"]["offset"], chr(value & 0xFF)) or not self.writeToEeprom(connection, self.eepromOffsets["extruderCurrent"]["offset"] + 1, chr((value >> 8) & 0xFF)) :
+			if not self.writeToEeprom(connection, self.eepromOffsets["eMotorCurrent"]["offset"], chr(value & 0xFF)) or not self.writeToEeprom(connection, self.eepromOffsets["eMotorCurrent"]["offset"] + 1, chr((value >> 8) & 0xFF)) :
 				
 				# Return false
 				return False
@@ -3707,18 +3738,18 @@ class M3DFioPlugin(
 					gcode.removeParameter('M')
 					gcode.setValue('G', '4')
 				
-				# Check if using M3D or M3D Mod firmware
-				if self.getFirmwareDetails()[0] == "M3D" or self.getFirmwareDetails()[0] == "M3D Mod" :
-				
-					# Get the command's binary representation
-					data = gcode.getBinary()
-				
-				# Otherwise
-				else :
+				# Check if using iMe firmware
+				if self.getFirmwareDetails()[0] == "iMe" :
 				
 					# Get the command's ASCII representation with checksum
 					data = gcode.getAscii()
 					data += self.calculateChecksum(data)
+				
+				# Otherwise
+				else :
+				
+					# Get the command's binary representation
+					data = gcode.getBinary()
 				
 				# Log sent data
 				if self._settings.get_boolean(["LogSentReceivedData"]) :
@@ -4194,6 +4225,22 @@ class M3DFioPlugin(
 			
 				# Send printer status
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Micro 3D Not Connected"))
+			
+			# Check if using a Micro 3D printer
+			if not self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
+				
+				# Empty command queue
+				self.emptyCommandQueue()
+			
+				# Set first line number to zero and clear history
+				if self._printer._comm is not None :
+					self._printer._comm._gcode_M110_sending("N0")
+					self._printer._comm._long_running_command = True
+			
+				# Clear sent commands
+				self.sentCommands = {}
+				self.resetLineNumberCommandSent = False
+				self.numberWrapCounter = 0
 		
 		# Otherwise check if client connects
 		elif event == octoprint.events.Events.CLIENT_OPENED :
@@ -5176,7 +5223,7 @@ class M3DFioPlugin(
 								elif firmwareType == "M3D Mod" :
 									incompatible = firmwareVersion < 2115122112
 								elif firmwareType == "iMe" :
-									incompatible = firmwareVersion < 1900000001
+									incompatible = firmwareVersion < 1900000003
 								
 								# Check if printer is incompatible or not reconnecting to printer
 								if incompatible or not self.reconnectingToPrinter :
@@ -5435,6 +5482,33 @@ class M3DFioPlugin(
 		# Otherwise check if data contains valid Z information
 		elif "ZV:" in data :
 		
+			# Check if X is invalid
+			if "XV:" in data :
+			
+				# Set invalid bed plane
+				self.invalidBedPlane = data[data.find("XV:") + 3] == '0'
+			
+			# Otherwise
+			else :
+			
+				# Clear invalid bed plane
+				self.invalidBedPlane = False
+			
+			# Check if bed plane is valid
+			if not self.invalidBedPlane :
+			
+				# Check if Y is invalid
+				if "YV:" in data :
+			
+					# Set invalid bed plane
+					self.invalidBedPlane = data[data.find("YV:") + 3] == '0'
+			
+				# Otherwise
+				else :
+			
+					# Clear invalid bed plane
+					self.invalidBedPlane = False
+		
 			# Check if Z is invalid
 			if data[data.find("ZV:") + 3] == '0' :
 			
@@ -5453,26 +5527,39 @@ class M3DFioPlugin(
 			# Set location X
 			if "X:" in data :
 				start = data.find("X:") + 2
-				locationX = data[start : data[start :].find(' ') + start]
+				if data[start :].find(' ') == -1 :
+					locationX = data[start :]
+				else :
+					locationX = data[start : data[start :].find(' ') + start]
 			else :
 				locationX = None
 			
 			# Set location Y
 			if "Y:" in data :
 				start = data.find("Y:") + 2
-				locationY = data[start : data[start :].find(' ') + start]
+				if data[start :].find(' ') == -1 :
+					locationY = data[start :]
+				else :
+					locationY = data[start : data[start :].find(' ') + start]
 			else :
 				locationY = None
 				
 			# Set location E
 			if "E:" in data :
 				start = data.find("E:") + 2
-				locationE = data[start : data[start :].find(' ') + start]
+				if data[start :].find(' ') == -1 :
+					locationE = data[start :]
+				else :
+					locationE = data[start : data[start :].find(' ') + start]
 			else :
 				locationE = None
 			
 			# Set location Z
-			locationZ = data[data.find("Z:") + 2 :]
+			start = data.find("Z:") + 2
+			if data[start :].find(' ') == -1 :
+				locationZ = data[start :]
+			else :
+				locationZ = data[start : data[start :].find(' ') + start]
 			
 			# Check if canceling print
 			if self.cancelingPrint :
@@ -6066,7 +6153,7 @@ class M3DFioPlugin(
 					octoprint.settings.settings().save()
 				
 				# Send invalid values
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Invalid", bedCenter = self.invalidBedCenter, bedOrientation = self.invalidBedOrientation))
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Invalid", bedCenter = self.invalidBedCenter, bedPlane = self.invalidBedPlane, bedOrientation = self.invalidBedOrientation))
 	
 	# Get save commands
 	def getSaveCommands(self) :
