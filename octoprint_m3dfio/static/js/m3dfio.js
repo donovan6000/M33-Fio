@@ -4775,7 +4775,7 @@ $(function() {
 		function uploadWithExpandedFileSupport(event, file, location) {
 			
 			// Check if uploading a OBJ, M3D, AMF, VRML, or COLLADA file
-			var extension = file.name.lastIndexOf('.');
+			var extension = typeof file !== "undefined" ? file.name.lastIndexOf('.') : -1;
 			if(extension != -1 && (file.name.substr(extension + 1).toLowerCase() == "obj" || file.name.substr(extension + 1).toLowerCase() == "m3d" || file.name.substr(extension + 1).toLowerCase() == "amf" || file.name.substr(extension + 1).toLowerCase() == "wrl" || file.name.substr(extension + 1).toLowerCase() == "dae")) {
 			
 				// Stop default behavior
@@ -8016,7 +8016,7 @@ $(function() {
 				
 				// Set location callback
 				locationCallback = function() {
-			
+				
 					// Set commands
 					commands = [
 						"M618 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "iMe" ? (parseFloat(self.settings.settings.plugins.m3dfio.FrontLeftOffset()) - currentZ) : (currentZ - parseFloat(self.settings.settings.plugins.m3dfio.FrontLeftOrientation()))),
@@ -8338,12 +8338,13 @@ $(function() {
 				showMessage("Calibration Status", "Saving Z as bed center Z0");
 			
 				// Set commands
-				var commands = [
+				var commands = currentFirmwareType === "iMe" ? [] : [
 					"G91",
-					"G0 Z0.0999 F90",
-					"G33",
-					"M65536;wait"
+					"G0 Z0.0999 F90"
 				];
+				
+				commands.push("G33");
+				commands.push("M65536;wait");
 			
 				// Set waiting callback
 				waitingCallback = function() {
@@ -8557,7 +8558,7 @@ $(function() {
 		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(18)").attr("title", "Prints a specified backlash calibration").click(function(event) {
 		
 			// Show message
-			showMessage("Calibration Status", "It's recommended to print the backlash calibration prints after the print bed has been accurately calibrated. The selected backlash calibration print will be printed without any backlash compensation applied to it, and the X backlash calibration prints and Y backlash calibration prints each assist in determining the X and Y backlash respecitvley.<br><br>The backlash values can be detemined by finding the sample with the highest possible value that doesn't curve.<img src=\"" + PLUGIN_BASEURL + "m3dfio/static/img/backlash.png\">If none of the samples curve when using the 0.0‑0.99 prints then use the 0.70‑1.69 prints.<br><br>Choose a backlash calibration print to continue.<span class=\"backlash\"><button class=\"btn btn-block\">X 0.0‑0.99</button><button class=\"btn btn-block\">X 0.70‑1.69</button><button class=\"btn btn-block\">Y 0.0‑0.99</button><button class=\"btn btn-block\">Y 0.70‑1.69</button></span>", "Cancel", function() {
+			showMessage("Calibration Status", "It's recommended to print the backlash calibration prints after the print bed has been accurately calibrated. Make sure to set the 'Backlash X' and 'Backlash Y' values to 0 before printing a backlash calibration print which will print the model without any backlash compensation applied to it. The X backlash calibration prints and Y backlash calibration prints each assist in determining the X and Y backlash respecitvley.<br><br>The backlash values can be detemined by finding the sample with the highest possible value that doesn't curve.<img src=\"" + PLUGIN_BASEURL + "m3dfio/static/img/backlash.png\">If none of the samples curve when using the 0.0‑0.99 prints then use the 0.70‑1.69 prints. For more information check out <a target=\"_blank\" href=\"http://www.thingiverse.com/thing:1435828\">Muele's quick backlash calibration method</a>.<br><br>All the referenced values can be found by clicking the 'Print settings' button in the 'General' section.<br><br>Choose a backlash calibration print to continue.<span class=\"backlash\"><button class=\"btn btn-block\">X 0.0‑0.99</button><button class=\"btn btn-block\">X 0.70‑1.69</button><button class=\"btn btn-block\">Y 0.0‑0.99</button><button class=\"btn btn-block\">Y 0.70‑1.69</button></span>", "Cancel", function() {
 			
 				// Hide message
 				hideMessage();
@@ -8724,6 +8725,16 @@ $(function() {
 								"M619 S" + eepromOffsets["bedOrientationBackLeft"]["offset"] + " T" + eepromOffsets["bedOrientationBackLeft"]["bytes"],
 								"M619 S" + eepromOffsets["bedOrientationFrontLeft"]["offset"] + " T" + eepromOffsets["bedOrientationFrontLeft"]["bytes"],
 								"M619 S" + eepromOffsets["bedOrientationFrontRight"]["offset"] + " T" + eepromOffsets["bedOrientationFrontRight"]["bytes"],
+								"M618 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"] + " P" + floatToBinary(0),
+								"M619 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"],
+								"M618 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"] + " P" + floatToBinary(0),
+								"M619 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"],
+								"M618 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"] + " P" + floatToBinary(0),
+								"M619 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"],
+								"M618 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"] + " P" + floatToBinary(0),
+								"M619 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"],
+								"M618 S" + eepromOffsets["bedHeightOffset"]["offset"] + " T" + eepromOffsets["bedHeightOffset"]["bytes"] + " P" + floatToBinary(0),
+								"M619 S" + eepromOffsets["bedHeightOffset"]["offset"] + " T" + eepromOffsets["bedHeightOffset"]["bytes"],
 								"M65536;wait"
 							];
 			
@@ -8900,69 +8911,43 @@ $(function() {
 																	
 																								// Set waiting callback
 																								waitingCallback = function() {
-																								
+																	
 																									// Show message
-																									showMessage("Calibration Status", "Resetting bed height offset");
-																								
+																									showMessage("Calibration Status", "Finishing calibration");
+																
 																									// Set commands
 																									commands = [
-																										"M618 S" + eepromOffsets["bedHeightOffset"]["offset"] + " T" + eepromOffsets["bedHeightOffset"]["bytes"] + " P" + floatToBinary(0),
-																										"M619 S" + eepromOffsets["bedHeightOffset"]["offset"] + " T" + eepromOffsets["bedHeightOffset"]["bytes"],
+																										"G90",
+																										"G0 Z3 F90",
+																										"G28",
+																										"M18",
 																										"M65536;wait"
 																									];
 																	
 																									// Set waiting callback
 																									waitingCallback = function() {
 																	
-																										// Show message
-																										showMessage("Calibration Status", "Finishing calibration");
-																	
-																										// Set commands
-																										commands = [
-																											"G90",
-																											"G0 Z3 F90",
-																											"G28",
-																											"M18",
-																											"M65536;wait"
-																										];
-																		
-																										// Set waiting callback
-																										waitingCallback = function() {
-																		
-																											// Save settings
-																											function saveSettings() {
+																										// Save settings
+																										function saveSettings() {
 
-																												// Save software settings
-																												self.settings.saveData();
-	
-																												// Show message
-																												showMessage("Calibration Status", "Done", "OK", function() {
+																											// Save software settings
+																											self.settings.saveData();
 
-																													// Hide message
-																													hideMessage();
-																												});
-																											}
+																											// Show message
+																											showMessage("Calibration Status", "Done", "OK", function() {
 
-																											// Update settings
-																											if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
-																												self.settings.requestData(saveSettings);
-																											else
-																												self.settings.requestData().done(saveSettings);
+																												// Hide message
+																												hideMessage();
+																											});
 																										}
-																										
-																										// Send request
-																										$.ajax({
-																											url: API_BASEURL + "plugin/m3dfio",
-																											type: "POST",
-																											dataType: "json",
-																											data: JSON.stringify({
-																												command: "message",
-																												value: commands
-																											}),
-																											contentType: "application/json; charset=UTF-8"
-																										});
-																									}
 
+																										// Update settings
+																										if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
+																											self.settings.requestData(saveSettings);
+																										else
+																											self.settings.requestData().done(saveSettings);
+																									}
+																									
 																									// Send request
 																									$.ajax({
 																										url: API_BASEURL + "plugin/m3dfio",

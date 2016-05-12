@@ -70,6 +70,9 @@ enum preprocessorStages {NONE, INPUT, MID_PRINT, CENTER, VALIDATION, PREPARATION
 // Printer colors
 enum printerColors {BLACK, WHITE, BLUE, GREEN, ORANGE, CLEAR, SILVER, PURPLE};
 
+// Firmware types
+enum firmwareTypes {M3D, M3D_MOD, IME, UNKNOWN};
+
 
 // Classes
 
@@ -168,6 +171,7 @@ int16_t detectedFanSpeed;
 bool detectedMidPrintFilamentChange;
 bool objectSuccessfullyCentered;
 bool changeLedBrightness;
+firmwareTypes firmwareType;
 
 // Return value
 string returnValue;
@@ -797,6 +801,19 @@ EXPORT void setChangeLedBrightness(bool value) {
 
 	// Set change led brightness
 	changeLedBrightness = value;
+}
+
+EXPORT void setFirmwareType(const char *value) {
+
+	// Set firmware type
+	if(!strcmp(value, "M3D"))
+		firmwareType = M3D;
+	else if(!strcmp(value, "M3D Mod"))
+		firmwareType = M3D_MOD;
+	else if(!strcmp(value, "iMe"))
+		firmwareType = IME;
+	else
+		firmwareType = UNKNOWN;
 }
 
 EXPORT double getMaxXExtruderLow() {
@@ -1554,8 +1571,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			// Check if command contains valid G-code
 			if(!gcode.isEmpty()) {
 
-				// Check if extruder absolute mode, extruder relative mode, stop idle hold, request temperature, or request coordinates command
-				if(gcode.hasValue('M') && (gcode.getValue('M') == "82" || gcode.getValue('M') == "83" || gcode.getValue('M') == "84" || gcode.getValue('M') == "105" || gcode.getValue('M') == "117"))
+				// Check if extruder absolute mode, extruder relative mode, stop idle hold, request coordinates, or not using iMe firmware and request temperature command
+				if(gcode.hasValue('M') && (gcode.getValue('M') == "82" || gcode.getValue('M') == "83" || gcode.getValue('M') == "84" || gcode.getValue('M') == "117" || (firmwareType != IME && gcode.getValue('M') == "105")))
 
 					// Get next line
 					continue;
@@ -2176,8 +2193,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			}
 		}
 
-		// Check if printing test border or backlash calibration or using bed compensation pre-processor
-		if((printingTestBorder || printingBacklashCalibration || useBedCompensationPreprocessor) && command.skip < BED) {
+		// Check if not using iMe firmware and printing test border or backlash calibration or using bed compensation pre-processor
+		if(firmwareType != IME && (printingTestBorder || printingBacklashCalibration || useBedCompensationPreprocessor) && command.skip < BED) {
 
 			// Set command skip
 			command.skip = BED;
@@ -2437,8 +2454,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			}
 		}
 
-		// Check if not printing backlash calibration and printing test border or using backlash compentation pre-processor
-		if(!printingBacklashCalibration && (printingTestBorder || useBacklashCompensationPreprocessor) && command.skip < BACKLASH) {
+		// Check if not using iMe firmware and printing test border or backlash calibration or using backlash compentation pre-processor
+		if(firmwareType != IME && (printingTestBorder || printingBacklashCalibration || useBacklashCompensationPreprocessor) && command.skip < BACKLASH) {
 
 			// Set command skip
 			command.skip = BACKLASH;

@@ -119,17 +119,6 @@ else :
 		                
 		                # Send current frame
 		                self.wfile.write(currentFrame)
-
-		        elif self.path.split('?')[0] == "/test.html" :
-
-		                # Send current frame header
-		                self.send_response(200)
-		                self.wfile.write("Content-Type: text/html\r\n")
-		                self.wfile.write("Content-Length: " + str(len("hey")))
-		                self.wfile.write("\r\n\r\n")
-		                
-		                # Send current frame
-		                self.wfile.write("hey")
 		        
 		        # Otherwise check if requesting stream
 		        elif self.path.split('?')[0] == "/stream.mjpg" :

@@ -1,5 +1,11 @@
 Changelog:
 
+V0.33 May X, 2016
+
+	* Added option to disable having the preparation pre-processor change the LED's brightness
+	* Ability to use and calibrate a custom fan
+	* Provides iMe V00.00.00.06 printer firmware
+
 V0.32 April 19, 2016
 
 	* Improved raft settings in slicer profiles. Thanks Banjo!
