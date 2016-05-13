@@ -7336,7 +7336,7 @@ $(function() {
 							// Set commands
 							commands = [
 								"G90",
-								"G92"
+								"G92 E0"
 							];
 		
 							for(var i = 2; i <= 50; i += 2)
@@ -7489,7 +7489,7 @@ $(function() {
 							// Set commands
 							commands = [
 								"G90",
-								"G92"
+								"G92 E0"
 							];
 		
 							for(var i = 2; i <= 50; i += 2)
@@ -8019,7 +8019,7 @@ $(function() {
 				
 					// Set commands
 					commands = [
-						"M618 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "iMe" ? (parseFloat(self.settings.settings.plugins.m3dfio.FrontLeftOffset()) - currentZ) : (currentZ - parseFloat(self.settings.settings.plugins.m3dfio.FrontLeftOrientation()))),
+						"M618 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "iMe" ? (currentZ + parseFloat(self.settings.settings.plugins.m3dfio.FrontLeftOffset())) : (currentZ - parseFloat(self.settings.settings.plugins.m3dfio.FrontLeftOrientation()))),
 						"M619 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"],
 						"M65536;wait"
 					];
@@ -8101,7 +8101,7 @@ $(function() {
 			
 					// Set commands
 					commands = [
-						"M618 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "iMe" ? (parseFloat(self.settings.settings.plugins.m3dfio.FrontRightOffset()) - currentZ) : (currentZ - parseFloat(self.settings.settings.plugins.m3dfio.FrontRightOrientation()))),
+						"M618 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "iMe" ? (currentZ + parseFloat(self.settings.settings.plugins.m3dfio.FrontRightOffset())) : (currentZ - parseFloat(self.settings.settings.plugins.m3dfio.FrontRightOrientation()))),
 						"M619 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"],
 						"M65536;wait"
 					];
@@ -8183,7 +8183,7 @@ $(function() {
 			
 					// Set commands
 					commands = [
-						"M618 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "iMe" ? (parseFloat(self.settings.settings.plugins.m3dfio.BackRightOffset()) - currentZ) : (currentZ - parseFloat(self.settings.settings.plugins.m3dfio.BackRightOrientation()))),
+						"M618 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "iMe" ? (currentZ + parseFloat(self.settings.settings.plugins.m3dfio.BackRightOffset())) : (currentZ - parseFloat(self.settings.settings.plugins.m3dfio.BackRightOrientation()))),
 						"M619 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"],
 						"M65536;wait"
 					];
@@ -8265,7 +8265,7 @@ $(function() {
 			
 					// Set commands
 					commands = [
-						"M618 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "iMe" ? (parseFloat(self.settings.settings.plugins.m3dfio.BackLeftOffset()) - currentZ) : (currentZ - parseFloat(self.settings.settings.plugins.m3dfio.BackLeftOrientation()))),
+						"M618 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "iMe" ? (currentZ + parseFloat(self.settings.settings.plugins.m3dfio.BackLeftOffset())) : (currentZ - parseFloat(self.settings.settings.plugins.m3dfio.BackLeftOrientation()))),
 						"M619 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"],
 						"M65536;wait"
 					];
@@ -8778,7 +8778,7 @@ $(function() {
 								
 												// Set commands
 												commands = [
-													"M618 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "iMe" ? (parseFloat(self.settings.settings.plugins.m3dfio.FrontLeftOffset()) - currentZ) : (currentZ - parseFloat(self.settings.settings.plugins.m3dfio.FrontLeftOrientation()))),
+													"M618 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "iMe" ? (currentZ + parseFloat(self.settings.settings.plugins.m3dfio.FrontLeftOffset())) : (currentZ - parseFloat(self.settings.settings.plugins.m3dfio.FrontLeftOrientation()))),
 													"M619 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"],
 													"M65536;wait"
 												];
@@ -8820,7 +8820,7 @@ $(function() {
 											
 																// Set commands
 																commands = [
-																	"M618 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "iMe" ? (parseFloat(self.settings.settings.plugins.m3dfio.FrontRightOffset()) - currentZ) : (currentZ - parseFloat(self.settings.settings.plugins.m3dfio.FrontRightOrientation()))),
+																	"M618 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "iMe" ? (currentZ + parseFloat(self.settings.settings.plugins.m3dfio.FrontRightOffset())) : (currentZ - parseFloat(self.settings.settings.plugins.m3dfio.FrontRightOrientation()))),
 																	"M619 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"],
 																	"M65536;wait"
 																];
@@ -8862,7 +8862,7 @@ $(function() {
 													
 																				// Set commands
 																				commands = [
-																					"M618 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "iMe" ? (parseFloat(self.settings.settings.plugins.m3dfio.BackRightOffset()) - currentZ) : (currentZ - parseFloat(self.settings.settings.plugins.m3dfio.BackRightOrientation()))),
+																					"M618 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "iMe" ? (currentZ + parseFloat(self.settings.settings.plugins.m3dfio.BackRightOffset())) : (currentZ - parseFloat(self.settings.settings.plugins.m3dfio.BackRightOrientation()))),
 																					"M619 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"],
 																					"M65536;wait"
 																				];
@@ -8904,7 +8904,7 @@ $(function() {
 																	
 																								// Set commands
 																								commands = [
-																									"M618 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "iMe" ? (parseFloat(self.settings.settings.plugins.m3dfio.BackLeftOffset()) - currentZ) : (currentZ - parseFloat(self.settings.settings.plugins.m3dfio.BackLeftOrientation()))),
+																									"M618 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "iMe" ? (currentZ + parseFloat(self.settings.settings.plugins.m3dfio.BackLeftOffset())) : (currentZ - parseFloat(self.settings.settings.plugins.m3dfio.BackLeftOrientation()))),
 																									"M619 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"],
 																									"M65536;wait"
 																								];
@@ -11370,12 +11370,12 @@ $(function() {
 									// Set commands
 									commands = [
 										"G90",
-										"G92"
+										"G92 E0"
 									];
-
+		
 									for(var i = 2; i <= 50; i += 2)
 										commands.push("G0 E-" + i + " F345");
-
+				
 									commands.push("M65536;wait");
 
 									// Set waiting callback
@@ -11430,12 +11430,12 @@ $(function() {
 														// Set commands
 														commands = [
 															"G90",
-															"G92"
+															"G92 E0"
 														];
-
+	
 														for(var i = 2; i <= 50; i += 2)
 															commands.push("G0 E" + i + " F345");
-
+			
 														commands.push("M65536;wait");
 
 														// Set waiting callback

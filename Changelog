@@ -1,6 +1,6 @@
 Changelog:
 
-V0.33 May X, 2016
+V0.33 May 12, 2016
 
 	* Added option to disable having the preparation pre-processor change the LED's brightness
 	* Ability to use and calibrate a custom fan

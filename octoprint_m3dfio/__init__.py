@@ -5235,7 +5235,7 @@ class M3DFioPlugin(
 								elif firmwareType == "M3D Mod" :
 									incompatible = firmwareVersion < 2115122112
 								elif firmwareType == "iMe" :
-									incompatible = firmwareVersion < 1900000005
+									incompatible = firmwareVersion < 1900000006
 								
 								# Check if printer is incompatible or not reconnecting to printer
 								if incompatible or not self.reconnectingToPrinter :
