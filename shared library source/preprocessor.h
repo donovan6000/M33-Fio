@@ -147,6 +147,8 @@ extern "C" {
 	EXPORT void setExternalBedHeight(double value);
 	EXPORT void setExpandPrintableRegion(bool value);
 	EXPORT void setMidPrintFilamentChangeLayers(const char *value);
+	EXPORT void setChangeLedBrightness(bool value);
+	EXPORT void setFirmwareType(const char *value);
 	
 	/*
 	Name: Get values

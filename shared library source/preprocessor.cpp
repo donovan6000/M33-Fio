@@ -70,6 +70,9 @@ enum preprocessorStages {NONE, INPUT, MID_PRINT, CENTER, VALIDATION, PREPARATION
 // Printer colors
 enum printerColors {BLACK, WHITE, BLUE, GREEN, ORANGE, CLEAR, SILVER, PURPLE};
 
+// Firmware types
+enum firmwareTypes {M3D, M3D_MOD, IME, UNKNOWN};
+
 
 // Classes
 
@@ -167,6 +170,8 @@ bool expandPrintableRegion;
 int16_t detectedFanSpeed;
 bool detectedMidPrintFilamentChange;
 bool objectSuccessfullyCentered;
+bool changeLedBrightness;
+firmwareTypes firmwareType;
 
 // Return value
 string returnValue;
@@ -790,6 +795,25 @@ EXPORT void setMidPrintFilamentChangeLayers(const char *value) {
 		
 			// Append character to temp
 			temp.push_back(value[i]);
+}
+
+EXPORT void setChangeLedBrightness(bool value) {
+
+	// Set change led brightness
+	changeLedBrightness = value;
+}
+
+EXPORT void setFirmwareType(const char *value) {
+
+	// Set firmware type
+	if(!strcmp(value, "M3D"))
+		firmwareType = M3D;
+	else if(!strcmp(value, "M3D Mod"))
+		firmwareType = M3D_MOD;
+	else if(!strcmp(value, "iMe"))
+		firmwareType = IME;
+	else
+		firmwareType = UNKNOWN;
 }
 
 EXPORT double getMaxXExtruderLow() {
@@ -1547,8 +1571,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			// Check if command contains valid G-code
 			if(!gcode.isEmpty()) {
 
-				// Check if extruder absolute mode, extruder relative mode, stop idle hold, request temperature, or request coordinates command
-				if(gcode.hasValue('M') && (gcode.getValue('M') == "82" || gcode.getValue('M') == "83" || gcode.getValue('M') == "84" || gcode.getValue('M') == "105" || gcode.getValue('M') == "117"))
+				// Check if extruder absolute mode, extruder relative mode, stop idle hold, request coordinates, or not using iMe firmware and request temperature command
+				if(gcode.hasValue('M') && (gcode.getValue('M') == "82" || gcode.getValue('M') == "83" || gcode.getValue('M') == "84" || gcode.getValue('M') == "117" || (firmwareType != IME && gcode.getValue('M') == "105")))
 
 					// Get next line
 					continue;
@@ -1632,7 +1656,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			
 				// Add intro to output
 				newCommands.push(Command("G90", PREPARATION, PREPARATION));
-				newCommands.push(Command("M420 T1", PREPARATION, PREPARATION));
+				if(changeLedBrightness)
+					newCommands.push(Command("M420 T1", PREPARATION, PREPARATION));
 				if(calibrateBeforePrint)
 					newCommands.push(Command("G30", PREPARATION, PREPARATION));
 				newCommands.push(Command("M106 S" + static_cast<string>(filamentType == PLA || filamentType == FLX || filamentType == TGH ? "255" : "50"), PREPARATION, PREPARATION));
@@ -1744,19 +1769,21 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 				newCommands.push(Command("M18", PREPARATION, PREPARATION));
 				newCommands.push(Command("M107", PREPARATION, PREPARATION));
 				
-				newCommands.push(Command("M420 T" + static_cast<string>(printerColor == CLEAR ? "20" : "100"), PREPARATION, PREPARATION));
-				newCommands.push(Command("G4 P500", PREPARATION, PREPARATION));
-				newCommands.push(Command("M420 T1", PREPARATION, PREPARATION));
-				newCommands.push(Command("G4 P500", PREPARATION, PREPARATION));
-				newCommands.push(Command("M420 T" + static_cast<string>(printerColor == CLEAR ? "20" : "100"), PREPARATION, PREPARATION));
-				newCommands.push(Command("G4 P500", PREPARATION, PREPARATION));
-				newCommands.push(Command("M420 T1", PREPARATION, PREPARATION));
-				newCommands.push(Command("G4 P500", PREPARATION, PREPARATION));
-				newCommands.push(Command("M420 T" + static_cast<string>(printerColor == CLEAR ? "20" : "100"), PREPARATION, PREPARATION));
-				newCommands.push(Command("G4 P500", PREPARATION, PREPARATION));
-				newCommands.push(Command("M420 T1", PREPARATION, PREPARATION));
-				newCommands.push(Command("G4 P500", PREPARATION, PREPARATION));
-				newCommands.push(Command("M420 T" + static_cast<string>(printerColor == CLEAR ? "20" : "100"), PREPARATION, PREPARATION));
+				if(changeLedBrightness) {
+					newCommands.push(Command("M420 T" + static_cast<string>(printerColor == CLEAR ? "20" : "100"), PREPARATION, PREPARATION));
+					newCommands.push(Command("G4 P500", PREPARATION, PREPARATION));
+					newCommands.push(Command("M420 T1", PREPARATION, PREPARATION));
+					newCommands.push(Command("G4 P500", PREPARATION, PREPARATION));
+					newCommands.push(Command("M420 T" + static_cast<string>(printerColor == CLEAR ? "20" : "100"), PREPARATION, PREPARATION));
+					newCommands.push(Command("G4 P500", PREPARATION, PREPARATION));
+					newCommands.push(Command("M420 T1", PREPARATION, PREPARATION));
+					newCommands.push(Command("G4 P500", PREPARATION, PREPARATION));
+					newCommands.push(Command("M420 T" + static_cast<string>(printerColor == CLEAR ? "20" : "100"), PREPARATION, PREPARATION));
+					newCommands.push(Command("G4 P500", PREPARATION, PREPARATION));
+					newCommands.push(Command("M420 T1", PREPARATION, PREPARATION));
+					newCommands.push(Command("G4 P500", PREPARATION, PREPARATION));
+					newCommands.push(Command("M420 T" + static_cast<string>(printerColor == CLEAR ? "20" : "100"), PREPARATION, PREPARATION));
+				}
 				
 				// Append new commands to commands
 				while(newCommands.size()) {
@@ -2166,8 +2193,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			}
 		}
 
-		// Check if printing test border or backlash calibration or using bed compensation pre-processor
-		if((printingTestBorder || printingBacklashCalibration || useBedCompensationPreprocessor) && command.skip < BED) {
+		// Check if not using iMe firmware and printing test border or backlash calibration or using bed compensation pre-processor
+		if(firmwareType != IME && (printingTestBorder || printingBacklashCalibration || useBedCompensationPreprocessor) && command.skip < BED) {
 
 			// Set command skip
 			command.skip = BED;
@@ -2427,8 +2454,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			}
 		}
 
-		// Check if not printing backlash calibration and printing test border or using backlash compentation pre-processor
-		if(!printingBacklashCalibration && (printingTestBorder || useBacklashCompensationPreprocessor) && command.skip < BACKLASH) {
+		// Check if not using iMe firmware and printing test border or backlash calibration or using backlash compentation pre-processor
+		if(firmwareType != IME && (printingTestBorder || printingBacklashCalibration || useBacklashCompensationPreprocessor) && command.skip < BACKLASH) {
 
 			// Set command skip
 			command.skip = BACKLASH;

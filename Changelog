@@ -1,10 +1,16 @@
 Changelog:
 
+V0.33 May 12, 2016
+
+	* Added option to disable having the preparation pre-processor change the LED's brightness
+	* Ability to use and calibrate a custom fan
+	* Provides iMe V00.00.00.06 printer firmware
+
 V0.32 April 19, 2016
 
-	* Improved raft settings in slicer profiles
+	* Improved raft settings in slicer profiles. Thanks Banjo!
 	* Fixed the retraction_combing slicer profile setting. Thanks Muele!
-	* Support for ABS-R and the newest TGH filaments. Thanks Banjo!
+	* Support for ABS-R and the newest TGH filaments
 	* Provides M3D's V2016040401 printer firmware
 	* Added images to test border and backlash calibration instructions
 	* Skirt option in slicer profile editor

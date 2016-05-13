@@ -122,6 +122,7 @@ class M3DFioPlugin(
 		self.eeprom = None
 		self.messageResponse = None
 		self.invalidBedCenter = False
+		self.invalidBedPlane = False
 		self.invalidBedOrientation = False
 		self.slicerChanges = None
 		self.sharedLibrary = None
@@ -140,6 +141,7 @@ class M3DFioPlugin(
 		self.showMidPrintFilamentChange = False
 		self.reconnectingToPrinter = False
 		self.performCancelPrintMovement = False
+		self.currentFirmwareType = None
 		
 		# Rom decryption and encryption tables
 		self.romDecryptionTable = [0x26, 0xE2, 0x63, 0xAC, 0x27, 0xDE, 0x0D, 0x94, 0x79, 0xAB, 0x29, 0x87, 0x14, 0x95, 0x1F, 0xAE, 0x5F, 0xED, 0x47, 0xCE, 0x60, 0xBC, 0x11, 0xC3, 0x42, 0xE3, 0x03, 0x8E, 0x6D, 0x9D, 0x6E, 0xF2, 0x4D, 0x84, 0x25, 0xFF, 0x40, 0xC0, 0x44, 0xFD, 0x0F, 0x9B, 0x67, 0x90, 0x16, 0xB4, 0x07, 0x80, 0x39, 0xFB, 0x1D, 0xF9, 0x5A, 0xCA, 0x57, 0xA9, 0x5E, 0xEF, 0x6B, 0xB6, 0x2F, 0x83, 0x65, 0x8A, 0x13, 0xF5, 0x3C, 0xDC, 0x37, 0xD3, 0x0A, 0xF4, 0x77, 0xF3, 0x20, 0xE8, 0x73, 0xDB, 0x7B, 0xBB, 0x0B, 0xFA, 0x64, 0x8F, 0x08, 0xA3, 0x7D, 0xEB, 0x5C, 0x9C, 0x3E, 0x8C, 0x30, 0xB0, 0x7F, 0xBE, 0x2A, 0xD0, 0x68, 0xA2, 0x22, 0xF7, 0x1C, 0xC2, 0x17, 0xCD, 0x78, 0xC7, 0x21, 0x9E, 0x70, 0x99, 0x1A, 0xF8, 0x58, 0xEA, 0x36, 0xB1, 0x69, 0xC9, 0x04, 0xEE, 0x3B, 0xD6, 0x34, 0xFE, 0x55, 0xE7, 0x1B, 0xA6, 0x4A, 0x9A, 0x54, 0xE6, 0x51, 0xA0, 0x4E, 0xCF, 0x32, 0x88, 0x48, 0xA4, 0x33, 0xA5, 0x5B, 0xB9, 0x62, 0xD4, 0x6F, 0x98, 0x6C, 0xE1, 0x53, 0xCB, 0x46, 0xDD, 0x01, 0xE5, 0x7A, 0x86, 0x75, 0xDF, 0x31, 0xD2, 0x02, 0x97, 0x66, 0xE4, 0x38, 0xEC, 0x12, 0xB7, 0x00, 0x93, 0x15, 0x8B, 0x6A, 0xC5, 0x71, 0x92, 0x45, 0xA1, 0x59, 0xF0, 0x06, 0xA8, 0x5D, 0x82, 0x2C, 0xC4, 0x43, 0xCC, 0x2D, 0xD5, 0x35, 0xD7, 0x3D, 0xB2, 0x74, 0xB3, 0x09, 0xC6, 0x7C, 0xBF, 0x2E, 0xB8, 0x28, 0x9F, 0x41, 0xBA, 0x10, 0xAF, 0x0C, 0xFC, 0x23, 0xD9, 0x49, 0xF6, 0x7E, 0x8D, 0x18, 0x96, 0x56, 0xD1, 0x2B, 0xAD, 0x4B, 0xC1, 0x4F, 0xC8, 0x3A, 0xF1, 0x1E, 0xBD, 0x4C, 0xDA, 0x50, 0xA7, 0x52, 0xE9, 0x76, 0xD8, 0x19, 0x91, 0x72, 0x85, 0x3F, 0x81, 0x61, 0xAA, 0x05, 0x89, 0x0E, 0xB5, 0x24, 0xE0]
@@ -280,6 +282,30 @@ class M3DFioPlugin(
 				offset = 0x106,
 				bytes = 4
 			),
+			lastRecordedXValue = dict(
+				offset = 0x29F,
+				bytes = 4
+			),
+			lastRecordedYValue = dict(
+				offset = 0x2A3,
+				bytes = 4
+			),
+			lastRecordedXDirection = dict(
+				offset = 0x2A7,
+				bytes = 1
+			),
+			lastRecordedYDirection = dict(
+				offset = 0x2A8,
+				bytes = 1
+			),
+			savedXState = dict(
+				offset = 0x2A9,
+				bytes = 1
+			),
+			savedYState = dict(
+				offset = 0x2AA,
+				bytes = 1
+			),
 			fanType = dict(
 				offset = 0x2AB,
 				bytes = 1
@@ -340,7 +366,7 @@ class M3DFioPlugin(
 				offset = 0x2E6,
 				bytes = 2
 			),
-			extruderCurrent = dict(
+			eMotorCurrent = dict(
 				offset = 0x2E8,
 				bytes = 2
 			),
@@ -1289,7 +1315,8 @@ class M3DFioPlugin(
 			CameraHeight = 480,
 			CameraFramesPerSecond = 20,
 			MidPrintFilamentChangeLayers = '',
-			LogSentReceivedData = False
+			LogSentReceivedData = False,
+			ChangeLedBrightness = True
 		)
 	
 	# Get IP address
@@ -1477,7 +1504,13 @@ class M3DFioPlugin(
 					# Otherwise clear no line numbers
 					else :
 						noLineNumber = False
-				
+					
+					# Check if waiting for commands to be sent
+					if data["value"][-1] == "M65536;wait" :
+					
+						# Append a command that receives a confirmation to the end of list
+						data["value"].insert(len(data["value"]) - 1, "G4");
+					
 					# Check if not using line numbers or printing
 					if noLineNumber or self._printer.is_printing() :
 				
@@ -1533,6 +1566,86 @@ class M3DFioPlugin(
 				
 						# Check if setting fan failed
 						if not self.setFan(connection, data["value"][9 :]) :
+				
+							# Set error
+							error = True
+					
+						# Otherwise
+						else :
+				
+							# Send new EEPROM
+							self.getEeprom(connection, True)
+				
+					# Close connection
+					connection.close()
+				
+					# Save connection
+					self.savedCurrentPort = currentPort
+					self.savedCurrentBaudrate = currentBaudrate
+					self.savedCurrentProfile = currentProfile
+				
+				# Otherwise
+				else :
+				
+					# Set error
+					error = True
+				
+				# Enable printer callbacks
+			    	self._printer.register_callback(self)
+				
+				# Send response
+				if error :
+					return flask.jsonify(dict(value = "Error"))
+				else :
+					return flask.jsonify(dict(value = "OK"))
+			
+			# Otherwise check if parameter is to set fan calibration
+			elif data["value"].startswith("Set Fan Calibration:") :
+			
+				# Initialize variables
+				error = False
+				
+				# Disable printer callbacks
+				self._printer.unregister_callback(self)
+				
+				# Get current printer connection state
+				currentState, currentPort, currentBaudrate, currentProfile = self._printer.get_current_connection()
+				
+				# Set baudrate if invalid
+				if not currentBaudrate or currentBaudrate == 0 :
+					currentBaudrate = 115200
+				
+				# Save ports
+				self.savePorts(currentPort)
+				
+				# Switch into bootloader mode
+				self.sendCommands("M115 S628")
+				time.sleep(1)
+				
+				# Set updated port
+				currentPort = self.getPort()
+				
+				# Return error if printer was found
+				if currentPort is not None :
+				
+					# Connect to the printer
+					connection = serial.Serial(currentPort, currentBaudrate)
+						
+					# Check if getting EEPROM failed
+					if not self.getEeprom(connection) :
+				
+						# Set error
+						error = True
+				
+					# Otherwise
+					else :
+					
+						# Set fan offset and scale
+						fanOffset = int(data["value"][21 :])
+						fanScale = float(255 - fanOffset) / 255
+				
+						# Check if setting fan failed
+						if not self.setFan(connection, "Custom", fanOffset, fanScale) :
 				
 							# Set error
 							error = True
@@ -1716,13 +1829,20 @@ class M3DFioPlugin(
 						self.sharedLibrary.setCalibrateBeforePrint(ctypes.c_bool(self._settings.get_boolean(["CalibrateBeforePrint"])))
 						self.sharedLibrary.setRemoveFanCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveFanCommands"])))
 						self.sharedLibrary.setRemoveTemperatureCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveTemperatureCommands"])))
-						self.sharedLibrary.setUseGpio(ctypes.c_bool(self._settings.get_boolean(["UseGpio"])))
 						if self._settings.get_int(["GpioLayer"]) is not None :
+							self.sharedLibrary.setUseGpio(ctypes.c_bool(self._settings.get_boolean(["UseGpio"])))
 							self.sharedLibrary.setGpioLayer(ctypes.c_ushort(self._settings.get_int(["GpioLayer"])))
+						else :
+							self.sharedLibrary.setUseGpio(ctypes.c_bool(False))
 						self.sharedLibrary.setHeatbedTemperature(ctypes.c_ushort(self._settings.get_int(["HeatbedTemperature"])))
 						self.sharedLibrary.setExternalBedHeight(ctypes.c_double(self._settings.get_float(["ExternalBedHeight"])))
 						self.sharedLibrary.setExpandPrintableRegion(ctypes.c_bool(self._settings.get_boolean(["ExpandPrintableRegion"])))
 						self.sharedLibrary.setMidPrintFilamentChangeLayers(ctypes.c_char_p(' '.join(re.findall("\\d+", str(self._settings.get(["MidPrintFilamentChangeLayers"]))))))
+						self.sharedLibrary.setChangeLedBrightness(ctypes.c_bool(self._settings.get_boolean(["ChangeLedBrightness"])))
+						if self.currentFirmwareType is None :
+							self.sharedLibrary.setFirmwareType(ctypes.c_char_p(""))
+						else :
+							self.sharedLibrary.setFirmwareType(ctypes.c_char_p(self.currentFirmwareType))
 									
 						# Collect print information
 						self.sharedLibrary.collectPrintInformation(ctypes.c_char_p(location), ctypes.c_bool(True))
@@ -2988,7 +3108,7 @@ class M3DFioPlugin(
 		return True
 	
 	# Set fan
-	def setFan(self, connection, name) :
+	def setFan(self, connection, name, newFanOffset = None, newFanScale = None) :
 	
 		# Clear error
 		error = False
@@ -3013,6 +3133,17 @@ class M3DFioPlugin(
 			fanType = 4
 			fanOffset = 200
 			fanScale = 0.2165354
+		
+		elif name == "Custom" :
+			fanType = 254
+			if newFanOffset is None :
+				fanOffset = 0
+			else :
+				fanOffset = newFanOffset
+			if newFanScale is None :
+				fanScale = 1
+			else :
+				fanScale = newFanScale
 		
 		else :
 			return False
@@ -3073,10 +3204,10 @@ class M3DFioPlugin(
 	def setExtruderCurrent(self, connection, value) :
 	
 		# Check if extruder current values differ
-		if int(ord(self.eeprom[self.eepromOffsets["extruderCurrent"]["offset"]])) + (int(ord(self.eeprom[self.eepromOffsets["extruderCurrent"]["offset"] + 1])) << 8) != value :
+		if int(ord(self.eeprom[self.eepromOffsets["eMotorCurrent"]["offset"]])) + (int(ord(self.eeprom[self.eepromOffsets["eMotorCurrent"]["offset"] + 1])) << 8) != value :
 	
 			# Check if saving extruder current failed
-			if not self.writeToEeprom(connection, self.eepromOffsets["extruderCurrent"]["offset"], chr(value & 0xFF)) or not self.writeToEeprom(connection, self.eepromOffsets["extruderCurrent"]["offset"] + 1, chr((value >> 8) & 0xFF)) :
+			if not self.writeToEeprom(connection, self.eepromOffsets["eMotorCurrent"]["offset"], chr(value & 0xFF)) or not self.writeToEeprom(connection, self.eepromOffsets["eMotorCurrent"]["offset"] + 1, chr((value >> 8) & 0xFF)) :
 				
 				# Return false
 				return False
@@ -3612,18 +3743,18 @@ class M3DFioPlugin(
 					gcode.removeParameter('M')
 					gcode.setValue('G', '4')
 				
-				# Check if using M3D or M3D Mod firmware
-				if self.getFirmwareDetails()[0] == "M3D" or self.getFirmwareDetails()[0] == "M3D Mod" :
-				
-					# Get the command's binary representation
-					data = gcode.getBinary()
-				
-				# Otherwise
-				else :
+				# Check if using iMe firmware
+				if self.currentFirmwareType == "iMe" :
 				
 					# Get the command's ASCII representation with checksum
 					data = gcode.getAscii()
 					data += self.calculateChecksum(data)
+				
+				# Otherwise
+				else :
+				
+					# Get the command's binary representation
+					data = gcode.getBinary()
 				
 				# Log sent data
 				if self._settings.get_boolean(["LogSentReceivedData"]) :
@@ -4092,6 +4223,9 @@ class M3DFioPlugin(
 				
 				# Clear EEPROM
 				self.eeprom = None
+				
+				# Clear current firmware type
+				self.currentFirmwareType = None
 			
 				# Clear original write and read
 				self.originalWrite = None
@@ -4099,6 +4233,22 @@ class M3DFioPlugin(
 			
 				# Send printer status
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Micro 3D Not Connected"))
+			
+			# Check if using a Micro 3D printer
+			if not self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
+				
+				# Empty command queue
+				self.emptyCommandQueue()
+			
+				# Set first line number to zero and clear history
+				if self._printer._comm is not None :
+					self._printer._comm._gcode_M110_sending("N0")
+					self._printer._comm._long_running_command = True
+			
+				# Clear sent commands
+				self.sentCommands = {}
+				self.resetLineNumberCommandSent = False
+				self.numberWrapCounter = 0
 		
 		# Otherwise check if client connects
 		elif event == octoprint.events.Events.CLIENT_OPENED :
@@ -4286,13 +4436,20 @@ class M3DFioPlugin(
 					self.sharedLibrary.setCalibrateBeforePrint(ctypes.c_bool(self._settings.get_boolean(["CalibrateBeforePrint"])))
 					self.sharedLibrary.setRemoveFanCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveFanCommands"])))
 					self.sharedLibrary.setRemoveTemperatureCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveTemperatureCommands"])))
-					self.sharedLibrary.setUseGpio(ctypes.c_bool(self._settings.get_boolean(["UseGpio"])))
 					if self._settings.get_int(["GpioLayer"]) is not None :
+						self.sharedLibrary.setUseGpio(ctypes.c_bool(self._settings.get_boolean(["UseGpio"])))
 						self.sharedLibrary.setGpioLayer(ctypes.c_ushort(self._settings.get_int(["GpioLayer"])))
+					else :
+						self.sharedLibrary.setUseGpio(ctypes.c_bool(False))
 					self.sharedLibrary.setHeatbedTemperature(ctypes.c_ushort(self._settings.get_int(["HeatbedTemperature"])))
 					self.sharedLibrary.setExternalBedHeight(ctypes.c_double(self._settings.get_float(["ExternalBedHeight"])))
 					self.sharedLibrary.setExpandPrintableRegion(ctypes.c_bool(self._settings.get_boolean(["ExpandPrintableRegion"])))
 					self.sharedLibrary.setMidPrintFilamentChangeLayers(ctypes.c_char_p(' '.join(re.findall("\\d+", str(self._settings.get(["MidPrintFilamentChangeLayers"]))))))
+					self.sharedLibrary.setChangeLedBrightness(ctypes.c_bool(self._settings.get_boolean(["ChangeLedBrightness"])))
+					if self.currentFirmwareType is None :
+						self.sharedLibrary.setFirmwareType(ctypes.c_char_p(""))
+					else :
+						self.sharedLibrary.setFirmwareType(ctypes.c_char_p(self.currentFirmwareType))
 				
 					# Collect print information
 					printIsValid = self.sharedLibrary.collectPrintInformation(ctypes.c_char_p(payload["file"]), ctypes.c_bool(self._settings.get_boolean(["PreprocessOnTheFly"])))
@@ -4475,10 +4632,11 @@ class M3DFioPlugin(
 					commands += ["M18"]
 					commands += ["M107"]
 			
-					if self.printerColor == "Clear" :
-						commands += ["M420 T20"]
-					else :
-						commands += ["M420 T100"]
+					if self._settings.get_boolean(["ChangeLedBrightness"]) :
+						if self.printerColor == "Clear" :
+							commands += ["M420 T20"]
+						else :
+							commands += ["M420 T100"]
 			
 					# Send commands with line numbers
 					self.sendCommandsWithLineNumbers(commands)
@@ -4799,6 +4957,7 @@ class M3DFioPlugin(
 							else :
 				
 								# Set fan name
+								fanName = None
 								if fanType == 1 :
 									fanName = "HengLiXin"
 								elif fanType == 2 :
@@ -4809,7 +4968,7 @@ class M3DFioPlugin(
 									fanName = "Xinyujie"
 					
 								# Check if updating fan failed
-								if not self.setFan(connection, fanName) :
+								if fanName is not None and not self.setFan(connection, fanName) :
 					
 									# Set error
 									error = True
@@ -5076,7 +5235,7 @@ class M3DFioPlugin(
 								elif firmwareType == "M3D Mod" :
 									incompatible = firmwareVersion < 2115122112
 								elif firmwareType == "iMe" :
-									incompatible = firmwareVersion < 1900000001
+									incompatible = firmwareVersion < 1900000006
 								
 								# Check if printer is incompatible or not reconnecting to printer
 								if incompatible or not self.reconnectingToPrinter :
@@ -5209,6 +5368,9 @@ class M3DFioPlugin(
 						
 						# Check if communication layer has been established
 						if self._printer._comm is not None :
+						
+							# Set current firmware type
+							self.currentFirmwareType = self.getFirmwareDetails()[0]
 							
 							# Save original write and read functions
 							self.originalWrite = self._printer.get_transport().write
@@ -5236,6 +5398,9 @@ class M3DFioPlugin(
 								
 								# Set printer state to operational
 								self._printer._comm._changeState(self._printer._comm.STATE_OPERATIONAL)
+								
+								# Send message
+								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Connected To Printer"))
 									
 							except Exception :
 				
@@ -5281,7 +5446,7 @@ class M3DFioPlugin(
 		elif "MACHINE_TYPE:" in data :
 		
 			# Check if printer isn't a Micro 3D
-			if "MACHINE_TYPE:The_Micro" not in data :
+			if "MACHINE_TYPE:The_Micro" not in data and "MACHINE_TYPE:Micro_3D" not in data :
 				
 				# Set write and read functions back to original
 				if self.originalWrite is not None and isinstance(self._printer.get_transport(), serial.Serial) :
@@ -5332,6 +5497,33 @@ class M3DFioPlugin(
 		# Otherwise check if data contains valid Z information
 		elif "ZV:" in data :
 		
+			# Check if X is invalid
+			if "XV:" in data :
+			
+				# Set invalid bed plane
+				self.invalidBedPlane = data[data.find("XV:") + 3] == '0'
+			
+			# Otherwise
+			else :
+			
+				# Clear invalid bed plane
+				self.invalidBedPlane = False
+			
+			# Check if bed plane is valid
+			if not self.invalidBedPlane :
+			
+				# Check if Y is invalid
+				if "YV:" in data :
+			
+					# Set invalid bed plane
+					self.invalidBedPlane = data[data.find("YV:") + 3] == '0'
+			
+				# Otherwise
+				else :
+			
+					# Clear invalid bed plane
+					self.invalidBedPlane = False
+		
 			# Check if Z is invalid
 			if data[data.find("ZV:") + 3] == '0' :
 			
@@ -5350,26 +5542,39 @@ class M3DFioPlugin(
 			# Set location X
 			if "X:" in data :
 				start = data.find("X:") + 2
-				locationX = data[start : data[start :].find(' ') + start]
+				if data[start :].find(' ') == -1 :
+					locationX = data[start :]
+				else :
+					locationX = data[start : data[start :].find(' ') + start]
 			else :
 				locationX = None
 			
 			# Set location Y
 			if "Y:" in data :
 				start = data.find("Y:") + 2
-				locationY = data[start : data[start :].find(' ') + start]
+				if data[start :].find(' ') == -1 :
+					locationY = data[start :]
+				else :
+					locationY = data[start : data[start :].find(' ') + start]
 			else :
 				locationY = None
 				
 			# Set location E
 			if "E:" in data :
 				start = data.find("E:") + 2
-				locationE = data[start : data[start :].find(' ') + start]
+				if data[start :].find(' ') == -1 :
+					locationE = data[start :]
+				else :
+					locationE = data[start : data[start :].find(' ') + start]
 			else :
 				locationE = None
 			
 			# Set location Z
-			locationZ = data[data.find("Z:") + 2 :]
+			start = data.find("Z:") + 2
+			if data[start :].find(' ') == -1 :
+				locationZ = data[start :]
+			else :
+				locationZ = data[start : data[start :].find(' ') + start]
 			
 			# Check if canceling print
 			if self.cancelingPrint :
@@ -5420,11 +5625,13 @@ class M3DFioPlugin(
 
 				commands += ["M18"]
 				commands += ["M107"]
-			
-				if self.printerColor == "Clear" :
-					commands += ["M420 T20"]
-				else :
-					commands += ["M420 T100"]
+				
+				if self._settings.get_boolean(["ChangeLedBrightness"]) :
+					if self.printerColor == "Clear" :
+						commands += ["M420 T20"]
+					else :
+						commands += ["M420 T100"]
+				
 				commands += ["G4"]
 				commands += ["M65539;hide message"]
 				
@@ -5961,7 +6168,7 @@ class M3DFioPlugin(
 					octoprint.settings.settings().save()
 				
 				# Send invalid values
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Invalid", bedCenter = self.invalidBedCenter, bedOrientation = self.invalidBedOrientation))
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Invalid", bedCenter = self.invalidBedCenter, bedPlane = self.invalidBedPlane, bedOrientation = self.invalidBedOrientation))
 	
 	# Get save commands
 	def getSaveCommands(self) :
@@ -6275,13 +6482,20 @@ class M3DFioPlugin(
 				self.sharedLibrary.setCalibrateBeforePrint(ctypes.c_bool(self._settings.get_boolean(["CalibrateBeforePrint"])))
 				self.sharedLibrary.setRemoveFanCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveFanCommands"])))
 				self.sharedLibrary.setRemoveTemperatureCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveTemperatureCommands"])))
-				self.sharedLibrary.setUseGpio(ctypes.c_bool(self._settings.get_boolean(["UseGpio"])))
 				if self._settings.get_int(["GpioLayer"]) is not None :
+					self.sharedLibrary.setUseGpio(ctypes.c_bool(self._settings.get_boolean(["UseGpio"])))
 					self.sharedLibrary.setGpioLayer(ctypes.c_ushort(self._settings.get_int(["GpioLayer"])))
+				else :
+					self.sharedLibrary.setUseGpio(ctypes.c_bool(False))
 				self.sharedLibrary.setHeatbedTemperature(ctypes.c_ushort(self._settings.get_int(["HeatbedTemperature"])))
 				self.sharedLibrary.setExternalBedHeight(ctypes.c_double(self._settings.get_float(["ExternalBedHeight"])))
 				self.sharedLibrary.setExpandPrintableRegion(ctypes.c_bool(self._settings.get_boolean(["ExpandPrintableRegion"])))
 				self.sharedLibrary.setMidPrintFilamentChangeLayers(ctypes.c_char_p(' '.join(re.findall("\\d+", str(self._settings.get(["MidPrintFilamentChangeLayers"]))))))
+				self.sharedLibrary.setChangeLedBrightness(ctypes.c_bool(self._settings.get_boolean(["ChangeLedBrightness"])))
+				if self.currentFirmwareType is None :
+					self.sharedLibrary.setFirmwareType(ctypes.c_char_p(""))
+				else :
+					self.sharedLibrary.setFirmwareType(ctypes.c_char_p(self.currentFirmwareType))
 				
 				# Collect print information
 				printIsValid = self.sharedLibrary.collectPrintInformation(ctypes.c_char_p(input), ctypes.c_bool(True))
@@ -7241,8 +7455,8 @@ class M3DFioPlugin(
 				# Check if command contains valid G-code
 				if not gcode.isEmpty() :
 
-					# Check if extruder absolute mode, extruder relative mode, stop idle hold, request temperature, or request coordinates command
-					if gcode.hasValue('M') and (gcode.getValue('M') == "82" or gcode.getValue('M') == "83" or gcode.getValue('M') == "84" or gcode.getValue('M') == "105" or gcode.getValue('M') == "117") :
+					# Check if extruder absolute mode, extruder relative mode, stop idle hold, request coordinates, or not using iMe firmware and request temperature command
+					if gcode.hasValue('M') and (gcode.getValue('M') == "82" or gcode.getValue('M') == "83" or gcode.getValue('M') == "84" or gcode.getValue('M') == "117" or (self.currentFirmwareType != "iMe" and gcode.getValue('M') == "105")) :
 
 						# Get next line
 						continue
@@ -7321,7 +7535,8 @@ class M3DFioPlugin(
 					
 					# Add intro to output
 					newCommands.append(Command("G90", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("M420 T1", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					if self._settings.get_boolean(["ChangeLedBrightness"]) :
+						newCommands.append(Command("M420 T1", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 					if self._settings.get_boolean(["CalibrateBeforePrint"]) :
 						newCommands.append(Command("G30", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 					if str(self._settings.get(["FilamentType"])) == "PLA" or str(self._settings.get(["FilamentType"])) == "FLX" or str(self._settings.get(["FilamentType"])) == "TGH" :
@@ -7429,31 +7644,32 @@ class M3DFioPlugin(
 					newCommands.append(Command("M18", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 					newCommands.append(Command("M107", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 					
-					if self.printerColor == "Clear" :
-						newCommands.append(Command("M420 T20", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
-					else :
-						newCommands.append(Command("M420 T100", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G4 P500", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("M420 T1", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G4 P500", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
-					if self.printerColor == "Clear" :
-						newCommands.append(Command("M420 T20", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
-					else :
-						newCommands.append(Command("M420 T100", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G4 P500", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("M420 T1", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G4 P500", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
-					if self.printerColor == "Clear" :
-						newCommands.append(Command("M420 T20", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
-					else :
-						newCommands.append(Command("M420 T100", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G4 P500", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("M420 T1", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G4 P500", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
-					if self.printerColor == "Clear" :
-						newCommands.append(Command("M420 T20", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
-					else :
-						newCommands.append(Command("M420 T100", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					if self._settings.get_boolean(["ChangeLedBrightness"]) :
+						if self.printerColor == "Clear" :
+							newCommands.append(Command("M420 T20", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						else :
+							newCommands.append(Command("M420 T100", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G4 P500", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M420 T1", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G4 P500", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						if self.printerColor == "Clear" :
+							newCommands.append(Command("M420 T20", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						else :
+							newCommands.append(Command("M420 T100", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G4 P500", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M420 T1", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G4 P500", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						if self.printerColor == "Clear" :
+							newCommands.append(Command("M420 T20", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						else :
+							newCommands.append(Command("M420 T100", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G4 P500", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M420 T1", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G4 P500", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						if self.printerColor == "Clear" :
+							newCommands.append(Command("M420 T20", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						else :
+							newCommands.append(Command("M420 T100", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 			
 					# Append new commands to commands
 					while len(newCommands) :
@@ -7857,8 +8073,8 @@ class M3DFioPlugin(
 					# Get next command
 					continue
 
-			# Check if printing test border or backlash calibration or using bed compensation pre-processor
-			if (self.printingTestBorder or self.printingBacklashCalibration or self._settings.get_boolean(["UseBedCompensationPreprocessor"])) and "BED" not in command.skip :
+			# Check if not using iMe firmware and printing test border or backlash calibration or using bed compensation pre-processor
+			if self.currentFirmwareType != "iMe" and (self.printingTestBorder or self.printingBacklashCalibration or self._settings.get_boolean(["UseBedCompensationPreprocessor"])) and "BED" not in command.skip :
 
 				# Set command skip
 				command.skip += " BED"
@@ -8119,8 +8335,8 @@ class M3DFioPlugin(
 					# Get next command
 					continue
 
-			# Check if not printing backlash calibration and printing test border or using backlash compentation pre-processor
-			if not self.printingBacklashCalibration and (self.printingTestBorder or self._settings.get_boolean(["UseBacklashCompensationPreprocessor"])) and "BACKLASH" not in command.skip :
+			# Check if not using iMe firmware and printing test border or backlash calibration or using backlash compentation pre-processor
+			if self.currentFirmwareType != "iMe" and (self.printingTestBorder or self.printingBacklashCalibration or self._settings.get_boolean(["UseBacklashCompensationPreprocessor"])) and "BACKLASH" not in command.skip :
 
 				# Set command skip
 				command.skip += " BACKLASH"

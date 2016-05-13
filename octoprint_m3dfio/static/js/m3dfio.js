@@ -26,7 +26,10 @@ $(function() {
 		var continueWithPrint = false;
 		var waitingCallback = null;
 		var locationCallback = null;
+		var connectCallback = null;
+		var failedToConnectCallback = null;
 		var skipModelEditor = false;
+		var currentFirmwareType = null;
 		var self = this;
 		
 		// Get state views
@@ -417,6 +420,42 @@ $(function() {
 				bytes: 4,
 				color: "rgb(200, 200, 200)"
 			},
+			lastRecordedXValue: {
+				name: "Last Recorded X Value",
+				offset: 0x29F,
+				bytes: 4,
+				color: "rgb(170, 200, 220)"
+			},
+			lastRecordedYValue: {
+				name: "Last Recorded Y Value",
+				offset: 0x2A3,
+				bytes: 4,
+				color: "rgb(170, 220, 200)"
+			},
+			lastRecordedXDirection: {
+				name: "Last Recorded X Direction",
+				offset: 0x2A7,
+				bytes: 1,
+				color: "rgb(200, 170, 220)"
+			},
+			lastRecordedYDirection: {
+				name: "Last Recorded Y Direction",
+				offset: 0x2A8,
+				bytes: 1,
+				color: "rgb(200, 220, 170)"
+			},
+			savedXState: {
+				name: "Saved X State",
+				offset: 0x2A9,
+				bytes: 1,
+				color: "rgb(220, 170, 200)"
+			},
+			savedYState: {
+				name: "Saved Y State",
+				offset: 0x2AA,
+				bytes: 1,
+				color: "rgb(220, 200, 170)"
+			},
 			fanType: {
 				name: "Fan Type",
 				offset: 0x2AB,
@@ -507,8 +546,8 @@ $(function() {
 				bytes: 2,
 				color: "rgb(210, 230, 230)"
 			},
-			extruderCurrent: {
-				name: "Extruder Current",
+			eMotorCurrent: {
+				name: "E Motor Current",
 				offset: 0x2E8,
 				bytes: 2,
 				color: "rgb(180, 180, 230)"
@@ -647,7 +686,7 @@ $(function() {
 						// Show calibration menu or print settings if applicable
 						$("body > div.page-container > div.message > div > div > div.calibrate, body > div.page-container > div.message > div > div > div.printSettings, body > div.page-container > div.message > div > div > div.filamentSettings").removeClass("show");
 						
-						if(currentMessage.secondButton == "Done")
+						if(currentMessage.secondButton == "Done" && currentMessage.header != "Fan Status")
 							$("body > div.page-container > div.message > div > div > div.calibrate").addClass("show");
 						
 						else if(currentMessage.secondButton == "Print") {
@@ -3607,6 +3646,7 @@ $(function() {
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/listener.png">Listener fan</button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/shenzhew.png">Shenzhew fan</button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/xinyujie.png">Xinyujie fan</button>
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/custom.png">Custom fan</button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">500mA extruder current</button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">660mA extruder current</button>
 					<button class="btn btn-block control-box placeHolder" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"></button>
@@ -4735,7 +4775,7 @@ $(function() {
 		function uploadWithExpandedFileSupport(event, file, location) {
 			
 			// Check if uploading a OBJ, M3D, AMF, VRML, or COLLADA file
-			var extension = file.name.lastIndexOf('.');
+			var extension = typeof file !== "undefined" ? file.name.lastIndexOf('.') : -1;
 			if(extension != -1 && (file.name.substr(extension + 1).toLowerCase() == "obj" || file.name.substr(extension + 1).toLowerCase() == "m3d" || file.name.substr(extension + 1).toLowerCase() == "amf" || file.name.substr(extension + 1).toLowerCase() == "wrl" || file.name.substr(extension + 1).toLowerCase() == "dae")) {
 			
 				// Stop default behavior
@@ -7296,7 +7336,7 @@ $(function() {
 							// Set commands
 							commands = [
 								"G90",
-								"G92"
+								"G92 E0"
 							];
 		
 							for(var i = 2; i <= 50; i += 2)
@@ -7449,7 +7489,7 @@ $(function() {
 							// Set commands
 							commands = [
 								"G90",
-								"G92"
+								"G92 E0"
 							];
 		
 							for(var i = 2; i <= 50; i += 2)
@@ -7837,7 +7877,7 @@ $(function() {
 				// Set commands
 				var commands = [
 					"G90",
-					"G0 Z" + (parseFloat(self.settings.settings.plugins.m3dfio.FrontLeftOrientation()) + parseFloat(self.settings.settings.plugins.m3dfio.FrontLeftOffset())) + " F90"
+					"G0 Z" + (currentFirmwareType === "iMe" ? 0 : (parseFloat(self.settings.settings.plugins.m3dfio.FrontLeftOrientation()) + parseFloat(self.settings.settings.plugins.m3dfio.FrontLeftOffset()))) + " F90"
 				];
 		
 				// Send request
@@ -7870,7 +7910,7 @@ $(function() {
 				// Set commands
 				var commands = [
 					"G90",
-					"G0 Z" + (parseFloat(self.settings.settings.plugins.m3dfio.FrontRightOrientation()) + parseFloat(self.settings.settings.plugins.m3dfio.FrontRightOffset())) + " F90"
+					"G0 Z" + (currentFirmwareType === "iMe" ? 0 : (parseFloat(self.settings.settings.plugins.m3dfio.FrontRightOrientation()) + parseFloat(self.settings.settings.plugins.m3dfio.FrontRightOffset()))) + " F90"
 				];
 		
 				// Send request
@@ -7903,7 +7943,7 @@ $(function() {
 				// Set commands
 				var commands = [
 					"G90",
-					"G0 Z" + (parseFloat(self.settings.settings.plugins.m3dfio.BackRightOrientation()) + parseFloat(self.settings.settings.plugins.m3dfio.BackRightOffset())) + " F90"
+					"G0 Z" + (currentFirmwareType === "iMe" ? 0 : (parseFloat(self.settings.settings.plugins.m3dfio.BackRightOrientation()) + parseFloat(self.settings.settings.plugins.m3dfio.BackRightOffset()))) + " F90"
 				];
 		
 				// Send request
@@ -7936,7 +7976,7 @@ $(function() {
 				// Set commands
 				var commands = [
 					"G90",
-					"G0 Z" + (parseFloat(self.settings.settings.plugins.m3dfio.BackLeftOrientation()) + parseFloat(self.settings.settings.plugins.m3dfio.BackLeftOffset())) + " F90"
+					"G0 Z" + (currentFirmwareType === "iMe" ? 0 : (parseFloat(self.settings.settings.plugins.m3dfio.BackLeftOrientation()) + parseFloat(self.settings.settings.plugins.m3dfio.BackLeftOffset()))) + " F90"
 				];
 		
 				// Send request
@@ -7976,10 +8016,10 @@ $(function() {
 				
 				// Set location callback
 				locationCallback = function() {
-			
+				
 					// Set commands
 					commands = [
-						"M618 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"] + " P" + floatToBinary(currentZ - parseFloat(self.settings.settings.plugins.m3dfio.FrontLeftOrientation())),
+						"M618 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "iMe" ? (currentZ + parseFloat(self.settings.settings.plugins.m3dfio.FrontLeftOffset())) : (currentZ - parseFloat(self.settings.settings.plugins.m3dfio.FrontLeftOrientation()))),
 						"M619 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"],
 						"M65536;wait"
 					];
@@ -8061,7 +8101,7 @@ $(function() {
 			
 					// Set commands
 					commands = [
-						"M618 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"] + " P" + floatToBinary(currentZ - parseFloat(self.settings.settings.plugins.m3dfio.FrontRightOrientation())),
+						"M618 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "iMe" ? (currentZ + parseFloat(self.settings.settings.plugins.m3dfio.FrontRightOffset())) : (currentZ - parseFloat(self.settings.settings.plugins.m3dfio.FrontRightOrientation()))),
 						"M619 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"],
 						"M65536;wait"
 					];
@@ -8143,7 +8183,7 @@ $(function() {
 			
 					// Set commands
 					commands = [
-						"M618 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"] + " P" + floatToBinary(currentZ - parseFloat(self.settings.settings.plugins.m3dfio.BackRightOrientation())),
+						"M618 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "iMe" ? (currentZ + parseFloat(self.settings.settings.plugins.m3dfio.BackRightOffset())) : (currentZ - parseFloat(self.settings.settings.plugins.m3dfio.BackRightOrientation()))),
 						"M619 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"],
 						"M65536;wait"
 					];
@@ -8225,7 +8265,7 @@ $(function() {
 			
 					// Set commands
 					commands = [
-						"M618 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"] + " P" + floatToBinary(currentZ - parseFloat(self.settings.settings.plugins.m3dfio.BackLeftOrientation())),
+						"M618 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "iMe" ? (currentZ + parseFloat(self.settings.settings.plugins.m3dfio.BackLeftOffset())) : (currentZ - parseFloat(self.settings.settings.plugins.m3dfio.BackLeftOrientation()))),
 						"M619 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"],
 						"M65536;wait"
 					];
@@ -8298,12 +8338,13 @@ $(function() {
 				showMessage("Calibration Status", "Saving Z as bed center Z0");
 			
 				// Set commands
-				var commands = [
+				var commands = currentFirmwareType === "iMe" ? [] : [
 					"G91",
-					"G0 Z0.0999 F90",
-					"G33",
-					"M65536;wait"
+					"G0 Z0.0999 F90"
 				];
+				
+				commands.push("G33");
+				commands.push("M65536;wait");
 			
 				// Set waiting callback
 				waitingCallback = function() {
@@ -8517,7 +8558,7 @@ $(function() {
 		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(18)").attr("title", "Prints a specified backlash calibration").click(function(event) {
 		
 			// Show message
-			showMessage("Calibration Status", "It's recommended to print the backlash calibration prints after the print bed has been accurately calibrated. The selected backlash calibration print will be printed without any backlash compensation applied to it, and the X backlash calibration prints and Y backlash calibration prints each assist in determining the X and Y backlash respecitvley.<br><br>The backlash values can be detemined by finding the sample with the highest possible value that doesn't curve.<img src=\"" + PLUGIN_BASEURL + "m3dfio/static/img/backlash.png\">If none of the samples curve when using the 0.0‑0.99 prints then use the 0.70‑1.69 prints.<br><br>Choose a backlash calibration print to continue.<span class=\"backlash\"><button class=\"btn btn-block\">X 0.0‑0.99</button><button class=\"btn btn-block\">X 0.70‑1.69</button><button class=\"btn btn-block\">Y 0.0‑0.99</button><button class=\"btn btn-block\">Y 0.70‑1.69</button></span>", "Cancel", function() {
+			showMessage("Calibration Status", "It's recommended to print the backlash calibration prints after the print bed has been accurately calibrated. Make sure to set the 'Backlash X' and 'Backlash Y' values to 0 before printing a backlash calibration print which will print the model without any backlash compensation applied to it. The X backlash calibration prints and Y backlash calibration prints each assist in determining the X and Y backlash respecitvley.<br><br>The backlash values can be detemined by finding the sample with the highest possible value that doesn't curve.<img src=\"" + PLUGIN_BASEURL + "m3dfio/static/img/backlash.png\">If none of the samples curve when using the 0.0‑0.99 prints then use the 0.70‑1.69 prints. For more information check out <a target=\"_blank\" href=\"http://www.thingiverse.com/thing:1435828\">Muele's quick backlash calibration method</a>.<br><br>All the referenced values can be found by clicking the 'Print settings' button in the 'General' section.<br><br>Choose a backlash calibration print to continue.<span class=\"backlash\"><button class=\"btn btn-block\">X 0.0‑0.99</button><button class=\"btn btn-block\">X 0.70‑1.69</button><button class=\"btn btn-block\">Y 0.0‑0.99</button><button class=\"btn btn-block\">Y 0.70‑1.69</button></span>", "Cancel", function() {
 			
 				// Hide message
 				hideMessage();
@@ -8684,6 +8725,16 @@ $(function() {
 								"M619 S" + eepromOffsets["bedOrientationBackLeft"]["offset"] + " T" + eepromOffsets["bedOrientationBackLeft"]["bytes"],
 								"M619 S" + eepromOffsets["bedOrientationFrontLeft"]["offset"] + " T" + eepromOffsets["bedOrientationFrontLeft"]["bytes"],
 								"M619 S" + eepromOffsets["bedOrientationFrontRight"]["offset"] + " T" + eepromOffsets["bedOrientationFrontRight"]["bytes"],
+								"M618 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"] + " P" + floatToBinary(0),
+								"M619 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"],
+								"M618 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"] + " P" + floatToBinary(0),
+								"M619 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"],
+								"M618 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"] + " P" + floatToBinary(0),
+								"M619 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"],
+								"M618 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"] + " P" + floatToBinary(0),
+								"M619 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"],
+								"M618 S" + eepromOffsets["bedHeightOffset"]["offset"] + " T" + eepromOffsets["bedHeightOffset"]["bytes"] + " P" + floatToBinary(0),
+								"M619 S" + eepromOffsets["bedHeightOffset"]["offset"] + " T" + eepromOffsets["bedHeightOffset"]["bytes"],
 								"M65536;wait"
 							];
 			
@@ -8727,7 +8778,7 @@ $(function() {
 								
 												// Set commands
 												commands = [
-													"M618 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"] + " P" + floatToBinary(currentZ - parseFloat(self.settings.settings.plugins.m3dfio.FrontLeftOrientation())),
+													"M618 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "iMe" ? (currentZ + parseFloat(self.settings.settings.plugins.m3dfio.FrontLeftOffset())) : (currentZ - parseFloat(self.settings.settings.plugins.m3dfio.FrontLeftOrientation()))),
 													"M619 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"],
 													"M65536;wait"
 												];
@@ -8769,7 +8820,7 @@ $(function() {
 											
 																// Set commands
 																commands = [
-																	"M618 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"] + " P" + floatToBinary(currentZ - parseFloat(self.settings.settings.plugins.m3dfio.FrontRightOrientation())),
+																	"M618 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "iMe" ? (currentZ + parseFloat(self.settings.settings.plugins.m3dfio.FrontRightOffset())) : (currentZ - parseFloat(self.settings.settings.plugins.m3dfio.FrontRightOrientation()))),
 																	"M619 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"],
 																	"M65536;wait"
 																];
@@ -8811,7 +8862,7 @@ $(function() {
 													
 																				// Set commands
 																				commands = [
-																					"M618 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"] + " P" + floatToBinary(currentZ - parseFloat(self.settings.settings.plugins.m3dfio.BackRightOrientation())),
+																					"M618 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "iMe" ? (currentZ + parseFloat(self.settings.settings.plugins.m3dfio.BackRightOffset())) : (currentZ - parseFloat(self.settings.settings.plugins.m3dfio.BackRightOrientation()))),
 																					"M619 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"],
 																					"M65536;wait"
 																				];
@@ -8853,76 +8904,50 @@ $(function() {
 																	
 																								// Set commands
 																								commands = [
-																									"M618 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"] + " P" + floatToBinary(currentZ - parseFloat(self.settings.settings.plugins.m3dfio.BackLeftOrientation())),
+																									"M618 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "iMe" ? (currentZ + parseFloat(self.settings.settings.plugins.m3dfio.BackLeftOffset())) : (currentZ - parseFloat(self.settings.settings.plugins.m3dfio.BackLeftOrientation()))),
 																									"M619 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"],
 																									"M65536;wait"
 																								];
 																	
 																								// Set waiting callback
 																								waitingCallback = function() {
-																								
+																	
 																									// Show message
-																									showMessage("Calibration Status", "Resetting bed height offset");
-																								
+																									showMessage("Calibration Status", "Finishing calibration");
+																
 																									// Set commands
 																									commands = [
-																										"M618 S" + eepromOffsets["bedHeightOffset"]["offset"] + " T" + eepromOffsets["bedHeightOffset"]["bytes"] + " P" + floatToBinary(0),
-																										"M619 S" + eepromOffsets["bedHeightOffset"]["offset"] + " T" + eepromOffsets["bedHeightOffset"]["bytes"],
+																										"G90",
+																										"G0 Z3 F90",
+																										"G28",
+																										"M18",
 																										"M65536;wait"
 																									];
 																	
 																									// Set waiting callback
 																									waitingCallback = function() {
 																	
-																										// Show message
-																										showMessage("Calibration Status", "Finishing calibration");
-																	
-																										// Set commands
-																										commands = [
-																											"G90",
-																											"G0 Z3 F90",
-																											"G28",
-																											"M18",
-																											"M65536;wait"
-																										];
-																		
-																										// Set waiting callback
-																										waitingCallback = function() {
-																		
-																											// Save settings
-																											function saveSettings() {
+																										// Save settings
+																										function saveSettings() {
 
-																												// Save software settings
-																												self.settings.saveData();
-	
-																												// Show message
-																												showMessage("Calibration Status", "Done", "OK", function() {
+																											// Save software settings
+																											self.settings.saveData();
 
-																													// Hide message
-																													hideMessage();
-																												});
-																											}
+																											// Show message
+																											showMessage("Calibration Status", "Done", "OK", function() {
 
-																											// Update settings
-																											if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
-																												self.settings.requestData(saveSettings);
-																											else
-																												self.settings.requestData().done(saveSettings);
+																												// Hide message
+																												hideMessage();
+																											});
 																										}
-																										
-																										// Send request
-																										$.ajax({
-																											url: API_BASEURL + "plugin/m3dfio",
-																											type: "POST",
-																											dataType: "json",
-																											data: JSON.stringify({
-																												command: "message",
-																												value: commands
-																											}),
-																											contentType: "application/json; charset=UTF-8"
-																										});
-																									}
 
+																										// Update settings
+																										if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
+																											self.settings.requestData(saveSettings);
+																										else
+																											self.settings.requestData().done(saveSettings);
+																									}
+																									
 																									// Send request
 																									$.ajax({
 																										url: API_BASEURL + "plugin/m3dfio",
@@ -9668,9 +9693,153 @@ $(function() {
 				hideMessage();
 			});
 		});
+		
+		// Set custom fan control
+		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(5)").attr("title", "Sets fan to a manually calibrated custom fan").click(function(event) {
+			
+			// Show message
+			showMessage("Fan Status", "This will overwrite the existing fan settings. Proceed?", "Yes", function() {
+			
+				// Hide message
+				hideMessage();
+				
+				// Show message
+				showMessage("Fan Status", "Setting fan to custom");
+		
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m3dfio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({
+						command: "message",
+						value: "Set Fan: Custom"
+					}),
+					contentType: "application/json; charset=UTF-8",
+			
+					// On success
+					success: function(data) {
+					
+						// Check if setting fan failed
+						if(data.value != "OK")
+						
+							// Show message
+							showMessage("Fan Status", "Failed", "OK", function() {
+		
+								// Hide message
+								hideMessage();
+							});
+						
+						// Otherwise
+						else {
+					
+							// Set connect callback
+							connectCallback = function() {
+						
+								// Show message
+								showMessage("Fan Status", "Increase this value until the fan starts spinning<span class=\"fan\"><input type=\"number\" step=\"1\" min=\"0\" max=\"255\" value=\"0\"></span>", "Done", function() {
+			
+									// Set fan offset
+									var fanOffset = $("body > div.page-container > div.message > div > div > p span.fan > input").val();
+									
+									// Hide message
+									hideMessage();
+				
+									// Show message
+									showMessage("Fan Status", "Setting custom fan calibration");
+		
+									// Send request
+									$.ajax({
+										url: API_BASEURL + "plugin/m3dfio",
+										type: "POST",
+										dataType: "json",
+										data: JSON.stringify({
+											command: "message",
+											value: "Set Fan Calibration: " + fanOffset
+										}),
+										contentType: "application/json; charset=UTF-8",
+			
+										// On success
+										success: function(data) {
+										
+											// Show message
+											showMessage("Fan Status", data.value == "OK" ? "Done" : "Failed", "OK", function() {
+			
+												// Hide message
+												hideMessage();
+							
+												// Send request
+												$.ajax({
+													url: API_BASEURL + "plugin/m3dfio",
+													type: "POST",
+													dataType: "json",
+													data: JSON.stringify({
+														command: "message",
+														value: "Reconnect To Printer"
+													}),
+													contentType: "application/json; charset=UTF-8"
+												});
+											});
+										}
+									});
+								});
+							}
+							
+							// Set failed to connect callback
+							failedToConnectCallback = function() {
+							
+								// Show message
+								showMessage("Fan Status", "Failed", "OK", function() {
+	
+									// Hide message
+									hideMessage();
+								});
+							}
+							
+							// Send request
+							$.ajax({
+								url: API_BASEURL + "plugin/m3dfio",
+								type: "POST",
+								dataType: "json",
+								data: JSON.stringify({
+									command: "message",
+									value: "Reconnect To Printer"
+								}),
+								contentType: "application/json; charset=UTF-8"
+							});
+						}
+					}
+				});
+			}, "No", function() {
+			
+				// Hide message
+				hideMessage();
+			});
+		});
+		
+		// Custom fan calibration change event
+		$(document).on("change", "body > div.page-container > div.message > div > div > p span.fan > input", function() {
+		
+			// Set commands
+			var commands = [
+				"M106 S" + $(this).val()
+			];
+		
+			// Send request
+			$.ajax({
+				url: API_BASEURL + "plugin/m3dfio",
+				type: "POST",
+				dataType: "json",
+				data: JSON.stringify({
+					command: "message",
+					value: commands
+				}),
+				contentType: "application/json; charset=UTF-8"
+			});
+		});
 	
 		// Set 500mA extruder current control
-		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(5)").attr("title", "Sets extruder's current to 500mA").click(function(event) {
+		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(6)").attr("title", "Sets extruder's current to 500mA").click(function(event) {
 			
 			// Show message
 			showMessage("Extruder Current Status", "This will overwrite the existing extruder current settings. Proceed?", "Yes", function() {
@@ -9723,7 +9892,7 @@ $(function() {
 		});
 	
 		// Set 660mA extruder current control
-		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(6)").attr("title", "Sets extruder's current to 660mA").click(function(event) {
+		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(7)").attr("title", "Sets extruder's current to 660mA").click(function(event) {
 			
 			// Show message
 			showMessage("Extruder Current Status", "This will overwrite the existing extruder current settings. Proceed?", "Yes", function() {
@@ -10183,9 +10352,12 @@ $(function() {
 			// Check if data is current firmware
 			if(data.value == "Current Firmware" && typeof data.type !== "undefined" && typeof data.release !== "undefined") {
 			
+				// Set current firmware type
+				currentFirmwareType = data.type;
+			
 				// Set name to unknown if not specified
-				if(data.name === null)
-					data.name = "an unknown"
+				if(data.type === null)
+					data.type = "an unknown"
 			
 				// Set firmware text
 				$("#control div.jog-panel.advanced p").text("Currently using " + data.type + " firmware V" + data.release);
@@ -10491,7 +10663,7 @@ $(function() {
 			else if(data.value == "Provided Firmwares" && typeof data.firmwares !== "undefined") {
 			
 				// Go to place holder buttons
-				var currentPosition = $("#control > div.jog-panel.advanced").find("div > button:nth-of-type(7)");
+				var currentPosition = $("#control > div.jog-panel.advanced").find("div > button:nth-of-type(8)");
 				
 				// Sort firmwares
 				var firmwares = Object.keys(data.firmwares).sort();
@@ -10506,111 +10678,54 @@ $(function() {
 						var firmwareName = $(this).data("name");
 						var firmwareType = firmwareName.substr(0, firmwareName.search(/ \d{10}$/));
 						
-						// Check if updating to functional firmware
-						if(firmwareType == "M3D" || firmwareType == "M3D Mod") {
-						
-							// Show message
-							showMessage("Firmware Status", firmwareType == "M3D" ? "This will update the printer's current firmware. Proceed?" : htmlEncode(firmwareType) + " is a modified version of the M3D firmware that increases the max temperature from 285°C to 315°C. Proceed?", "Yes", function() {
-			
-								// Hide message
-								hideMessage();
-						
-								// Show message
-								showMessage("Firmware Status", "Updating firmware");
-
-								// Send request
-								$.ajax({
-									url: API_BASEURL + "plugin/m3dfio",
-									type: "POST",
-									dataType: "json",
-									data: JSON.stringify({
-										command: "message",
-										value: "Update Firmware To Provided: " + firmwareName
-									}),
-									contentType: "application/json; charset=UTF-8",
-
-									// On success
-									success: function(data) {
-
-										// Show message
-										showMessage("Firmware Status", data.value == "OK" ? "Done" : "Failed", "OK", function() {
-	
-											// Hide message
-											hideMessage();
-										
-											// Send request
-											$.ajax({
-												url: API_BASEURL + "plugin/m3dfio",
-												type: "POST",
-												dataType: "json",
-												data: JSON.stringify({
-													command: "message",
-													value: "Reconnect To Printer"
-												}),
-												contentType: "application/json; charset=UTF-8"
-											});
-										});
-									}
-								});
-							}, "No", function() {
-			
-								// Hide message
-								hideMessage();
-							});
-						}
-						
-						// Otherwise
-						else {
+						// Show message
+						showMessage("Firmware Status", firmwareType == "M3D Mod" ? htmlEncode(firmwareType) + " is a modified version of M3D firmware that increases the max temperature from 285°C to 315°C. Proceed?" : "This will update the printer's current firmware. Proceed?", "Yes", function() {
 		
+							// Hide message
+							hideMessage();
+					
 							// Show message
-							showMessage("Firmware Status", htmlEncode(firmwareType) + " is not a fully functional firmware. It's currently only intended to be used by developers. Proceed?", "Yes", function() {
-			
-								// Hide message
-								hideMessage();
-				
-								// Show message
-								showMessage("Firmware Status", "Updating firmware");
+							showMessage("Firmware Status", "Updating firmware");
 
-								// Send request
-								$.ajax({
-									url: API_BASEURL + "plugin/m3dfio",
-									type: "POST",
-									dataType: "json",
-									data: JSON.stringify({
-										command: "message",
-										value: "Update Firmware To Provided: " + firmwareName
-									}),
-									contentType: "application/json; charset=UTF-8",
+							// Send request
+							$.ajax({
+								url: API_BASEURL + "plugin/m3dfio",
+								type: "POST",
+								dataType: "json",
+								data: JSON.stringify({
+									command: "message",
+									value: "Update Firmware To Provided: " + firmwareName
+								}),
+								contentType: "application/json; charset=UTF-8",
 
-									// On success
-									success: function(data) {
+								// On success
+								success: function(data) {
 
-										// Show message
-										showMessage("Firmware Status", data.value == "OK" ? "Done" : "Failed", "OK", function() {
-		
-											// Hide message
-											hideMessage();
-											
-											// Send request
-											$.ajax({
-												url: API_BASEURL + "plugin/m3dfio",
-												type: "POST",
-												dataType: "json",
-												data: JSON.stringify({
-													command: "message",
-													value: "Reconnect To Printer"
-												}),
-												contentType: "application/json; charset=UTF-8"
-											});
+									// Show message
+									showMessage("Firmware Status", data.value == "OK" ? "Done" : "Failed", "OK", function() {
+
+										// Hide message
+										hideMessage();
+									
+										// Send request
+										$.ajax({
+											url: API_BASEURL + "plugin/m3dfio",
+											type: "POST",
+											dataType: "json",
+											data: JSON.stringify({
+												command: "message",
+												value: "Reconnect To Printer"
+											}),
+											contentType: "application/json; charset=UTF-8"
 										});
-									}
-								});
-							}, "No", function() {
-			
-								// Hide message
-								hideMessage();
+									});
+								}
 							});
-						}
+						}, "No", function() {
+		
+							// Hide message
+							hideMessage();
+						});
 					});
 					
 					// Go to next place holder
@@ -10638,18 +10753,20 @@ $(function() {
 				var fanType = (parseInt(data.eeprom[eepromOffsets["fanType"].offset * 2], 16) << 4) | parseInt(data.eeprom[eepromOffsets["fanType"].offset * 2 + 1], 16);
 				if(fanType >= 1 && fanType <= 4)
 					$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(" + fanType + ")").addClass("current");
+				else if(fanType == 254)
+					$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(5)").addClass("current");
 					
 				// Indicate current extruder current
-				var extruderCurrent = ((parseInt(data.eeprom[eepromOffsets["extruderCurrent"].offset * 2], 16) << 4) | parseInt(data.eeprom[eepromOffsets["extruderCurrent"].offset * 2 + 1], 16)) | (((parseInt(data.eeprom[(eepromOffsets["extruderCurrent"].offset + 1) * 2], 16) << 4) | parseInt(data.eeprom[(eepromOffsets["extruderCurrent"].offset + 1) * 2 + 1], 16)) << 8)
+				var extruderCurrent = ((parseInt(data.eeprom[eepromOffsets["eMotorCurrent"].offset * 2], 16) << 4) | parseInt(data.eeprom[eepromOffsets["eMotorCurrent"].offset * 2 + 1], 16)) | (((parseInt(data.eeprom[(eepromOffsets["eMotorCurrent"].offset + 1) * 2], 16) << 4) | parseInt(data.eeprom[(eepromOffsets["eMotorCurrent"].offset + 1) * 2 + 1], 16)) << 8)
 				if(extruderCurrent == 500)
-					$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(5)").addClass("current");
-				else if(extruderCurrent == 660)
 					$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(6)").addClass("current");
+				else if(extruderCurrent == 660)
+					$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(7)").addClass("current");
 			}
 			
 			// Otherwise check if data is invalid values
-			else if(data.value == "Invalid" && typeof data.bedCenter !== "undefined" && typeof data.bedOrientation !== "undefined") {
-			
+			else if(data.value == "Invalid" && typeof data.bedCenter !== "undefined" && typeof data.bedPlane !== "undefined" && typeof data.bedOrientation !== "undefined") {
+				
 				// Calibrate bed orientation
 				function calibrateBedOrientation() {
 				
@@ -10758,6 +10875,108 @@ $(function() {
 					});
 				}
 				
+				// Calibrate bed plane
+				function calibrateBedPlane() {
+				
+					// Initialize variables
+					var text = "Invalid bed plane. Calibrate?";
+		
+					// Check if same text is currently being displayed
+					if($("body > div.page-container > div.message").hasClass("show") && $("body > div.page-container > div.message").find("p").eq(0).html() == text)
+		
+						// Return
+						return;
+		
+					// Go through all messages
+					for(var i = 0; i < messages.length; i++)
+		
+						// Check if a message waiting to be displayed has same text
+						if(messages[i].text == text)
+			
+							// Return
+							return;
+		
+					// Display message
+					showMessage("Calibration Status", text, "Yes", function() {
+			
+						// Hide message
+						hideMessage();
+				
+						// Show message
+						showMessage("Calibration Status", "Calibrating bed plane");
+
+						// Set commands
+						var commands = [
+							"G28",
+							"M65536;wait"
+						];
+				
+						// Set waiting callback
+						waitingCallback = function() {
+				
+							// Set commands
+							commands = [
+								"M117",
+								"M65536;wait"
+							];
+
+							// Set waiting callback
+							waitingCallback = function() {
+				
+								// Check if invalid bed orientation
+								if(data.bedOrientation)
+				
+									// Calibrate bed orientation
+									calibrateBedOrientation();
+								
+								// Otherwise
+								else
+					
+									// Show message
+									showMessage("Calibration Status", "Done", "OK", function() {
+		
+										// Hide message
+										hideMessage();
+									});
+							}
+					
+							// Send request
+							$.ajax({
+								url: API_BASEURL + "plugin/m3dfio",
+								type: "POST",
+								dataType: "json",
+								data: JSON.stringify({
+									command: "message",
+									value: commands
+								}),
+								contentType: "application/json; charset=UTF-8"
+							});
+						}
+
+						// Send request
+						$.ajax({
+							url: API_BASEURL + "plugin/m3dfio",
+							type: "POST",
+							dataType: "json",
+							data: JSON.stringify({
+								command: "message",
+								value: commands
+							}),
+							contentType: "application/json; charset=UTF-8"
+						});
+					}, "No", function() {
+				
+						// Hide message
+						hideMessage();
+						
+						// Check if invalid bed orientation
+						if(data.bedOrientation)
+				
+							// Calibrate bed orientation
+							calibrateBedOrientation();
+					});
+				}
+				
 				// Check if invalid bed center
 				if(data.bedCenter) {
 				
@@ -10812,11 +11031,11 @@ $(function() {
 							// Set waiting callback
 							waitingCallback = function() {
 							
-								// Check if invalid bed orientation
-								if(data.bedOrientation)
+								// Check if invalid bed plane
+								if(data.bedPlane)
 				
-									// Calibrate bed orientation
-									calibrateBedOrientation();
+									// Calibrate bed plane
+									calibrateBedPlane();
 								
 								// Otherwise
 								else
@@ -10858,13 +11077,19 @@ $(function() {
 						// Hide message
 						hideMessage();
 						
-						// Check if invalid bed orientation
-						if(data.bedOrientation)
+						// Check if invalid bed plane
+						if(data.bedPlane)
 				
-							// Calibrate bed orientation
-							calibrateBedOrientation();
+							// Calibrate bed plane
+							calibrateBedPlane();
 					});
 				}
+				
+				// Otherwise check if invalid bed plane
+				else if(data.bedPlane)
+				
+					// Calibrate bed plane
+					calibrateBedPlane();
 				
 				// Otherwise check if invalid bed orientation
 				else if(data.bedOrientation)
@@ -10876,40 +11101,58 @@ $(function() {
 			// Otherwise check if data is to show message
 			else if(data.value == "Show Message" && typeof data.message !== "undefined" && typeof data.header !== "undefined") {
 			
-				// Initialize variables
-				var text = htmlEncode(data.message);
+				// Check if failed to connect and callback is set
+				if(data.header == "Connection Status" && typeof failedToConnectCallback === "function") {
 			
-				// Check if same text is currently being displayed
-				if($("body > div.page-container > div.message").hasClass("show") && $("body > div.page-container > div.message").find("p").eq(0).html() == text)
+					// Clear connect callback
+					connectCallback = null;
 			
-					// Return
-					return;
+					// Clear failed to connect callback
+					var temp = failedToConnectCallback;
+					failedToConnectCallback = null;
 			
-				// Go through all messages
-				for(var i = 0; i < messages.length; i++)
-			
-					// Check if a message waiting to be displayed has same text
-					if(messages[i].text == text)
-				
-						// Return
-						return;
-				
-				// Check if a confirmation is requested
-				if(typeof data.confirm !== "undefined") {
-				
-					// Display message
-					showMessage(htmlEncode(data.header), text, "OK", function() {
-					
-						// Hide message
-						hideMessage();
-					});
+					// Call failed to connect callback
+					temp();
 				}
 				
 				// Otherwise
-				else
+				else {
 				
-					// Display message
-					showMessage(htmlEncode(data.header), text);
+					// Initialize variables
+					var text = htmlEncode(data.message);
+			
+					// Check if same text is currently being displayed
+					if($("body > div.page-container > div.message").hasClass("show") && $("body > div.page-container > div.message").find("p").eq(0).html() == text)
+			
+						// Return
+						return;
+			
+					// Go through all messages
+					for(var i = 0; i < messages.length; i++)
+			
+						// Check if a message waiting to be displayed has same text
+						if(messages[i].text == text)
+				
+							// Return
+							return;
+				
+					// Check if a confirmation is requested
+					if(typeof data.confirm !== "undefined") {
+				
+						// Display message
+						showMessage(htmlEncode(data.header), text, "OK", function() {
+					
+							// Hide message
+							hideMessage();
+						});
+					}
+				
+					// Otherwise
+					else
+				
+						// Display message
+						showMessage(htmlEncode(data.header), text);
+				}
 			}
 			
 			// Otherwise check if data is to show a question
@@ -10992,6 +11235,20 @@ $(function() {
 				waitingCallback = null;
 			
 				// Call waiting callback
+				temp();
+			}
+			
+			// Otherwise check if data is connected to printer
+			else if(data.value == "Connected To Printer" && typeof connectCallback === "function") {
+			
+				// Clear failed to connect callback
+				failedToConnectCallback = null;
+			
+				// Clear connect callback
+				var temp = connectCallback;
+				connectCallback = null;
+			
+				// Call connect callback
 				temp();
 			}
 			
@@ -11113,12 +11370,12 @@ $(function() {
 									// Set commands
 									commands = [
 										"G90",
-										"G92"
+										"G92 E0"
 									];
-
+		
 									for(var i = 2; i <= 50; i += 2)
 										commands.push("G0 E-" + i + " F345");
-
+				
 									commands.push("M65536;wait");
 
 									// Set waiting callback
@@ -11173,12 +11430,12 @@ $(function() {
 														// Set commands
 														commands = [
 															"G90",
-															"G92"
+															"G92 E0"
 														];
-
+	
 														for(var i = 2; i <= 50; i += 2)
 															commands.push("G0 E" + i + " F345");
-
+			
 														commands.push("M65536;wait");
 
 														// Set waiting callback
