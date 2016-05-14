@@ -5171,9 +5171,9 @@ class M3DFioPlugin(
 								
 								# Check if an error has occured
 								if error :
-								
+					
 									# Display error
- -									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Updating EEPROM values failed", header = "Error Status", confirm = True))
+									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Updating EEPROM values failed", header = "Error Status", confirm = True))
 								
 							# Check if firmware is corrupt
 							if not error and eepromCrc != chipCrc :
