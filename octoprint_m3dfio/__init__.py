@@ -4709,7 +4709,7 @@ class M3DFioPlugin(
 		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Printer Details", serialNumber = serialNumber, serialPort = self._printer.get_transport().port))
 	
 	# Set EEPROM value
-	def setEepromValue(self, connection, eepromValue, value) :
+	def setEepromValue(self, connection, eepromName, value) :
 	
 		# Set error
 		error = False
@@ -4720,10 +4720,10 @@ class M3DFioPlugin(
 
 		# Go through bytes of EEPROM value
 		index = 0
-		while index < self.eepromOffsets[eepromValue]["bytes"] :
+		while index < self.eepromOffsets[eepromName]["bytes"] :
 
 			# Check if saving EEPROM value failed
-			if not error and not self.writeToEeprom(connection, self.eepromOffsets[eepromValue]["offset"] + index, chr((floatValue >> 8 * index) & 0xFF)) :
+			if not error and not self.writeToEeprom(connection, self.eepromOffsets[eepromName]["offset"] + index, chr((floatValue >> 8 * index) & 0xFF)) :
 
 				# Set error
 				error = True
@@ -5055,120 +5055,126 @@ class M3DFioPlugin(
 								# Set error to if limiting backlash X failed
 								error = self.keepEepromValueWithinRange(connection, "backlashX", 0, 2, self.get_settings_defaults()["BacklashX"])
 							
-							# Check if an error hasn't occured
-							if not error :
+								# Check if an error hasn't occured
+								if not error :
 							
-								# Set error to if limiting backlash Y failed
-								error = self.keepEepromValueWithinRange(connection, "backlashY", 0, 2, self.get_settings_defaults()["BacklashY"])
+									# Set error to if limiting backlash Y failed
+									error = self.keepEepromValueWithinRange(connection, "backlashY", 0, 2, self.get_settings_defaults()["BacklashY"])
 							
-							# Check if an error hasn't occured
-							if not error :
+								# Check if an error hasn't occured
+								if not error :
 							
-								# Set error to if limiting backlash speed failed
-								error = self.keepEepromValueWithinRange(connection, "backlashSpeed", 1, 5000, self.get_settings_defaults()["BacklashSpeed"])
+									# Set error to if limiting backlash speed failed
+									error = self.keepEepromValueWithinRange(connection, "backlashSpeed", 1, 5000, self.get_settings_defaults()["BacklashSpeed"])
 							
-							# Check if an error hasn't occured
-							if not error :
+								# Check if an error hasn't occured
+								if not error :
 							
-								# Set error to if limiting back left orientation failed
-								error = self.keepEepromValueWithinRange(connection, "bedOrientationBackLeft", -3, 3, self.get_settings_defaults()["BackLeftOrientation"])
+									# Set error to if limiting back left orientation failed
+									error = self.keepEepromValueWithinRange(connection, "bedOrientationBackLeft", -3, 3, self.get_settings_defaults()["BackLeftOrientation"])
 							
-							# Check if an error hasn't occured
-							if not error :
+								# Check if an error hasn't occured
+								if not error :
 							
-								# Set error to if limiting back right orientation failed
-								error = self.keepEepromValueWithinRange(connection, "bedOrientationBackRight", -3, 3, self.get_settings_defaults()["BackRightOrientation"])
+									# Set error to if limiting back right orientation failed
+									error = self.keepEepromValueWithinRange(connection, "bedOrientationBackRight", -3, 3, self.get_settings_defaults()["BackRightOrientation"])
 							
-							# Check if an error hasn't occured
-							if not error :
+								# Check if an error hasn't occured
+								if not error :
 							
-								# Set error to if limiting front right orientation failed
-								error = self.keepEepromValueWithinRange(connection, "bedOrientationFrontRight", -3, 3, self.get_settings_defaults()["FrontRightOrientation"])
+									# Set error to if limiting front right orientation failed
+									error = self.keepEepromValueWithinRange(connection, "bedOrientationFrontRight", -3, 3, self.get_settings_defaults()["FrontRightOrientation"])
 							
-							# Check if an error hasn't occured
-							if not error :
+								# Check if an error hasn't occured
+								if not error :
 							
-								# Set error to if limiting front left orientation failed
-								error = self.keepEepromValueWithinRange(connection, "bedOrientationFrontLeft", -3, 3, self.get_settings_defaults()["FrontLeftOrientation"])
+									# Set error to if limiting front left orientation failed
+									error = self.keepEepromValueWithinRange(connection, "bedOrientationFrontLeft", -3, 3, self.get_settings_defaults()["FrontLeftOrientation"])
 							
-							# Check if an error hasn't occured
-							if not error :
+								# Check if an error hasn't occured
+								if not error :
 							
-								# Set error to if limiting back left offset failed
-								error = self.keepEepromValueWithinRange(connection, "bedOffsetBackLeft", -sys.float_info.max, sys.float_info.max, self.get_settings_defaults()["BackLeftOffset"])
+									# Set error to if limiting back left offset failed
+									error = self.keepEepromValueWithinRange(connection, "bedOffsetBackLeft", -sys.float_info.max, sys.float_info.max, self.get_settings_defaults()["BackLeftOffset"])
 							
-							# Check if an error hasn't occured
-							if not error :
+								# Check if an error hasn't occured
+								if not error :
 							
-								# Set error to if limiting back right offset failed
-								error = self.keepEepromValueWithinRange(connection, "bedOffsetBackRight", -sys.float_info.max, sys.float_info.max, self.get_settings_defaults()["BackRightOffset"])
+									# Set error to if limiting back right offset failed
+									error = self.keepEepromValueWithinRange(connection, "bedOffsetBackRight", -sys.float_info.max, sys.float_info.max, self.get_settings_defaults()["BackRightOffset"])
 							
-							# Check if an error hasn't occured
-							if not error :
+								# Check if an error hasn't occured
+								if not error :
 							
-								# Set error to if limiting front right offset failed
-								error = self.keepEepromValueWithinRange(connection, "bedOffsetFrontRight", -sys.float_info.max, sys.float_info.max, self.get_settings_defaults()["FrontRightOffset"])
+									# Set error to if limiting front right offset failed
+									error = self.keepEepromValueWithinRange(connection, "bedOffsetFrontRight", -sys.float_info.max, sys.float_info.max, self.get_settings_defaults()["FrontRightOffset"])
 							
-							# Check if an error hasn't occured
-							if not error :
+								# Check if an error hasn't occured
+								if not error :
 							
-								# Set error to if limiting front left offset failed
-								error = self.keepEepromValueWithinRange(connection, "bedOffsetFrontLeft", -sys.float_info.max, sys.float_info.max, self.get_settings_defaults()["FrontLeftOffset"])
+									# Set error to if limiting front left offset failed
+									error = self.keepEepromValueWithinRange(connection, "bedOffsetFrontLeft", -sys.float_info.max, sys.float_info.max, self.get_settings_defaults()["FrontLeftOffset"])
 							
-							# Check if an error hasn't occured
-							if not error :
+								# Check if an error hasn't occured
+								if not error :
 							
-								# Set error to if limiting bed height offset offset failed
-								error = self.keepEepromValueWithinRange(connection, "bedHeightOffset", -sys.float_info.max, sys.float_info.max, self.get_settings_defaults()["BedHeightOffset"])
+									# Set error to if limiting bed height offset offset failed
+									error = self.keepEepromValueWithinRange(connection, "bedHeightOffset", -sys.float_info.max, sys.float_info.max, self.get_settings_defaults()["BedHeightOffset"])
 								
-							# Check if an error hasn't occured
-							if not error :
+								# Check if an error hasn't occured
+								if not error :
 							
-								# Set error to if limiting speed limit X failed
-								error = self.keepEepromValueWithinRange(connection, "speedLimitX", 120, 4800, self.get_settings_defaults()["SpeedLimitX"])
+									# Set error to if limiting speed limit X failed
+									error = self.keepEepromValueWithinRange(connection, "speedLimitX", 120, 4800, self.get_settings_defaults()["SpeedLimitX"])
 							
-							# Check if an error hasn't occured
-							if not error :
+								# Check if an error hasn't occured
+								if not error :
 							
-								# Set error to if limiting speed limit Y failed
-								error = self.keepEepromValueWithinRange(connection, "speedLimitY", 120, 4800, self.get_settings_defaults()["SpeedLimitY"])
+									# Set error to if limiting speed limit Y failed
+									error = self.keepEepromValueWithinRange(connection, "speedLimitY", 120, 4800, self.get_settings_defaults()["SpeedLimitY"])
 				
-							# Check if an error hasn't occured
-							if not error :
+								# Check if an error hasn't occured
+								if not error :
 							
-								# Set error to if limiting speed limit Z failed
-								error = self.keepEepromValueWithinRange(connection, "speedLimitZ", 30, 60, self.get_settings_defaults()["SpeedLimitZ"])
+									# Set error to if limiting speed limit Z failed
+									error = self.keepEepromValueWithinRange(connection, "speedLimitZ", 30, 60, self.get_settings_defaults()["SpeedLimitZ"])
 							
-							# Check if an error hasn't occured
-							if not error :
+								# Check if an error hasn't occured
+								if not error :
 							
-								# Set error to if limiting speed limit E positive failed
-								error = self.keepEepromValueWithinRange(connection, "speedLimitEPositive", 60, 600, self.get_settings_defaults()["SpeedLimitEPositive"])
+									# Set error to if limiting speed limit E positive failed
+									error = self.keepEepromValueWithinRange(connection, "speedLimitEPositive", 60, 600, self.get_settings_defaults()["SpeedLimitEPositive"])
 							
-							# Check if an error hasn't occured
-							if not error :
+								# Check if an error hasn't occured
+								if not error :
 							
-								# Set error to if limiting speed limit E negative failed
-								error = self.keepEepromValueWithinRange(connection, "speedLimitENegative", 60, 720, self.get_settings_defaults()["SpeedLimitENegative"])
+									# Set error to if limiting speed limit E negative failed
+									error = self.keepEepromValueWithinRange(connection, "speedLimitENegative", 60, 720, self.get_settings_defaults()["SpeedLimitENegative"])
 							
-							# Check if an error hasn't occured and using iMe firmware
-							if not error and firmwareType == "iMe" :
+								# Check if an error hasn't occured and using iMe firmware
+								if not error and firmwareType == "iMe" :
 							
-								# Set error to if limiting last recorded X value failed
-								error = self.keepEepromValueWithinRange(connection, "lastRecordedXValue", -sys.float_info.max, sys.float_info.max, 54)
+									# Set error to if limiting last recorded X value failed
+									error = self.keepEepromValueWithinRange(connection, "lastRecordedXValue", -sys.float_info.max, sys.float_info.max, 54)
 							
-							# Check if an error hasn't occured and using iMe firmware
-							if not error and firmwareType == "iMe" :
+								# Check if an error hasn't occured and using iMe firmware
+								if not error and firmwareType == "iMe" :
 							
-								# Set error to if limiting last recorded Y value failed
-								error = self.keepEepromValueWithinRange(connection, "lastRecordedYValue", -sys.float_info.max, sys.float_info.max, 50)
+									# Set error to if limiting last recorded Y value failed
+									error = self.keepEepromValueWithinRange(connection, "lastRecordedYValue", -sys.float_info.max, sys.float_info.max, 50)
 							
-							# Check if an error hasn't occured
-							if not error :
+								# Check if an error hasn't occured
+								if not error :
 							
-								# Set error to if limiting last recorded Z value failed
-								error = self.keepEepromValueWithinRange(connection, "lastRecordedZValue", -sys.float_info.max, sys.float_info.max, 5)
-							
+									# Set error to if limiting last recorded Z value failed
+									error = self.keepEepromValueWithinRange(connection, "lastRecordedZValue", -sys.float_info.max, sys.float_info.max, 5)
+								
+								# Check if an error has occured
+								if error :
+								
+									# Display error
+ -									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Updating EEPROM values failed", header = "Error Status", confirm = True))
+								
 							# Check if firmware is corrupt
 							if not error and eepromCrc != chipCrc :
 					
