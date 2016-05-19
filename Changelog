@@ -1,5 +1,11 @@
 Changelog:
 
+V0.34 May X, 2016
+
+	* Provides iMe V00.00.00.07 printer firmware
+	* Verifies and fixes any invalid floating point numbers in the printer's EEPROM when connecting to the printer
+	* Fixed the preparation pre-processor's filament scraping at the beginning of a print when using iMe firmware
+
 V0.33 May 12, 2016
 
 	* Added option to disable having the preparation pre-processor change the LED's brightness

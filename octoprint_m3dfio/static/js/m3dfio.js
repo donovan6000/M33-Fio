@@ -8340,7 +8340,7 @@ $(function() {
 				// Set commands
 				var commands = currentFirmwareType === "iMe" ? [] : [
 					"G91",
-					"G0 Z0.0999 F90"
+					"G0 Z0.1 F90"
 				];
 				
 				commands.push("G33");
@@ -10367,7 +10367,7 @@ $(function() {
 			else if(data.value == "Printer Details" && typeof data.serialNumber !== "undefined" && typeof data.serialPort !== "undefined")
 			
 				// Update connected printer details
-				$("#navbar_plugin_m3dfio > a").text((data.serialNumber.match(/^[0-9a-z]+$/i) ? data.serialNumber : "Printer") + " at " + data.serialPort);
+				$("#navbar_plugin_m3dfio > a").text((data.serialNumber.match(/^[0-9a-z]+$/i) ? data.serialNumber.slice(0, 2) + '-' + data.serialNumber.slice(2, 4) + '-' + data.serialNumber.slice(4, 6) + '-' + data.serialNumber.slice(6, 8) + '-' + data.serialNumber.slice(8, 10) + '-' + data.serialNumber.slice(10, 13) + '-' + data.serialNumber.slice(13, 16) : "Printer") + " at " + data.serialPort);
 			
 			// Otherwise check if data is that a Micro 3D isn't connected
 			else if(data.value == "Micro 3D Not Connected") {
@@ -10875,110 +10875,8 @@ $(function() {
 					});
 				}
 				
-				// Calibrate bed plane
-				function calibrateBedPlane() {
-				
-					// Initialize variables
-					var text = "Invalid bed plane. Calibrate?";
-		
-					// Check if same text is currently being displayed
-					if($("body > div.page-container > div.message").hasClass("show") && $("body > div.page-container > div.message").find("p").eq(0).html() == text)
-		
-						// Return
-						return;
-		
-					// Go through all messages
-					for(var i = 0; i < messages.length; i++)
-		
-						// Check if a message waiting to be displayed has same text
-						if(messages[i].text == text)
-			
-							// Return
-							return;
-		
-					// Display message
-					showMessage("Calibration Status", text, "Yes", function() {
-			
-						// Hide message
-						hideMessage();
-				
-						// Show message
-						showMessage("Calibration Status", "Calibrating bed plane");
-
-						// Set commands
-						var commands = [
-							"G28",
-							"M65536;wait"
-						];
-				
-						// Set waiting callback
-						waitingCallback = function() {
-				
-							// Set commands
-							commands = [
-								"M117",
-								"M65536;wait"
-							];
-
-							// Set waiting callback
-							waitingCallback = function() {
-				
-								// Check if invalid bed orientation
-								if(data.bedOrientation)
-				
-									// Calibrate bed orientation
-									calibrateBedOrientation();
-								
-								// Otherwise
-								else
-					
-									// Show message
-									showMessage("Calibration Status", "Done", "OK", function() {
-		
-										// Hide message
-										hideMessage();
-									});
-							}
-					
-							// Send request
-							$.ajax({
-								url: API_BASEURL + "plugin/m3dfio",
-								type: "POST",
-								dataType: "json",
-								data: JSON.stringify({
-									command: "message",
-									value: commands
-								}),
-								contentType: "application/json; charset=UTF-8"
-							});
-						}
-
-						// Send request
-						$.ajax({
-							url: API_BASEURL + "plugin/m3dfio",
-							type: "POST",
-							dataType: "json",
-							data: JSON.stringify({
-								command: "message",
-								value: commands
-							}),
-							contentType: "application/json; charset=UTF-8"
-						});
-					}, "No", function() {
-				
-						// Hide message
-						hideMessage();
-						
-						// Check if invalid bed orientation
-						if(data.bedOrientation)
-				
-							// Calibrate bed orientation
-							calibrateBedOrientation();
-					});
-				}
-				
-				// Check if invalid bed center
-				if(data.bedCenter) {
+				// Check if invalid bed center or bed plane
+				if(data.bedCenter || data.bedPlane) {
 				
 					// Initialize variables
 					var text = "Invalid bed center Z0. Calibrate?";
@@ -10997,6 +10895,12 @@ $(function() {
 				
 							// Return
 							return;
+					
+					// Check if bed plane is invalid
+					if(data.bedPlane)
+					
+						// Set text
+						text = "Invalid bed plane. Calibrate?";
 			
 					// Display message
 					showMessage("Calibration Status", text, "Yes", function() {
@@ -11005,7 +10909,7 @@ $(function() {
 						hideMessage();
 					
 						// Show message
-						showMessage("Calibration Status", "Calibrating bed center Z0");
+						showMessage("Calibration Status", "Calibrating bed " + (data.bedPlane ? "plane" : "center Z0"));
 	
 						// Set commands
 						var commands = [
@@ -11031,11 +10935,11 @@ $(function() {
 							// Set waiting callback
 							waitingCallback = function() {
 							
-								// Check if invalid bed plane
-								if(data.bedPlane)
+								// Check if invalid bed orientation
+								if(data.bedOrientation)
 				
-									// Calibrate bed plane
-									calibrateBedPlane();
+									// Calibrate bed orientation
+									calibrateBedOrientation();
 								
 								// Otherwise
 								else
@@ -11077,19 +10981,13 @@ $(function() {
 						// Hide message
 						hideMessage();
 						
-						// Check if invalid bed plane
-						if(data.bedPlane)
+						// Check if invalid bed orientation
+						if(data.bedOrientation)
 				
-							// Calibrate bed plane
-							calibrateBedPlane();
+							// Calibrate bed orientation
+							calibrateBedOrientation();
 					});
 				}
-				
-				// Otherwise check if invalid bed plane
-				else if(data.bedPlane)
-				
-					// Calibrate bed plane
-					calibrateBedPlane();
 				
 				// Otherwise check if invalid bed orientation
 				else if(data.bedOrientation)
