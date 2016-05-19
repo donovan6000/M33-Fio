@@ -7491,8 +7491,8 @@ class M3DFioPlugin(
 						elif self.maxYExtruderLow < self.bedLowMaxY :
 							cornerY = (self.bedLowMaxY - self.bedLowMinY - 10) / 2
 					
-					# Check if both of the corners are set
-					if cornerX != 0 and cornerY != 0 :
+					# Check if not using iMe firmware and both of the corners are set
+					if self.currentFirmwareType != "iMe" and cornerX != 0 and cornerY != 0 :
 					
 						# Set corner Z
 						if cornerX > 0 and cornerY > 0 :
