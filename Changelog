@@ -1,8 +1,8 @@
 Changelog:
 
-V0.34 May X, 2016
+V0.34 May 25, 2016
 
-	* Provides iMe V00.00.00.07 printer firmware
+	* Provides iMe V00.00.00.08 printer firmware
 	* Verifies and fixes any invalid floating point numbers in the printer's EEPROM when connecting to the printer
 	* Fixed the preparation pre-processor's filament scraping at the beginning of a print when using iMe firmware
 
