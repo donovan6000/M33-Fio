@@ -45,7 +45,7 @@ class Vector {
 		Purpose: Allows subtracting vectors
 		*/
 		Vector operator-(const Vector &subtrahend) const;
-		Vector &operator-=(const Vector &addend);
+		Vector &operator-=(const Vector &subtrahend);
 		
 		/*
 		Name: Multiplication operator

@@ -3020,7 +3020,7 @@ class M3DFioPlugin(
 						
 									# Go through bytes of last recorded Z value
 									index = 0
-									while index < 4 :
+									while index < self.eepromOffsets["lastRecordedZValue"]["bytes"] :
 
 										# Check if zeroing out last recorded Z value in EEPROM failed
 										if not error and not self.writeToEeprom(connection, self.eepromOffsets["lastRecordedZValue"]["offset"] + index, '\x00') :
@@ -3033,7 +3033,7 @@ class M3DFioPlugin(
 						
 								# Go through bytes of all steps per MM sections
 								index = 0
-								while index < 16 :
+								while index < self.eepromOffsets["eAxisStepsPerMm"]["offset"] + self.eepromOffsets["eAxisStepsPerMm"]["bytes"] - self.eepromOffsets["xAxisStepsPerMm"]["offset"] :
 						
 									# Check if zeroing out steps per MM in EEPROM failed
 									if not error and not self.writeToEeprom(connection, self.eepromOffsets["xAxisStepsPerMm"]["offset"] + index, '\x00') :
@@ -3046,7 +3046,7 @@ class M3DFioPlugin(
 
 								# Go through bytes of firmware version
 								index = 0
-								while index < 4 :
+								while index < self.eepromOffsets["firmwareVersion"]["bytes"] :
 						
 									# Check if updating firmware version in EEPROM failed
 									if not error and not self.writeToEeprom(connection, self.eepromOffsets["firmwareVersion"]["offset"] + index, chr((romVersion >> 8 * index) & 0xFF)) :
@@ -3059,7 +3059,7 @@ class M3DFioPlugin(
 
 								# Go through bytes of firmware CRC
 								index = 0
-								while index < 4 :
+								while index < self.eepromOffsets["firmwareCrc"]["bytes"] :
 						
 									# Check if updating firmware CRC in EEPROM failed
 									if not error and not self.writeToEeprom(connection, self.eepromOffsets["firmwareCrc"]["offset"] + index, chr((romCrc >> 8 * index) & 0xFF)) :
@@ -3158,22 +3158,8 @@ class M3DFioPlugin(
 		# Check if fan scales differ
 		if currentFanScale != round(fanScale, 6) :
 		
-			# Convert fan scale to binary
-			packed = struct.pack('f', fanScale)
-			fanScale = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
-		
-			# Go through all fan scale values
-			index = 0
-			while index < 4 :
-		
-				# Check if saving fan scale failed
-				if not error and not self.writeToEeprom(connection, self.eepromOffsets["fanScale"]["offset"] + index, chr((fanScale >> 8 * index) & 0xFF)) :
-		
-					# Set error
-					error = True
-			
-				# Increment index
-				index += 1
+			# Set error to if setting fan scale in EEPROM failed
+			error = self.setEepromValue(connection, "fanScale", fanScale)
 		
 		# Check if fan offsets differ
 		if not error and currentFanOffset != fanOffset :
@@ -4722,6 +4708,52 @@ class M3DFioPlugin(
 		# Send printer details
 		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Printer Details", serialNumber = serialNumber, serialPort = self._printer.get_transport().port))
 	
+	# Set EEPROM value
+	def setEepromValue(self, connection, eepromName, value) :
+	
+		# Set error
+		error = False
+
+		# Convert value to binary
+		packed = struct.pack('f', value)
+		floatValue = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
+
+		# Go through bytes of EEPROM value
+		index = 0
+		while index < self.eepromOffsets[eepromName]["bytes"] :
+
+			# Check if saving EEPROM value failed
+			if not error and not self.writeToEeprom(connection, self.eepromOffsets[eepromName]["offset"] + index, chr((floatValue >> 8 * index) & 0xFF)) :
+
+				# Set error
+				error = True
+
+			# Increment index
+			index += 1
+		
+		# Return error
+		return error
+	
+	# Keep EEPROM value within range
+	def keepEepromValueWithinRange(self, connection, eepromName, minValue, maxValue, defaultValue) :
+	
+		# Set error
+		error = False
+	
+		# Get EEROM value in single-precision floating-point format 
+		data = [int(ord(self.eeprom[self.eepromOffsets[eepromName]["offset"]])), int(ord(self.eeprom[self.eepromOffsets[eepromName]["offset"] + 1])), int(ord(self.eeprom[self.eepromOffsets[eepromName]["offset"] + 2])), int(ord(self.eeprom[self.eepromOffsets[eepromName]["offset"] + 3]))]
+		bytes = struct.pack("4B", *data)
+		floatValue = struct.unpack('f', bytes)[0]
+
+		# Check if EEPROM value is invalid
+		if not isinstance(floatValue, float) or math.isnan(floatValue) or round(floatValue, 6) < minValue or round(floatValue, 6) > maxValue :
+		
+			# Set error to if setting default value in EEPROM failed
+			error = self.setEepromValue(connection, eepromName, defaultValue)
+		
+		# Return error
+		return error
+	
 	# Receive data to log
 	def on_printer_add_log(self, data) :
 	
@@ -4994,7 +5026,7 @@ class M3DFioPlugin(
 					
 								# Go through bytes of bed offsets
 								index = 0
-								while index < 19 :
+								while index < self.eepromOffsets["bedHeightOffset"]["offset"] + self.eepromOffsets["bedHeightOffset"]["bytes"] - self.eepromOffsets["bedOffsetBackLeft"]["offset"] :
 
 									# Check if zeroing out all bed offets in EEPROM failed
 									if not error and not self.writeToEeprom(connection, self.eepromOffsets["bedOffsetBackLeft"]["offset"] + index, '\x00') :
@@ -5007,176 +5039,142 @@ class M3DFioPlugin(
 					
 								# Check if an error hasn't occured
 								if not error :
-					
-									# Convert default backlash speed to binary
-									packed = struct.pack('f', 1500)
-									backlashSpeed = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
-		
-									# Go through bytes of backlash speed
-									index = 0
-									while index < 4 :
-		
-										# Check if saving backlash speed failed
-										if not error and not self.writeToEeprom(connection, self.eepromOffsets["backlashSpeed"]["offset"] + index, chr((backlashSpeed >> 8 * index) & 0xFF)) :
-		
-											# Set error
-											error = True
-			
-										# Increment index
-										index += 1
+								
+									# Set error to if setting default backlash speed failed
+									error = self.setEepromValue(connection, "backlashSpeed", 1500)
 						
 								# Check if an error has occured
 								if error :
 					
 									# Display error
 									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Updating version changes failed", header = "Error Status", confirm = True))
-				
+							
 							# Check if an error hasn't occured
 							if not error :
-				
-								# Get speed limit X
-								data = [int(ord(self.eeprom[self.eepromOffsets["speedLimitX"]["offset"]])), int(ord(self.eeprom[self.eepromOffsets["speedLimitX"]["offset"] + 1])), int(ord(self.eeprom[self.eepromOffsets["speedLimitX"]["offset"] + 2])), int(ord(self.eeprom[self.eepromOffsets["speedLimitX"]["offset"] + 3]))]
-								bytes = struct.pack("4B", *data)
-								speedLimitX = round(struct.unpack('f', bytes)[0], 6)
-				
-								# Check if speed limit X is invalid
-								if math.isnan(speedLimitX) or speedLimitX < 120 or speedLimitX > 4800 :
-				
-									# Convert default speed limit X to binary
-									packed = struct.pack('f', 1500)
-									speedLimitX = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
-				
-									# Go through bytes of speed limit X
-									index = 0
-									while index < 4 :
-				
-										# Check if saving speed limit X failed
-										if not error and not self.writeToEeprom(connection, self.eepromOffsets["speedLimitX"]["offset"] + index, chr((speedLimitX >> 8 * index) & 0xFF)) :
-				
-											# Set error
-											error = True
-				
-										# Increment index
-										index += 1
-					
-								# Check if an error hasn't occured
-								if not error :
-					
-									# Get speed limit Y
-									data = [int(ord(self.eeprom[self.eepromOffsets["speedLimitY"]["offset"]])), int(ord(self.eeprom[self.eepromOffsets["speedLimitY"]["offset"] + 1])), int(ord(self.eeprom[self.eepromOffsets["speedLimitY"]["offset"] + 2])), int(ord(self.eeprom[self.eepromOffsets["speedLimitY"]["offset"] + 3]))]
-									bytes = struct.pack("4B", *data)
-									speedLimitY = round(struct.unpack('f', bytes)[0], 6)
-				
-									# Check if speed limit Y is invalid
-									if math.isnan(speedLimitY) or speedLimitY < 120 or speedLimitY > 4800 :
-				
-										# Convert default speed limit Y to binary
-										packed = struct.pack('f', 1500)
-										speedLimitY = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
-				
-										# Go through bytes of speed limit Y
-										index = 0
-										while index < 4 :
-				
-											# Check if saving speed limit Y failed
-											if not error and not self.writeToEeprom(connection, self.eepromOffsets["speedLimitY"]["offset"] + index, chr((speedLimitY >> 8 * index) & 0xFF)) :
-				
-												# Set error
-												error = True
-				
-											# Increment index
-											index += 1
-					
-								# Check if an error hasn't occured
-								if not error :
-					
-									# Get speed limit Z
-									data = [int(ord(self.eeprom[self.eepromOffsets["speedLimitZ"]["offset"]])), int(ord(self.eeprom[self.eepromOffsets["speedLimitZ"]["offset"] + 1])), int(ord(self.eeprom[self.eepromOffsets["speedLimitZ"]["offset"] + 2])), int(ord(self.eeprom[self.eepromOffsets["speedLimitZ"]["offset"] + 3]))]
-									bytes = struct.pack("4B", *data)
-									speedLimitZ = round(struct.unpack('f', bytes)[0], 6)
-				
-									# Check if speed limit Z is invalid
-									if math.isnan(speedLimitZ) or speedLimitZ < 30 or speedLimitZ > 60 :
 							
-										# Convert default speed limit Z to binary
-										packed = struct.pack('f', 60)
-										speedLimitZ = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
-				
-										# Go through bytes of speed limit Z
-										index = 0
-										while index < 4 :
-				
-											# Check if saving speed limit Z failed
-											if not error and not self.writeToEeprom(connection, self.eepromOffsets["speedLimitZ"]["offset"] + index, chr((speedLimitZ >> 8 * index) & 0xFF)) :
-				
-												# Set error
-												error = True
-				
-											# Increment index
-											index += 1
+								# Set error to if limiting backlash X failed
+								error = self.keepEepromValueWithinRange(connection, "backlashX", 0, 2, self.get_settings_defaults()["BacklashX"])
+							
+								# Check if an error hasn't occured
+								if not error :
+							
+									# Set error to if limiting backlash Y failed
+									error = self.keepEepromValueWithinRange(connection, "backlashY", 0, 2, self.get_settings_defaults()["BacklashY"])
+							
+								# Check if an error hasn't occured
+								if not error :
+							
+									# Set error to if limiting backlash speed failed
+									error = self.keepEepromValueWithinRange(connection, "backlashSpeed", 1, 5000, self.get_settings_defaults()["BacklashSpeed"])
+							
+								# Check if an error hasn't occured
+								if not error :
+							
+									# Set error to if limiting back left orientation failed
+									error = self.keepEepromValueWithinRange(connection, "bedOrientationBackLeft", -3, 3, self.get_settings_defaults()["BackLeftOrientation"])
+							
+								# Check if an error hasn't occured
+								if not error :
+							
+									# Set error to if limiting back right orientation failed
+									error = self.keepEepromValueWithinRange(connection, "bedOrientationBackRight", -3, 3, self.get_settings_defaults()["BackRightOrientation"])
+							
+								# Check if an error hasn't occured
+								if not error :
+							
+									# Set error to if limiting front right orientation failed
+									error = self.keepEepromValueWithinRange(connection, "bedOrientationFrontRight", -3, 3, self.get_settings_defaults()["FrontRightOrientation"])
+							
+								# Check if an error hasn't occured
+								if not error :
+							
+									# Set error to if limiting front left orientation failed
+									error = self.keepEepromValueWithinRange(connection, "bedOrientationFrontLeft", -3, 3, self.get_settings_defaults()["FrontLeftOrientation"])
+							
+								# Check if an error hasn't occured
+								if not error :
+							
+									# Set error to if limiting back left offset failed
+									error = self.keepEepromValueWithinRange(connection, "bedOffsetBackLeft", -sys.float_info.max, sys.float_info.max, self.get_settings_defaults()["BackLeftOffset"])
+							
+								# Check if an error hasn't occured
+								if not error :
+							
+									# Set error to if limiting back right offset failed
+									error = self.keepEepromValueWithinRange(connection, "bedOffsetBackRight", -sys.float_info.max, sys.float_info.max, self.get_settings_defaults()["BackRightOffset"])
+							
+								# Check if an error hasn't occured
+								if not error :
+							
+									# Set error to if limiting front right offset failed
+									error = self.keepEepromValueWithinRange(connection, "bedOffsetFrontRight", -sys.float_info.max, sys.float_info.max, self.get_settings_defaults()["FrontRightOffset"])
+							
+								# Check if an error hasn't occured
+								if not error :
+							
+									# Set error to if limiting front left offset failed
+									error = self.keepEepromValueWithinRange(connection, "bedOffsetFrontLeft", -sys.float_info.max, sys.float_info.max, self.get_settings_defaults()["FrontLeftOffset"])
+							
+								# Check if an error hasn't occured
+								if not error :
+							
+									# Set error to if limiting bed height offset offset failed
+									error = self.keepEepromValueWithinRange(connection, "bedHeightOffset", -sys.float_info.max, sys.float_info.max, self.get_settings_defaults()["BedHeightOffset"])
+								
+								# Check if an error hasn't occured
+								if not error :
+							
+									# Set error to if limiting speed limit X failed
+									error = self.keepEepromValueWithinRange(connection, "speedLimitX", 120, 4800, self.get_settings_defaults()["SpeedLimitX"])
+							
+								# Check if an error hasn't occured
+								if not error :
+							
+									# Set error to if limiting speed limit Y failed
+									error = self.keepEepromValueWithinRange(connection, "speedLimitY", 120, 4800, self.get_settings_defaults()["SpeedLimitY"])
 				
 								# Check if an error hasn't occured
 								if not error :
-					
-									# Get speed limit E positive
-									data = [int(ord(self.eeprom[self.eepromOffsets["speedLimitEPositive"]["offset"]])), int(ord(self.eeprom[self.eepromOffsets["speedLimitEPositive"]["offset"] + 1])), int(ord(self.eeprom[self.eepromOffsets["speedLimitEPositive"]["offset"] + 2])), int(ord(self.eeprom[self.eepromOffsets["speedLimitEPositive"]["offset"] + 3]))]
-									bytes = struct.pack("4B", *data)
-									speedLimitEPositive = round(struct.unpack('f', bytes)[0], 6)
-				
-									# Check if speed limit E positive is invalid
-									if math.isnan(speedLimitEPositive) or speedLimitEPositive < 60 or speedLimitEPositive > 600 :
-				
-										# Convert default speed limit E positive to binary
-										packed = struct.pack('f', 102)
-										speedLimitEPositive = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
-				
-										# Go through bytes of speed limit E positive
-										index = 0
-										while index < 4 :
-				
-											# Check if saving speed limit E positive failed
-											if not error and not self.writeToEeprom(connection, self.eepromOffsets["speedLimitEPositive"]["offset"] + index, chr((speedLimitEPositive >> 8 * index) & 0xFF)) :
-				
-												# Set error
-												error = True
-				
-											# Increment index
-											index += 1
-					
+							
+									# Set error to if limiting speed limit Z failed
+									error = self.keepEepromValueWithinRange(connection, "speedLimitZ", 30, 60, self.get_settings_defaults()["SpeedLimitZ"])
+							
 								# Check if an error hasn't occured
 								if not error :
-					
-									# Get speed limit E negative
-									data = [int(ord(self.eeprom[self.eepromOffsets["speedLimitENegative"]["offset"]])), int(ord(self.eeprom[self.eepromOffsets["speedLimitENegative"]["offset"] + 1])), int(ord(self.eeprom[self.eepromOffsets["speedLimitENegative"]["offset"] + 2])), int(ord(self.eeprom[self.eepromOffsets["speedLimitENegative"]["offset"] + 3]))]
-									bytes = struct.pack("4B", *data)
-									speedLimitENegative = round(struct.unpack('f', bytes)[0], 6)
-				
-									# Check if speed limit E negative is invalid
-									if math.isnan(speedLimitENegative) or speedLimitENegative < 60 or speedLimitENegative > 720 :
-				
-										# Convert default speed limit E negative to binary
-										packed = struct.pack('f', 360)
-										speedLimitENegative = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
-				
-										# Go through bytes of speed limit E negative
-										index = 0
-										while index < 4 :
-				
-											# Check if saving speed limit E negative failed
-											if not error and not self.writeToEeprom(connection, self.eepromOffsets["speedLimitENegative"]["offset"] + index, chr((speedLimitENegative >> 8 * index) & 0xFF)) :
-				
-												# Set error
-												error = True
-				
-											# Increment index
-											index += 1
-				
+							
+									# Set error to if limiting speed limit E positive failed
+									error = self.keepEepromValueWithinRange(connection, "speedLimitEPositive", 60, 600, self.get_settings_defaults()["SpeedLimitEPositive"])
+							
+								# Check if an error hasn't occured
+								if not error :
+							
+									# Set error to if limiting speed limit E negative failed
+									error = self.keepEepromValueWithinRange(connection, "speedLimitENegative", 60, 720, self.get_settings_defaults()["SpeedLimitENegative"])
+							
+								# Check if an error hasn't occured and using iMe firmware
+								if not error and firmwareType == "iMe" :
+							
+									# Set error to if limiting last recorded X value failed
+									error = self.keepEepromValueWithinRange(connection, "lastRecordedXValue", -sys.float_info.max, sys.float_info.max, 54)
+							
+								# Check if an error hasn't occured and using iMe firmware
+								if not error and firmwareType == "iMe" :
+							
+									# Set error to if limiting last recorded Y value failed
+									error = self.keepEepromValueWithinRange(connection, "lastRecordedYValue", -sys.float_info.max, sys.float_info.max, 50)
+							
+								# Check if an error hasn't occured
+								if not error :
+							
+									# Set error to if limiting last recorded Z value failed
+									error = self.keepEepromValueWithinRange(connection, "lastRecordedZValue", -sys.float_info.max, sys.float_info.max, 5)
+								
 								# Check if an error has occured
 								if error :
-				
+					
 									# Display error
-									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Updating speed limits failed", header = "Error Status", confirm = True))
-							
+									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Updating EEPROM values failed", header = "Error Status", confirm = True))
+								
 							# Check if firmware is corrupt
 							if not error and eepromCrc != chipCrc :
 					
@@ -5524,17 +5522,8 @@ class M3DFioPlugin(
 					# Clear invalid bed plane
 					self.invalidBedPlane = False
 		
-			# Check if Z is invalid
-			if data[data.find("ZV:") + 3] == '0' :
-			
-				# Set invalid bed center
-				self.invalidBedCenter = True
-			
-			# Otherwise
-			else :
-			
-				# Clear invalid bed center
-				self.invalidBedCenter = False
+			# Set invalid bed center
+			self.invalidBedCenter = data[data.find("ZV:") + 3] == '0'
 		
 		# Otherwise check if data contains current Z
 		elif "Z:" in data :
@@ -5794,7 +5783,7 @@ class M3DFioPlugin(
 				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
-				if math.isnan(value) or not isinstance(value, float) :
+				if not isinstance(value, float) or math.isnan(value) :
 					self.printerBacklashX = self.get_settings_defaults()["BacklashX"]
 				else :
 					self.printerBacklashX = round(value, 6)
@@ -5812,7 +5801,7 @@ class M3DFioPlugin(
 				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
-				if math.isnan(value) or not isinstance(value, float) :
+				if not isinstance(value, float) or math.isnan(value) :
 					self.printerBacklashY = self.get_settings_defaults()["BacklashY"]
 				else :
 					self.printerBacklashY = round(value, 6)
@@ -5830,7 +5819,7 @@ class M3DFioPlugin(
 				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
-				if math.isnan(value) or not isinstance(value, float) :
+				if not isinstance(value, float) or math.isnan(value) :
 					self.printerBackRightOrientation = self.get_settings_defaults()["BackRightOrientation"]
 				else :
 					self.printerBackRightOrientation = round(value, 6)
@@ -5848,7 +5837,7 @@ class M3DFioPlugin(
 				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
-				if math.isnan(value) or not isinstance(value, float) :
+				if not isinstance(value, float) or math.isnan(value) :
 					self.printerBackLeftOrientation = self.get_settings_defaults()["BackLeftOrientation"]
 				else :
 					self.printerBackLeftOrientation = round(value, 6)
@@ -5866,7 +5855,7 @@ class M3DFioPlugin(
 				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
-				if math.isnan(value) or not isinstance(value, float) :
+				if not isinstance(value, float) or math.isnan(value) :
 					self.printerFrontLeftOrientation = self.get_settings_defaults()["FrontLeftOrientation"]
 				else :
 					self.printerFrontLeftOrientation = round(value, 6)
@@ -5884,7 +5873,7 @@ class M3DFioPlugin(
 				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
-				if math.isnan(value) or not isinstance(value, float) :
+				if not isinstance(value, float) or math.isnan(value) :
 					self.printerFrontRightOrientation = self.get_settings_defaults()["FrontRightOrientation"]
 				else :
 					self.printerFrontRightOrientation = round(value, 6)
@@ -5893,17 +5882,8 @@ class M3DFioPlugin(
 				if self._settings.get_boolean(["AutomaticallyObtainSettings"]) :
 					self._settings.set_float(["FrontRightOrientation"], self.printerFrontRightOrientation)
 				
-					# Check if bed orientation is invalid
-					if self.printerBackRightOrientation == 0 and self.printerBackLeftOrientation == 0 and self.printerFrontLeftOrientation == 0 and self.printerFrontRightOrientation == 0 :
-					
-						# Set invalid bed orientation
-						self.invalidBedOrientation = True
-					
-					# Otherwise
-					else :
-					
-						# Clear invalid bed orientation
-						self.invalidBedOrientation = False
+					# Set invalid bed orientation
+					self.invalidBedOrientation = self.printerBackRightOrientation == 0 and self.printerBackLeftOrientation == 0 and self.printerFrontLeftOrientation == 0 and self.printerFrontRightOrientation == 0
 				
 			# Otherwise check if data is for filament type and location
 			elif "PT:" + str(self.eepromOffsets["filamentTypeAndLocation"]["offset"]) + ' ' in data :
@@ -5951,7 +5931,7 @@ class M3DFioPlugin(
 				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
-				if math.isnan(value) or not isinstance(value, float) :
+				if not isinstance(value, float) or math.isnan(value) :
 					self.printerBackLeftOffset = self.get_settings_defaults()["BackLeftOffset"]
 				else :
 					self.printerBackLeftOffset = round(value, 6)
@@ -5969,7 +5949,7 @@ class M3DFioPlugin(
 				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
-				if math.isnan(value) or not isinstance(value, float) :
+				if not isinstance(value, float) or math.isnan(value) :
 					self.printerBackRightOffset = self.get_settings_defaults()["BackRightOffset"]
 				else :
 					self.printerBackRightOffset = round(value, 6)
@@ -5987,7 +5967,7 @@ class M3DFioPlugin(
 				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
-				if math.isnan(value) or not isinstance(value, float) :
+				if not isinstance(value, float) or math.isnan(value) :
 					self.printerFrontRightOffset = self.get_settings_defaults()["FrontRightOffset"]
 				else :
 					self.printerFrontRightOffset = round(value, 6)
@@ -6005,7 +5985,7 @@ class M3DFioPlugin(
 				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
-				if math.isnan(value) or not isinstance(value, float) :
+				if not isinstance(value, float) or math.isnan(value) :
 					self.printerFrontLeftOffset = self.get_settings_defaults()["FrontLeftOffset"]
 				else :
 					self.printerFrontLeftOffset = round(value, 6)
@@ -6023,7 +6003,7 @@ class M3DFioPlugin(
 				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
-				if math.isnan(value) or not isinstance(value, float) :
+				if not isinstance(value, float) or math.isnan(value) :
 					self.printerBedHeightOffset = self.get_settings_defaults()["BedHeightOffset"]
 				else :
 					self.printerBedHeightOffset = round(value, 6)
@@ -6041,7 +6021,7 @@ class M3DFioPlugin(
 				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
-				if math.isnan(value) or not isinstance(value, float) :
+				if not isinstance(value, float) or math.isnan(value) :
 					self.printerBacklashSpeed = self.get_settings_defaults()["BacklashSpeed"]
 				else :
 					self.printerBacklashSpeed = round(value, 6)
@@ -6059,7 +6039,7 @@ class M3DFioPlugin(
 				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
-				if math.isnan(value) or not isinstance(value, float) :
+				if not isinstance(value, float) or math.isnan(value) :
 					self.printerSpeedLimitX = self.get_settings_defaults()["SpeedLimitX"]
 				else :
 					self.printerSpeedLimitX = round(value, 6)
@@ -6077,7 +6057,7 @@ class M3DFioPlugin(
 				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
-				if math.isnan(value) or not isinstance(value, float) :
+				if not isinstance(value, float) or math.isnan(value) :
 					self.printerSpeedLimitY = self.get_settings_defaults()["SpeedLimitY"]
 				else :
 					self.printerSpeedLimitY = round(value, 6)
@@ -6095,7 +6075,7 @@ class M3DFioPlugin(
 				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
-				if math.isnan(value) or not isinstance(value, float) :
+				if not isinstance(value, float) or math.isnan(value) :
 					self.printerSpeedLimitZ = self.get_settings_defaults()["SpeedLimitZ"]
 				else :
 					self.printerSpeedLimitZ = round(value, 6)
@@ -6113,7 +6093,7 @@ class M3DFioPlugin(
 				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
-				if math.isnan(value) or not isinstance(value, float) :
+				if not isinstance(value, float) or math.isnan(value) :
 					self.printerSpeedLimitEPositive = self.get_settings_defaults()["SpeedLimitEPositive"]
 				else :
 					self.printerSpeedLimitEPositive = round(value, 6)
@@ -6131,7 +6111,7 @@ class M3DFioPlugin(
 				bytes = struct.pack("4B", *data)
 				value = struct.unpack('f', bytes)[0]
 				
-				if math.isnan(value) or not isinstance(value, float) :
+				if not isinstance(value, float) or math.isnan(value) :
 					self.printerSpeedLimitENegative = self.get_settings_defaults()["SpeedLimitENegative"]
 				else :
 					self.printerSpeedLimitENegative = round(value, 6)
@@ -6143,17 +6123,8 @@ class M3DFioPlugin(
 			# Otherwise check if data is for bed orientation version
 			elif "PT:" + str(self.eepromOffsets["bedOrientationVersion"]["offset"]) + ' ' in data :
 			
-				# Check if using a deprecated bed orientation version or bed orientation is already invalid
-				if data[data.find("DT:") + 3 :] == '0' or self.invalidBedOrientation :
-				
-					# Set invalid bed orientation
-					self.invalidBedOrientation = True
-				
-				# Otherwise
-				else :
-				
-					# Clear invalid bed orientation
-					self.invalidBedOrientation = False
+				# Set invalid bed orientation
+				self.invalidBedOrientation = data[data.find("DT:") + 3 :] == '0' or self.invalidBedOrientation
 				
 				# Check if not automatically collecting settings from printer
 				if not self._settings.get_boolean(["AutomaticallyObtainSettings"]) :
@@ -7520,8 +7491,8 @@ class M3DFioPlugin(
 						elif self.maxYExtruderLow < self.bedLowMaxY :
 							cornerY = (self.bedLowMaxY - self.bedLowMinY - 10) / 2
 					
-					# Check if both of the corners are set
-					if cornerX != 0 and cornerY != 0 :
+					# Check if not using iMe firmware and both of the corners are set
+					if self.currentFirmwareType != "iMe" and cornerX != 0 and cornerY != 0 :
 					
 						# Set corner Z
 						if cornerX > 0 and cornerY > 0 :

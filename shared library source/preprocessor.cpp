@@ -1640,8 +1640,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 						cornerY = (BED_LOW_MAX_Y - bedLowMinY - 10) / 2;
 				}
 				
-				// Check if both of the corners are set
-				if(cornerX && cornerY) {
+				// Check if not using iMe firmware and both of the corners are set
+				if(firmwareType != IME && cornerX && cornerY) {
 				
 					// Set corner Z
 					if(cornerX > 0 && cornerY > 0)
