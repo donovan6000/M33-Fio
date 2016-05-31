@@ -734,11 +734,11 @@ $(function() {
 		function getSlicerProfileValue(setting) {
 		
 			// Get first match
-			var expression = new RegExp("(^|\n)" + setting + "\\s*?=\\s*(.*)\n?");
+			var expression = new RegExp("(?:^|\n)" + setting + "\\s*?=(.*)\n?");
 			var matches = expression.exec($("#slicing_configuration_dialog .modal-extra textarea").length ? $("#slicing_configuration_dialog .modal-extra textarea").val() : slicerProfileContent);
 			
 			// Return setting's value if it exists
-			return matches !== null && matches.length > 2 ? (matches[2].indexOf(';') != -1 ? matches[2].substr(0, matches[2].indexOf(';')) : matches[2]) : '';
+			return matches !== null && matches.length == 2 ? (matches[1].indexOf(';') != -1 ? matches[1].substr(0, matches[1].indexOf(';')).trim() : matches[1].trim()) : '';
 		}
 		
 		// Capitalize
@@ -956,7 +956,7 @@ $(function() {
 					
 						// Set platform adhesion
 						this.platformAdhesion = getSlicerProfileValue("platform_adhesion");
-					
+						
 						// Check if platform adhesion isn't set
 						if(!this.platformAdhesion.length || this.platformAdhesion == "None") {
 						
@@ -5185,7 +5185,6 @@ $(function() {
 										
 													// Check if text area exists
 													var textArea = $("#slicing_configuration_dialog .modal-extra textarea");
-			
 													if(textArea.length) {
 			
 														// Get number of lines
@@ -5197,11 +5196,11 @@ $(function() {
 														else
 															numberOfLines = numberOfLines.length + 1;
 												
-														// Get line number area
-														var lineNumberArea = textArea.siblings("aside");
-												
 														// Check if number of lines has changes
 														if(previousLineCount != numberOfLines) {
+														
+															// Get line number area
+															var lineNumberArea = textArea.siblings("aside");
 												
 															// Clear existing line numbers
 															lineNumberArea.empty();
@@ -5209,15 +5208,16 @@ $(function() {
 															// Create new line numbers
 															for(var i = 1; i <= numberOfLines; i++)
 																lineNumberArea.append(i + "<br>");
-															lineNumberArea.append("<br>");
-															lineNumberArea.append("<br>");
+															
+															for(var i = 0; i < 3; i++)
+																lineNumberArea.append("<br>");
 													
 															// Update previous line count
 															previousLineCount = numberOfLines;
+															
+															// Match line numbers scrolling
+															textArea.scroll();
 														}
-												
-														// Update line numbers again
-														setTimeout(updateLineNumbers, 500);
 													}
 												}
 												updateLineNumbers();
@@ -5232,17 +5232,20 @@ $(function() {
 													for(var setting in settings) {
 												
 														// Remove setting
-														var expression = new RegExp("(^|\n)" + setting + ".*\n?", 'g');
+														var expression = new RegExp("(^|\n)" + setting + "(?: |=|\n|$).*?(?:\n|$)", 'g');
 														profile = profile.replace(expression, "$1");
 													
 														// Check if setting exists
 														if(settings[setting] !== null) {
 													
 															// Add setting
-															if(profile.match(/(^|\n)\[profile\].*\n?/) === null)
-																profile = "[profile]\n" + setting + " = " + settings[setting] + '\n';
+															if(profile.match(/(?:^|\n)\[profile\].*\n?/) === null)
+																profile += "\n[profile]\n" + setting + " = " + settings[setting] + '\n';
 															else
 																profile = profile.replace(/(^|\n)\[profile\].*\n?/, "$1[profile]\n" + setting + " = " + settings[setting] + '\n');
+															
+															// Remove leading and trailing whitespace
+															profile = profile.trim();
 														}
 													}
 												
@@ -5331,6 +5334,12 @@ $(function() {
 										
 													// Scroll line numbers to match text area
 													$(this).siblings("aside").scrollTop($(this).scrollTop());
+												
+												// Text area input event
+												}).on("input", function() {
+												
+													// Update line numbers
+													updateLineNumbers();
 												});
 											
 												// Settings checkbox change event

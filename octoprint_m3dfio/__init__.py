@@ -3331,7 +3331,7 @@ class M3DFioPlugin(
 			
 				# Update communication timeout to prevent other commands from being sent
 				if self._printer._comm is not None :
-					self._printer._comm._gcode_G4_sent("G4")
+					self._printer._comm._gcode_G4_sent("G4 P10")
 				
 				time.sleep(0.01)
 			
@@ -3341,73 +3341,8 @@ class M3DFioPlugin(
 				# Set command to hard emergency stop
 				data = "M0\n"
 		
-		# Check if request is hard emergency stop
-		if "M0" in data :
-			
-			# Check if printing or paused
-			if self._printer.is_printing() or self._printer.is_paused() :
-			
-				# Clear perform cancel print movement
-				self.performCancelPrintMovement = False
-			
-				# Stop printing
-				self._printer.cancel_print()
-			
-			# Empty command queue
-			self.emptyCommandQueue()
-			
-			# Set first line number to zero and clear history
-			if self._printer._comm is not None :
-				self._printer._comm._gcode_M110_sending("N0")
-				self._printer._comm._long_running_command = True
-			
-			# Clear sent commands
-			self.sentCommands = {}
-			self.resetLineNumberCommandSent = False
-			self.numberWrapCounter = 0
-		
-		# Otherwise check if request is soft emergency stop
-		elif "M65537" in data :
-		
-			# Empty command queue
-			self.emptyCommandQueue()
-		
-			# Set data to emergency stop
-			data = "M0\n"
-			
-			# Wait until all sent commands have been processed
-			while len(self.sentCommands) :
-			
-				# Update communication timeout to prevent other commands from being sent
-				if self._printer._comm is not None :
-					self._printer._comm._gcode_G4_sent("G4")
-				
-				time.sleep(0.01)
-			
-			# Check if printing or paused
-			if self._printer.is_printing() or self._printer.is_paused() :
-			
-				# Set perform cancel print movement
-				self.performCancelPrintMovement = True
-			
-				# Stop printing
-				self._printer.cancel_print()
-			
-			# Empty command queue
-			self.emptyCommandQueue()
-			
-			# Set first line number to zero and clear history
-			if self._printer._comm is not None :
-				self._printer._comm._gcode_M110_sending("N0")
-				self._printer._comm._long_running_command = True
-			
-			# Clear sent commands
-			self.sentCommands = {}
-			self.resetLineNumberCommandSent = False
-			self.numberWrapCounter = 0
-		
-		# Otherwise check if request is invalid
-		elif (not self._printer.is_printing() and (data.startswith("N0 M110 N0") or data.startswith("M110"))) or data == "M21\n" or data == "M84\n" :
+		# Check if request is invalid
+		if (not self._printer.is_printing() and (data.startswith("N0 M110 N0") or data.startswith("M110"))) or data == "M21\n" or data == "M84\n" :
 		
 			# Send fake acknowledgment
 			self._printer.fake_ack()
@@ -3542,7 +3477,7 @@ class M3DFioPlugin(
 								
 									# Update communication timeout to prevent other commands from being sent
 									if self._printer._comm is not None :
-										self._printer._comm._gcode_G4_sent("G4")
+										self._printer._comm._gcode_G4_sent("G4 S1")
 								
 									# Delay
 									time.sleep(1)
@@ -3588,10 +3523,13 @@ class M3DFioPlugin(
 					
 						# Wait until all sent commands have been processed
 						while len(self.sentCommands) :
+						
+							# Set long running command
+							self._printer._comm._long_running_command = True
 			
 							# Update communication timeout to prevent other commands from being sent
 							if self._printer._comm is not None :
-								self._printer._comm._gcode_G4_sent("G4")
+								self._printer._comm._gcode_G4_sent("G4 P10")
 				
 							time.sleep(0.01)
 						
@@ -3660,10 +3598,13 @@ class M3DFioPlugin(
 					
 						# Wait until all sent commands have been processed
 						while len(self.sentCommands) :
+						
+							# Set long running command
+							self._printer._comm._long_running_command = True
 			
 							# Update communication timeout to prevent other commands from being sent
 							if self._printer._comm is not None :
-								self._printer._comm._gcode_G4_sent("G4")
+								self._printer._comm._gcode_G4_sent("G4 P10")
 				
 							time.sleep(0.01)
 						
@@ -3708,6 +3649,74 @@ class M3DFioPlugin(
 					# Set command to nothing
 					gcode.removeParameter('M')
 					gcode.setValue('G', '4')
+				
+				# Check if request is hard emergency stop
+				elif gcode.getValue('M') == "0" :
+			
+					# Check if printing or paused
+					if self._printer.is_printing() or self._printer.is_paused() :
+			
+						# Clear perform cancel print movement
+						self.performCancelPrintMovement = False
+			
+						# Stop printing
+						self._printer.cancel_print()
+			
+					# Empty command queue
+					self.emptyCommandQueue()
+			
+					# Set first line number to zero and clear history
+					if self._printer._comm is not None :
+						self._printer._comm._gcode_M110_sending("N0")
+						self._printer._comm._long_running_command = True
+			
+					# Clear sent commands
+					self.sentCommands = {}
+					self.resetLineNumberCommandSent = False
+					self.numberWrapCounter = 0
+		
+				# Otherwise check if request is soft emergency stop
+				elif gcode.getValue('M') == "65537" :
+		
+					# Empty command queue
+					self.emptyCommandQueue()
+		
+					# Set data to hard emergency stop
+					gcode.setValue('M', '0')
+			
+					# Wait until all sent commands have been processed
+					while len(self.sentCommands) :
+			
+						# Set long running command
+						self._printer._comm._long_running_command = True
+			
+						# Update communication timeout to prevent other commands from being sent
+						if self._printer._comm is not None :
+							self._printer._comm._gcode_G4_sent("G4 P10")
+				
+						time.sleep(0.01)
+			
+					# Check if printing or paused
+					if self._printer.is_printing() or self._printer.is_paused() :
+			
+						# Set perform cancel print movement
+						self.performCancelPrintMovement = True
+			
+						# Stop printing
+						self._printer.cancel_print()
+			
+					# Empty command queue
+					self.emptyCommandQueue()
+			
+					# Set first line number to zero and clear history
+					if self._printer._comm is not None :
+						self._printer._comm._gcode_M110_sending("N0")
+						self._printer._comm._long_running_command = True
+			
+					# Clear sent commands
+					self.sentCommands = {}
+					self.resetLineNumberCommandSent = False
+					self.numberWrapCounter = 0
 					
 				# Otherwise check if hide message command
 				elif gcode.getValue('M') == "65539" :
@@ -3754,7 +3763,7 @@ class M3DFioPlugin(
 				
 						# Update communication timeout to prevent other commands from being sent
 						if self._printer._comm is not None :
-							self._printer._comm._gcode_G4_sent("G4")
+							self._printer._comm._gcode_G4_sent("G4 P10")
 					
 						time.sleep(0.01)
 					
@@ -3775,10 +3784,6 @@ class M3DFioPlugin(
 					
 					# Store command
 					self.sentCommands[lineNumber % 0x10000] = data
-			
-			# Set long running command to prevent force sending commands
-			if self._printer._comm is not None :
-				self._printer._comm._long_running_command = True
 			
 			# Set last command sent
 			self.lastCommandSent = data
@@ -3872,10 +3877,11 @@ class M3DFioPlugin(
 			self.writeToLog("Processed Response: " + response)
 		
 		# Check if response is a temperature reading
-		if response.startswith("T:") :
+		if response.startswith("T:") or " T:" in response :
 		
 			# Isolate temperature
-			response = response.split(' ')[0] + '\n'
+			if response.startswith("T:") :
+				response = response.split(' ', 2)[0] + '\n'
 			
 			# Check if using a heatbed
 			if self.heatbedConnected :
@@ -3923,8 +3929,21 @@ class M3DFioPlugin(
 					# Reset number wrap counter
 					self.numberWrapCounter = 0
 				
+				# Check if response contains extra information
+				responseSections = response.split(' ', 3);
+				if len(responseSections) == 3 :
+				
+					# Set extra information
+					extraInformation = ' ' + responseSections[2].strip()
+				
+				# Otherwise
+				else :
+				
+					# Clear extra information
+					extraInformation = ''
+				
 				# Set response to contain adjusted line number
-				response = "ok " + str(lineNumber + self.numberWrapCounter * 0x10000) + '\n'
+				response = "ok " + str(lineNumber + self.numberWrapCounter * 0x10000) + extraInformation + '\n'
 	
 				# Increment number wrap counter if applicable
 				if lineNumber == 0xFFFF :
@@ -4001,7 +4020,7 @@ class M3DFioPlugin(
 			elif response[6 : 10].isdigit() :
 				response = "ok An error has occured\n"
 			else :
-				response = "ok " +  response[6 :]
+				response = "ok " +  response[6 :].strip()
 			
 			# Send message
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = response[3 : -1], header = "Error Status", confirm = True))
@@ -4521,10 +4540,13 @@ class M3DFioPlugin(
 		
 				# Wait until all sent commands have been processed
 				while len(self.sentCommands) :
+				
+					# Set long running command
+					self._printer._comm._long_running_command = True
 			
 					# Update communication timeout to prevent other commands from being sent
 					if self._printer._comm is not None :
-						self._printer._comm._gcode_G4_sent("G4")
+						self._printer._comm._gcode_G4_sent("G4 P10")
 				
 					time.sleep(0.01)
 		

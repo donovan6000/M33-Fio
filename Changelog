@@ -1,5 +1,12 @@
 Changelog:
 
+V0.35 June X, 2016
+
+	* Fixed issue with the slicer profile editor where settings with the same name followed by an underscore would be unintentionally get erased when changing the settings
+	* Temperature polling commands, M105, will now get sent to the printer when printing with iMe firmware
+	* Provides iMe V00.00.00.09 printer firmware
+	* Canceling a print and performing an emergency stop are more reliable
+
 V0.34 May 25, 2016
 
 	* Provides iMe V00.00.00.08 printer firmware
