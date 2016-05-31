@@ -3908,8 +3908,8 @@ class M3DFioPlugin(
 				# Append heatbed temperature to to response
 				response = response.strip() + " B:" + heatbedTemperature + '\n'
 		
-		# Otherwise check if response was a processed or skipped value
-		elif (response.startswith("ok ") and response[3].isdigit()) or response.startswith("skip ") :
+		# Check if response was a processed or skipped value
+		if (response.startswith("ok ") and response[3].isdigit()) or response.startswith("skip ") :
 	
 			# Get line number
 			if response.startswith("ok ") :
