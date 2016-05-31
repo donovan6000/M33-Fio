@@ -825,10 +825,10 @@ class M3DFioPlugin(
 		# Set reminders on initial OctoPrint instance
 		currentPort = self.getListenPort(psutil.Process(os.getpid()))
 		if currentPort is not None and self.getListenPort(psutil.Process(os.getpid())) == 5000 :
-			self.curaReminder = True
+			self.slicerReminder = True
 			self.sleepReminder = True
 		else :
-			self.curaReminder = False
+			self.slicerReminder = False
 			self.sleepReminder = False
 		
 		# Adjust bed bounds to account for external bed
@@ -1077,6 +1077,29 @@ class M3DFioPlugin(
 		
 		# Save profile	
 		self._slicing_manager.get_slicer("cura").save_slicer_profile(output, profile)
+	
+	# Covert Slic3r to profile
+	def convertSlic3rToProfile(self, input, output, name, displayName, description) :
+	
+		# Create input file
+		fd, slic3rProfile = tempfile.mkstemp()
+			
+		# Remove comments from input
+		for line in open(input) :
+			if ';' in line and "_gcode" not in line and line[0] != '\t' :
+				os.write(fd, line[0 : line.index(';')] + '\n')
+			else :
+				os.write(fd, line)
+		os.close(fd)
+			
+		# Import profile manager
+		profileManager = imp.load_source("Profile", self._slicing_manager.get_slicer("slic3r")._basefolder.replace('\\', '/') + "/profile.py")
+		
+		# Create profile
+		profile = octoprint.slicing.SlicingProfile("slic3r", name, profileManager.Profile.from_slic3r_ini(slic3rProfile), displayName, description)
+		
+		# Save profile	
+		self._slicing_manager.get_slicer("slic3r").save_slicer_profile(output, profile)
 	
 	# Covert Profile to Cura
 	def convertProfileToCura(self, input, output, printerProfile) :
@@ -2084,9 +2107,9 @@ class M3DFioPlugin(
 				# Get value
 				value = data["value"][18 :]
 				
-				# Disable Cura reminder
-				if value == "Cura" :
-					self.curaReminder = False
+				# Disable slicer reminder
+				if value == "Slicer" :
+					self.slicerReminder = False
 				
 				# Disable sleep reminder
 				elif value == "Sleep" :
@@ -4148,7 +4171,7 @@ class M3DFioPlugin(
 		if "cura" in self._slicing_manager.registered_slicers :
 	
 			# Check if Cura is not configured
-			if not "cura" in self._slicing_manager.configured_slicers :
+			if "cura" not in self._slicing_manager.configured_slicers :
 			
 				# Set Cura Engine locations
 				curaEngineLocations = []
@@ -4187,6 +4210,44 @@ class M3DFioPlugin(
 							enableSave = True
 							break
 		
+		# Check if Slic3r is a registered slicer
+		if "slic3r" in self._slicing_manager.registered_slicers :
+	
+			# Check if Slic3r is not configured
+			if "slic3r" not in self._slicing_manager.configured_slicers :
+			
+				# Set Slic3r locations
+				slic3rLocations = []
+				if platform.uname()[0].startswith("Windows") :
+				
+					slic3rLocations = [
+						#TODO
+					]
+				
+				elif platform.uname()[0].startswith("Darwin") :
+				
+					slic3rLocations = [
+						#TODO
+					]
+				
+				elif platform.uname()[0].startswith("Linux") :
+				
+					slic3rLocations = [
+						#TODO
+					]
+				
+				# Go through all slic3r location
+				for locations in slic3rLocations :
+					for location in glob.glob(locations) :
+			
+						# Check if location is a file
+						if os.path.isfile(location) :
+					
+							# Set slic3r location
+							self._slicing_manager.get_slicer("slic3r", False)._settings.set(["slic3r_engine"], location, True)
+							enableSave = True
+							break
+		
 		# Check if saving
 		if enableSave :
 		
@@ -4197,12 +4258,8 @@ class M3DFioPlugin(
 		if "cura" in self._slicing_manager.configured_slicers :
 
 			# Set Cura profile location and destination
-			profileLocation = self._basefolder.replace('\\', '/') + "/static/profiles/"
+			profileLocation = self._basefolder.replace('\\', '/') + "/static/profiles/Cura/"
 			profileDestination = self._slicing_manager.get_slicer_profile_path("cura").replace('\\', '/') + '/'
-			
-			# Remove deprecated profiles
-			for profile in glob.glob(profileDestination + "m3d_*mm.profile") :
-				os.remove(profile)
 
 			# Go through all Cura profiles
 			for profile in os.listdir(profileLocation) :
@@ -4211,8 +4268,25 @@ class M3DFioPlugin(
 				profileIdentifier = profile[0 : profile.find('.')]
 				profileName = self._slicing_manager.get_profile_path("cura", profileIdentifier)[len(profileDestination) :].lower()
 	
-				# Save Cura profile as OctoPrint profile
+				# Import Cura profile
 				self.convertCuraToProfile(profileLocation + profile, profileDestination + profileName, profileName, profileIdentifier, "Imported by M3D Fio on " + time.strftime("%Y-%m-%d %H:%M"))
+		
+		# Check if Slic3r is configured
+		if "slic3r" in self._slicing_manager.configured_slicers :
+
+			# Set Slic3r profile location and destination
+			profileLocation = self._basefolder.replace('\\', '/') + "/static/profiles/Slic3r/"
+			profileDestination = self._slicing_manager.get_slicer_profile_path("slic3r").replace('\\', '/') + '/'
+
+			# Go through all Slic3r profiles
+			for profile in os.listdir(profileLocation) :
+	
+				# Set profile version, identifier, and name
+				profileIdentifier = profile[0 : profile.find('.')]
+				profileName = self._slicing_manager.get_profile_path("slic3r", profileIdentifier)[len(profileDestination) :].lower()
+	
+				# Import Slic3r profile
+				self.convertSlic3rToProfile(profileLocation + profile, profileDestination + profileName, profileName, profileIdentifier, "Imported by M3D Fio on " + time.strftime("%Y-%m-%d %H:%M"))
 	
 	# Event monitor
 	def on_event(self, event, payload) :
@@ -4333,14 +4407,14 @@ class M3DFioPlugin(
 			else :
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Disable GPIO Buttons"))
 			
-			# Check if sending Cura reminder and using a Micro 3D printer
-			if self.curaReminder and not self._settings.get_boolean(["NotUsingAMicro3DPrinter"]):
+			# Check if sending slicer reminder and using a Micro 3D printer
+			if self.slicerReminder and not self._settings.get_boolean(["NotUsingAMicro3DPrinter"]):
 			
-				# Check if Cura is not configured
-				if not "cura" in self._slicing_manager.configured_slicers :
+				# Check if Cura and Slic3r are not configured
+				if "cura" not in self._slicing_manager.configured_slicers and "slic3r" not in self._slicing_manager.configured_slicers :
 			
 					# Send message
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Reminder", type = "Cura"))
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Reminder", type = "Slicer", cura = "cura" not in self._slicing_manager.configured_slicers, slic3r = "slic3r" not in self._slicing_manager.configured_slicers))
 			
 			# Check if sending sleep reminder
 			if not self._printer.is_printing() and not self._printer.is_paused() and self.sleepReminder :
@@ -8702,6 +8776,11 @@ class M3DFioPlugin(
 					printerProfile["extruder"]["offsets"][index] = value
 					index += 1
 			
+			# Otherwise check if slicer is Slic3r
+			elif flask.request.values["Slicer Name"] == "slic3r" :
+			
+				#TODO
+			
 			# Check if modifying model
 			if modelModified :
 			
@@ -8739,6 +8818,34 @@ class M3DFioPlugin(
 				# Attempt to convert profile
 				try :
 					profile = profileManager.Profile.from_cura_ini(temp)
+				
+				# Return error if conversion failed
+				except Exception :
+					return flask.jsonify(dict(value = "Error"))
+				
+				# Check if profile is invalid
+				if profile is None :
+				
+					# Return error
+					return flask.jsonify(dict(value = "Error"))
+			
+			# Otherwise check if slicer is Slic3r
+			elif flask.request.values["Slicer Name"] == "slic3r" :
+			
+				# Import profile manager
+				profileManager = imp.load_source("Profile", self._slicing_manager.get_slicer("slic3r")._basefolder.replace('\\', '/') + "/profile.py")
+					
+				# Save profile to temporary file
+				temp = tempfile.mkstemp()[1]
+				
+				output = open(temp, "wb")
+				for character in flask.request.values["Slicer Profile Content"] :
+					output.write(chr(ord(character)))
+				output.close()
+				
+				# Attempt to convert profile
+				try :
+					profile = profileManager.Profile.from_slic3r_ini(temp)
 				
 				# Return error if conversion failed
 				except Exception :

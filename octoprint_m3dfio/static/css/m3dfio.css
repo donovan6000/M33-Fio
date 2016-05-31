@@ -704,21 +704,21 @@ body > div.page-container > div.message > div > div > span.show {
 	border-top: none !important;
 }
 
-#slicing_configuration_dialog.profile .modal-extra div.cura {
+#slicing_configuration_dialog.profile .modal-extra div.slicerSpecific {
 	flex-direction: column;
 }
 
-#slicing_configuration_dialog.profile .modal-extra div.cura:not(.show) {
+#slicing_configuration_dialog.profile .modal-extra div.slicerSpecific:not(.show) {
 	display: none;
 }
 
-#slicing_configuration_dialog.profile .modal-extra div.cura p {
+#slicing_configuration_dialog.profile .modal-extra div.slicerSpecific p {
 	text-align: center;
 	line-height: 10px;
 	margin: 12px 0 6px 0;
 }
 
-#slicing_configuration_dialog.profile .modal-extra div.cura button {
+#slicing_configuration_dialog.profile .modal-extra div.slicerSpecific button {
 	padding: 0;
 	border-radius: 5px;
 	border: 1px solid rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
@@ -730,7 +730,7 @@ body > div.page-container > div.message > div > div > span.show {
 	height: 70px;
 }
 
-#slicing_configuration_dialog.profile .modal-extra div.cura button img {
+#slicing_configuration_dialog.profile .modal-extra div.slicerSpecific button img {
 	position: absolute;
 	top: 50%;
 	left: 50%;
@@ -739,11 +739,11 @@ body > div.page-container > div.message > div > div > span.show {
 	height: auto;
 }
 
-#slicing_configuration_dialog.profile .modal-extra div.cura p:not(:first-of-type) {
+#slicing_configuration_dialog.profile .modal-extra div.slicerSpecific p:not(:first-of-type) {
 	margin-top: 10px;
 }
 
-#slicing_configuration_dialog.profile .modal-extra div.cura div.group {
+#slicing_configuration_dialog.profile .modal-extra div.slicerSpecific div.group {
 	width: 100%;
 	margin: 0 auto;
 	display: block;
@@ -807,23 +807,23 @@ body > div.page-container > div.message > div > div > span.show {
 	text-align: left;
 }
 
-#slicing_configuration_dialog.profile .modal-extra div.cura div:not(.group) {
+#slicing_configuration_dialog.profile .modal-extra div.slicerSpecific div:not(.group) {
 	width: 100%;
 	margin: 0 auto;
 	display: block;
 	text-align: center;
 }
 
-#slicing_configuration_dialog.profile .modal-extra div.cura div.settings {
+#slicing_configuration_dialog.profile .modal-extra div.slicerSpecific div.settings {
 	margin: 1px 0 -1px 0;
 }
 
-#slicing_configuration_dialog.profile .modal-extra div.cura div.settings > label {
+#slicing_configuration_dialog.profile .modal-extra div.slicerSpecific div.settings > label {
 	display: inline-block;
 	margin: 4px 8px 0 8px;
 }
 
-#slicing_configuration_dialog.profile .modal-extra div.cura div.settings > label > input {
+#slicing_configuration_dialog.profile .modal-extra div.slicerSpecific div.settings > label > input {
 	position: relative;
 	top: -3px;
 	right: 2px;
