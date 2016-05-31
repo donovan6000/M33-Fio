@@ -5177,7 +5177,7 @@ $(function() {
 														</div>
 													</div
 												`);
-												$("#slicing_configuration_dialog .modal-extra textarea").val(data);
+												$("#slicing_configuration_dialog .modal-extra textarea").val(data.slice(-1) == '\n' ? data.slice(0, -1) : data);
 											
 												// Set basic setting values
 												if(slicerName == "cura") {
@@ -5317,10 +5317,14 @@ $(function() {
 														if(settings[setting] !== null) {
 													
 															// Add setting
-															if(profile.match(/(?:^|\n)\[profile\].*\n?/) === null)
-																profile += "\n[profile]\n" + setting + " = " + settings[setting] + '\n';
-															else
-																profile = profile.replace(/(^|\n)\[profile\].*\n?/, "$1[profile]\n" + setting + " = " + settings[setting] + '\n');
+															if(slicerName == "cura") {
+																if(profile.match(/(?:^|\n)\[profile\].*\n?/) === null)
+																	profile += "\n[profile]\n" + setting + " = " + settings[setting] + '\n';
+																else
+																	profile = profile.replace(/(^|\n)\[profile\].*\n?/, "$1[profile]\n" + setting + " = " + settings[setting] + '\n');
+															}
+															else if(slicerName == "slic3r")
+																profile = setting + " = " + settings[setting] + '\n' + profile;
 															
 															// Remove leading and trailing whitespace
 															profile = profile.trim();
@@ -10843,13 +10847,13 @@ $(function() {
 					var text = "It's recommended that you install";
 					
 					if(data.cura) {
-						text += "the latest <a href=\"https://ultimaker.com/en/products/cura-software/list\" target=\"_blank\">Cura 15.04</a> release";
-						if(typeof data.slic3r !== "undefined")
-							text += " or "
+						text += " the latest <a href=\"https://ultimaker.com/en/products/cura-software/list\" target=\"_blank\">Cura 15.04</a> release ";
+						if(data.slic3r)
+							text += "or"
 					}
 					
 					if(data.slic3r)
-						text += "the latest <a href=\"http://slic3r.org/download\" target=\"_blank\">Slic3r</a> release";
+						text += " the latest <a href=\"http://slic3r.org/download\" target=\"_blank\">Slic3r</a> release ";
 					
 					text += "on this server to allow slicing from within OctoPrint";
 					
