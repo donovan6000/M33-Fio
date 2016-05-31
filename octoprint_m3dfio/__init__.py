@@ -1068,14 +1068,14 @@ class M3DFioPlugin(
 			else :
 				os.write(fd, line)
 		os.close(fd)
-			
+		
 		# Import profile manager
 		profileManager = imp.load_source("Profile", self._slicing_manager.get_slicer("cura")._basefolder.replace('\\', '/') + "/profile.py")
 		
 		# Create profile
 		profile = octoprint.slicing.SlicingProfile("cura", name, profileManager.Profile.from_cura_ini(curaProfile), displayName, description)
 		
-		# Save profile	
+		# Save profile
 		self._slicing_manager.get_slicer("cura").save_slicer_profile(output, profile)
 	
 	# Covert Slic3r to profile
@@ -1091,21 +1091,19 @@ class M3DFioPlugin(
 			else :
 				os.write(fd, line)
 		os.close(fd)
-			
+		
 		# Import profile manager
 		profileManager = imp.load_source("Profile", self._slicing_manager.get_slicer("slic3r")._basefolder.replace('\\', '/') + "/profile.py")
 		
 		# Create profile
-		profile = octoprint.slicing.SlicingProfile("slic3r", name, profileManager.Profile.from_slic3r_ini(slic3rProfile), displayName, description)
+		profile = octoprint.slicing.SlicingProfile("slic3r", name, profileManager.Profile.from_slic3r_ini(slic3rProfile)[0], displayName, description)
 		
-		# Save profile	
+		# Save profile
 		self._slicing_manager.get_slicer("slic3r").save_slicer_profile(output, profile)
 	
 	# Covert Profile to Cura
 	def convertProfileToCura(self, input, output, printerProfile) :
 	
-		# Cura plugin needs to be updated to include 'solidarea_speed', 'perimeter_before_infill', 'raft_airgap_all', 'raft_surface_thickness', and 'raft_surface_linewidth'
-		
 		# Initialize variables
 		machine = {}
 		settings = {}
@@ -1257,6 +1255,26 @@ class M3DFioPlugin(
 				else :
 					output.write(str(key) + str(index + 1) + " = " + str(alterations[key][index]).replace("\n\n", '\n').replace('\n', "\n\t").rstrip() + '\n')
 				index += 1
+	
+	# Covert Profile to Slic3r
+	def convertProfileToSlic3r(self, input, output, printerProfile) :
+		
+		# Get printer profile
+		printerProfile = self._printer_profile_manager.get(printerProfile)
+		
+		# Import profile manager
+		profileManager = imp.load_source("Profile", self._slicing_manager.get_slicer("slic3r")._basefolder.replace('\\', '/') + "/profile.py")
+		
+		# Create profile
+		profile = profileManager.Profile(self._slicing_manager.get_slicer("slic3r")._load_profile(input), printerProfile, None, None)
+		
+		# Set settings in profile
+		profile._profile[0]["bed_shape"] = "0x0,%.1fx0,%.1fx%.1f,0x%.1f" % (printerProfile["volume"]["width"], printerProfile["volume"]["width"], printerProfile["volume"]["depth"], printerProfile["volume"]["depth"])
+		profile._profile[0]["bed_size"] = "%.1f,%.1f" % (printerProfile["volume"]["width"], printerProfile["volume"]["depth"])
+		profile._profile[0]["nozzle_diameter"] = printerProfile["extruder"]["nozzleDiameter"]
+		
+		# Create profile
+		profileManager.Profile.to_slic3r_ini(profile._profile[0], output)
 	
 	# On shutdown
 	def on_shutdown(self) :
@@ -2144,6 +2162,8 @@ class M3DFioPlugin(
 				
 				if values["slicerName"] == "cura" :
 					self.convertProfileToCura(temp, fileDestination, values["printerProfileName"])
+				elif values["slicerName"] == "slic3r" :
+					self.convertProfileToSlic3r(temp, fileDestination, values["printerProfileName"])
 				else :
 					shutil.move(temp, fileDestination)
 				
@@ -4221,19 +4241,19 @@ class M3DFioPlugin(
 				if platform.uname()[0].startswith("Windows") :
 				
 					slic3rLocations = [
-						#TODO
+						os.environ["SYSTEMDRIVE"] + "/Program Files*/Slic3r/slic3r-console.exe"
 					]
 				
 				elif platform.uname()[0].startswith("Darwin") :
 				
 					slic3rLocations = [
-						#TODO
+						"/Applications/Slic3r.app/Contents/MacOS/slic3r"
 					]
 				
 				elif platform.uname()[0].startswith("Linux") :
 				
 					slic3rLocations = [
-						#TODO
+						"/usr/bin/slic3r"
 					]
 				
 				# Go through all slic3r location
@@ -4408,13 +4428,16 @@ class M3DFioPlugin(
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Disable GPIO Buttons"))
 			
 			# Check if sending slicer reminder and using a Micro 3D printer
-			if self.slicerReminder and not self._settings.get_boolean(["NotUsingAMicro3DPrinter"]):
+			if self.slicerReminder and not self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
 			
-				# Check if Cura and Slic3r are not configured
-				if "cura" not in self._slicing_manager.configured_slicers and "slic3r" not in self._slicing_manager.configured_slicers :
+				# Check if Cura or Slic3r are registered slicers
+				if "cura" in self._slicing_manager.registered_slicers or "slic3r" in self._slicing_manager.registered_slicers :
 			
-					# Send message
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Reminder", type = "Slicer", cura = "cura" not in self._slicing_manager.configured_slicers, slic3r = "slic3r" not in self._slicing_manager.configured_slicers))
+					# Check if Cura and Slic3r are not configured
+					if "cura" not in self._slicing_manager.configured_slicers and "slic3r" not in self._slicing_manager.configured_slicers :
+			
+						# Send message
+						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Reminder", type = "Slicer", cura = "cura" in self._slicing_manager.registered_slicers and "cura" not in self._slicing_manager.configured_slicers, slic3r = "slic3r" in self._slicing_manager.registered_slicers and "slic3r" not in self._slicing_manager.configured_slicers))
 			
 			# Check if sending sleep reminder
 			if not self._printer.is_printing() and not self._printer.is_paused() and self.sleepReminder :
@@ -8701,6 +8724,8 @@ class M3DFioPlugin(
 			
 			if flask.request.values["Slicer Name"] == "cura" :
 				self.convertCuraToProfile(temp, profileLocation, '', '', '')
+			elif flask.request.values["Slicer Name"] == "slic3r" :
+				self.convertSlic3rToProfile(temp, profileLocation, '', '', '')
 			else :
 				shutil.move(temp, profileLocation)
 			
@@ -8779,7 +8804,15 @@ class M3DFioPlugin(
 			# Otherwise check if slicer is Slic3r
 			elif flask.request.values["Slicer Name"] == "slic3r" :
 			
-				#TODO
+				# Change printer profile
+				search = re.findall("bed_size\s*?=\s*?(\d+.?\d*)\s*?,\s*?(\d+.?\d*)", flask.request.values["Slicer Profile Content"])
+				if len(search) :
+					printerProfile["volume"]["width"] = float(search[0][0])
+					printerProfile["volume"]["depth"] = float(search[0][1])
+				
+				search = re.findall("nozzle_diameter\s*?=\s*?(\d+.?\d*)", flask.request.values["Slicer Profile Content"])
+				if len(search) :
+					printerProfile["extruder"]["nozzleDiameter"] = float(search[0])
 			
 			# Check if modifying model
 			if modelModified :
