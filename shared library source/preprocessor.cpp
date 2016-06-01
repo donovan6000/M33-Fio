@@ -41,8 +41,8 @@ double bedHighMaxZ = 112.0;
 double bedHighMinZ = bedMediumMaxZ;
 #define BED_WIDTH 121.0
 #define BED_DEPTH 121.0
-#define BED_CENTER_OFFSET_X 8.5
-#define BED_CENTER_OFFSET_Y 2.0
+#define BED_CENTER_OFFSET_X 8.5005
+#define BED_CENTER_OFFSET_Y 2.0005
 
 // Wave bonding pre-processor settings
 #define WAVE_PERIOD 5.0

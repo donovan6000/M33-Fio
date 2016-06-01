@@ -41,7 +41,8 @@ import threading
 import BaseHTTPServer
 import SocketServer
 import yaml
-import zipfile
+import logging
+import logging.handlers
 from .gcode import Gcode
 from .vector import Vector
 
@@ -109,6 +110,9 @@ class M3DFioPlugin(
 
 	# Constructor
 	def __init__(self) :
+	
+		# Set logger
+		self._m3dfio_logger = logging.getLogger("octoprint.plugins.m3dfio.debug")
 
 		# Initialize data members
 		self.originalWrite = None
@@ -134,7 +138,6 @@ class M3DFioPlugin(
 		self.printerColor = "Black"
 		self.camera = None
 		self.lastLineNumberSent = None
-		self.fileLock = threading.Lock()
 		self.initializingPrinterConnection = False
 		self.cancelingPrint = False
 		self.startingMidPrintFilamentChange = False
@@ -401,8 +404,10 @@ class M3DFioPlugin(
 		self.bedHighMinZ = self.bedMediumMaxZ
 		self.bedWidth = 121.0
 		self.bedDepth = 121.0
-		self.bedCenterOffsetX = 8.5
-		self.bedCenterOffsetY = 2.0
+		self.bedCenterOffsetX = 8.5005
+		self.bedCenterOffsetY = 2.0005
+		self.extruderCenterX = (self.bedLowMaxX + self.bedLowMinX) / 2
+		self.extruderCenterY = (self.bedLowMaxY + self.bedLowMinY + 14.0) / 2
 		
 		# Chip details
 		self.chipName = "ATxmega32C4"
@@ -818,6 +823,18 @@ class M3DFioPlugin(
 			printerProfile["heatedBed"] = True
 		
 		self._printer_profile_manager.save(printerProfile, True, True)
+	
+	# On startup
+	def on_startup(self, host, port) :
+	
+		# setup our custom logger
+		m3dfio_logging_handler = logging.handlers.RotatingFileHandler(self._settings.get_plugin_logfile_path(postfix = "debug"), maxBytes = 500 * 1024 * 1024)
+		m3dfio_logging_handler.setFormatter(logging.Formatter("%(asctime)s %(message)s"))
+		m3dfio_logging_handler.setLevel(logging.DEBUG)
+
+		self._m3dfio_logger.addHandler(m3dfio_logging_handler)
+		self._m3dfio_logger.setLevel(logging.DEBUG if self._settings.get_boolean(["UseDebugLogging"]) else logging.CRITICAL)
+		self._m3dfio_logger.propagate = False
 	
 	# On after startup
 	def on_after_startup(self) :
@@ -1296,11 +1313,10 @@ class M3DFioPlugin(
 	# Remove temporary files
 	def removeTemporaryFiles(self) :
 	
-		# Delete all temporary files aside from the log
+		# Delete all temporary files
 		path = self.get_plugin_data_folder().replace('\\', '/') + '/'
 		for file in os.listdir(path) :
-			if file != "log.txt" :
-				os.remove(path + file)
+			os.remove(path + file)
 	
 	# Get default settings
 	def get_settings_defaults(self) :
@@ -1356,8 +1372,8 @@ class M3DFioPlugin(
 			CameraHeight = 480,
 			CameraFramesPerSecond = 20,
 			MidPrintFilamentChangeLayers = '',
-			LogSentReceivedData = False,
-			ChangeLedBrightness = True
+			ChangeLedBrightness = True,
+			UseDebugLogging = False
 		)
 	
 	# Get IP address
@@ -1442,6 +1458,12 @@ class M3DFioPlugin(
 			
 			# Save settings
 			octoprint.settings.settings().save()
+		
+		# Update debug level
+		if self._settings.get_boolean(["UseDebugLogging"]) :
+			self._m3dfio_logger.setLevel(logging.DEBUG)
+		else:
+			self._m3dfio_logger.setLevel(logging.CRITICAL)
 		
 		# Check if not using a Micro 3D printer
 		if self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
@@ -1550,10 +1572,17 @@ class M3DFioPlugin(
 					if data["value"][-1] == "M65536;wait" :
 					
 						# Append a command that receives a confirmation to the end of list
-						data["value"].insert(len(data["value"]) - 1, "G4");
+						data["value"].insert(len(data["value"]) - 1, "G4")
 					
-					# Check if not using line numbers or printing
-					if noLineNumber or self._printer.is_printing() :
+					# Check if command is soft emergency stop
+					if data["value"][0] == "M65537;stop" :
+					
+						# Send command immediately to the printer
+						if isinstance(self._printer.get_transport(), serial.Serial) :
+							self._printer.get_transport().write(data["value"][0])
+					
+					# Otherwise check if not using line numbers or printing
+					elif noLineNumber or self._printer.is_printing() :
 				
 						# Send commands to printer
 						self.sendCommands(data["value"])
@@ -2138,7 +2167,13 @@ class M3DFioPlugin(
 			
 				# Get values
 				values = json.loads(data["value"][14 :])
-			
+				
+				# Check if slicer name or slicer profile name is invalid
+				if values["slicerName"] is None or values["slicerProfileName"] is None :
+				
+					# Return error
+					return flask.jsonify(dict(value = "Error"))
+				
 				# Get slicer profile's location
 				fileLocation = self._slicing_manager.get_profile_path(values["slicerName"], values["slicerProfileName"])
 				
@@ -2215,45 +2250,6 @@ class M3DFioPlugin(
     				
     				# Return location
 				return flask.jsonify(dict(value = "OK", path = "m3dfio/download/" + destinationName))
-			
-			# Otherwise check if parameter is to get log
-			elif data["value"] == "Get Log" :
-			
-				# Set file's destination
-				destinationName = "log.zip"
-				fileDestination = self.get_plugin_data_folder().replace('\\', '/') + '/' + destinationName
-				logLocation = self.get_plugin_data_folder().replace('\\', '/') + "/log.txt"
-				
-				# Remove file in destination if it already exists
-				if os.path.isfile(fileDestination) :
-					os.remove(fileDestination)
-				
-				# Open archive
-				output = zipfile.ZipFile(fileDestination, 'w')
-				
-				# Acquire lock
-				self.fileLock.acquire()
-				
-				# Write log to archive
-				if os.path.isfile(logLocation) :
-					output.write(logLocation, "log.txt")
-    				else :
-    					output.writestr("log.txt", '')
-    				
-    				# Release lock
-				self.fileLock.release()
-    				
-    				# Close archive
-    				output.close()
-    				
-    				# Return location
-				return flask.jsonify(dict(value = "OK", path = "m3dfio/download/" + destinationName))
-			
-			# Otherwise check if parameter is to clear log
-			elif data["value"] == "Clear Log" :
-			
-				# Erase log files
-				self.eraseLogFiles()
 			
 			# Otherwise check if parameter is to set printer settings
 			elif data["value"].startswith("Set Printer Settings:") :
@@ -2771,41 +2767,6 @@ class M3DFioPlugin(
 				return flask.jsonify(dict(value = "Error"))
 			else :
 				return flask.jsonify(dict(value = "OK"))
-	
-	# Write to log
-	def writeToLog(self, data) :
-	
-		# Acquire lock
-		self.fileLock.acquire()
-		
-		# Write to log
-		output = open(self.get_plugin_data_folder().replace('\\', '/') + "/log.txt", "ab+")
-		output.write(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f") + " - " + data.rstrip() + '\n')
-		output.close()
-		
-		# Release lock
-		self.fileLock.release()
-	
-	# Erase log files
-	def eraseLogFiles(self) :
-	
-		# Set file location
-		logLocation = self.get_plugin_data_folder().replace('\\', '/') + "/log.txt"
-		zipLocation = self.get_plugin_data_folder().replace('\\', '/') + "/log.zip"
-		
-		# Acquire lock
-		self.fileLock.acquire()
-		
-		# Remove log file if it exists
-		if os.path.isfile(logLocation) :
-			os.remove(logLocation)
-		
-		# Release lock
-		self.fileLock.release()
-		
-		# Remove zip file if it exists
-		if os.path.isfile(zipLocation) :
-			os.remove(zipLocation)
 	
 	# Write to EEPROM
 	def writeToEeprom(self, connection, address, data) :
@@ -3326,7 +3287,7 @@ class M3DFioPlugin(
 	def calculateChecksum(self, command) :
 	
 		# Calculate checksum
-		checksum = 0;
+		checksum = 0
 		for character in command :
 			if character == '*' :
 				return str(checksum)
@@ -3363,8 +3324,7 @@ class M3DFioPlugin(
 	def processWrite(self, data) :
 	
 		# Log sent data
-		if self._settings.get_boolean(["LogSentReceivedData"]) :
-			self.writeToLog("Original Sent: " + data)
+		self._m3dfio_logger.debug("Original Sent: " + data)
 	
 		# Check if printing
 		if self._printer.is_printing() :
@@ -3392,6 +3352,74 @@ class M3DFioPlugin(
 		
 		# Otherwise
 		else :
+			
+			# Check if request is hard emergency stop
+			if "M0" in data :
+		
+				# Check if printing or paused
+				if self._printer.is_printing() or self._printer.is_paused() :
+		
+					# Clear perform cancel print movement
+					self.performCancelPrintMovement = False
+		
+					# Stop printing
+					self._printer.cancel_print()
+		
+				# Empty command queue
+				self.emptyCommandQueue()
+		
+				# Set first line number to zero and clear history
+				if self._printer._comm is not None :
+					self._printer._comm._gcode_M110_sending("N0")
+					self._printer._comm._long_running_command = True
+		
+				# Clear sent commands
+				self.sentCommands = {}
+				self.resetLineNumberCommandSent = False
+				self.numberWrapCounter = 0
+	
+			# Otherwise check if request is soft emergency stop
+			elif "M65537" in data :
+			
+				# Empty command queue
+				self.emptyCommandQueue()
+	
+				# Set command to hard emergency stop
+				data = "M0\n"
+		
+				# Wait until all sent commands have been processed
+				while len(self.sentCommands) :
+					
+					# Set long running command
+					self._printer._comm._long_running_command = True
+		
+					# Update communication timeout to prevent other commands from being sent
+					if self._printer._comm is not None :
+						self._printer._comm._gcode_G4_sent("G4 P10")
+			
+					time.sleep(0.01)
+		
+				# Check if printing or paused
+				if self._printer.is_printing() or self._printer.is_paused() :
+		
+					# Set perform cancel print movement
+					self.performCancelPrintMovement = True
+		
+					# Stop printing
+					self._printer.cancel_print()
+		
+				# Empty command queue
+				self.emptyCommandQueue()
+		
+				# Set first line number to zero and clear history
+				if self._printer._comm is not None :
+					self._printer._comm._gcode_M110_sending("N0")
+					self._printer._comm._long_running_command = True
+		
+				# Clear sent commands
+				self.sentCommands = {}
+				self.resetLineNumberCommandSent = False
+				self.numberWrapCounter = 0
 		
 			# Initialize variables
 			endWaitingAfterSend = False
@@ -3692,74 +3720,6 @@ class M3DFioPlugin(
 					# Set command to nothing
 					gcode.removeParameter('M')
 					gcode.setValue('G', '4')
-				
-				# Check if request is hard emergency stop
-				elif gcode.getValue('M') == "0" :
-			
-					# Check if printing or paused
-					if self._printer.is_printing() or self._printer.is_paused() :
-			
-						# Clear perform cancel print movement
-						self.performCancelPrintMovement = False
-			
-						# Stop printing
-						self._printer.cancel_print()
-			
-					# Empty command queue
-					self.emptyCommandQueue()
-			
-					# Set first line number to zero and clear history
-					if self._printer._comm is not None :
-						self._printer._comm._gcode_M110_sending("N0")
-						self._printer._comm._long_running_command = True
-			
-					# Clear sent commands
-					self.sentCommands = {}
-					self.resetLineNumberCommandSent = False
-					self.numberWrapCounter = 0
-		
-				# Otherwise check if request is soft emergency stop
-				elif gcode.getValue('M') == "65537" :
-		
-					# Empty command queue
-					self.emptyCommandQueue()
-		
-					# Set data to hard emergency stop
-					gcode.setValue('M', '0')
-			
-					# Wait until all sent commands have been processed
-					while len(self.sentCommands) :
-			
-						# Set long running command
-						self._printer._comm._long_running_command = True
-			
-						# Update communication timeout to prevent other commands from being sent
-						if self._printer._comm is not None :
-							self._printer._comm._gcode_G4_sent("G4 P10")
-				
-						time.sleep(0.01)
-			
-					# Check if printing or paused
-					if self._printer.is_printing() or self._printer.is_paused() :
-			
-						# Set perform cancel print movement
-						self.performCancelPrintMovement = True
-			
-						# Stop printing
-						self._printer.cancel_print()
-			
-					# Empty command queue
-					self.emptyCommandQueue()
-			
-					# Set first line number to zero and clear history
-					if self._printer._comm is not None :
-						self._printer._comm._gcode_M110_sending("N0")
-						self._printer._comm._long_running_command = True
-			
-					# Clear sent commands
-					self.sentCommands = {}
-					self.resetLineNumberCommandSent = False
-					self.numberWrapCounter = 0
 					
 				# Otherwise check if hide message command
 				elif gcode.getValue('M') == "65539" :
@@ -3795,8 +3755,7 @@ class M3DFioPlugin(
 					data = gcode.getBinary()
 				
 				# Log sent data
-				if self._settings.get_boolean(["LogSentReceivedData"]) :
-					self.writeToLog("Processed Sent: " + gcode.getAscii())
+				self._m3dfio_logger.debug("Processed Sent: " + gcode.getAscii())
 				
 				# Check if command has a line number
 				if gcode.hasValue('N') :
@@ -3867,8 +3826,7 @@ class M3DFioPlugin(
 		response = self.originalRead()
 		
 		# Log received data
-		if self._settings.get_boolean(["LogSentReceivedData"]) :
-			self.writeToLog("Original Response: " + response)
+		self._m3dfio_logger.debug("Original Response: " + response)
 		
 		# Check if setting heatbed temperature
 		if self.settingHeatbedTemperature :
@@ -3916,8 +3874,7 @@ class M3DFioPlugin(
 			self.lastResponseWasWait = False
 		
 		# Log received data
-		if self._settings.get_boolean(["LogSentReceivedData"]) :
-			self.writeToLog("Processed Response: " + response)
+		self._m3dfio_logger.debug("Processed Response: " + response)
 		
 		# Check if response is a temperature reading
 		if response.startswith("T:") or " T:" in response :
@@ -3973,7 +3930,7 @@ class M3DFioPlugin(
 					self.numberWrapCounter = 0
 				
 				# Check if response contains extra information
-				responseSections = response.split(' ', 3);
+				responseSections = response.split(' ', 3)
 				if len(responseSections) == 3 :
 				
 					# Set extra information
@@ -4065,8 +4022,14 @@ class M3DFioPlugin(
 			else :
 				response = "ok " +  response[6 :].strip()
 			
+			# Check if waiting for a command to be processed
+			if self.lastLineNumberSent is not None and self.lastLineNumberSent % 0x10000 in self.sentCommands :
+			
+				# Remove stored command
+				self.sentCommands.pop(self.lastLineNumberSent)
+			
 			# Send message
-			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = response[3 : -1], header = "Error Status", confirm = True))
+			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = response[3 :].strip(), header = "Error Status", confirm = True))
 		
 		# Return response
 		return response
@@ -4477,9 +4440,6 @@ class M3DFioPlugin(
 		
 			# Disable sleep
 			self.disableSleep()
-			
-			# Erase log files
-			self.eraseLogFiles()
 			
 			# Check if using a Micro 3D printer
 			if not self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
@@ -8825,6 +8785,13 @@ class M3DFioPlugin(
 				printerProfile["volume"]["width"] += float(flask.request.values["Model Center X"]) * 2
 				printerProfile["volume"]["depth"] += float(flask.request.values["Model Center Y"]) * 2
 			
+			# Otherwise
+			else :
+				
+				# Adjust printer profile so that its center is equal to the model's center
+				printerProfile["volume"]["width"] += (-(self.extruderCenterX - (self.bedLowMaxX + self.bedLowMinX) / 2) + self.bedLowMinX) * 2
+				printerProfile["volume"]["depth"] += (self.extruderCenterY - (self.bedLowMaxY + self.bedLowMinY) / 2 + self.bedLowMinY) * 2
+				
 			# Apply printer profile changes
 			self._printer_profile_manager.save(printerProfile, True)
 			
