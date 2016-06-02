@@ -827,11 +827,11 @@ class M3DFioPlugin(
 	# On startup
 	def on_startup(self, host, port) :
 	
-		# setup our custom logger
+		# Setup custom logger
 		m3dfio_logging_handler = logging.handlers.RotatingFileHandler(self._settings.get_plugin_logfile_path(postfix = "debug"), maxBytes = 500 * 1024 * 1024)
 		m3dfio_logging_handler.setFormatter(logging.Formatter("%(asctime)s %(message)s"))
 		m3dfio_logging_handler.setLevel(logging.DEBUG)
-
+		
 		self._m3dfio_logger.addHandler(m3dfio_logging_handler)
 		self._m3dfio_logger.setLevel(logging.DEBUG if self._settings.get_boolean(["UseDebugLogging"]) else logging.CRITICAL)
 		self._m3dfio_logger.propagate = False
@@ -1044,8 +1044,8 @@ class M3DFioPlugin(
 		if self.eeprom is not None :
 		
 			# Get firmware version from EEPROM
-			index = 3
 			firmwareVersion = 0
+			index = 3
 			while index >= 0 :
 				firmwareVersion <<= 8
 				firmwareVersion += int(ord(self.eeprom[self.eepromOffsets["firmwareVersion"]["offset"] + index]))
@@ -2883,11 +2883,11 @@ class M3DFioPlugin(
 			response = connection.read(4)
 
 			# Get chip CRC
-			index = 0
-			while index < 4 :
+			index = 3
+			while index >= 0 :
 				oldChipCrc <<= 8
 				oldChipCrc += int(ord(response[index]))
-				index += 1
+				index -= 1
 		
 			# Request that chip be erased
 			connection.write('E')
@@ -2969,11 +2969,11 @@ class M3DFioPlugin(
 							response = connection.read(4)
 
 							# Get chip CRC
-							index = 0
-							while index < 4 :
+							index = 3
+							while index >= 0 :
 								newChipCrc <<= 8
 								newChipCrc += int(ord(response[index]))
-								index += 1
+								index -= 1
 						
 							# Decrypt the ROM
 							index = 0
@@ -3010,15 +3010,15 @@ class M3DFioPlugin(
 							romCrc = binascii.crc32(decryptedRom) & 0xFFFFFFFF
 					
 							# Check if firmware update was successful
-							if newChipCrc == struct.unpack("<I", struct.pack(">I", romCrc))[0] :
+							if newChipCrc == romCrc :
 					
 								# Get firmware CRC from EEPROM
-								index = 0
-								while index < 4 :
+								index = 3
+								while index >= 0 :
 									eepromCrc <<= 8
 									eepromCrc += int(ord(self.eeprom[self.eepromOffsets["firmwareCrc"]["offset"] + index]))
-									index += 1
-					
+									index -= 1
+								
 								# Check if Z state wasn't saved or previous firmware was corrupt
 								if self.eeprom[self.eepromOffsets["savedZState"]["offset"]] == '\x00' or oldChipCrc != eepromCrc :
 						
@@ -3034,43 +3034,112 @@ class M3DFioPlugin(
 							
 										# Increment index
 										index += 1
+								
+								# Otherwise
+								else :
+								
+									# Get firmware version from EEPROM
+									eepromFirmwareVersion = 0
+									index = self.eepromOffsets["firmwareVersion"]["bytes"] -1
+									while index >= 0 :
+										eepromFirmwareVersion <<= 8
+										eepromFirmwareVersion += int(ord(self.eeprom[self.eepromOffsets["firmwareVersion"]["offset"] + index]))
+										index -= 1
+									
+									# Get old firmware type
+									oldFirmwareType = None
+									for firmware in self.providedFirmwares :
+										if int(self.providedFirmwares[firmware]["Version"]) / 100000000 == eepromFirmwareVersion / 100000000 :
+											oldFirmwareType = self.providedFirmwares[firmware]["Type"]
+											break
+									
+									# Get new firmware type
+									newFirmwareType = None
+									for firmware in self.providedFirmwares :
+										if int(self.providedFirmwares[firmware]["Version"]) / 100000000 == romVersion / 100000000 :
+											newFirmwareType = self.providedFirmwares[firmware]["Type"]
+											break
+									
+									# Check if old and new firmware types are known
+									if oldFirmwareType is not None and newFirmwareType is not None :
+									
+										# Check if going from M3D or M3D Mod firmware to iMe firmware
+										if (oldFirmwareType == "M3D" or oldFirmwareType == "M3D Mod") and newFirmwareType == "iMe" :
+										
+											# Get current Z value from EEPROM
+											currentValueZ = 0
+											index = self.eepromOffsets["lastRecordedZValue"]["bytes"] - 1
+											while index >= 0 :
+												currentValueZ <<= 8
+												currentValueZ += int(ord(self.eeprom[self.eepromOffsets["lastRecordedZValue"]["offset"] + index]))
+												index -= 1
+											
+											# Convert current Z to single-precision floating-point format used by iMe firmware
+											currentValueZ /= 5170.635833481
+											
+											# Set error to if setting current Z in EEPROM failed
+											error = self.setEepromValue(connection, "lastRecordedZValue", currentValueZ)
+										
+										# Otherwise check if going from iMe firmware to M3D or M3D Mod firmware
+										elif oldFirmwareType == "iMe" and (newFirmwareType == "M3D" or newFirmwareType == "M3D Mod") :
+										
+											# Get current Z value from EEPROM
+											data = [int(ord(self.eeprom[self.eepromOffsets["lastRecordedZValue"]["offset"]])), int(ord(self.eeprom[self.eepromOffsets["lastRecordedZValue"]["offset"] + 1])), int(ord(self.eeprom[self.eepromOffsets["lastRecordedZValue"]["offset"] + 2])), int(ord(self.eeprom[self.eepromOffsets["lastRecordedZValue"]["offset"] + 3]))]
+											bytes = struct.pack("4B", *data)
+											currentValueZ = struct.unpack('f', bytes)[0]
+											
+											# Convert current Z to unsigned 32-bit integer format used by M3D and M3D Mod firmwares
+											currentValueZ = int(round(currentValueZ * 5170.635833481))
+											
+											# Check if saving current Z in EEPROM failed
+											index = 0
+											while index < self.eepromOffsets["lastRecordedZValue"]["bytes"] :
 						
+												# Check if saving current Z in EEPROM failed
+												if not error and not self.writeToEeprom(connection, self.eepromOffsets["lastRecordedZValue"]["offset"] + index, chr((currentValueZ >> 8 * index) & 0xFF)) :
+							
+													# Set error
+													error = True
+							
+												# Increment index
+												index += 1
+								
 								# Go through bytes of all steps per MM sections
 								index = 0
 								while index < self.eepromOffsets["eAxisStepsPerMm"]["offset"] + self.eepromOffsets["eAxisStepsPerMm"]["bytes"] - self.eepromOffsets["xAxisStepsPerMm"]["offset"] :
-						
+					
 									# Check if zeroing out steps per MM in EEPROM failed
 									if not error and not self.writeToEeprom(connection, self.eepromOffsets["xAxisStepsPerMm"]["offset"] + index, '\x00') :
-							
+						
 										# Set error
 										error = True
-							
+						
 									# Increment index
 									index += 1
 
 								# Go through bytes of firmware version
 								index = 0
 								while index < self.eepromOffsets["firmwareVersion"]["bytes"] :
-						
+					
 									# Check if updating firmware version in EEPROM failed
 									if not error and not self.writeToEeprom(connection, self.eepromOffsets["firmwareVersion"]["offset"] + index, chr((romVersion >> 8 * index) & 0xFF)) :
-							
+						
 										# Set error
 										error = True
-							
+						
 									# Increment index
 									index += 1
 
 								# Go through bytes of firmware CRC
 								index = 0
 								while index < self.eepromOffsets["firmwareCrc"]["bytes"] :
-						
+					
 									# Check if updating firmware CRC in EEPROM failed
 									if not error and not self.writeToEeprom(connection, self.eepromOffsets["firmwareCrc"]["offset"] + index, chr((romCrc >> 8 * index) & 0xFF)) :
-							
+						
 										# Set error
 										error = True
-							
+						
 									# Increment index
 									index += 1
 					
@@ -4979,12 +5048,12 @@ class M3DFioPlugin(
 						if self.getEeprom(connection) :
 					
 							# Get firmware CRC from EEPROM
-							index = 0
 							eepromCrc = 0
-							while index < 4 :
+							index = 3
+							while index >= 0 :
 								eepromCrc <<= 8
 								eepromCrc += int(ord(self.eeprom[self.eepromOffsets["firmwareCrc"]["offset"] + index]))
-								index += 1
+								index -= 1
 				
 							# Request firmware CRC from chip
 							connection.write('C')
@@ -4994,12 +5063,12 @@ class M3DFioPlugin(
 							response = connection.read(4)
 
 							# Get chip CRC
-							index = 0
 							chipCrc = 0
-							while index < 4 :
+							index = 3
+							while index >= 0 :
 								chipCrc <<= 8
 								chipCrc += int(ord(response[index]))
-								index += 1
+								index -= 1
 					
 							# Get firmware details
 							firmwareType, firmwareVersion, firmwareRelease = self.getFirmwareDetails()
