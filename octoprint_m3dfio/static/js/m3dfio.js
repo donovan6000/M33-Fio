@@ -1012,7 +1012,68 @@ $(function() {
 					
 					// Otherwise check if using Slic3r
 					else if(slicerName == "slic3r") {
-						//TODO
+						
+						// Get platformAdhesion values
+						this.brimWidth = getSlicerProfileValue("brim_width");
+						this.raftLayers = getSlicerProfileValue("raft_layers");
+						this.skirts = getSlicerProfileValues("skirts");
+						
+						// Set platformAdhesion
+						if (this.brimWidth > 0) {
+							this.platformAdhesion = "Brim"
+						} else if (this.raftLayers > 0) {
+							this.platformAdhesion = "Raft"
+						} else if (this.skirts > 0) {
+							this.platformAdhesion = "Skirt"
+						} else {
+							this.platformAdhesion = "None"
+						}
+						
+						// Check if platform adhesion isn't set
+						if(this.platformAdhesion == "None" || this.platformAdhesion == "Skirt") {
+						
+							// Check if using a skirt
+							if(getSlicerProfileValue("skirts") > 0)
+								this.adhesionSize = getSlicerProfileValue("skirt_distance");
+							
+							// Set default platform adhesion
+							if(this.adhesionSize === null || !this.adhesionSize.length) {
+								this.adhesionSize = 0;
+								this.platformAdhesion = "None";
+							}
+							
+							// Otherwise set skirt platform adhesion
+							else {
+								this.adhesionSize = parseInt(this.adhesionSize);
+								this.platformAdhesion = "Skirt";
+							}
+						}
+					
+						// Otherwise
+						else {
+					
+							// Check if platform adhesion is raft
+							if(this.platformAdhesion == "Raft") {
+						
+								// Set adhesion size to raft height in layers
+								this.adhesionSize = getSlicerProfileValue("raft_layers");
+								if(!this.adhesionSize.length)
+									this.adhesionSize = 4;
+								else
+									this.adhesionSize = parseFloat(this.adhesionSize);
+							}
+						
+							// Otherwise check if platform adhesion is brim
+							else if(this.platformAdhesion == "Brim") {
+						
+								// Set adhesion size to margin in mm around perimeter
+								this.adhesionSize = getSlicerProfileValue("brim_width");
+								if(!this.adhesionSize.length)
+									this.adhesionSize = 5.0;
+								else
+									this.adhesionSize = parseFloat(this.adhesionSize);
+							}
+						}
 					}
 					
 					// Otherwise
@@ -4985,123 +5046,238 @@ $(function() {
 													// Display profile editor
 													$("#slicing_configuration_dialog").addClass("profile in");
 													$("#slicing_configuration_dialog p.currentMenu").text("Modify Profile");
-													$("#slicing_configuration_dialog .modal-body").css("display", "none").after(`
-														<div class="modal-extra">
-															<div class="slicerSpecific">
-																<div class="group basic">
-																	<h3>Basic Settings</h3>
-																	<p class="quality">` + (usingProvidedProfile ? `Medium Quality` : `Unknown Quality`) + `</p>
-																	<div class="quality">
-																		<button title="Extra low quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/extra%20low%20quality.png"></button>
-																		<button title="Low quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/low%20quality.png"></button>
-																		<button title="Medium quality"` + (usingProvidedProfile ? ` class="disabled"` : ``) + `><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/medium%20quality.png"></button>
-																		<button title="High quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/high%20quality.png"></button>
-																		<button title="Extra high quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/extra%20high%20quality.png"></button>
+													if (slicerName == "cura") {
+														$("#slicing_configuration_dialog .modal-body").css("display", "none").after(`
+															<div class="modal-extra">
+																<div class="slicerSpecific">
+																	<div class="group basic">
+																		<h3>Basic Settings</h3>
+																		<p class="quality">` + (usingProvidedProfile ? `Medium Quality` : `Unknown Quality`) + `</p>
+																		<div class="quality">
+																			<button title="Extra low quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/extra%20low%20quality.png"></button>
+																			<button title="Low quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/low%20quality.png"></button>
+																			<button title="Medium quality"` + (usingProvidedProfile ? ` class="disabled"` : ``) + `><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/medium%20quality.png"></button>
+																			<button title="High quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/high%20quality.png"></button>
+																			<button title="Extra high quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/extra%20high%20quality.png"></button>
+																		</div>
+																		<p class="fill">` + (usingProvidedProfile ? `Medium Fill` : `Unknown Fill`) + `</p>
+																		<div class="fill">
+																			<button title="Hollow thin fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/hollow%20thin%20fill.png"></button>
+																			<button title="Hollow thick fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/hollow%20thick%20fill.png"></button>
+																			<button title="Low fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/low%20fill.png"></button>
+																			<button title="Medium fill"` + (usingProvidedProfile ? ` class="disabled"` : ``) + `><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/medium%20fill.png"></button>
+																			<button title="High fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/high%20fill.png"></button>
+																			<button title="Extra high fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/extra%20high%20fill.png"></button>
+																			<button title="Full fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/full%20fill.png"></button>
+																		</div>
+																		<div class="settings">
+																			<label title="Prints a breakaway support underneath overhanging parts of the model"><input class="useSupportMaterial" type="checkbox" tabindex="-1">Use support material</label>
+																			<label title="Allows support material to be created on top of models"><input class="useModelOnModelSupport" type="checkbox" tabindex="-1">Use model on model support</label>
+																			<label title="Prints a raft underneath the model"><input class="useRaft" type="checkbox" tabindex="-1">Use raft</label>
+																			<label title="Prints a brim connected to the first layer of the model"><input class="useBrim" type="checkbox" tabindex="-1">Use brim</label>
+																			<label title="Prints an outline around the model"><input class="useSkirt" type="checkbox" tabindex="-1">Use skirt</label>
+																			<label title="Retracts the filament when moving over gaps"><input class="useRetraction" type="checkbox" tabindex="-1">Use retraction</label>
+																		</div>
 																	</div>
-																	<p class="fill">` + (usingProvidedProfile ? `Medium Fill` : `Unknown Fill`) + `</p>
-																	<div class="fill">
-																		<button title="Hollow thin fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/hollow%20thin%20fill.png"></button>
-																		<button title="Hollow thick fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/hollow%20thick%20fill.png"></button>
-																		<button title="Low fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/low%20fill.png"></button>
-																		<button title="Medium fill"` + (usingProvidedProfile ? ` class="disabled"` : ``) + `><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/medium%20fill.png"></button>
-																		<button title="High fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/high%20fill.png"></button>
-																		<button title="Extra high fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/extra%20high%20fill.png"></button>
-																		<button title="Full fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/full%20fill.png"></button>
-																	</div>
-																	<div class="settings">
-																		<label title="Prints a breakaway support underneath overhanging parts of the model"><input class="useSupportMaterial" type="checkbox" tabindex="-1">Use support material</label>
-																		<label title="Allows support material to be created on top of models"><input class="useModelOnModelSupport" type="checkbox" tabindex="-1">Use model on model support</label>
-																		<label title="Prints a raft underneath the model"><input class="useRaft" type="checkbox" tabindex="-1">Use raft</label>
-																		<label title="Prints a brim connected to the first layer of the model"><input class="useBrim" type="checkbox" tabindex="-1">Use brim</label>
-																		<label title="Prints an outline around the model"><input class="useSkirt" type="checkbox" tabindex="-1">Use skirt</label>
-																		<label title="Retracts the filament when moving over gaps"><input class="useRetraction" type="checkbox" tabindex="-1">Use retraction</label>
+																	<div class="group manual">
+																		<h3>Manual Settings</h3>
+																		<div>
+																			<div title="Height of each layer">
+																				<label>Layer height</label>
+																				<div class="input-append">
+																					<input class="layerHeight" type="number" tabindex="-1" min="0.01" max="0.35" step="0.01">
+																					<span class="add-on">mm</span>
+																				</div>
+																			</div>
+																			<div title="Percentage of the model that is filled in">
+																				<label>Fill density</label>
+																				<div class="input-append">
+																					<input class="fillDensity" type="number" tabindex="-1" min="0" max="100" step="0.01">
+																					<span class="add-on">%</span>
+																				</div>
+																			</div>
+																			<div title="Thickness of the model">
+																				<label>Thickness</label>
+																				<div class="input-append">
+																					<input class="thickness" type="number" tabindex="-1" min="1" max="25" step="1">
+																					<span class="add-on">wall(s)</span>
+																				</div>
+																			</div>
+																			<div title="Speed of the extruder's movements while printing">
+																				<label>Print speed</label>
+																				<div class="input-append">
+																					<input class="printSpeed" type="number" tabindex="-1" min="2" max="80" step="0.01">
+																					<span class="add-on">mm/s</span>
+																				</div>
+																			</div>
+																			<div title="Number of layers that the top and bottom each consist of">
+																				<label>Top/bottom</label>
+																				<div class="input-append">
+																					<input class="topBottomLayers" type="number" tabindex="-1" min="1" max="25" step="1">
+																					<span class="add-on">layer(s)</span>
+																				</div>
+																			</div>
+																			<div title="Distance between the raft and the model">
+																				<label>Raft airgap</label>
+																				<div class="input-append">
+																					<input class="raftAirgap" type="number" tabindex="-1" min="0" max="4" step="0.01">
+																					<span class="add-on">mm</span>
+																				</div>
+																			</div>
+																			<div title="The amount of lines used for the brim">
+																				<label>Brim line count</label>
+																				<div class="input-append">
+																					<input class="brimLineCount" type="number" tabindex="-1" min="0" max="50" step="1">
+																					<span class="add-on">line(s)</span>
+																				</div>
+																			</div>
+																			<div title="How far away the skirt is from the model">
+																				<label>Skirt gap</label>
+																				<div class="input-append">
+																					<input class="skirtGap" type="number" tabindex="-1" min="0" max="100" step="0.01">
+																					<span class="add-on">mm</span>
+																				</div>
+																			</div>
+																		</div>
 																	</div>
 																</div>
-																<div class="group manual">
-																	<h3>Manual Settings</h3>
+																<div class="group advanced">
+																	<h3>Advanced Settings</h3>
 																	<div>
-																		<div title="Height of each layer">
-																			<label>Layer height</label>
-																			<div class="input-append">
-																				<input class="layerHeight" type="number" tabindex="-1" min="0.01" max="0.35" step="0.01">
-																				<span class="add-on">mm</span>
-																			</div>
+																		<aside></aside>
+																		<textarea tabindex="-1" spellcheck="false"></textarea>
+																	</div>
+																	<span></span>
+																</div>
+															</div
+														`);
+													}
+													else if (slicerName == "slic3r") {
+														$("#slicing_configuration_dialog .modal-body").css("display", "none").after(`
+															<div class="modal-extra">
+																<div class="slicerSpecific">
+																	<div class="group basic">
+																		<h3>Basic Settings</h3>
+																		<p class="quality">` + (usingProvidedProfile ? `Medium Quality` : `Unknown Quality`) + `</p>
+																		<div class="quality">
+																			<button title="Extra low quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/extra%20low%20quality.png"></button>
+																			<button title="Low quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/low%20quality.png"></button>
+																			<button title="Medium quality"` + (usingProvidedProfile ? ` class="disabled"` : ``) + `><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/medium%20quality.png"></button>
+																			<button title="High quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/high%20quality.png"></button>
+																			<button title="Extra high quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/extra%20high%20quality.png"></button>
 																		</div>
-																		<div title="Percentage of the model that is filled in">
-																			<label>Fill density</label>
-																			<div class="input-append">
-																				<input class="fillDensity" type="number" tabindex="-1" min="0" max="100" step="0.01">
-																				<span class="add-on">%</span>
-																			</div>
+																		<p class="fill">` + (usingProvidedProfile ? `Medium Fill` : `Unknown Fill`) + `</p>
+																		<div class="fill">
+																			<button title="Hollow thin fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/hollow%20thin%20fill.png"></button>
+																			<button title="Hollow thick fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/hollow%20thick%20fill.png"></button>
+																			<button title="Low fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/low%20fill.png"></button>
+																			<button title="Medium fill"` + (usingProvidedProfile ? ` class="disabled"` : ``) + `><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/medium%20fill.png"></button>
+																			<button title="High fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/high%20fill.png"></button>
+																			<button title="Extra high fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/extra%20high%20fill.png"></button>
+																			<button title="Full fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/full%20fill.png"></button>
 																		</div>
-																		<div title="Thickness of the model">
-																			<label>Thickness</label>
-																			<div class="input-append">
-																				<input class="thickness" type="number" tabindex="-1" min="1" max="25" step="1">
-																				<span class="add-on">wall(s)</span>
-																			</div>
+																		<div class="settings">
+																			<label title="Prints a breakaway support underneath overhanging parts of the model"><input class="useSupportMaterial" type="checkbox" tabindex="-1">Use support material</label>
+																		<label title="Experimental option for preventing support material from being generated under bridged areas."><input class="dontSupportBridges" type="checkbox" tabindex="-1">Use model on model support</label>
+																			<label title="Prints a raft underneath the model"><input class="useRaft" type="checkbox" tabindex="-1">Use raft</label>
+																			<label title="Prints a brim connected to the first layer of the model"><input class="useBrim" type="checkbox" tabindex="-1">Use brim</label>
+																			<label title="Prints an outline around the model"><input class="useSkirt" type="checkbox" tabindex="-1">Use skirt</label>
+																			<label title="Retracts the filament when moving over gaps"><input class="useRetraction" type="checkbox" tabindex="-1">Use retraction</label>
 																		</div>
-																		<div title="Speed of the extruder's movements while printing">
-																			<label>Print speed</label>
-																			<div class="input-append">
-																				<input class="printSpeed" type="number" tabindex="-1" min="2" max="80" step="0.01">
-																				<span class="add-on">mm/s</span>
+																	</div>
+																	<div class="group manual">
+																		<h3>Manual Settings</h3>
+																		<div>
+																			<div title="Height of each layer">
+																				<label>Layer height</label>
+																				<div class="input-append">
+																					<input class="layerHeight" type="number" tabindex="-1" min="0.01" max="0.35" step="0.01">
+																					<span class="add-on">mm</span>
+																				</div>
 																			</div>
-																		</div>
-																		<div title="Number of layers that the top and bottom each consist of">
-																			<label>Top/bottom</label>
-																			<div class="input-append">
-																				<input class="topBottomLayers" type="number" tabindex="-1" min="1" max="25" step="1">
-																				<span class="add-on">layer(s)</span>
+																			<div title="Percentage of the model that is filled in">
+																				<label>Fill density</label>
+																				<div class="input-append">
+																					<input class="fillDensity" type="number" tabindex="-1" min="0" max="100" step="0.01">
+																					<span class="add-on">%</span>
+																				</div>
 																			</div>
-																		</div>
-																		<div title="Distance between the raft and the model">
-																			<label>Raft airgap</label>
-																			<div class="input-append">
-																				<input class="raftAirgap" type="number" tabindex="-1" min="0" max="4" step="0.01">
-																				<span class="add-on">mm</span>
+																			<div title="Thickness of the model">
+																				<label>Thickness</label>
+																				<div class="input-append">
+																					<input class="thickness" type="number" tabindex="-1" min="1" max="25" step="1">
+																					<span class="add-on">wall(s)</span>
+																				</div>
 																			</div>
-																		</div>
-																		<div title="The amount of lines used for the brim">
-																			<label>Brim line count</label>
-																			<div class="input-append">
-																				<input class="brimLineCount" type="number" tabindex="-1" min="0" max="50" step="1">
-																				<span class="add-on">line(s)</span>
+																			<div title="Speed of the extruder's movements while printing">
+																				<label>Print speed</label>
+																				<div class="input-append">
+																					<input class="printSpeed" type="number" tabindex="-1" min="2" max="80" step="0.01">
+																					<span class="add-on">mm/s</span>
+																				</div>
 																			</div>
-																		</div>
-																		<div title="How far away the skirt is from the model">
-																			<label>Skirt gap</label>
-																			<div class="input-append">
-																				<input class="skirtGap" type="number" tabindex="-1" min="0" max="100" step="0.01">
-																				<span class="add-on">mm</span>
+																			<div title="Number of layers that the top and bottom each consist of">
+																				<label>Top/bottom</label>
+																				<div class="input-append">
+																					<input class="topBottomLayers" type="number" tabindex="-1" min="1" max="25" step="1">
+																					<span class="add-on">layer(s)</span>
+																				</div>
+																			</div>
+																			<div title="Distance between the raft and the model">
+																				<label>Raft airgap</label>
+																				<div class="input-append">
+																					<input class="raftAirgap" type="number" tabindex="-1" min="0" max="4" step="0.01">
+																					<span class="add-on">mm</span>
+																				</div>
+																			</div>
+																			<div title="The amount of lines used for the brim">
+																				<label>Brim line count</label>
+																				<div class="input-append">
+																					<input class="brimLineCount" type="number" tabindex="-1" min="0" max="50" step="1">
+																					<span class="add-on">line(s)</span>
+																				</div>
+																			</div>
+																			<div title="How far away the skirt is from the model">
+																				<label>Skirt gap</label>
+																				<div class="input-append">
+																					<input class="skirtGap" type="number" tabindex="-1" min="0" max="100" step="0.01">
+																					<span class="add-on">mm</span>
+																				</div>
 																			</div>
 																		</div>
 																	</div>
 																</div>
-															</div>
-															<div class="group advanced">
-																<h3>Advanced Settings</h3>
-																<div>
-																	<aside></aside>
-																	<textarea tabindex="-1" spellcheck="false"></textarea>
+																<div class="group advanced">
+																	<h3>Advanced Settings</h3>
+																	<div>
+																		<aside></aside>
+																		<textarea tabindex="-1" spellcheck="false"></textarea>
+																	</div>
+																	<span></span>
 																</div>
-																<span></span>
-															</div>
-														</div
-													`);
+															</div
+														`);
+													}
 													$("#slicing_configuration_dialog .modal-extra textarea").val(data.slice(-1) == '\n' ? data.slice(0, -1) : data);
 										
 													// Set basic setting values
 													if(slicerName == "cura") {
-														$("#slicing_configuration_dialog .modal-extra div.slicerSpecific div input[type=\"checkbox\"].useSupportMaterial").prop("checked", getSlicerProfileValue("support") == "Everywhere" || getSlicerProfileValue("support") == "Touching buildplate");
-														$("#slicing_configuration_dialog .modal-extra div.slicerSpecific div input[type=\"checkbox\"].useModelOnModelSupport").prop("checked", getSlicerProfileValue("support") == "Everywhere");
-														$("#slicing_configuration_dialog .modal-extra div.slicerSpecific div input[type=\"checkbox\"].useRaft").prop("checked", getSlicerProfileValue("platform_adhesion") == "Raft");
-														$("#slicing_configuration_dialog .modal-extra div.slicerSpecific div input[type=\"checkbox\"].useBrim").prop("checked", getSlicerProfileValue("platform_adhesion") == "Brim");
-														$("#slicing_configuration_dialog .modal-extra div.slicerSpecific div input[type=\"checkbox\"].useSkirt").prop("checked", getSlicerProfileValue("skirt_line_count") == "True");
-														$("#slicing_configuration_dialog .modal-extra div.slicerSpecific div input[type=\"checkbox\"].useRetraction").prop("checked", getSlicerProfileValue("retraction_enable") == "True");
+														$t = $("#slicing_configuration_dialog .modal-extra div.slicerSpecific div");
+														$t.find("input[type=\"checkbox\"].useSupportMaterial").prop("checked", getSlicerProfileValue("support") == "Everywhere" || getSlicerProfileValue("support") == "Touching buildplate");
+														$t.find("input[type=\"checkbox\"].useModelOnModelSupport").prop("checked", getSlicerProfileValue("support") == "Everywhere");
+														$t.find("input[type=\"checkbox\"].useRaft").prop("checked", getSlicerProfileValue("platform_adhesion") == "Raft");
+														$t.find("input[type=\"checkbox\"].useBrim").prop("checked", getSlicerProfileValue("platform_adhesion") == "Brim");
+														$t.find("input[type=\"checkbox\"].useSkirt").prop("checked", getSlicerProfileValue("skirt_line_count") == "True");
+														$t.find("input[type=\"checkbox\"].useRetraction").prop("checked", getSlicerProfileValue("retraction_enable") == "True");
 													}
 													else if(slicerName == "slic3r") {
-														//TODO
+														$t = $("#slicing_configuration_dialog .modal-extra div.slicerSpecific div");
+														$t.find("input[type=\"checkbox\"].useSupportMaterial").prop("checked", parseInt(getSlicerProfileValue("support_material")) === 1);
+														$t.find("input[type=\"checkbox\"].dontSupportBridges").prop("checked", parseInt(getSlicerProfileValue("dont_support_bridges")) === 1);
+														$t.find("input[type=\"checkbox\"].useRaft").prop("checked", parseInt(getSlicerProfileValue("raft_layers")) > 0);
+														$t.find("input[type=\"checkbox\"].useBrim").prop("checked", parseFloat(getSlicerProfileValue("brim_width")) > 0);
+														$t.find("input[type=\"checkbox\"].useSkirt").prop("checked", parseInt(getSlicerProfileValue("skirt_lines")) > 0);
+														$t.find("input[type=\"checkbox\"].useRetraction").prop("checked", parseFloat(getSlicerProfileValue("retract_speed")) > 0 );
 													}
 										
 													// Set manual setting values
