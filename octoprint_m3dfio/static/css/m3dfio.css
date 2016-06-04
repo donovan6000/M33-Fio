@@ -1179,12 +1179,12 @@ body > div.page-container > div.message > div > div > span.show {
 	top: 50%;
 	left: 50%;
 	height: calc(100% - 2px);
-	width: auto;
+	width: 12px;
 }
 
 #slicing_configuration_dialog.model .modal-extra > div.filament > button > span {
-	width: 9px;
-	left: calc(50% - 4px);
+	width: 10px;
+	left: calc(50% - 5px);
 	height: 30px;
 	display: block;
 	position: relative;
