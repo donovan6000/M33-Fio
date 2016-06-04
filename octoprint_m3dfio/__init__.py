@@ -1265,7 +1265,7 @@ class M3DFioPlugin(
 						index += 1
 			
 			# Otherwise
-			else :	
+			else :
 			
 				# Write setting to output
 				output.write(str(key) + " = " + str(settings[key]))
@@ -3455,9 +3455,6 @@ class M3DFioPlugin(
 			
 				# Empty command queue
 				self.emptyCommandQueue()
-	
-				# Set command to hard emergency stop
-				data = "M0\n"
 		
 				# Wait until all sent commands have been processed
 				while len(self.sentCommands) :
@@ -3492,6 +3489,9 @@ class M3DFioPlugin(
 				self.sentCommands = {}
 				self.resetLineNumberCommandSent = False
 				self.numberWrapCounter = 0
+				
+				# Return
+				return
 		
 			# Initialize variables
 			endWaitingAfterSend = False
@@ -3775,13 +3775,22 @@ class M3DFioPlugin(
 						commands = [
 							"M114"
 						]
+						
+						# Set long running command
+						self._printer._comm._long_running_command = True
 			
 						# Send commands with line numbers
 						self.sendCommandsWithLineNumbers(commands)
+						
+						# Return
+						return
 					
-					# Set command to nothing
-					gcode.removeParameter('M')
-					gcode.setValue('G', '4')
+					# Otherwise
+					else :
+					
+						# Set command to nothing
+						gcode.removeParameter('M')
+						gcode.setValue('G', '4')
 				
 				# Otherwise check if request ends waiting for commands sent
 				elif gcode.getValue('M') == "65536" :
@@ -4499,17 +4508,14 @@ class M3DFioPlugin(
 			else :
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Disable GPIO Buttons"))
 			
-			# Check if sending slicer reminder and using a Micro 3D printer
-			if self.slicerReminder and not self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
+			# Check if sending slicer reminder and Cura or Slic3r are registered slicers
+			if self.slicerReminder and ("cura" in self._slicing_manager.registered_slicers or "slic3r" in self._slicing_manager.registered_slicers) :
 			
-				# Check if Cura or Slic3r are registered slicers
-				if "cura" in self._slicing_manager.registered_slicers or "slic3r" in self._slicing_manager.registered_slicers :
-			
-					# Check if Cura and Slic3r are not configured
-					if "cura" not in self._slicing_manager.configured_slicers and "slic3r" not in self._slicing_manager.configured_slicers :
-			
-						# Send message
-						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Reminder", type = "Slicer", cura = "cura" in self._slicing_manager.registered_slicers and "cura" not in self._slicing_manager.configured_slicers, slic3r = "slic3r" in self._slicing_manager.registered_slicers and "slic3r" not in self._slicing_manager.configured_slicers))
+				# Check if Cura and Slic3r are not configured
+				if "cura" not in self._slicing_manager.configured_slicers and "slic3r" not in self._slicing_manager.configured_slicers :
+		
+					# Send message
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Reminder", type = "Slicer", cura = "cura" in self._slicing_manager.registered_slicers and "cura" not in self._slicing_manager.configured_slicers, slic3r = "slic3r" in self._slicing_manager.registered_slicers and "slic3r" not in self._slicing_manager.configured_slicers))
 			
 			# Check if sending sleep reminder
 			if not self._printer.is_printing() and not self._printer.is_paused() and self.sleepReminder :
@@ -4788,6 +4794,9 @@ class M3DFioPlugin(
 					commands = [
 						"M114"
 					]
+					
+					# Set long running command
+					self._printer._comm._long_running_command = True
 			
 				# Otherwise
 				else :

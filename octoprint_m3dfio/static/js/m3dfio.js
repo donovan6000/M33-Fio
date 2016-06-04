@@ -7130,8 +7130,8 @@ $(function() {
 				// Send command
 				sendCommand(event);
 				
-				// Blur self
-				$(this).blur();
+				// Refocus on input
+				$(this).blur().focus();
 			}
 		});
 		
