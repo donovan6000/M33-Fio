@@ -139,7 +139,6 @@ class M3DFioPlugin(
 		self.camera = None
 		self.lastLineNumberSent = None
 		self.initializingPrinterConnection = False
-		self.cancelingPrint = False
 		self.startingMidPrintFilamentChange = False
 		self.showMidPrintFilamentChange = False
 		self.reconnectingToPrinter = False
@@ -1170,12 +1169,38 @@ class M3DFioPlugin(
 		# Create profile
 		profile = profileManager.Profile(self._slicing_manager.get_slicer("cura")._load_profile(input), printerProfile, None, None)
 		
+		# Set boolean settings
+		booleanSettings = [
+			"wipe_tower",
+			"ooze_shield",
+			"cool_head_lift",
+			"fix_horrible_union_all_type_b",
+			"fix_horrible_use_open_bits",
+			"fix_horrible_extensive_stitching",
+			"spiralize",
+			"follow_surface",
+			"machine_center_is_zero",
+			"has_heated_bed",
+			"solid_top",
+			"solid_bottom",
+			"retraction_enable",
+			"fan_enabled",
+			"fix_horrible_union_all_type_a"
+		]
+		
 		# Go through all profile values
 		values = profile.profile()
 		for key in values.keys() :
 		
 			# Get current value
 			currentValue = str(key)
+			
+			# Fix incorrect boolean settings
+			if str(values[key]) == "False" and currentValue not in booleanSettings :
+				values[key] = 0
+				
+			elif str(values[key]) == "True" and currentValue not in booleanSettings :
+				values[key] = 1
 			
 			# Fix value
 			if currentValue.endswith("_gcode") :
@@ -1574,15 +1599,8 @@ class M3DFioPlugin(
 						# Append a command that receives a confirmation to the end of list
 						data["value"].insert(len(data["value"]) - 1, "G4")
 					
-					# Check if command is soft emergency stop
-					if data["value"][0] == "M65537;stop" :
-					
-						# Send command immediately to the printer
-						if isinstance(self._printer.get_transport(), serial.Serial) :
-							self._printer.get_transport().write(data["value"][0])
-					
-					# Otherwise check if not using line numbers or printing
-					elif noLineNumber or self._printer.is_printing() :
+					# Check if not using line numbers or printing
+					if noLineNumber or self._printer.is_printing() :
 				
 						# Send commands to printer
 						self.sendCommands(data["value"])
@@ -2561,30 +2579,15 @@ class M3DFioPlugin(
 				# Save settings
 				octoprint.settings.settings().save()
 			
+			# Otherwise check if parameter is cancel print
+			elif data["value"] == "Cancel Print" :
+				
+				# Send soft emergency stop immediately to the printer
+				if isinstance(self._printer.get_transport(), serial.Serial) :
+					self._printer.get_transport().write("M65537;stop")
+			
 			# Otherwise check if parameter is emergency stop
 			elif data["value"] == "Emergency Stop" :
-			
-				# Check if printing or paused
-				if self._printer.is_printing() or self._printer.is_paused() :
-				
-					# Clear perform cancel print movement
-					self.performCancelPrintMovement = False
-			
-					# Stop printing
-					self._printer.cancel_print()
-			
-				# Empty command queue
-				self.emptyCommandQueue()
-				
-				# Set first line number to zero and clear history
-				if self._printer._comm is not None :
-					self._printer._comm._gcode_M110_sending("N0")
-					self._printer._comm._long_running_command = True
-				
-				# Clear sent commands
-				self.sentCommands = {}
-				self.resetLineNumberCommandSent = False
-				self.numberWrapCounter = 0
 			
 				# Send hard emergency stop immediately to the printer
 				if isinstance(self._printer.get_transport(), serial.Serial) :
@@ -3452,9 +3455,6 @@ class M3DFioPlugin(
 			
 				# Empty command queue
 				self.emptyCommandQueue()
-	
-				# Set command to hard emergency stop
-				data = "M0\n"
 		
 				# Wait until all sent commands have been processed
 				while len(self.sentCommands) :
@@ -3489,6 +3489,9 @@ class M3DFioPlugin(
 				self.sentCommands = {}
 				self.resetLineNumberCommandSent = False
 				self.numberWrapCounter = 0
+				
+				# Return
+				return
 		
 			# Initialize variables
 			endWaitingAfterSend = False
@@ -3772,13 +3775,22 @@ class M3DFioPlugin(
 						commands = [
 							"M114"
 						]
+						
+						# Set long running command
+						self._printer._comm._long_running_command = True
 			
 						# Send commands with line numbers
 						self.sendCommandsWithLineNumbers(commands)
+						
+						# Return
+						return
 					
-					# Set command to nothing
-					gcode.removeParameter('M')
-					gcode.setValue('G', '4')
+					# Otherwise
+					else :
+					
+						# Set command to nothing
+						gcode.removeParameter('M')
+						gcode.setValue('G', '4')
 				
 				# Otherwise check if request ends waiting for commands sent
 				elif gcode.getValue('M') == "65536" :
@@ -3810,6 +3822,43 @@ class M3DFioPlugin(
 					gcode.removeParameter('M')
 					gcode.setValue('G', '4')
 				
+				# Otherwise check if print is done
+				elif gcode.getValue('M') == "65541" :
+				
+					# Wait until all sent commands have been processed
+					while len(self.sentCommands) :
+					
+						# Set long running command
+						self._printer._comm._long_running_command = True
+		
+						# Update communication timeout to prevent other commands from being sent
+						if self._printer._comm is not None :
+							self._printer._comm._gcode_G4_sent("G4 P10")
+			
+						time.sleep(0.01)
+					
+					# Empty command queue
+					self.emptyCommandQueue()
+		
+					# Set first line number to zero and clear history
+					if self._printer._comm is not None :
+						self._printer._comm._gcode_M110_sending("N0")
+						self._printer._comm._long_running_command = True
+		
+					# Clear sent commands
+					self.sentCommands = {}
+					self.resetLineNumberCommandSent = False
+					self.numberWrapCounter = 0
+					
+					# Reset print settings
+					self.resetPrintSettings()
+			
+					# Enable sleep
+					self.enableSleep()
+					
+					# Return
+					return
+				
 				# Check if using iMe firmware
 				if self.currentFirmwareType == "iMe" :
 				
@@ -3828,7 +3877,7 @@ class M3DFioPlugin(
 				
 				# Check if command has a line number
 				if gcode.hasValue('N') :
-			
+					
 					# Limit the amount of commands that can simultaneous be sent to the printer
 					while len(self.sentCommands) :
 				
@@ -4459,17 +4508,14 @@ class M3DFioPlugin(
 			else :
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Disable GPIO Buttons"))
 			
-			# Check if sending slicer reminder and using a Micro 3D printer
-			if self.slicerReminder and not self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
+			# Check if sending slicer reminder and Cura or Slic3r are registered slicers
+			if self.slicerReminder and ("cura" in self._slicing_manager.registered_slicers or "slic3r" in self._slicing_manager.registered_slicers) :
 			
-				# Check if Cura or Slic3r are registered slicers
-				if "cura" in self._slicing_manager.registered_slicers or "slic3r" in self._slicing_manager.registered_slicers :
-			
-					# Check if Cura and Slic3r are not configured
-					if "cura" not in self._slicing_manager.configured_slicers and "slic3r" not in self._slicing_manager.configured_slicers :
-			
-						# Send message
-						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Reminder", type = "Slicer", cura = "cura" in self._slicing_manager.registered_slicers and "cura" not in self._slicing_manager.configured_slicers, slic3r = "slic3r" in self._slicing_manager.registered_slicers and "slic3r" not in self._slicing_manager.configured_slicers))
+				# Check if Cura and Slic3r are not configured
+				if "cura" not in self._slicing_manager.configured_slicers and "slic3r" not in self._slicing_manager.configured_slicers :
+		
+					# Send message
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Reminder", type = "Slicer", cura = "cura" in self._slicing_manager.registered_slicers and "cura" not in self._slicing_manager.configured_slicers, slic3r = "slic3r" in self._slicing_manager.registered_slicers and "slic3r" not in self._slicing_manager.configured_slicers))
 			
 			# Check if sending sleep reminder
 			if not self._printer.is_printing() and not self._printer.is_paused() and self.sleepReminder :
@@ -4704,14 +4750,23 @@ class M3DFioPlugin(
 						# Pre-process command
 						commands = self.preprocess("G4", None, True)
 				
-					# Send commands with line numbers
-					self.sendCommandsWithLineNumbers(commands)
+				# Otherwise
+				else :
+				
+					# Set commands to nothing
+					commands = []
+					
+				# Append print done to command list
+				commands += ["M65541;print done"]
 			
-				# Reset print settings
-				self.resetPrintSettings()
+				# Send commands with line numbers
+				self.sendCommandsWithLineNumbers(commands)
 			
-			# Enable sleep
-			self.enableSleep()
+			# Otherwise
+			else :
+			
+				# Enable sleep
+				self.enableSleep()
 		
 		# Otherwise check if a print failed
 		elif event == octoprint.events.Events.PRINT_FAILED :
@@ -4735,19 +4790,13 @@ class M3DFioPlugin(
 				# Check if performing cancel print movement
 				if self.performCancelPrintMovement :
 			
-					# Clear perform cancel print movement
-					self.performCancelPrintMovement = False
-			
-					# Set canceling print
-					self.cancelingPrint = True
-			
 					# Set commands
 					commands = [
 						"M114"
 					]
-				
-					# Send commands with line numbers
-					self.sendCommandsWithLineNumbers(commands)
+					
+					# Set long running command
+					self._printer._comm._long_running_command = True
 			
 				# Otherwise
 				else :
@@ -4772,14 +4821,11 @@ class M3DFioPlugin(
 						else :
 							commands += ["M420 T100"]
 			
-					# Send commands with line numbers
-					self.sendCommandsWithLineNumbers(commands)
+					# Append print done to command list
+					commands += ["M65541;print done"]
 				
-					# Reset print settings
-					self.resetPrintSettings()
-			
-					# Enable sleep
-					self.enableSleep()
+				# Send commands with line numbers
+				self.sendCommandsWithLineNumbers(commands)
 					
 			# Otherwise
 			else :
@@ -5713,11 +5759,11 @@ class M3DFioPlugin(
 			else :
 				locationZ = data[start : data[start :].find(' ') + start]
 			
-			# Check if canceling print
-			if self.cancelingPrint :
+			# Check if performing cancel print movement
+			if self.performCancelPrintMovement :
 			
-				# Clear canceling print
-				self.cancelingPrint = False
+				# Clear perform cancel print movement
+				self.performCancelPrintMovement = False
 			
 				# Set move Z
 				moveZ = float(locationZ) + 10
@@ -5772,14 +5818,11 @@ class M3DFioPlugin(
 				commands += ["G4"]
 				commands += ["M65539;hide message"]
 				
+				# Append print done to command list
+				commands += ["M65541;print done"]
+			
 				# Send commands with line numbers
 				self.sendCommandsWithLineNumbers(commands)
-			
-				# Reset print settings
-				self.resetPrintSettings()
-			
-				# Enable sleep
-				self.enableSleep()
 			
 			# Otherwise check if starting a mid-print filament change
 			elif self.startingMidPrintFilamentChange :
