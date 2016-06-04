@@ -5046,7 +5046,7 @@ $(function() {
 														      <p class="quality">` + (usingProvidedProfile ? `Medium Quality` : `Unknown Quality`) + `</p>
 														      <div class="quality">
 														        <button title="Extra low quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-quality-extra-low.png"></button>
-														        <button title="Low quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-quality-low"></button>
+														        <button title="Low quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-quality-low.png"></button>
 														        <button title="Medium quality"` + (usingProvidedProfile ? ` class="disabled"` : ``) + `><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-quality-medium.png"></button>
 														        <button title="High quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-quality-high.png"></button>
 														        <button title="Extra high quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-quality-extra-high.png"></button>
