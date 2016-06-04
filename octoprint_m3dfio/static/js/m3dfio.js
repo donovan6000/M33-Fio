@@ -5045,22 +5045,22 @@ $(function() {
 														      <h3>Basic Settings</h3>
 														      <p class="quality">` + (usingProvidedProfile ? `Medium Quality` : `Unknown Quality`) + `</p>
 														      <div class="quality">
-														        <button title="Extra low quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/extra%20low%20quality.png"></button>
-														        <button title="Low quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/low%20quality.png"></button>
-														        <button title="Medium quality"` + (usingProvidedProfile ? ` class="disabled"` : ``) + `><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/medium%20quality.png"></button>
-														        <button title="High quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/high%20quality.png"></button>
-														        <button title="Extra high quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/extra%20high%20quality.png"></button>
-														        <button title="Highest quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/highest%20quality.png"></button>
+														        <button title="Extra low quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-quality-extra-low.png"></button>
+														        <button title="Low quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-quality-low"></button>
+														        <button title="Medium quality"` + (usingProvidedProfile ? ` class="disabled"` : ``) + `><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-quality-medium.png"></button>
+														        <button title="High quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-quality-high.png"></button>
+														        <button title="Extra high quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-quality-extra-high.png"></button>
+														        <button title="Highest quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-quality-highest.png"></button>
 														      </div>
 														      <p class="fill">` + (usingProvidedProfile ? `Medium Fill` : `Unknown Fill`) + `</p>
 														      <div class="fill">
-														        <button title="Hollow thin fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/hollow%20thin%20fill.png"></button>
-														        <button title="Hollow thick fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/hollow%20thick%20fill.png"></button>
-														        <button title="Low fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/low%20fill.png"></button>
-														        <button title="Medium fill"` + (usingProvidedProfile ? ` class="disabled"` : ``) + `><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/medium%20fill.png"></button>
-														        <button title="High fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/high%20fill.png"></button>
-														        <button title="Extra high fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/extra%20high%20fill.png"></button>
-														        <button title="Full fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/full%20fill.png"></button>
+														        <button title="Hollow thin fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-density-thin.png"></button>
+														        <button title="Hollow thick fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-density-thick.png"></button>
+														        <button title="Low fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-density-low.png"></button>
+														        <button title="Medium fill"` + (usingProvidedProfile ? ` class="disabled"` : ``) + `><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-density-medium.png"></button>
+														        <button title="High fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-density-high.png"></button>
+														        <button title="Extra high fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-density-extra-high.png"></button>
+														        <button title="Full fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-density-full.png"></button>
 														      </div>
 														      <div class="settings">
 														        <label title="Prints a breakaway support underneath overhanging parts of the model"><input class="useSupportMaterial" type="checkbox" tabindex="-1">Use support material</label>
