@@ -756,6 +756,10 @@ body > div.page-container > div.message > div > div > span.show {
 	height: 217px;
 }
 
+#slicing_configuration_dialog.slic3r .group.basic {
+	height: 320px;
+}
+
 #slicing_configuration_dialog .group.manual {
 	height: 82px;
 }
@@ -804,6 +808,10 @@ body > div.page-container > div.message > div > div > span.show {
 	margin: 0 auto;
 	display: block;
 	text-align: center;
+}
+
+#slicing_configuration_dialog.cura .slicerSpecific .slic3r-only{
+	display: none;
 }
 
 #slicing_configuration_dialog .slicerSpecific .settings {

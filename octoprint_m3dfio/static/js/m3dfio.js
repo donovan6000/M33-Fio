@@ -3584,19 +3584,6 @@ $(function() {
 			PLUGIN_BASEURL + "m3dfio/static/img/xinyujie.png",
 			PLUGIN_BASEURL + "m3dfio/static/img/custom.png",
 			PLUGIN_BASEURL + "m3dfio/static/img/loading.gif",
-			PLUGIN_BASEURL + "m3dfio/static/img/extra%20low%20quality.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/low%20quality.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/medium%20quality.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/high%20quality.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/extra%20high%20quality.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/highest%20quality.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/hollow%20thin%20fill.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/hollow%20thick%20fill.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/low%20fill.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/medium%20fill.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/high%20fill.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/extra%20high%20fill.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/full%20fill.png",
 			PLUGIN_BASEURL + "m3dfio/static/img/black.png",
 			PLUGIN_BASEURL + "m3dfio/static/img/white.png",
 			PLUGIN_BASEURL + "m3dfio/static/img/blue.png",
@@ -3624,7 +3611,28 @@ $(function() {
 			PLUGIN_BASEURL + "m3dfio/static/img/test%20border%20high.png",
 			PLUGIN_BASEURL + "m3dfio/static/img/test%20border%20low.png",
 			PLUGIN_BASEURL + "m3dfio/static/img/backlash.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/graph%20background.png"
+			PLUGIN_BASEURL + "m3dfio/static/img/graph%20background.png",
+			PLUGIN_BASEURL + "m3dfio/static/img/fill-density_extra-high.png",
+			PLUGIN_BASEURL + "m3dfio/static/img/fill-density_full.png",
+			PLUGIN_BASEURL + "m3dfio/static/img/fill-density_high.png",
+			PLUGIN_BASEURL + "m3dfio/static/img/fill-density_low.png",
+			PLUGIN_BASEURL + "m3dfio/static/img/fill-density_medium.png",
+			PLUGIN_BASEURL + "m3dfio/static/img/fill-density_thick.png",
+			PLUGIN_BASEURL + "m3dfio/static/img/fill-density_thin.png",
+			PLUGIN_BASEURL + "m3dfio/static/img/fill-pattern_3dhoneycomb.png",
+			PLUGIN_BASEURL + "m3dfio/static/img/fill-pattern_archimedeanchords.png",
+			PLUGIN_BASEURL + "m3dfio/static/img/fill-pattern_concentric.png",
+			PLUGIN_BASEURL + "m3dfio/static/img/fill-pattern_hilbertcurve.png",
+			PLUGIN_BASEURL + "m3dfio/static/img/fill-pattern_honeycomb.png",
+			PLUGIN_BASEURL + "m3dfio/static/img/fill-pattern_line.png",
+			PLUGIN_BASEURL + "m3dfio/static/img/fill-pattern_octagramspiral.png",
+			PLUGIN_BASEURL + "m3dfio/static/img/fill-pattern_rectalinear.png",
+			PLUGIN_BASEURL + "m3dfio/static/img/fill-quality_extra-high.png",
+			PLUGIN_BASEURL + "m3dfio/static/img/fill-quality_extra-low.png",
+			PLUGIN_BASEURL + "m3dfio/static/img/fill-quality_high.png",
+			PLUGIN_BASEURL + "m3dfio/static/img/fill-quality_highest.png",
+			PLUGIN_BASEURL + "m3dfio/static/img/fill-quality_low.png",
+			PLUGIN_BASEURL + "m3dfio/static/img/fill-quality_medium.png"
 		);
 		
 		// Remove software update message if using OctoPrint's master branch
@@ -5045,22 +5053,33 @@ $(function() {
 														      <h3>Basic Settings</h3>
 														      <p class="quality">` + (usingProvidedProfile ? `Medium Quality` : `Unknown Quality`) + `</p>
 														      <div class="quality">
-														        <button title="Extra low quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-quality-extra-low.png"></button>
-														        <button title="Low quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-quality-low.png"></button>
-														        <button title="Medium quality"` + (usingProvidedProfile ? ` class="disabled"` : ``) + `><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-quality-medium.png"></button>
-														        <button title="High quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-quality-high.png"></button>
-														        <button title="Extra high quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-quality-extra-high.png"></button>
-														        <button title="Highest quality"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-quality-highest.png"></button>
+														        <button title="Extra low quality" data-target="quality" data-value="0.35"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-quality_extra-low.png"></button>
+														        <button title="Low quality" data-target="quality" data-value="0.30"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-quality_low.png"></button>
+														        <button title="Medium quality" data-target="quality" data-value="0.25"` + (usingProvidedProfile ? ` class="disabled"` : ``) + `><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-quality_medium.png"></button>
+														        <button title="High quality" data-target="quality" data-value="0.20"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-quality_high.png"></button>
+														        <button title="Extra high quality" data-target="quality" data-value="0.15"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-quality_extra-high.png"></button>
+														        <button title="Highest quality" data-target="quality" data-value="0.05"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-quality_highest.png"></button>
 														      </div>
 														      <p class="fill">` + (usingProvidedProfile ? `Medium Fill` : `Unknown Fill`) + `</p>
 														      <div class="fill">
-														        <button title="Hollow thin fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-density-thin.png"></button>
-														        <button title="Hollow thick fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-density-thick.png"></button>
-														        <button title="Low fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-density-low.png"></button>
-														        <button title="Medium fill"` + (usingProvidedProfile ? ` class="disabled"` : ``) + `><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-density-medium.png"></button>
-														        <button title="High fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-density-high.png"></button>
-														        <button title="Extra high fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-density-extra-high.png"></button>
-														        <button title="Full fill"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-density-full.png"></button>
+														        <button title="Hollow thin fill" data-target="fill" data-value="thin"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-density_thin.png"></button>
+														        <button title="Hollow thick fill" data-target="fill" data-value="thick"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-density_thick.png"></button>
+														        <button title="Low fill" data-target="fill" data-value="low"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-density_low.png"></button>
+														        <button title="Medium fill" data-target="fill" data-value="medium"` + (usingProvidedProfile ? ` class="disabled"` : ``) + `><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-density_medium.png"></button>
+														        <button title="High fill" data-target="fill" data-value="high"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-density_high.png"></button>
+														        <button title="Extra high fill"data-target="fill" data-value="extra-high"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-density_extra-high.png"></button>
+														        <button title="Full fill" data-target="fill" data-value="full"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-density_full.png"></button>
+														      </div>
+																	<p class="pattern slic3r-only">Honeycomb</p>
+														      <div class="pattern slic3r-only">
+														        <button title="Line" data-target="pattern" data-value="line"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-pattern_line.png"></button>
+														        <button title="Rectalinear" data-target="pattern" data-value="rectalinear"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-pattern_rectalinear.png"></button>
+														        <button title="Honeycomb" data-target="pattern" data-value="honeycomb"` + (usingProvidedProfile ? ` class="disabled"` : ``) + `><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-pattern_honeycomb.png"></button>
+														        <button title="3D Honeycomb" data-target="pattern" data-value="3dhoneycomb"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-pattern_3dhoneycomb.png"></button>
+														        <button title="Concentric" data-target="pattern" data-value="concentric"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-pattern_concentric.png"></button>
+														        <button title="Hilbert Curve" data-target="pattern" data-value="hilbertcurve"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-pattern_hilbertcurve.png"></button>
+														        <button title="Octagram Spiral" data-target="pattern" data-value="octagramspiral"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-pattern_octagramspiral.png"></button>
+																		<button title="Archimedean Chords" data-target="pattern" data-value="archimedeanchords"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-pattern_archimedeanchords.png"></button>
 														      </div>
 														      <div class="settings">
 														        <label title="Prints a breakaway support underneath overhanging parts of the model"><input class="useSupportMaterial" type="checkbox" tabindex="-1">Use support material</label>
@@ -6023,343 +6042,287 @@ $(function() {
 											
 														// Initialize changed settings
 														var changedSettings = [];
-											
-														// Check if changing quality
-														if($(this).parent().hasClass("quality")) {
-											
-															// Set text
-															$("#slicing_configuration_dialog .slicerSpecific p.quality").text(capitalize($(this).attr("title")));
-											
-															// Set changed settings if extra low quality
-															if($(this).attr("title") == "Extra low quality") {
-													
-																if(slicerName == "cura")
-																	changedSettings.push({
-																		layer_height: 0.35,
-																		bottom_thickness: 0.3,
-																		fan_full_height: 0.301,
-																		solid_layer_thickness: 2.799
-																	});
-																else if(slicerName == "slic3r") {
-																	changedSettings.push({
-																		layer_height: 0.35,
-																		top_solid_layers: Math.round(2.799 / 0.35),
-																		bottom_solid_layers: Math.round(2.799 / 0.35)
-																	});
-																}
-													
-																if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips" || slicerProfileName == "m3d_abs-r")) {
+														var target = $(this).attr('data-target');
 														
-																	if(slicerName == "cura")
-																		changedSettings[0]["fan_full_height"] = 0.651;
-																}
-															}
-															
-															// Otherwise set changed settings if low quality
-															else if($(this).attr("title") == "Low quality") {
-													
-																if(slicerName == "cura")
-																	changedSettings.push({
-																		layer_height: 0.30,
-																		bottom_thickness: 0.3,
-																		fan_full_height: 0.301,
-																		solid_layer_thickness: 2.399
-																	});
-																else if(slicerName == "slic3r") {
-																	changedSettings.push({
-																		layer_height: 0.30,
-																		top_solid_layers: Math.round(2.399 / 0.30),
-																		bottom_solid_layers: Math.round(2.399 / 0.30)
-																	});
-																}
-													
-																if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips" || slicerProfileName == "m3d_abs-r")) {
+														$("#slicing_configuration_dialog .slicerSpecific p." + target).text(capitalize($(this).attr("title")));
 														
-																	if(slicerName == "cura")
-																		changedSettings[0]["fan_full_height"] = 0.601;
+														switch (target) {
+															case 'quality':
+																var fan_full_height = 0;
+																switch(parseFloat($(this).attr('data-value'))) {
+																	// extra low quality
+																	case 0.35:
+																		if(slicerName == "cura") {
+																			changedSettings.push({
+																				layer_height: 0.35,
+																				bottom_thickness: 0.3,
+																				fan_full_height: 0.301,
+																				solid_layer_thickness: 2.799
+																			});
+																		}
+																		else if(slicerName == "slic3r") {
+																			changedSettings.push({
+																				layer_height: 0.35,
+																				first_layer_height: Math.round((0.3 / 0.35) * 100) + "%",
+																				top_solid_layers: Math.round(2.799 / 0.35),
+																				bottom_solid_layers: Math.round(2.799 / 0.35)
+																			});
+																		}
+																		fan_full_height= 0.651;
+																		break;
+																	// low quality
+																	case 0.30:
+																		if(slicerName == "cura") {
+																			changedSettings.push({
+																				layer_height: 0.30,
+																				bottom_thickness: 0.3,
+																				fan_full_height: 0.301,
+																				solid_layer_thickness: 2.399
+																			});
+																		}
+																		else if(slicerName == "slic3r") {
+																			changedSettings.push({
+																				layer_height: 0.30,
+																				first_layer_height: "100%",
+																				top_solid_layers: Math.round(2.399 / 0.30),
+																				bottom_solid_layers: Math.round(2.399 / 0.30)
+																			});
+																		}
+																		fan_full_height= 0.601;
+																		break;
+																	// medium quality
+																	case 0.25:
+																		if(slicerName == "cura")
+																			changedSettings.push({
+																				layer_height: 0.25,
+																				bottom_thickness: 0.3,
+																				fan_full_height: 0.301,
+																				solid_layer_thickness: 1.999
+																			});
+																		else if(slicerName == "slic3r") {
+																			changedSettings.push({
+																				layer_height: 0.25,
+																				first_layer_height: Math.round((0.3 / 0.25) * 100) + "%",
+																				top_solid_layers: Math.round(1.999 / 0.25),
+																				bottom_solid_layers: Math.round(1.999 / 0.25)
+																			});
+																		}
+																		fan_full_height= 0.551;
+																		break;
+																	// high quality
+																	case 0.20:
+																		if(slicerName == "cura")
+																			changedSettings.push({
+																				layer_height: 0.20,
+																				bottom_thickness: 0.3,
+																				fan_full_height: 0.301,
+																				solid_layer_thickness: 1.599
+																			});
+																		else if(slicerName == "slic3r") {
+																			changedSettings.push({
+																				layer_height: 0.20,
+																				first_layer_height: Math.round((0.3 / 0.2) * 100) + "%",
+																				top_solid_layers: Math.round(1.599 / 0.20),
+																				bottom_solid_layers: Math.round(1.599 / 0.20)
+																			});
+																		}
+																		fan_full_height = 0.501;
+																		break;
+																	// extra high quality
+																	case 0.15:
+																		if(slicerName == "cura")
+																			changedSettings.push({
+																				layer_height: 0.15,
+																				bottom_thickness: 0.3,
+																				fan_full_height: 0.301,
+																				solid_layer_thickness: 1.199
+																			});
+																		else if(slicerName == "slic3r") {
+																			changedSettings.push({
+																				layer_height: 0.15,
+																				first_layer_height: Math.round((0.3 / 0.15) * 100) + "%",
+																				top_solid_layers: Math.round(1.199 / 0.15),
+																				bottom_solid_layers: Math.round(1.199 / 0.15)
+																			});
+																		}
+																		fan_full_height = 0.451;
+																		break;
+																	// highest quality
+																	case 0.05:
+																		if(slicerName == "cura") {
+																			changedSettings.push({
+																				layer_height: 0.05,
+																				bottom_thickness: 0.1,
+																				fan_full_height: 0.101,
+																				solid_layer_thickness: 0.399
+																			});
+																		}
+																		else if(slicerName == "slic3r") {
+																			changedSettings.push({
+																				layer_height: 0.05,
+																				first_layer_height: Math.round((0.1 / 0.05) * 100) + "%",
+																				top_solid_layers: Math.round(0.399 / 0.05),
+																				bottom_solid_layers: Math.round(0.399 / 0.05)
+																			});
+																		}
+																		fan_full_height = 0.151
+																		break;
 																}
-															}
-												
-															// Otherwise set changed settings if medium quality
-															else if($(this).attr("title") == "Medium quality") {
-													
-																if(slicerName == "cura")
-																	changedSettings.push({
-																		layer_height: 0.25,
-																		bottom_thickness: 0.3,
-																		fan_full_height: 0.301,
-																		solid_layer_thickness: 1.999
-																	});
-																else if(slicerName == "slic3r") {
-																	changedSettings.push({
-																		layer_height: 0.25,
-																		top_solid_layers: Math.round(1.999 / 0.25),
-																		bottom_solid_layers: Math.round(1.999 / 0.25)
-																	});
-																}
-													
 																if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips" || slicerProfileName == "m3d_abs-r")) {
-														
 																	if(slicerName == "cura")
-																		changedSettings[0]["fan_full_height"] = 0.551;
+																		changedSettings[0]["fan_full_height"] = fan_full_height;
 																}
-															}
-												
-															// Otherwise set changed settings if high quality
-															else if($(this).attr("title") == "High quality") {
-													
-																if(slicerName == "cura")
-																	changedSettings.push({
-																		layer_height: 0.20,
-																		bottom_thickness: 0.3,
-																		fan_full_height: 0.301,
-																		solid_layer_thickness: 1.599
-																	});
+																// Set layer height and top/bottom layers manual settings
+																if(slicerName == "cura") {
+																	$("#slicing_configuration_dialog .layerHeight").val(parseFloat(changedSettings[0]["layer_height"]).toFixed(2));
+																	$("#slicing_configuration_dialog .topBottomLayers").val(Math.round(parseFloat(changedSettings[0]["solid_layer_thickness"]) / parseFloat(changedSettings[0]["layer_height"])));
+																}
 																else if(slicerName == "slic3r") {
-																	changedSettings.push({
-																		layer_height: 0.20,
-																		top_solid_layers: Math.round(1.599 / 0.20),
-																		bottom_solid_layers: Math.round(1.599 / 0.20)
-																	});
+																	$("#slicing_configuration_dialog .layerHeight").val(parseFloat(changedSettings[0]["layer_height"]).toFixed(2));
+																	$("#slicing_configuration_dialog .topLayers").val(parseFloat(changedSettings[0]["top_solid_layers"]));
+																	$("#slicing_configuration_dialog .bottomLayers").val(parseFloat(changedSettings[0]["bottom_solid_layers"]));
 																}
-													
-																if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips" || slicerProfileName == "m3d_abs-r")) {
-														
-																	if(slicerName == "cura")
-																		changedSettings[0]["fan_full_height"] = 0.501;
+																break;
+															// Set fill density
+															case 'fill':
+																var layerHeight = getSlicerProfileValue("layer_height");
+																switch($(this).attr("data-value")) {
+																	// Set changed settings if hollow thin fill
+																	case 'thin':
+																		if(slicerName == "cura")
+																			changedSettings.push({
+																				fill_density: 0,
+																				wall_thickness: 0.35,
+																				nozzle_size: 0.35,
+																				infill_speed: 15
+																			});
+																		else if(slicerName == "slic3r") {
+																			changedSettings.push({
+																				fill_density: "0%",
+																				perimeters: Math.round(0.35 / parseFloat(layerHeight == '' ? 0.3 : layerHeight))
+																			});
+																		}
+																		break;
+																	// Set changed settings if hollow thick fill
+																	case 'thick':
+																		if(slicerName == "cura")
+																			changedSettings.push({
+																				fill_density: 0,
+																				wall_thickness: 1.05,
+																				nozzle_size: 0.35,
+																				infill_speed: 15
+																			});
+																		else if(slicerName == "slic3r") {
+
+																			changedSettings.push({
+																				fill_density: "0%",
+																				perimeters: Math.round(1.05 / parseFloat(layerHeight == '' ? 0.3 : layerHeight))
+																			});
+																		}
+																		break;
+																	// Set changed settings if low fill
+																	case 'low':
+																		if(slicerName == "cura")
+																			changedSettings.push({
+																				fill_density: 6.364,
+																				wall_thickness: 1.05,
+																				nozzle_size: 0.35,
+																				infill_speed: 0
+																			});
+																		else if(slicerName == "slic3r") {
+																			changedSettings.push({
+																				fill_density: "6.364%",
+																				perimeters: Math.round(1.05 / parseFloat(layerHeight == '' ? 0.3 : layerHeight))
+																			});
+																		}
+																		break;
+																	// Set changed settings if medium fill
+																	case 'medium':
+																		if(slicerName == "cura")
+																			changedSettings.push({
+																				fill_density: 8.75,
+																				wall_thickness: 1.4,
+																				nozzle_size: 0.35,
+																				infill_speed: 0
+																			});
+																		else if(slicerName == "slic3r") {
+																			changedSettings.push({
+																				fill_density: "8.75%",
+																				perimeters: Math.round(1.4 / parseFloat(layerHeight == '' ? 0.3 : layerHeight))
+																			});
+																		}
+																		break;
+																	// Set changed settings if high fill
+																	case 'high':
+																		if(slicerName == "cura")
+																			changedSettings.push({
+																				fill_density: 14.0,
+																				wall_thickness: 1.4,
+																				nozzle_size: 0.35,
+																				infill_speed: 0
+																			});
+																		else if(slicerName == "slic3r") {
+																			changedSettings.push({
+																				fill_density: "14.0%",
+																				perimeters: Math.round(1.4 / parseFloat(layerHeight == '' ? 0.3 : layerHeight))
+																			});
+																		}
+																		break;
+																	// Set changed settings if extra high fill
+																	case 'extra-high':
+																		if(slicerName == "cura")
+																			changedSettings.push({
+																				fill_density: 23.333,
+																				wall_thickness: 1.4,
+																				nozzle_size: 0.35,
+																				infill_speed: 0
+																			});
+																		else if(slicerName == "slic3r") {
+																			changedSettings.push({
+																				fill_density: "23.333%",
+																				perimeters: Math.round(1.4 / parseFloat(layerHeight == '' ? 0.3 : layerHeight))
+																			});
+																		}
+																		break;
+																	// Set changed settings if full fill
+																	case 'full':
+																		if(slicerName == "cura")
+																			changedSettings.push({
+																				fill_density: 100,
+																				wall_thickness: 1.4,
+																				nozzle_size: 0.35,
+																				infill_speed: 0
+																			});
+																		else if(slicerName == "slic3r") {
+																			changedSettings.push({
+																				fill_density: "100%",
+																				perimeters: Math.round(1.4 / parseFloat(layerHeight == '' ? 0.3 : layerHeight))
+																			});
+																		}
+																		break;
 																}
-															}
-												
-															// Otherwise set changed settings if extra high quality
-															else if($(this).attr("title") == "Extra high quality") {
-													
-																if(slicerName == "cura")
-																	changedSettings.push({
-																		layer_height: 0.15,
-																		bottom_thickness: 0.3,
-																		fan_full_height: 0.301,
-																		solid_layer_thickness: 1.199
-																	});
+																// Set fill density and wall thickness manual setting
+																if(slicerName == "cura") {
+																	$("#slicing_configuration_dialog .fillDensity").val(parseFloat(changedSettings[0]["fill_density"]).toFixed(2));
+																	$("#slicing_configuration_dialog .thickness").val(Math.round(parseFloat(changedSettings[0]["wall_thickness"]) / parseFloat(changedSettings[0]["nozzle_size"])));
+																}
 																else if(slicerName == "slic3r") {
-																	changedSettings.push({
-																		layer_height: 0.15,
-																		top_solid_layers: Math.round(1.199 / 0.15),
-																		bottom_solid_layers: Math.round(1.199 / 0.15)
-																	});
+																	$("#slicing_configuration_dialog .fillDensity").val(parseFloat(changedSettings[0]["fill_density"]).toFixed(2));
+																	$("#slicing_configuration_dialog .thickness").val(parseFloat(changedSettings[0]["perimeters"]));
 																}
-													
-																if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips" || slicerProfileName == "m3d_abs-r")) {
-														
-																	if(slicerName == "cura")
-																		changedSettings[0]["fan_full_height"] = 0.451;
-																}
-															}
-												
-															// Otherwise set changed settings if highest quality
-															else if($(this).attr("title") == "Highest quality") {
-													
-																if(slicerName == "cura")
-																	changedSettings.push({
-																		layer_height: 0.05,
-																		bottom_thickness: 0.1,
-																		fan_full_height: 0.101,
-																		solid_layer_thickness: 0.399
-																	});
-																else if(slicerName == "slic3r") {
-																	changedSettings.push({
-																		layer_height: 0.05,
-																		top_solid_layers: Math.round(0.399 / 0.05),
-																		bottom_solid_layers: Math.round(0.399 / 0.05)
-																	});
-																}
-													
-																if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips" || slicerProfileName == "m3d_abs-r")) {
-														
-																	if(slicerName == "cura")
-																		changedSettings[0]["fan_full_height"] = 0.151;
-																}
-															}
-												
-															// Set layer height and top/bottom layers manual settings
-															if(slicerName == "cura") {
-																$("#slicing_configuration_dialog .layerHeight").val(parseFloat(changedSettings[0]["layer_height"]).toFixed(2));
-																$("#slicing_configuration_dialog .topBottomLayers").val(Math.round(parseFloat(changedSettings[0]["solid_layer_thickness"]) / parseFloat(changedSettings[0]["layer_height"])));
-															}
-															else if(slicerName == "slic3r") {
-																$("#slicing_configuration_dialog .layerHeight").val(parseFloat(changedSettings[0]["layer_height"]).toFixed(2));
-																$("#slicing_configuration_dialog .topLayers").val(parseFloat(changedSettings[0]["top_solid_layers"]));
-																$("#slicing_configuration_dialog .bottomLayers").val(parseFloat(changedSettings[0]["bottom_solid_layers"]));
-															}
+																break;
+															// Set Pattern
+															case 'pattern':
+																changedSettings.push({
+																	fill_pattern: $(this).attr("data-value")
+																});
+																break;
 														}
-											
-														// Otherwise assume changing fill
-														else {
-											
-															// Set text
-															$("#slicing_configuration_dialog p.fill").text(capitalize($(this).attr("title")));
-											
-															// Set changed settings if hollow thin fill
-															if($(this).attr("title") == "Hollow thin fill") {
-															
-																if(slicerName == "cura")
-																	changedSettings.push({
-																		fill_density: 0,
-																		wall_thickness: 0.35,
-																		nozzle_size: 0.35,
-																		infill_speed: 15
-																	});
-																else if(slicerName == "slic3r") {
-																
-																	layerHeight = getSlicerProfileValue("layer_height");
-																	
-																	changedSettings.push({
-																		fill_density: "0%",
-																		perimeters: Math.round(0.35 / parseFloat(layerHeight == '' ? 0.3 : layerHeight))
-																	});
-																}
-															}
-												
-															// Otherwise set changed settings if hollow thick fill
-															else if($(this).attr("title") == "Hollow thick fill") {
-															
-																if(slicerName == "cura")
-																	changedSettings.push({
-																		fill_density: 0,
-																		wall_thickness: 1.05,
-																		nozzle_size: 0.35,
-																		infill_speed: 15
-																	});
-																else if(slicerName == "slic3r") {
-																
-																	layerHeight = getSlicerProfileValue("layer_height");
-																	
-																	changedSettings.push({
-																		fill_density: "0%",
-																		perimeters: Math.round(1.05 / parseFloat(layerHeight == '' ? 0.3 : layerHeight))
-																	});
-																}
-															}
-												
-															// Otherwise set changed settings if low fill
-															else if($(this).attr("title") == "Low fill") {
-															
-																if(slicerName == "cura")
-																	changedSettings.push({
-																		fill_density: 6.364,
-																		wall_thickness: 1.05,
-																		nozzle_size: 0.35,
-																		infill_speed: 0
-																	});
-																else if(slicerName == "slic3r") {
-																
-																	layerHeight = getSlicerProfileValue("layer_height");
-																	
-																	changedSettings.push({
-																		fill_density: "6.364%",
-																		perimeters: Math.round(1.05 / parseFloat(layerHeight == '' ? 0.3 : layerHeight))
-																	});
-																}
-															}
-												
-															// Otherwise set changed settings if medium fill
-															else if($(this).attr("title") == "Medium fill") {
-															
-																if(slicerName == "cura")
-																	changedSettings.push({
-																		fill_density: 8.75,
-																		wall_thickness: 1.4,
-																		nozzle_size: 0.35,
-																		infill_speed: 0
-																	});
-																else if(slicerName == "slic3r") {
-																
-																	layerHeight = getSlicerProfileValue("layer_height");
-																	
-																	changedSettings.push({
-																		fill_density: "8.75%",
-																		perimeters: Math.round(1.4 / parseFloat(layerHeight == '' ? 0.3 : layerHeight))
-																	});
-																}
-															}
-												
-															// Otherwise set changed settings if high fill
-															else if($(this).attr("title") == "High fill") {
-															
-																if(slicerName == "cura")
-																	changedSettings.push({
-																		fill_density: 14.0,
-																		wall_thickness: 1.4,
-																		nozzle_size: 0.35,
-																		infill_speed: 0
-																	});
-																else if(slicerName == "slic3r") {
-																
-																	layerHeight = getSlicerProfileValue("layer_height");
-																	
-																	changedSettings.push({
-																		fill_density: "14.0%",
-																		perimeters: Math.round(1.4 / parseFloat(layerHeight == '' ? 0.3 : layerHeight))
-																	});
-																}
-															}
-												
-															// Otherwise set changed settings if extra high fill
-															else if($(this).attr("title") == "Extra high fill") {
-															
-																if(slicerName == "cura")
-																	changedSettings.push({
-																		fill_density: 23.333,
-																		wall_thickness: 1.4,
-																		nozzle_size: 0.35,
-																		infill_speed: 0
-																	});
-																else if(slicerName == "slic3r") {
-																
-																	layerHeight = getSlicerProfileValue("layer_height");
-																	
-																	changedSettings.push({
-																		fill_density: "23.333%",
-																		perimeters: Math.round(1.4 / parseFloat(layerHeight == '' ? 0.3 : layerHeight))
-																	});
-																}
-															}
-													
-															// Otherwise set changed settings if full fill
-															else if($(this).attr("title") == "Full fill") {
-															
-																if(slicerName == "cura")
-																	changedSettings.push({
-																		fill_density: 100,
-																		wall_thickness: 1.4,
-																		nozzle_size: 0.35,
-																		infill_speed: 0
-																	});
-																else if(slicerName == "slic3r") {
-																
-																	layerHeight = getSlicerProfileValue("layer_height");
-																	
-																	changedSettings.push({
-																		fill_density: "100%",
-																		perimeters: Math.round(1.4 / parseFloat(layerHeight == '' ? 0.3 : layerHeight))
-																	});
-																}
-															}
-												
-															// Set fill density and wall thickness manual setting
-															if(slicerName == "cura") {
-																$("#slicing_configuration_dialog .fillDensity").val(parseFloat(changedSettings[0]["fill_density"]).toFixed(2));
-																$("#slicing_configuration_dialog .thickness").val(Math.round(parseFloat(changedSettings[0]["wall_thickness"]) / parseFloat(changedSettings[0]["nozzle_size"])));
-															}
-															else if(slicerName == "slic3r") {
-																$("#slicing_configuration_dialog .fillDensity").val(parseFloat(changedSettings[0]["fill_density"]).toFixed(2));
-																$("#slicing_configuration_dialog .thickness").val(parseFloat(changedSettings[0]["perimeters"]));
-															}
-														}
-											
+
 														// Update profile settings
 														updateProfileSettings(changedSettings[0]);
 													});
-						
+
 													// Resize window
 													$(window).resize();
 												}, 200);
