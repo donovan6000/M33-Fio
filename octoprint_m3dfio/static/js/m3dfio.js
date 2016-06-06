@@ -741,15 +741,6 @@ $(function() {
 			return matches !== null && matches.length == 2 ? (matches[1].indexOf(';') != -1 ? matches[1].substr(0, matches[1].indexOf(';')).trim() : matches[1].trim()) : '';
 		}
 		
-		// Capitalize
-		function capitalize(string) {
-		
-			// Return capitalized string
-			return string.toLowerCase().replace(/\b./g, function(character) {
-				return character.toUpperCase();
-			});
-		}
-		
 		// Preload
 		function preload() {
 
@@ -3575,8 +3566,8 @@ $(function() {
 		
 		// Preload all images
 		preload(
-			PLUGIN_BASEURL + "m3dfio/static/img/down%20arrow.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/up%20arrow.png",
+			PLUGIN_BASEURL + "m3dfio/static/img/down-arrow.png",
+			PLUGIN_BASEURL + "m3dfio/static/img/up-arrow.png",
 			PLUGIN_BASEURL + "m3dfio/static/img/logo.png",
 			PLUGIN_BASEURL + "m3dfio/static/img/hengLiXin.png",
 			PLUGIN_BASEURL + "m3dfio/static/img/listener.png",
@@ -3607,11 +3598,11 @@ $(function() {
 			PLUGIN_BASEURL + "m3dfio/static/img/measurements.png",
 			PLUGIN_BASEURL + "m3dfio/static/img/cube.png",
 			PLUGIN_BASEURL + "m3dfio/static/img/sphere.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/test%20border%20good.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/test%20border%20high.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/test%20border%20low.png",
+			PLUGIN_BASEURL + "m3dfio/static/img/test-border-good.png",
+			PLUGIN_BASEURL + "m3dfio/static/img/test-border-high.png",
+			PLUGIN_BASEURL + "m3dfio/static/img/test-border-low.png",
 			PLUGIN_BASEURL + "m3dfio/static/img/backlash.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/graph%20background.png",
+			PLUGIN_BASEURL + "m3dfio/static/img/graph-background.png",
 			PLUGIN_BASEURL + "m3dfio/static/img/fill-density_extra-high.png",
 			PLUGIN_BASEURL + "m3dfio/static/img/fill-density_full.png",
 			PLUGIN_BASEURL + "m3dfio/static/img/fill-density_high.png",
@@ -4032,9 +4023,9 @@ $(function() {
 		$("#control > div.jog-panel > img").each(function() {
 		
 			if($(this).parent().hasClass("closed"))
-				$(this).attr("src", PLUGIN_BASEURL + "m3dfio/static/img/down%20arrow.png");
+				$(this).attr("src", PLUGIN_BASEURL + "m3dfio/static/img/down-arrow.png");
 			else
-				$(this).attr("src", PLUGIN_BASEURL + "m3dfio/static/img/up%20arrow.png");
+				$(this).attr("src", PLUGIN_BASEURL + "m3dfio/static/img/up-arrow.png");
 		});
 		
 		// Mouse move control arrow event
@@ -4085,7 +4076,7 @@ $(function() {
 				}, 0);
 				
 				// Change arrow image
-				$(this).attr("src", PLUGIN_BASEURL + "m3dfio/static/img/up%20arrow.png");
+				$(this).attr("src", PLUGIN_BASEURL + "m3dfio/static/img/up-arrow.png");
 			}
 			else {
 			
@@ -4118,7 +4109,7 @@ $(function() {
 				}, 0);
 				
 				// Change arrow image
-				$(this).attr("src", PLUGIN_BASEURL + "m3dfio/static/img/down%20arrow.png");
+				$(this).attr("src", PLUGIN_BASEURL + "m3dfio/static/img/down-arrow.png");
 			}
 			
 			// Update title
@@ -5053,24 +5044,24 @@ $(function() {
 														      <h3>Basic Settings</h3>
 														      <p class="quality">` + (usingProvidedProfile ? `Medium Quality` : `Unknown Quality`) + `</p>
 														      <div class="quality">
-														        <button title="Extra low quality" data-target="quality" data-value="0.35"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-quality_extra-low.png"></button>
-														        <button title="Low quality" data-target="quality" data-value="0.30"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-quality_low.png"></button>
-														        <button title="Medium quality" data-target="quality" data-value="0.25"` + (usingProvidedProfile ? ` class="disabled"` : ``) + `><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-quality_medium.png"></button>
-														        <button title="High quality" data-target="quality" data-value="0.20"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-quality_high.png"></button>
-														        <button title="Extra high quality" data-target="quality" data-value="0.15"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-quality_extra-high.png"></button>
-														        <button title="Highest quality" data-target="quality" data-value="0.05"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-quality_highest.png"></button>
+														        <button title="Extra Low Quality" data-target="quality" data-value="0.35"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-quality_extra-low.png"></button>
+														        <button title="Low Quality" data-target="quality" data-value="0.30"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-quality_low.png"></button>
+														        <button title="Medium Quality" data-target="quality" data-value="0.25"` + (usingProvidedProfile ? ` class="disabled"` : ``) + `><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-quality_medium.png"></button>
+														        <button title="High Quality" data-target="quality" data-value="0.20"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-quality_high.png"></button>
+														        <button title="Extra High Quality" data-target="quality" data-value="0.15"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-quality_extra-high.png"></button>
+														        <button title="Highest Quality" data-target="quality" data-value="0.05"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-quality_highest.png"></button>
 														      </div>
 														      <p class="fill">` + (usingProvidedProfile ? `Medium Fill` : `Unknown Fill`) + `</p>
 														      <div class="fill">
-														        <button title="Hollow thin fill" data-target="fill" data-value="thin"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-density_thin.png"></button>
-														        <button title="Hollow thick fill" data-target="fill" data-value="thick"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-density_thick.png"></button>
-														        <button title="Low fill" data-target="fill" data-value="low"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-density_low.png"></button>
-														        <button title="Medium fill" data-target="fill" data-value="medium"` + (usingProvidedProfile ? ` class="disabled"` : ``) + `><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-density_medium.png"></button>
-														        <button title="High fill" data-target="fill" data-value="high"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-density_high.png"></button>
-														        <button title="Extra high fill"data-target="fill" data-value="extra-high"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-density_extra-high.png"></button>
-														        <button title="Full fill" data-target="fill" data-value="full"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-density_full.png"></button>
+														        <button title="Hollow Thin Fill" data-target="fill" data-value="thin"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-density_thin.png"></button>
+														        <button title="Hollow Thick Fill" data-target="fill" data-value="thick"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-density_thick.png"></button>
+														        <button title="Low Fill" data-target="fill" data-value="low"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-density_low.png"></button>
+														        <button title="Medium Fill" data-target="fill" data-value="medium"` + (usingProvidedProfile ? ` class="disabled"` : ``) + `><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-density_medium.png"></button>
+														        <button title="High Fill" data-target="fill" data-value="high"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-density_high.png"></button>
+														        <button title="Extra High Fill"data-target="fill" data-value="extra-high"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-density_extra-high.png"></button>
+														        <button title="Full Fill" data-target="fill" data-value="full"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-density_full.png"></button>
 														      </div>
-																	<p class="pattern slic3r-only">Honeycomb</p>
+														      <p class="pattern slic3r-only">` + (usingProvidedProfile ? `Honeycomb` : `Unknown Fill Pattern`) + `</p>
 														      <div class="pattern slic3r-only">
 														        <button title="Line" data-target="pattern" data-value="line"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-pattern_line.png"></button>
 														        <button title="Rectalinear" data-target="pattern" data-value="rectalinear"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-pattern_rectalinear.png"></button>
@@ -5400,19 +5391,19 @@ $(function() {
 										
 													// Open and close setting groups
 													if(typeof localStorage.basicSettingsOpen === "undefined" || localStorage.basicSettingsOpen == "true")
-														$("#slicing_configuration_dialog.profile .modal-extra div.group.basic").removeClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/up%20arrow.png");
+														$("#slicing_configuration_dialog.profile .modal-extra div.group.basic").removeClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/up-arrow.png");
 													else
-														$("#slicing_configuration_dialog.profile .modal-extra div.group.basic").addClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/down%20arrow.png");
+														$("#slicing_configuration_dialog.profile .modal-extra div.group.basic").addClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/down-arrow.png");
 	
 													if(typeof localStorage.manualSettingsOpen === "undefined" || localStorage.manualSettingsOpen == "false")
-														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual").addClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/down%20arrow.png");
+														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual").addClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/down-arrow.png");
 													else
-														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual").removeClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/up%20arrow.png");
+														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual").removeClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/up-arrow.png");
 										
 													if(typeof localStorage.advancedSettingsOpen === "undefined" || localStorage.advancedSettingsOpen == "false")
-														$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced").addClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/down%20arrow.png");
+														$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced").addClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/down-arrow.png");
 													else {
-														$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced").removeClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/up%20arrow.png");
+														$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced").removeClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/up-arrow.png");
 														$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced > span").css("display", "block");
 													}
 										
@@ -5437,7 +5428,7 @@ $(function() {
 											
 															// Open or close group
 															if($(this).hasClass("closed")) {
-																$(this).removeClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/up%20arrow.png");
+																$(this).removeClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/up-arrow.png");
 													
 																 if($(this).hasClass("advanced"))
 																	setTimeout(function() {
@@ -5453,7 +5444,7 @@ $(function() {
 																	localStorage.advancedSettingsOpen = "true";
 															}
 															else {
-																$(this).addClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/down%20arrow.png");
+																$(this).addClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/down-arrow.png");
 													
 																if($(this).hasClass("advanced"))
 																	setTimeout(function() {
@@ -6044,7 +6035,7 @@ $(function() {
 														var changedSettings = [];
 														var target = $(this).attr('data-target');
 														
-														$("#slicing_configuration_dialog .slicerSpecific p." + target).text(capitalize($(this).attr("title")));
+														$("#slicing_configuration_dialog .slicerSpecific p." + target).text($(this).attr("title"));
 														
 														switch (target) {
 															case 'quality':
@@ -9035,7 +9026,7 @@ $(function() {
 		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(17)").attr("title", "Prints 0.4mm test border").click(function(event) {
 		
 			// Show message
-			showMessage("Calibration Status", "It's recommended to print this test border after completely calibrating the bed to ensure that the calibration is accurate. The test border should print as a solid, even extruded border.<img src=\"" + PLUGIN_BASEURL + "m3dfio/static/img/test%20border%20good.png\">The 'Back Left Offset', 'Back Right Offset', 'Front Right Offset', and 'Front Left Offset' values can be adjusted to correct any issues with it. If the test border contains squiggly ripples, then it is too high.<img src=\"" + PLUGIN_BASEURL + "m3dfio/static/img/test%20border%20high.png\">If the test border contains missing gaps, then it is too low.<img src=\"" + PLUGIN_BASEURL + "m3dfio/static/img/test%20border%20low.png\">It's also recommended to print a model with a raft after this is done to see if the 'Bed Height Offset' value needs to be adjusted. If the raft does not securely stick to the bed, then it is too high. If the model isn't easily removed from the raft, then it is too low.<br><br>All the referenced values can be found by clicking the 'Print settings' button in the 'General' section. Proceed?", "Yes", function() {
+			showMessage("Calibration Status", "It's recommended to print this test border after completely calibrating the bed to ensure that the calibration is accurate. The test border should print as a solid, even extruded border.<img src=\"" + PLUGIN_BASEURL + "m3dfio/static/img/test-border-good.png\">The 'Back Left Offset', 'Back Right Offset', 'Front Right Offset', and 'Front Left Offset' values can be adjusted to correct any issues with it. If the test border contains squiggly ripples, then it is too high.<img src=\"" + PLUGIN_BASEURL + "m3dfio/static/img/test-border-high.png\">If the test border contains missing gaps, then it is too low.<img src=\"" + PLUGIN_BASEURL + "m3dfio/static/img/test-border-low.png\">It's also recommended to print a model with a raft after this is done to see if the 'Bed Height Offset' value needs to be adjusted. If the raft does not securely stick to the bed, then it is too high. If the model isn't easily removed from the raft, then it is too low.<br><br>All the referenced values can be found by clicking the 'Print settings' button in the 'General' section. Proceed?", "Yes", function() {
 			
 				// Hide message
 				hideMessage();
@@ -12104,7 +12095,7 @@ $(function() {
 			}
 			else {
 				$(".micro3d").removeClass("notUsingAMicro3DPrinter");
-				$("#temperature-graph").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/graph%20background.png");
+				$("#temperature-graph").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/graph-background.png");
 			}
 			
 			// Check if printing or paused
@@ -12189,7 +12180,7 @@ $(function() {
 				}
 				else {
 					$(".micro3d").removeClass("notUsingAMicro3DPrinter");
-					$("#temperature-graph").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/graph%20background.png");
+					$("#temperature-graph").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/graph-background.png");
 				}
 			}
 

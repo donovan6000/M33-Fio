@@ -785,11 +785,11 @@ body > div.page-container > div.message > div > div > span.show {
 }
 
 #slicing_configuration_dialog .group.closed {
-	height: 8px;
+	height: 8px !important;
 }
 
 #slicing_configuration_dialog .group.advanced.closed {
-	height: 7px;
+	height: 7px !important;
 }
 
 #slicing_configuration_dialog .group h3 {
