@@ -33,6 +33,7 @@ import json
 import imp
 import glob
 import ctypes
+import _ctypes
 import platform
 import subprocess
 import psutil
@@ -892,96 +893,6 @@ class M3DFioPlugin(
 		
 		# Set file locations
 		self.setFileLocations()
-		
-		# Check if running on Linux
-		if platform.uname()[0].startswith("Linux") :
-		
-			# Check if running on a Raspberry Pi 1
-			if platform.uname()[4].startswith("armv6l") and self.getCpuHardware() == "BCM2708" :
-			
-				# Set shared library
-				self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace('\\', '/') + "/static/libraries/preprocessor_arm1176jzf-s.so")
-			
-			# Otherwise check if running on a Raspberry Pi 2 or Raspberry Pi 3
-			elif platform.uname()[4].startswith("armv7l") and self.getCpuHardware() == "BCM2709" :
-			
-				# Set shared library
-				self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace('\\', '/') + "/static/libraries/preprocessor_arm_cortex-a7.so")
-			
-			# Otherwise check if running on an ARM7 device
-			elif platform.uname()[4].startswith("armv7") :
-			
-				# Set shared library
-				self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace('\\', '/') + "/static/libraries/preprocessor_arm7.so")
-			
-			# Otherwise check if using an i386 or x86-64 device
-			elif platform.uname()[4].endswith("86") or platform.uname()[4].endswith("64") :
-		
-				# Check if Python is running as 32-bit
-				if platform.architecture()[0].startswith("32") :
-				
-					# Set shared library
-					self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace('\\', '/') + "/static/libraries/preprocessor_i386.so")
-			
-				# Otherwise check if Python is running as 64-bit
-				elif platform.architecture()[0].startswith("64") :
-				
-					# Set shared library
-					self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace('\\', '/') + "/static/libraries/preprocessor_x86-64.so")
-		
-		# Otherwise check if running on Windows and using an i386 or x86-64 device
-		elif platform.uname()[0].startswith("Windows") and (platform.uname()[4].endswith("86") or platform.uname()[4].endswith("64")) :
-		
-			# Check if Python is running as 32-bit
-			if platform.architecture()[0].startswith("32") :
-			
-				# Set shared library
-				self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace('\\', '/') + "/static/libraries/preprocessor_i386.dll")
-		
-			# Otherwise check if Python is running as 64-bit
-			elif platform.architecture()[0].startswith("64") :
-			
-				# Set shared library
-				self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace('\\', '/') + "/static/libraries/preprocessor_x86-64.dll")
-		
-		# Otherwise check if running on OS X and using an i386 or x86-64 device
-		elif platform.uname()[0].startswith("Darwin") and (platform.uname()[4].endswith("86") or platform.uname()[4].endswith("64")) :
-		
-			# Check if Python is running as 32-bit
-			if platform.architecture()[0].startswith("32") :
-			
-				# Set shared library
-				self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace('\\', '/') + "/static/libraries/preprocessor_i386.dylib")
-		
-			# Otherwise check if Python is running as 64-bit
-			elif platform.architecture()[0].startswith("64") :
-			
-				# Set shared library
-				self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace('\\', '/') + "/static/libraries/preprocessor_x86-64.dylib")
-		
-		# Check if shared library was set
-		if self.sharedLibrary :
-		
-			# Set output types of shared library functions
-			self.sharedLibrary.getMaxXExtruderLow.restype = ctypes.c_double
-			self.sharedLibrary.getMaxXExtruderMedium.restype = ctypes.c_double
-			self.sharedLibrary.getMaxXExtruderHigh.restype = ctypes.c_double
-			self.sharedLibrary.getMaxYExtruderLow.restype = ctypes.c_double
-			self.sharedLibrary.getMaxYExtruderMedium.restype = ctypes.c_double
-			self.sharedLibrary.getMaxYExtruderHigh.restype = ctypes.c_double
-			self.sharedLibrary.getMaxZExtruder.restype = ctypes.c_double
-			self.sharedLibrary.getMinXExtruderLow.restype = ctypes.c_double
-			self.sharedLibrary.getMinXExtruderMedium.restype = ctypes.c_double
-			self.sharedLibrary.getMinXExtruderHigh.restype = ctypes.c_double
-			self.sharedLibrary.getMinYExtruderLow.restype = ctypes.c_double
-			self.sharedLibrary.getMinYExtruderMedium.restype = ctypes.c_double
-			self.sharedLibrary.getMinYExtruderHigh.restype = ctypes.c_double
-			self.sharedLibrary.getMinZExtruder.restype = ctypes.c_double
-			self.sharedLibrary.collectPrintInformation.restype = ctypes.c_bool
-	  		self.sharedLibrary.preprocess.restype = ctypes.c_char_p
-	  		self.sharedLibrary.getDetectedFanSpeed.restype = ctypes.c_ubyte
-	  		self.sharedLibrary.getDetectedMidPrintFilamentChange.restype = ctypes.c_bool
-	  		self.sharedLibrary.getObjectSuccessfullyCentered.restype = ctypes.c_bool
 	    	
 	    	# Check if not using a Micro 3D printer
 		if self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
@@ -1015,6 +926,180 @@ class M3DFioPlugin(
 				# Start webcam server
 				subprocess.Popen([sys.executable.replace('\\', '/'), self._basefolder.replace('\\', '/') + "/webcam_server.py", str(cameraPort), "4999", str(self._settings.get_int(["CameraFramesPerSecond"])), str(self._settings.get_int(["CameraWidth"])), str(self._settings.get_int(["CameraHeight"]))])
 	
+	# Load shared library
+	def loadSharedLibrary(self, checkIfUsable = False) :
+	
+		# Unload shared library if it was already loaded
+		self.unloadSharedLibrary()
+	
+		# Check if using shared library or checking if the shared library is usable
+		if self._settings.get_boolean(["UseSharedLibrary"]) or checkIfUsable :
+	
+			# Check if running on Linux
+			if platform.uname()[0].startswith("Linux") :
+
+				# Check if running on a Raspberry Pi 1
+				if platform.uname()[4].startswith("armv6l") and self.getCpuHardware() == "BCM2708" :
+	
+					# Set shared library
+					self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace('\\', '/') + "/static/libraries/preprocessor_arm1176jzf-s.so")
+	
+				# Otherwise check if running on a Raspberry Pi 2 or Raspberry Pi 3
+				elif platform.uname()[4].startswith("armv7l") and self.getCpuHardware() == "BCM2709" :
+	
+					# Set shared library
+					self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace('\\', '/') + "/static/libraries/preprocessor_arm_cortex-a7.so")
+	
+				# Otherwise check if running on an ARM7 device
+				elif platform.uname()[4].startswith("armv7") :
+	
+					# Set shared library
+					self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace('\\', '/') + "/static/libraries/preprocessor_arm7.so")
+	
+				# Otherwise check if using an i386 or x86-64 device
+				elif platform.uname()[4].endswith("86") or platform.uname()[4].endswith("64") :
+
+					# Check if Python is running as 32-bit
+					if platform.architecture()[0].startswith("32") :
+		
+						# Set shared library
+						self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace('\\', '/') + "/static/libraries/preprocessor_i386.so")
+	
+					# Otherwise check if Python is running as 64-bit
+					elif platform.architecture()[0].startswith("64") :
+		
+						# Set shared library
+						self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace('\\', '/') + "/static/libraries/preprocessor_x86-64.so")
+
+			# Otherwise check if running on Windows and using an i386 or x86-64 device
+			elif platform.uname()[0].startswith("Windows") and (platform.uname()[4].endswith("86") or platform.uname()[4].endswith("64")) :
+
+				# Check if Python is running as 32-bit
+				if platform.architecture()[0].startswith("32") :
+	
+					# Set shared library
+					self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace('\\', '/') + "/static/libraries/preprocessor_i386.dll")
+
+				# Otherwise check if Python is running as 64-bit
+				elif platform.architecture()[0].startswith("64") :
+	
+					# Set shared library
+					self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace('\\', '/') + "/static/libraries/preprocessor_x86-64.dll")
+
+			# Otherwise check if running on OS X and using an i386 or x86-64 device
+			elif platform.uname()[0].startswith("Darwin") and (platform.uname()[4].endswith("86") or platform.uname()[4].endswith("64")) :
+
+				# Check if Python is running as 32-bit
+				if platform.architecture()[0].startswith("32") :
+	
+					# Set shared library
+					self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace('\\', '/') + "/static/libraries/preprocessor_i386.dylib")
+
+				# Otherwise check if Python is running as 64-bit
+				elif platform.architecture()[0].startswith("64") :
+	
+					# Set shared library
+					self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace('\\', '/') + "/static/libraries/preprocessor_x86-64.dylib")
+
+			# Check if shared library was set
+			if self.sharedLibrary :
+
+				# Set output types of shared library functions
+				self.sharedLibrary.getMaxXExtruderLow.restype = ctypes.c_double
+				self.sharedLibrary.getMaxXExtruderMedium.restype = ctypes.c_double
+				self.sharedLibrary.getMaxXExtruderHigh.restype = ctypes.c_double
+				self.sharedLibrary.getMaxYExtruderLow.restype = ctypes.c_double
+				self.sharedLibrary.getMaxYExtruderMedium.restype = ctypes.c_double
+				self.sharedLibrary.getMaxYExtruderHigh.restype = ctypes.c_double
+				self.sharedLibrary.getMaxZExtruder.restype = ctypes.c_double
+				self.sharedLibrary.getMinXExtruderLow.restype = ctypes.c_double
+				self.sharedLibrary.getMinXExtruderMedium.restype = ctypes.c_double
+				self.sharedLibrary.getMinXExtruderHigh.restype = ctypes.c_double
+				self.sharedLibrary.getMinYExtruderLow.restype = ctypes.c_double
+				self.sharedLibrary.getMinYExtruderMedium.restype = ctypes.c_double
+				self.sharedLibrary.getMinYExtruderHigh.restype = ctypes.c_double
+				self.sharedLibrary.getMinZExtruder.restype = ctypes.c_double
+				self.sharedLibrary.collectPrintInformation.restype = ctypes.c_bool
+		  		self.sharedLibrary.preprocess.restype = ctypes.c_char_p
+		  		self.sharedLibrary.getDetectedFanSpeed.restype = ctypes.c_ubyte
+		  		self.sharedLibrary.getDetectedMidPrintFilamentChange.restype = ctypes.c_bool
+		  		self.sharedLibrary.getObjectSuccessfullyCentered.restype = ctypes.c_bool
+		  		
+		  		# Return true
+		  		return True
+		 
+		# Return false
+		return False
+	
+	# Unload shared library
+	def unloadSharedLibrary(self) :
+	
+		# Check if shared library is loaded
+		if self.sharedLibrary :
+		
+			# Check if running on Linux or OS X
+			if platform.uname()[0].startswith("Linux") or platform.uname()[0].startswith("Darwin") :
+		
+				# Close shared library
+				_ctypes.dlclose(self.sharedLibrary._handle)
+			
+			# Check if running on Windows
+			elif platform.uname()[0].startswith("Windows") :
+			
+				# Close shared library
+				_ctypes.FreeLibrary(self.sharedLibrary._handle)
+	
+	# Set shared library settings
+	def setSharedLibrarySettings(self) :
+	
+		# Reset pre-processor settings
+		self.sharedLibrary.resetPreprocessorSettings()
+
+		# Set settings
+		self.sharedLibrary.setBacklashX(ctypes.c_double(self._settings.get_float(["BacklashX"])))
+		self.sharedLibrary.setBacklashY(ctypes.c_double(self._settings.get_float(["BacklashY"])))
+		self.sharedLibrary.setBacklashSpeed(ctypes.c_double(self._settings.get_float(["BacklashSpeed"])))
+		self.sharedLibrary.setBackRightOrientation(ctypes.c_double(self._settings.get_float(["BackRightOrientation"])))
+		self.sharedLibrary.setBackLeftOrientation(ctypes.c_double(self._settings.get_float(["BackLeftOrientation"])))
+		self.sharedLibrary.setFrontLeftOrientation(ctypes.c_double(self._settings.get_float(["FrontLeftOrientation"])))
+		self.sharedLibrary.setFrontRightOrientation(ctypes.c_double(self._settings.get_float(["FrontRightOrientation"])))
+		self.sharedLibrary.setBedHeightOffset(ctypes.c_double(self._settings.get_float(["BedHeightOffset"])))
+		self.sharedLibrary.setBackRightOffset(ctypes.c_double(self._settings.get_float(["BackRightOffset"])))
+		self.sharedLibrary.setBackLeftOffset(ctypes.c_double(self._settings.get_float(["BackLeftOffset"])))
+		self.sharedLibrary.setFrontLeftOffset(ctypes.c_double(self._settings.get_float(["FrontLeftOffset"])))
+		self.sharedLibrary.setFrontRightOffset(ctypes.c_double(self._settings.get_float(["FrontRightOffset"])))
+		self.sharedLibrary.setFilamentTemperature(ctypes.c_ushort(self._settings.get_int(["FilamentTemperature"])))
+		self.sharedLibrary.setFilamentType(ctypes.c_char_p(str(self._settings.get(["FilamentType"]))))
+		self.sharedLibrary.setUseValidationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseValidationPreprocessor"])))
+		self.sharedLibrary.setUsePreparationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UsePreparationPreprocessor"])))
+		self.sharedLibrary.setUseWaveBondingPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseWaveBondingPreprocessor"])))
+		self.sharedLibrary.setUseThermalBondingPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseThermalBondingPreprocessor"])))
+		self.sharedLibrary.setUseBedCompensationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseBedCompensationPreprocessor"])))
+		self.sharedLibrary.setUseBacklashCompensationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseBacklashCompensationPreprocessor"])))
+		self.sharedLibrary.setUseCenterModelPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseCenterModelPreprocessor"])))
+		self.sharedLibrary.setIgnorePrintDimensionLimitations(ctypes.c_bool(self._settings.get_boolean(["IgnorePrintDimensionLimitations"])))
+		self.sharedLibrary.setUsingHeatbed(ctypes.c_bool(self.heatbedConnected))
+		self.sharedLibrary.setPrintingTestBorder(ctypes.c_bool(self.printingTestBorder))
+		self.sharedLibrary.setPrintingBacklashCalibration(ctypes.c_bool(self.printingBacklashCalibration))
+		self.sharedLibrary.setPrinterColor(ctypes.c_char_p(self.printerColor))
+		self.sharedLibrary.setCalibrateBeforePrint(ctypes.c_bool(self._settings.get_boolean(["CalibrateBeforePrint"])))
+		self.sharedLibrary.setRemoveFanCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveFanCommands"])))
+		self.sharedLibrary.setRemoveTemperatureCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveTemperatureCommands"])))
+		if self._settings.get_int(["GpioLayer"]) is not None :
+			self.sharedLibrary.setUseGpio(ctypes.c_bool(self._settings.get_boolean(["UseGpio"])))
+			self.sharedLibrary.setGpioLayer(ctypes.c_ushort(self._settings.get_int(["GpioLayer"])))
+		else :
+			self.sharedLibrary.setUseGpio(ctypes.c_bool(False))
+		self.sharedLibrary.setHeatbedTemperature(ctypes.c_ushort(self._settings.get_int(["HeatbedTemperature"])))
+		self.sharedLibrary.setExternalBedHeight(ctypes.c_double(self._settings.get_float(["ExternalBedHeight"])))
+		self.sharedLibrary.setExpandPrintableRegion(ctypes.c_bool(self._settings.get_boolean(["ExpandPrintableRegion"])))
+		self.sharedLibrary.setMidPrintFilamentChangeLayers(ctypes.c_char_p(' '.join(re.findall("\\d+", str(self._settings.get(["MidPrintFilamentChangeLayers"]))))))
+		self.sharedLibrary.setChangeLedBrightness(ctypes.c_bool(self._settings.get_boolean(["ChangeLedBrightness"])))
+		if self.currentFirmwareType is None :
+			self.sharedLibrary.setFirmwareType(ctypes.c_char_p(""))
+		else :
+			self.sharedLibrary.setFirmwareType(ctypes.c_char_p(self.currentFirmwareType))
+	
 	# Get newest firmware name
 	def getNewestFirmwareName(self, firmwareType) :
 	
@@ -1043,12 +1128,7 @@ class M3DFioPlugin(
 		if self.eeprom is not None :
 		
 			# Get firmware version from EEPROM
-			firmwareVersion = 0
-			index = 3
-			while index >= 0 :
-				firmwareVersion <<= 8
-				firmwareVersion += int(ord(self.eeprom[self.eepromOffsets["firmwareVersion"]["offset"] + index]))
-				index -= 1
+			firmwareVersion = self.eepromGetInt("firmwareVersion")
 		
 			# Get firmware type
 			firmwareType = None
@@ -1881,56 +1961,11 @@ class M3DFioPlugin(
 						self.printingBacklashCalibration = True
 						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Preparing backlash calibration print", header = "Printing Status"))
 					
-					# Check if using shared library
-					if self.sharedLibrary and self._settings.get_boolean(["UseSharedLibrary"]) :
+					# Check if shared library was loaded
+					if self.loadSharedLibrary() :
 					
-						# Reset pre-processor settings
-						self.sharedLibrary.resetPreprocessorSettings()
-				
-						# Set values
-						self.sharedLibrary.setBacklashX(ctypes.c_double(self._settings.get_float(["BacklashX"])))
-						self.sharedLibrary.setBacklashY(ctypes.c_double(self._settings.get_float(["BacklashY"])))
-						self.sharedLibrary.setBacklashSpeed(ctypes.c_double(self._settings.get_float(["BacklashSpeed"])))
-						self.sharedLibrary.setBackRightOrientation(ctypes.c_double(self._settings.get_float(["BackRightOrientation"])))
-						self.sharedLibrary.setBackLeftOrientation(ctypes.c_double(self._settings.get_float(["BackLeftOrientation"])))
-						self.sharedLibrary.setFrontLeftOrientation(ctypes.c_double(self._settings.get_float(["FrontLeftOrientation"])))
-						self.sharedLibrary.setFrontRightOrientation(ctypes.c_double(self._settings.get_float(["FrontRightOrientation"])))
-						self.sharedLibrary.setBedHeightOffset(ctypes.c_double(self._settings.get_float(["BedHeightOffset"])))
-						self.sharedLibrary.setBackRightOffset(ctypes.c_double(self._settings.get_float(["BackRightOffset"])))
-						self.sharedLibrary.setBackLeftOffset(ctypes.c_double(self._settings.get_float(["BackLeftOffset"])))
-						self.sharedLibrary.setFrontLeftOffset(ctypes.c_double(self._settings.get_float(["FrontLeftOffset"])))
-						self.sharedLibrary.setFrontRightOffset(ctypes.c_double(self._settings.get_float(["FrontRightOffset"])))
-						self.sharedLibrary.setFilamentTemperature(ctypes.c_ushort(self._settings.get_int(["FilamentTemperature"])))
-						self.sharedLibrary.setFilamentType(ctypes.c_char_p(str(self._settings.get(["FilamentType"]))))
-						self.sharedLibrary.setUseValidationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseValidationPreprocessor"])))
-						self.sharedLibrary.setUsePreparationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UsePreparationPreprocessor"])))
-						self.sharedLibrary.setUseWaveBondingPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseWaveBondingPreprocessor"])))
-						self.sharedLibrary.setUseThermalBondingPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseThermalBondingPreprocessor"])))
-						self.sharedLibrary.setUseBedCompensationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseBedCompensationPreprocessor"])))
-						self.sharedLibrary.setUseBacklashCompensationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseBacklashCompensationPreprocessor"])))
-						self.sharedLibrary.setUseCenterModelPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseCenterModelPreprocessor"])))
-						self.sharedLibrary.setIgnorePrintDimensionLimitations(ctypes.c_bool(self._settings.get_boolean(["IgnorePrintDimensionLimitations"])))
-						self.sharedLibrary.setUsingHeatbed(ctypes.c_bool(self.heatbedConnected))
-						self.sharedLibrary.setPrintingTestBorder(ctypes.c_bool(self.printingTestBorder))
-						self.sharedLibrary.setPrintingBacklashCalibration(ctypes.c_bool(self.printingBacklashCalibration))
-						self.sharedLibrary.setPrinterColor(ctypes.c_char_p(self.printerColor))
-						self.sharedLibrary.setCalibrateBeforePrint(ctypes.c_bool(self._settings.get_boolean(["CalibrateBeforePrint"])))
-						self.sharedLibrary.setRemoveFanCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveFanCommands"])))
-						self.sharedLibrary.setRemoveTemperatureCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveTemperatureCommands"])))
-						if self._settings.get_int(["GpioLayer"]) is not None :
-							self.sharedLibrary.setUseGpio(ctypes.c_bool(self._settings.get_boolean(["UseGpio"])))
-							self.sharedLibrary.setGpioLayer(ctypes.c_ushort(self._settings.get_int(["GpioLayer"])))
-						else :
-							self.sharedLibrary.setUseGpio(ctypes.c_bool(False))
-						self.sharedLibrary.setHeatbedTemperature(ctypes.c_ushort(self._settings.get_int(["HeatbedTemperature"])))
-						self.sharedLibrary.setExternalBedHeight(ctypes.c_double(self._settings.get_float(["ExternalBedHeight"])))
-						self.sharedLibrary.setExpandPrintableRegion(ctypes.c_bool(self._settings.get_boolean(["ExpandPrintableRegion"])))
-						self.sharedLibrary.setMidPrintFilamentChangeLayers(ctypes.c_char_p(' '.join(re.findall("\\d+", str(self._settings.get(["MidPrintFilamentChangeLayers"]))))))
-						self.sharedLibrary.setChangeLedBrightness(ctypes.c_bool(self._settings.get_boolean(["ChangeLedBrightness"])))
-						if self.currentFirmwareType is None :
-							self.sharedLibrary.setFirmwareType(ctypes.c_char_p(""))
-						else :
-							self.sharedLibrary.setFirmwareType(ctypes.c_char_p(self.currentFirmwareType))
+						# Set shared library settings
+						self.setSharedLibrarySettings()
 									
 						# Collect print information
 						self.sharedLibrary.collectPrintInformation(ctypes.c_char_p(location), ctypes.c_bool(True))
@@ -1962,6 +1997,9 @@ class M3DFioPlugin(
 					
 						# Pre-process file and moved to destination
 						self.sharedLibrary.preprocess(ctypes.c_char_p(location), ctypes.c_char_p(destination), ctypes.c_bool(False))
+						
+						# Unload shared library
+						self.unloadSharedLibrary()
 					
 					# Otherwise
 					else :
@@ -2817,7 +2855,7 @@ class M3DFioPlugin(
 			return False
 		
 		# Remove newline character from end of EEPROM
-		self.eeprom = self.eeprom[:-1]
+		self.eeprom = self.eeprom[: -1]
 		
 		# Check if sending
 		if send :
@@ -3016,38 +3054,19 @@ class M3DFioPlugin(
 							if newChipCrc == romCrc :
 					
 								# Get firmware CRC from EEPROM
-								index = 3
-								while index >= 0 :
-									eepromCrc <<= 8
-									eepromCrc += int(ord(self.eeprom[self.eepromOffsets["firmwareCrc"]["offset"] + index]))
-									index -= 1
+								eepromCrc = self.eepromGetInt("firmwareCrc")
 								
 								# Check if Z state wasn't saved or previous firmware was corrupt
-								if self.eeprom[self.eepromOffsets["savedZState"]["offset"]] == '\x00' or oldChipCrc != eepromCrc :
-						
-									# Go through bytes of last recorded Z value
-									index = 0
-									while index < self.eepromOffsets["lastRecordedZValue"]["bytes"] :
-
-										# Check if zeroing out last recorded Z value in EEPROM failed
-										if not error and not self.writeToEeprom(connection, self.eepromOffsets["lastRecordedZValue"]["offset"] + index, '\x00') :
+								if self.eepromGetInt("savedZState") == 0 or oldChipCrc != eepromCrc :
 								
-											# Set error
-											error = True
-							
-										# Increment index
-										index += 1
+									# Set error to if zeroing out last recorded Z value in EEPROM failed
+									error = self.eepromSetInt(connection, "lastRecordedZValue", 0)
 								
 								# Otherwise
 								else :
 								
 									# Get firmware version from EEPROM
-									eepromFirmwareVersion = 0
-									index = self.eepromOffsets["firmwareVersion"]["bytes"] -1
-									while index >= 0 :
-										eepromFirmwareVersion <<= 8
-										eepromFirmwareVersion += int(ord(self.eeprom[self.eepromOffsets["firmwareVersion"]["offset"] + index]))
-										index -= 1
+									eepromFirmwareVersion = self.eepromGetInt("firmwareVersion")
 									
 									# Get old firmware type
 									oldFirmwareType = None
@@ -3070,81 +3089,43 @@ class M3DFioPlugin(
 										if (oldFirmwareType == "M3D" or oldFirmwareType == "M3D Mod") and newFirmwareType == "iMe" :
 										
 											# Get current Z value from EEPROM
-											currentValueZ = 0
-											index = self.eepromOffsets["lastRecordedZValue"]["bytes"] - 1
-											while index >= 0 :
-												currentValueZ <<= 8
-												currentValueZ += int(ord(self.eeprom[self.eepromOffsets["lastRecordedZValue"]["offset"] + index]))
-												index -= 1
+											currentValueZ  = self.eepromGetInt("lastRecordedZValue")
 											
 											# Convert current Z to single-precision floating-point format used by iMe firmware
 											currentValueZ /= 5170.635833481
 											
 											# Set error to if setting current Z in EEPROM failed
-											error = self.setEepromValue(connection, "lastRecordedZValue", currentValueZ)
+											error = self.eepromSetFloat(connection, "lastRecordedZValue", currentValueZ)
 										
 										# Otherwise check if going from iMe firmware to M3D or M3D Mod firmware
 										elif oldFirmwareType == "iMe" and (newFirmwareType == "M3D" or newFirmwareType == "M3D Mod") :
 										
 											# Get current Z value from EEPROM
-											data = [int(ord(self.eeprom[self.eepromOffsets["lastRecordedZValue"]["offset"]])), int(ord(self.eeprom[self.eepromOffsets["lastRecordedZValue"]["offset"] + 1])), int(ord(self.eeprom[self.eepromOffsets["lastRecordedZValue"]["offset"] + 2])), int(ord(self.eeprom[self.eepromOffsets["lastRecordedZValue"]["offset"] + 3]))]
-											bytes = struct.pack("4B", *data)
-											currentValueZ = struct.unpack('f', bytes)[0]
+											currentValueZ = self.eepromGetFloat("lastRecordedZValue")
 											
 											# Convert current Z to unsigned 32-bit integer format used by M3D and M3D Mod firmwares
 											currentValueZ = int(round(currentValueZ * 5170.635833481))
 											
-											# Check if saving current Z in EEPROM failed
-											index = 0
-											while index < self.eepromOffsets["lastRecordedZValue"]["bytes"] :
-						
-												# Check if saving current Z in EEPROM failed
-												if not error and not self.writeToEeprom(connection, self.eepromOffsets["lastRecordedZValue"]["offset"] + index, chr((currentValueZ >> 8 * index) & 0xFF)) :
-							
-													# Set error
-													error = True
-							
-												# Increment index
-												index += 1
+											# Set error to if saving current Z in EEPROM failed
+											error = self.eepromSetInt(connection, "lastRecordedZValue", currentValueZ)
 								
-								# Go through bytes of all steps per MM sections
-								index = 0
-								while index < self.eepromOffsets["eAxisStepsPerMm"]["offset"] + self.eepromOffsets["eAxisStepsPerMm"]["bytes"] - self.eepromOffsets["xAxisStepsPerMm"]["offset"] :
-					
-									# Check if zeroing out steps per MM in EEPROM failed
-									if not error and not self.writeToEeprom(connection, self.eepromOffsets["xAxisStepsPerMm"]["offset"] + index, '\x00') :
-						
-										# Set error
-										error = True
-						
-									# Increment index
-									index += 1
-
-								# Go through bytes of firmware version
-								index = 0
-								while index < self.eepromOffsets["firmwareVersion"]["bytes"] :
-					
-									# Check if updating firmware version in EEPROM failed
-									if not error and not self.writeToEeprom(connection, self.eepromOffsets["firmwareVersion"]["offset"] + index, chr((romVersion >> 8 * index) & 0xFF)) :
-						
-										# Set error
-										error = True
-						
-									# Increment index
-									index += 1
-
-								# Go through bytes of firmware CRC
-								index = 0
-								while index < self.eepromOffsets["firmwareCrc"]["bytes"] :
-					
-									# Check if updating firmware CRC in EEPROM failed
-									if not error and not self.writeToEeprom(connection, self.eepromOffsets["firmwareCrc"]["offset"] + index, chr((romCrc >> 8 * index) & 0xFF)) :
-						
-										# Set error
-										error = True
-						
-									# Increment index
-									index += 1
+								# Check if an error hasn't occured
+								if not error :
+								
+									# Set error to if zeroing out steps per mm in EEPROM failed
+									error = self.eepromSetInt(connection, "xAxisStepsPerMm", 0, self.eepromOffsets["eAxisStepsPerMm"]["offset"] + self.eepromOffsets["eAxisStepsPerMm"]["bytes"] - self.eepromOffsets["xAxisStepsPerMm"]["offset"])
+								
+									# Check if an error hasn't occured
+									if not error :
+								
+										# Set error to if updating firmware version in EEPROM failed
+										error = self.eepromSetInt(connection, "firmwareVersion", romVersion)
+									
+										# Check if an error hasn't occured
+										if not error :
+								
+											# Set error to if updating firmware version in EEPROM failed
+											error = self.eepromSetInt(connection, "firmwareCrc", romCrc)
 					
 							# Otherwise
 							else :
@@ -3225,35 +3206,27 @@ class M3DFioPlugin(
 			return False
 		
 		# Get current fan type, offset, and scale from EEPROM
-		currentFanType = int(ord(self.eeprom[self.eepromOffsets["fanType"]["offset"]]))
-		currentFanOffset = int(ord(self.eeprom[self.eepromOffsets["fanOffset"]["offset"]]))
-		data = [int(ord(self.eeprom[self.eepromOffsets["fanScale"]["offset"]])), int(ord(self.eeprom[self.eepromOffsets["fanScale"]["offset"] + 1])), int(ord(self.eeprom[self.eepromOffsets["fanScale"]["offset"] + 2])), int(ord(self.eeprom[self.eepromOffsets["fanScale"]["offset"] + 3]))]
-		bytes = struct.pack("4B", *data)
-		currentFanScale = round(struct.unpack('f', bytes)[0], 6)
+		currentFanType = self.eepromGetInt("fanType")
+		currentFanOffset = self.eepromGetInt("fanOffset")
+		currentFanScale = self.eepromGetFloat("fanScale")
 		
 		# Check if fan scales differ
 		if currentFanScale != round(fanScale, 6) :
 		
 			# Set error to if setting fan scale in EEPROM failed
-			error = self.setEepromValue(connection, "fanScale", fanScale)
+			error = self.eepromSetFloat(connection, "fanScale", fanScale)
 		
 		# Check if fan offsets differ
 		if not error and currentFanOffset != fanOffset :
 		
-			# Check if saving fan offset failed
-			if not self.writeToEeprom(connection, self.eepromOffsets["fanOffset"]["offset"], chr(fanOffset)) :
-	
-				# Set error
-				error = True
+			# Set error to if saving fan offset in EEPROM failed
+			error = self.eepromSetInt(connection, "fanOffset", fanOffset)
 		
 		# Check if fan types differ
 		if not error and currentFanType != fanType :
 		
-			# Check if saving fan type failed
-			if not self.writeToEeprom(connection, self.eepromOffsets["fanType"]["offset"], chr(fanType)) :
-	
-				# Set error
-				error = True
+			# Set error to if saving fan offset in EEPROM failed
+			error = self.eepromSetInt(connection, "fanType", fanType)
 	
 		# Return false if an error occured
 		if error :
@@ -3266,13 +3239,10 @@ class M3DFioPlugin(
 	def setExtruderCurrent(self, connection, value) :
 	
 		# Check if extruder current values differ
-		if int(ord(self.eeprom[self.eepromOffsets["eMotorCurrent"]["offset"]])) + (int(ord(self.eeprom[self.eepromOffsets["eMotorCurrent"]["offset"] + 1])) << 8) != value :
-	
-			# Check if saving extruder current failed
-			if not self.writeToEeprom(connection, self.eepromOffsets["eMotorCurrent"]["offset"], chr(value & 0xFF)) or not self.writeToEeprom(connection, self.eepromOffsets["eMotorCurrent"]["offset"] + 1, chr((value >> 8) & 0xFF)) :
-				
-				# Return false
-				return False
+		if self.eepromGetInt("eMotorCurrent") != value :
+		
+			# Return if saving extruder current in EEPROM was successful
+			return self.eepromSetInt(connection, "eMotorCurrent", value)
 		
 		# Return true
 		return True
@@ -3505,8 +3475,8 @@ class M3DFioPlugin(
 				# Get line number
 				lineNumber = int(re.findall("^N(\d+)", data)[0])
 				
-				# Check if using shared library
-				if self.sharedLibrary and self._settings.get_boolean(["UseSharedLibrary"]) :
+				# Check if shared library was loaded
+				if self.sharedLibrary :
 				
 					# Pre-process command
 					commands = self.sharedLibrary.preprocess(ctypes.c_char_p(data), ctypes.c_char_p(None), ctypes.c_bool(False)).split(',')
@@ -3991,9 +3961,6 @@ class M3DFioPlugin(
 			# Clear last response was wait
 			self.lastResponseWasWait = False
 		
-		# Log received data
-		self._m3dfio_logger.debug("Processed Response: " + response)
-		
 		# Check if response is a temperature reading
 		if response.startswith("T:") or " T:" in response :
 		
@@ -4148,6 +4115,9 @@ class M3DFioPlugin(
 			
 			# Send message
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = response[3 :].strip(), header = "Error Status", confirm = True))
+		
+		# Log received data
+		self._m3dfio_logger.debug("Processed Response: " + response)
 		
 		# Return response
 		return response
@@ -4439,11 +4409,14 @@ class M3DFioPlugin(
 			# Send provided firmware versions
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Provided Firmwares", firmwares = self.providedFirmwares))
 			
-			# Check if shared library exists
-			if self.sharedLibrary :
+			# Check if shared library is usable
+			if self.loadSharedLibrary(True) :
 		
 				# Show shared library options
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Using Shared Library"))
+				
+				# Unload shared library
+				self.unloadSharedLibrary()
 		
 			# Otherwise
 			else :
@@ -4577,56 +4550,11 @@ class M3DFioPlugin(
 				# Display message
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Collecting print information", header = "Printing Status"))
 	
-				# Check if using shared library
-				if self.sharedLibrary and self._settings.get_boolean(["UseSharedLibrary"]) :
+				# Check if shared library was loaded
+				if self.loadSharedLibrary() :
 	
-					# Reset pre-processor settings
-					self.sharedLibrary.resetPreprocessorSettings()
-
-					# Set values
-					self.sharedLibrary.setBacklashX(ctypes.c_double(self._settings.get_float(["BacklashX"])))
-					self.sharedLibrary.setBacklashY(ctypes.c_double(self._settings.get_float(["BacklashY"])))
-					self.sharedLibrary.setBacklashSpeed(ctypes.c_double(self._settings.get_float(["BacklashSpeed"])))
-					self.sharedLibrary.setBackRightOrientation(ctypes.c_double(self._settings.get_float(["BackRightOrientation"])))
-					self.sharedLibrary.setBackLeftOrientation(ctypes.c_double(self._settings.get_float(["BackLeftOrientation"])))
-					self.sharedLibrary.setFrontLeftOrientation(ctypes.c_double(self._settings.get_float(["FrontLeftOrientation"])))
-					self.sharedLibrary.setFrontRightOrientation(ctypes.c_double(self._settings.get_float(["FrontRightOrientation"])))
-					self.sharedLibrary.setBedHeightOffset(ctypes.c_double(self._settings.get_float(["BedHeightOffset"])))
-					self.sharedLibrary.setBackRightOffset(ctypes.c_double(self._settings.get_float(["BackRightOffset"])))
-					self.sharedLibrary.setBackLeftOffset(ctypes.c_double(self._settings.get_float(["BackLeftOffset"])))
-					self.sharedLibrary.setFrontLeftOffset(ctypes.c_double(self._settings.get_float(["FrontLeftOffset"])))
-					self.sharedLibrary.setFrontRightOffset(ctypes.c_double(self._settings.get_float(["FrontRightOffset"])))
-					self.sharedLibrary.setFilamentTemperature(ctypes.c_ushort(self._settings.get_int(["FilamentTemperature"])))
-					self.sharedLibrary.setFilamentType(ctypes.c_char_p(str(self._settings.get(["FilamentType"]))))
-					self.sharedLibrary.setUseValidationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseValidationPreprocessor"])))
-					self.sharedLibrary.setUsePreparationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UsePreparationPreprocessor"])))
-					self.sharedLibrary.setUseWaveBondingPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseWaveBondingPreprocessor"])))
-					self.sharedLibrary.setUseThermalBondingPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseThermalBondingPreprocessor"])))
-					self.sharedLibrary.setUseBedCompensationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseBedCompensationPreprocessor"])))
-					self.sharedLibrary.setUseBacklashCompensationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseBacklashCompensationPreprocessor"])))
-					self.sharedLibrary.setUseCenterModelPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseCenterModelPreprocessor"])))
-					self.sharedLibrary.setIgnorePrintDimensionLimitations(ctypes.c_bool(self._settings.get_boolean(["IgnorePrintDimensionLimitations"])))
-					self.sharedLibrary.setUsingHeatbed(ctypes.c_bool(self.heatbedConnected))
-					self.sharedLibrary.setPrintingTestBorder(ctypes.c_bool(self.printingTestBorder))
-					self.sharedLibrary.setPrintingBacklashCalibration(ctypes.c_bool(self.printingBacklashCalibration))
-					self.sharedLibrary.setPrinterColor(ctypes.c_char_p(self.printerColor))
-					self.sharedLibrary.setCalibrateBeforePrint(ctypes.c_bool(self._settings.get_boolean(["CalibrateBeforePrint"])))
-					self.sharedLibrary.setRemoveFanCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveFanCommands"])))
-					self.sharedLibrary.setRemoveTemperatureCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveTemperatureCommands"])))
-					if self._settings.get_int(["GpioLayer"]) is not None :
-						self.sharedLibrary.setUseGpio(ctypes.c_bool(self._settings.get_boolean(["UseGpio"])))
-						self.sharedLibrary.setGpioLayer(ctypes.c_ushort(self._settings.get_int(["GpioLayer"])))
-					else :
-						self.sharedLibrary.setUseGpio(ctypes.c_bool(False))
-					self.sharedLibrary.setHeatbedTemperature(ctypes.c_ushort(self._settings.get_int(["HeatbedTemperature"])))
-					self.sharedLibrary.setExternalBedHeight(ctypes.c_double(self._settings.get_float(["ExternalBedHeight"])))
-					self.sharedLibrary.setExpandPrintableRegion(ctypes.c_bool(self._settings.get_boolean(["ExpandPrintableRegion"])))
-					self.sharedLibrary.setMidPrintFilamentChangeLayers(ctypes.c_char_p(' '.join(re.findall("\\d+", str(self._settings.get(["MidPrintFilamentChangeLayers"]))))))
-					self.sharedLibrary.setChangeLedBrightness(ctypes.c_bool(self._settings.get_boolean(["ChangeLedBrightness"])))
-					if self.currentFirmwareType is None :
-						self.sharedLibrary.setFirmwareType(ctypes.c_char_p(""))
-					else :
-						self.sharedLibrary.setFirmwareType(ctypes.c_char_p(self.currentFirmwareType))
+					# Set shared library settings
+					self.setSharedLibrarySettings()
 				
 					# Collect print information
 					printIsValid = self.sharedLibrary.collectPrintInformation(ctypes.c_char_p(payload["file"]), ctypes.c_bool(self._settings.get_boolean(["PreprocessOnTheFly"])))
@@ -4655,6 +4583,12 @@ class M3DFioPlugin(
 				
 					# Get object successfully centered
 					self.objectSuccessfullyCentered = self.sharedLibrary.getObjectSuccessfullyCentered()
+					
+					# Check if not pre-processing on the fly
+					if not self._settings.get_boolean(["PreprocessOnTheFly"]) :
+					
+						# Unload shared library
+						self.unloadSharedLibrary()
 
 				# Otherwise
 				else :
@@ -4697,7 +4631,7 @@ class M3DFioPlugin(
 		
 							# Create message
 							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "notice", title = "Print warning", text = "Object too large to center on print bed"))
-			
+				
 				# Set ready to print
 				self.readyToPrint = True
 			
@@ -4738,11 +4672,14 @@ class M3DFioPlugin(
 				# Check if pre-processing on the fly
 				if self._settings.get_boolean(["PreprocessOnTheFly"]) :
 				
-					# Check if using shared library
-					if self.sharedLibrary and self._settings.get_boolean(["UseSharedLibrary"]) :
+					# Check if shared library was loaded
+					if self.sharedLibrary :
 				
 						# Pre-process command
 						commands = self.sharedLibrary.preprocess(ctypes.c_char_p("G4"), ctypes.c_char_p(None), ctypes.c_bool(True)).split(',')
+						
+						# Unload shared library
+						self.unloadSharedLibrary()
 				
 					# Otherwise
 					else :
@@ -4765,11 +4702,17 @@ class M3DFioPlugin(
 			# Otherwise
 			else :
 			
+				# Unload shared library
+				self.unloadSharedLibrary()
+			
 				# Enable sleep
 				self.enableSleep()
 		
 		# Otherwise check if a print failed
 		elif event == octoprint.events.Events.PRINT_FAILED :
+		
+			# Unload shared library
+			self.unloadSharedLibrary()
 		
 			# Check if using a Micro 3D printer
 			if not self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
@@ -4896,28 +4839,40 @@ class M3DFioPlugin(
 	# Send printer details
 	def sendPrinterDetails(self) :
 	
-		# Get serial number from EEPROM
-		serialNumber = self.eeprom[self.eepromOffsets["serialNumber"]["offset"] : self.eepromOffsets["serialNumber"]["offset"] + self.eepromOffsets["serialNumber"]["bytes"] - 1]
-
 		# Send printer details
-		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Printer Details", serialNumber = serialNumber, serialPort = self._printer.get_transport().port))
+		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Printer Details", serialNumber = self.eepromGetString("serialNumber"), serialPort = self._printer.get_transport().port))
 	
-	# Set EEPROM value
-	def setEepromValue(self, connection, eepromName, value) :
+	# Float to int
+	def floatToInt(self, value) :
+	
+		# Return int representation of float value
+		packed = struct.pack('f', value)
+		return ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
+	
+	# Int to float
+	def intToFloat(self, value) :
+		
+		# Return float representation of int value
+		data = [int(ord(chr(value & 0xFF))), int(ord(chr((value >> 8) & 0xFF))), int(ord(chr((value >> 16) & 0xFF))), int(ord(chr((value >> 24) & 0xFF)))]
+		bytes = struct.pack("4B", *data)
+		return round(struct.unpack('f', bytes)[0], 6)
+	
+	# EEPROM set int
+	def eepromSetInt(self, connection, eepromName, value, length = 0) :
 	
 		# Set error
 		error = False
-
-		# Convert value to binary
-		packed = struct.pack('f', value)
-		floatValue = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
+		
+		# Set length if not provided
+		if length == 0 :
+			length = self.eepromOffsets[eepromName]["bytes"]
 
 		# Go through bytes of EEPROM value
 		index = 0
-		while index < self.eepromOffsets[eepromName]["bytes"] :
+		while index < length :
 
 			# Check if saving EEPROM value failed
-			if not error and not self.writeToEeprom(connection, self.eepromOffsets[eepromName]["offset"] + index, chr((floatValue >> 8 * index) & 0xFF)) :
+			if not error and not self.writeToEeprom(connection, self.eepromOffsets[eepromName]["offset"] + index, chr((value >> 8 * index) & 0xFF)) :
 
 				# Set error
 				error = True
@@ -4928,22 +4883,54 @@ class M3DFioPlugin(
 		# Return error
 		return error
 	
-	# Keep EEPROM value within range
-	def keepEepromValueWithinRange(self, connection, eepromName, minValue, maxValue, defaultValue) :
+	# EEPROM set float
+	def eepromSetFloat(self, connection, eepromName, value) :
+	
+		# Return if saving EEPROM value was successful
+		return self.eepromSetInt(connection, eepromName, self.floatToInt(value))
+	
+	# EEPROM get int
+	def eepromGetInt(self, eepromName) :
+	
+		# Initialize value
+		value = 0
+		
+		# Get int from EEPROM
+		index = self.eepromOffsets[eepromName]["bytes"] - 1
+		while index >= 0 :
+			value <<= 8
+			value += int(ord(self.eeprom[self.eepromOffsets[eepromName]["offset"] + index]))
+			index -= 1
+		
+		# Return value
+		return value
+	
+	# EEPROM get float
+	def eepromGetFloat(self, eepromName) :
+	
+		# Get float from EEPROM
+		return self.intToFloat(self.eepromGetInt(eepromName))
+	
+	# EEPROM get string
+	def eepromGetString(self, eepromName) :
+	
+		# Get string from EEPROM
+		return self.eeprom[self.eepromOffsets[eepromName]["offset"] : self.eepromOffsets[eepromName]["offset"] + self.eepromOffsets[eepromName]["bytes"] - 1]
+	
+	# EEPROM keep float within range
+	def eepromKeepFloatWithinRange(self, connection, eepromName, minValue, maxValue, defaultValue) :
 	
 		# Set error
 		error = False
-	
+		
 		# Get EEROM value in single-precision floating-point format 
-		data = [int(ord(self.eeprom[self.eepromOffsets[eepromName]["offset"]])), int(ord(self.eeprom[self.eepromOffsets[eepromName]["offset"] + 1])), int(ord(self.eeprom[self.eepromOffsets[eepromName]["offset"] + 2])), int(ord(self.eeprom[self.eepromOffsets[eepromName]["offset"] + 3]))]
-		bytes = struct.pack("4B", *data)
-		floatValue = struct.unpack('f', bytes)[0]
+		floatValue = self.eepromGetFloat(eepromName)
 
 		# Check if EEPROM value is invalid
 		if not isinstance(floatValue, float) or math.isnan(floatValue) or round(floatValue, 6) < minValue or round(floatValue, 6) > maxValue :
 		
 			# Set error to if setting default value in EEPROM failed
-			error = self.setEepromValue(connection, eepromName, defaultValue)
+			error = self.eepromSetFloat(connection, eepromName, defaultValue)
 		
 		# Return error
 		return error
@@ -5094,12 +5081,7 @@ class M3DFioPlugin(
 						if self.getEeprom(connection) :
 					
 							# Get firmware CRC from EEPROM
-							eepromCrc = 0
-							index = 3
-							while index >= 0 :
-								eepromCrc <<= 8
-								eepromCrc += int(ord(self.eeprom[self.eepromOffsets["firmwareCrc"]["offset"] + index]))
-								index -= 1
+							eepromCrc = self.eepromGetInt("firmwareCrc")
 				
 							# Request firmware CRC from chip
 							connection.write('C')
@@ -5120,7 +5102,7 @@ class M3DFioPlugin(
 							firmwareType, firmwareVersion, firmwareRelease = self.getFirmwareDetails()
 					
 							# Get serial number from EEPROM
-							serialNumber = self.eeprom[self.eepromOffsets["serialNumber"]["offset"] : self.eepromOffsets["serialNumber"]["offset"] + self.eepromOffsets["serialNumber"]["bytes"] - 1]
+							serialNumber = self.eepromGetString("serialNumber")
 				
 							# Set printer color
 							color = serialNumber[0 : 2]
@@ -5150,7 +5132,7 @@ class M3DFioPlugin(
 								self._settings.set(["PrinterColor"], "Purple")
 				
 							# Get fan type from EEPROM
-							fanType = int(ord(self.eeprom[self.eepromOffsets["fanType"]["offset"]]))
+							fanType = self.eepromGetInt("fanType")
 				
 							# Check if fan hasn't been set yet
 							if fanType == 0 or fanType == 0xFF :
@@ -5217,25 +5199,15 @@ class M3DFioPlugin(
 				
 							# Check if using M3D or M3D Mod firmware and it's from before new bed orientation and adjustable backlash speed
 							if not error and firmwareType is not None and ((firmwareType == "M3D" and firmwareVersion < 2015080402) or (firmwareType == "M3D Mod" and firmwareVersion < 2115080402)) :
-					
-								# Go through bytes of bed offsets
-								index = 0
-								while index < self.eepromOffsets["bedHeightOffset"]["offset"] + self.eepromOffsets["bedHeightOffset"]["bytes"] - self.eepromOffsets["bedOffsetBackLeft"]["offset"] :
-
-									# Check if zeroing out all bed offets in EEPROM failed
-									if not error and not self.writeToEeprom(connection, self.eepromOffsets["bedOffsetBackLeft"]["offset"] + index, '\x00') :
-				
-										# Set error
-										error = True
-			
-									# Increment index
-									index += 1
+							
+								# Set error to if zeroing out all bed offets in EEPROM failed
+								error = self.eepromSetInt(connection, "bedOffsetBackLeft", 0, self.eepromOffsets["bedHeightOffset"]["offset"] + self.eepromOffsets["bedHeightOffset"]["bytes"] - self.eepromOffsets["bedOffsetBackLeft"]["offset"])
 					
 								# Check if an error hasn't occured
 								if not error :
 								
 									# Set error to if setting default backlash speed failed
-									error = self.setEepromValue(connection, "backlashSpeed", 1500)
+									error = self.eepromSetFloat(connection, "backlashSpeed", 1500)
 						
 								# Check if an error has occured
 								if error :
@@ -5247,121 +5219,121 @@ class M3DFioPlugin(
 							if not error :
 							
 								# Set error to if limiting backlash X failed
-								error = self.keepEepromValueWithinRange(connection, "backlashX", 0, 2, self.get_settings_defaults()["BacklashX"])
+								error = self.eepromKeepFloatWithinRange(connection, "backlashX", 0, 2, self.get_settings_defaults()["BacklashX"])
 							
 								# Check if an error hasn't occured
 								if not error :
 							
 									# Set error to if limiting backlash Y failed
-									error = self.keepEepromValueWithinRange(connection, "backlashY", 0, 2, self.get_settings_defaults()["BacklashY"])
+									error = self.eepromKeepFloatWithinRange(connection, "backlashY", 0, 2, self.get_settings_defaults()["BacklashY"])
 							
 								# Check if an error hasn't occured
 								if not error :
 							
 									# Set error to if limiting backlash speed failed
-									error = self.keepEepromValueWithinRange(connection, "backlashSpeed", 1, 5000, self.get_settings_defaults()["BacklashSpeed"])
+									error = self.eepromKeepFloatWithinRange(connection, "backlashSpeed", 1, 5000, self.get_settings_defaults()["BacklashSpeed"])
 							
 								# Check if an error hasn't occured
 								if not error :
 							
 									# Set error to if limiting back left orientation failed
-									error = self.keepEepromValueWithinRange(connection, "bedOrientationBackLeft", -3, 3, self.get_settings_defaults()["BackLeftOrientation"])
+									error = self.eepromKeepFloatWithinRange(connection, "bedOrientationBackLeft", -3, 3, self.get_settings_defaults()["BackLeftOrientation"])
 							
 								# Check if an error hasn't occured
 								if not error :
 							
 									# Set error to if limiting back right orientation failed
-									error = self.keepEepromValueWithinRange(connection, "bedOrientationBackRight", -3, 3, self.get_settings_defaults()["BackRightOrientation"])
+									error = self.eepromKeepFloatWithinRange(connection, "bedOrientationBackRight", -3, 3, self.get_settings_defaults()["BackRightOrientation"])
 							
 								# Check if an error hasn't occured
 								if not error :
 							
 									# Set error to if limiting front right orientation failed
-									error = self.keepEepromValueWithinRange(connection, "bedOrientationFrontRight", -3, 3, self.get_settings_defaults()["FrontRightOrientation"])
+									error = self.eepromKeepFloatWithinRange(connection, "bedOrientationFrontRight", -3, 3, self.get_settings_defaults()["FrontRightOrientation"])
 							
 								# Check if an error hasn't occured
 								if not error :
 							
 									# Set error to if limiting front left orientation failed
-									error = self.keepEepromValueWithinRange(connection, "bedOrientationFrontLeft", -3, 3, self.get_settings_defaults()["FrontLeftOrientation"])
+									error = self.eepromKeepFloatWithinRange(connection, "bedOrientationFrontLeft", -3, 3, self.get_settings_defaults()["FrontLeftOrientation"])
 							
 								# Check if an error hasn't occured
 								if not error :
 							
 									# Set error to if limiting back left offset failed
-									error = self.keepEepromValueWithinRange(connection, "bedOffsetBackLeft", -sys.float_info.max, sys.float_info.max, self.get_settings_defaults()["BackLeftOffset"])
+									error = self.eepromKeepFloatWithinRange(connection, "bedOffsetBackLeft", -sys.float_info.max, sys.float_info.max, self.get_settings_defaults()["BackLeftOffset"])
 							
 								# Check if an error hasn't occured
 								if not error :
 							
 									# Set error to if limiting back right offset failed
-									error = self.keepEepromValueWithinRange(connection, "bedOffsetBackRight", -sys.float_info.max, sys.float_info.max, self.get_settings_defaults()["BackRightOffset"])
+									error = self.eepromKeepFloatWithinRange(connection, "bedOffsetBackRight", -sys.float_info.max, sys.float_info.max, self.get_settings_defaults()["BackRightOffset"])
 							
 								# Check if an error hasn't occured
 								if not error :
 							
 									# Set error to if limiting front right offset failed
-									error = self.keepEepromValueWithinRange(connection, "bedOffsetFrontRight", -sys.float_info.max, sys.float_info.max, self.get_settings_defaults()["FrontRightOffset"])
+									error = self.eepromKeepFloatWithinRange(connection, "bedOffsetFrontRight", -sys.float_info.max, sys.float_info.max, self.get_settings_defaults()["FrontRightOffset"])
 							
 								# Check if an error hasn't occured
 								if not error :
 							
 									# Set error to if limiting front left offset failed
-									error = self.keepEepromValueWithinRange(connection, "bedOffsetFrontLeft", -sys.float_info.max, sys.float_info.max, self.get_settings_defaults()["FrontLeftOffset"])
+									error = self.eepromKeepFloatWithinRange(connection, "bedOffsetFrontLeft", -sys.float_info.max, sys.float_info.max, self.get_settings_defaults()["FrontLeftOffset"])
 							
 								# Check if an error hasn't occured
 								if not error :
 							
 									# Set error to if limiting bed height offset offset failed
-									error = self.keepEepromValueWithinRange(connection, "bedHeightOffset", -sys.float_info.max, sys.float_info.max, self.get_settings_defaults()["BedHeightOffset"])
+									error = self.eepromKeepFloatWithinRange(connection, "bedHeightOffset", -sys.float_info.max, sys.float_info.max, self.get_settings_defaults()["BedHeightOffset"])
 								
 								# Check if an error hasn't occured
 								if not error :
 							
 									# Set error to if limiting speed limit X failed
-									error = self.keepEepromValueWithinRange(connection, "speedLimitX", 120, 4800, self.get_settings_defaults()["SpeedLimitX"])
+									error = self.eepromKeepFloatWithinRange(connection, "speedLimitX", 120, 4800, self.get_settings_defaults()["SpeedLimitX"])
 							
 								# Check if an error hasn't occured
 								if not error :
 							
 									# Set error to if limiting speed limit Y failed
-									error = self.keepEepromValueWithinRange(connection, "speedLimitY", 120, 4800, self.get_settings_defaults()["SpeedLimitY"])
+									error = self.eepromKeepFloatWithinRange(connection, "speedLimitY", 120, 4800, self.get_settings_defaults()["SpeedLimitY"])
 				
 								# Check if an error hasn't occured
 								if not error :
 							
 									# Set error to if limiting speed limit Z failed
-									error = self.keepEepromValueWithinRange(connection, "speedLimitZ", 30, 60, self.get_settings_defaults()["SpeedLimitZ"])
+									error = self.eepromKeepFloatWithinRange(connection, "speedLimitZ", 30, 60, self.get_settings_defaults()["SpeedLimitZ"])
 							
 								# Check if an error hasn't occured
 								if not error :
 							
 									# Set error to if limiting speed limit E positive failed
-									error = self.keepEepromValueWithinRange(connection, "speedLimitEPositive", 60, 600, self.get_settings_defaults()["SpeedLimitEPositive"])
+									error = self.eepromKeepFloatWithinRange(connection, "speedLimitEPositive", 60, 600, self.get_settings_defaults()["SpeedLimitEPositive"])
 							
 								# Check if an error hasn't occured
 								if not error :
 							
 									# Set error to if limiting speed limit E negative failed
-									error = self.keepEepromValueWithinRange(connection, "speedLimitENegative", 60, 720, self.get_settings_defaults()["SpeedLimitENegative"])
+									error = self.eepromKeepFloatWithinRange(connection, "speedLimitENegative", 60, 720, self.get_settings_defaults()["SpeedLimitENegative"])
 							
 								# Check if an error hasn't occured and using iMe firmware
 								if not error and firmwareType == "iMe" :
 							
 									# Set error to if limiting last recorded X value failed
-									error = self.keepEepromValueWithinRange(connection, "lastRecordedXValue", -sys.float_info.max, sys.float_info.max, 54)
+									error = self.eepromKeepFloatWithinRange(connection, "lastRecordedXValue", -sys.float_info.max, sys.float_info.max, 54)
 							
 								# Check if an error hasn't occured and using iMe firmware
 								if not error and firmwareType == "iMe" :
 							
 									# Set error to if limiting last recorded Y value failed
-									error = self.keepEepromValueWithinRange(connection, "lastRecordedYValue", -sys.float_info.max, sys.float_info.max, 50)
+									error = self.eepromKeepFloatWithinRange(connection, "lastRecordedYValue", -sys.float_info.max, sys.float_info.max, 50)
 							
 								# Check if an error hasn't occured
 								if not error :
 							
 									# Set error to if limiting last recorded Z value failed
-									error = self.keepEepromValueWithinRange(connection, "lastRecordedZValue", -sys.float_info.max, sys.float_info.max, 5)
+									error = self.eepromKeepFloatWithinRange(connection, "lastRecordedZValue", -sys.float_info.max, sys.float_info.max, 5)
 								
 								# Check if an error has occured
 								if error :
@@ -5969,10 +5941,7 @@ class M3DFioPlugin(
 			if "PT:" + str(self.eepromOffsets["backlashX"]["offset"]) + ' ' in data :
 			
 				# Convert data to float
-				value = int(data[data.find("DT:") + 3 :])
-				data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
-				bytes = struct.pack("4B", *data)
-				value = struct.unpack('f', bytes)[0]
+				value = self.intToFloat(int(data[data.find("DT:") + 3 :]))
 				
 				if not isinstance(value, float) or math.isnan(value) :
 					self.printerBacklashX = self.get_settings_defaults()["BacklashX"]
@@ -5987,10 +5956,7 @@ class M3DFioPlugin(
 			elif "PT:" + str(self.eepromOffsets["backlashY"]["offset"]) + ' ' in data :
 			
 				# Convert data to float
-				value = int(data[data.find("DT:") + 3 :])
-				data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
-				bytes = struct.pack("4B", *data)
-				value = struct.unpack('f', bytes)[0]
+				value = self.intToFloat(int(data[data.find("DT:") + 3 :]))
 				
 				if not isinstance(value, float) or math.isnan(value) :
 					self.printerBacklashY = self.get_settings_defaults()["BacklashY"]
@@ -6005,10 +5971,7 @@ class M3DFioPlugin(
 			elif "PT:" + str(self.eepromOffsets["bedOrientationBackRight"]["offset"]) + ' ' in data :
 			
 				# Convert data to float
-				value = int(data[data.find("DT:") + 3 :])
-				data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
-				bytes = struct.pack("4B", *data)
-				value = struct.unpack('f', bytes)[0]
+				value = self.intToFloat(int(data[data.find("DT:") + 3 :]))
 				
 				if not isinstance(value, float) or math.isnan(value) :
 					self.printerBackRightOrientation = self.get_settings_defaults()["BackRightOrientation"]
@@ -6023,10 +5986,7 @@ class M3DFioPlugin(
 			elif "PT:" + str(self.eepromOffsets["bedOrientationBackLeft"]["offset"]) + ' ' in data :
 			
 				# Convert data to float
-				value = int(data[data.find("DT:") + 3 :])
-				data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
-				bytes = struct.pack("4B", *data)
-				value = struct.unpack('f', bytes)[0]
+				value = self.intToFloat(int(data[data.find("DT:") + 3 :]))
 				
 				if not isinstance(value, float) or math.isnan(value) :
 					self.printerBackLeftOrientation = self.get_settings_defaults()["BackLeftOrientation"]
@@ -6041,10 +6001,7 @@ class M3DFioPlugin(
 			elif "PT:" + str(self.eepromOffsets["bedOrientationFrontLeft"]["offset"]) + ' ' in data :
 			
 				# Convert data to float
-				value = int(data[data.find("DT:") + 3 :])
-				data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
-				bytes = struct.pack("4B", *data)
-				value = struct.unpack('f', bytes)[0]
+				value = self.intToFloat(int(data[data.find("DT:") + 3 :]))
 				
 				if not isinstance(value, float) or math.isnan(value) :
 					self.printerFrontLeftOrientation = self.get_settings_defaults()["FrontLeftOrientation"]
@@ -6059,10 +6016,7 @@ class M3DFioPlugin(
 			elif "PT:" + str(self.eepromOffsets["bedOrientationFrontRight"]["offset"]) + ' ' in data :
 			
 				# Convert data to float
-				value = int(data[data.find("DT:") + 3 :])
-				data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
-				bytes = struct.pack("4B", *data)
-				value = struct.unpack('f', bytes)[0]
+				value = self.intToFloat(int(data[data.find("DT:") + 3 :]))
 				
 				if not isinstance(value, float) or math.isnan(value) :
 					self.printerFrontRightOrientation = self.get_settings_defaults()["FrontRightOrientation"]
@@ -6117,10 +6071,7 @@ class M3DFioPlugin(
 			elif "PT:" + str(self.eepromOffsets["bedOffsetBackLeft"]["offset"]) + ' ' in data :
 			
 				# Convert data to float
-				value = int(data[data.find("DT:") + 3 :])
-				data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
-				bytes = struct.pack("4B", *data)
-				value = struct.unpack('f', bytes)[0]
+				value = self.intToFloat(int(data[data.find("DT:") + 3 :]))
 				
 				if not isinstance(value, float) or math.isnan(value) :
 					self.printerBackLeftOffset = self.get_settings_defaults()["BackLeftOffset"]
@@ -6135,10 +6086,7 @@ class M3DFioPlugin(
 			elif "PT:" + str(self.eepromOffsets["bedOffsetBackRight"]["offset"]) + ' ' in data :
 			
 				# Convert data to float
-				value = int(data[data.find("DT:") + 3 :])
-				data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
-				bytes = struct.pack("4B", *data)
-				value = struct.unpack('f', bytes)[0]
+				value = self.intToFloat(int(data[data.find("DT:") + 3 :]))
 				
 				if not isinstance(value, float) or math.isnan(value) :
 					self.printerBackRightOffset = self.get_settings_defaults()["BackRightOffset"]
@@ -6153,10 +6101,7 @@ class M3DFioPlugin(
 			elif "PT:" + str(self.eepromOffsets["bedOffsetFrontRight"]["offset"]) + ' ' in data :
 			
 				# Convert data to float
-				value = int(data[data.find("DT:") + 3 :])
-				data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
-				bytes = struct.pack("4B", *data)
-				value = struct.unpack('f', bytes)[0]
+				value = self.intToFloat(int(data[data.find("DT:") + 3 :]))
 				
 				if not isinstance(value, float) or math.isnan(value) :
 					self.printerFrontRightOffset = self.get_settings_defaults()["FrontRightOffset"]
@@ -6171,10 +6116,7 @@ class M3DFioPlugin(
 			elif "PT:" + str(self.eepromOffsets["bedOffsetFrontLeft"]["offset"]) + ' ' in data :
 			
 				# Convert data to float
-				value = int(data[data.find("DT:") + 3 :])
-				data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
-				bytes = struct.pack("4B", *data)
-				value = struct.unpack('f', bytes)[0]
+				value = self.intToFloat(int(data[data.find("DT:") + 3 :]))
 				
 				if not isinstance(value, float) or math.isnan(value) :
 					self.printerFrontLeftOffset = self.get_settings_defaults()["FrontLeftOffset"]
@@ -6189,10 +6131,7 @@ class M3DFioPlugin(
 			elif "PT:" + str(self.eepromOffsets["bedHeightOffset"]["offset"]) + ' ' in data :
 			
 				# Convert data to float
-				value = int(data[data.find("DT:") + 3 :])
-				data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
-				bytes = struct.pack("4B", *data)
-				value = struct.unpack('f', bytes)[0]
+				value = self.intToFloat(int(data[data.find("DT:") + 3 :]))
 				
 				if not isinstance(value, float) or math.isnan(value) :
 					self.printerBedHeightOffset = self.get_settings_defaults()["BedHeightOffset"]
@@ -6207,10 +6146,7 @@ class M3DFioPlugin(
 			elif "PT:" + str(self.eepromOffsets["backlashSpeed"]["offset"]) + ' ' in data :
 			
 				# Convert data to float
-				value = int(data[data.find("DT:") + 3 :])
-				data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
-				bytes = struct.pack("4B", *data)
-				value = struct.unpack('f', bytes)[0]
+				value = self.intToFloat(int(data[data.find("DT:") + 3 :]))
 				
 				if not isinstance(value, float) or math.isnan(value) :
 					self.printerBacklashSpeed = self.get_settings_defaults()["BacklashSpeed"]
@@ -6225,10 +6161,7 @@ class M3DFioPlugin(
 			elif "PT:" + str(self.eepromOffsets["speedLimitX"]["offset"]) + ' ' in data :
 			
 				# Convert data to float
-				value = int(data[data.find("DT:") + 3 :])
-				data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
-				bytes = struct.pack("4B", *data)
-				value = struct.unpack('f', bytes)[0]
+				value = self.intToFloat(int(data[data.find("DT:") + 3 :]))
 				
 				if not isinstance(value, float) or math.isnan(value) :
 					self.printerSpeedLimitX = self.get_settings_defaults()["SpeedLimitX"]
@@ -6243,10 +6176,7 @@ class M3DFioPlugin(
 			elif "PT:" + str(self.eepromOffsets["speedLimitY"]["offset"]) + ' ' in data :
 			
 				# Convert data to float
-				value = int(data[data.find("DT:") + 3 :])
-				data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
-				bytes = struct.pack("4B", *data)
-				value = struct.unpack('f', bytes)[0]
+				value = self.intToFloat(int(data[data.find("DT:") + 3 :]))
 				
 				if not isinstance(value, float) or math.isnan(value) :
 					self.printerSpeedLimitY = self.get_settings_defaults()["SpeedLimitY"]
@@ -6261,10 +6191,7 @@ class M3DFioPlugin(
 			elif "PT:" + str(self.eepromOffsets["speedLimitZ"]["offset"]) + ' ' in data :
 			
 				# Convert data to float
-				value = int(data[data.find("DT:") + 3 :])
-				data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
-				bytes = struct.pack("4B", *data)
-				value = struct.unpack('f', bytes)[0]
+				value = self.intToFloat(int(data[data.find("DT:") + 3 :]))
 				
 				if not isinstance(value, float) or math.isnan(value) :
 					self.printerSpeedLimitZ = self.get_settings_defaults()["SpeedLimitZ"]
@@ -6279,10 +6206,7 @@ class M3DFioPlugin(
 			elif "PT:" + str(self.eepromOffsets["speedLimitEPositive"]["offset"]) + ' ' in data :
 			
 				# Convert data to float
-				value = int(data[data.find("DT:") + 3 :])
-				data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
-				bytes = struct.pack("4B", *data)
-				value = struct.unpack('f', bytes)[0]
+				value = self.intToFloat(int(data[data.find("DT:") + 3 :]))
 				
 				if not isinstance(value, float) or math.isnan(value) :
 					self.printerSpeedLimitEPositive = self.get_settings_defaults()["SpeedLimitEPositive"]
@@ -6297,10 +6221,7 @@ class M3DFioPlugin(
 			elif "PT:" + str(self.eepromOffsets["speedLimitENegative"]["offset"]) + ' ' in data :
 			
 				# Convert data to float
-				value = int(data[data.find("DT:") + 3 :])
-				data = [value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
-				bytes = struct.pack("4B", *data)
-				value = struct.unpack('f', bytes)[0]
+				value = self.intToFloat(int(data[data.find("DT:") + 3 :]))
 				
 				if not isinstance(value, float) or math.isnan(value) :
 					self.printerSpeedLimitENegative = self.get_settings_defaults()["SpeedLimitENegative"]
@@ -6417,97 +6338,73 @@ class M3DFioPlugin(
 		if hasattr(self, "printerBacklashX") and self.printerBacklashX != softwareBacklashX :
 
 			# Add new value to list
-			packed = struct.pack('f', softwareBacklashX)
-			newValue = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
-			commandList += ["M618 S" + str(self.eepromOffsets["backlashX"]["offset"]) + " T" + str(self.eepromOffsets["backlashX"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.eepromOffsets["backlashX"]["offset"]) + " T" + str(self.eepromOffsets["backlashX"]["bytes"])]
+			commandList += ["M618 S" + str(self.eepromOffsets["backlashX"]["offset"]) + " T" + str(self.eepromOffsets["backlashX"]["bytes"]) + " P" + str(self.floatToInt(softwareBacklashX)), "M619 S" + str(self.eepromOffsets["backlashX"]["offset"]) + " T" + str(self.eepromOffsets["backlashX"]["bytes"])]
 
 		# Check if backlash Ys differ
 		if hasattr(self, "printerBacklashY") and self.printerBacklashY != softwareBacklashY :
 
 			# Add new value to list
-			packed = struct.pack('f', softwareBacklashY)
-			newValue = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
-			commandList += ["M618 S" + str(self.eepromOffsets["backlashY"]["offset"]) + " T" + str(self.eepromOffsets["backlashY"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.eepromOffsets["backlashY"]["offset"]) + " T" + str(self.eepromOffsets["backlashY"]["bytes"])]
+			commandList += ["M618 S" + str(self.eepromOffsets["backlashY"]["offset"]) + " T" + str(self.eepromOffsets["backlashY"]["bytes"]) + " P" + str(self.floatToInt(softwareBacklashY)), "M619 S" + str(self.eepromOffsets["backlashY"]["offset"]) + " T" + str(self.eepromOffsets["backlashY"]["bytes"])]
 
 		# Check if back right orientations differ
 		if hasattr(self, "printerBackRightOrientation") and self.printerBackRightOrientation != softwareBackRightOrientation :
 
 			# Add new value to list
-			packed = struct.pack('f', softwareBackRightOrientation)
-			newValue = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
-			commandList += ["M618 S" + str(self.eepromOffsets["bedOrientationBackRight"]["offset"]) + " T" + str(self.eepromOffsets["bedOrientationBackRight"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.eepromOffsets["bedOrientationBackRight"]["offset"]) + " T" + str(self.eepromOffsets["bedOrientationBackRight"]["bytes"])]
+			commandList += ["M618 S" + str(self.eepromOffsets["bedOrientationBackRight"]["offset"]) + " T" + str(self.eepromOffsets["bedOrientationBackRight"]["bytes"]) + " P" + str(self.floatToInt(softwareBackRightOrientation)), "M619 S" + str(self.eepromOffsets["bedOrientationBackRight"]["offset"]) + " T" + str(self.eepromOffsets["bedOrientationBackRight"]["bytes"])]
 
 		# Check if back left orientations differ
 		if hasattr(self, "printerBackLeftOrientation") and self.printerBackLeftOrientation != softwareBackLeftOrientation :
 
 			# Add new value to list
-			packed = struct.pack('f', softwareBackLeftOrientation)
-			newValue = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
-			commandList += ["M618 S" + str(self.eepromOffsets["bedOrientationBackLeft"]["offset"]) + " T" + str(self.eepromOffsets["bedOrientationBackLeft"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.eepromOffsets["bedOrientationBackLeft"]["offset"]) + " T" + str(self.eepromOffsets["bedOrientationBackLeft"]["bytes"])]
+			commandList += ["M618 S" + str(self.eepromOffsets["bedOrientationBackLeft"]["offset"]) + " T" + str(self.eepromOffsets["bedOrientationBackLeft"]["bytes"]) + " P" + str(self.floatToInt(softwareBackLeftOrientation)), "M619 S" + str(self.eepromOffsets["bedOrientationBackLeft"]["offset"]) + " T" + str(self.eepromOffsets["bedOrientationBackLeft"]["bytes"])]
 
 		# Check if front left orientations differ
 		if hasattr(self, "printerFrontLeftOrientation") and self.printerFrontLeftOrientation != softwareFrontLeftOrientation :
 
 			# Add new value to list
-			packed = struct.pack('f', softwareFrontLeftOrientation)
-			newValue = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
-			commandList += ["M618 S" + str(self.eepromOffsets["bedOrientationFrontLeft"]["offset"]) + " T" + str(self.eepromOffsets["bedOrientationFrontLeft"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.eepromOffsets["bedOrientationFrontLeft"]["offset"]) + " T" + str(self.eepromOffsets["bedOrientationFrontLeft"]["bytes"])]
+			commandList += ["M618 S" + str(self.eepromOffsets["bedOrientationFrontLeft"]["offset"]) + " T" + str(self.eepromOffsets["bedOrientationFrontLeft"]["bytes"]) + " P" + str(self.floatToInt(softwareFrontLeftOrientation)), "M619 S" + str(self.eepromOffsets["bedOrientationFrontLeft"]["offset"]) + " T" + str(self.eepromOffsets["bedOrientationFrontLeft"]["bytes"])]
 
 		# Check if front right orientations differ
 		if hasattr(self, "printerFrontRightOrientation") and self.printerFrontRightOrientation != softwareFrontRightOrientation :
 
 			# Add new value to list
-			packed = struct.pack('f', softwareFrontRightOrientation)
-			newValue = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
-			commandList += ["M618 S" + str(self.eepromOffsets["bedOrientationFrontRight"]["offset"]) + " T" + str(self.eepromOffsets["bedOrientationFrontRight"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.eepromOffsets["bedOrientationFrontRight"]["offset"]) + " T" + str(self.eepromOffsets["bedOrientationFrontRight"]["bytes"])]
+			commandList += ["M618 S" + str(self.eepromOffsets["bedOrientationFrontRight"]["offset"]) + " T" + str(self.eepromOffsets["bedOrientationFrontRight"]["bytes"]) + " P" + str(self.floatToInt(softwareFrontRightOrientation)), "M619 S" + str(self.eepromOffsets["bedOrientationFrontRight"]["offset"]) + " T" + str(self.eepromOffsets["bedOrientationFrontRight"]["bytes"])]
 
 		# Check if backlash speeds differ
 		if hasattr(self, "printerBacklashSpeed") and self.printerBacklashSpeed != softwareBacklashSpeed :
 
 			# Add new value to list
-			packed = struct.pack('f', softwareBacklashSpeed)
-			newValue = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
-			commandList += ["M618 S" + str(self.eepromOffsets["backlashSpeed"]["offset"]) + " T" + str(self.eepromOffsets["backlashSpeed"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.eepromOffsets["backlashSpeed"]["offset"]) + " T" + str(self.eepromOffsets["backlashSpeed"]["bytes"])]
+			commandList += ["M618 S" + str(self.eepromOffsets["backlashSpeed"]["offset"]) + " T" + str(self.eepromOffsets["backlashSpeed"]["bytes"]) + " P" + str(self.floatToInt(softwareBacklashSpeed)), "M619 S" + str(self.eepromOffsets["backlashSpeed"]["offset"]) + " T" + str(self.eepromOffsets["backlashSpeed"]["bytes"])]
 
 		# Check if back left offsets differ
 		if hasattr(self, "printerBackLeftOffset") and self.printerBackLeftOffset != softwareBackLeftOffset :
 
 			# Add new value to list
-			packed = struct.pack('f', softwareBackLeftOffset)
-			newValue = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
-			commandList += ["M618 S" + str(self.eepromOffsets["bedOffsetBackLeft"]["offset"]) + " T" + str(self.eepromOffsets["bedOffsetBackLeft"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.eepromOffsets["bedOffsetBackLeft"]["offset"]) + " T" + str(self.eepromOffsets["bedOffsetBackLeft"]["bytes"])]
+			commandList += ["M618 S" + str(self.eepromOffsets["bedOffsetBackLeft"]["offset"]) + " T" + str(self.eepromOffsets["bedOffsetBackLeft"]["bytes"]) + " P" + str(self.floatToInt(softwareBackLeftOffset)), "M619 S" + str(self.eepromOffsets["bedOffsetBackLeft"]["offset"]) + " T" + str(self.eepromOffsets["bedOffsetBackLeft"]["bytes"])]
 
 		# Check if back right offsets differ
 		if hasattr(self, "printerBackRightOffset") and self.printerBackRightOffset != softwareBackRightOffset :
 
 			# Add new value to list
-			packed = struct.pack('f', softwareBackRightOffset)
-			newValue = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
-			commandList += ["M618 S" + str(self.eepromOffsets["bedOffsetBackRight"]["offset"]) + " T" + str(self.eepromOffsets["bedOffsetBackRight"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.eepromOffsets["bedOffsetBackRight"]["offset"]) + " T" + str(self.eepromOffsets["bedOffsetBackRight"]["bytes"])]
+			commandList += ["M618 S" + str(self.eepromOffsets["bedOffsetBackRight"]["offset"]) + " T" + str(self.eepromOffsets["bedOffsetBackRight"]["bytes"]) + " P" + str(self.floatToInt(softwareBackRightOffset)), "M619 S" + str(self.eepromOffsets["bedOffsetBackRight"]["offset"]) + " T" + str(self.eepromOffsets["bedOffsetBackRight"]["bytes"])]
 
 		# Check if front right offsets differ
 		if hasattr(self, "printerFrontRightOffset") and self.printerFrontRightOffset != softwareFrontRightOffset :
 
 			# Add new value to list
-			packed = struct.pack('f', softwareFrontRightOffset)
-			newValue = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
-			commandList += ["M618 S" + str(self.eepromOffsets["bedOffsetFrontRight"]["offset"]) + " T" + str(self.eepromOffsets["bedOffsetFrontRight"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.eepromOffsets["bedOffsetFrontRight"]["offset"]) + " T" + str(self.eepromOffsets["bedOffsetFrontRight"]["bytes"])]
+			commandList += ["M618 S" + str(self.eepromOffsets["bedOffsetFrontRight"]["offset"]) + " T" + str(self.eepromOffsets["bedOffsetFrontRight"]["bytes"]) + " P" + str(self.floatToInt(softwareFrontRightOffset)), "M619 S" + str(self.eepromOffsets["bedOffsetFrontRight"]["offset"]) + " T" + str(self.eepromOffsets["bedOffsetFrontRight"]["bytes"])]
 
 		# Check if front left offsets differ
 		if hasattr(self, "printerFrontLeftOffset") and self.printerFrontLeftOffset != softwareFrontLeftOffset :
 
 			# Add new value to list
-			packed = struct.pack('f', softwareFrontLeftOffset)
-			newValue = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
-			commandList += ["M618 S" + str(self.eepromOffsets["bedOffsetFrontLeft"]["offset"]) + " T" + str(self.eepromOffsets["bedOffsetFrontLeft"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.eepromOffsets["bedOffsetFrontLeft"]["offset"]) + " T" + str(self.eepromOffsets["bedOffsetFrontLeft"]["bytes"])]
+			commandList += ["M618 S" + str(self.eepromOffsets["bedOffsetFrontLeft"]["offset"]) + " T" + str(self.eepromOffsets["bedOffsetFrontLeft"]["bytes"]) + " P" + str(self.floatToInt(softwareFrontLeftOffset)), "M619 S" + str(self.eepromOffsets["bedOffsetFrontLeft"]["offset"]) + " T" + str(self.eepromOffsets["bedOffsetFrontLeft"]["bytes"])]
 
 		# Check if bed height offsets differ
 		if hasattr(self, "printerBedHeightOffset") and self.printerBedHeightOffset != softwareBedHeightOffset :
 
 			# Add new value to list
-			packed = struct.pack('f', softwareBedHeightOffset)
-			newValue = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
-			commandList += ["M618 S" + str(self.eepromOffsets["bedHeightOffset"]["offset"]) + " T" + str(self.eepromOffsets["bedHeightOffset"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.eepromOffsets["bedHeightOffset"]["offset"]) + " T" + str(self.eepromOffsets["bedHeightOffset"]["bytes"])]
+			commandList += ["M618 S" + str(self.eepromOffsets["bedHeightOffset"]["offset"]) + " T" + str(self.eepromOffsets["bedHeightOffset"]["bytes"]) + " P" + str(self.floatToInt(softwareBedHeightOffset)), "M619 S" + str(self.eepromOffsets["bedHeightOffset"]["offset"]) + " T" + str(self.eepromOffsets["bedHeightOffset"]["bytes"])]
 
 		# Check if filament temperatures differ
 		if hasattr(self, "printerFilamentTemperature") and self.printerFilamentTemperature != softwareFilamentTemperature :
@@ -6543,41 +6440,31 @@ class M3DFioPlugin(
 		if hasattr(self, "printerSpeedLimitX") and self.printerSpeedLimitX != softwareSpeedLimitX :
 		
 			# Add new value to list
-			packed = struct.pack('f', softwareSpeedLimitX)
-			newValue = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
-			commandList += ["M618 S" + str(self.eepromOffsets["speedLimitX"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitX"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.eepromOffsets["speedLimitX"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitX"]["bytes"])]
+			commandList += ["M618 S" + str(self.eepromOffsets["speedLimitX"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitX"]["bytes"]) + " P" + str(self.floatToInt(softwareSpeedLimitX)), "M619 S" + str(self.eepromOffsets["speedLimitX"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitX"]["bytes"])]
 		
 		# Check if speed limit Ys differ
 		if hasattr(self, "printerSpeedLimitY") and self.printerSpeedLimitY != softwareSpeedLimitY :
 		
 			# Add new value to list
-			packed = struct.pack('f', softwareSpeedLimitY)
-			newValue = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
-			commandList += ["M618 S" + str(self.eepromOffsets["speedLimitY"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitY"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.eepromOffsets["speedLimitY"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitY"]["bytes"])]
+			commandList += ["M618 S" + str(self.eepromOffsets["speedLimitY"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitY"]["bytes"]) + " P" + str(self.floatToInt(softwareSpeedLimitY)), "M619 S" + str(self.eepromOffsets["speedLimitY"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitY"]["bytes"])]
 		
 		# Check if speed limit Zs differ
 		if hasattr(self, "printerSpeedLimitZ") and self.printerSpeedLimitZ != softwareSpeedLimitZ :
 		
 			# Add new value to list
-			packed = struct.pack('f', softwareSpeedLimitZ)
-			newValue = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
-			commandList += ["M618 S" + str(self.eepromOffsets["speedLimitZ"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitZ"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.eepromOffsets["speedLimitZ"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitZ"]["bytes"])]
+			commandList += ["M618 S" + str(self.eepromOffsets["speedLimitZ"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitZ"]["bytes"]) + " P" + str(self.floatToInt(softwareSpeedLimitZ)), "M619 S" + str(self.eepromOffsets["speedLimitZ"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitZ"]["bytes"])]
 		
 		# Check if speed limit E positives differ
 		if hasattr(self, "printerSpeedLimitEPositive") and self.printerSpeedLimitEPositive != softwareSpeedLimitEPositive :
 		
 			# Add new value to list
-			packed = struct.pack('f', softwareSpeedLimitEPositive)
-			newValue = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
-			commandList += ["M618 S" + str(self.eepromOffsets["speedLimitEPositive"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitEPositive"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.eepromOffsets["speedLimitEPositive"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitEPositive"]["bytes"])]
+			commandList += ["M618 S" + str(self.eepromOffsets["speedLimitEPositive"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitEPositive"]["bytes"]) + " P" + str(self.floatToInt(softwareSpeedLimitEPositive)), "M619 S" + str(self.eepromOffsets["speedLimitEPositive"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitEPositive"]["bytes"])]
 		
 		# Check if speed limit E negatives differ
 		if hasattr(self, "printerSpeedLimitENegative") and self.printerSpeedLimitENegative != softwareSpeedLimitENegative :
 		
 			# Add new value to list
-			packed = struct.pack('f', softwareSpeedLimitENegative)
-			newValue = ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
-			commandList += ["M618 S" + str(self.eepromOffsets["speedLimitENegative"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitENegative"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.eepromOffsets["speedLimitENegative"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitENegative"]["bytes"])]
+			commandList += ["M618 S" + str(self.eepromOffsets["speedLimitENegative"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitENegative"]["bytes"]) + " P" + str(self.floatToInt(softwareSpeedLimitENegative)), "M619 S" + str(self.eepromOffsets["speedLimitENegative"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitENegative"]["bytes"])]
 		
 		# Return command list
 		return commandList
@@ -6608,56 +6495,11 @@ class M3DFioPlugin(
 			# Set progress bar percent and text
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Collecting Print Information …"))
 			
-			# Check if using shared library
-			if self.sharedLibrary and self._settings.get_boolean(["UseSharedLibrary"]) :
+			# Check if shared library was loaded
+			if self.loadSharedLibrary() :
 			
-				# Reset pre-processor settings
-				self.sharedLibrary.resetPreprocessorSettings()
-		
-				# Set values
-				self.sharedLibrary.setBacklashX(ctypes.c_double(self._settings.get_float(["BacklashX"])))
-				self.sharedLibrary.setBacklashY(ctypes.c_double(self._settings.get_float(["BacklashY"])))
-				self.sharedLibrary.setBacklashSpeed(ctypes.c_double(self._settings.get_float(["BacklashSpeed"])))
-				self.sharedLibrary.setBackRightOrientation(ctypes.c_double(self._settings.get_float(["BackRightOrientation"])))
-				self.sharedLibrary.setBackLeftOrientation(ctypes.c_double(self._settings.get_float(["BackLeftOrientation"])))
-				self.sharedLibrary.setFrontLeftOrientation(ctypes.c_double(self._settings.get_float(["FrontLeftOrientation"])))
-				self.sharedLibrary.setFrontRightOrientation(ctypes.c_double(self._settings.get_float(["FrontRightOrientation"])))
-				self.sharedLibrary.setBedHeightOffset(ctypes.c_double(self._settings.get_float(["BedHeightOffset"])))
-				self.sharedLibrary.setBackRightOffset(ctypes.c_double(self._settings.get_float(["BackRightOffset"])))
-				self.sharedLibrary.setBackLeftOffset(ctypes.c_double(self._settings.get_float(["BackLeftOffset"])))
-				self.sharedLibrary.setFrontLeftOffset(ctypes.c_double(self._settings.get_float(["FrontLeftOffset"])))
-				self.sharedLibrary.setFrontRightOffset(ctypes.c_double(self._settings.get_float(["FrontRightOffset"])))
-				self.sharedLibrary.setFilamentTemperature(ctypes.c_ushort(self._settings.get_int(["FilamentTemperature"])))
-				self.sharedLibrary.setFilamentType(ctypes.c_char_p(str(self._settings.get(["FilamentType"]))))
-				self.sharedLibrary.setUseValidationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseValidationPreprocessor"])))
-				self.sharedLibrary.setUsePreparationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UsePreparationPreprocessor"])))
-				self.sharedLibrary.setUseWaveBondingPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseWaveBondingPreprocessor"])))
-				self.sharedLibrary.setUseThermalBondingPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseThermalBondingPreprocessor"])))
-				self.sharedLibrary.setUseBedCompensationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseBedCompensationPreprocessor"])))
-				self.sharedLibrary.setUseBacklashCompensationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseBacklashCompensationPreprocessor"])))
-				self.sharedLibrary.setUseCenterModelPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseCenterModelPreprocessor"])))
-				self.sharedLibrary.setIgnorePrintDimensionLimitations(ctypes.c_bool(self._settings.get_boolean(["IgnorePrintDimensionLimitations"])))
-				self.sharedLibrary.setUsingHeatbed(ctypes.c_bool(self.heatbedConnected))
-				self.sharedLibrary.setPrintingTestBorder(ctypes.c_bool(self.printingTestBorder))
-				self.sharedLibrary.setPrintingBacklashCalibration(ctypes.c_bool(self.printingBacklashCalibration))
-				self.sharedLibrary.setPrinterColor(ctypes.c_char_p(self.printerColor))
-				self.sharedLibrary.setCalibrateBeforePrint(ctypes.c_bool(self._settings.get_boolean(["CalibrateBeforePrint"])))
-				self.sharedLibrary.setRemoveFanCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveFanCommands"])))
-				self.sharedLibrary.setRemoveTemperatureCommands(ctypes.c_bool(self._settings.get_boolean(["RemoveTemperatureCommands"])))
-				if self._settings.get_int(["GpioLayer"]) is not None :
-					self.sharedLibrary.setUseGpio(ctypes.c_bool(self._settings.get_boolean(["UseGpio"])))
-					self.sharedLibrary.setGpioLayer(ctypes.c_ushort(self._settings.get_int(["GpioLayer"])))
-				else :
-					self.sharedLibrary.setUseGpio(ctypes.c_bool(False))
-				self.sharedLibrary.setHeatbedTemperature(ctypes.c_ushort(self._settings.get_int(["HeatbedTemperature"])))
-				self.sharedLibrary.setExternalBedHeight(ctypes.c_double(self._settings.get_float(["ExternalBedHeight"])))
-				self.sharedLibrary.setExpandPrintableRegion(ctypes.c_bool(self._settings.get_boolean(["ExpandPrintableRegion"])))
-				self.sharedLibrary.setMidPrintFilamentChangeLayers(ctypes.c_char_p(' '.join(re.findall("\\d+", str(self._settings.get(["MidPrintFilamentChangeLayers"]))))))
-				self.sharedLibrary.setChangeLedBrightness(ctypes.c_bool(self._settings.get_boolean(["ChangeLedBrightness"])))
-				if self.currentFirmwareType is None :
-					self.sharedLibrary.setFirmwareType(ctypes.c_char_p(""))
-				else :
-					self.sharedLibrary.setFirmwareType(ctypes.c_char_p(self.currentFirmwareType))
+				# Set shared library settings
+				self.setSharedLibrarySettings()
 				
 				# Collect print information
 				printIsValid = self.sharedLibrary.collectPrintInformation(ctypes.c_char_p(input), ctypes.c_bool(True))
@@ -6717,6 +6559,9 @@ class M3DFioPlugin(
 				# Restore files
 				self.restoreFiles()
 				
+				# Unload shared library
+				self.unloadSharedLibrary()
+				
 				# Return false
 				return False
 			
@@ -6745,14 +6590,17 @@ class M3DFioPlugin(
 			temp = tempfile.mkstemp()[1]
 			shutil.move(input, temp)
 			
-			# Check if using shared library
-			if self.sharedLibrary and self._settings.get_boolean(["UseSharedLibrary"]) :
+			# Check if shared library was loaded
+			if self.sharedLibrary :
 			
 				# Set progress bar text
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Pre-processing …"))
 			
 				# Pre-process file
 				self.sharedLibrary.preprocess(ctypes.c_char_p(temp), ctypes.c_char_p(input), ctypes.c_bool(False))
+				
+				# Unload shared library
+				self.unloadSharedLibrary()
 			
 			# Otherwise
 			else :

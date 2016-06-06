@@ -723,7 +723,7 @@ body > div.page-container > div.message > div > div > span.show {
 	top: 50%;
 	left: 50%;
 	transform: translate(-50%, -50%);
-	width: calc(100% - 4px);
+	width: calc(100% - 9px);
 	height: auto;
 }
 
