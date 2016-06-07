@@ -1048,6 +1048,9 @@ class M3DFioPlugin(
 			
 				# Close shared library
 				_ctypes.FreeLibrary(self.sharedLibrary._handle)
+			
+			# Clear shared library
+			self.sharedLibrary = None
 	
 	# Set shared library settings
 	def setSharedLibrarySettings(self) :

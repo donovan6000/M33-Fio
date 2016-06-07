@@ -836,6 +836,22 @@ $(function() {
 				index++;
 			});
 		}
+		
+		// EEPROM get int
+		function eepromGetInt(eeprom, eepromName) {
+		
+			// Initialize value
+			var value = 0;
+		
+			// Get int from EEPROM
+			for(var i = eepromOffsets[eepromName].bytes - 1; i >= 0; i--) {
+				value <<= 8;
+				value += (parseInt(eeprom[(eepromOffsets[eepromName].offset + i) * 2], 16) << 4) | parseInt(eeprom[(eepromOffsets[eepromName].offset + i) * 2 + 1], 16);
+			}
+		
+			// Return value
+			return value;
+		}
 
 		// Float To Binary
 		function floatToBinary(value) {
@@ -3777,11 +3793,11 @@ $(function() {
 		var table = "<tr><td></td>";
 		for(var i = 0; i < 0x10; i++)
 			table += "<td>0x" + i.toString(16).toUpperCase() + "</td>";
-		table += "</tr><tr><td>0x00</td>";
-	
+		
 		for(var i = 0; i < 0x300; i++) {
-			if(i && i % 0x10 == 0)
-				table += "</tr><tr><td>0x" + i.toString(16).toUpperCase() + "</td>";
+		
+			if(i % 0x10 == 0)
+				table += "</tr><tr><td>0x" + (i / 0x10).toString(16).toUpperCase() + "</td>";
 			
 			table += "<td><input data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\" type=\"text\" maxlength=\"2\" autocomplete=\"off\" value=\"??\"";
 			
@@ -11321,14 +11337,14 @@ $(function() {
 				$("#control > div.jog-panel.advanced").find("div > button").removeClass("current");
 				
 				// Indicate current fan type
-				var fanType = (parseInt(data.eeprom[eepromOffsets["fanType"].offset * 2], 16) << 4) | parseInt(data.eeprom[eepromOffsets["fanType"].offset * 2 + 1], 16);
+				var fanType = eepromGetInt(data.eeprom, "fanType");
 				if(fanType >= 1 && fanType <= 4)
 					$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(" + fanType + ")").addClass("current");
 				else if(fanType == 254)
 					$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(5)").addClass("current");
 					
 				// Indicate current extruder current
-				var extruderCurrent = ((parseInt(data.eeprom[eepromOffsets["eMotorCurrent"].offset * 2], 16) << 4) | parseInt(data.eeprom[eepromOffsets["eMotorCurrent"].offset * 2 + 1], 16)) | (((parseInt(data.eeprom[(eepromOffsets["eMotorCurrent"].offset + 1) * 2], 16) << 4) | parseInt(data.eeprom[(eepromOffsets["eMotorCurrent"].offset + 1) * 2 + 1], 16)) << 8)
+				var extruderCurrent = eepromGetInt(data.eeprom, "eMotorCurrent");
 				if(extruderCurrent == 500)
 					$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(6)").addClass("current");
 				else if(extruderCurrent == 660)

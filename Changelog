@@ -6,7 +6,7 @@ V0.35 June X, 2016
 	* Temperature polling commands, M105, will now get sent to the printer when printing with iMe firmware
 	* Provides iMe V00.00.00.10 printer firmware
 	* Canceling a print and performing an emergency stop are more reliable
-	* Improved support for OctoPrint's Slic3r plugin
+	* Improved support for OctoPrint's Slic3r plugin. Really big thanks to ra100!
 
 V0.34 May 25, 2016
 
