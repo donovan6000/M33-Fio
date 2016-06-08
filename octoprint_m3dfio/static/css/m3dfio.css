@@ -636,6 +636,7 @@ body > div.page-container > div.message > div > div > span.show {
 	left: 50% !important;
 	margin: 0 !important;
 	transform: translate(-50%, -50%) !important;
+	max-height: calc(100% - 30px) !important;
 	overflow: hidden !important;
 }
 
@@ -646,11 +647,16 @@ body > div.page-container > div.message > div > div > span.show {
 #slicing_configuration_dialog.profile {
 	max-width: 830px !important;
 	min-width: 770px !important;
-	overflow: visible !important;
+	min-height: 137px !important;
+}
+
+#slicing_configuration_dialog.profile.transitionHeight {
+	transition: height 0.3s ease-out !important;
 }
 
 #slicing_configuration_dialog.model {
 	min-height: 569px !important;
+	height: calc(100% - 30px) !important;
 	min-width: 540px !important;
 }
 
@@ -679,6 +685,11 @@ body > div.page-container > div.message > div > div > span.show {
 	margin-bottom: -5px;
 	z-index: -1;
 	position: relative;
+}
+#slicing_configuration_dialog.profile .modal-extra {
+	overflow: auto !important;
+	overflow-x: hidden !important;
+	max-height: calc(100% - 123px);
 }
 
 #slicing_configuration_dialog.profile .modal-extra div.advanced {
@@ -747,7 +758,7 @@ body > div.page-container > div.message > div > div > span.show {
 	background-repeat: no-repeat;
 	background-size: 12px 12px;
 	position: relative;
-	transition: height 0.3s ease-out, background-image 0.3s linear;
+	transition: height 0.3s ease-out;
 	overflow: hidden;
 }
 

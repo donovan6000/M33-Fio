@@ -4928,7 +4928,7 @@ $(function() {
 							viewport.destroy();
 		
 						// Restore slicer dialog
-						$("#slicing_configuration_dialog").removeClass("profile model");
+						$("#slicing_configuration_dialog").removeClass("profile model").css("height", '');
 						$("#slicing_configuration_dialog p.currentMenu").text("Select Profile");
 						$("#slicing_configuration_dialog .modal-extra").remove();
 						$("#slicing_configuration_dialog .modal-body").css("display", '');
@@ -4955,6 +4955,25 @@ $(function() {
 			
 			// Skip model editor
 			$("#slicing_configuration_dialog > div.modal-footer > .btn-primary").click();
+		});
+		
+		// Resize event
+		$(window).resize(function() {
+		
+			// Check if profile editor is showing
+			var dialog = $("#slicing_configuration_dialog");
+			if(dialog.length && dialog.hasClass("profile")) {
+		
+				// Save current scroll
+				var currentScroll = $("#slicing_configuration_dialog.profile .modal-extra").scrollTop();
+				dialog.css("height", '');
+			
+				// Set dialogs's height
+				dialog[0].style.setProperty("height", dialog.height() + "px", "important");
+			
+				// Restore current scroll
+				$("#slicing_configuration_dialog.profile .modal-extra").scrollTop(currentScroll);
+			}
 		});
 		
 		// Slicer next button click event
@@ -5206,7 +5225,7 @@ $(function() {
 														</div>
 													`);
 													$("#slicing_configuration_dialog .modal-extra textarea").val(data.slice(-1) == '\n' ? data.slice(0, -1) : data);
-													$("#slicing_configuration_dialog").addClass(slicerName);
+													$("#slicing_configuration_dialog").addClass(slicerName);									
 													
 													// Set basic setting values
 													if(slicerName == "cura") {
@@ -5307,12 +5326,10 @@ $(function() {
 														$("#slicing_configuration_dialog .slicerSpecific").addClass("show");
 										
 													// Otherwise
-													else {
+													else
 										
 														// Grow text area
-														$("#slicing_configuration_dialog .advanced").addClass("fullSpace").removeClass("closed")
-														$("#slicing_configuration_dialog .group.advanced > span").css("display", "block");
-													}
+														$("#slicing_configuration_dialog .advanced").addClass("fullSpace");
 										
 													// Set slicer menu
 													slicerMenu = "Modify Profile";
@@ -5407,22 +5424,31 @@ $(function() {
 										
 													// Open and close setting groups
 													if(typeof localStorage.basicSettingsOpen === "undefined" || localStorage.basicSettingsOpen == "true")
-														$("#slicing_configuration_dialog.profile .modal-extra div.group.basic").removeClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/up-arrow.png");
+														$("#slicing_configuration_dialog.profile .modal-extra div.group.basic").addClass("noTransition").removeClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/up-arrow.png");
 													else
-														$("#slicing_configuration_dialog.profile .modal-extra div.group.basic").addClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/down-arrow.png");
+														$("#slicing_configuration_dialog.profile .modal-extra div.group.basic").addClass("noTransition closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/down-arrow.png");
 	
 													if(typeof localStorage.manualSettingsOpen === "undefined" || localStorage.manualSettingsOpen == "false")
-														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual").addClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/down-arrow.png");
+														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual").addClass("noTransition closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/down-arrow.png");
 													else
-														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual").removeClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/up-arrow.png");
+														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual").addClass("noTransition").removeClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/up-arrow.png");
 										
 													if(typeof localStorage.advancedSettingsOpen === "undefined" || localStorage.advancedSettingsOpen == "false")
-														$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced").addClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/down-arrow.png");
+														$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced").addClass("noTransition closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/down-arrow.png");
 													else {
-														$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced").removeClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/up-arrow.png");
+														$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced").addClass("noTransition").removeClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/up-arrow.png");
 														$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced > span").css("display", "block");
 													}
-										
+													
+													setTimeout(function() {
+													
+														// Allow opening and closing group transitions
+														$("#slicing_configuration_dialog.profile .modal-extra div.group").removeClass("noTransition");
+														
+														// Set dialogs's height
+														$("#slicing_configuration_dialog.profile")[0].style.setProperty("height", $("#slicing_configuration_dialog.profile").height() + "px", "important");
+													}, 0);
+													
 													// Mouse move on group
 													$("#slicing_configuration_dialog.profile .modal-extra div.group").mousemove(function(event) {
 
@@ -5441,43 +5467,79 @@ $(function() {
 										
 														// Check if clicking on corner
 														if($(this).offset().left - event.pageX >= -12 && $(this).offset().top - event.pageY >= -12) {
-											
-															// Open or close group
-															if($(this).hasClass("closed")) {
-																$(this).removeClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/up-arrow.png");
-													
-																 if($(this).hasClass("advanced"))
-																	setTimeout(function() {
-																		$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced > span").css("display", "block");
-																	}, 100);
-													
-																// Save that group is open
-																if($(this).hasClass("basic"))
-																	localStorage.basicSettingsOpen = "true";
-																else if($(this).hasClass("manual"))
-																	localStorage.manualSettingsOpen = "true";
-																else if($(this).hasClass("advanced"))
-																	localStorage.advancedSettingsOpen = "true";
-															}
-															else {
-																$(this).addClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/down-arrow.png");
-													
-																if($(this).hasClass("advanced"))
-																	setTimeout(function() {
-																		$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced > span").css("display", "none");
-																	}, 100);
-													
-																// Save that group is closed
-																if($(this).hasClass("basic"))
-																	localStorage.basicSettingsOpen = "false";
-																else if($(this).hasClass("manual"))
-																	localStorage.manualSettingsOpen = "false";
-																else if($(this).hasClass("advanced"))
-																	localStorage.advancedSettingsOpen = "false";
-															}
-												
-															// Update cursor and title
-															$(this).mousemove();
+														
+															// Set group
+															var group = $(this);
+															
+															// Save current height and scroll
+															var currentHeight = $("#slicing_configuration_dialog.profile").css("height");
+															var currentScroll = $("#slicing_configuration_dialog.profile .modal-extra").scrollTop();
+															$("#slicing_configuration_dialog.profile").css("height", '');
+															
+															// Get new height
+															group.addClass("noTransition");
+															if(group.hasClass("closed"))
+																group.removeClass("closed");
+															else
+																group.addClass("closed");
+														
+															var newHeight = $("#slicing_configuration_dialog.profile").height();
+															if(group.hasClass("closed"))
+																group.removeClass("closed");
+															else
+																group.addClass("closed");
+															
+															// Restore current height and scroll
+															$("#slicing_configuration_dialog.profile")[0].style.setProperty("height", currentHeight, "important");
+															$("#slicing_configuration_dialog.profile .modal-extra").scrollTop(currentScroll);
+														
+															setTimeout(function() {
+															
+																group.removeClass("noTransition");
+																
+																// Open or close group
+																if(group.hasClass("closed")) {
+																	group.removeClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/up-arrow.png");
+							
+																	 if(group.hasClass("advanced"))
+																		setTimeout(function() {
+																			$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced > span").css("display", "block");
+																		}, 100);
+							
+																	// Save that group is open
+																	if(group.hasClass("basic"))
+																		localStorage.basicSettingsOpen = "true";
+																	else if(group.hasClass("manual"))
+																		localStorage.manualSettingsOpen = "true";
+																	else if(group.hasClass("advanced"))
+																		localStorage.advancedSettingsOpen = "true";
+																}
+																else {
+																	group.addClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/down-arrow.png");
+							
+																	if(group.hasClass("advanced"))
+																		setTimeout(function() {
+																			$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced > span").css("display", "none");
+																		}, 100);
+							
+																	// Save that group is closed
+																	if(group.hasClass("basic"))
+																		localStorage.basicSettingsOpen = "false";
+																	else if(group.hasClass("manual"))
+																		localStorage.manualSettingsOpen = "false";
+																	else if(group.hasClass("advanced"))
+																		localStorage.advancedSettingsOpen = "false";
+																}
+						
+																// Update cursor and title
+																group.mousemove();
+																
+																// Set dialogs's height
+																$("#slicing_configuration_dialog.profile").addClass("transitionHeight")[0].style.setProperty("height", newHeight + "px", "important");
+																setTimeout(function() {
+																	$("#slicing_configuration_dialog.profile").removeClass("transitionHeight");
+																}, 300);
+															}, 0);
 														}
 													});
 									
@@ -6426,6 +6488,9 @@ $(function() {
 															$("#slicing_configuration_dialog").removeClass("in");
 															
 															setTimeout(function() {
+															
+																// Reset dialog's height
+																$("#slicing_configuration_dialog").css("height", '');
 															
 																// Hide cover
 																$("#slicing_configuration_dialog .modal-cover").addClass("noTransition").removeClass("show");
@@ -11047,7 +11112,7 @@ $(function() {
 			
 					// Set progress bar percent
 					$("#gcode_upload_progress").addClass("progress-striped active");
-					$("#gcode_upload_progress > div.bar").width(data.percent + '%').text("Uploading ...");
+					$("#gcode_upload_progress > div.bar").width(data.percent + '%').text("Uploading …");
 				}
 			}
 			
