@@ -5225,7 +5225,7 @@ $(function() {
 														</div>
 													`);
 													$("#slicing_configuration_dialog .modal-extra textarea").val(data.slice(-1) == '\n' ? data.slice(0, -1) : data);
-													$("#slicing_configuration_dialog").addClass(slicerName);									
+													$("#slicing_configuration_dialog").addClass(slicerName);
 													
 													// Set basic setting values
 													if(slicerName == "cura") {

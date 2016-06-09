@@ -3111,6 +3111,12 @@ class M3DFioPlugin(
 											
 											# Set error to if saving current Z in EEPROM failed
 											error = self.eepromSetInt(connection, "lastRecordedZValue", currentValueZ)
+											
+											# Check if an error hasn't occured
+											if not error :
+											
+												# Set error to if clearing X and Y validity in EEPROM failed
+												error = self.eepromSetInt(connection, "savedXState", 0, self.eepromOffsets["savedYState"]["offset"] + self.eepromOffsets["savedYState"]["bytes"] - self.eepromOffsets["savedXState"]["offset"])
 								
 								# Check if an error hasn't occured
 								if not error :
