@@ -8256,12 +8256,25 @@ $(function() {
 						// Set waiting callback
 						waitingCallback = function() {
 			
-							// Show message
-							showMessage("Calibration Status", "Done", "OK", function() {
+							// Save settings
+							function saveSettings() {
+			
+								// Save software settings
+								self.settings.saveData();
 				
-								// Hide message
-								hideMessage();
-							});
+								// Show message
+								showMessage("Calibration Status", "Done", "OK", function() {
+			
+									// Hide message
+									hideMessage();
+								});
+							}
+		
+							// Update settings
+							if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
+								self.settings.requestData(saveSettings);
+							else
+								self.settings.requestData().done(saveSettings);
 						}
 				
 						// Send request
@@ -9049,12 +9062,25 @@ $(function() {
 						// Set waiting callback
 						waitingCallback = function() {
 			
-							// Show message
-							showMessage("Calibration Status", "Done", "OK", function() {
+							// Save settings
+							function saveSettings() {
+			
+								// Save software settings
+								self.settings.saveData();
+				
+								// Show message
+								showMessage("Calibration Status", "Done", "OK", function() {
+			
+									// Hide message
+									hideMessage();
+								});
+							}
 		
-								// Hide message
-								hideMessage();
-							});
+							// Update settings
+							if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
+								self.settings.requestData(saveSettings);
+							else
+								self.settings.requestData().done(saveSettings);
 						}
 				
 						// Send request
@@ -11807,14 +11833,28 @@ $(function() {
 										calibrateBedOrientation();
 								
 									// Otherwise
-									else
+									else {
 					
-										// Show message
-										showMessage("Calibration Status", "Done", "OK", function() {
-		
-											// Hide message
-											hideMessage();
-										});
+										// Save settings
+										function saveSettings() {
+				
+											// Save software settings
+											self.settings.saveData();
+					
+											// Show message
+											showMessage("Calibration Status", "Done", "OK", function() {
+				
+												// Hide message
+												hideMessage();
+											});
+										}
+			
+										// Update settings
+										if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
+											self.settings.requestData(saveSettings);
+										else
+											self.settings.requestData().done(saveSettings);
+									}
 								}
 						
 								// Send request
