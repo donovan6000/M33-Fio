@@ -1415,6 +1415,9 @@ class M3DFioPlugin(
 		if os.path.isfile(configFile) :
 			os.remove(configFile)
 		
+		# Unload shared library if it's loaded
+		self.unloadSharedLibrary()
+		
 		# Enable sleep
 		self.enableSleep()
 	
@@ -7557,6 +7560,14 @@ class M3DFioPlugin(
 					if self._settings.get_boolean(["ChangeLedBrightness"]) :
 						newCommands.append(Command("M420 T1", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 					if self._settings.get_boolean(["CalibrateBeforePrint"]) :
+						newCommands.append(Command("M618 S" + str(self.eepromOffsets["bedHeightOffset"]["offset"]) + " T" + str(self.eepromOffsets["bedHeightOffset"]["bytes"]) + " P" + str(self.floatToInt(0)), "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M619 S" + str(self.eepromOffsets["bedHeightOffset"]["offset"]) + " T" + str(self.eepromOffsets["bedHeightOffset"]["bytes"]), "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G91", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G0 Z3 F90", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("G90", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M109 S150", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M104 S0", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M107", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 						newCommands.append(Command("G30", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 					if str(self._settings.get(["FilamentType"])) == "PLA" or str(self._settings.get(["FilamentType"])) == "FLX" or str(self._settings.get(["FilamentType"])) == "TGH" :
 						newCommands.append(Command("M106 S255", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))

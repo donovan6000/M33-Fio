@@ -40,6 +40,12 @@ Gcode createTackPoint(const Gcode &point, const Gcode &refrence);
 extern "C" {
 
 	/*
+	Name: Float as int
+	Purpose: Return the value's integer representation
+	*/
+	uint32_t floatToInt(float value);
+
+	/*
 	Name: Min
 	Purpose: Returns the smaller of two numbers
 	*/

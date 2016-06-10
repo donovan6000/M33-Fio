@@ -6,7 +6,7 @@ import setuptools
 plugin_identifier = "m3dfio"
 plugin_package = "octoprint_%s" % plugin_identifier
 plugin_name = "OctoPrint-M3DFio"
-plugin_version = "0.34.2016060916"
+plugin_version = "0.34.2016061001"
 plugin_description = "Makes OctoPrint fully compatible with the Micro 3D printer"
 plugin_author = "donovan6000"
 plugin_author_email = "donovan6000@exploitkings.com"
