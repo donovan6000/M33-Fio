@@ -2115,19 +2115,19 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 					if(filamentType == ABS_R)
 					
 						// Add temperature to output
-						newCommands.push(Command("M109 S" + to_string(getBoundedTemperature(filamentTemperature + 15, filamentTemperature <= 285 ? 285 : 315)), THERMAL, THERMAL));
+						newCommands.push(Command("M109 S" + to_string(getBoundedTemperature(filamentTemperature + 15, firmwareType == M3D_MOD ? 315 : 285)), THERMAL, THERMAL));
 					
 					// Otherwise check if filament type is TGH or FLX
 					else if(filamentType == TGH || filamentType == FLX)
 					
 						// Add temperature to output
-						newCommands.push(Command("M109 S" + to_string(getBoundedTemperature(filamentTemperature - 15, filamentTemperature <= 285 ? 285 : 315)), THERMAL, THERMAL));
+						newCommands.push(Command("M109 S" + to_string(getBoundedTemperature(filamentTemperature - 15, firmwareType == M3D_MOD ? 315 : 285)), THERMAL, THERMAL));
 					
 					// Otherwise
 					else
 	
 						// Add temperature to output
-						newCommands.push(Command("M109 S" + to_string(getBoundedTemperature(filamentTemperature + 10, filamentTemperature <= 285 ? 285 : 315)), THERMAL, THERMAL));
+						newCommands.push(Command("M109 S" + to_string(getBoundedTemperature(filamentTemperature + 10, firmwareType == M3D_MOD ? 315 : 285)), THERMAL, THERMAL));
 				}
 		
 				// Otherwise

@@ -3118,8 +3118,8 @@ class M3DFioPlugin(
 											# Check if an error hasn't occured
 											if not error :
 											
-												# Set error to if clearing X and Y validity in EEPROM failed
-												error = self.eepromSetInt(connection, "savedXState", 0, self.eepromOffsets["savedYState"]["offset"] + self.eepromOffsets["savedYState"]["bytes"] - self.eepromOffsets["savedXState"]["offset"])
+												# Set error to if clearing X and Y value, direction, and validity in EEPROM failed
+												error = self.eepromSetInt(connection, "lastRecordedXValue", 0, self.eepromOffsets["savedYState"]["offset"] + self.eepromOffsets["savedYState"]["bytes"] - self.eepromOffsets["lastRecordedXValue"]["offset"])
 								
 								# Check if an error hasn't occured
 								if not error :
@@ -8011,28 +8011,28 @@ class M3DFioPlugin(
 						if str(self._settings.get(["FilamentType"])) == "ABS-R" :
 		
 							# Add temperature to output
-							if self._settings.get_int(["FilamentTemperature"]) <= 285 :
-								newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 15, 285)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
-							else :
+							if self.currentFirmwareType == "M3D Mod" :
 								newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 15, 315)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
+							else :
+								newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 15, 285)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
 						
 						# Otherwise check if filament type is TGH or FLX
 						elif str(self._settings.get(["FilamentType"])) == "TGH" or str(self._settings.get(["FilamentType"])) == "FLX" :
 		
 							# Add temperature to output
-							if self._settings.get_int(["FilamentTemperature"]) <= 285 :
-								newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) - 15, 285)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
-							else :
+							if self.currentFirmwareType == "M3D Mod" :
 								newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) - 15, 315)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
+							else :
+								newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) - 15, 285)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
 							
 						# Otherwise
 						else :
 			
 							# Add temperature to output
-							if self._settings.get_int(["FilamentTemperature"]) <= 285 :
-								newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 10, 285)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
-							else :
+							if self.currentFirmwareType == "M3D Mod" :
 								newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 10, 315)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
+							else :
+								newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 10, 285)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
 					
 					# Otherwise
 					else :
