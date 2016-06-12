@@ -6233,7 +6233,8 @@ $(function() {
 																		else if(slicerName == "slic3r") {
 																			changedSettings.push({
 																				fill_density: "0%",
-																				perimeters: Math.round(0.35 / parseFloat(layerHeight == '' ? 0.3 : layerHeight))
+																				perimeters: 1,
+																				perimeter_extrusion_width: 0.35
 																			});
 																		}
 																		break;
@@ -6250,7 +6251,8 @@ $(function() {
 
 																			changedSettings.push({
 																				fill_density: "0%",
-																				perimeters: Math.round(1.05 / parseFloat(layerHeight == '' ? 0.3 : layerHeight))
+																				perimeters: Math.round(1.05 / 0.35),
+																				perimeter_extrusion_width: 0.35
 																			});
 																		}
 																		break;
@@ -6266,7 +6268,8 @@ $(function() {
 																		else if(slicerName == "slic3r") {
 																			changedSettings.push({
 																				fill_density: "6.364%",
-																				perimeters: Math.round(1.05 / parseFloat(layerHeight == '' ? 0.3 : layerHeight))
+																				perimeters: Math.round(1.05 / 0.35),
+																				perimeter_extrusion_width: 0.35
 																			});
 																		}
 																		break;
@@ -6282,7 +6285,8 @@ $(function() {
 																		else if(slicerName == "slic3r") {
 																			changedSettings.push({
 																				fill_density: "8.75%",
-																				perimeters: Math.round(1.4 / parseFloat(layerHeight == '' ? 0.3 : layerHeight))
+																				perimeters: Math.round(1.4 / 0.35),
+																				perimeter_extrusion_width: 0.35
 																			});
 																		}
 																		break;
@@ -6298,7 +6302,8 @@ $(function() {
 																		else if(slicerName == "slic3r") {
 																			changedSettings.push({
 																				fill_density: "14.0%",
-																				perimeters: Math.round(1.4 / parseFloat(layerHeight == '' ? 0.3 : layerHeight))
+																				perimeters: Math.round(1.4 / 0.35),
+																				perimeter_extrusion_width: 0.35
 																			});
 																		}
 																		break;
@@ -6314,7 +6319,8 @@ $(function() {
 																		else if(slicerName == "slic3r") {
 																			changedSettings.push({
 																				fill_density: "23.333%",
-																				perimeters: Math.round(1.4 / parseFloat(layerHeight == '' ? 0.3 : layerHeight))
+																				perimeters: Math.round(1.4 / 0.35),
+																				perimeter_extrusion_width: 0.35
 																			});
 																		}
 																		break;
@@ -6330,7 +6336,8 @@ $(function() {
 																		else if(slicerName == "slic3r") {
 																			changedSettings.push({
 																				fill_density: "100%",
-																				perimeters: Math.round(1.4 / parseFloat(layerHeight == '' ? 0.3 : layerHeight))
+																				perimeters: Math.round(1.4 / 0.35),
+																				perimeter_extrusion_width: 0.35
 																			});
 																		}
 																		break;
