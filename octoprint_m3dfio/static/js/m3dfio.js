@@ -5061,15 +5061,15 @@ $(function() {
 														        <button title="Extra High Fill"data-target="fill" data-value="extra-high"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-density_extra-high.png"></button>
 														        <button title="Full Fill" data-target="fill" data-value="full"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-density_full.png"></button>
 														      </div>
-														      <p class="pattern slic3r-only">` + (usingProvidedProfile ? `Honeycomb` : `Unknown Fill Pattern`) + `</p>
+														      <p class="pattern slic3r-only">` + (usingProvidedProfile ? `Honeycomb Fill Pattern` : `Unknown Fill Pattern`) + `</p>
 														      <div class="pattern slic3r-only">
-														        <button title="Line" data-target="pattern" data-value="line"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-pattern_line.png"></button>
-														        <button title="Rectalinear" data-target="pattern" data-value="rectalinear"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-pattern_rectalinear.png"></button>
-														        <button title="Honeycomb" data-target="pattern" data-value="honeycomb"` + (usingProvidedProfile ? ` class="disabled"` : ``) + `><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-pattern_honeycomb.png"></button>
-														        <button title="3D Honeycomb" data-target="pattern" data-value="3dhoneycomb"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-pattern_3dhoneycomb.png"></button>
-														        <button title="Concentric" data-target="pattern" data-value="concentric"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-pattern_concentric.png"></button>
-														        <button title="Hilbert Curve" data-target="pattern" data-value="hilbertcurve"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-pattern_hilbertcurve.png"></button>
-														        <button title="Octagram Spiral" data-target="pattern" data-value="octagramspiral"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-pattern_octagramspiral.png"></button>
+														        <button title="Line Fill Pattern" data-target="pattern" data-value="line"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-pattern_line.png"></button>
+														        <button title="Rectalinear Fill Pattern" data-target="pattern" data-value="rectalinear"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-pattern_rectalinear.png"></button>
+														        <button title="Honeycomb Fill Pattern" data-target="pattern" data-value="honeycomb"` + (usingProvidedProfile ? ` class="disabled"` : ``) + `><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-pattern_honeycomb.png"></button>
+														        <button title="3D Honeycomb Fill Pattern" data-target="pattern" data-value="3dhoneycomb"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-pattern_3dhoneycomb.png"></button>
+														        <button title="Concentric Fill Pattern" data-target="pattern" data-value="concentric"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-pattern_concentric.png"></button>
+														        <button title="Hilbert Curve Fill Pattern" data-target="pattern" data-value="hilbertcurve"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-pattern_hilbertcurve.png"></button>
+														        <button title="Octagram Spiral Fill Pattern" data-target="pattern" data-value="octagramspiral"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-pattern_octagramspiral.png"></button>
 																		<button title="Archimedean Chords" data-target="pattern" data-value="archimedeanchords"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-pattern_archimedeanchords.png"></button>
 														      </div>
 														      <div class="settings">
@@ -5383,8 +5383,8 @@ $(function() {
 															}
 														}
 											
-														// Update profile contents
-														$("#slicing_configuration_dialog .modal-extra textarea").val(profile);
+														// Update profile contents and line numbers
+														$("#slicing_configuration_dialog .modal-extra textarea").val(profile).trigger("input");
 													}
 										
 													// Open and close setting groups
@@ -5516,7 +5516,7 @@ $(function() {
 											
 													// Text area input event
 													}).on("input", function() {
-											
+														
 														// Update line numbers
 														updateLineNumbers();
 													});
@@ -5616,8 +5616,9 @@ $(function() {
 																		brim_line_count: null
 																	});
 																else if(slicerName == "slic3r")
+																	
 																	changedSettings.push({
-																		raft_layers: 4,
+																		raft_layers: $("#slicing_configuration_dialog.profile .raftLayers").val(),
 																		first_layer_speed: "60%",
 																		first_layer_height: "100%",
 																		skirts: 0,
@@ -5811,9 +5812,14 @@ $(function() {
 																		retraction_enable: "True"
 																	});
 																else if(slicerName == "slic3r") {
-																	hangedSettings.push({
-																		retract_speed: 25
+																	changedSettings.push({
+																		retract_speed: 20
 																	});
+																}
+																
+																if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips")) {
+																	if(slicerName == "slic3r")
+																		changedSettings[0]["retract_speed"] = 25;
 																}
 															}
 															else {
@@ -6061,6 +6067,32 @@ $(function() {
 															changedSettings.push({
 																skirts: $(this).val()
 															});
+														}
+														
+														// Otherwise set changed settings if changing bottom layers
+														// slic3r only
+														else if($(this).hasClass("bottomLayers")) {
+														
+															changedSettings.push({
+																bottom_solid_layers: $(this).val()
+															});
+															
+															// Clear basic quality settings
+															$("#slicing_configuration_dialog  p.quality").text("Unknown Quality");
+															$("#slicing_configuration_dialog  div.quality button.disabled").removeClass("disabled");
+														}
+														
+														// Otherwise set changed settings if changing top layers
+														// slic3r only
+														else if($(this).hasClass("topLayers")) {
+														
+															changedSettings.push({
+																top_solid_layers: $(this).val()
+															});
+															
+															// Clear basic quality settings
+															$("#slicing_configuration_dialog  p.quality").text("Unknown Quality");
+															$("#slicing_configuration_dialog  div.quality button.disabled").removeClass("disabled");
 														}
 											
 														// Update profile settings
