@@ -7151,7 +7151,7 @@ $(function() {
 					// Otherwise check if on modify model menu
 					else if(slicerMenu == "Modify Model") {
 					
-						// Check if WebGL isn't supported, model editor is being skippe, or scene isn't empty
+						// Check if WebGL isn't supported, model editor is being skipped, or scene isn't empty
 						if(!Detector.webgl || skipModelEditor || viewport.models.length > 1) {
 					
 							// Apply changes

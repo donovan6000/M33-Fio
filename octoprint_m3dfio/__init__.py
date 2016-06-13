@@ -1393,8 +1393,6 @@ class M3DFioPlugin(
 		# Create profile
 		profile = profileManager.Profile(self._slicing_manager.get_slicer("slic3r")._load_profile(input), printerProfile, None, None)
 		
-		#_gcode and post_processing set to nothing
-		
 		# Go through all settings
 		for key in profile._profile[0] :
 		
