@@ -1393,10 +1393,36 @@ class M3DFioPlugin(
 		# Create profile
 		profile = profileManager.Profile(self._slicing_manager.get_slicer("slic3r")._load_profile(input), printerProfile, None, None)
 		
+		#_gcode and post_processing set to nothing
+		
+		# Go through all settings
+		for key in profile._profile[0] :
+		
+			# Fix incorrect settings
+			if (str(key).endswith("_gcode") or str(key).endswith("_processing")) and str(profile._profile[0][key]) == "None" :
+				profile._profile[0][key] = ''
+			
+			# Append list to settings
+			elif str(key) == "external_fill_pattern" :
+				profile._profile[0][key] = str(profile._profile[0][key]) + "; archimedeanchords, rectilinear, flowsnake, octagramspiral, hilbertcurve, line, concentric, honeycomb, 3dhoneycomb"
+			elif str(key) == "extrusion_axis" :
+				profile._profile[0][key] = str(profile._profile[0][key]) + "; X, Y, Z, E"
+			elif str(key) == "fill_pattern" :
+				profile._profile[0][key] = str(profile._profile[0][key]) + "; archimedeanchords, rectilinear, flowsnake, octagramspiral, hilbertcurve, line, concentric, honeycomb, 3dhoneycomb"
+			elif str(key) == "gcode_flavor" :
+				profile._profile[0][key] = str(profile._profile[0][key]) + "; reprap, teacup, makerware, sailfish, mach3, no-extrusion"
+			elif str(key) == "seam_position" :
+				profile._profile[0][key] = str(profile._profile[0][key]) + "; random, aligned, nearest"
+			elif str(key) == "solid_fill_pattern" :
+				profile._profile[0][key] = str(profile._profile[0][key]) + "; archimedeanchords, rectilinear, flowsnake, octagramspiral, hilbertcurve, line, concentric, honeycomb, 3dhoneycomb"
+			elif str(key) == "support_material_pattern" :
+				profile._profile[0][key] = str(profile._profile[0][key]) + "; honeycomb, rectilinear, rectilinear-grid"
+		
 		# Set settings in profile
 		profile._profile[0]["bed_shape"] = "0x0,%.1fx0,%.1fx%.1f,0x%.1f" % (printerProfile["volume"]["width"], printerProfile["volume"]["width"], printerProfile["volume"]["depth"], printerProfile["volume"]["depth"])
 		profile._profile[0]["bed_size"] = "%.1f,%.1f" % (printerProfile["volume"]["width"], printerProfile["volume"]["depth"])
 		profile._profile[0]["nozzle_diameter"] = printerProfile["extruder"]["nozzleDiameter"]
+		profile._profile[0]["perimeter_extrusion_width"] = printerProfile["extruder"]["nozzleDiameter"]
 		
 		# Create profile
 		profileManager.Profile.to_slic3r_ini(profile._profile[0], output)
