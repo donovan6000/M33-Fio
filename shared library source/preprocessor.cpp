@@ -8,6 +8,7 @@
 #include <cfloat>
 #include <cstring>
 #include "preprocessor.h"
+#include "eeprom.h"
 
 using namespace std;
 
@@ -41,8 +42,8 @@ double bedHighMaxZ = 112.0;
 double bedHighMinZ = bedMediumMaxZ;
 #define BED_WIDTH 121.0
 #define BED_DEPTH 121.0
-#define BED_CENTER_OFFSET_X 8.5
-#define BED_CENTER_OFFSET_Y 2.0
+#define BED_CENTER_OFFSET_X 8.5005
+#define BED_CENTER_OFFSET_Y 2.0005
 
 // Wave bonding pre-processor settings
 #define WAVE_PERIOD 5.0
@@ -262,6 +263,13 @@ double minZExtruder;
 
 
 // Private function implementation
+uint32_t floatToInt(float value) {
+	
+	// Return value's integer representation
+	uint32_t *valueAsInt = reinterpret_cast<uint32_t *>(&value);
+	return *valueAsInt;
+}
+
 double min(double first, double second) {
 
 	// Return smaller of the two
@@ -1658,8 +1666,17 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 				newCommands.push(Command("G90", PREPARATION, PREPARATION));
 				if(changeLedBrightness)
 					newCommands.push(Command("M420 T1", PREPARATION, PREPARATION));
-				if(calibrateBeforePrint)
+				if(calibrateBeforePrint) {
+					newCommands.push(Command("M618 S" + to_string(EEPROM_BED_HEIGHT_OFFSET_OFFSET) + " T" + to_string(EEPROM_BED_HEIGHT_OFFSET_LENGTH) + " P" + to_string(floatToInt(0)), PREPARATION, PREPARATION));
+					newCommands.push(Command("M619 S" + to_string(EEPROM_BED_HEIGHT_OFFSET_OFFSET) + " T" + to_string(EEPROM_BED_HEIGHT_OFFSET_LENGTH), PREPARATION, PREPARATION));
+					newCommands.push(Command("G91", PREPARATION, PREPARATION));
+					newCommands.push(Command("G0 Z3 F90", PREPARATION, PREPARATION));
+					newCommands.push(Command("G90", PREPARATION, PREPARATION));
+					newCommands.push(Command("M109 S150", PREPARATION, PREPARATION));
+					newCommands.push(Command("M104 S0", PREPARATION, PREPARATION));
+					newCommands.push(Command("M107", PREPARATION, PREPARATION));
 					newCommands.push(Command("G30", PREPARATION, PREPARATION));
+				}
 				newCommands.push(Command("M106 S" + static_cast<string>(filamentType == PLA || filamentType == FLX || filamentType == TGH ? "255" : "50"), PREPARATION, PREPARATION));
 				newCommands.push(Command("M17", PREPARATION, PREPARATION));
 				newCommands.push(Command("G90", PREPARATION, PREPARATION));
@@ -2098,19 +2115,19 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 					if(filamentType == ABS_R)
 					
 						// Add temperature to output
-						newCommands.push(Command("M109 S" + to_string(getBoundedTemperature(filamentTemperature + 15, filamentTemperature <= 285 ? 285 : 315)), THERMAL, THERMAL));
+						newCommands.push(Command("M109 S" + to_string(getBoundedTemperature(filamentTemperature + 15, firmwareType == M3D_MOD ? 315 : 285)), THERMAL, THERMAL));
 					
 					// Otherwise check if filament type is TGH or FLX
 					else if(filamentType == TGH || filamentType == FLX)
 					
 						// Add temperature to output
-						newCommands.push(Command("M109 S" + to_string(getBoundedTemperature(filamentTemperature - 15, filamentTemperature <= 285 ? 285 : 315)), THERMAL, THERMAL));
+						newCommands.push(Command("M109 S" + to_string(getBoundedTemperature(filamentTemperature - 15, firmwareType == M3D_MOD ? 315 : 285)), THERMAL, THERMAL));
 					
 					// Otherwise
 					else
 	
 						// Add temperature to output
-						newCommands.push(Command("M109 S" + to_string(getBoundedTemperature(filamentTemperature + 10, filamentTemperature <= 285 ? 285 : 315)), THERMAL, THERMAL));
+						newCommands.push(Command("M109 S" + to_string(getBoundedTemperature(filamentTemperature + 10, firmwareType == M3D_MOD ? 315 : 285)), THERMAL, THERMAL));
 				}
 		
 				// Otherwise

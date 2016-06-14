@@ -115,7 +115,8 @@ for line in open(sys.argv[1], "rb") :
 			output.write("travel_speed = " + str(int(value)) + '\n')
 		
 		elif key == "infillOverlap" :
-			output.write("fill_overlap = " + str(int(value)) + '\n')
+			#output.write("fill_overlap = " + str(int(value)) + '\n')
+			output.write("fill_overlap = 15\n")
 		
 		elif key == "supportType" :
 		
@@ -346,6 +347,8 @@ else :
 
 if infillSpeed != printSpeed :
 	output.write("infill_speed = " + str(infillSpeed) + '\n')
+else :
+	output.write("infill_speed = 0\n")
 
 if sparseInfillLineDistance == -1 :
 	output.write("fill_density = 0\n")
