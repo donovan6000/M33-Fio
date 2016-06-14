@@ -30,7 +30,21 @@ $(function() {
 		var failedToConnectCallback = null;
 		var skipModelEditor = false;
 		var currentFirmwareType = null;
+		var printerColor = "Black"
 		var self = this;
+		
+		// Set viewport printer and filament color
+		var viewportPrinterColor;
+		if(typeof localStorage.viewportPrinterColor !== "undefined")
+			viewportPrinterColor = localStorage.viewportPrinterColor;
+		else
+			viewportPrinterColor = "Black";
+		
+		var viewportFilamentColor;
+		if(typeof localStorage.viewportFilamentColor !== "undefined")
+			viewportFilamentColor = localStorage.viewportFilamentColor;
+		else
+			viewportFilamentColor = "White";
 		
 		// Get state views
 		self.printerState = parameters[0];
@@ -1159,7 +1173,7 @@ $(function() {
 					loader.load(PLUGIN_BASEURL + "m3dfio/static/files/printer.stl", function(geometry) {
 					
 						// Create printer's mesh
-						var mesh = new THREE.Mesh(geometry, printerMaterials[self.settings.settings.plugins.m3dfio.PrinterColor()]);
+						var mesh = new THREE.Mesh(geometry, printerMaterials[viewportPrinterColor]);
 	
 						// Set printer's orientation
 						mesh.rotation.set(3 * Math.PI / 2, 0, Math.PI);
@@ -1487,7 +1501,7 @@ $(function() {
 						geometry.center();
 
 						// Create model's mesh
-						var mesh = new THREE.Mesh(geometry, filamentMaterials[self.settings.settings.plugins.m3dfio.FilamentColor()]);
+						var mesh = new THREE.Mesh(geometry, filamentMaterials[viewportFilamentColor]);
 
 						// Set model's orientation
 						if(type == "stl")
@@ -1539,7 +1553,7 @@ $(function() {
 					if(viewport.platformAdhesion != "None") {
 					
 						// Create adhesion mesh
-						var adhesionMesh = new THREE.Mesh(mesh.geometry.clone(), filamentMaterials[self.settings.settings.plugins.m3dfio.FilamentColor()]);
+						var adhesionMesh = new THREE.Mesh(mesh.geometry.clone(), filamentMaterials[viewportFilamentColor]);
 
 						// Add adhesion to scene
 						viewport.scene[0].add(adhesionMesh);
@@ -1768,11 +1782,11 @@ $(function() {
 									if(viewport.models[i].mesh == intersects[0].object || (viewport.models[i].adhesion !== null && viewport.models[i].adhesion.mesh == intersects[0].object)) {
 							
 										// Set model's color
-										viewport.models[i].mesh.material = filamentMaterials[self.settings.settings.plugins.m3dfio.FilamentColor()];
+										viewport.models[i].mesh.material = filamentMaterials[viewportFilamentColor];
 										
 										// Set adhesion's color
 										if(viewport.models[i].adhesion !== null) {
-											viewport.models[i].adhesion.mesh.material = filamentMaterials[self.settings.settings.plugins.m3dfio.FilamentColor()];
+											viewport.models[i].adhesion.mesh.material = filamentMaterials[viewportFilamentColor];
 											viewport.scene[1].remove(viewport.models[i].adhesion.glow);
 											viewport.models[i].adhesion.glow = null;
 										}
@@ -2201,11 +2215,11 @@ $(function() {
 							if(viewport.models[i].glow !== null) {
 	
 								// Set model's color
-								viewport.models[i].mesh.material = filamentMaterials[self.settings.settings.plugins.m3dfio.FilamentColor()];
+								viewport.models[i].mesh.material = filamentMaterials[viewportFilamentColor];
 								
 								// Set adhesion's color
 								if(viewport.models[i].adhesion !== null) {
-									viewport.models[i].adhesion.mesh.material = filamentMaterials[self.settings.settings.plugins.m3dfio.FilamentColor()];
+									viewport.models[i].adhesion.mesh.material = filamentMaterials[viewportFilamentColor];
 									viewport.scene[1].remove(viewport.models[i].adhesion.glow);
 									viewport.models[i].adhesion.glow = null;
 								}
@@ -3151,8 +3165,8 @@ $(function() {
 							// Create difference and intersection meshes
 							var cutShapeBsp = new ThreeBSP(viewport.cutShape);
 							var modelBsp = new ThreeBSP(viewport.models[i].mesh);
-							var meshDifference = modelBsp.subtract(cutShapeBsp).toMesh(new THREE.MeshLambertMaterial(filamentMaterials[self.settings.settings.plugins.m3dfio.FilamentColor()]));
-							var meshIntersection = modelBsp.intersect(cutShapeBsp).toMesh(new THREE.MeshLambertMaterial(filamentMaterials[self.settings.settings.plugins.m3dfio.FilamentColor()]));
+							var meshDifference = modelBsp.subtract(cutShapeBsp).toMesh(new THREE.MeshLambertMaterial(filamentMaterials[viewportFilamentColor]));
+							var meshIntersection = modelBsp.intersect(cutShapeBsp).toMesh(new THREE.MeshLambertMaterial(filamentMaterials[viewportFilamentColor]));
 				
 							// Delete model
 							viewport.scene[0].remove(viewport.models[i].mesh);
@@ -3346,7 +3360,7 @@ $(function() {
 								// Create union mesh
 								var unionBsp = new ThreeBSP(meshUnion);
 								var modelBsp = new ThreeBSP(viewport.models[i].mesh);
-								meshUnion = unionBsp.union(modelBsp).toMesh(new THREE.MeshLambertMaterial(filamentMaterials[self.settings.settings.plugins.m3dfio.FilamentColor()]));
+								meshUnion = unionBsp.union(modelBsp).toMesh(new THREE.MeshLambertMaterial(filamentMaterials[viewportFilamentColor]));
 				
 								// Delete model
 								viewport.scene[0].remove(viewport.models[i].mesh);
@@ -3694,6 +3708,25 @@ $(function() {
 		
 		// Create absolute and relative controls, print settings, and emergency stop
 		$("#control > div.jog-panel.general").find("div").append(`
+			<button class="btn btn-block control-box micro3d" data-bind="enable: isOperational() && loginState.isUser()">LED on</button>
+			<button class="btn btn-block control-box micro3d" data-bind="enable: isOperational() && loginState.isUser(), click: function() {
+				$root.sendCustomCommand({
+					type: 'command',
+					command: 'M420 T0*'
+				})
+			}" title="Turns off front LED">LED off</button>
+			<button class="btn btn-block control-box gpio micro3d" data-bind="enable: isOperational() && loginState.isUser(), click: function() {
+				$root.sendCustomCommand({
+					type: 'command',
+					command: 'M106 T1*'
+				})
+			}" title="Sets GPIO pin high">GPIO high</button>
+			<button class="btn btn-block control-box gpio micro3d" data-bind="enable: isOperational() && loginState.isUser(), click: function() {
+				$root.sendCustomCommand({
+					type: 'command',
+					command: 'M107 T1*'
+				})
+			}" title="Sets GPIO pin low">GPIO low</button>
 			<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() {
 				$root.sendCustomCommand({
 					type: 'command',
@@ -3708,18 +3741,6 @@ $(function() {
 			}" title="Sets extruder to use relative positioning">Relative mode</button>
 			<button class="btn btn-block control-box micro3d" data-bind="enable: loginState.isUser()">Print settings</button>
 			<button class="btn btn-block control-box micro3d" data-bind="enable: isOperational() && loginState.isUser()">Emergency stop</button>
-			<button class="btn btn-block control-box gpio micro3d" data-bind="enable: isOperational() && loginState.isUser(), click: function() {
-				$root.sendCustomCommand({
-					type: 'command',
-					command: 'M106 T1*'
-				})
-			}" title="Sets GPIO pin high">GPIO high</button>
-			<button class="btn btn-block control-box gpio micro3d" data-bind="enable: isOperational() && loginState.isUser(), click: function() {
-				$root.sendCustomCommand({
-					type: 'command',
-					command: 'M107 T1*'
-				})
-			}" title="Sets GPIO pin low">GPIO low</button>
 		`);
 	
 		// Add filament controls
@@ -6631,8 +6652,8 @@ $(function() {
 																	</div>
 																`);
 
-																$("#slicing_configuration_dialog .modal-extra div.printer button[data-color=\"" + self.settings.settings.plugins.m3dfio.PrinterColor() + "\"]").addClass("disabled");
-																$("#slicing_configuration_dialog .modal-extra div.filament button[data-color=\"" + self.settings.settings.plugins.m3dfio.FilamentColor() + "\"]").addClass("disabled");
+																$("#slicing_configuration_dialog .modal-extra div.printer button[data-color=\"" + viewportPrinterColor + "\"]").addClass("disabled");
+																$("#slicing_configuration_dialog .modal-extra div.filament button[data-color=\"" + viewportFilamentColor + "\"]").addClass("disabled");
 																$("#slicing_configuration_dialog .modal-extra").append(viewport.renderer.domElement);
 																if(self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter())
 																	$("#slicing_configuration_dialog .modal-footer p.warning").text("Boundary dimensions are designed for a Micro 3D printer");
@@ -6967,27 +6988,15 @@ $(function() {
 
 																// Printer color button click event
 																$("#slicing_configuration_dialog .modal-extra div.printer button").click(function() {
-															
-																	// Send request
-																	$.ajax({
-																		url: API_BASEURL + "plugin/m3dfio",
-																		type: "POST",
-																		dataType: "json",
-																		data: JSON.stringify({
-																			command: "message",
-																			value: "Set Printer Color: " + $(this).data("color")
-																		}),
-																		contentType: "application/json; charset=UTF-8",
+																
+																	// Set viewport printer color
+																	viewportPrinterColor = $(this).data("color");
 																	
-																		success: function() {
-																	
-																			// Update settings
-																			self.settings.requestData();
-																		}
-																	});
+																	// Save viewport printer color
+																	localStorage.viewportPrinterColor = viewportPrinterColor;
 
 																	// Set printer color
-																	viewport.models[0].mesh.material = printerMaterials[$(this).data("color")];
+																	viewport.models[0].mesh.material = printerMaterials[viewportPrinterColor];
 																	$(this).addClass("disabled").siblings(".disabled").removeClass("disabled");
 
 																	// Render
@@ -6997,23 +7006,11 @@ $(function() {
 																// Filament color button click event
 																$("#slicing_configuration_dialog .modal-extra div.filament button").click(function() {
 															
-																	// Send request
-																	$.ajax({
-																		url: API_BASEURL + "plugin/m3dfio",
-																		type: "POST",
-																		dataType: "json",
-																		data: JSON.stringify({
-																			command: "message",
-																			value: "Set Filament Color: " + $(this).data("color")
-																		}),
-																		contentType: "application/json; charset=UTF-8",
+																	// Set viewport filament color
+																	viewportFilamentColor = $(this).data("color");
 																	
-																		success: function() {
-																	
-																			// Update settings
-																			self.settings.requestData();
-																		}
-																	});
+																	// Save viewport filament color
+																	localStorage.viewportFilamentColor = viewportFilamentColor;
 
 																	// Go through all models
 																	for(var i = 1; i < viewport.models.length; i++)
@@ -7022,11 +7019,11 @@ $(function() {
 																		if(viewport.models[i].glow === null) {
 
 																			// Set model's color
-																			viewport.models[i].mesh.material = filamentMaterials[$(this).data("color")];
+																			viewport.models[i].mesh.material = filamentMaterials[viewportFilamentColor];
 																			
 																			// Set adhesion's color
 																			if(viewport.models[i].adhesion !== null)
-																				viewport.models[i].adhesion.mesh.material = filamentMaterials[$(this).data("color")];
+																				viewport.models[i].adhesion.mesh.material = filamentMaterials[viewportFilamentColor];
 																		}
 
 																	// Select button
@@ -7977,8 +7974,29 @@ $(function() {
 			});
 		});
 		
+		// LED on control
+		$("#control > div.jog-panel.general").find("button:nth-of-type(5)").attr("title", "Turns on front LED").click(function() {
+			
+			// Set commands
+			var commands = [
+				"M420 T" + (printerColor == "Clear" ? "20" : "100") + '*'
+			];
+		
+			// Send request
+			$.ajax({
+				url: API_BASEURL + "plugin/m3dfio",
+				type: "POST",
+				dataType: "json",
+				data: JSON.stringify({
+					command: "message",
+					value: commands
+				}),
+				contentType: "application/json; charset=UTF-8"
+			});
+		});
+		
 		// Print settings control
-		$("#control > div.jog-panel.general").find("button:nth-of-type(7)").attr("title", "Opens print settings").click(function() {
+		$("#control > div.jog-panel.general").find("button:nth-of-type(11)").attr("title", "Opens print settings").click(function() {
 		
 			// Open M3D Fio settings
 			$("#navbar_show_settings").click();
@@ -7987,7 +8005,7 @@ $(function() {
 		});
 		
 		// Emergency stop control
-		$("#control > div.jog-panel.general").find("button:nth-of-type(8)").attr("title", "Stop current operation").click(function() {
+		$("#control > div.jog-panel.general").find("button:nth-of-type(12)").attr("title", "Stops current operation").click(function() {
 		
 			// Send request
 			$.ajax({
@@ -11303,10 +11321,45 @@ $(function() {
 			}
 				
 			// Check if data is printer details
-			else if(data.value == "Printer Details" && typeof data.serialNumber !== "undefined" && typeof data.serialPort !== "undefined")
+			else if(data.value == "Printer Details" && typeof data.serialNumber !== "undefined" && typeof data.serialPort !== "undefined") {
+			
+				// Set printer color
+				switch(data.serialNumber.substr(0, 2)) {
+					case "BK":
+						printerColor = "Black"
+						break;
+					case "WH":
+						printerColor = "White"
+						break;
+					case "BL":
+						printerColor = "Blue"
+						break;
+					case "GR":
+						printerColor = "Green"
+						break;
+					case "OR":
+						printerColor = "Orange"
+						break;
+					case "CL":
+						printerColor = "Clear"
+						break;
+					case "SL":
+						printerColor = "Silver"
+						break;
+					case "PL":
+						printerColor = "Purple"
+						break;
+				}
+				
+				// Set viewport printer color
+				viewportPrinterColor = printerColor;
+				
+				// Save viewport printer color
+				localStorage.viewportPrinterColor = viewportPrinterColor;
 			
 				// Update connected printer details
 				$("#navbar_plugin_m3dfio > a").text((data.serialNumber.match(/^[0-9a-z]+$/i) ? data.serialNumber.slice(0, 2) + '-' + data.serialNumber.slice(2, 4) + '-' + data.serialNumber.slice(4, 6) + '-' + data.serialNumber.slice(6, 8) + '-' + data.serialNumber.slice(8, 10) + '-' + data.serialNumber.slice(10, 13) + '-' + data.serialNumber.slice(13, 16) : "Printer") + " at " + data.serialPort);
+			}
 			
 			// Otherwise check if data is that a Micro 3D isn't connected
 			else if(data.value == "Micro 3D Not Connected") {

@@ -1482,8 +1482,6 @@ class M3DFioPlugin(
 			UseCenterModelPreprocessor = False,
 			IgnorePrintDimensionLimitations = False,
 			PreprocessOnTheFly = True,
-			PrinterColor = "Black",
-			FilamentColor = "White",
 			UseSharedLibrary = True,
 			SpeedLimitX = 1500,
 			SpeedLimitY = 1500,
@@ -2310,8 +2308,6 @@ class M3DFioPlugin(
 					BedHeightOffset = self._settings.get_float(["BedHeightOffset"]),
 					FilamentTemperature = self._settings.get_int(["FilamentTemperature"]),
 					FilamentType = str(self._settings.get(["FilamentType"])),
-					PrinterColor = str(self._settings.get(["PrinterColor"])),
-					FilamentColor = str(self._settings.get(["FilamentColor"])),
 					SpeedLimitX = self._settings.get_float(["SpeedLimitX"]),
 					SpeedLimitY = self._settings.get_float(["SpeedLimitY"]),
 					SpeedLimitZ = self._settings.get_float(["SpeedLimitZ"]),
@@ -2388,12 +2384,6 @@ class M3DFioPlugin(
 				
 				if "FilamentType" in printerSettings :
 					self._settings.set(["FilamentType"], str(printerSettings["FilamentType"]))
-				
-				if "PrinterColor" in printerSettings and (str(printerSettings["PrinterColor"]) == "Black" or str(printerSettings["PrinterColor"]) == "White" or str(printerSettings["PrinterColor"]) == "Blue" or str(printerSettings["PrinterColor"]) == "Green" or str(printerSettings["PrinterColor"]) == "Orange" or str(printerSettings["PrinterColor"]) == "Clear" or str(printerSettings["PrinterColor"]) == "Silver" or str(printerSettings["PrinterColor"]) == "Purple") :
-					self._settings.set(["PrinterColor"], str(printerSettings["PrinterColor"]))
-				
-				if "FilamentColor" in printerSettings :
-					self._settings.set(["FilamentColor"], str(printerSettings["FilamentColor"]))
 				
 				if "SpeedLimitX" in printerSettings :
 					self._settings.set_float(["SpeedLimitX"], float(printerSettings["SpeedLimitX"]))
@@ -2598,30 +2588,6 @@ class M3DFioPlugin(
 				
 				# Send response
 				return flask.jsonify(dict(value = "OK", port = port))
-			
-			# Otherwise check if value is to set printer color
-			elif data["value"].startswith("Set Printer Color:") :
-			
-				# Get color
-				color = data["value"][19 :]
-				
-				# Check if color is valid
-				if color == "Black" or color == "White" or color == "Blue" or color == "Green" or color == "Orange" or color == "Clear" or color == "Silver" or color == "Purple" :
-				
-					# Set setting
-					self._settings.set(["PrinterColor"], color)
-			
-			# Otherwise check if value is to set filament color
-			elif data["value"].startswith("Set Filament Color:") :
-			
-				# Get color
-				color = data["value"][20 :]
-				
-				# Check if color is valid
-				if color == "White" or color == "Pink" or color == "Red" or color == "Orange" or color == "Yellow" or color == "Green" or color == "Light Blue" or color == "Blue" or color == "Purple" or color == "Black" :
-				
-					# Set setting
-					self._settings.set(["FilamentColor"], color)
 			
 			# Otherwise check if parameter is print settings
 			elif data["value"].startswith("Print Settings:") :
@@ -5144,28 +5110,20 @@ class M3DFioPlugin(
 							color = serialNumber[0 : 2]
 							if color == "BK" :
 								self.printerColor = "Black"
-								self._settings.set(["PrinterColor"], "Black")
 							elif color == "WH" :
 								self.printerColor = "White"
-								self._settings.set(["PrinterColor"], "White")
 							elif color == "BL" :
 								self.printerColor = "Blue"
-								self._settings.set(["PrinterColor"], "Blue")
 							elif color == "GR" :
 								self.printerColor = "Green"
-								self._settings.set(["PrinterColor"], "Green")
 							elif color == "OR" :
 								self.printerColor = "Orange"
-								self._settings.set(["PrinterColor"], "Orange")
 							elif color == "CL" :
 								self.printerColor = "Clear"
-								self._settings.set(["PrinterColor"], "Clear")
 							elif color == "SL" :
 								self.printerColor = "Silver"
-								self._settings.set(["PrinterColor"], "Silver")
 							elif color == "PL" :
 								self.printerColor = "Purple"
-								self._settings.set(["PrinterColor"], "Purple")
 				
 							# Get fan type from EEPROM
 							fanType = self.eepromGetInt("fanType")
