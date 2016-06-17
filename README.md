@@ -74,4 +74,4 @@ A. M3D Fio dynamically changes the printer profile whenever the heatbed is plugg
 ___
 Q. OctoPrint's terminal shows an error about how it couldn't determine the printer's baud rate when trying to connect to the printer.
 
-A. Something caused M3D Fio to crash, so you'll need to restart it. This can be accomplished by restarting OctoPinrt, which can be done by restarting your computer.
+A. Something caused M3D Fio to crash, so you'll need to restart it. This can be accomplished by restarting OctoPrint, which can be done by restarting your computer.
