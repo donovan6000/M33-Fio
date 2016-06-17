@@ -1,32 +1,77 @@
 # M3D Fio
-OctoPrint plugin for the Micro 3D printer that provides a complete, platform independent alternative to the printer's official software.
+OctoPrint plugin that provides the world's first platform independent software solution for the Micro 3D printer.
 
 © 2015-2016 Exploit Kings. All rights reserved.
 
-M3D Fio can be installed with OctoPrint's built in plugin manager.
-![alt text](https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/images/install.png "Install")
+### Description
+M3D Fio is a plugin for [OctoPrint](http://octoprint.org/) that extends its capabilities to make it fully compatible with the Micro 3D printer. Both OctoPrint and M3D Fio can run on Windows, OS X, and Linux, so this solution is the first platform independent option available for this printer. This plugin has been in development since July, 2015, and it's gotten to the point where it's capable of doing everything that M3D's official software can do and more.
 
-It works in conjunction with OctoPrint's autodetect serial port and baudrate feature, so neither of those values need to be specified in order to successfully connect to the Micro 3D printer.
+The latest version of M3D Fio is V0.35 released on June 14th, 2016, and an entire changelog for it can be found [here](https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/Changelog).
 
-Installers were made for Windows, OS X, and Linux to simplify installing OctoPrint, M3D Fio, and all their dependencies like any device drivers. If your using Windows, you can run [this file](https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/Windows/install.zip) to install everything. If your using OS X, you can run [this file](https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/OS%20X/install.zip) to install everything. If your using Linux, you can run [this file](https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/Linux/install.zip) or run the following commands to install everything.
+### Features
+* Platform independent
+* Open source (M3D Fio's source code can be found [here](https://github.com/donovan6000/M3D-Fio))
+* Supports STL, OBJ, M3D, AMF, VRML, and COLLADA file formats
+* Allows printing multiple objects together
+* Displays an accurate representation of the printable region
+* Objects can be manipulated, cloned, cut, and merged
+* Displays an objects dimensions
+* Multiple printer support
+* Fully customizable slicing profiles
+* Accurate bed calibration
+* Supports the [Micro 3D compatible heatbed](https://www.kickstarter.com/projects/1668748285/the-micro-m3d-compatible-heated-print-bed)
+* Firmware updating system that allows installing official and third party firmwares
+* EEPROM management
+* Webcam streaming
+* Changing filament in the middle of a print
+* Compatible with the Micro 3D open source firmware [iMe](https://github.com/donovan6000/iMe)
 
-```shell
-wget https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/Linux/install.zip
-unzip install.zip -x uninstall.sh
-sudo sh ./install.sh
-```
+### Installation
+There's installers available for [Windows](https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/Windows/install.zip), [OS X](https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/OS%20X/install.zip), and [Linux](https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/Linux/install.zip) that install OctoPrint, M3D Fio, and device drivers for the printer and heatbed. These installers all add OctoPrint as a startup program and create a shortcut on the desktop that allows accessing OctoPrint's user interface.
 
-M3D Fio expands the capabilities of OctoPrint to make it fully compatible with the Micro 3D printer. All of the printer's settings can be customized.
-![alt text](https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/images/settings.png "Settings")
+If you already have OctoPrint installed, M3D Fio can be installed directly from OctoPrint's builtin plugin manager by searching for it in the plugin repository.
 
-Controls are added which allow calibrating the print bed, loading/unloading filament, updating the firmware, managing the EEPROM, etc.
+### Usage
+After installing OctoPrint and M3D Fio, you can immediately connect to a printer and start printing. M3D Fio works on conjunction with OctoPrint's auto-detect serial port and baud rate features, so neither of those values need to be specified in order to successfully connect to the printer. After connecting to a printer, all of that printer's existing settings, like backlash and bed calibration values, will be read in and used by M3D Fio to make transitioning over from M3D's official software as simple as possible.
+
+OctoPrint uses external slicers to convert 3D object files into printable G-code, and, if you currently have M3D's official software installed, M3D Fio will automatically configure OctoPrint to use the Cura Engine slicer that comes with it. However I recommend installing the latest [Cura V15.04](https://ultimaker.com/en/products/cura-software/list) release so that you can enjoy all the latest improvements to the Cura Engine slicer. After a slicer is installed, printing a model is as simple as dragging and dropping a file onto OctoPrint's user interface.
+
+OctoPrint is a web server, and it can allow remotely connecting to it. So you can open port 5000 in your computer's firewall and configure your router to route all traffic on that port to your computer to allow using your printer from anywhere in the world.
+
+### Images
+Additional controls are added to OctoPrint's control panel that allow doing everything from loading filament to updating the firmware.
 ![alt text](https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/images/controls.png "Controls")
-
-Slicing profiles can be customized before slicing a model.
+M3D Fio allows changing all of the printer's settings in the M3D Fio tab located in OctoPrint's settings.
+![alt text](https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/images/settings.png "Settings")
+The slicer profile editor lets you quickly specify the quality and fill options of a print while still giving you the ability to fine tune every available setting.
 ![alt text](https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/images/profile%20editor.png "Profile Editor")
-
-Any model sliced in OctoPrint can be modified before hand.
+The model editor allows manipulating the model before it's sliced. It can perform all the standard operations like translating, rotating, and scaling models.
 ![alt text](https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/images/model%20editor.png "Model Editor")
+It can also clone and import other models to allow printing more than one model at a time.
+![alt text](https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/images/clone.png "Clone And Import Models")
+It can even cut and merge models to make even large models printable.
+![alt text](https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/images/cut.png "Cut And Merge Models")
+### Troubleshooting
+Q. I can't connect to the printer. I receive an error similar to, "Unexpected error while connecting to serial port: AUTO SerialException: 'could not open port 'COM13': WindowsError(5, 'Access is denied.')'" every time I try to connect."
 
-New instances of OctoPrint can be created to allow using multiple printers at once.
-![alt text](https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/images/multiple%20instances.png "Multiple Instances")
+A. Close M3D's official software if it's open, and make sure no other programs are currently using the printer. If the problem persists, then restart your computer.
+___
+Q. I receive a message similar to, "It's recommended that you disable this server's sleep functionality while printing if it's not already disabled." What does this mean?
+
+A. M3D Fio attempts to prevent the server that it's running on from suspending/sleeping while printing, and that message gets displayed if it is unable to do so. Don't be too alarmed by this message since it doesn't mean that the server will go to sleep. It just means that M3D Fio can't prevent it from going to sleep.
+___
+Q. I installed Cura, but the slice button next to the uploaded files is still grayed out.
+
+A. If M3D Fio detects that Cura is installed, it'll automatically configure OctoPrint to use it. However OctoPrint isn't aware of that configuration change immediately so you'll need to refresh your web browser several times for it to take affect.
+___
+Q. How do I re-open the print session if I closed the web browser?
+
+A. Just go to the same URL that you were at before and it'll re-open the same session. You might have to refresh your web browser several times if it doesn't successfully restore the session.
+___
+Q. Even though I have the heatbed plugged in, I get an error similar to, "Warn: Not sending "M190 S100", printer profile has no heated bed" when I try to use it.
+
+A. M3D Fio dynamically changes the printer profile whenever the heatbed is plugged in, however OctoPrint will sometimes not immediately become aware of that profile changed. So either refresh your web browser a couple of times or unplug and re-plugin the heatbed.
+___
+Q. OctoPrint's terminal shows an error about how it couldn't determine the printer's baud rate when trying to connect to the printer.
+
+A. Something caused M3D Fio to crash, so you'll need to restart it. This can be accomplished by restarting OctoPinrt, which can be done by restarting your computer.
