@@ -4156,11 +4156,11 @@ class M3DFioPlugin(
 	# Set file locations
 	def setFileLocations(self) :
 	
-		# Initialize variables
-		enableSave = False
-	
 		# Check if not running in a virtual environment
 		if not hasattr(sys, "real_prefix") :
+		
+			# Initialize variables
+			enableSave = False
 		
 			# Check if Pip isn't set
 			if (octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._pip_caller is None or not octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._pip_caller.available) and (octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.get(["pip"]) is None or not len(octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.get(["pip"]))) :
@@ -4204,128 +4204,128 @@ class M3DFioPlugin(
 				octoprint.plugin.plugin_manager().plugin_implementations["pluginmanager"]._settings.set(["pip_args"], "--user", True)
 				enableSave = True
 		
-		# Check if checkout folder isn't set
-		if octoprint.plugin.plugin_manager().plugin_implementations["softwareupdate"]._settings.get(["checks", "octoprint", "checkout_folder"]) is None or not len(octoprint.plugin.plugin_manager().plugin_implementations["softwareupdate"]._settings.get(["checks", "octoprint", "checkout_folder"])) :
+			# Check if checkout folder isn't set
+			if octoprint.plugin.plugin_manager().plugin_implementations["softwareupdate"]._settings.get(["checks", "octoprint", "checkout_folder"]) is None or not len(octoprint.plugin.plugin_manager().plugin_implementations["softwareupdate"]._settings.get(["checks", "octoprint", "checkout_folder"])) :
 	
-			# Set checkout folder locations
-			checkoutFolderLocations = []
-			if platform.uname()[0].startswith("Windows") :
+				# Set checkout folder locations
+				checkoutFolderLocations = []
+				if platform.uname()[0].startswith("Windows") :
 	
-				checkoutFolderLocations = [
-					os.environ["SYSTEMDRIVE"] + "/Users/" + os.environ["USERNAME"] + "/AppData/Roaming/OctoPrint/checkout"
-				]
+					checkoutFolderLocations = [
+						os.environ["SYSTEMDRIVE"] + "/Users/" + os.environ["USERNAME"] + "/AppData/Roaming/OctoPrint/checkout"
+					]
 	
-			elif platform.uname()[0].startswith("Darwin") :
+				elif platform.uname()[0].startswith("Darwin") :
 	
-				checkoutFolderLocations = [
-					"/Users/" + os.environ["USER"] + "/Library/Application Support/OctoPrint/checkout"
-				]
+					checkoutFolderLocations = [
+						"/Users/" + os.environ["USER"] + "/Library/Application Support/OctoPrint/checkout"
+					]
 	
-			elif platform.uname()[0].startswith("Linux") :
+				elif platform.uname()[0].startswith("Linux") :
 	
-				checkoutFolderLocations = [
-					"/home/" + os.environ["USER"] + "/.octoprint/checkout"
-				]
+					checkoutFolderLocations = [
+						"/home/" + os.environ["USER"] + "/.octoprint/checkout"
+					]
 			
-			# Go through all checkout folder location
-			for locations in checkoutFolderLocations :
-				for location in glob.glob(locations) :
+				# Go through all checkout folder location
+				for locations in checkoutFolderLocations :
+					for location in glob.glob(locations) :
 				
-					# Check if location is a folder
-					if os.path.isdir(location) :
+						# Check if location is a folder
+						if os.path.isdir(location) :
 						
-						# Set checkout folder location and type
-						octoprint.plugin.plugin_manager().plugin_implementations["softwareupdate"]._settings.set(["checks", "octoprint", "checkout_folder"], location, True)
-						octoprint.plugin.plugin_manager().plugin_implementations["softwareupdate"]._settings.set(["checks", "octoprint", "type"], "github_release", True)
-						enableSave = True
-						break
-		
-		# Check if Cura is a registered slicer
-		if "cura" in self._slicing_manager.registered_slicers :
-	
-			# Check if Cura is not configured
-			if "cura" not in self._slicing_manager.configured_slicers :
-			
-				# Set Cura Engine locations
-				curaEngineLocations = []
-				if platform.uname()[0].startswith("Windows") :
-				
-					curaEngineLocations = [
-						os.environ["SYSTEMDRIVE"] + "/Program Files*/Cura_*/CuraEngine.exe",
-						os.environ["SYSTEMDRIVE"] + "/Program Files*/M3D*/*/Resources/CuraEngine/CuraEngine.exe"
-					]
-				
-				elif platform.uname()[0].startswith("Darwin") :
-				
-					curaEngineLocations = [
-						"/Applications/Cura/Cura.app/Contents/Resources/CuraEngine",
-						"/Applications/M3D.app/Contents/Resources/CuraEngine/CuraEngine"
-					]
-				
-				elif platform.uname()[0].startswith("Linux") :
-				
-					curaEngineLocations = [
-						"/usr/share/cura/CuraEngine",
-						"/usr/local/bin/CuraEngine",
-						"/usr/bin/CuraEngine",
-						"/usr/local/bin/cura_engine"
-					]
-				
-				# Go through all Cura Engine location
-				for locations in curaEngineLocations :
-					for location in glob.glob(locations) :
-			
-						# Check if location is a file
-						if os.path.isfile(location) :
-					
-							# Set Cura Engine location
-							self._slicing_manager.get_slicer("cura", False)._settings.set(["cura_engine"], location, True)
+							# Set checkout folder location and type
+							octoprint.plugin.plugin_manager().plugin_implementations["softwareupdate"]._settings.set(["checks", "octoprint", "checkout_folder"], location, True)
+							octoprint.plugin.plugin_manager().plugin_implementations["softwareupdate"]._settings.set(["checks", "octoprint", "type"], "github_release", True)
 							enableSave = True
 							break
 		
-		# Check if Slic3r is a registered slicer
-		if "slic3r" in self._slicing_manager.registered_slicers :
+			# Check if Cura is a registered slicer
+			if "cura" in self._slicing_manager.registered_slicers :
 	
-			# Check if Slic3r is not configured
-			if "slic3r" not in self._slicing_manager.configured_slicers :
+				# Check if Cura is not configured
+				if "cura" not in self._slicing_manager.configured_slicers :
 			
-				# Set Slic3r locations
-				slic3rLocations = []
-				if platform.uname()[0].startswith("Windows") :
+					# Set Cura Engine locations
+					curaEngineLocations = []
+					if platform.uname()[0].startswith("Windows") :
 				
-					slic3rLocations = [
-						os.environ["SYSTEMDRIVE"] + "/Program Files*/Slic3r/slic3r-console.exe"
-					]
+						curaEngineLocations = [
+							os.environ["SYSTEMDRIVE"] + "/Program Files*/Cura_*/CuraEngine.exe",
+							os.environ["SYSTEMDRIVE"] + "/Program Files*/M3D*/*/Resources/CuraEngine/CuraEngine.exe"
+						]
 				
-				elif platform.uname()[0].startswith("Darwin") :
+					elif platform.uname()[0].startswith("Darwin") :
 				
-					slic3rLocations = [
-						"/Applications/Slic3r.app/Contents/MacOS/slic3r"
-					]
+						curaEngineLocations = [
+							"/Applications/Cura/Cura.app/Contents/Resources/CuraEngine",
+							"/Applications/M3D.app/Contents/Resources/CuraEngine/CuraEngine"
+						]
 				
-				elif platform.uname()[0].startswith("Linux") :
+					elif platform.uname()[0].startswith("Linux") :
 				
-					slic3rLocations = [
-						"/usr/bin/slic3r"
-					]
+						curaEngineLocations = [
+							"/usr/share/cura/CuraEngine",
+							"/usr/local/bin/CuraEngine",
+							"/usr/bin/CuraEngine",
+							"/usr/local/bin/cura_engine"
+						]
 				
-				# Go through all slic3r location
-				for locations in slic3rLocations :
-					for location in glob.glob(locations) :
+					# Go through all Cura Engine location
+					for locations in curaEngineLocations :
+						for location in glob.glob(locations) :
 			
-						# Check if location is a file
-						if os.path.isfile(location) :
+							# Check if location is a file
+							if os.path.isfile(location) :
 					
-							# Set slic3r location
-							self._slicing_manager.get_slicer("slic3r", False)._settings.set(["slic3r_engine"], location, True)
-							enableSave = True
-							break
+								# Set Cura Engine location
+								self._slicing_manager.get_slicer("cura", False)._settings.set(["cura_engine"], location, True)
+								enableSave = True
+								break
 		
-		# Check if saving
-		if enableSave :
+			# Check if Slic3r is a registered slicer
+			if "slic3r" in self._slicing_manager.registered_slicers :
+	
+				# Check if Slic3r is not configured
+				if "slic3r" not in self._slicing_manager.configured_slicers :
+			
+					# Set Slic3r locations
+					slic3rLocations = []
+					if platform.uname()[0].startswith("Windows") :
+				
+						slic3rLocations = [
+							os.environ["SYSTEMDRIVE"] + "/Program Files*/Slic3r/slic3r-console.exe"
+						]
+				
+					elif platform.uname()[0].startswith("Darwin") :
+				
+						slic3rLocations = [
+							"/Applications/Slic3r.app/Contents/MacOS/slic3r"
+						]
+				
+					elif platform.uname()[0].startswith("Linux") :
+				
+						slic3rLocations = [
+							"/usr/bin/slic3r"
+						]
+				
+					# Go through all slic3r location
+					for locations in slic3rLocations :
+						for location in glob.glob(locations) :
+			
+							# Check if location is a file
+							if os.path.isfile(location) :
+					
+								# Set slic3r location
+								self._slicing_manager.get_slicer("slic3r", False)._settings.set(["slic3r_engine"], location, True)
+								enableSave = True
+								break
 		
-			# Save software settings
-			octoprint.settings.settings().save()
+			# Check if saving
+			if enableSave :
+		
+				# Save software settings
+				octoprint.settings.settings().save()
 		
 		# Check if Cura is configured
 		if "cura" in self._slicing_manager.configured_slicers :

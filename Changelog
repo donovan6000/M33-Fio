@@ -1,5 +1,10 @@
 Changelog:
 
+V0.35.1 June 21, 2016
+
+	* Doesn't set file locations when using a virtual Python environment which should fix the issue people were having M3D Fio trying to use the environmental variables
+	* Provides iMe V00.00.00.10 printer firmware
+
 V0.35 June 14, 2016
 
 	* Fixed issue with the slicer profile editor where settings with the same name followed by an underscore would be unintentionally get erased when changing the settings

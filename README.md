@@ -3,6 +3,8 @@ OctoPrint plugin that provides the world's first platform independent software s
 
 © 2015-2016 Exploit Kings. All rights reserved.
 
+M3D Fio has been discontinued on June 21st, 2016. I no longer feel like developing software for a product created by a company like M3D.
+
 ### Description
 M3D Fio is a plugin for [OctoPrint](http://octoprint.org/) that extends its capabilities to make it fully compatible with the Micro 3D printer. Both OctoPrint and M3D Fio can run on Windows, OS X, and Linux, so this solution is the first platform independent option available for this printer. This plugin has been in development since July, 2015, and it's gotten to the point where it's capable of doing everything that M3D's official software can do and more.
 
@@ -32,7 +34,7 @@ There's installers available for [Windows](https://raw.githubusercontent.com/don
 If you already have OctoPrint installed, M3D Fio can be installed directly from OctoPrint's builtin plugin manager by searching for it in the plugin repository.
 
 ### Usage
-After installing OctoPrint and M3D Fio, you can immediately connect to a printer and start printing. M3D Fio works on conjunction with OctoPrint's auto-detect serial port and baud rate features, so neither of those values need to be specified in order to successfully connect to the printer. After connecting to a printer, all of that printer's existing settings, like backlash and bed calibration values, will be read in and used by M3D Fio to make transitioning over from M3D's official software as simple as possible.
+After installing OctoPrint and M3D Fio, you can immediately connect to a printer and start printing. M3D Fio works in conjunction with OctoPrint's auto-detect serial port and baud rate features, so neither of those values need to be specified in order to successfully connect to the printer. After connecting to a printer, all of that printer's existing settings, like backlash and bed calibration values, will be read in and used by M3D Fio to make transitioning over from M3D's official software as simple as possible.
 
 OctoPrint uses external slicers to convert 3D object files into printable G-code, and, if you currently have M3D's official software installed, M3D Fio will automatically configure OctoPrint to use the Cura Engine slicer that comes with it. However I recommend installing the latest [Cura V15.04](https://ultimaker.com/en/products/cura-software/list) release so that you can enjoy all the latest improvements to the Cura Engine slicer. After a slicer is installed, printing a model is as simple as dragging and dropping a file onto OctoPrint's user interface.
 
