@@ -8,7 +8,7 @@ M3D Fio has been discontinued on June 21st, 2016. I no longer feel like developi
 ### Description
 M3D Fio is a plugin for [OctoPrint](http://octoprint.org/) that extends its capabilities to make it fully compatible with the Micro 3D printer. Both OctoPrint and M3D Fio can run on Windows, OS X, and Linux, so this solution is the first platform independent option available for this printer. This plugin has been in development since July, 2015, and it's gotten to the point where it's capable of doing everything that M3D's official software can do and more.
 
-The latest version of M3D Fio is V0.35 released on June 14th, 2016, and an entire changelog for it can be found [here](https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/Changelog).
+The latest version of M3D Fio is V0.35.1 released on June 21st, 2016, and an entire changelog for it can be found [here](https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/Changelog).
 
 ### Features
 * Platform independent
