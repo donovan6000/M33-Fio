@@ -5,57 +5,57 @@
 	<div class="control-group micro3d">
 		<div class="controls">
 			<label class="checkbox" title="Uses settings obtained from the printer to overwrite existing settings when a Micro 3D printer connects">
-				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.AutomaticallyObtainSettings"><span>Obtain printer settings automatically when a Micro 3D printer connects</span>
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.AutomaticallyObtainSettings"><span>Obtain printer settings automatically when a Micro 3D printer connects</span>
 			</label>
 		</div>
 	</div>
 	<div class="control-group micro3d">
 		<div class="controls">
 			<label class="checkbox" title="Pre-processes each G-code command right before being sent to the printer instead of having the entire G-code file pre-processed when being uploaded or sliced">
-				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.PreprocessOnTheFly"><span>Pre-process on the fly</span>
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.PreprocessOnTheFly"><span>Pre-process on the fly</span>
 			</label>
 		</div>
 	</div>
 	<div class="control-group dependant micro3d">
 		<div class="controls">
 			<label class="checkbox" title="A dialog box will appear right before printing to allow changing print settings">
-				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.ChangeSettingsBeforePrint"><span>Change settings before print</span>
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.ChangeSettingsBeforePrint"><span>Change settings before print</span>
 			</label>
 		</div>
 	</div>
 	<div class="control-group sharedLibrary micro3d">
 		<div class="controls">
 			<label class="checkbox" title="Uses the shared library pre-processor instead of the Python pre-processor to pre-process G-code files and commands">
-				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.UseSharedLibrary"><span>Use shared library</span>
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.UseSharedLibrary"><span>Use shared library</span>
 			</label>
 		</div>
 	</div>
 	<div class="control-group micro3d">
 		<div class="controls">
 			<label class="checkbox" title="Allows uploading and printing models that are larger than the printer's max dimensions">
-				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.IgnorePrintDimensionLimitations"><span>Ignore print dimension limitations <span class="label label-important">Dangerous</span></span>
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.IgnorePrintDimensionLimitations"><span>Ignore print dimension limitations <span class="label label-important">Dangerous</span></span>
 			</label>
 		</div>
 	</div>
 	<div class="control-group">
 		<div class="controls">
 			<label class="checkbox" title="Disables all the Micro 3D printer specific features which allows using other types of printers">
-				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.NotUsingAMicro3DPrinter"><span>Not using a Micro 3D printer</span>
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.NotUsingAMicro3DPrinter"><span>Not using a Micro 3D printer</span>
 			</label>
 		</div>
 	</div>
 	<div class="control-group">
 		<div class="controls">
-			<label class="checkbox" title="Logs debug information to plugin_m3dfio_debug.log">
-				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.UseDebugLogging"><span>Log debug information to plugin_m3dfio_debug.log</span>
+			<label class="checkbox" title="Logs debug information to plugin_m33fio_debug.log">
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.UseDebugLogging"><span>Log debug information to plugin_m33fio_debug.log</span>
 			</label>
 		</div>
 	</div>
 	<div class="control-group camera">
 		<div class="controls">
 			<label class="checkbox" title="Hosts a camera's stream and snapshot at port 4999 at /stream.mjpg and /snapshot.jpg respectively">
-				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.HostCamera"><span>Host Camera</span>
-				<select class="input-block-level short" data-bind="value: settings.plugins.m3dfio.CameraPort"></select>
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.HostCamera"><span>Host Camera</span>
+				<select class="input-block-level short" data-bind="value: settings.plugins.m33fio.CameraPort"></select>
 				&nbsp;&nbsp;<span class="label label-important">Changes require restart</span>
 			</label>
 		</div>
@@ -64,7 +64,7 @@
 		<label class="control-label">Camera Width</label>
 		<div class="controls">
 			<div class="input-append px">
-				<input type="number" step="1" min="1" max="4096" class="input-block-level" data-bind="value: settings.plugins.m3dfio.CameraWidth">
+				<input type="number" step="1" min="1" max="4096" class="input-block-level" data-bind="value: settings.plugins.m33fio.CameraWidth">
 				<span class="add-on">px</span>
 			</div>
 		</div>
@@ -73,7 +73,7 @@
 		<label class="control-label">Camera Height</label>
 		<div class="controls">
 			<div class="input-append">
-				<input type="number" step="1" min="1" max="4096" class="input-block-level" data-bind="value: settings.plugins.m3dfio.CameraHeight">
+				<input type="number" step="1" min="1" max="4096" class="input-block-level" data-bind="value: settings.plugins.m33fio.CameraHeight">
 				<span class="add-on">px</span>
 			</div>
 		</div>
@@ -82,7 +82,7 @@
 		<label class="control-label">Camera Frames Per Second</label>
 		<div class="controls">
 			<div class="input-append">
-				<input type="number" step="1" min="1" max="60" class="input-block-level" data-bind="value: settings.plugins.m3dfio.CameraFramesPerSecond">
+				<input type="number" step="1" min="1" max="60" class="input-block-level" data-bind="value: settings.plugins.m33fio.CameraFramesPerSecond">
 				<span class="add-on">fps</span>
 			</div>
 		</div>
@@ -94,93 +94,93 @@
 		<div class="controls">
 			<label title="Adds in mid-print filament change commands at the start of each specified layer. Layer numbers should be seperated by a space.">
 				<span class="noCheckbox">Mid-print filament change layers</span>
-				<input type="text" pattern="[\d\s]*" class="input-block-level short" data-bind="value: settings.plugins.m3dfio.MidPrintFilamentChangeLayers">
+				<input type="text" pattern="[\d\s]*" class="input-block-level short" data-bind="value: settings.plugins.m33fio.MidPrintFilamentChangeLayers">
 			</label>
 		</div>
 	</div>
 	<div class="control-group micro3d">
 		<div class="controls">
 			<label class="checkbox" title="Positions the printed object in the middle of the print bed. If possible, the centered model will be repositioned if it goes out of bounds.">
-				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.UseCenterModelPreprocessor"><span>Center Model</span>
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.UseCenterModelPreprocessor"><span>Center Model</span>
 			</label>
 		</div>
 	</div>
 	<div class="control-group micro3d">
 		<div class="controls">
 			<label class="checkbox" title="Removes G-code commands that are not compatible with the Micro 3D printer">
-				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.UseValidationPreprocessor"><span>Validation</span>
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.UseValidationPreprocessor"><span>Validation</span>
 			</label>
 		</div>
 	</div>
 	<div class="control-group dependant micro3d">
 		<div class="controls">
 			<label class="checkbox" title="Removes all fan commands">
-				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.RemoveFanCommands"><span>Remove fan commands</span>
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.RemoveFanCommands"><span>Remove fan commands</span>
 			</label>
 		</div>
 	</div>
 	<div class="control-group dependant micro3d">
 		<div class="controls">
 			<label class="checkbox" title="Removes all temperature commands">
-				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.RemoveTemperatureCommands"><span>Remove temperature commands</span>
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.RemoveTemperatureCommands"><span>Remove temperature commands</span>
 			</label>
 		</div>
 	</div>
 	<div class="control-group micro3d">
 		<div class="controls">
 			<label class="checkbox" title="Adds in G-code intro and outro">
-				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.UsePreparationPreprocessor"><span>Preparation</span>
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.UsePreparationPreprocessor"><span>Preparation</span>
 			</label>
 		</div>
 	</div>
 	<div class="control-group dependant micro3d">
 		<div class="controls">
 			<label class="checkbox" title="Changes the LED's brightness to dim when a print starts and flash when a print is done">
-				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.ChangeLedBrightness"><span>Change LED brightness</span>
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.ChangeLedBrightness"><span>Change LED brightness</span>
 			</label>
 		</div>
 	</div>
 	<div class="control-group dependant micro3d">
 		<div class="controls">
 			<label class="checkbox" title="Performs the bed center Z0 calibration procedure before printing. Avoid leaving the printer unmonitored until after the print starts in case the resulting calibration is inaccurate.">
-				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.CalibrateBeforePrint"><span>Calibrate before print  <span class="label label-important">Caution</span></span>
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.CalibrateBeforePrint"><span>Calibrate before print  <span class="label label-important">Caution</span></span>
 			</label>
 		</div>
 	</div>
 	<div class="control-group dependant gpio micro3d">
 		<div class="controls">
 			<label class="checkbox" title="Sets a GPIO pin high at the start of the specified layer and sets it low when the print is done">
-				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.UseGpio"><span>Use GPIO</span>
-				<input type="number" step="1" min="0" class="input-block-level short" data-bind="value: settings.plugins.m3dfio.GpioPin" placeholder="GPIO pin number">
-				<input type="number" step="1" min="1" class="input-block-level short" data-bind="value: settings.plugins.m3dfio.GpioLayer" placeholder="GPIO start layer">
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.UseGpio"><span>Use GPIO</span>
+				<input type="number" step="1" min="0" class="input-block-level short" data-bind="value: settings.plugins.m33fio.GpioPin" placeholder="GPIO pin number">
+				<input type="number" step="1" min="1" class="input-block-level short" data-bind="value: settings.plugins.m33fio.GpioLayer" placeholder="GPIO start layer">
 			</label>
 		</div>
 	</div>
 	<div class="control-group micro3d">
 		<div class="controls">
 			<label class="checkbox" title="Adds dwell times and higher temperatures to the first few layers">
-				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.UseThermalBondingPreprocessor"><span>Thermal Bonding</span>
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.UseThermalBondingPreprocessor"><span>Thermal Bonding</span>
 			</label>
 		</div>
 	</div>
 	<div class="control-group micro3d">
 		<div class="controls">
 			<label class="checkbox" title="Smooths out the bottom layer">
-				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.UseWaveBondingPreprocessor"><span>Wave Bonding</span>
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.UseWaveBondingPreprocessor"><span>Wave Bonding</span>
 			</label>
 		</div>
 	</div>
 	<div class="control-group micro3d">
 		<div class="controls">
 			<label class="checkbox" title="Adjusts the Z value of every G-code command to account for bed leveling">
-				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.UseBedCompensationPreprocessor"><span>Bed Compensation <span class="label label-important">Has no effect when using iMe firmware</span></span>
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.UseBedCompensationPreprocessor"><span>Bed Compensation <span class="label label-important">Has no effect when using iMe firmware</span></span>
 			</label>
 		</div>
 	</div>
 	<div class="control-group micro3d">
 		<div class="controls">
 			<label class="checkbox" title="Adjusts the X and Y values of G-code commands that change the current X or Y direction to account for backlash when changing directions">
-				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.UseBacklashCompensationPreprocessor"><span>Backlash Compensation <span class="label label-important">Has no effect when using iMe firmware</span></span>
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.UseBacklashCompensationPreprocessor"><span>Backlash Compensation <span class="label label-important">Has no effect when using iMe firmware</span></span>
 			</label>
 		</div>
 	</div>
@@ -191,7 +191,7 @@
 		<label class="control-label">Backlash X</label>
 		<div class="controls">
 			<div class="input-append">
-				<input type="number" step="0.000001" min="0" max="2" class="input-block-level" data-bind="value: settings.plugins.m3dfio.BacklashX">
+				<input type="number" step="0.000001" min="0" max="2" class="input-block-level" data-bind="value: settings.plugins.m33fio.BacklashX">
 				<span class="add-on">mm</span>
 			</div>
 		</div>
@@ -200,7 +200,7 @@
 		<label class="control-label">Backlash Y</label>
 		<div class="controls">
 			<div class="input-append">
-				<input type="number" step="0.000001" min="0" max="2" class="input-block-level" data-bind="value: settings.plugins.m3dfio.BacklashY">
+				<input type="number" step="0.000001" min="0" max="2" class="input-block-level" data-bind="value: settings.plugins.m33fio.BacklashY">
 				<span class="add-on">mm</span>
 			</div>
 		</div>
@@ -209,7 +209,7 @@
 		<label class="control-label">Backlash Speed</label>
 		<div class="controls">
 			<div class="input-append mmPerMinute">
-				<input type="number" step="0.000001" min="1" max="4999" class="input-block-level" data-bind="value: settings.plugins.m3dfio.BacklashSpeed">
+				<input type="number" step="0.000001" min="1" max="4999" class="input-block-level" data-bind="value: settings.plugins.m33fio.BacklashSpeed">
 				<span class="add-on">mm/min</span>
 			</div>
 		</div>
@@ -218,7 +218,7 @@
 		<label class="control-label">Back Left Orientation</label>
 		<div class="controls">
 			<div class="input-append">
-				<input type="number" step="0.000001" min="-3" max="3" class="input-block-level" data-bind="value: settings.plugins.m3dfio.BackLeftOrientation">
+				<input type="number" step="0.000001" min="-3" max="3" class="input-block-level" data-bind="value: settings.plugins.m33fio.BackLeftOrientation">
 				<span class="add-on">mm</span>
 			</div>
 		</div>
@@ -227,7 +227,7 @@
 		<label class="control-label">Back Right Orientation</label>
 		<div class="controls">
 			<div class="input-append">
-				<input type="number" step="0.000001" min="-3" max="3" class="input-block-level" data-bind="value: settings.plugins.m3dfio.BackRightOrientation">
+				<input type="number" step="0.000001" min="-3" max="3" class="input-block-level" data-bind="value: settings.plugins.m33fio.BackRightOrientation">
 				<span class="add-on">mm</span>
 			</div>
 		</div>
@@ -236,7 +236,7 @@
 		<label class="control-label">Front Right Orientation</label>
 		<div class="controls">
 			<div class="input-append">
-				<input type="number" step="0.000001" min="-3" max="3" class="input-block-level" data-bind="value: settings.plugins.m3dfio.FrontRightOrientation">
+				<input type="number" step="0.000001" min="-3" max="3" class="input-block-level" data-bind="value: settings.plugins.m33fio.FrontRightOrientation">
 				<span class="add-on">mm</span>
 			</div>
 		</div>
@@ -245,7 +245,7 @@
 		<label class="control-label">Front Left Orientation</label>
 		<div class="controls">
 			<div class="input-append">
-				<input type="number" step="0.000001" min="-3" max="3" class="input-block-level" data-bind="value: settings.plugins.m3dfio.FrontLeftOrientation">
+				<input type="number" step="0.000001" min="-3" max="3" class="input-block-level" data-bind="value: settings.plugins.m33fio.FrontLeftOrientation">
 				<span class="add-on">mm</span>
 			</div>
 		</div>
@@ -254,7 +254,7 @@
 		<label class="control-label">Bed Height Offset</label>
 		<div class="controls">
 			<div class="input-append">
-				<input type="number" step="0.000001" class="input-block-level" data-bind="value: settings.plugins.m3dfio.BedHeightOffset">
+				<input type="number" step="0.000001" class="input-block-level" data-bind="value: settings.plugins.m33fio.BedHeightOffset">
 				<span class="add-on">mm</span>
 			</div>
 		</div>
@@ -263,7 +263,7 @@
 		<label class="control-label">Back Left Offset</label>
 		<div class="controls">
 			<div class="input-append">
-				<input type="number" step="0.000001" class="input-block-level" data-bind="value: settings.plugins.m3dfio.BackLeftOffset">
+				<input type="number" step="0.000001" class="input-block-level" data-bind="value: settings.plugins.m33fio.BackLeftOffset">
 				<span class="add-on">mm</span>
 			</div>
 		</div>
@@ -272,7 +272,7 @@
 		<label class="control-label">Back Right Offset</label>
 		<div class="controls">
 			<div class="input-append">
-				<input type="number" step="0.000001" class="input-block-level" data-bind="value: settings.plugins.m3dfio.BackRightOffset">
+				<input type="number" step="0.000001" class="input-block-level" data-bind="value: settings.plugins.m33fio.BackRightOffset">
 				<span class="add-on">mm</span>
 			</div>
 		</div>
@@ -281,7 +281,7 @@
 		<label class="control-label">Front Right Offset</label>
 		<div class="controls">
 			<div class="input-append">
-				<input type="number" step="0.000001" class="input-block-level" data-bind="value: settings.plugins.m3dfio.FrontRightOffset">
+				<input type="number" step="0.000001" class="input-block-level" data-bind="value: settings.plugins.m33fio.FrontRightOffset">
 				<span class="add-on">mm</span>
 			</div>
 		</div>
@@ -290,7 +290,7 @@
 		<label class="control-label">Front Left Offset</label>
 		<div class="controls">
 			<div class="input-append">
-				<input type="number" step="0.000001" class="input-block-level" data-bind="value: settings.plugins.m3dfio.FrontLeftOffset">
+				<input type="number" step="0.000001" class="input-block-level" data-bind="value: settings.plugins.m33fio.FrontLeftOffset">
 				<span class="add-on">mm</span>
 			</div>
 		</div>
@@ -299,7 +299,7 @@
 		<label class="control-label">External Bed Height</label>
 		<div class="controls">
 			<div class="input-append">
-				<input type="number" step="0.000001" min="0" max="50" class="input-block-level" data-bind="value: settings.plugins.m3dfio.ExternalBedHeight">
+				<input type="number" step="0.000001" min="0" max="50" class="input-block-level" data-bind="value: settings.plugins.m33fio.ExternalBedHeight">
 				<span class="add-on">mm</span>
 			</div>
 		</div>
@@ -307,7 +307,7 @@
 	<div class="control-group micro3d">
 		<div class="controls">
 			<label class="checkbox" title="Expands printable region to include everywhere the extruder can move">
-				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.ExpandPrintableRegion"><span>External bed expands printable region to max</span>
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.ExpandPrintableRegion"><span>External bed expands printable region to max</span>
 			</label>
 		</div>
 	</div>
@@ -315,7 +315,7 @@
 		<label class="control-label">Filament Temperature</label>
 		<div class="controls">
 			<div class="input-append degreesCelsius">
-				<input type="number" step="1" min="150" max="315" class="input-block-level" data-bind="value: settings.plugins.m3dfio.FilamentTemperature">
+				<input type="number" step="1" min="150" max="315" class="input-block-level" data-bind="value: settings.plugins.m33fio.FilamentTemperature">
 				<span class="add-on">°C</span>
 			</div>
 		</div>
@@ -324,7 +324,7 @@
 		<label class="control-label">Heatbed Temperature</label>
 		<div class="controls">
 			<div class="input-append degreesCelsius">
-				<input type="number" step="1" min="40" max="110" class="input-block-level" data-bind="value: settings.plugins.m3dfio.HeatbedTemperature">
+				<input type="number" step="1" min="40" max="110" class="input-block-level" data-bind="value: settings.plugins.m33fio.HeatbedTemperature">
 				<span class="add-on">°C</span>
 			</div>
 		</div>
@@ -332,7 +332,7 @@
 	<div class="control-group micro3d" title="Type of filement being printed">
 		<label class="control-label">Filament Type</label>
 		<div class="controls">
-			<select class="input-block-level" data-bind="value: settings.plugins.m3dfio.FilamentType">
+			<select class="input-block-level" data-bind="value: settings.plugins.m33fio.FilamentType">
 				<option value="ABS">ABS (Recommended 275°C)</option>
 				<option value="PLA">PLA (Recommended 215°C)</option>
 				<option value="HIPS">HIPS (Recommended 265°C)</option>
@@ -351,7 +351,7 @@
 		<label class="control-label">Speed Limit X</label>
 		<div class="controls">
 			<div class="input-append mmPerMinute">
-				<input type="number" step="1" min="120" max="4800" class="input-block-level" data-bind="value: settings.plugins.m3dfio.SpeedLimitX">
+				<input type="number" step="1" min="120" max="4800" class="input-block-level" data-bind="value: settings.plugins.m33fio.SpeedLimitX">
 				<span class="add-on">mm/min</span>
 			</div>
 		</div>
@@ -360,7 +360,7 @@
 		<label class="control-label">Speed Limit Y</label>
 		<div class="controls">
 			<div class="input-append mmPerMinute">
-				<input type="number" step="1" min="120" max="4800" class="input-block-level" data-bind="value: settings.plugins.m3dfio.SpeedLimitY">
+				<input type="number" step="1" min="120" max="4800" class="input-block-level" data-bind="value: settings.plugins.m33fio.SpeedLimitY">
 				<span class="add-on">mm/min</span>
 			</div>
 		</div>
@@ -369,7 +369,7 @@
 		<label class="control-label">Speed Limit Z</label>
 		<div class="controls">
 			<div class="input-append mmPerMinute">
-				<input type="number" step="1" min="30" max="60" class="input-block-level" data-bind="value: settings.plugins.m3dfio.SpeedLimitZ">
+				<input type="number" step="1" min="30" max="60" class="input-block-level" data-bind="value: settings.plugins.m33fio.SpeedLimitZ">
 				<span class="add-on">mm/min</span>
 			</div>
 		</div>
@@ -378,7 +378,7 @@
 		<label class="control-label">Speed Limit E+</label>
 		<div class="controls">
 			<div class="input-append mmPerMinute">
-				<input type="number" step="1" min="60" max="600" class="input-block-level" data-bind="value: settings.plugins.m3dfio.SpeedLimitEPositive">
+				<input type="number" step="1" min="60" max="600" class="input-block-level" data-bind="value: settings.plugins.m33fio.SpeedLimitEPositive">
 				<span class="add-on">mm/min</span>
 			</div>
 		</div>
@@ -387,7 +387,7 @@
 		<label class="control-label">Speed Limit E-</label>
 		<div class="controls">
 			<div class="input-append mmPerMinute">
-				<input type="number" step="1" min="60" max="720" class="input-block-level" data-bind="value: settings.plugins.m3dfio.SpeedLimitENegative">
+				<input type="number" step="1" min="60" max="720" class="input-block-level" data-bind="value: settings.plugins.m33fio.SpeedLimitENegative">
 				<span class="add-on">mm/min</span>
 			</div>
 		</div>

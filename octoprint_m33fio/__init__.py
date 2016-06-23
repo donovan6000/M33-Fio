@@ -97,7 +97,7 @@ class Command(object) :
 		self.skip = skip
 
 # Plugin class
-class M3DFioPlugin(
+class M33FioPlugin(
 		octoprint.plugin.StartupPlugin,
 		octoprint.plugin.ShutdownPlugin,
 		octoprint.plugin.EventHandlerPlugin,
@@ -113,7 +113,7 @@ class M3DFioPlugin(
 	def __init__(self) :
 	
 		# Set logger
-		self._m3dfio_logger = logging.getLogger("octoprint.plugins.m3dfio.debug")
+		self._m33fio_logger = logging.getLogger("octoprint.plugins.m33fio.debug")
 
 		# Initialize data members
 		self.originalWrite = None
@@ -822,19 +822,19 @@ class M3DFioPlugin(
 		if self.heatbedConnected :
 			printerProfile["heatedBed"] = True
 		
-		self._printer_profile_manager.save(printerProfile, True, True)
+		self._printer_profile_manager.save(printerProfile, True)
 	
 	# On startup
 	def on_startup(self, host, port) :
 	
 		# Setup custom logger
-		m3dfio_logging_handler = logging.handlers.RotatingFileHandler(self._settings.get_plugin_logfile_path(postfix = "debug"), maxBytes = 500 * 1024 * 1024)
-		m3dfio_logging_handler.setFormatter(logging.Formatter("%(asctime)s %(message)s"))
-		m3dfio_logging_handler.setLevel(logging.DEBUG)
+		m33fio_logging_handler = logging.handlers.RotatingFileHandler(self._settings.get_plugin_logfile_path(postfix = "debug"), maxBytes = 500 * 1024 * 1024)
+		m33fio_logging_handler.setFormatter(logging.Formatter("%(asctime)s %(message)s"))
+		m33fio_logging_handler.setLevel(logging.DEBUG)
 		
-		self._m3dfio_logger.addHandler(m3dfio_logging_handler)
-		self._m3dfio_logger.setLevel(logging.DEBUG if self._settings.get_boolean(["UseDebugLogging"]) else logging.CRITICAL)
-		self._m3dfio_logger.propagate = False
+		self._m33fio_logger.addHandler(m33fio_logging_handler)
+		self._m33fio_logger.setLevel(logging.DEBUG if self._settings.get_boolean(["UseDebugLogging"]) else logging.CRITICAL)
+		self._m33fio_logger.propagate = False
 	
 	# On after startup
 	def on_after_startup(self) :
@@ -1594,9 +1594,9 @@ class M3DFioPlugin(
 		
 		# Update debug level
 		if self._settings.get_boolean(["UseDebugLogging"]) :
-			self._m3dfio_logger.setLevel(logging.DEBUG)
+			self._m33fio_logger.setLevel(logging.DEBUG)
 		else:
-			self._m3dfio_logger.setLevel(logging.CRITICAL)
+			self._m33fio_logger.setLevel(logging.CRITICAL)
 		
 		# Check if not using a Micro 3D printer
 		if self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
@@ -1645,8 +1645,8 @@ class M3DFioPlugin(
 	
 		# Return asset
 		return dict(
-			js = ["js/m3dfio.js", "js/three.min.js", "js/OrbitControls.js", "js/STLLoader.js", "js/OBJLoader.js", "js/M3DLoader.js", "js/STLBinaryExporter.js", "js/TransformControls.js", "js/ThreeCSG.js", "js/AMFLoader.js", "js/VRMLLoader.js", "js/ColladaLoader.js", "js/Detector.js"],
-			css = ["css/m3dfio.css"]
+			js = ["js/m33fio.js", "js/three.min.js", "js/OrbitControls.js", "js/STLLoader.js", "js/OBJLoader.js", "js/M3DLoader.js", "js/STLBinaryExporter.js", "js/TransformControls.js", "js/ThreeCSG.js", "js/AMFLoader.js", "js/VRMLLoader.js", "js/ColladaLoader.js", "js/Detector.js"],
+			css = ["css/m33fio.css"]
 		)
 	
 	# Get update information
@@ -1654,14 +1654,14 @@ class M3DFioPlugin(
 	
 		# Return update information
 		return dict(
-			m3dfio = dict(
+			m33fio = dict(
 				displayName = self._plugin_name,
 				displayVersion = self._plugin_version,
 				type = "github_release",
 				current = self._plugin_version,
 				user = "donovan6000",
-				repo = "M3D-Fio",
-				pip = "https://github.com/donovan6000/M3D-Fio/archive/{target_version}.zip"
+				repo = "M33-Fio",
+				pip = "https://github.com/donovan6000/M33-Fio/archive/{target_version}.zip"
 			)
 		)
 	
@@ -2287,7 +2287,7 @@ class M3DFioPlugin(
 					shutil.move(temp, fileDestination)
 				
 				# Return location
-				return flask.jsonify(dict(value = "OK", path = "m3dfio/download/" + destinationName))
+				return flask.jsonify(dict(value = "OK", path = "m33fio/download/" + destinationName))
 			
 			# Otherwise check if parameter is to get printer settings
 			elif data["value"] == "Get Printer Settings" :
@@ -2331,7 +2331,7 @@ class M3DFioPlugin(
     				output.close()
     				
     				# Return location
-				return flask.jsonify(dict(value = "OK", path = "m3dfio/download/" + destinationName))
+				return flask.jsonify(dict(value = "OK", path = "m33fio/download/" + destinationName))
 			
 			# Otherwise check if parameter is to set printer settings
 			elif data["value"].startswith("Set Printer Settings:") :
@@ -3368,7 +3368,7 @@ class M3DFioPlugin(
 	def processWrite(self, data) :
 	
 		# Log sent data
-		self._m3dfio_logger.debug("Original Sent: " + data)
+		self._m33fio_logger.debug("Original Sent: " + data)
 	
 		# Check if printing
 		if self._printer.is_printing() :
@@ -3845,7 +3845,7 @@ class M3DFioPlugin(
 					data = gcode.getBinary()
 				
 				# Log sent data
-				self._m3dfio_logger.debug("Processed Sent: " + gcode.getAscii())
+				self._m33fio_logger.debug("Processed Sent: " + gcode.getAscii())
 				
 				# Check if command has a line number
 				if gcode.hasValue('N') :
@@ -3916,7 +3916,7 @@ class M3DFioPlugin(
 		response = self.originalRead()
 		
 		# Log received data
-		self._m3dfio_logger.debug("Original Response: " + response)
+		self._m33fio_logger.debug("Original Response: " + response)
 		
 		# Check if setting heatbed temperature
 		if self.settingHeatbedTemperature :
@@ -4119,7 +4119,7 @@ class M3DFioPlugin(
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = response[3 :].strip(), header = "Error Status", confirm = True))
 		
 		# Log received data
-		self._m3dfio_logger.debug("Processed Response: " + response)
+		self._m33fio_logger.debug("Processed Response: " + response)
 		
 		# Return response
 		return response
@@ -4333,6 +4333,10 @@ class M3DFioPlugin(
 			# Set Cura profile location and destination
 			profileLocation = self._basefolder.replace('\\', '/') + "/static/profiles/Cura/"
 			profileDestination = self._slicing_manager.get_slicer_profile_path("cura").replace('\\', '/') + '/'
+			
+			# Remove deprecated profiles
+			for profile in glob.glob(profileDestination + "m3d_*.profile") :
+				os.remove(profile)
 
 			# Go through all Cura profiles
 			for profile in os.listdir(profileLocation) :
@@ -4342,7 +4346,7 @@ class M3DFioPlugin(
 				profileName = self._slicing_manager.get_profile_path("cura", profileIdentifier)[len(profileDestination) :].lower()
 	
 				# Import Cura profile
-				self.convertCuraToProfile(profileLocation + profile, profileDestination + profileName, profileName, profileIdentifier, "Imported by M3D Fio on " + time.strftime("%Y-%m-%d %H:%M"))
+				self.convertCuraToProfile(profileLocation + profile, profileDestination + profileName, profileName, profileIdentifier, "Imported by M33 Fio on " + time.strftime("%Y-%m-%d %H:%M"))
 		
 		# Check if Slic3r is configured
 		if "slic3r" in self._slicing_manager.configured_slicers :
@@ -4350,6 +4354,10 @@ class M3DFioPlugin(
 			# Set Slic3r profile location and destination
 			profileLocation = self._basefolder.replace('\\', '/') + "/static/profiles/Slic3r/"
 			profileDestination = self._slicing_manager.get_slicer_profile_path("slic3r").replace('\\', '/') + '/'
+			
+			# Remove deprecated profiles
+			for profile in glob.glob(profileDestination + "m3d_*.profile") :
+				os.remove(profile)
 
 			# Go through all Slic3r profiles
 			for profile in os.listdir(profileLocation) :
@@ -4359,7 +4367,7 @@ class M3DFioPlugin(
 				profileName = self._slicing_manager.get_profile_path("slic3r", profileIdentifier)[len(profileDestination) :].lower()
 	
 				# Import Slic3r profile
-				self.convertSlic3rToProfile(profileLocation + profile, profileDestination + profileName, profileName, profileIdentifier, "Imported by M3D Fio on " + time.strftime("%Y-%m-%d %H:%M"))
+				self.convertSlic3rToProfile(profileLocation + profile, profileDestination + profileName, profileName, profileIdentifier, "Imported by M33 Fio on " + time.strftime("%Y-%m-%d %H:%M"))
 	
 	# Event monitor
 	def on_event(self, event, payload) :
@@ -8972,7 +8980,7 @@ class M3DFioPlugin(
 				self.osXSleepFramework = setUpIOFramework()
 
 			# Assert on sleep framework
-			error, self.osXSleepPrevention = assertionCreateWithName(self.osXSleepFramework, "NoIdleSleepAssertion", 255, "Disabled by M3D Fio")
+			error, self.osXSleepPrevention = assertionCreateWithName(self.osXSleepFramework, "NoIdleSleepAssertion", 255, "Disabled by M33 Fio")
 			
 			# Return true if no errors occured
 			if error == 0 :
@@ -8998,25 +9006,25 @@ class M3DFioPlugin(
 				# Inhibit sleep service
 				try :
 					self.linuxSleepService = dbus.Interface(bus.get_object("org.gnome.ScreenSaver", "/org/gnome/ScreenSaver"), "org.gnome.ScreenSaver")
-					self.linuxSleepPrevention = self.linuxSleepService.Inhibit("M3D Fio", "Disabled by M3D Fio")
+					self.linuxSleepPrevention = self.linuxSleepService.Inhibit("M33 Fio", "Disabled by M33 Fio")
 			
 				except dbus.DBusException :
 				
 					try :
 						self.linuxSleepService = dbus.Interface(bus.get_object("org.gnome.ScreenSaver", "/ScreenSaver"), "org.gnome.ScreenSaver")
-						self.linuxSleepPrevention = self.linuxSleepService.Inhibit("M3D Fio", "Disabled by M3D Fio")
+						self.linuxSleepPrevention = self.linuxSleepService.Inhibit("M33 Fio", "Disabled by M33 Fio")
 			
 					except dbus.DBusException :
 					
 						try:
 							self.linuxSleepService = dbus.Interface(bus.get_object("org.freedesktop.ScreenSaver", "/org/freedesktop/ScreenSaver"), "org.freedesktop.ScreenSaver")
-							self.linuxSleepPrevention = self.linuxSleepService.Inhibit("M3D Fio", "Disabled by M3D Fio")
+							self.linuxSleepPrevention = self.linuxSleepService.Inhibit("M33 Fio", "Disabled by M33 Fio")
 						
 						except dbus.DBusException :
 			
 							try :
 								self.linuxSleepService = dbus.Interface(bus.get_object("org.freedesktop.ScreenSaver", "/ScreenSaver"), "org.freedesktop.ScreenSaver")
-								self.linuxSleepPrevention = self.linuxSleepService.Inhibit("M3D Fio", "Disabled by M3D Fio")
+								self.linuxSleepPrevention = self.linuxSleepService.Inhibit("M33 Fio", "Disabled by M33 Fio")
 				
 							except dbus.DBusException :
 					
@@ -9029,7 +9037,7 @@ class M3DFioPlugin(
 			else :
 			
 				try :
-					self.linuxSleepPrevention = self.linuxSleepService.Inhibit("M3D Fio", "Disabled by M3D Fio")
+					self.linuxSleepPrevention = self.linuxSleepService.Inhibit("M33 Fio", "Disabled by M33 Fio")
 				
 				except dbus.DBusException :
 					
@@ -9126,7 +9134,7 @@ class M3DFioPlugin(
 
 
 # Plugin info
-__plugin_name__ = "M3D Fio"
+__plugin_name__ = "M33 Fio"
 
 
 # Plugin load
@@ -9137,7 +9145,7 @@ def __plugin_load__() :
 	global __plugin_hooks__
 
 	# Define implementation
-	__plugin_implementation__ = M3DFioPlugin()
+	__plugin_implementation__ = M33FioPlugin()
 
 	# Define hooks
 	__plugin_hooks__ = {

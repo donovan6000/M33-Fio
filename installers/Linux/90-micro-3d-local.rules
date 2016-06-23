@@ -1,5 +1,5 @@
 # Run the following commands to install this rule
-# cp ./90-m3d-local.rules /etc/udev/rules.d/
+# cp ./90-micro-3d-local.rules /etc/udev/rules.d/
 # sudo /etc/init.d/udev restart
 
 ACTION=="add", SUBSYSTEMS=="usb", ATTRS{idVendor}=="03eb", ATTRS{idProduct}=="2404", GROUP="users", MODE="0666", ENV{ID_MM_DEVICE_IGNORE}="1"

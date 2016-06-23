@@ -1,8 +1,12 @@
 Changelog:
 
+V0.35.2 June 22, 2016
+
+	* Changed plugin's name to M33 Fio at the request of M3D
+
 V0.35.1 June 21, 2016
 
-	* Doesn't set file locations when using a virtual Python environment which should fix the issue people were having M3D Fio trying to use the environmental variables
+	* Doesn't set file locations when using a virtual Python environment which should fix the issue people were having M33 Fio trying to use the environmental variables
 	* Provides iMe V00.00.00.10 printer firmware
 
 V0.35 June 14, 2016
@@ -12,7 +16,7 @@ V0.35 June 14, 2016
 	* Provides iMe V00.00.00.9 printer firmware
 	* Canceling a print and performing an emergency stop are more reliable
 	* Improved support for OctoPrint's Slic3r plugin. Really big thanks to ra100!
-	* Fixed issue with updated M3D Fio on Windows
+	* Fixed issue with updated M33 Fio on Windows
 	* Adds buttons for turning front LED on and off
 
 V0.34 May 25, 2016
@@ -44,7 +48,7 @@ V0.31 March 31, 2016
 	* Canceling print now moves extruder out of the way
 	* Sends multiple M110 commands in a row in case one is lost or ignored by the printer
 	* Complete bed calibration now sets the external bed height
-	* Improved using M3D Fio with printers other than the Micro 3D
+	* Improved using M33 Fio with printers other than the Micro 3D
 	* Fixed issue with wave and thermal bonding pre-processor. Thanks ra100!
 	* Provided more printer firmwares
 
@@ -54,7 +58,7 @@ V0.30.2 March 18, 2016
 
 V0.30.1 March 17, 2016
 
-	* Installers will now setup OctoPrint's checkout folder and M3D Fio will set OctoPrint's settings to use it
+	* Installers will now setup OctoPrint's checkout folder and M33 Fio will set OctoPrint's settings to use it
 	* Dialog messages wont be displayed unless user is logged in
 
 V0.30 March 16, 2016
@@ -69,7 +73,7 @@ V0.29 March 11, 2016
 
 	* Added raft/brim to model editor
 	* Implemented logging functionality
-	* Fixed issue where M3D Fio wouldn't work when OctoPrint was being run from a server that directs it to a path other than the root
+	* Fixed issue where M33 Fio wouldn't work when OctoPrint was being run from a server that directs it to a path other than the root
 	* Increased max temperature to 315 degrees
 	* Fixed setting temperature in OctoPrint's temperature tab when printing
 	* Brim line count can be set in slicer profile editor
@@ -131,7 +135,7 @@ V0.25 January 25, 2016
 	* It'll attempt to disable sleep on Windows, OS X, and Linux while printing, and it'll inform the user if it cannot disable sleep
 	* Allows changing the filament temperature and type right before a print
 	* Fixed creating and terminating OctoPrint instances on Windows, OS X, and Linux
-	* Added option to allow using M3D Fio with printers other than the Micro 3D printer
+	* Added option to allow using M33 Fio with printers other than the Micro 3D printer
 	* Made supporting different firmwares for the printer simplier
 
 V0.24.3 January 11, 2016
@@ -177,7 +181,7 @@ V0.20 November 25, 2015
 
 	* Added EEPROM management
 	* Changed way that messages are shown so that they look more native to OctoPrint
-	* Implemented the 'first run' stuff from the official software, so now M3D Fio is a complete replacement for the official software
+	* Implemented the 'first run' stuff from the official software, so now M33 Fio is a complete replacement for the official software
 
 V0.19 November 22, 2015
 

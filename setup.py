@@ -3,14 +3,14 @@ import setuptools
 
 ########################################################################################################################
 
-plugin_identifier = "m3dfio"
+plugin_identifier = "m33fio"
 plugin_package = "octoprint_%s" % plugin_identifier
-plugin_name = "OctoPrint-M3DFio"
-plugin_version = "0.35.1"
+plugin_name = "OctoPrint-M33Fio"
+plugin_version = "0.35.2"
 plugin_description = "Makes OctoPrint fully compatible with the Micro 3D printer"
 plugin_author = "donovan6000"
 plugin_author_email = "donovan6000@exploitkings.com"
-plugin_url = "https://github.com/donovan6000/M3D-Fio"
+plugin_url = "https://github.com/donovan6000/M33-Fio"
 plugin_license = "GPLv3"
 plugin_additional_data = []
 

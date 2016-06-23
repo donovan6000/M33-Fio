@@ -64,7 +64,7 @@ CFLAGS += -Wall -std=c++11 -fvisibility=hidden -shared
 all: $(PROG)
 
 $(PROG):   $(SRCS)
-	$(CC) $(CFLAGS) -o ../octoprint_m3dfio/static/libraries/$(PROG) $(SRCS)
+	$(CC) $(CFLAGS) -o ../octoprint_m33fio/static/libraries/$(PROG) $(SRCS)
 
 clean:
-	rm -f ../octoprint_m3dfio/static/libraries/$(PROG)
+	rm -f ../octoprint_m33fio/static/libraries/$(PROG)

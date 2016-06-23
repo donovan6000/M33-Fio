@@ -42,86 +42,86 @@
 	pointer-events: none;
 }
 
-#settings_plugin_m3dfio h4:not(:first-of-type) {
+#settings_plugin_m33fio h4:not(:first-of-type) {
 	margin-top: -5px;
 }
 
-#settings_plugin_m3dfio .label-important {
+#settings_plugin_m33fio .label-important {
 	position: relative;
 	top: -1px;
 	text-align: center;
 }
 
-#settings_plugin_m3dfio h4 > span {
+#settings_plugin_m33fio h4 > span {
 	top: -10px !important;
 	left: calc(50% + 50px);
 	transform: translateX(-50%);
 }
 
-#settings_plugin_m3dfio label.checkbox {
+#settings_plugin_m33fio label.checkbox {
 	margin-top: -15px;
 	width: calc(100% - 24px);
 }
 
-#settings_plugin_m3dfio label > span.noCheckbox {
+#settings_plugin_m33fio label > span.noCheckbox {
 	position: relative;
 	top: 10px;
 }
 
-#settings_plugin_m3dfio label.checkbox:first-of-type {
+#settings_plugin_m33fio label.checkbox:first-of-type {
 	margin-top: -5px;
 	width: calc(100% - 24px);
 }
 
-#settings_plugin_m3dfio label.checkbox > span {
+#settings_plugin_m33fio label.checkbox > span {
 	position: relative;
 	top: 9px;
 }
 
-#settings_plugin_m3dfio input[type="checkbox"] {
+#settings_plugin_m33fio input[type="checkbox"] {
 	background: transparent;
 	border: 0;
 	outline: none;
 }
 
-#settings_plugin_m3dfio div.input-append {
+#settings_plugin_m33fio div.input-append {
 	width: calc(100% - 24px);
 }
 
-#settings_plugin_m3dfio div.control-group.empty, #settings_plugin_m3dfio div.control-group.title {
+#settings_plugin_m33fio div.control-group.empty, #settings_plugin_m33fio div.control-group.title {
 	margin-top: 0;
 	margin-bottom: 3px;
 }
 
-#settings_plugin_m3dfio input[type="number"], #settings_plugin_m3dfio select {
+#settings_plugin_m33fio input[type="number"], #settings_plugin_m33fio select {
 	width: calc(100% - 24px);
 }
 
-#settings_plugin_m3dfio div.input-append input[type="number"] {
+#settings_plugin_m33fio div.input-append input[type="number"] {
 	width: calc(100% - 34px);
 }
 
-#settings_plugin_m3dfio div.input-append.degreesCelsius input[type="number"] {
+#settings_plugin_m33fio div.input-append.degreesCelsius input[type="number"] {
 	width: calc(100% - 27px);
 }
 
-#settings_plugin_m3dfio div.input-append.mmPerMinute input[type="number"] {
+#settings_plugin_m33fio div.input-append.mmPerMinute input[type="number"] {
 	width: calc(100% - 61px);
 }
 
-#settings_plugin_m3dfio div.control-group.dependant {
+#settings_plugin_m33fio div.control-group.dependant {
 	margin-left: 30px;
 }
 
-#settings_plugin_m3dfio div.control-group.dependant.camera {
+#settings_plugin_m33fio div.control-group.dependant.camera {
 	margin-left: 110px;
 }
 
-#settings_plugin_m3dfio div.control-group.dependant.camera input {
+#settings_plugin_m33fio div.control-group.dependant.camera input {
 	width: 100px;
 }
 
-#settings_plugin_m3dfio input.short, #settings_plugin_m3dfio select.short {
+#settings_plugin_m33fio input.short, #settings_plugin_m33fio select.short {
 	width: 160px;
 	margin-top: -10px;
 	margin-left: 6px;
@@ -130,7 +130,7 @@
 	text-align: center;
 }
 
-#settings_plugin_m3dfio .disabled {
+#settings_plugin_m33fio .disabled {
 	opacity: 0.5;
 	pointer-events: none;
 }
@@ -139,21 +139,21 @@
 	margin-bottom: 44px;
 }
 
-#navbar_plugin_m3dfio {
+#navbar_plugin_m33fio {
 	display: inline;
 	position: absolute;
 	top: 44px;
 	left: 30px;
 }
 
-#navbar_plugin_m3dfio > select {
+#navbar_plugin_m33fio > select {
 	width: 140px;
 	position: relative;
 	right: 30px;
 	top: 5px;
 }
 
-#navbar_plugin_m3dfio > a {
+#navbar_plugin_m33fio > a {
 	cursor: default;
 	display: inline;
 	position: relative;
@@ -374,7 +374,7 @@
 	opacity: 1 !important;
 }
 
-#control .heatbed, #settings_plugin_m3dfio .heatbed, #settings_plugin_m3dfio .camera, #settings_plugin_m3dfio .sharedLibrary, #settings_plugin_m3dfio .gpio, #control > div.jog-panel.general button.gpio {
+#control .heatbed, #settings_plugin_m33fio .heatbed, #settings_plugin_m33fio .camera, #settings_plugin_m33fio .sharedLibrary, #settings_plugin_m33fio .gpio, #control > div.jog-panel.general button.gpio {
 	display: none;
 }
 

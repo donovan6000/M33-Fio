@@ -30,7 +30,7 @@ else
 		rm python.pkg
 
 		# Install command line tools
-		curl -O 'https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/OS%20X/command%20line%20tools%20installer.bash'
+		curl -O 'https://raw.githubusercontent.com/donovan6000/M33-Fio/master/installers/OS%20X/command%20line%20tools%20installer.bash'
 		bash 'command%20line%20tools%20installer.bash'
 		rm 'command%20line%20tools%20installer.bash'
 
@@ -102,9 +102,9 @@ else
 		sudo -u $SUDO_USER mv OctoPrint-master '/Users/'"$SUDO_USER"'/Library/Application Support/OctoPrint/checkout'
 		rm master.zip
 
-		# Install M3D Fio
-		echo 'y' | sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/pip uninstall OctoPrint-M3DFio
-		curl -LOk https://github.com/donovan6000/M3D-Fio/archive/master.zip
+		# Install M33 Fio
+		echo 'y' | sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/pip uninstall OctoPrint-M33Fio
+		curl -LOk https://github.com/donovan6000/M33-Fio/archive/master.zip
 		while ! sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/pip install master.zip --user
 		do
 			:
@@ -112,17 +112,17 @@ else
 		rm master.zip
 		
 		# Install heatbed drivers
-		curl -O 'https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/OS%20X/CH34x_Install.pkg'
+		curl -O 'https://raw.githubusercontent.com/donovan6000/M33-Fio/master/installers/OS%20X/CH34x_Install.pkg'
 		installer -pkg CH34x_Install.pkg -target /
 		rm CH34x_Install.pkg
 		
 		# Add OctoPrint to startup programs
-		curl -O 'https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/OS%20X/com.octoprint.app.plist'
+		curl -O 'https://raw.githubusercontent.com/donovan6000/M33-Fio/master/installers/OS%20X/com.octoprint.app.plist'
 		sed -i '' -e 's/path to octoprint/\/Users\/'"$SUDO_USER"'\/Library\/Python\/2.7\/bin\/octoprint/g' com.octoprint.app.plist
 		mv com.octoprint.app.plist '/Library/LaunchAgents'
 		
 		# Create URL link on desktop
-		curl -O 'https://raw.githubusercontent.com/donovan6000/M3D-Fio/master/installers/OS%20X/shortcut.zip'
+		curl -O 'https://raw.githubusercontent.com/donovan6000/M33-Fio/master/installers/OS%20X/shortcut.zip'
 		sudo -u $SUDO_USER ditto -x -k --sequesterRsrc --rsrc shortcut.zip '/Users/'"$SUDO_USER"'/Desktop'
 		
 		# Start OctoPrint
@@ -131,7 +131,7 @@ else
 		
 		# Display message
 		echo
-		echo 'OctoPrint and M3D Fio have been successfully installed. Go to http://localhost:5000 in any web browser to access OctoPrint.'
+		echo 'OctoPrint and M33 Fio have been successfully installed. Go to http://localhost:5000 in any web browser to access OctoPrint.'
 		echo
 	
 	# Otherwise

@@ -2,7 +2,7 @@
 $(function() {
 
 	// Create view model
-	function M3DFioViewModel(parameters) {
+	function M33FioViewModel(parameters) {
 	
 		// Initialize variables
 		var eepromDisplayType = "hexadecimal";
@@ -704,16 +704,16 @@ $(function() {
 							$("body > div.page-container > div.message > div > div > div.calibrate").addClass("show");
 						
 						else if(currentMessage.secondButton == "Print") {
-							$("body > div.page-container > div.message > div > div > div.printSettings input").eq(0).val(self.settings.settings.plugins.m3dfio.FilamentTemperature());
-							$("body > div.page-container > div.message > div > div > div.printSettings input").eq(1).val(self.settings.settings.plugins.m3dfio.HeatbedTemperature());
-							$("body > div.page-container > div.message > div > div > div.printSettings select").val(self.settings.settings.plugins.m3dfio.FilamentType());
-							$("body > div.page-container > div.message > div > div > div.printSettings input[type=\"checkbox\"]").prop("checked", self.settings.settings.plugins.m3dfio.UseWaveBondingPreprocessor());
+							$("body > div.page-container > div.message > div > div > div.printSettings input").eq(0).val(self.settings.settings.plugins.m33fio.FilamentTemperature());
+							$("body > div.page-container > div.message > div > div > div.printSettings input").eq(1).val(self.settings.settings.plugins.m33fio.HeatbedTemperature());
+							$("body > div.page-container > div.message > div > div > div.printSettings select").val(self.settings.settings.plugins.m33fio.FilamentType());
+							$("body > div.page-container > div.message > div > div > div.printSettings input[type=\"checkbox\"]").prop("checked", self.settings.settings.plugins.m33fio.UseWaveBondingPreprocessor());
 							$("body > div.page-container > div.message > div > div > div.printSettings").addClass("show");
 							message.find("p").eq(0).removeClass("show")
 						}
 						
 						else if(currentMessage.secondButton == "Unload" || currentMessage.secondButton == "Load" || currentMessage.secondButton == "Set") {
-							$("body > div.page-container > div.message > div > div > div.filamentSettings input").eq(0).val(self.settings.settings.plugins.m3dfio.FilamentTemperature());
+							$("body > div.page-container > div.message > div > div > div.filamentSettings input").eq(0).val(self.settings.settings.plugins.m33fio.FilamentTemperature());
 							$("body > div.page-container > div.message > div > div > div.filamentSettings label").text((currentMessage.secondButton == "Set" ? "New Print" : currentMessage.secondButton) + " Temperature");
 							$("body > div.page-container > div.message > div > div > div.filamentSettings p").html("Recommended<ul>" + (currentMessage.secondButton == "Unload" ? "<li>285°C for ABS</li><li>225°C for PLA</li><li>275°C for HIPS</li><li>230°C for FLX</li><li>230°C for TGH</li><li>225°C for CAM</li><li>250°C for ABS-R</li>" : "<li>275°C for ABS</li><li>215°C for PLA</li><li>265°C for HIPS</li><li>220°C for FLX</li><li>220°C for TGH</li><li>215°C for CAM</li><li>240°C for ABS-R</li>") + "</ul>");
 							$("body > div.page-container > div.message > div > div > div.filamentSettings").addClass("show");
@@ -967,10 +967,10 @@ $(function() {
 				init: function() {
 				
 					// Adjust bed bounds to account for external bed
-					bedLowMaxZ = 5.0 + parseFloat(self.settings.settings.plugins.m3dfio.ExternalBedHeight());
-					bedLowMinZ = 0.0 + parseFloat(self.settings.settings.plugins.m3dfio.ExternalBedHeight());
+					bedLowMaxZ = 5.0 + parseFloat(self.settings.settings.plugins.m33fio.ExternalBedHeight());
+					bedLowMinZ = 0.0 + parseFloat(self.settings.settings.plugins.m33fio.ExternalBedHeight());
 					bedMediumMinZ = bedLowMaxZ;
-					bedLowMinY = self.settings.settings.plugins.m3dfio.ExpandPrintableRegion() ? bedMediumMinY : -2.0;
+					bedLowMinY = self.settings.settings.plugins.m33fio.ExpandPrintableRegion() ? bedMediumMinY : -2.0;
 					
 					// Check if using Cura
 					if(slicerName == "cura") {
@@ -1126,7 +1126,7 @@ $(function() {
 
 					// Create controls
 					this.orbitControls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
-					this.orbitControls.target.set(0, 54.9 + parseFloat(self.settings.settings.plugins.m3dfio.ExternalBedHeight()), 0);
+					this.orbitControls.target.set(0, 54.9 + parseFloat(self.settings.settings.plugins.m33fio.ExternalBedHeight()), 0);
 					this.orbitControls.minDistance = 160;
 					this.orbitControls.maxDistance = 600;
 					this.orbitControls.minPolarAngle = 0;
@@ -1170,7 +1170,7 @@ $(function() {
 
 					// Load printer model
 					var loader = new THREE.STLLoader();
-					loader.load(PLUGIN_BASEURL + "m3dfio/static/files/printer.stl", function(geometry) {
+					loader.load(PLUGIN_BASEURL + "m33fio/static/files/printer.stl", function(geometry) {
 					
 						// Create printer's mesh
 						var mesh = new THREE.Mesh(geometry, printerMaterials[viewportPrinterColor]);
@@ -1194,7 +1194,7 @@ $(function() {
 					
 						// Load logo
 						var loader = new THREE.TextureLoader();
-						loader.load(PLUGIN_BASEURL + "m3dfio/static/img/logo.png", function(map) {
+						loader.load(PLUGIN_BASEURL + "m33fio/static/img/logo.png", function(map) {
 					
 							// Create logo
 							var mesh = new THREE.Mesh(new THREE.PlaneGeometry(51.5, 12), new THREE.MeshBasicMaterial({
@@ -3596,64 +3596,64 @@ $(function() {
 		
 		// Preload all images
 		preload(
-			PLUGIN_BASEURL + "m3dfio/static/img/down-arrow.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/up-arrow.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/logo.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/hengLiXin.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/listener.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/shenzhew.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/xinyujie.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/custom.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/loading.gif",
-			PLUGIN_BASEURL + "m3dfio/static/img/black.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/white.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/blue.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/green.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/orange.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/clear.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/silver.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/purple.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/filament.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/import.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/translate.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/rotate.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/scale.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/snap.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/delete.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/clone.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/reset.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/cut.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/merge.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/boundaries.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/measurements.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/cube.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/sphere.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/test-border-good.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/test-border-high.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/test-border-low.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/backlash.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/graph-background.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/fill-density_extra-high.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/fill-density_full.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/fill-density_high.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/fill-density_low.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/fill-density_medium.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/fill-density_thick.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/fill-density_thin.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/fill-pattern_3dhoneycomb.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/fill-pattern_archimedeanchords.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/fill-pattern_concentric.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/fill-pattern_hilbertcurve.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/fill-pattern_honeycomb.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/fill-pattern_line.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/fill-pattern_octagramspiral.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/fill-pattern_rectalinear.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/fill-quality_extra-high.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/fill-quality_extra-low.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/fill-quality_high.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/fill-quality_highest.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/fill-quality_low.png",
-			PLUGIN_BASEURL + "m3dfio/static/img/fill-quality_medium.png"
+			PLUGIN_BASEURL + "m33fio/static/img/down-arrow.png",
+			PLUGIN_BASEURL + "m33fio/static/img/up-arrow.png",
+			PLUGIN_BASEURL + "m33fio/static/img/logo.png",
+			PLUGIN_BASEURL + "m33fio/static/img/hengLiXin.png",
+			PLUGIN_BASEURL + "m33fio/static/img/listener.png",
+			PLUGIN_BASEURL + "m33fio/static/img/shenzhew.png",
+			PLUGIN_BASEURL + "m33fio/static/img/xinyujie.png",
+			PLUGIN_BASEURL + "m33fio/static/img/custom.png",
+			PLUGIN_BASEURL + "m33fio/static/img/loading.gif",
+			PLUGIN_BASEURL + "m33fio/static/img/black.png",
+			PLUGIN_BASEURL + "m33fio/static/img/white.png",
+			PLUGIN_BASEURL + "m33fio/static/img/blue.png",
+			PLUGIN_BASEURL + "m33fio/static/img/green.png",
+			PLUGIN_BASEURL + "m33fio/static/img/orange.png",
+			PLUGIN_BASEURL + "m33fio/static/img/clear.png",
+			PLUGIN_BASEURL + "m33fio/static/img/silver.png",
+			PLUGIN_BASEURL + "m33fio/static/img/purple.png",
+			PLUGIN_BASEURL + "m33fio/static/img/filament.png",
+			PLUGIN_BASEURL + "m33fio/static/img/import.png",
+			PLUGIN_BASEURL + "m33fio/static/img/translate.png",
+			PLUGIN_BASEURL + "m33fio/static/img/rotate.png",
+			PLUGIN_BASEURL + "m33fio/static/img/scale.png",
+			PLUGIN_BASEURL + "m33fio/static/img/snap.png",
+			PLUGIN_BASEURL + "m33fio/static/img/delete.png",
+			PLUGIN_BASEURL + "m33fio/static/img/clone.png",
+			PLUGIN_BASEURL + "m33fio/static/img/reset.png",
+			PLUGIN_BASEURL + "m33fio/static/img/cut.png",
+			PLUGIN_BASEURL + "m33fio/static/img/merge.png",
+			PLUGIN_BASEURL + "m33fio/static/img/boundaries.png",
+			PLUGIN_BASEURL + "m33fio/static/img/measurements.png",
+			PLUGIN_BASEURL + "m33fio/static/img/cube.png",
+			PLUGIN_BASEURL + "m33fio/static/img/sphere.png",
+			PLUGIN_BASEURL + "m33fio/static/img/test-border-good.png",
+			PLUGIN_BASEURL + "m33fio/static/img/test-border-high.png",
+			PLUGIN_BASEURL + "m33fio/static/img/test-border-low.png",
+			PLUGIN_BASEURL + "m33fio/static/img/backlash.png",
+			PLUGIN_BASEURL + "m33fio/static/img/graph-background.png",
+			PLUGIN_BASEURL + "m33fio/static/img/fill-density_extra-high.png",
+			PLUGIN_BASEURL + "m33fio/static/img/fill-density_full.png",
+			PLUGIN_BASEURL + "m33fio/static/img/fill-density_high.png",
+			PLUGIN_BASEURL + "m33fio/static/img/fill-density_low.png",
+			PLUGIN_BASEURL + "m33fio/static/img/fill-density_medium.png",
+			PLUGIN_BASEURL + "m33fio/static/img/fill-density_thick.png",
+			PLUGIN_BASEURL + "m33fio/static/img/fill-density_thin.png",
+			PLUGIN_BASEURL + "m33fio/static/img/fill-pattern_3dhoneycomb.png",
+			PLUGIN_BASEURL + "m33fio/static/img/fill-pattern_archimedeanchords.png",
+			PLUGIN_BASEURL + "m33fio/static/img/fill-pattern_concentric.png",
+			PLUGIN_BASEURL + "m33fio/static/img/fill-pattern_hilbertcurve.png",
+			PLUGIN_BASEURL + "m33fio/static/img/fill-pattern_honeycomb.png",
+			PLUGIN_BASEURL + "m33fio/static/img/fill-pattern_line.png",
+			PLUGIN_BASEURL + "m33fio/static/img/fill-pattern_octagramspiral.png",
+			PLUGIN_BASEURL + "m33fio/static/img/fill-pattern_rectalinear.png",
+			PLUGIN_BASEURL + "m33fio/static/img/fill-quality_extra-high.png",
+			PLUGIN_BASEURL + "m33fio/static/img/fill-quality_extra-low.png",
+			PLUGIN_BASEURL + "m33fio/static/img/fill-quality_high.png",
+			PLUGIN_BASEURL + "m33fio/static/img/fill-quality_highest.png",
+			PLUGIN_BASEURL + "m33fio/static/img/fill-quality_low.png",
+			PLUGIN_BASEURL + "m33fio/static/img/fill-quality_medium.png"
 		);
 		
 		// Remove software update message if using OctoPrint's master branch
@@ -3791,11 +3791,11 @@ $(function() {
 			<div class="jog-panel advanced micro3d" data-bind="visible: loginState.isUser">
 				<h1>Advanced</h1>
 				<div>
-					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/hengLiXin.png">HengLiXin fan</button>
-					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/listener.png">Listener fan</button>
-					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/shenzhew.png">Shenzhew fan</button>
-					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/xinyujie.png">Xinyujie fan</button>
-					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/custom.png">Custom fan</button>
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/hengLiXin.png">HengLiXin fan</button>
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/listener.png">Listener fan</button>
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/shenzhew.png">Shenzhew fan</button>
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/xinyujie.png">Xinyujie fan</button>
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/custom.png">Custom fan</button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">500mA extruder current</button>
 					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">660mA extruder current</button>
 					<button class="btn btn-block control-box placeHolder" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"></button>
@@ -3902,7 +3902,7 @@ $(function() {
 			<div class="message">
 				<div>
 					<h4></h4>
-					<img src="` + PLUGIN_BASEURL + `m3dfio/static/img/loading.gif">
+					<img src="` + PLUGIN_BASEURL + `m33fio/static/img/loading.gif">
 					<div>
 						<p></p>
 						<div class="calibrate">
@@ -3932,7 +3932,7 @@ $(function() {
 								<label class="control-label">Heatbed Temperature</label>
 								<div class="controls">
 									<div class="input-append degreesCelsius">
-										<input type="number" step="1" min="40" max="110" class="input-block-level" data-bind="value: settings.plugins.m3dfio.HeatbedTemperature">
+										<input type="number" step="1" min="40" max="110" class="input-block-level" data-bind="value: settings.plugins.m33fio.HeatbedTemperature">
 										<span class="add-on">°C</span>
 									</div>
 								</div>
@@ -3940,7 +3940,7 @@ $(function() {
 							<div class="control-group">
 								<label class="control-label">Filament Type</label>
 								<div class="controls">
-									<select class="input-block-level" data-bind="value: settings.plugins.m3dfio.FilamentType">
+									<select class="input-block-level" data-bind="value: settings.plugins.m33fio.FilamentType">
 										<option value="ABS">ABS (Recommended 275°C)</option>
 										<option value="PLA">PLA (Recommended 215°C)</option>
 										<option value="HIPS">HIPS (Recommended 265°C)</option>
@@ -3955,7 +3955,7 @@ $(function() {
 							<div class="control-group">
 								<div class="controls">
 									<label class="checkbox" title="Smooths out the bottom layer">
-										<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m3dfio.UseWaveBondingPreprocessor"><span>Use Wave Bonding</span>
+										<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.UseWaveBondingPreprocessor"><span>Use Wave Bonding</span>
 									</label>
 								</div>
 							</div>
@@ -3986,7 +3986,7 @@ $(function() {
 		// Add cover to slicer
 		$("#slicing_configuration_dialog").append(`
 			<div class="modal-cover">
-				<img src="` + PLUGIN_BASEURL + `m3dfio/static/img/loading.gif">
+				<img src="` + PLUGIN_BASEURL + `m33fio/static/img/loading.gif">
 				<p></p>
 			</div>
 		`);
@@ -4060,9 +4060,9 @@ $(function() {
 		$("#control > div.jog-panel > img").each(function() {
 		
 			if($(this).parent().hasClass("closed"))
-				$(this).attr("src", PLUGIN_BASEURL + "m3dfio/static/img/down-arrow.png");
+				$(this).attr("src", PLUGIN_BASEURL + "m33fio/static/img/down-arrow.png");
 			else
-				$(this).attr("src", PLUGIN_BASEURL + "m3dfio/static/img/up-arrow.png");
+				$(this).attr("src", PLUGIN_BASEURL + "m33fio/static/img/up-arrow.png");
 		});
 		
 		// Mouse move control arrow event
@@ -4113,7 +4113,7 @@ $(function() {
 				}, 0);
 				
 				// Change arrow image
-				$(this).attr("src", PLUGIN_BASEURL + "m3dfio/static/img/up-arrow.png");
+				$(this).attr("src", PLUGIN_BASEURL + "m33fio/static/img/up-arrow.png");
 			}
 			else {
 			
@@ -4146,7 +4146,7 @@ $(function() {
 				}, 0);
 				
 				// Change arrow image
-				$(this).attr("src", PLUGIN_BASEURL + "m3dfio/static/img/down-arrow.png");
+				$(this).attr("src", PLUGIN_BASEURL + "m33fio/static/img/down-arrow.png");
 			}
 			
 			// Update title
@@ -4203,7 +4203,7 @@ $(function() {
 		
 				// Send request
 				$.ajax({
-					url: API_BASEURL + "plugin/m3dfio",
+					url: API_BASEURL + "plugin/m33fio",
 					type: "POST",
 					dataType: "json",
 					data: JSON.stringify({
@@ -4230,10 +4230,10 @@ $(function() {
 		self.files.loadFile = function(file, printAfterLoad) {
 		
 			// Check if printing after load and using a Micro 3D printer
-			if(printAfterLoad && !self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter()) {
+			if(printAfterLoad && !self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
 			
 				// Check if using on the fly pre-processing and changing settings before print
-				if(self.settings.settings.plugins.m3dfio.PreprocessOnTheFly() && self.settings.settings.plugins.m3dfio.ChangeSettingsBeforePrint()) {
+				if(self.settings.settings.plugins.m33fio.PreprocessOnTheFly() && self.settings.settings.plugins.m33fio.ChangeSettingsBeforePrint()) {
 			
 					// Show message
 					showMessage("Printing Status", '', "Print", function() {
@@ -4243,7 +4243,7 @@ $(function() {
 				
 						// Send request
 						$.ajax({
-							url: API_BASEURL + "plugin/m3dfio",
+							url: API_BASEURL + "plugin/m33fio",
 							type: "POST",
 							dataType: "json",
 							data: JSON.stringify({
@@ -4268,7 +4268,7 @@ $(function() {
 								
 									// Send request
 									$.ajax({
-										url: API_BASEURL + "plugin/m3dfio",
+										url: API_BASEURL + "plugin/m33fio",
 										type: "POST",
 										dataType: "json",
 										data: JSON.stringify({
@@ -4305,7 +4305,7 @@ $(function() {
 				
 					// Send request
 					$.ajax({
-						url: API_BASEURL + "plugin/m3dfio",
+						url: API_BASEURL + "plugin/m33fio",
 						type: "POST",
 						dataType: "json",
 						data: JSON.stringify({
@@ -4338,13 +4338,13 @@ $(function() {
 			var button = $(this);
 			
 			// Check if not continuing with print and using a Micro 3D printer
-			if(!continueWithPrint && !self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter()) {
+			if(!continueWithPrint && !self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
 			
 				// Stop default behavior
 				event.stopImmediatePropagation();
 			
 				// Check if using on the fly pre-processing and changing settings before print
-				if(self.settings.settings.plugins.m3dfio.PreprocessOnTheFly() && self.settings.settings.plugins.m3dfio.ChangeSettingsBeforePrint()) {
+				if(self.settings.settings.plugins.m33fio.PreprocessOnTheFly() && self.settings.settings.plugins.m33fio.ChangeSettingsBeforePrint()) {
 			
 					// Show message
 					showMessage("Printing Status", '', "Print", function() {
@@ -4354,7 +4354,7 @@ $(function() {
 				
 						// Send request
 						$.ajax({
-							url: API_BASEURL + "plugin/m3dfio",
+							url: API_BASEURL + "plugin/m33fio",
 							type: "POST",
 							dataType: "json",
 							data: JSON.stringify({
@@ -4379,7 +4379,7 @@ $(function() {
 								
 									// Send request
 									$.ajax({
-										url: API_BASEURL + "plugin/m3dfio",
+										url: API_BASEURL + "plugin/m33fio",
 										type: "POST",
 										dataType: "json",
 										data: JSON.stringify({
@@ -4417,7 +4417,7 @@ $(function() {
 				
 					// Send request
 					$.ajax({
-						url: API_BASEURL + "plugin/m3dfio",
+						url: API_BASEURL + "plugin/m33fio",
 						type: "POST",
 						dataType: "json",
 						data: JSON.stringify({
@@ -4448,7 +4448,7 @@ $(function() {
 		$(document).on("click", "#temp button[type=\"submit\"]", function(event) {
 		
 			// Check if using a Micro 3D printer
-			if(!self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter()) {
+			if(!self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
 		
 				// Get temperature
 				var temperature = 0;
@@ -4488,7 +4488,7 @@ $(function() {
 		
 				// Send request
 				$.ajax({
-					url: API_BASEURL + "plugin/m3dfio",
+					url: API_BASEURL + "plugin/m33fio",
 					type: "POST",
 					dataType: "json",
 					data: JSON.stringify({
@@ -4504,7 +4504,7 @@ $(function() {
 		$(document).on("click", "#temp ul.dropdown-menu a", function(event) {
 		
 			// Check if using a Micro 3D printer
-			if(!self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter()) {
+			if(!self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
 		
 				// Get temperature
 				var temperature = 0;
@@ -4539,7 +4539,7 @@ $(function() {
 		
 				// Send request
 				$.ajax({
-					url: API_BASEURL + "plugin/m3dfio",
+					url: API_BASEURL + "plugin/m33fio",
 					type: "POST",
 					dataType: "json",
 					data: JSON.stringify({
@@ -4555,7 +4555,7 @@ $(function() {
 		$("#job_pause").click(function(event) {
 		
 			// Check if using a Micro 3D printer
-			if(!self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter()) {
+			if(!self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
 		
 				// Stop default behavior
 				event.stopImmediatePropagation();
@@ -4585,7 +4585,7 @@ $(function() {
 				
 					// Send request
 					$.ajax({
-						url: API_BASEURL + "plugin/m3dfio",
+						url: API_BASEURL + "plugin/m33fio",
 						type: "POST",
 						dataType: "json",
 						data: JSON.stringify({
@@ -4621,7 +4621,7 @@ $(function() {
 				
 					// Send request
 					$.ajax({
-						url: API_BASEURL + "plugin/m3dfio",
+						url: API_BASEURL + "plugin/m33fio",
 						type: "POST",
 						dataType: "json",
 						data: JSON.stringify({
@@ -4635,7 +4635,7 @@ $(function() {
 		});
 		
 		// Setting label click event
-		$("#settings_plugin_m3dfio label.control-label").click(function() {
+		$("#settings_plugin_m33fio label.control-label").click(function() {
 		
 			// Focus on input
 			$(this).siblings("div.controls").find("input").focus();
@@ -4645,7 +4645,7 @@ $(function() {
 		$("#job_cancel").click(function(event) {
 		
 			// Check if using a Micro 3D printer
-			if(!self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter()) {
+			if(!self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
 		
 				// Stop default behavior
 				event.stopImmediatePropagation();
@@ -4655,7 +4655,7 @@ $(function() {
 		
 				// Send request
 				$.ajax({
-					url: API_BASEURL + "plugin/m3dfio",
+					url: API_BASEURL + "plugin/m33fio",
 					type: "POST",
 					dataType: "json",
 					data: JSON.stringify({
@@ -4754,7 +4754,7 @@ $(function() {
 		});
 		
 		// Settings checkbox change event
-		$("#settings_plugin_m3dfio input[type=\"checkbox\"]").change(function() {
+		$("#settings_plugin_m33fio input[type=\"checkbox\"]").change(function() {
 		
 			// Initialize variables
 			var parent = $(this).closest("div.control-group");
@@ -4903,7 +4903,7 @@ $(function() {
 					
 					// Send request
 					$.ajax({
-						url: API_BASEURL + "plugin/m3dfio",
+						url: API_BASEURL + "plugin/m33fio",
 						type: "POST",
 						dataType: "json",
 						data: JSON.stringify({
@@ -5020,7 +5020,7 @@ $(function() {
 					
 						// Send request
 						$.ajax({
-							url: API_BASEURL + "plugin/m3dfio",
+							url: API_BASEURL + "plugin/m33fio",
 							type: "POST",
 							dataType: "json",
 							data: JSON.stringify({
@@ -5054,7 +5054,7 @@ $(function() {
 											success: function(data) {
 									
 												// Set using provided profile
-												var usingProvidedProfile = (slicerName == "cura" || slicerName == "slic3r") && (slicerProfileName == "m3d_pla" || slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips" || slicerProfileName == "m3d_flx" || slicerProfileName == "m3d_tgh" || slicerProfileName == "m3d_abs-r");
+												var usingProvidedProfile = (slicerName == "cura" || slicerName == "slic3r") && (slicerProfileName == "micro_3d_pla" || slicerProfileName == "micro_3d_abs" || slicerProfileName == "micro_3d_hips" || slicerProfileName == "micro_3d_flx" || slicerProfileName == "micro_3d_tgh" || slicerProfileName == "micro_3d_abs-r");
 										
 												// Hide dialog
 												$("#slicing_configuration_dialog").removeClass("in");
@@ -5077,33 +5077,33 @@ $(function() {
 																	<h3>Basic Settings</h3>
 																	<p class="quality">` + (usingProvidedProfile ? `Medium Quality` : `Unknown Quality`) + `</p>
 																	<div class="quality">
-																		<button title="Extra Low Quality" data-target="quality" data-value="0.35"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-quality_extra-low.png"></button>
-																		<button title="Low Quality" data-target="quality" data-value="0.30"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-quality_low.png"></button>
-																		<button title="Medium Quality" data-target="quality" data-value="0.25"` + (usingProvidedProfile ? ` class="disabled"` : ``) + `><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-quality_medium.png"></button>
-																		<button title="High Quality" data-target="quality" data-value="0.20"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-quality_high.png"></button>
-																		<button title="Extra High Quality" data-target="quality" data-value="0.15"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-quality_extra-high.png"></button>
-																		<button title="Highest Quality" data-target="quality" data-value="0.05"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-quality_highest.png"></button>
+																		<button title="Extra Low Quality" data-target="quality" data-value="0.35"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-quality_extra-low.png"></button>
+																		<button title="Low Quality" data-target="quality" data-value="0.30"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-quality_low.png"></button>
+																		<button title="Medium Quality" data-target="quality" data-value="0.25"` + (usingProvidedProfile ? ` class="disabled"` : ``) + `><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-quality_medium.png"></button>
+																		<button title="High Quality" data-target="quality" data-value="0.20"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-quality_high.png"></button>
+																		<button title="Extra High Quality" data-target="quality" data-value="0.15"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-quality_extra-high.png"></button>
+																		<button title="Highest Quality" data-target="quality" data-value="0.05"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-quality_highest.png"></button>
 																	</div>
 																	<p class="fill">` + (usingProvidedProfile ? `Medium Fill` : `Unknown Fill`) + `</p>
 																	<div class="fill">
-																		<button title="Hollow Thin Fill" data-target="fill" data-value="thin"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-density_thin.png"></button>
-																		<button title="Hollow Thick Fill" data-target="fill" data-value="thick"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-density_thick.png"></button>
-																		<button title="Low Fill" data-target="fill" data-value="low"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-density_low.png"></button>
-																		<button title="Medium Fill" data-target="fill" data-value="medium"` + (usingProvidedProfile ? ` class="disabled"` : ``) + `><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-density_medium.png"></button>
-																		<button title="High Fill" data-target="fill" data-value="high"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-density_high.png"></button>
-																		<button title="Extra High Fill"data-target="fill" data-value="extra-high"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-density_extra-high.png"></button>
-																		<button title="Full Fill" data-target="fill" data-value="full"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-density_full.png"></button>
+																		<button title="Hollow Thin Fill" data-target="fill" data-value="thin"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-density_thin.png"></button>
+																		<button title="Hollow Thick Fill" data-target="fill" data-value="thick"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-density_thick.png"></button>
+																		<button title="Low Fill" data-target="fill" data-value="low"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-density_low.png"></button>
+																		<button title="Medium Fill" data-target="fill" data-value="medium"` + (usingProvidedProfile ? ` class="disabled"` : ``) + `><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-density_medium.png"></button>
+																		<button title="High Fill" data-target="fill" data-value="high"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-density_high.png"></button>
+																		<button title="Extra High Fill"data-target="fill" data-value="extra-high"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-density_extra-high.png"></button>
+																		<button title="Full Fill" data-target="fill" data-value="full"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-density_full.png"></button>
 																	</div>
 																	<p class="pattern slic3r-only">` + (usingProvidedProfile ? `Honeycomb Fill Pattern` : `Unknown Fill Pattern`) + `</p>
 																	<div class="pattern slic3r-only">
-																		<button title="Line Fill Pattern" data-target="pattern" data-value="line"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-pattern_line.png"></button>
-																		<button title="Rectalinear Fill Pattern" data-target="pattern" data-value="rectalinear"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-pattern_rectalinear.png"></button>
-																		<button title="Honeycomb Fill Pattern" data-target="pattern" data-value="honeycomb"` + (usingProvidedProfile ? ` class="disabled"` : ``) + `><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-pattern_honeycomb.png"></button>
-																		<button title="3D Honeycomb Fill Pattern" data-target="pattern" data-value="3dhoneycomb"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-pattern_3dhoneycomb.png"></button>
-																		<button title="Concentric Fill Pattern" data-target="pattern" data-value="concentric"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-pattern_concentric.png"></button>
-																		<button title="Hilbert Curve Fill Pattern" data-target="pattern" data-value="hilbertcurve"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-pattern_hilbertcurve.png"></button>
-																		<button title="Octagram Spiral Fill Pattern" data-target="pattern" data-value="octagramspiral"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-pattern_octagramspiral.png"></button>
-																		<button title="Archimedean Chords Fill Pattern" data-target="pattern" data-value="archimedeanchords"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/fill-pattern_archimedeanchords.png"></button>
+																		<button title="Line Fill Pattern" data-target="pattern" data-value="line"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-pattern_line.png"></button>
+																		<button title="Rectalinear Fill Pattern" data-target="pattern" data-value="rectalinear"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-pattern_rectalinear.png"></button>
+																		<button title="Honeycomb Fill Pattern" data-target="pattern" data-value="honeycomb"` + (usingProvidedProfile ? ` class="disabled"` : ``) + `><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-pattern_honeycomb.png"></button>
+																		<button title="3D Honeycomb Fill Pattern" data-target="pattern" data-value="3dhoneycomb"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-pattern_3dhoneycomb.png"></button>
+																		<button title="Concentric Fill Pattern" data-target="pattern" data-value="concentric"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-pattern_concentric.png"></button>
+																		<button title="Hilbert Curve Fill Pattern" data-target="pattern" data-value="hilbertcurve"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-pattern_hilbertcurve.png"></button>
+																		<button title="Octagram Spiral Fill Pattern" data-target="pattern" data-value="octagramspiral"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-pattern_octagramspiral.png"></button>
+																		<button title="Archimedean Chords Fill Pattern" data-target="pattern" data-value="archimedeanchords"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-pattern_archimedeanchords.png"></button>
 																	</div>
 																	<div class="settings">
 																		<label title="Prints a breakaway support underneath overhanging parts of the model"><input class="useSupportMaterial" type="checkbox" tabindex="-1">Use support material</label>
@@ -5428,19 +5428,19 @@ $(function() {
 										
 													// Open and close setting groups
 													if(typeof localStorage.basicSettingsOpen === "undefined" || localStorage.basicSettingsOpen == "true")
-														$("#slicing_configuration_dialog.profile .modal-extra div.group.basic").addClass("noTransition").removeClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/up-arrow.png");
+														$("#slicing_configuration_dialog.profile .modal-extra div.group.basic").addClass("noTransition").removeClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m33fio/static/img/up-arrow.png");
 													else
-														$("#slicing_configuration_dialog.profile .modal-extra div.group.basic").addClass("noTransition closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/down-arrow.png");
+														$("#slicing_configuration_dialog.profile .modal-extra div.group.basic").addClass("noTransition closed").css("background-image", "url(" + PLUGIN_BASEURL + "m33fio/static/img/down-arrow.png");
 	
 													if(typeof localStorage.manualSettingsOpen === "undefined" || localStorage.manualSettingsOpen == "false")
-														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual").addClass("noTransition closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/down-arrow.png");
+														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual").addClass("noTransition closed").css("background-image", "url(" + PLUGIN_BASEURL + "m33fio/static/img/down-arrow.png");
 													else
-														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual").addClass("noTransition").removeClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/up-arrow.png");
+														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual").addClass("noTransition").removeClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m33fio/static/img/up-arrow.png");
 										
 													if(typeof localStorage.advancedSettingsOpen === "undefined" || localStorage.advancedSettingsOpen == "false")
-														$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced").addClass("noTransition closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/down-arrow.png");
+														$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced").addClass("noTransition closed").css("background-image", "url(" + PLUGIN_BASEURL + "m33fio/static/img/down-arrow.png");
 													else {
-														$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced").addClass("noTransition").removeClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/up-arrow.png");
+														$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced").addClass("noTransition").removeClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m33fio/static/img/up-arrow.png");
 														$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced > span").css("display", "block");
 													}
 													
@@ -5490,7 +5490,7 @@ $(function() {
 																
 																// Open or close group
 																if(group.hasClass("closed")) {
-																	group.removeClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/up-arrow.png");
+																	group.removeClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m33fio/static/img/up-arrow.png");
 							
 																	 if(group.hasClass("advanced"))
 																		setTimeout(function() {
@@ -5506,7 +5506,7 @@ $(function() {
 																		localStorage.advancedSettingsOpen = "true";
 																}
 																else {
-																	group.addClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/down-arrow.png");
+																	group.addClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m33fio/static/img/down-arrow.png");
 							
 																	if(group.hasClass("advanced"))
 																		setTimeout(function() {
@@ -5690,7 +5690,7 @@ $(function() {
 																	});
 																}
 													
-																if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips")) {
+																if(usingProvidedProfile && (slicerProfileName == "micro_3d_abs" || slicerProfileName == "micro_3d_hips")) {
 														
 																	if(slicerName == "cura")
 																		changedSettings[0]["bottom_layer_speed"] = 16;
@@ -5770,7 +5770,7 @@ $(function() {
 																		brim_width: $("#slicing_configuration_dialog.profile .brimWidth").val()
 																	});
 													
-																if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips")) {
+																if(usingProvidedProfile && (slicerProfileName == "micro_3d_abs" || slicerProfileName == "micro_3d_hips")) {
 														
 																	if(slicerName == "cura")
 																		changedSettings[0]["bottom_layer_speed"] = 16;
@@ -5908,7 +5908,7 @@ $(function() {
 																		retract_speed: 20
 																	});
 																
-																if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips")) {
+																if(usingProvidedProfile && (slicerProfileName == "micro_3d_abs" || slicerProfileName == "micro_3d_hips")) {
 																	if(slicerName == "slic3r")
 																		changedSettings[0]["retract_speed"] = 25;
 																}
@@ -6048,7 +6048,7 @@ $(function() {
 																});
 															}
 												
-															if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips")) {
+															if(usingProvidedProfile && (slicerProfileName == "micro_3d_abs" || slicerProfileName == "micro_3d_hips")) {
 													
 																if(slicerName == "cura")
 																	changedSettings[0]["travel_speed"] = $(this).val();
@@ -6304,7 +6304,7 @@ $(function() {
 																		break;
 																}
 																
-																if(usingProvidedProfile && (slicerProfileName == "m3d_abs" || slicerProfileName == "m3d_hips" || slicerProfileName == "m3d_abs-r")) {
+																if(usingProvidedProfile && (slicerProfileName == "micro_3d_abs" || slicerProfileName == "micro_3d_hips" || slicerProfileName == "micro_3d_abs-r")) {
 																	if(slicerName == "cura")
 																		changedSettings[0]["fan_full_height"] = fan_full_height;
 																}
@@ -6527,7 +6527,7 @@ $(function() {
 
 						// Send request
 						$.ajax({
-							url: PLUGIN_BASEURL + "m3dfio/upload",
+							url: PLUGIN_BASEURL + "m33fio/upload",
 							type: "POST",
 							data: $.param(parameter),
 							dataType: "json",
@@ -6592,43 +6592,43 @@ $(function() {
 																$("#slicing_configuration_dialog p.currentMenu").text("Modify Model");
 																$("#slicing_configuration_dialog .modal-extra").empty().append(`
 																	<div class="printer">
-																		<button data-color="Black" title="Black"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/black.png"></button>
-																		<button data-color="White" title="White"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/white.png"></button>
-																		<button data-color="Blue" title="Blue"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/blue.png"></button>
-																		<button data-color="Green" title="Green"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/green.png"></button>
-																		<button data-color="Orange" title="Orange"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/orange.png"></button>
-																		<button data-color="Clear" title="Clear"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/clear.png"></button>
-																		<button data-color="Silver" title="Silver"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/silver.png"></button>
-																		<button data-color="Purple" title="Purple"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/purple.png"></button>
+																		<button data-color="Black" title="Black"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/black.png"></button>
+																		<button data-color="White" title="White"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/white.png"></button>
+																		<button data-color="Blue" title="Blue"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/blue.png"></button>
+																		<button data-color="Green" title="Green"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/green.png"></button>
+																		<button data-color="Orange" title="Orange"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/orange.png"></button>
+																		<button data-color="Clear" title="Clear"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/clear.png"></button>
+																		<button data-color="Silver" title="Silver"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/silver.png"></button>
+																		<button data-color="Purple" title="Purple"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/purple.png"></button>
 																	</div>
 																	<div class="filament">
-																		<button data-color="White" title="White"><span style="background-color: #F4F3E9;"></span><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/filament.png"></button>
-																		<button data-color="Pink" title="Pink"><span style="background-color: #FF006B;"></span><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/filament.png"></button>
-																		<button data-color="Red" title="Red"><span style="background-color: #EE0000;"></span><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/filament.png"></button>
-																		<button data-color="Orange" title="Orange"><span style="background-color: #FE9800;"></span><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/filament.png"></button>
-																		<button data-color="Yellow" title="Yellow"><span style="background-color: #FFEA00;"></span><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/filament.png"></button>
-																		<button data-color="Green" title="Green"><span style="background-color: #009E60;"></span><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/filament.png"></button>
-																		<button data-color="Light Blue" title="Light Blue"><span style="background-color: #00EEEE;"></span><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/filament.png"></button>
-																		<button data-color="Blue" title="Blue"><span style="background-color: #236B8E;"></span><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/filament.png"></button>
-																		<button data-color="Purple" title="Purple"><span style="background-color: #9A009A;"></span><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/filament.png"></button>
-																		<button data-color="Black" title="Black"><span style="background-color: #404040;"></span><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/filament.png"></button>
+																		<button data-color="White" title="White"><span style="background-color: #F4F3E9;"></span><img src="` + PLUGIN_BASEURL + `m33fio/static/img/filament.png"></button>
+																		<button data-color="Pink" title="Pink"><span style="background-color: #FF006B;"></span><img src="` + PLUGIN_BASEURL + `m33fio/static/img/filament.png"></button>
+																		<button data-color="Red" title="Red"><span style="background-color: #EE0000;"></span><img src="` + PLUGIN_BASEURL + `m33fio/static/img/filament.png"></button>
+																		<button data-color="Orange" title="Orange"><span style="background-color: #FE9800;"></span><img src="` + PLUGIN_BASEURL + `m33fio/static/img/filament.png"></button>
+																		<button data-color="Yellow" title="Yellow"><span style="background-color: #FFEA00;"></span><img src="` + PLUGIN_BASEURL + `m33fio/static/img/filament.png"></button>
+																		<button data-color="Green" title="Green"><span style="background-color: #009E60;"></span><img src="` + PLUGIN_BASEURL + `m33fio/static/img/filament.png"></button>
+																		<button data-color="Light Blue" title="Light Blue"><span style="background-color: #00EEEE;"></span><img src="` + PLUGIN_BASEURL + `m33fio/static/img/filament.png"></button>
+																		<button data-color="Blue" title="Blue"><span style="background-color: #236B8E;"></span><img src="` + PLUGIN_BASEURL + `m33fio/static/img/filament.png"></button>
+																		<button data-color="Purple" title="Purple"><span style="background-color: #9A009A;"></span><img src="` + PLUGIN_BASEURL + `m33fio/static/img/filament.png"></button>
+																		<button data-color="Black" title="Black"><span style="background-color: #404040;"></span><img src="` + PLUGIN_BASEURL + `m33fio/static/img/filament.png"></button>
 																	</div>
 																	<div class="model">
 																		<input type="file" accept=".stl, .obj, .m3d, .amf, .wrl, .dae">
-																		<button class="import" title="Import"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/import.png"></button>
-																		<button class="translate disabled" title="Translate"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/translate.png"></button>
-																		<button class="rotate" title="Rotate"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/rotate.png"></button>
-																		<button class="scale" title="Scale"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/scale.png"></button>
-																		<button class="snap" title="Snap"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/snap.png"></button>
-																		<button class="delete disabled" title="Delete"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/delete.png"></button>
-																		<button class="clone disabled" title="Clone"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/clone.png"></button>
-																		<button class="reset disabled" title="Reset"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/reset.png"></button>
-																		<button class="cut" title="Cut"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/cut.png"></button>
-																		<button class="merge" title="Merge"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/merge.png"></button>
+																		<button class="import" title="Import"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/import.png"></button>
+																		<button class="translate disabled" title="Translate"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/translate.png"></button>
+																		<button class="rotate" title="Rotate"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/rotate.png"></button>
+																		<button class="scale" title="Scale"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/scale.png"></button>
+																		<button class="snap" title="Snap"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/snap.png"></button>
+																		<button class="delete disabled" title="Delete"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/delete.png"></button>
+																		<button class="clone disabled" title="Clone"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/clone.png"></button>
+																		<button class="reset disabled" title="Reset"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/reset.png"></button>
+																		<button class="cut" title="Cut"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/cut.png"></button>
+																		<button class="merge" title="Merge"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/merge.png"></button>
 																	</div>
 																	<div class="display">
-																		<button class="boundaries" title="Boundaries"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/boundaries.png"></button>
-																		<button class="measurements" title="Measurements"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/measurements.png"></button>
+																		<button class="boundaries" title="Boundaries"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/boundaries.png"></button>
+																		<button class="measurements" title="Measurements"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/measurements.png"></button>
 																	</div>
 																	<div class="values translate">
 																		<div>
@@ -6640,8 +6640,8 @@ $(function() {
 																	</div>
 																	<div class="cutShape">
 																		<div>
-																			<button class="cube disabled" title="Cube"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/cube.png"></button>
-																			<button class="sphere" title="Sphere"><img src="` + PLUGIN_BASEURL + `m3dfio/static/img/sphere.png"></button>
+																			<button class="cube disabled" title="Cube"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/cube.png"></button>
+																			<button class="sphere" title="Sphere"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/sphere.png"></button>
 																			<span></span>
 																		</div>
 																	</div>
@@ -6655,7 +6655,7 @@ $(function() {
 																$("#slicing_configuration_dialog .modal-extra div.printer button[data-color=\"" + viewportPrinterColor + "\"]").addClass("disabled");
 																$("#slicing_configuration_dialog .modal-extra div.filament button[data-color=\"" + viewportFilamentColor + "\"]").addClass("disabled");
 																$("#slicing_configuration_dialog .modal-extra").append(viewport.renderer.domElement);
-																if(self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter())
+																if(self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter())
 																	$("#slicing_configuration_dialog .modal-footer p.warning").text("Boundary dimensions are designed for a Micro 3D printer");
 
 																// Image drag event
@@ -6929,7 +6929,7 @@ $(function() {
 																			side: THREE.DoubleSide,
 																			depthWrite: false
 																		}));
-																		viewport.cutShape.position.set(0, (bedHighMaxZ - bedLowMinZ) / 2 + parseFloat(self.settings.settings.plugins.m3dfio.ExternalBedHeight()), 0);
+																		viewport.cutShape.position.set(0, (bedHighMaxZ - bedLowMinZ) / 2 + parseFloat(self.settings.settings.plugins.m33fio.ExternalBedHeight()), 0);
 																		viewport.cutShape.rotation.set(0, 0, 0);
 													
 																		// Create cut shape outline
@@ -7215,7 +7215,7 @@ $(function() {
 								
 									// Send request
 									$.ajax({
-										url: PLUGIN_BASEURL + "m3dfio/upload",
+										url: PLUGIN_BASEURL + "m33fio/upload",
 										type: "POST",
 										data: $.param(parameter),
 										dataType: "json",
@@ -7269,10 +7269,10 @@ $(function() {
 							}
 					
 							// Check if printing after slicing, a printer is connected, and using a Micro 3D printer
-							if(afterSlicingAction == "print" && self.printerState.stateString() !== "Offline" && !self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter()) {
+							if(afterSlicingAction == "print" && self.printerState.stateString() !== "Offline" && !self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
 						
 								// Check if using on the fly pre-processing and changing settings before print
-								if(self.settings.settings.plugins.m3dfio.PreprocessOnTheFly() && self.settings.settings.plugins.m3dfio.ChangeSettingsBeforePrint()) {
+								if(self.settings.settings.plugins.m33fio.PreprocessOnTheFly() && self.settings.settings.plugins.m33fio.ChangeSettingsBeforePrint()) {
 
 									// Show message
 									showMessage("Printing Status", '', "Print", function() {
@@ -7282,7 +7282,7 @@ $(function() {
 
 										// Send request
 										$.ajax({
-											url: API_BASEURL + "plugin/m3dfio",
+											url: API_BASEURL + "plugin/m33fio",
 											type: "POST",
 											dataType: "json",
 											data: JSON.stringify({
@@ -7308,7 +7308,7 @@ $(function() {
 								
 													// Send request
 													$.ajax({
-														url: API_BASEURL + "plugin/m3dfio",
+														url: API_BASEURL + "plugin/m33fio",
 														type: "POST",
 														dataType: "json",
 														data: JSON.stringify({
@@ -7348,7 +7348,7 @@ $(function() {
 							
 									// Send request
 									$.ajax({
-										url: API_BASEURL + "plugin/m3dfio",
+										url: API_BASEURL + "plugin/m33fio",
 										type: "POST",
 										dataType: "json",
 										data: JSON.stringify({
@@ -7431,7 +7431,7 @@ $(function() {
 			
 			// Send request
 			$.ajax({
-				url: API_BASEURL + "plugin/m3dfio",
+				url: API_BASEURL + "plugin/m33fio",
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({
@@ -7470,7 +7470,7 @@ $(function() {
 		function sendCommand(event) {
 		
 			// Check if using a Micro 3D printer
-			if(!self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter()) {
+			if(!self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
 		
 				// Check if command is reserved
 				if($("#terminal-command").val().trim()[0] == 'M' && parseInt($("#terminal-command").val().trim().substr(1)) > 65535) {
@@ -7499,7 +7499,7 @@ $(function() {
 		
 					// Send request
 					$.ajax({
-						url: API_BASEURL + "plugin/m3dfio",
+						url: API_BASEURL + "plugin/m33fio",
 						type: "POST",
 						dataType: "json",
 						data: JSON.stringify({
@@ -7529,7 +7529,7 @@ $(function() {
 		
 			// Send request
 			$.ajax({
-				url: API_BASEURL + "plugin/m3dfio",
+				url: API_BASEURL + "plugin/m33fio",
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({
@@ -7554,7 +7554,7 @@ $(function() {
 		
 			// Send request
 			$.ajax({
-				url: API_BASEURL + "plugin/m3dfio",
+				url: API_BASEURL + "plugin/m33fio",
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({
@@ -7579,7 +7579,7 @@ $(function() {
 		
 			// Send request
 			$.ajax({
-				url: API_BASEURL + "plugin/m3dfio",
+				url: API_BASEURL + "plugin/m33fio",
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({
@@ -7604,7 +7604,7 @@ $(function() {
 		
 			// Send request
 			$.ajax({
-				url: API_BASEURL + "plugin/m3dfio",
+				url: API_BASEURL + "plugin/m33fio",
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({
@@ -7629,7 +7629,7 @@ $(function() {
 		
 			// Send request
 			$.ajax({
-				url: API_BASEURL + "plugin/m3dfio",
+				url: API_BASEURL + "plugin/m33fio",
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({
@@ -7654,7 +7654,7 @@ $(function() {
 		
 			// Send request
 			$.ajax({
-				url: API_BASEURL + "plugin/m3dfio",
+				url: API_BASEURL + "plugin/m33fio",
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({
@@ -7669,7 +7669,7 @@ $(function() {
 		$("#control #control-xyhome").attr("title", "Set extruder's X position to 54 and Y position to 50").click(function(event) {
 		
 			// Check if using a Micro 3D printer
-			if(!self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter()) {
+			if(!self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
 			
 				// Stop default behavior
 				event.stopImmediatePropagation();
@@ -7683,7 +7683,7 @@ $(function() {
 				locationCallback = function() {
 			
 					// Check if extruder is too high to successfully home
-					if(currentZ >= bedMediumMaxZ - parseFloat(self.settings.settings.plugins.m3dfio.ExternalBedHeight()))
+					if(currentZ >= bedMediumMaxZ - parseFloat(self.settings.settings.plugins.m33fio.ExternalBedHeight()))
 				
 						// Show message
 						showMessage("Movement Status", "Extruder is too high to home without running into the printer's frame", "OK", function() {
@@ -7703,7 +7703,7 @@ $(function() {
 		
 						// Send request
 						$.ajax({
-							url: API_BASEURL + "plugin/m3dfio",
+							url: API_BASEURL + "plugin/m33fio",
 							type: "POST",
 							dataType: "json",
 							data: JSON.stringify({
@@ -7717,7 +7717,7 @@ $(function() {
 						
 				// Send request
 				$.ajax({
-					url: API_BASEURL + "plugin/m3dfio",
+					url: API_BASEURL + "plugin/m33fio",
 					type: "POST",
 					dataType: "json",
 					data: JSON.stringify({
@@ -7743,7 +7743,7 @@ $(function() {
 		
 			// Send request
 			$.ajax({
-				url: API_BASEURL + "plugin/m3dfio",
+				url: API_BASEURL + "plugin/m33fio",
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({
@@ -7768,7 +7768,7 @@ $(function() {
 		
 			// Send request
 			$.ajax({
-				url: API_BASEURL + "plugin/m3dfio",
+				url: API_BASEURL + "plugin/m33fio",
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({
@@ -7793,7 +7793,7 @@ $(function() {
 		
 			// Send request
 			$.ajax({
-				url: API_BASEURL + "plugin/m3dfio",
+				url: API_BASEURL + "plugin/m33fio",
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({
@@ -7808,7 +7808,7 @@ $(function() {
 		$("#control > div.jog-panel.extruder > div > button:nth-of-type(4)").attr("title", "Sets extruder's temperature to the specified amount").click(function(event) {
 			
 			// Check if not printing and using a Micro 3D printer
-			if(self.printerState.isPrinting() !== true && !self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter()) {
+			if(self.printerState.isPrinting() !== true && !self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
 				
 				// Set commands
 				var commands = [
@@ -7852,12 +7852,12 @@ $(function() {
 			
 				// Set commands
 				var commands = [
-					"M104 S" + parseInt($(this).text().substr(12)) + (!self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter() ? '*' : '')
+					"M104 S" + parseInt($(this).text().substr(12)) + (!self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter() ? '*' : '')
 				];
 		
 			// Send request
 			$.ajax({
-				url: API_BASEURL + "plugin/m3dfio",
+				url: API_BASEURL + "plugin/m33fio",
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({
@@ -7872,7 +7872,7 @@ $(function() {
 		$("#control > div.jog-panel.extruder").find("div > div.heatbed > button:first-of-type").attr("title", "Sets heatbed's temperature to the specified amount").click(function(event) {
 			
 			// Check if not printing and using a Micro 3D printer
-			if(self.printerState.isPrinting() !== true && !self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter()) {
+			if(self.printerState.isPrinting() !== true && !self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
 			
 				// Set commands
 				var commands = [
@@ -7916,12 +7916,12 @@ $(function() {
 			
 				// Set commands
 				var commands = [
-					"M140 S" + parseInt($(this).text().substr(12)) + (!self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter() ? '*' : '')
+					"M140 S" + parseInt($(this).text().substr(12)) + (!self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter() ? '*' : '')
 				];
 		
 			// Send request
 			$.ajax({
-				url: API_BASEURL + "plugin/m3dfio",
+				url: API_BASEURL + "plugin/m33fio",
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({
@@ -7937,12 +7937,12 @@ $(function() {
 			
 			// Set commands
 			var commands = [
-				"M106 S255" + (!self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter() ? '*' : '')
+				"M106 S255" + (!self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter() ? '*' : '')
 			];
 		
 			// Send request
 			$.ajax({
-				url: API_BASEURL + "plugin/m3dfio",
+				url: API_BASEURL + "plugin/m33fio",
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({
@@ -7958,12 +7958,12 @@ $(function() {
 			
 			// Set commands
 			var commands = [
-				"M107" + (!self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter() ? '*' : '')
+				"M107" + (!self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter() ? '*' : '')
 			];
 		
 			// Send request
 			$.ajax({
-				url: API_BASEURL + "plugin/m3dfio",
+				url: API_BASEURL + "plugin/m33fio",
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({
@@ -7984,7 +7984,7 @@ $(function() {
 		
 			// Send request
 			$.ajax({
-				url: API_BASEURL + "plugin/m3dfio",
+				url: API_BASEURL + "plugin/m33fio",
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({
@@ -7998,10 +7998,10 @@ $(function() {
 		// Print settings control
 		$("#control > div.jog-panel.general").find("button:nth-of-type(11)").attr("title", "Opens print settings").click(function() {
 		
-			// Open M3D Fio settings
+			// Open M33 Fio settings
 			$("#navbar_show_settings").click();
-			$("#settings_plugin_m3dfio").addClass("active").siblings(".active").removeClass("active");
-			$("#settings_plugin_m3dfio_link").addClass("active").siblings(".active").removeClass("active");
+			$("#settings_plugin_m33fio").addClass("active").siblings(".active").removeClass("active");
+			$("#settings_plugin_m33fio_link").addClass("active").siblings(".active").removeClass("active");
 		});
 		
 		// Emergency stop control
@@ -8009,7 +8009,7 @@ $(function() {
 		
 			// Send request
 			$.ajax({
-				url: API_BASEURL + "plugin/m3dfio",
+				url: API_BASEURL + "plugin/m33fio",
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({
@@ -8107,7 +8107,7 @@ $(function() {
 						
 									// Send request
 									$.ajax({
-										url: API_BASEURL + "plugin/m3dfio",
+										url: API_BASEURL + "plugin/m33fio",
 										type: "POST",
 										dataType: "json",
 										data: JSON.stringify({
@@ -8129,7 +8129,7 @@ $(function() {
 		
 							// Send request
 							$.ajax({
-								url: API_BASEURL + "plugin/m3dfio",
+								url: API_BASEURL + "plugin/m33fio",
 								type: "POST",
 								dataType: "json",
 								data: JSON.stringify({
@@ -8142,7 +8142,7 @@ $(function() {
 			
 						// Send request
 						$.ajax({
-							url: API_BASEURL + "plugin/m3dfio",
+							url: API_BASEURL + "plugin/m33fio",
 							type: "POST",
 							dataType: "json",
 							data: JSON.stringify({
@@ -8157,7 +8157,7 @@ $(function() {
 				
 				// Send request
 				$.ajax({
-					url: API_BASEURL + "plugin/m3dfio",
+					url: API_BASEURL + "plugin/m33fio",
 					type: "POST",
 					dataType: "json",
 					data: JSON.stringify({
@@ -8260,7 +8260,7 @@ $(function() {
 						
 									// Send request
 									$.ajax({
-										url: API_BASEURL + "plugin/m3dfio",
+										url: API_BASEURL + "plugin/m33fio",
 										type: "POST",
 										dataType: "json",
 										data: JSON.stringify({
@@ -8281,7 +8281,7 @@ $(function() {
 		
 							// Send request
 							$.ajax({
-								url: API_BASEURL + "plugin/m3dfio",
+								url: API_BASEURL + "plugin/m33fio",
 								type: "POST",
 								dataType: "json",
 								data: JSON.stringify({
@@ -8294,7 +8294,7 @@ $(function() {
 		
 						// Send request
 						$.ajax({
-							url: API_BASEURL + "plugin/m3dfio",
+							url: API_BASEURL + "plugin/m33fio",
 							type: "POST",
 							dataType: "json",
 							data: JSON.stringify({
@@ -8309,7 +8309,7 @@ $(function() {
 				
 				// Send request
 				$.ajax({
-					url: API_BASEURL + "plugin/m3dfio",
+					url: API_BASEURL + "plugin/m33fio",
 					type: "POST",
 					dataType: "json",
 					data: JSON.stringify({
@@ -8338,7 +8338,7 @@ $(function() {
 			
 			// Send request
 			$.ajax({
-				url: API_BASEURL + "plugin/m3dfio",
+				url: API_BASEURL + "plugin/m33fio",
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({
@@ -8418,7 +8418,7 @@ $(function() {
 				
 						// Send request
 						$.ajax({
-							url: API_BASEURL + "plugin/m3dfio",
+							url: API_BASEURL + "plugin/m33fio",
 							type: "POST",
 							dataType: "json",
 							data: JSON.stringify({
@@ -8431,7 +8431,7 @@ $(function() {
 		
 					// Send request
 					$.ajax({
-						url: API_BASEURL + "plugin/m3dfio",
+						url: API_BASEURL + "plugin/m33fio",
 						type: "POST",
 						dataType: "json",
 						data: JSON.stringify({
@@ -8444,7 +8444,7 @@ $(function() {
 		
 				// Send request
 				$.ajax({
-					url: API_BASEURL + "plugin/m3dfio",
+					url: API_BASEURL + "plugin/m33fio",
 					type: "POST",
 					dataType: "json",
 					data: JSON.stringify({
@@ -8547,7 +8547,7 @@ $(function() {
 				
 							// Send request
 							$.ajax({
-								url: API_BASEURL + "plugin/m3dfio",
+								url: API_BASEURL + "plugin/m33fio",
 								type: "POST",
 								dataType: "json",
 								data: JSON.stringify({
@@ -8560,7 +8560,7 @@ $(function() {
 		
 						// Send request
 						$.ajax({
-							url: API_BASEURL + "plugin/m3dfio",
+							url: API_BASEURL + "plugin/m33fio",
 							type: "POST",
 							dataType: "json",
 							data: JSON.stringify({
@@ -8573,7 +8573,7 @@ $(function() {
 		
 					// Send request
 					$.ajax({
-						url: API_BASEURL + "plugin/m3dfio",
+						url: API_BASEURL + "plugin/m33fio",
 						type: "POST",
 						dataType: "json",
 						data: JSON.stringify({
@@ -8586,7 +8586,7 @@ $(function() {
 		
 				// Send request
 				$.ajax({
-					url: API_BASEURL + "plugin/m3dfio",
+					url: API_BASEURL + "plugin/m33fio",
 					type: "POST",
 					dataType: "json",
 					data: JSON.stringify({
@@ -8615,7 +8615,7 @@ $(function() {
 		
 			// Send request
 			$.ajax({
-				url: API_BASEURL + "plugin/m3dfio",
+				url: API_BASEURL + "plugin/m33fio",
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({
@@ -8639,7 +8639,7 @@ $(function() {
 		
 			// Send request
 			$.ajax({
-				url: API_BASEURL + "plugin/m3dfio",
+				url: API_BASEURL + "plugin/m33fio",
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({
@@ -8663,7 +8663,7 @@ $(function() {
 		
 			// Send request
 			$.ajax({
-				url: API_BASEURL + "plugin/m3dfio",
+				url: API_BASEURL + "plugin/m33fio",
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({
@@ -8687,7 +8687,7 @@ $(function() {
 		
 			// Send request
 			$.ajax({
-				url: API_BASEURL + "plugin/m3dfio",
+				url: API_BASEURL + "plugin/m33fio",
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({
@@ -8710,12 +8710,12 @@ $(function() {
 				// Set commands
 				var commands = [
 					"G90",
-					"G0 Z" + (currentFirmwareType === "iMe" ? 0 : (parseFloat(self.settings.settings.plugins.m3dfio.FrontLeftOrientation()) + parseFloat(self.settings.settings.plugins.m3dfio.FrontLeftOffset()))) + " F90"
+					"G0 Z" + (currentFirmwareType === "iMe" ? 0 : (parseFloat(self.settings.settings.plugins.m33fio.FrontLeftOrientation()) + parseFloat(self.settings.settings.plugins.m33fio.FrontLeftOffset()))) + " F90"
 				];
 		
 				// Send request
 				$.ajax({
-					url: API_BASEURL + "plugin/m3dfio",
+					url: API_BASEURL + "plugin/m33fio",
 					type: "POST",
 					dataType: "json",
 					data: JSON.stringify({
@@ -8743,12 +8743,12 @@ $(function() {
 				// Set commands
 				var commands = [
 					"G90",
-					"G0 Z" + (currentFirmwareType === "iMe" ? 0 : (parseFloat(self.settings.settings.plugins.m3dfio.FrontRightOrientation()) + parseFloat(self.settings.settings.plugins.m3dfio.FrontRightOffset()))) + " F90"
+					"G0 Z" + (currentFirmwareType === "iMe" ? 0 : (parseFloat(self.settings.settings.plugins.m33fio.FrontRightOrientation()) + parseFloat(self.settings.settings.plugins.m33fio.FrontRightOffset()))) + " F90"
 				];
 		
 				// Send request
 				$.ajax({
-					url: API_BASEURL + "plugin/m3dfio",
+					url: API_BASEURL + "plugin/m33fio",
 					type: "POST",
 					dataType: "json",
 					data: JSON.stringify({
@@ -8776,12 +8776,12 @@ $(function() {
 				// Set commands
 				var commands = [
 					"G90",
-					"G0 Z" + (currentFirmwareType === "iMe" ? 0 : (parseFloat(self.settings.settings.plugins.m3dfio.BackRightOrientation()) + parseFloat(self.settings.settings.plugins.m3dfio.BackRightOffset()))) + " F90"
+					"G0 Z" + (currentFirmwareType === "iMe" ? 0 : (parseFloat(self.settings.settings.plugins.m33fio.BackRightOrientation()) + parseFloat(self.settings.settings.plugins.m33fio.BackRightOffset()))) + " F90"
 				];
 		
 				// Send request
 				$.ajax({
-					url: API_BASEURL + "plugin/m3dfio",
+					url: API_BASEURL + "plugin/m33fio",
 					type: "POST",
 					dataType: "json",
 					data: JSON.stringify({
@@ -8809,12 +8809,12 @@ $(function() {
 				// Set commands
 				var commands = [
 					"G90",
-					"G0 Z" + (currentFirmwareType === "iMe" ? 0 : (parseFloat(self.settings.settings.plugins.m3dfio.BackLeftOrientation()) + parseFloat(self.settings.settings.plugins.m3dfio.BackLeftOffset()))) + " F90"
+					"G0 Z" + (currentFirmwareType === "iMe" ? 0 : (parseFloat(self.settings.settings.plugins.m33fio.BackLeftOrientation()) + parseFloat(self.settings.settings.plugins.m33fio.BackLeftOffset()))) + " F90"
 				];
 		
 				// Send request
 				$.ajax({
-					url: API_BASEURL + "plugin/m3dfio",
+					url: API_BASEURL + "plugin/m33fio",
 					type: "POST",
 					dataType: "json",
 					data: JSON.stringify({
@@ -8852,7 +8852,7 @@ $(function() {
 				
 					// Set commands
 					commands = [
-						"M618 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "iMe" ? (currentZ + parseFloat(self.settings.settings.plugins.m3dfio.FrontLeftOffset())) : (currentZ - parseFloat(self.settings.settings.plugins.m3dfio.FrontLeftOrientation()))),
+						"M618 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "iMe" ? (currentZ + parseFloat(self.settings.settings.plugins.m33fio.FrontLeftOffset())) : (currentZ - parseFloat(self.settings.settings.plugins.m33fio.FrontLeftOrientation()))),
 						"M619 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"],
 						"M65536;wait"
 					];
@@ -8883,7 +8883,7 @@ $(function() {
 		
 					// Send request
 					$.ajax({
-						url: API_BASEURL + "plugin/m3dfio",
+						url: API_BASEURL + "plugin/m33fio",
 						type: "POST",
 						dataType: "json",
 						data: JSON.stringify({
@@ -8896,7 +8896,7 @@ $(function() {
 						
 				// Send request
 				$.ajax({
-					url: API_BASEURL + "plugin/m3dfio",
+					url: API_BASEURL + "plugin/m33fio",
 					type: "POST",
 					dataType: "json",
 					data: JSON.stringify({
@@ -8934,7 +8934,7 @@ $(function() {
 			
 					// Set commands
 					commands = [
-						"M618 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "iMe" ? (currentZ + parseFloat(self.settings.settings.plugins.m3dfio.FrontRightOffset())) : (currentZ - parseFloat(self.settings.settings.plugins.m3dfio.FrontRightOrientation()))),
+						"M618 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "iMe" ? (currentZ + parseFloat(self.settings.settings.plugins.m33fio.FrontRightOffset())) : (currentZ - parseFloat(self.settings.settings.plugins.m33fio.FrontRightOrientation()))),
 						"M619 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"],
 						"M65536;wait"
 					];
@@ -8965,7 +8965,7 @@ $(function() {
 		
 					// Send request
 					$.ajax({
-						url: API_BASEURL + "plugin/m3dfio",
+						url: API_BASEURL + "plugin/m33fio",
 						type: "POST",
 						dataType: "json",
 						data: JSON.stringify({
@@ -8978,7 +8978,7 @@ $(function() {
 				
 				// Send request
 				$.ajax({
-					url: API_BASEURL + "plugin/m3dfio",
+					url: API_BASEURL + "plugin/m33fio",
 					type: "POST",
 					dataType: "json",
 					data: JSON.stringify({
@@ -9016,7 +9016,7 @@ $(function() {
 			
 					// Set commands
 					commands = [
-						"M618 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "iMe" ? (currentZ + parseFloat(self.settings.settings.plugins.m3dfio.BackRightOffset())) : (currentZ - parseFloat(self.settings.settings.plugins.m3dfio.BackRightOrientation()))),
+						"M618 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "iMe" ? (currentZ + parseFloat(self.settings.settings.plugins.m33fio.BackRightOffset())) : (currentZ - parseFloat(self.settings.settings.plugins.m33fio.BackRightOrientation()))),
 						"M619 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"],
 						"M65536;wait"
 					];
@@ -9047,7 +9047,7 @@ $(function() {
 		
 					// Send request
 					$.ajax({
-						url: API_BASEURL + "plugin/m3dfio",
+						url: API_BASEURL + "plugin/m33fio",
 						type: "POST",
 						dataType: "json",
 						data: JSON.stringify({
@@ -9060,7 +9060,7 @@ $(function() {
 				
 				// Send request
 				$.ajax({
-					url: API_BASEURL + "plugin/m3dfio",
+					url: API_BASEURL + "plugin/m33fio",
 					type: "POST",
 					dataType: "json",
 					data: JSON.stringify({
@@ -9098,7 +9098,7 @@ $(function() {
 			
 					// Set commands
 					commands = [
-						"M618 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "iMe" ? (currentZ + parseFloat(self.settings.settings.plugins.m3dfio.BackLeftOffset())) : (currentZ - parseFloat(self.settings.settings.plugins.m3dfio.BackLeftOrientation()))),
+						"M618 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "iMe" ? (currentZ + parseFloat(self.settings.settings.plugins.m33fio.BackLeftOffset())) : (currentZ - parseFloat(self.settings.settings.plugins.m33fio.BackLeftOrientation()))),
 						"M619 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"],
 						"M65536;wait"
 					];
@@ -9129,7 +9129,7 @@ $(function() {
 		
 					// Send request
 					$.ajax({
-						url: API_BASEURL + "plugin/m3dfio",
+						url: API_BASEURL + "plugin/m33fio",
 						type: "POST",
 						dataType: "json",
 						data: JSON.stringify({
@@ -9142,7 +9142,7 @@ $(function() {
 				
 				// Send request
 				$.ajax({
-					url: API_BASEURL + "plugin/m3dfio",
+					url: API_BASEURL + "plugin/m33fio",
 					type: "POST",
 					dataType: "json",
 					data: JSON.stringify({
@@ -9224,7 +9224,7 @@ $(function() {
 				
 						// Send request
 						$.ajax({
-							url: API_BASEURL + "plugin/m3dfio",
+							url: API_BASEURL + "plugin/m33fio",
 							type: "POST",
 							dataType: "json",
 							data: JSON.stringify({
@@ -9237,7 +9237,7 @@ $(function() {
 			
 					// Send request
 					$.ajax({
-						url: API_BASEURL + "plugin/m3dfio",
+						url: API_BASEURL + "plugin/m33fio",
 						type: "POST",
 						dataType: "json",
 						data: JSON.stringify({
@@ -9250,7 +9250,7 @@ $(function() {
 			
 				// Send request
 				$.ajax({
-					url: API_BASEURL + "plugin/m3dfio",
+					url: API_BASEURL + "plugin/m33fio",
 					type: "POST",
 					dataType: "json",
 					data: JSON.stringify({
@@ -9288,7 +9288,7 @@ $(function() {
 			
 					// Send request
 					$.ajax({
-						url: API_BASEURL + "plugin/m3dfio",
+						url: API_BASEURL + "plugin/m33fio",
 						type: "POST",
 						dataType: "json",
 						data: JSON.stringify({
@@ -9315,7 +9315,7 @@ $(function() {
 				
 				// Send request
 				$.ajax({
-					url: API_BASEURL + "plugin/m3dfio",
+					url: API_BASEURL + "plugin/m33fio",
 					type: "POST",
 					dataType: "json",
 					data: JSON.stringify({
@@ -9335,13 +9335,13 @@ $(function() {
 		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(17)").attr("title", "Prints 0.4mm test border").click(function(event) {
 		
 			// Show message
-			showMessage("Calibration Status", "It's recommended to print this test border after completely calibrating the bed to ensure that the calibration is accurate. The test border should print as a solid, even extruded border.<img src=\"" + PLUGIN_BASEURL + "m3dfio/static/img/test-border-good.png\">The 'Back Left Offset', 'Back Right Offset', 'Front Right Offset', and 'Front Left Offset' values can be adjusted to correct any issues with it. If the test border contains squiggly ripples, then it is too high.<img src=\"" + PLUGIN_BASEURL + "m3dfio/static/img/test-border-high.png\">If the test border contains missing gaps, then it is too low.<img src=\"" + PLUGIN_BASEURL + "m3dfio/static/img/test-border-low.png\">It's also recommended to print a model with a raft after this is done to see if the 'Bed Height Offset' value needs to be adjusted. If the raft does not securely stick to the bed, then it is too high. If the model isn't easily removed from the raft, then it is too low.<br><br>All the referenced values can be found by clicking the 'Print settings' button in the 'General' section. Proceed?", "Yes", function() {
+			showMessage("Calibration Status", "It's recommended to print this test border after completely calibrating the bed to ensure that the calibration is accurate. The test border should print as a solid, even extruded border.<img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/test-border-good.png\">The 'Back Left Offset', 'Back Right Offset', 'Front Right Offset', and 'Front Left Offset' values can be adjusted to correct any issues with it. If the test border contains squiggly ripples, then it is too high.<img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/test-border-high.png\">If the test border contains missing gaps, then it is too low.<img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/test-border-low.png\">It's also recommended to print a model with a raft after this is done to see if the 'Bed Height Offset' value needs to be adjusted. If the raft does not securely stick to the bed, then it is too high. If the model isn't easily removed from the raft, then it is too low.<br><br>All the referenced values can be found by clicking the 'Print settings' button in the 'General' section. Proceed?", "Yes", function() {
 			
 				// Hide message
 				hideMessage();
 				
 				// Check if using on the fly pre-processing and changing settings before print
-				if(self.settings.settings.plugins.m3dfio.PreprocessOnTheFly() && self.settings.settings.plugins.m3dfio.ChangeSettingsBeforePrint()) {
+				if(self.settings.settings.plugins.m33fio.PreprocessOnTheFly() && self.settings.settings.plugins.m33fio.ChangeSettingsBeforePrint()) {
 				
 					// Show message
 					showMessage("Printing Status", '', "Print", function() {
@@ -9351,7 +9351,7 @@ $(function() {
 				
 						// Send request
 						$.ajax({
-							url: API_BASEURL + "plugin/m3dfio",
+							url: API_BASEURL + "plugin/m33fio",
 							type: "POST",
 							dataType: "json",
 							data: JSON.stringify({
@@ -9376,7 +9376,7 @@ $(function() {
 								
 									// Send request
 									$.ajax({
-										url: API_BASEURL + "plugin/m3dfio",
+										url: API_BASEURL + "plugin/m33fio",
 										type: "POST",
 										dataType: "json",
 										data: JSON.stringify({
@@ -9406,7 +9406,7 @@ $(function() {
 				
 					// Send request
 					$.ajax({
-						url: API_BASEURL + "plugin/m3dfio",
+						url: API_BASEURL + "plugin/m33fio",
 						type: "POST",
 						dataType: "json",
 						data: JSON.stringify({
@@ -9427,7 +9427,7 @@ $(function() {
 		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(18)").attr("title", "Prints a specified backlash calibration").click(function(event) {
 		
 			// Show message
-			showMessage("Calibration Status", "It's recommended to print the backlash calibration prints after the print bed has been accurately calibrated. Make sure to set the 'Backlash X' and 'Backlash Y' values to 0 before printing a backlash calibration print which will print the model without any backlash compensation applied to it. The X backlash calibration prints and Y backlash calibration prints each assist in determining the X and Y backlash respecitvley.<br><br>The backlash values can be detemined by finding the sample with the highest possible value that doesn't curve.<img src=\"" + PLUGIN_BASEURL + "m3dfio/static/img/backlash.png\">If none of the samples curve when using the 0.0‑0.99 prints then use the 0.70‑1.69 prints. For more information check out <a target=\"_blank\" href=\"http://www.thingiverse.com/thing:1435828\">Muele's quick backlash calibration method</a>.<br><br>All the referenced values can be found by clicking the 'Print settings' button in the 'General' section.<br><br>Choose a backlash calibration print to continue.<span class=\"backlash\"><button class=\"btn btn-block\">X 0.0‑0.99</button><button class=\"btn btn-block\">X 0.70‑1.69</button><button class=\"btn btn-block\">Y 0.0‑0.99</button><button class=\"btn btn-block\">Y 0.70‑1.69</button></span>", "Cancel", function() {
+			showMessage("Calibration Status", "It's recommended to print the backlash calibration prints after the print bed has been accurately calibrated. Make sure to set the 'Backlash X' and 'Backlash Y' values to 0 before printing a backlash calibration print which will print the model without any backlash compensation applied to it. The X backlash calibration prints and Y backlash calibration prints each assist in determining the X and Y backlash respecitvley.<br><br>The backlash values can be detemined by finding the sample with the highest possible value that doesn't curve.<img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/backlash.png\">If none of the samples curve when using the 0.0‑0.99 prints then use the 0.70‑1.69 prints. For more information check out <a target=\"_blank\" href=\"http://www.thingiverse.com/thing:1435828\">Muele's quick backlash calibration method</a>.<br><br>All the referenced values can be found by clicking the 'Print settings' button in the 'General' section.<br><br>Choose a backlash calibration print to continue.<span class=\"backlash\"><button class=\"btn btn-block\">X 0.0‑0.99</button><button class=\"btn btn-block\">X 0.70‑1.69</button><button class=\"btn btn-block\">Y 0.0‑0.99</button><button class=\"btn btn-block\">Y 0.70‑1.69</button></span>", "Cancel", function() {
 			
 				// Hide message
 				hideMessage();
@@ -9462,7 +9462,7 @@ $(function() {
 			}
 			
 			// Check if using on the fly pre-processing and changing settings before print
-			if(self.settings.settings.plugins.m3dfio.PreprocessOnTheFly() && self.settings.settings.plugins.m3dfio.ChangeSettingsBeforePrint()) {
+			if(self.settings.settings.plugins.m33fio.PreprocessOnTheFly() && self.settings.settings.plugins.m33fio.ChangeSettingsBeforePrint()) {
 			
 				// Show message
 				showMessage("Printing Status", '', "Print", function() {
@@ -9472,7 +9472,7 @@ $(function() {
 			
 					// Send request
 					$.ajax({
-						url: API_BASEURL + "plugin/m3dfio",
+						url: API_BASEURL + "plugin/m33fio",
 						type: "POST",
 						dataType: "json",
 						data: JSON.stringify({
@@ -9497,7 +9497,7 @@ $(function() {
 							
 								// Send request
 								$.ajax({
-									url: API_BASEURL + "plugin/m3dfio",
+									url: API_BASEURL + "plugin/m33fio",
 									type: "POST",
 									dataType: "json",
 									data: JSON.stringify({
@@ -9527,7 +9527,7 @@ $(function() {
 			
 				// Send request
 				$.ajax({
-					url: API_BASEURL + "plugin/m3dfio",
+					url: API_BASEURL + "plugin/m33fio",
 					type: "POST",
 					dataType: "json",
 					data: JSON.stringify({
@@ -9673,7 +9673,7 @@ $(function() {
 								
 															// Set commands
 															commands = [
-																"M618 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "iMe" ? (currentZ + parseFloat(self.settings.settings.plugins.m3dfio.FrontLeftOffset())) : (currentZ - parseFloat(self.settings.settings.plugins.m3dfio.FrontLeftOrientation()))),
+																"M618 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "iMe" ? (currentZ + parseFloat(self.settings.settings.plugins.m33fio.FrontLeftOffset())) : (currentZ - parseFloat(self.settings.settings.plugins.m33fio.FrontLeftOrientation()))),
 																"M619 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"],
 																"M65536;wait"
 															];
@@ -9715,7 +9715,7 @@ $(function() {
 											
 																			// Set commands
 																			commands = [
-																				"M618 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "iMe" ? (currentZ + parseFloat(self.settings.settings.plugins.m3dfio.FrontRightOffset())) : (currentZ - parseFloat(self.settings.settings.plugins.m3dfio.FrontRightOrientation()))),
+																				"M618 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "iMe" ? (currentZ + parseFloat(self.settings.settings.plugins.m33fio.FrontRightOffset())) : (currentZ - parseFloat(self.settings.settings.plugins.m33fio.FrontRightOrientation()))),
 																				"M619 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"],
 																				"M65536;wait"
 																			];
@@ -9757,7 +9757,7 @@ $(function() {
 													
 																							// Set commands
 																							commands = [
-																								"M618 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "iMe" ? (currentZ + parseFloat(self.settings.settings.plugins.m3dfio.BackRightOffset())) : (currentZ - parseFloat(self.settings.settings.plugins.m3dfio.BackRightOrientation()))),
+																								"M618 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "iMe" ? (currentZ + parseFloat(self.settings.settings.plugins.m33fio.BackRightOffset())) : (currentZ - parseFloat(self.settings.settings.plugins.m33fio.BackRightOrientation()))),
 																								"M619 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"],
 																								"M65536;wait"
 																							];
@@ -9799,7 +9799,7 @@ $(function() {
 																	
 																											// Set commands
 																											commands = [
-																												"M618 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "iMe" ? (currentZ + parseFloat(self.settings.settings.plugins.m3dfio.BackLeftOffset())) : (currentZ - parseFloat(self.settings.settings.plugins.m3dfio.BackLeftOrientation()))),
+																												"M618 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "iMe" ? (currentZ + parseFloat(self.settings.settings.plugins.m33fio.BackLeftOffset())) : (currentZ - parseFloat(self.settings.settings.plugins.m33fio.BackLeftOrientation()))),
 																												"M619 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"],
 																												"M65536;wait"
 																											];
@@ -9845,7 +9845,7 @@ $(function() {
 																									
 																												// Send request
 																												$.ajax({
-																													url: API_BASEURL + "plugin/m3dfio",
+																													url: API_BASEURL + "plugin/m33fio",
 																													type: "POST",
 																													dataType: "json",
 																													data: JSON.stringify({
@@ -9858,7 +9858,7 @@ $(function() {
 
 																											// Send request
 																											$.ajax({
-																												url: API_BASEURL + "plugin/m3dfio",
+																												url: API_BASEURL + "plugin/m33fio",
 																												type: "POST",
 																												dataType: "json",
 																												data: JSON.stringify({
@@ -9871,7 +9871,7 @@ $(function() {
 																							
 																										// Send request
 																										$.ajax({
-																											url: API_BASEURL + "plugin/m3dfio",
+																											url: API_BASEURL + "plugin/m33fio",
 																											type: "POST",
 																											dataType: "json",
 																											data: JSON.stringify({
@@ -9885,7 +9885,7 @@ $(function() {
 
 																								// Send request
 																								$.ajax({
-																									url: API_BASEURL + "plugin/m3dfio",
+																									url: API_BASEURL + "plugin/m33fio",
 																									type: "POST",
 																									dataType: "json",
 																									data: JSON.stringify({
@@ -9898,7 +9898,7 @@ $(function() {
 
 																							// Send request
 																							$.ajax({
-																								url: API_BASEURL + "plugin/m3dfio",
+																								url: API_BASEURL + "plugin/m33fio",
 																								type: "POST",
 																								dataType: "json",
 																								data: JSON.stringify({
@@ -9911,7 +9911,7 @@ $(function() {
 																			
 																						// Send request
 																						$.ajax({
-																							url: API_BASEURL + "plugin/m3dfio",
+																							url: API_BASEURL + "plugin/m33fio",
 																							type: "POST",
 																							dataType: "json",
 																							data: JSON.stringify({
@@ -9925,7 +9925,7 @@ $(function() {
 
 																				// Send request
 																				$.ajax({
-																					url: API_BASEURL + "plugin/m3dfio",
+																					url: API_BASEURL + "plugin/m33fio",
 																					type: "POST",
 																					dataType: "json",
 																					data: JSON.stringify({
@@ -9938,7 +9938,7 @@ $(function() {
 
 																			// Send request
 																			$.ajax({
-																				url: API_BASEURL + "plugin/m3dfio",
+																				url: API_BASEURL + "plugin/m33fio",
 																				type: "POST",
 																				dataType: "json",
 																				data: JSON.stringify({
@@ -9951,7 +9951,7 @@ $(function() {
 															
 																		// Send request
 																		$.ajax({
-																			url: API_BASEURL + "plugin/m3dfio",
+																			url: API_BASEURL + "plugin/m33fio",
 																			type: "POST",
 																			dataType: "json",
 																			data: JSON.stringify({
@@ -9965,7 +9965,7 @@ $(function() {
 
 																// Send request
 																$.ajax({
-																	url: API_BASEURL + "plugin/m3dfio",
+																	url: API_BASEURL + "plugin/m33fio",
 																	type: "POST",
 																	dataType: "json",
 																	data: JSON.stringify({
@@ -9978,7 +9978,7 @@ $(function() {
 
 															// Send request
 															$.ajax({
-																url: API_BASEURL + "plugin/m3dfio",
+																url: API_BASEURL + "plugin/m33fio",
 																type: "POST",
 																dataType: "json",
 																data: JSON.stringify({
@@ -9991,7 +9991,7 @@ $(function() {
 											
 														// Send request
 														$.ajax({
-															url: API_BASEURL + "plugin/m3dfio",
+															url: API_BASEURL + "plugin/m33fio",
 															type: "POST",
 															dataType: "json",
 															data: JSON.stringify({
@@ -10005,7 +10005,7 @@ $(function() {
 
 												// Send request
 												$.ajax({
-													url: API_BASEURL + "plugin/m3dfio",
+													url: API_BASEURL + "plugin/m33fio",
 													type: "POST",
 													dataType: "json",
 													data: JSON.stringify({
@@ -10025,7 +10025,7 @@ $(function() {
 						
 										// Send request
 										$.ajax({
-											url: API_BASEURL + "plugin/m3dfio",
+											url: API_BASEURL + "plugin/m33fio",
 											type: "POST",
 											dataType: "json",
 											data: JSON.stringify({
@@ -10038,7 +10038,7 @@ $(function() {
 						
 									// Send request
 									$.ajax({
-										url: API_BASEURL + "plugin/m3dfio",
+										url: API_BASEURL + "plugin/m33fio",
 										type: "POST",
 										dataType: "json",
 										data: JSON.stringify({
@@ -10051,7 +10051,7 @@ $(function() {
 						
 								// Send request
 								$.ajax({
-									url: API_BASEURL + "plugin/m3dfio",
+									url: API_BASEURL + "plugin/m33fio",
 									type: "POST",
 									dataType: "json",
 									data: JSON.stringify({
@@ -10064,7 +10064,7 @@ $(function() {
 						
 							// Send request
 							$.ajax({
-								url: API_BASEURL + "plugin/m3dfio",
+								url: API_BASEURL + "plugin/m33fio",
 								type: "POST",
 								dataType: "json",
 								data: JSON.stringify({
@@ -10077,7 +10077,7 @@ $(function() {
 	
 						// Send request
 						$.ajax({
-							url: API_BASEURL + "plugin/m3dfio",
+							url: API_BASEURL + "plugin/m33fio",
 							type: "POST",
 							dataType: "json",
 							data: JSON.stringify({
@@ -10090,7 +10090,7 @@ $(function() {
 		
 					// Send request
 					$.ajax({
-						url: API_BASEURL + "plugin/m3dfio",
+						url: API_BASEURL + "plugin/m33fio",
 						type: "POST",
 						dataType: "json",
 						data: JSON.stringify({
@@ -10103,7 +10103,7 @@ $(function() {
 		
 				// Send request
 				$.ajax({
-					url: API_BASEURL + "plugin/m3dfio",
+					url: API_BASEURL + "plugin/m33fio",
 					type: "POST",
 					dataType: "json",
 					data: JSON.stringify({
@@ -10179,7 +10179,7 @@ $(function() {
 		
 										// Send request
 										$.ajax({
-											url: API_BASEURL + "plugin/m3dfio",
+											url: API_BASEURL + "plugin/m33fio",
 											type: "POST",
 											dataType: "json",
 											data: JSON.stringify({
@@ -10202,7 +10202,7 @@ $(function() {
 											
 													// Send request
 													$.ajax({
-														url: API_BASEURL + "plugin/m3dfio",
+														url: API_BASEURL + "plugin/m33fio",
 														type: "POST",
 														dataType: "json",
 														data: JSON.stringify({
@@ -10228,7 +10228,7 @@ $(function() {
 											
 													// Send request
 													$.ajax({
-														url: API_BASEURL + "plugin/m3dfio",
+														url: API_BASEURL + "plugin/m33fio",
 														type: "POST",
 														dataType: "json",
 														data: JSON.stringify({
@@ -10251,7 +10251,7 @@ $(function() {
 			
 									// Send request
 									$.ajax({
-										url: API_BASEURL + "plugin/m3dfio",
+										url: API_BASEURL + "plugin/m33fio",
 										type: "POST",
 										dataType: "json",
 										data: JSON.stringify({
@@ -10265,7 +10265,7 @@ $(function() {
 						
 							// Send request
 							$.ajax({
-								url: API_BASEURL + "plugin/m3dfio",
+								url: API_BASEURL + "plugin/m33fio",
 								type: "POST",
 								dataType: "json",
 								data: JSON.stringify({
@@ -10278,7 +10278,7 @@ $(function() {
 						
 						// Send request
 						$.ajax({
-							url: API_BASEURL + "plugin/m3dfio",
+							url: API_BASEURL + "plugin/m33fio",
 							type: "POST",
 							dataType: "json",
 							data: JSON.stringify({
@@ -10298,7 +10298,7 @@ $(function() {
 					
 					// Send request
 					$.ajax({
-						url: API_BASEURL + "plugin/m3dfio",
+						url: API_BASEURL + "plugin/m33fio",
 						type: "POST",
 						dataType: "json",
 						data: JSON.stringify({
@@ -10312,7 +10312,7 @@ $(function() {
 						
 							// Send request
 							$.ajax({
-								url: API_BASEURL + "plugin/m3dfio",
+								url: API_BASEURL + "plugin/m33fio",
 								type: "POST",
 								dataType: "json",
 								data: JSON.stringify({
@@ -10348,7 +10348,7 @@ $(function() {
 		
 				// Send request
 				$.ajax({
-					url: API_BASEURL + "plugin/m3dfio",
+					url: API_BASEURL + "plugin/m33fio",
 					type: "POST",
 					dataType: "json",
 					data: JSON.stringify({
@@ -10412,7 +10412,7 @@ $(function() {
 	
 					// Send request
 					$.ajax({
-						url: API_BASEURL + "plugin/m3dfio",
+						url: API_BASEURL + "plugin/m33fio",
 						type: "POST",
 						dataType: "json",
 						data: JSON.stringify({
@@ -10453,7 +10453,7 @@ $(function() {
 		
 				// Send request
 				$.ajax({
-					url: API_BASEURL + "plugin/m3dfio",
+					url: API_BASEURL + "plugin/m33fio",
 					type: "POST",
 					dataType: "json",
 					data: JSON.stringify({
@@ -10473,7 +10473,7 @@ $(function() {
 							
 							// Send request
 							$.ajax({
-								url: API_BASEURL + "plugin/m3dfio",
+								url: API_BASEURL + "plugin/m33fio",
 								type: "POST",
 								dataType: "json",
 								data: JSON.stringify({
@@ -10506,7 +10506,7 @@ $(function() {
 		
 				// Send request
 				$.ajax({
-					url: API_BASEURL + "plugin/m3dfio",
+					url: API_BASEURL + "plugin/m33fio",
 					type: "POST",
 					dataType: "json",
 					data: JSON.stringify({
@@ -10526,7 +10526,7 @@ $(function() {
 							
 							// Send request
 							$.ajax({
-								url: API_BASEURL + "plugin/m3dfio",
+								url: API_BASEURL + "plugin/m33fio",
 								type: "POST",
 								dataType: "json",
 								data: JSON.stringify({
@@ -10559,7 +10559,7 @@ $(function() {
 		
 				// Send request
 				$.ajax({
-					url: API_BASEURL + "plugin/m3dfio",
+					url: API_BASEURL + "plugin/m33fio",
 					type: "POST",
 					dataType: "json",
 					data: JSON.stringify({
@@ -10579,7 +10579,7 @@ $(function() {
 							
 							// Send request
 							$.ajax({
-								url: API_BASEURL + "plugin/m3dfio",
+								url: API_BASEURL + "plugin/m33fio",
 								type: "POST",
 								dataType: "json",
 								data: JSON.stringify({
@@ -10612,7 +10612,7 @@ $(function() {
 		
 				// Send request
 				$.ajax({
-					url: API_BASEURL + "plugin/m3dfio",
+					url: API_BASEURL + "plugin/m33fio",
 					type: "POST",
 					dataType: "json",
 					data: JSON.stringify({
@@ -10632,7 +10632,7 @@ $(function() {
 							
 							// Send request
 							$.ajax({
-								url: API_BASEURL + "plugin/m3dfio",
+								url: API_BASEURL + "plugin/m33fio",
 								type: "POST",
 								dataType: "json",
 								data: JSON.stringify({
@@ -10665,7 +10665,7 @@ $(function() {
 		
 				// Send request
 				$.ajax({
-					url: API_BASEURL + "plugin/m3dfio",
+					url: API_BASEURL + "plugin/m33fio",
 					type: "POST",
 					dataType: "json",
 					data: JSON.stringify({
@@ -10707,7 +10707,7 @@ $(function() {
 		
 									// Send request
 									$.ajax({
-										url: API_BASEURL + "plugin/m3dfio",
+										url: API_BASEURL + "plugin/m33fio",
 										type: "POST",
 										dataType: "json",
 										data: JSON.stringify({
@@ -10727,7 +10727,7 @@ $(function() {
 							
 												// Send request
 												$.ajax({
-													url: API_BASEURL + "plugin/m3dfio",
+													url: API_BASEURL + "plugin/m33fio",
 													type: "POST",
 													dataType: "json",
 													data: JSON.stringify({
@@ -10755,7 +10755,7 @@ $(function() {
 							
 							// Send request
 							$.ajax({
-								url: API_BASEURL + "plugin/m3dfio",
+								url: API_BASEURL + "plugin/m33fio",
 								type: "POST",
 								dataType: "json",
 								data: JSON.stringify({
@@ -10784,7 +10784,7 @@ $(function() {
 		
 			// Send request
 			$.ajax({
-				url: API_BASEURL + "plugin/m3dfio",
+				url: API_BASEURL + "plugin/m33fio",
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({
@@ -10809,7 +10809,7 @@ $(function() {
 		
 				// Send request
 				$.ajax({
-					url: API_BASEURL + "plugin/m3dfio",
+					url: API_BASEURL + "plugin/m33fio",
 					type: "POST",
 					dataType: "json",
 					data: JSON.stringify({
@@ -10829,7 +10829,7 @@ $(function() {
 							
 							// Send request
 							$.ajax({
-								url: API_BASEURL + "plugin/m3dfio",
+								url: API_BASEURL + "plugin/m33fio",
 								type: "POST",
 								dataType: "json",
 								data: JSON.stringify({
@@ -10862,7 +10862,7 @@ $(function() {
 		
 				// Send request
 				$.ajax({
-					url: API_BASEURL + "plugin/m3dfio",
+					url: API_BASEURL + "plugin/m33fio",
 					type: "POST",
 					dataType: "json",
 					data: JSON.stringify({
@@ -10882,7 +10882,7 @@ $(function() {
 							
 							// Send request
 							$.ajax({
-								url: API_BASEURL + "plugin/m3dfio",
+								url: API_BASEURL + "plugin/m33fio",
 								type: "POST",
 								dataType: "json",
 								data: JSON.stringify({
@@ -10937,7 +10937,7 @@ $(function() {
 		
 			// Send request
 			$.ajax({
-				url: API_BASEURL + "plugin/m3dfio",
+				url: API_BASEURL + "plugin/m33fio",
 				type: "POST",
 				dataType: "json",
 				data: JSON.stringify({
@@ -10957,7 +10957,7 @@ $(function() {
 						
 						// Send request
 						$.ajax({
-							url: API_BASEURL + "plugin/m3dfio",
+							url: API_BASEURL + "plugin/m33fio",
 							type: "POST",
 							dataType: "json",
 							data: JSON.stringify({
@@ -11033,7 +11033,7 @@ $(function() {
 			
 					// Send request
 					$.ajax({
-						url: API_BASEURL + "plugin/m3dfio",
+						url: API_BASEURL + "plugin/m33fio",
 						type: "POST",
 						dataType: "json",
 						data: JSON.stringify({
@@ -11053,7 +11053,7 @@ $(function() {
 							
 								// Send request
 								$.ajax({
-									url: API_BASEURL + "plugin/m3dfio",
+									url: API_BASEURL + "plugin/m33fio",
 									type: "POST",
 									dataType: "json",
 									data: JSON.stringify({
@@ -11074,7 +11074,7 @@ $(function() {
 		});
 		
 		// OctoPrint instance manager change event
-		$("#navbar_plugin_m3dfio > select").change(function() {
+		$("#navbar_plugin_m33fio > select").change(function() {
 		
 			// Check if creating a new instance
 			if($(this).val() == "new") {
@@ -11084,7 +11084,7 @@ $(function() {
 			
 				// Send request
 				$.ajax({
-					url: API_BASEURL + "plugin/m3dfio",
+					url: API_BASEURL + "plugin/m33fio",
 					type: "POST",
 					dataType: "json",
 					data: JSON.stringify({
@@ -11127,7 +11127,7 @@ $(function() {
 			
 				// Send request
 				$.ajax({
-					url: API_BASEURL + "plugin/m3dfio",
+					url: API_BASEURL + "plugin/m33fio",
 					type: "POST",
 					dataType: "json",
 					data: JSON.stringify({
@@ -11143,7 +11143,7 @@ $(function() {
 						if(data.value == "OK")
 					
 							// Go through all options
-							$("#navbar_plugin_m3dfio > select > option").each(function() {
+							$("#navbar_plugin_m33fio > select > option").each(function() {
 						
 								// Check if another OctoPrint instance exists
 								if($(this).attr("value") != "new" && $(this).attr("value") != "close" && $(this).attr("value") != window.location.port) {
@@ -11228,7 +11228,7 @@ $(function() {
 			
 					// Send request
 					$.ajax({
-						url: API_BASEURL + "plugin/m3dfio",
+						url: API_BASEURL + "plugin/m33fio",
 						type: "POST",
 						dataType: "json",
 						data: JSON.stringify({
@@ -11248,7 +11248,7 @@ $(function() {
 								
 								// Send request
 								$.ajax({
-									url: API_BASEURL + "plugin/m3dfio",
+									url: API_BASEURL + "plugin/m33fio",
 									type: "POST",
 									dataType: "json",
 									data: JSON.stringify({
@@ -11272,7 +11272,7 @@ $(function() {
 		
 				// Send request
 				$.ajax({
-					url: API_BASEURL + "plugin/m3dfio",
+					url: API_BASEURL + "plugin/m33fio",
 					type: "POST",
 					dataType: "json",
 					data: JSON.stringify({
@@ -11300,8 +11300,8 @@ $(function() {
 		// On data update message
 		self.onDataUpdaterPluginMessage = function(plugin, data) {
 		
-			// Check if message is not from M3D Fio
-			if(plugin != "m3dfio")
+			// Check if message is not from M33 Fio
+			if(plugin != "m33fio")
 			
 				// Return
 				return;
@@ -11358,7 +11358,7 @@ $(function() {
 				localStorage.viewportPrinterColor = viewportPrinterColor;
 			
 				// Update connected printer details
-				$("#navbar_plugin_m3dfio > a").text((data.serialNumber.match(/^[0-9a-z]+$/i) ? data.serialNumber.slice(0, 2) + '-' + data.serialNumber.slice(2, 4) + '-' + data.serialNumber.slice(4, 6) + '-' + data.serialNumber.slice(6, 8) + '-' + data.serialNumber.slice(8, 10) + '-' + data.serialNumber.slice(10, 13) + '-' + data.serialNumber.slice(13, 16) : "Printer") + " at " + data.serialPort);
+				$("#navbar_plugin_m33fio > a").text((data.serialNumber.match(/^[0-9a-z]+$/i) ? data.serialNumber.slice(0, 2) + '-' + data.serialNumber.slice(2, 4) + '-' + data.serialNumber.slice(4, 6) + '-' + data.serialNumber.slice(6, 8) + '-' + data.serialNumber.slice(8, 10) + '-' + data.serialNumber.slice(10, 13) + '-' + data.serialNumber.slice(13, 16) : "Printer") + " at " + data.serialPort);
 			}
 			
 			// Otherwise check if data is that a Micro 3D isn't connected
@@ -11368,14 +11368,14 @@ $(function() {
 				$("#control > div.jog-panel.advanced").find("div > button").removeClass("current");
 				$("#control > div.jog-panel.eeprom table input").val(eepromDisplayType == "ascii" ? "?" : (eepromDisplayType == "decimal" ? "???" : "??"));
 				$("#control div.jog-panel.advanced p").text('');
-				$("#navbar_plugin_m3dfio > a").text('');
+				$("#navbar_plugin_m33fio > a").text('');
 			}
 			
 			// Otherwise check if data is that a heatbed is detected
 			else if(data.value == "Heatbed Detected") {
 			
 				// Display heatbed controls
-				$("#control .heatbed, #settings_plugin_m3dfio .heatbed, body > div.page-container > div.message .heatbed").css("display", "block");
+				$("#control .heatbed, #settings_plugin_m33fio .heatbed, body > div.page-container > div.message .heatbed").css("display", "block");
 				$("#control > div.jog-panel.extruder").find("h1:not(.heatbed)").text("Tools");
 			}
 			
@@ -11383,7 +11383,7 @@ $(function() {
 			else if(data.value == "Heatbed Not Detected") {
 			
 				// Hide heatbed controls
-				$("#control .heatbed, #settings_plugin_m3dfio .heatbed, body > div.page-container > div.message .heatbed").css("display", "none");
+				$("#control .heatbed, #settings_plugin_m33fio .heatbed, body > div.page-container > div.message .heatbed").css("display", "none");
 				$("#control > div.jog-panel.extruder").find("h1:not(.heatbed)").text("Extruder");
 			}
 			
@@ -11391,25 +11391,25 @@ $(function() {
 			else if(data.value == "Camera Hostable" && typeof data.cameras !== "undefined") {
 			
 				// Display camera server settings
-				$("#settings_plugin_m3dfio .camera").css("display", "block");
+				$("#settings_plugin_m33fio .camera").css("display", "block");
 				
 				// Reset cameras
-				$("#settings_plugin_m3dfio .camera select > option").remove();
+				$("#settings_plugin_m33fio .camera select > option").remove();
 				
 				// Go through all cameras
 				var currentCamera = 0;
 				for(var i = 0; i < data.cameras.length; i++) {
 			
 					// Insert option
-					$("#settings_plugin_m3dfio .camera select").append("<option value = \"" + data.cameras[i] + "\">Device " + data.cameras[i] + "</option>");
+					$("#settings_plugin_m33fio .camera select").append("<option value = \"" + data.cameras[i] + "\">Device " + data.cameras[i] + "</option>");
 						
 					// Set current port
-					if(typeof self.settings.settings !== "undefined" && data.cameras[i] == self.settings.settings.plugins.m3dfio.CameraPort)
+					if(typeof self.settings.settings !== "undefined" && data.cameras[i] == self.settings.settings.plugins.m33fio.CameraPort)
 						currentCamera = i;
 				}
 				
 				// Go through all options
-				$("#settings_plugin_m3dfio .camera select > option").each(function() {
+				$("#settings_plugin_m33fio .camera select > option").each(function() {
 				
 					// Check if current port
 					if($(this).attr("value") == data.cameras[currentCamera]) {
@@ -11427,7 +11427,7 @@ $(function() {
 			else if(data.value == "Camera Not Hostable")
 			
 				// Display camera server settings
-				$("#settings_plugin_m3dfio .camera").css("display", "none");
+				$("#settings_plugin_m33fio .camera").css("display", "none");
 			
 			// Otherwise check if data is current location
 			else if(data.value == "Current Location" && typeof locationCallback === "function" && typeof data.locationX !== "undefined" && typeof data.locationY !== "undefined" && typeof data.locationZ !== "undefined" && typeof data.locationE !== "undefined") {
@@ -11496,13 +11496,13 @@ $(function() {
 			else if(data.value == "Using Shared Library")
 			
 				// Display shared library settings
-				$("#settings_plugin_m3dfio .sharedLibrary").css("display", "block");
+				$("#settings_plugin_m33fio .sharedLibrary").css("display", "block");
 			
 			// Otherwise check if data is not using shared library
 			else if(data.value == "Not Using Shared Library")
 			
 				// Hide shared library settings
-				$("#settings_plugin_m3dfio .sharedLibrary").css("display", "none");
+				$("#settings_plugin_m33fio .sharedLibrary").css("display", "none");
 			
 			// Otherwise check if data is a reminder
 			else if(data.value == "Reminder" && typeof data.type !== "undefined") {
@@ -11547,7 +11547,7 @@ $(function() {
 					
 						// Send request
 						$.ajax({
-							url: API_BASEURL + "plugin/m3dfio",
+							url: API_BASEURL + "plugin/m33fio",
 							type: "POST",
 							dataType: "json",
 							data: JSON.stringify({
@@ -11588,7 +11588,7 @@ $(function() {
 					
 						// Send request
 						$.ajax({
-							url: API_BASEURL + "plugin/m3dfio",
+							url: API_BASEURL + "plugin/m33fio",
 							type: "POST",
 							dataType: "json",
 							data: JSON.stringify({
@@ -11623,14 +11623,14 @@ $(function() {
 			else if(data.value == "Process Details" && typeof data.processes !== "undefined") {
 			
 				// Reset process details
-				$("#navbar_plugin_m3dfio > select > option:not([value=\"new\"]):not([value=\"close\"])").remove();
+				$("#navbar_plugin_m33fio > select > option:not([value=\"new\"]):not([value=\"close\"])").remove();
 				
 				// Go through all processes
 				var currentPort;
 				for(var i = 0; i < data.processes.length; i++)
 			
 					// Go through all options
-					$("#navbar_plugin_m3dfio > select > option").each(function() {
+					$("#navbar_plugin_m33fio > select > option").each(function() {
 				
 						// Check if at end of options or at ordered position
 						if($(this).attr("value") == "new" || parseInt($(this).attr("value")) > parseInt(data.processes[i][0])) {
@@ -11648,7 +11648,7 @@ $(function() {
 					});
 				
 				// Go through all options
-				$("#navbar_plugin_m3dfio > select > option").each(function() {
+				$("#navbar_plugin_m33fio > select > option").each(function() {
 				
 					// Check if current port
 					if(parseInt($(this).attr("value")) == parseInt(data.processes[currentPort][0])) {
@@ -11692,7 +11692,7 @@ $(function() {
 
 							// Send request
 							$.ajax({
-								url: API_BASEURL + "plugin/m3dfio",
+								url: API_BASEURL + "plugin/m33fio",
 								type: "POST",
 								dataType: "json",
 								data: JSON.stringify({
@@ -11712,7 +11712,7 @@ $(function() {
 									
 										// Send request
 										$.ajax({
-											url: API_BASEURL + "plugin/m3dfio",
+											url: API_BASEURL + "plugin/m33fio",
 											type: "POST",
 											dataType: "json",
 											data: JSON.stringify({
@@ -11875,7 +11875,7 @@ $(function() {
 					
 									// Send request
 									$.ajax({
-										url: API_BASEURL + "plugin/m3dfio",
+										url: API_BASEURL + "plugin/m33fio",
 										type: "POST",
 										dataType: "json",
 										data: JSON.stringify({
@@ -11888,7 +11888,7 @@ $(function() {
 
 								// Send request
 								$.ajax({
-									url: API_BASEURL + "plugin/m3dfio",
+									url: API_BASEURL + "plugin/m33fio",
 									type: "POST",
 									dataType: "json",
 									data: JSON.stringify({
@@ -11901,7 +11901,7 @@ $(function() {
 
 							// Send request
 							$.ajax({
-								url: API_BASEURL + "plugin/m3dfio",
+								url: API_BASEURL + "plugin/m33fio",
 								type: "POST",
 								dataType: "json",
 								data: JSON.stringify({
@@ -11914,7 +11914,7 @@ $(function() {
 
 						// Send request
 						$.ajax({
-							url: API_BASEURL + "plugin/m3dfio",
+							url: API_BASEURL + "plugin/m33fio",
 							type: "POST",
 							dataType: "json",
 							data: JSON.stringify({
@@ -12033,7 +12033,7 @@ $(function() {
 						
 								// Send request
 								$.ajax({
-									url: API_BASEURL + "plugin/m3dfio",
+									url: API_BASEURL + "plugin/m33fio",
 									type: "POST",
 									dataType: "json",
 									data: JSON.stringify({
@@ -12046,7 +12046,7 @@ $(function() {
 	
 							// Send request
 							$.ajax({
-								url: API_BASEURL + "plugin/m3dfio",
+								url: API_BASEURL + "plugin/m33fio",
 								type: "POST",
 								dataType: "json",
 								data: JSON.stringify({
@@ -12059,7 +12059,7 @@ $(function() {
 	
 						// Send request
 						$.ajax({
-							url: API_BASEURL + "plugin/m3dfio",
+							url: API_BASEURL + "plugin/m33fio",
 							type: "POST",
 							dataType: "json",
 							data: JSON.stringify({
@@ -12159,7 +12159,7 @@ $(function() {
 						
 						// Send request
 						$.ajax({
-							url: API_BASEURL + "plugin/m3dfio",
+							url: API_BASEURL + "plugin/m33fio",
 							type: "POST",
 							dataType: "json",
 							data: JSON.stringify({
@@ -12175,7 +12175,7 @@ $(function() {
 						
 						// Send request
 						$.ajax({
-							url: API_BASEURL + "plugin/m3dfio",
+							url: API_BASEURL + "plugin/m33fio",
 							type: "POST",
 							dataType: "json",
 							data: JSON.stringify({
@@ -12198,7 +12198,7 @@ $(function() {
 						
 						// Send request
 						$.ajax({
-							url: API_BASEURL + "plugin/m3dfio",
+							url: API_BASEURL + "plugin/m33fio",
 							type: "POST",
 							dataType: "json",
 							data: JSON.stringify({
@@ -12246,13 +12246,13 @@ $(function() {
 			else if(data.value == "Enable GPIO Settings")
 			
 				// Show GPIO buttons
-				$("#settings_plugin_m3dfio .gpio").css("display", "block");
+				$("#settings_plugin_m33fio .gpio").css("display", "block");
 			
 			// Otherwise check if data is to disable GPIO settings
 			else if(data.value == "Disable GPIO Settings")
 			
 				// Hide GPIO buttons
-				$("#settings_plugin_m3dfio .gpio").css("display", "none");
+				$("#settings_plugin_m33fio .gpio").css("display", "none");
 			
 			// Otherwise check if data is to enable GPIO buttons
 			else if(data.value == "Enable GPIO Buttons")
@@ -12311,7 +12311,7 @@ $(function() {
 					
 					// Send request
 					$.ajax({
-						url: API_BASEURL + "plugin/m3dfio",
+						url: API_BASEURL + "plugin/m33fio",
 						type: "POST",
 						dataType: "json",
 						data: JSON.stringify({
@@ -12482,7 +12482,7 @@ $(function() {
 
 																			// Send request
 																			$.ajax({
-																				url: API_BASEURL + "plugin/m3dfio",
+																				url: API_BASEURL + "plugin/m33fio",
 																				type: "POST",
 																				dataType: "json",
 																				data: JSON.stringify({
@@ -12496,7 +12496,7 @@ $(function() {
 		
 																	// Send request
 																	$.ajax({
-																		url: API_BASEURL + "plugin/m3dfio",
+																		url: API_BASEURL + "plugin/m33fio",
 																		type: "POST",
 																		dataType: "json",
 																		data: JSON.stringify({
@@ -12518,7 +12518,7 @@ $(function() {
 
 														// Send request
 														$.ajax({
-															url: API_BASEURL + "plugin/m3dfio",
+															url: API_BASEURL + "plugin/m33fio",
 															type: "POST",
 															dataType: "json",
 															data: JSON.stringify({
@@ -12531,7 +12531,7 @@ $(function() {
 
 													// Send request
 													$.ajax({
-														url: API_BASEURL + "plugin/m3dfio",
+														url: API_BASEURL + "plugin/m33fio",
 														type: "POST",
 														dataType: "json",
 														data: JSON.stringify({
@@ -12555,7 +12555,7 @@ $(function() {
 
 									// Send request
 									$.ajax({
-										url: API_BASEURL + "plugin/m3dfio",
+										url: API_BASEURL + "plugin/m33fio",
 										type: "POST",
 										dataType: "json",
 										data: JSON.stringify({
@@ -12568,7 +12568,7 @@ $(function() {
 
 								// Send request
 								$.ajax({
-									url: API_BASEURL + "plugin/m3dfio",
+									url: API_BASEURL + "plugin/m33fio",
 									type: "POST",
 									dataType: "json",
 									data: JSON.stringify({
@@ -12589,18 +12589,18 @@ $(function() {
 		self.onUserLoggedIn = function() {
 		
 			// Enable managing OctoPrint instances
-			$("#navbar_plugin_m3dfio > select > option").last().prop("disabled", false).prev().prop("disabled", false);
+			$("#navbar_plugin_m33fio > select > option").last().prop("disabled", false).prev().prop("disabled", false);
 			
 			// Disable closing initial OctoPrint instance
 			if(window.location.port == 5000)
-				$("#navbar_plugin_m3dfio > select > option").last().prop("disabled", true)
+				$("#navbar_plugin_m33fio > select > option").last().prop("disabled", true)
 		}
 		
 		// User log out event
 		self.onUserLoggedOut = function() {
 		
 			// Disable managing OctoPrint instances
-			$("#navbar_plugin_m3dfio > select > option").last().prop("disabled", true).prev().prop("disabled", true);
+			$("#navbar_plugin_m33fio > select > option").last().prop("disabled", true).prev().prop("disabled", true);
 		}
 		
 		// On startup complete
@@ -12610,7 +12610,7 @@ $(function() {
 			function disableSettings() {
 			
 				// Go through all settings that aren't dependant
-				$("#settings_plugin_m3dfio div.control-group:not(.dependant)").each(function() {
+				$("#settings_plugin_m33fio div.control-group:not(.dependant)").each(function() {
 	
 					// Initialize variables
 					var parent = $(this)
@@ -12642,16 +12642,16 @@ $(function() {
 				self.settings.requestData().done(disableSettings);
 		
 			// Set mid-print filament change layer input
-			$("#gcode div.midPrintFilamentChange input").val(self.settings.settings.plugins.m3dfio.MidPrintFilamentChangeLayers());
+			$("#gcode div.midPrintFilamentChange input").val(self.settings.settings.plugins.m33fio.MidPrintFilamentChangeLayers());
 			
 			// Enable/disable Micro 3D printer specific features
-			if(self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter()) {
+			if(self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
 				$(".micro3d").addClass("notUsingAMicro3DPrinter");
 				$("#temperature-graph").css("background-image", '');
 			}
 			else {
 				$(".micro3d").removeClass("notUsingAMicro3DPrinter");
-				$("#temperature-graph").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/graph-background.png");
+				$("#temperature-graph").css("background-image", "url(" + PLUGIN_BASEURL + "m33fio/static/img/graph-background.png");
 			}
 			
 			// Check if printing or paused
@@ -12727,16 +12727,16 @@ $(function() {
 			function updateValues() {
 
 				// Update mid-print filament change layer input
-				$("#gcode div.midPrintFilamentChange input").val(self.settings.settings.plugins.m3dfio.MidPrintFilamentChangeLayers());
+				$("#gcode div.midPrintFilamentChange input").val(self.settings.settings.plugins.m33fio.MidPrintFilamentChangeLayers());
 				
 				// Enable/disable Micro 3D printer specific features
-				if(self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter()) {
+				if(self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
 					$(".micro3d").addClass("notUsingAMicro3DPrinter");
 					$("#temperature-graph").css("background-image", '');
 				}
 				else {
 					$(".micro3d").removeClass("notUsingAMicro3DPrinter");
-					$("#temperature-graph").css("background-image", "url(" + PLUGIN_BASEURL + "m3dfio/static/img/graph-background.png");
+					$("#temperature-graph").css("background-image", "url(" + PLUGIN_BASEURL + "m33fio/static/img/graph-background.png");
 				}
 			}
 
@@ -12751,7 +12751,7 @@ $(function() {
 		self.onEventError = function(payload) {
 		
 			// Check if using an Micro 3D printer and error is an unhandled firmware or communication error
-			if(!self.settings.settings.plugins.m3dfio.NotUsingAMicro3DPrinter() && ($("div.ui-pnotify:last-of-type h4.ui-pnotify-title").text() == "Unhandled firmware error" || $("div.ui-pnotify:last-of-type h4.ui-pnotify-title").text() == "Unhandled communication error"))
+			if(!self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter() && ($("div.ui-pnotify:last-of-type h4.ui-pnotify-title").text() == "Unhandled firmware error" || $("div.ui-pnotify:last-of-type h4.ui-pnotify-title").text() == "Unhandled communication error"))
 			
 				// Remove error
 				$("div.ui-pnotify:last-of-type").remove();
@@ -12783,7 +12783,7 @@ $(function() {
 	OCTOPRINT_VIEWMODELS.push([
 	
 		// Constructor
-		M3DFioViewModel,
+		M33FioViewModel,
 		["printerStateViewModel", "temperatureViewModel", "settingsViewModel", "gcodeFilesViewModel", "slicingViewModel", "terminalViewModel", "loginStateViewModel"]
 	]);
 });

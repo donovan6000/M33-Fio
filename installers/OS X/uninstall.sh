@@ -17,8 +17,8 @@ else
 	# Stop OctoPrint
 	sudo -u $SUDO_USER launchctl unload /Library/LaunchAgents/com.octoprint.app.plist
 	
-	# Uninstall M3D Fio
-	echo 'y' | sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/pip uninstall OctoPrint-M3DFio
+	# Uninstall M33 Fio
+	echo 'y' | sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/pip uninstall OctoPrint-M33Fio
 	
 	# Uninstall OctoPrint
 	echo 'y' | sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/pip uninstall OctoPrint
@@ -61,6 +61,6 @@ else
 	
 	# Display message
 	echo
-	echo 'OctoPrint and M3D Fio have been successfully uninstalled'
+	echo 'OctoPrint and M33 Fio have been successfully uninstalled'
 	echo
 fi

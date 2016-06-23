@@ -1,5 +1,5 @@
 # Run the following commands to install this rule
-# cp ./91-m3d-heatbed-local.rules /etc/udev/rules.d/
+# cp ./91-micro-3d-heatbed-local.rules /etc/udev/rules.d/
 # sudo /etc/init.d/udev restart
 
 ACTION=="add", SUBSYSTEMS=="usb", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", GROUP="users", MODE="0666", ENV{ID_MM_DEVICE_IGNORE}="1"
