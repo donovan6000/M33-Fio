@@ -54,6 +54,7 @@ $(function() {
 		self.slicing = parameters[4];
 		self.terminal = parameters[5];
 		self.loginState = parameters[6];
+		self.printerProfile = parameters[7];
 		
 		// Bed dimensions
 		var bedLowMaxX = 106.0;
@@ -74,8 +75,13 @@ $(function() {
 		var bedHighMinY = 9.0;
 		var bedHighMaxZ = 112.0;
 		var bedHighMinZ = bedMediumMaxZ;
+		var printBedWidth = 121;
+		var printBedDepth = 119 - bedLowMinY;
+		var externalBedHeight = 0.0;
 		var extruderCenterX = (bedLowMaxX + bedLowMinX) / 2;
 		var extruderCenterY = (bedLowMaxY + bedLowMinY + 14.0) / 2;
+		var printBedOffsetX = 0.0;
+		var printBedOffsetY = 2.0;
 		
 		// Set printer materials
 		var printerMaterials = {
@@ -639,14 +645,35 @@ $(function() {
 			// Get message
 			var message = $("body > div.page-container > div.message");
 			
-			// Check if skipping a message and the current displayed message doesn't need confirmation
-			if(skippedMessages && message.hasClass("show") && !message.find("button.confirm").eq(1).hasClass("show")) {
+			// Check if the current displayed message doesn't need confirmation
+			if(message.hasClass("show") && !message.find("button.confirm").eq(1).hasClass("show")) {
 			
-				// Decrement skipped messages
-				skippedMessages--;
+				// Check if skipping a message
+				if(skippedMessages) {
+			
+					// Decrement skipped messages
+					skippedMessages--;
 				
-				// Hide message
-				hideMessage();
+					// Hide message
+					hideMessage();
+				}
+			
+				// Otherwise check if using waiting or location callback, but the printer isn't connected
+				else if((typeof waitingCallback === "function" || typeof locationCallback === "function") && self.printerState.isErrorOrClosed() === true) {
+			
+					// Clear waiting and location callbacks
+					waitingCallback = locationCallback = null;
+				
+					// Hide message
+					hideMessage();
+				
+					// Show message
+					showMessage(message.find("h4").text(), "Operation couldn't be completed because the printer was disconnected", "OK", function() {
+
+						// Hide message
+						hideMessage();
+					});
+				}
 			}
 		
 			// Check if more messages exist
@@ -962,15 +989,138 @@ $(function() {
 				platformAdhesion: null,
 				adhesionSize: null,
 				scaleLock: [],
+				printerModel: null,
 				
 				// Initialize
 				init: function() {
 				
-					// Adjust bed bounds to account for external bed
-					bedLowMaxZ = 5.0 + parseFloat(self.settings.settings.plugins.m33fio.ExternalBedHeight());
-					bedLowMinZ = 0.0 + parseFloat(self.settings.settings.plugins.m33fio.ExternalBedHeight());
-					bedMediumMinZ = bedLowMaxZ;
-					bedLowMinY = self.settings.settings.plugins.m33fio.ExpandPrintableRegion() ? bedMediumMinY : -2.0;
+					// Check if using a Micro 3D printer
+					if(!self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
+					
+						// Set printer model
+						this.printerModel = "micro-3d.stl";
+						
+						// Set bed dimensions
+						bedLowMaxX = 106.0;
+						bedLowMinX = -2.0;
+						bedLowMaxY = 105.0;
+						bedLowMinY = -2.0;
+						bedLowMaxZ = 5.0;
+						bedLowMinZ = 0.0;
+						bedMediumMaxX = 106.0;
+						bedMediumMinX = -2.0;
+						bedMediumMaxY = 105.0;
+						bedMediumMinY = -9.0;
+						bedMediumMaxZ = 73.5;
+						bedMediumMinZ = bedLowMaxZ;
+						bedHighMaxX = 97.0;
+						bedHighMinX = 7.0;
+						bedHighMaxY = 85.0;
+						bedHighMinY = 9.0;
+						bedHighMaxZ = 112.0;
+						bedHighMinZ = bedMediumMaxZ;
+						
+						// Set print bed size
+						printBedWidth = 121;
+						printBedDepth = 119 - bedLowMinY;
+						
+						// Set external bed height
+						externalBedHeight = parseFloat(self.settings.settings.plugins.m33fio.ExternalBedHeight());
+				
+						// Adjust bed bounds to account for external bed
+						bedLowMaxZ = 5.0 + externalBedHeight;
+						bedLowMinZ = 0.0 + externalBedHeight;
+						bedMediumMinZ = bedLowMaxZ;
+						bedLowMinY = self.settings.settings.plugins.m33fio.ExpandPrintableRegion() ? bedMediumMinY : -2.0;
+						
+						// Set extruder center
+						extruderCenterX = (bedLowMaxX + bedLowMinX) / 2;
+						extruderCenterY = (bedLowMaxY + bedLowMinY + 14.0) / 2;
+						
+						// Set print bed offset
+						printBedOffsetX = 0.0;
+						printBedOffsetY = 2.0;
+					}
+					
+					// Otherwise
+					else {
+					
+						// Initialize width, depth, and height
+						var width = '';
+						var height = '';
+						var depth = '';
+					
+						// Check if using Cura
+						if(slicerName == "cura") {
+					
+							// Set width, depth, and height
+							width = getSlicerProfileValue("machine_width");
+							depth = getSlicerProfileValue("machine_depth");
+							height = getSlicerProfileValue("machine_height");
+						}
+						
+						// Otherwise check if using Slic3r
+						else if(slicerName == "slic3r") {
+						
+							// Check if bed size is valid
+							var bedSize = getSlicerProfileValue("bed_size");
+							var matches = bedSize.match(/(\d+.?\d*)\s*?,\s*?(\d+.?\d*)/);
+							if(matches.length == 3) {
+							
+								// Set width and depth
+								width = matches[1];
+								depth = matches[2];
+							}
+						}
+						
+						// Set default width, depth, and height if not set
+						if(!width.length)
+							width = self.printerProfile.currentProfileData().volume.width();
+						width = parseFloat(width);
+						
+						if(!depth.length)
+							depth = self.printerProfile.currentProfileData().volume.depth();
+						depth = parseFloat(depth);
+						
+						if(!height.length)
+							height = self.printerProfile.currentProfileData().volume.height();
+						height = parseFloat(height);
+					
+						// Set bed dimensions
+						bedLowMaxX = width;
+						bedLowMinX = 0.0;
+						bedLowMaxY = depth;
+						bedLowMinY = 0.0;
+						bedLowMaxZ = height;
+						bedLowMinZ = 0.0;
+						bedMediumMaxX = width;
+						bedMediumMinX = 0.0;
+						bedMediumMaxY = depth;
+						bedMediumMinY = 0.0;
+						bedMediumMaxZ = height;
+						bedMediumMinZ = bedLowMaxZ;
+						bedHighMaxX = width;
+						bedHighMinX = 0.0;
+						bedHighMaxY = depth;
+						bedHighMinY = 0.0;
+						bedHighMaxZ = height;
+						bedHighMinZ = bedMediumMaxZ;
+						
+						// Set print bed size
+						printBedWidth = width;
+						printBedDepth = depth;
+						
+						// Set external bed height
+						externalBedHeight = 0.0;
+						
+						//Set extruder center
+						extruderCenterX = width / 2;
+						extruderCenterY = depth / 2;
+						
+						// Set print bed offset
+						printBedOffsetX = 0.0;
+						printBedOffsetY = 0.0;
+					}
 					
 					// Check if using Cura
 					if(slicerName == "cura") {
@@ -1114,7 +1264,7 @@ $(function() {
 					var VIEW_ANGLE = 45, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 0.1, FAR = 20000;
 					this.camera = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
 					this.scene[0].add(this.camera);
-					this.camera.position.set(0, 50, -340);
+					this.camera.position.set(0, 50, -380);
 					this.camera.lookAt(new THREE.Vector3(0, 0, 0));
 
 					// Create renderer
@@ -1126,7 +1276,7 @@ $(function() {
 
 					// Create controls
 					this.orbitControls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
-					this.orbitControls.target.set(0, 54.9 + parseFloat(self.settings.settings.plugins.m33fio.ExternalBedHeight()), 0);
+					this.orbitControls.target.set(0, bedHighMaxZ / 2.04 + externalBedHeight, 0);
 					this.orbitControls.minDistance = 160;
 					this.orbitControls.maxDistance = 600;
 					this.orbitControls.minPolarAngle = 0;
@@ -1155,68 +1305,87 @@ $(function() {
 					});
 					var skyBox = new THREE.Mesh(skyBoxGeometry, skyBoxMaterial);
 					this.scene[0].add(skyBox);
-				
+					
 					// Create print bed
-					var mesh = new THREE.Mesh(new THREE.CubeGeometry(121, 119 - bedLowMinY, bedLowMinZ), new THREE.MeshBasicMaterial({
+					var mesh = new THREE.Mesh(new THREE.CubeGeometry(printBedWidth, printBedDepth, bedLowMinZ), new THREE.MeshBasicMaterial({
 						color: 0x000000,
 						side: THREE.DoubleSide
 					}));
-					mesh.position.set(0, -0.25 + bedLowMinZ / 2, (bedLowMinY + 2.0) / 2);
+					mesh.position.set(0 + printBedOffsetX, -0.25 + bedLowMinZ / 2, (bedLowMinY + printBedOffsetY) / 2);
 					mesh.rotation.set(Math.PI / 2, 0, 0);
 					mesh.renderOrder = 4;
 				
 					// Add print bed to scene
 					viewport.scene[0].add(mesh);
-
-					// Load printer model
-					var loader = new THREE.STLLoader();
-					loader.load(PLUGIN_BASEURL + "m33fio/static/files/printer.stl", function(geometry) {
 					
-						// Create printer's mesh
-						var mesh = new THREE.Mesh(geometry, printerMaterials[viewportPrinterColor]);
+					// Check if a printer model is available
+					if(this.printerModel !== null) {
+
+						// Load printer model
+						var loader = new THREE.STLLoader();
+						loader.load(PLUGIN_BASEURL + "m33fio/static/models/" + this.printerModel, function(geometry) {
+					
+							// Create printer's mesh
+							var mesh = new THREE.Mesh(geometry, printerMaterials[viewportPrinterColor]);
 	
-						// Set printer's orientation
-						mesh.rotation.set(3 * Math.PI / 2, 0, Math.PI);
-						mesh.position.set(0, 53.35, 0);
-						mesh.scale.set(1.233792, 1.236112, 1.233333);
-						mesh.renderOrder = 3;
+							// Set printer's orientation
+							mesh.rotation.set(3 * Math.PI / 2, 0, Math.PI);
+							mesh.position.set(0, 53.35, 0);
+							mesh.scale.set(1.233792, 1.236112, 1.233333);
+							mesh.renderOrder = 3;
 		
-						// Append model to list
+							// Append model to list
+							viewport.models.push({
+								mesh: mesh,
+								type: "stl",
+								glow: null,
+								adhesion: null
+							});
+	
+							// Add printer to scene
+							viewport.scene[0].add(mesh);
+					
+							// Load logo
+							var loader = new THREE.TextureLoader();
+							loader.load(PLUGIN_BASEURL + "m33fio/static/img/logo.png", function(map) {
+					
+								// Create logo
+								var mesh = new THREE.Mesh(new THREE.PlaneGeometry(51.5, 12), new THREE.MeshBasicMaterial({
+									map: map,
+									color: 0xFFFFFF,
+									side: THREE.FrontSide,
+									transparent: true
+								}));
+								mesh.position.set(0, -22.85, -92.8);
+								mesh.rotation.set(0, -Math.PI, 0);
+								mesh.renderOrder = 4;
+						
+								// Add logo to scene
+								viewport.scene[0].add(mesh);
+			
+								// Render
+								viewport.render();
+				
+								// Import model
+								viewport.importModel(file, "stl");
+							});
+						});
+					}
+					
+					// Otherwise
+					else {
+					
+						// Append empty model to list
 						viewport.models.push({
-							mesh: mesh,
-							type: "stl",
+							mesh: null,
+							type: null,
 							glow: null,
 							adhesion: null
 						});
-	
-						// Add printer to scene
-						viewport.scene[0].add(mesh);
 					
-						// Load logo
-						var loader = new THREE.TextureLoader();
-						loader.load(PLUGIN_BASEURL + "m33fio/static/img/logo.png", function(map) {
-					
-							// Create logo
-							var mesh = new THREE.Mesh(new THREE.PlaneGeometry(51.5, 12), new THREE.MeshBasicMaterial({
-								map: map,
-								color: 0xFFFFFF,
-								side: THREE.FrontSide,
-								transparent: true
-							}));
-							mesh.position.set(0, -22.85, -92.8);
-							mesh.rotation.set(0, -Math.PI, 0);
-							mesh.renderOrder = 4;
-						
-							// Add logo to scene
-							viewport.scene[0].add(mesh);
-			
-							// Render
-							viewport.render();
-				
-							// Import model
-							viewport.importModel(file, "stl");
-						});
-					});
+						// Import model
+						viewport.importModel(file, "stl");
+					}
 			
 					// Create measurement material
 					var measurementMaterial = new THREE.LineBasicMaterial({
@@ -1761,7 +1930,8 @@ $(function() {
 						// Get models' meshes
 						var modelMeshes = []
 						for(var i = 0; i < viewport.models.length; i++) {
-							modelMeshes.push(viewport.models[i].mesh);
+							if(viewport.models[i].mesh !== null)
+								modelMeshes.push(viewport.models[i].mesh);
 							if(viewport.models[i].adhesion !== null)
 								modelMeshes.push(viewport.models[i].adhesion.mesh);
 						}
@@ -1770,7 +1940,7 @@ $(function() {
 						var intersects = raycaster.intersectObjects(modelMeshes); 
 	
 						// Check if an object intersects and it's not the printer
-						if(intersects.length > 0 && intersects[0].object != modelMeshes[0]) {
+						if(intersects.length > 0 && intersects[0].object != viewport.models[0].mesh) {
 				
 							// Check if ctrl is pressed
 							if(event.ctrlKey) {
@@ -4641,6 +4811,19 @@ $(function() {
 			$(this).siblings("div.controls").find("input").focus();
 		});
 		
+		// Printer connect button click event
+		$("#printer_connect").click(function() {
+		
+			// Blur self
+			$(this).blur();
+		
+			// Check if using a Micro 3D printer and connecting to it
+			if(!self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter() && $(this).text() == "Connect")
+		
+				// Disable printer connect button
+				$(this).prop("disabled", true);
+		});
+		
 		// Cancel print button click event
 		$("#job_cancel").click(function(event) {
 		
@@ -6592,14 +6775,14 @@ $(function() {
 																$("#slicing_configuration_dialog p.currentMenu").text("Modify Model");
 																$("#slicing_configuration_dialog .modal-extra").empty().append(`
 																	<div class="printer">
-																		<button data-color="Black" title="Black"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/black.png"></button>
-																		<button data-color="White" title="White"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/white.png"></button>
-																		<button data-color="Blue" title="Blue"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/blue.png"></button>
-																		<button data-color="Green" title="Green"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/green.png"></button>
-																		<button data-color="Orange" title="Orange"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/orange.png"></button>
-																		<button data-color="Clear" title="Clear"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/clear.png"></button>
-																		<button data-color="Silver" title="Silver"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/silver.png"></button>
-																		<button data-color="Purple" title="Purple"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/purple.png"></button>
+																		<button class="micro3d" data-color="Black" title="Black"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/black.png"></button>
+																		<button class="micro3d" data-color="White" title="White"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/white.png"></button>
+																		<button class="micro3d" data-color="Blue" title="Blue"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/blue.png"></button>
+																		<button class="micro3d" data-color="Green" title="Green"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/green.png"></button>
+																		<button class="micro3d" data-color="Orange" title="Orange"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/orange.png"></button>
+																		<button class="micro3d" data-color="Clear" title="Clear"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/clear.png"></button>
+																		<button class="micro3d" data-color="Silver" title="Silver"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/silver.png"></button>
+																		<button class="micro3d" data-color="Purple" title="Purple"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/purple.png"></button>
 																	</div>
 																	<div class="filament">
 																		<button data-color="White" title="White"><span style="background-color: #F4F3E9;"></span><img src="` + PLUGIN_BASEURL + `m33fio/static/img/filament.png"></button>
@@ -6655,9 +6838,10 @@ $(function() {
 																$("#slicing_configuration_dialog .modal-extra div.printer button[data-color=\"" + viewportPrinterColor + "\"]").addClass("disabled");
 																$("#slicing_configuration_dialog .modal-extra div.filament button[data-color=\"" + viewportFilamentColor + "\"]").addClass("disabled");
 																$("#slicing_configuration_dialog .modal-extra").append(viewport.renderer.domElement);
+																
 																if(self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter())
-																	$("#slicing_configuration_dialog .modal-footer p.warning").text("Boundary dimensions are designed for a Micro 3D printer");
-
+																	$("#slicing_configuration_dialog .modal-extra .micro3d").addClass("notUsingAMicro3DPrinter");
+																
 																// Image drag event
 																$("#slicing_configuration_dialog .modal-extra img").on("dragstart", function(event) {
 
@@ -6929,7 +7113,7 @@ $(function() {
 																			side: THREE.DoubleSide,
 																			depthWrite: false
 																		}));
-																		viewport.cutShape.position.set(0, (bedHighMaxZ - bedLowMinZ) / 2 + parseFloat(self.settings.settings.plugins.m33fio.ExternalBedHeight()), 0);
+																		viewport.cutShape.position.set(0, (bedHighMaxZ - bedLowMinZ) / 2 + externalBedHeight, 0);
 																		viewport.cutShape.rotation.set(0, 0, 0);
 													
 																		// Create cut shape outline
@@ -12217,6 +12401,12 @@ $(function() {
 				// Hide message
 				hideMessage();
 			
+			// Otherwise check if data is to allow connecting
+			else if(data.value == "Allow Connecting")
+			
+				// Enable printer connect button
+				$("#printer_connect").prop("disabled", false);
+			
 			// Otherwise check if data is done waiting
 			else if(data.value == "Done Waiting" && typeof waitingCallback === "function") {
 			
@@ -12737,6 +12927,47 @@ $(function() {
 				else {
 					$(".micro3d").removeClass("notUsingAMicro3DPrinter");
 					$("#temperature-graph").css("background-image", "url(" + PLUGIN_BASEURL + "m33fio/static/img/graph-background.png");
+					
+					// Set bed dimensions
+					bedLowMaxX = 106.0;
+					bedLowMinX = -2.0;
+					bedLowMaxY = 105.0;
+					bedLowMinY = -2.0;
+					bedLowMaxZ = 5.0;
+					bedLowMinZ = 0.0;
+					bedMediumMaxX = 106.0;
+					bedMediumMinX = -2.0;
+					bedMediumMaxY = 105.0;
+					bedMediumMinY = -9.0;
+					bedMediumMaxZ = 73.5;
+					bedMediumMinZ = bedLowMaxZ;
+					bedHighMaxX = 97.0;
+					bedHighMinX = 7.0;
+					bedHighMaxY = 85.0;
+					bedHighMinY = 9.0;
+					bedHighMaxZ = 112.0;
+					bedHighMinZ = bedMediumMaxZ;
+					
+					// Set print bed size
+					printBedWidth = 121;
+					printBedDepth = 119 - bedLowMinY;
+					
+					// Set external bed height
+					externalBedHeight = parseFloat(self.settings.settings.plugins.m33fio.ExternalBedHeight());
+		
+					// Adjust bed bounds to account for external bed
+					bedLowMaxZ = 5.0 + externalBedHeight;
+					bedLowMinZ = 0.0 + externalBedHeight;
+					bedMediumMinZ = bedLowMaxZ;
+					bedLowMinY = self.settings.settings.plugins.m33fio.ExpandPrintableRegion() ? bedMediumMinY : -2.0;
+				
+					// Set extruder center
+					extruderCenterX = (bedLowMaxX + bedLowMinX) / 2;
+					extruderCenterY = (bedLowMaxY + bedLowMinY + 14.0) / 2;
+				
+					// Set print bed offset
+					printBedOffsetX = 0.0;
+					printBedOffsetY = 2.0;
 				}
 			}
 
@@ -12784,6 +13015,6 @@ $(function() {
 	
 		// Constructor
 		M33FioViewModel,
-		["printerStateViewModel", "temperatureViewModel", "settingsViewModel", "gcodeFilesViewModel", "slicingViewModel", "terminalViewModel", "loginStateViewModel"]
+		["printerStateViewModel", "temperatureViewModel", "settingsViewModel", "gcodeFilesViewModel", "slicingViewModel", "terminalViewModel", "loginStateViewModel", "printerProfilesViewModel"]
 	]);
 });

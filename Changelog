@@ -1,5 +1,14 @@
 Changelog:
 
+V0.36 July 6, 2016
+
+	* Fixed issue where the shared library would be reloaded whenever a client would connect to OctoPrint
+	* Model editor wont display the Micro 3D frame when using a different printer
+	* Fixed issue where the printer callbacks would be registered multiple times which caused issues with using a printer other than the Micro 3D
+	* Dialogs that wait for a response from the printer will display an error if the printer is disconnected before the response is received
+	* Prevents attempting to connect to the printer multiple times at once
+	* Disconnects from the printer if an OctoPrint error event occurs
+
 V0.35.2 June 22, 2016
 
 	* Changed plugin's name to M33 Fio at the request of M3D
