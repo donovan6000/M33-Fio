@@ -118,7 +118,7 @@ THREE.STLLoader.prototype.parseBinary = function ( data ) {
 		}
 		
 		offset += 2;
-		   
+		
 		geometry.faces.push( new THREE.Face3( i * 3, i * 3 + 1, i * 3 + 2 ) );
 	
 	}

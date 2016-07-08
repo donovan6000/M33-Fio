@@ -291,7 +291,7 @@ class Gcode(object) :
 
 			# Set sums
 			sum1 = (sum1 + struct.unpack("B", request[index])[0]) % 0xFF
-			sum2 = (sum1 + sum2)  % 0xFF
+			sum2 = (sum1 + sum2) % 0xFF
 		
 		# Append Fletcher 16 checksum checksum to request
 		request += chr(sum1)

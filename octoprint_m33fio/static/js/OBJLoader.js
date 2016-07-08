@@ -96,7 +96,7 @@ THREE.OBJLoader.prototype.parse = function ( data ) {
 	
 		for ( var j = 0; j < 3; j++ ) {
 	
-			vertex = vertices[ triangles[ i ][ j ]  - 1 ];
+			vertex = vertices[ triangles[ i ][ j ] - 1 ];
 		
 			geometry.vertices.push( new THREE.Vector3( parseFloat( vertex[ 0 ] ), parseFloat( vertex[ 1 ] ), parseFloat( vertex[ 2 ] ) ) );
 		

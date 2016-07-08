@@ -1276,7 +1276,7 @@ $(function() {
 
 					// Create controls
 					this.orbitControls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
-					this.orbitControls.target.set(0, bedHighMaxZ / 2.04 + externalBedHeight, 0);
+					this.orbitControls.target.set(0, bedHighMaxZ / 2 + externalBedHeight, 0);
 					this.orbitControls.minDistance = 160;
 					this.orbitControls.maxDistance = 600;
 					this.orbitControls.minPolarAngle = 0;

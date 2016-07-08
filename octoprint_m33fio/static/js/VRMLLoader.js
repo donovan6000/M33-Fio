@@ -139,7 +139,7 @@ THREE.VRMLLoader.prototype = {
 				// painting the colors on the faces
 				for ( var i = 0; i < geometry.faces.length ; i ++ ) {
 
-					f  = geometry.faces[ i ];
+					f = geometry.faces[ i ];
 
 					n = ( f instanceof THREE.Face3 ) ? 3 : 4;
 

@@ -3,6 +3,7 @@ import sys
 import os
 import math
 
+
 # Display intro
 print "\nCura Engine parameters to Cura profile converter"
 print "Usage: python ./EngineToProfile.py input.cfg output.ini\n"

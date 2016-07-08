@@ -2128,7 +2128,7 @@
 
 						// FIXME: normals don't seem to be quite right
 
-						faces.push( new THREE.Face3( vs[ 0 ], vs[ k ], vs[ k + 1 ], [ ns[ 0 ].clone(), ns[ k ++ ].clone(), ns[ k ].clone() ],  clr ) );
+						faces.push( new THREE.Face3( vs[ 0 ], vs[ k ], vs[ k + 1 ], [ ns[ 0 ].clone(), ns[ k ++ ].clone(), ns[ k ].clone() ], clr ) );
 
 					}
 
@@ -2701,8 +2701,7 @@
 
 						} else {
 
-							console.error( "Shader.prototype.parse: Invalid value for attribute 'bumptype' (" + bumpType +
-										   ") - valid bumptypes are 'HEIGHTFIELD' and 'NORMALMAP' - defaulting to 'HEIGHTFIELD'" );
+							console.error( "Shader.prototype.parse: Invalid value for attribute 'bumptype' (" + bumpType + ") - valid bumptypes are 'HEIGHTFIELD' and 'NORMALMAP' - defaulting to 'HEIGHTFIELD'" );
 							this[ 'bump' ] = ( new ColorOrTexture() ).parse( child );
 
 						}
@@ -4324,8 +4323,7 @@
 		}
 
 		var animationBounds = calcAnimationBounds();
-		var skeleton = visualScene.getChildById( instanceCtrl.skeleton[ 0 ], true ) ||
-					   visualScene.getChildBySid( instanceCtrl.skeleton[ 0 ], true );
+		var skeleton = visualScene.getChildById( instanceCtrl.skeleton[ 0 ], true ) || visualScene.getChildBySid( instanceCtrl.skeleton[ 0 ], true );
 
 		//flatten the skeleton into a list of bones
 		var bonelist = flattenSkeleton( skeleton );
@@ -4378,7 +4376,7 @@
 		var weights = skinController.skin.weights;
 
 		//hook up the skin weights
-		// TODO -  this might be a good place to choose greatest 4 weights
+		// TODO - this might be a good place to choose greatest 4 weights
 		for ( var i = 0; i < weights.length; i ++ ) {
 
 			var indicies = new THREE.Vector4( weights[ i ][ 0 ] ? weights[ i ][ 0 ].joint : 0, weights[ i ][ 1 ] ? weights[ i ][ 1 ].joint : 0, weights[ i ][ 2 ] ? weights[ i ][ 2 ].joint : 0, weights[ i ][ 3 ] ? weights[ i ][ 3 ].joint : 0 );

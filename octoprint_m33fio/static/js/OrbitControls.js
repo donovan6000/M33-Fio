@@ -274,9 +274,7 @@
 				// min(camera displacement, camera rotation in radians)^2 > EPS
 				// using small-angle approximation cos(x/2) = 1 - x^2 / 8
 
-				if ( zoomChanged ||
-					 lastPosition.distanceToSquared( this.object.position ) > EPS ||
-				    8 * ( 1 - lastQuaternion.dot( this.object.quaternion ) ) > EPS ) {
+				if ( zoomChanged || lastPosition.distanceToSquared( this.object.position ) > EPS || 8 * ( 1 - lastQuaternion.dot( this.object.quaternion ) ) > EPS ) {
 
 					lastPosition.copy( this.object.position );
 					lastQuaternion.copy( this.object.quaternion );
@@ -299,9 +297,9 @@
 	// the "up" direction as +Y, unlike the TrackballControls. Touch on tablet and phones is
 	// supported.
 	//
-	//    Orbit - left mouse / touch: one finger move
-	//    Zoom - middle mouse, or mousewheel / touch: two finger spread or squish
-	//    Pan - right mouse, or arrow keys / touch: three finter swipe
+	//	Orbit - left mouse / touch: one finger move
+	//	Zoom - middle mouse, or mousewheel / touch: two finger spread or squish
+	//	Pan - right mouse, or arrow keys / touch: three finter swipe
 
 	THREE.OrbitControls = function ( object, domElement ) {
 

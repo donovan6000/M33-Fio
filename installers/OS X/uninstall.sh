@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Request elevated privileges
-[ "$(whoami)" != "root" ] && exec sudo -- "$0" "$@"
+[ "$(whoami)" != "root" ] && exec sudo "$0" "$@"
 
 # Check if not run as root
 if [ "$(id -u)" != "0" ]; then
@@ -18,6 +18,7 @@ else
 	sudo -u $SUDO_USER launchctl unload /Library/LaunchAgents/com.octoprint.app.plist
 	
 	# Uninstall M33 Fio
+	echo 'y' | sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/pip uninstall OctoPrint-M3DFio
 	echo 'y' | sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/pip uninstall OctoPrint-M33Fio
 	
 	# Uninstall OctoPrint

@@ -104,56 +104,56 @@ else :
 		# GET request
 		def do_GET(self) :
 
-		        # Wait until a frame has been obtained
-		        while currentFrame is None :
-		            time.sleep(0.1)
-		        
-		        # Check if requesting snapshot
-		        if self.path.split('?')[0] == "/snapshot.jpg" :
-		            
-		                # Send current frame header
-		                self.send_response(200)
-		                self.wfile.write("Content-Type: image/jpeg\r\n")
-		                self.wfile.write("Content-Length: " + str(len(currentFrame)))
-		                self.wfile.write("\r\n\r\n")
-		                
-		                # Send current frame
-		                self.wfile.write(currentFrame)
-		        
-		        # Otherwise check if requesting stream
-		        elif self.path.split('?')[0] == "/stream.mjpg" :
-		        
-		                # Send header
-		                self.send_response(200)
-		                self.wfile.write("Content-Type: multipart/x-mixed-replace;boundary=--frame")
-		                
-		                # Loop forever
-		                while True :
-		                
-		                        try :
-		                        
-		                                # Send current frame header
-		                                self.wfile.write("\r\n\r\n")
-		                                self.wfile.write("--frame\r\n")
-		                                self.wfile.write("Content-Type: image/jpeg\r\n")
-		                                self.wfile.write("Content-Length: " + str(len(currentFrame)))
-		                                self.wfile.write("\r\n\r\n")
-		                                
-		                                # Send current frame
-		                                self.wfile.write(currentFrame)
-		                                
-		                                # Delay
-		                                time.sleep(cameraFrameDelay)
-		                        
-		                        except Exception:
-		                                break
-		        
-		        # Otherwise
-		        else :
-		        
-		                # Respond with error 404
-		                self.send_response(404)
-		                self.wfile.write("\r\n\r\n")
+			# Wait until a frame has been obtained
+			while currentFrame is None :
+				time.sleep(0.1)
+			
+			# Check if requesting snapshot
+			if self.path.split('?')[0] == "/snapshot.jpg" :
+			
+				# Send current frame header
+				self.send_response(200)
+				self.wfile.write("Content-Type: image/jpeg\r\n")
+				self.wfile.write("Content-Length: " + str(len(currentFrame)))
+				self.wfile.write("\r\n\r\n")
+				
+				# Send current frame
+				self.wfile.write(currentFrame)
+			
+			# Otherwise check if requesting stream
+			elif self.path.split('?')[0] == "/stream.mjpg" :
+			
+				# Send header
+				self.send_response(200)
+				self.wfile.write("Content-Type: multipart/x-mixed-replace;boundary=--frame")
+				
+				# Loop forever
+				while True :
+				
+					try :
+					
+						# Send current frame header
+						self.wfile.write("\r\n\r\n")
+						self.wfile.write("--frame\r\n")
+						self.wfile.write("Content-Type: image/jpeg\r\n")
+						self.wfile.write("Content-Length: " + str(len(currentFrame)))
+						self.wfile.write("\r\n\r\n")
+						
+						# Send current frame
+						self.wfile.write(currentFrame)
+						
+						# Delay
+						time.sleep(cameraFrameDelay)
+					
+					except Exception:
+						break
+			
+			# Otherwise
+			else :
+			
+				# Respond with error 404
+				self.send_response(404)
+				self.wfile.write("\r\n\r\n")
 
 	# Create threaded HTTP server
 	class ThreadedHTTPServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer) :
@@ -245,7 +245,7 @@ else :
 				# Create input device from camera
 				inputDevice = QTKit.QTCaptureDeviceInput.alloc().initWithDevice_(camera)
 				if not captureSession.addInput_error_(inputDevice, error) :
-				       exit()
+					exit()
 
 				# Create output device
 				outputDevice = QTKit.QTCaptureDecompressedVideoOutput.alloc().init()
@@ -256,8 +256,8 @@ else :
 
 				# Set camera size
 				outputDevice.setPixelBufferAttributes_({
-				        kCVPixelBufferWidthKey: cameraWidth,
-				        kCVPixelBufferHeightKey: cameraHeight
+					kCVPixelBufferWidthKey: cameraWidth,
+					kCVPixelBufferHeightKey: cameraHeight
 				})
 
 				# Delegate frame task
@@ -278,7 +278,7 @@ else :
 				rawImage = CIImage.imageWithCVImageBuffer_(videoFrame)
 				bitmapRepresentation = NSBitmapImageRep.alloc().initWithCIImage_(rawImage)
 				bitmapData = bitmapRepresentation.representationUsingType_properties_(NSJPEGFileType, {
-				        NSImageCompressionFactor: 1.0
+					NSImageCompressionFactor: 1.0
 				})
 
 				# Update current frame

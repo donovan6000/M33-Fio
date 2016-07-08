@@ -8,7 +8,7 @@ M33 Fio has been discontinued on June 21st, 2016. I no longer feel like developi
 ### Description
 M33 Fio is a plugin for [OctoPrint](http://octoprint.org/) that extends its capabilities to make it fully compatible with the Micro 3D printer. Both OctoPrint and M33 Fio can run on Windows, OS X, and Linux, so this solution is the first platform independent option available for this printer.
 
-The latest version of M33 Fio is V0.36 released on July 6th, 2016, and an entire changelog for it can be found [here](https://raw.githubusercontent.com/donovan6000/M33-Fio/master/Changelog).
+The latest version of M33 Fio is V0.36.1 released on July 7th, 2016, and an entire changelog for it can be found [here](https://raw.githubusercontent.com/donovan6000/M33-Fio/master/Changelog).
 
 ### Features
 * Platform independent

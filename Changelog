@@ -1,5 +1,10 @@
 Changelog:
 
+V0.36.1 July 7, 2016
+
+	* Fixed issue with how the bed height offset wouldn't get cleared when calibrating before print
+	* Linux installer now works on Debian and Fedora Linux distros. Thanks Enygma2002!
+
 V0.36 July 6, 2016
 
 	* Fixed issue where the shared library would be reloaded whenever a client would connect to OctoPrint

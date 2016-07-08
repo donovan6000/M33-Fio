@@ -13,16 +13,16 @@ class Vector(object) :
 	def __init__(self, x = 0, y = 0, z = 0, e = 0) :
 		
 		# Initialize data members
-		self.x = x;
-		self.y = y;
-		self.z = z;
-		self.e = e;
+		self.x = x
+		self.y = y
+		self.z = z
+		self.e = e
 	
 	# Get length
 	def getLength(self) :
 	
 		# Return length
-		return math.sqrt(self.x * self.x + self.y * self.y + self.z * self.z + self.e * self.e);
+		return math.sqrt(self.x * self.x + self.y * self.y + self.z * self.z + self.e * self.e)
 	
 	# Normalize
 	def normalize(self) :

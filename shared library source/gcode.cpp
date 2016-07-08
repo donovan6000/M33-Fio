@@ -538,7 +538,7 @@ vector<uint8_t> Gcode::getBinary() const {
 
 			// Set sums
 			sum1 = (sum1 + request[index]) % 0xFF;
-			sum2 = (sum1 + sum2)  % 0xFF;
+			sum2 = (sum1 + sum2) % 0xFF;
 		}
 
 		// Append Fletcher 16 checksum checksum to request

@@ -26,7 +26,7 @@ if [[ "$osx_vers" -ge 9 ]]; then
 	# Remove the temp file
 
 	if [[ -f "$cmd_line_tools_temp_file" ]]; then
-	  rm "$cmd_line_tools_temp_file"
+		rm "$cmd_line_tools_temp_file"
 	fi
 fi
 

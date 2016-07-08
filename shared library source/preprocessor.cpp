@@ -1669,6 +1669,7 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 				if(calibrateBeforePrint) {
 					newCommands.push(Command("M618 S" + to_string(EEPROM_BED_HEIGHT_OFFSET_OFFSET) + " T" + to_string(EEPROM_BED_HEIGHT_OFFSET_LENGTH) + " P" + to_string(floatToInt(0)), PREPARATION, PREPARATION));
 					newCommands.push(Command("M619 S" + to_string(EEPROM_BED_HEIGHT_OFFSET_OFFSET) + " T" + to_string(EEPROM_BED_HEIGHT_OFFSET_LENGTH), PREPARATION, PREPARATION));
+					bedHeightOffset = 0;
 					newCommands.push(Command("G91", PREPARATION, PREPARATION));
 					newCommands.push(Command("G0 Z3 F90", PREPARATION, PREPARATION));
 					newCommands.push(Command("G90", PREPARATION, PREPARATION));

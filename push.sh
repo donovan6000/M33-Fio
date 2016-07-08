@@ -4,8 +4,8 @@
 if [ "$#" -ne 3 ] ; then
 
 	# Display error and exit
-        echo "Provide type, version, and comment parameters, like release 0.1 \"test\""
-        exit
+	echo "Provide type, version, and comment parameters, like release 0.1 \"test\""
+	exit
 fi
 
 # Check if releasing a new version

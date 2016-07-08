@@ -137,7 +137,6 @@ class M33FioPlugin(
 		self.currentSerialPort = None
 		self.providedFirmwares = {}
 		self.printerColor = "Black"
-		self.camera = None
 		self.lastLineNumberSent = None
 		self.initializingPrinterConnection = False
 		self.startingMidPrintFilamentChange = False
@@ -846,6 +845,18 @@ class M33FioPlugin(
 			
 			# Unload shared library
 			self.unloadSharedLibrary()
+		
+		# Otherwise
+		else :
+		
+			# Turn off using shared library setting
+			self._settings.set_boolean(["UseSharedLibrary"], False)
+		
+		# Check if not using Linux
+		if not platform.uname()[0].startswith("Linux") :
+		
+			# Turn off use GPIO setting
+			self._settings.set_boolean(["UseGpio"], False)
 	
 		# Set reminders on initial OctoPrint instance
 		currentPort = self.getListenPort(psutil.Process(os.getpid()))
@@ -901,8 +912,8 @@ class M33FioPlugin(
 		
 		# Set file locations
 		self.setFileLocations()
-	    	
-	    	# Check if not using a Micro 3D printer
+		
+		# Check if not using a Micro 3D printer
 		if self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
 		
 			# Disable printer callbacks
@@ -942,7 +953,7 @@ class M33FioPlugin(
 		# Unload shared library if it was already loaded
 		self.unloadSharedLibrary()
 	
-		# Check if using shared library of checking if it is usable
+		# Check if using shared library or checking if it is usable
 		if self._settings.get_boolean(["UseSharedLibrary"]) or isUsable :
 	
 			# Check if running on Linux
@@ -1030,13 +1041,13 @@ class M33FioPlugin(
 				self.sharedLibrary.getMinYExtruderHigh.restype = ctypes.c_double
 				self.sharedLibrary.getMinZExtruder.restype = ctypes.c_double
 				self.sharedLibrary.collectPrintInformation.restype = ctypes.c_bool
-		  		self.sharedLibrary.preprocess.restype = ctypes.c_char_p
-		  		self.sharedLibrary.getDetectedFanSpeed.restype = ctypes.c_ubyte
-		  		self.sharedLibrary.getDetectedMidPrintFilamentChange.restype = ctypes.c_bool
-		  		self.sharedLibrary.getObjectSuccessfullyCentered.restype = ctypes.c_bool
-		  		
-		  		# Return true
-		  		return True
+				self.sharedLibrary.preprocess.restype = ctypes.c_char_p
+				self.sharedLibrary.getDetectedFanSpeed.restype = ctypes.c_ubyte
+				self.sharedLibrary.getDetectedMidPrintFilamentChange.restype = ctypes.c_bool
+				self.sharedLibrary.getObjectSuccessfullyCentered.restype = ctypes.c_bool
+				
+				# Return true
+				return True
 		 
 		# Return false
 		return False
@@ -1807,7 +1818,7 @@ class M33FioPlugin(
 				
 				# Enable printer callbacks
 				if self not in self._printer._callbacks :
-			    		self._printer.register_callback(self)
+					self._printer.register_callback(self)
 				
 				# Send response
 				if error :
@@ -1889,7 +1900,7 @@ class M33FioPlugin(
 				
 				# Enable printer callbacks
 				if self not in self._printer._callbacks :
-			    		self._printer.register_callback(self)
+					self._printer.register_callback(self)
 				
 				# Send response
 				if error :
@@ -1967,7 +1978,7 @@ class M33FioPlugin(
 				
 				# Enable printer callbacks
 				if self not in self._printer._callbacks :
-			    		self._printer.register_callback(self)
+					self._printer.register_callback(self)
 				
 				# Send response
 				if error :
@@ -2140,7 +2151,7 @@ class M33FioPlugin(
 				
 				# Enable printer callbacks
 				if self not in self._printer._callbacks :
-			    		self._printer.register_callback(self)
+					self._printer.register_callback(self)
 				
 				# Send response
 				if self.eeprom is None :
@@ -2240,7 +2251,7 @@ class M33FioPlugin(
 					
 					# Enable printer callbacks
 					if self not in self._printer._callbacks :
-			    			self._printer.register_callback(self)
+						self._printer.register_callback(self)
 				
 				# Send response
 				if error :
@@ -2355,10 +2366,10 @@ class M33FioPlugin(
 				
 				# Write printer settings to file
 				output = open(fileDestination, "wb")
-    				output.write(yaml.dump(printerSettings, default_flow_style = True))
-    				output.close()
-    				
-    				# Return location
+				output.write(yaml.dump(printerSettings, default_flow_style = True))
+				output.close()
+				
+				# Return location
 				return flask.jsonify(dict(value = "OK", path = "m33fio/download/" + destinationName))
 			
 			# Otherwise check if parameter is to set printer settings
@@ -2553,7 +2564,7 @@ class M33FioPlugin(
 			
 				# Enable printer callbacks
 				if self not in self._printer._callbacks :
-			    		self._printer.register_callback(self)
+					self._printer.register_callback(self)
 			
 				# Send response
 				if error :
@@ -3117,7 +3128,7 @@ class M33FioPlugin(
 										if (oldFirmwareType == "M3D" or oldFirmwareType == "M3D Mod") and newFirmwareType == "iMe" :
 										
 											# Get current Z value from EEPROM
-											currentValueZ  = self.eepromGetInt("lastRecordedZValue")
+											currentValueZ = self.eepromGetInt("lastRecordedZValue")
 											
 											# Convert current Z to single-precision floating-point format used by iMe firmware
 											currentValueZ /= 5170.635833481
@@ -4139,7 +4150,7 @@ class M33FioPlugin(
 			elif response[6 : 10].isdigit() :
 				response = "ok An error has occured\n"
 			else :
-				response = "ok " +  response[6 :].strip()
+				response = "ok " + response[6 :].strip()
 			
 			# Check if waiting for a command to be processed
 			if self.lastLineNumberSent is not None and self.lastLineNumberSent % 0x10000 in self.sentCommands :
@@ -4524,7 +4535,6 @@ class M33FioPlugin(
 			if platform.uname()[0].startswith("Linux") :
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Enable GPIO Settings"))
 			else :
-				self._settings.set_boolean(["UseGpio"], False)
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Disable GPIO Settings"))
 			
 			# Send message for enabling/disabling GPIO buttons
@@ -7597,6 +7607,7 @@ class M33FioPlugin(
 					if self._settings.get_boolean(["CalibrateBeforePrint"]) :
 						newCommands.append(Command("M618 S" + str(self.eepromOffsets["bedHeightOffset"]["offset"]) + " T" + str(self.eepromOffsets["bedHeightOffset"]["bytes"]) + " P" + str(self.floatToInt(0)), "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 						newCommands.append(Command("M619 S" + str(self.eepromOffsets["bedHeightOffset"]["offset"]) + " T" + str(self.eepromOffsets["bedHeightOffset"]["bytes"]), "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						self._settings.set_float(["BedHeightOffset"], 0)
 						newCommands.append(Command("G91", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 						newCommands.append(Command("G0 Z3 F90", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 						newCommands.append(Command("G90", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
@@ -9157,8 +9168,8 @@ class M33FioPlugin(
 				
 				# Check if WiringPi isn't installed
 				except OSError as exception :
-				    if exception.errno == os.errno.ENOENT :
-				    
+					if exception.errno == os.errno.ENOENT :
+				
 						# Try using file system to access the port
 						os.system("echo \"" + str(gpioPin) + "\" > /sys/class/gpio/export")
 						os.system("echo \"out\" > /sys/class/gpio/gpio" + str(gpioPin) + "/direction")

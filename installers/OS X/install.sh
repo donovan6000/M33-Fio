@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Request elevated privileges
-[ "$(whoami)" != "root" ] && exec sudo -- "$0" "$@"
+[ "$(whoami)" != "root" ] && exec sudo "$0" "$@"
 
 # Check if not run as root
 if [ "$(id -u)" != "0" ]; then
@@ -103,6 +103,7 @@ else
 		rm master.zip
 
 		# Install M33 Fio
+		echo 'y' | sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/pip uninstall OctoPrint-M3DFio
 		echo 'y' | sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/pip uninstall OctoPrint-M33Fio
 		curl -LOk https://github.com/donovan6000/M33-Fio/archive/master.zip
 		while ! sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/pip install master.zip --user
