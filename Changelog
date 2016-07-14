@@ -1,5 +1,13 @@
 Changelog:
 
+V1.0 July 13, 2016
+
+	* First non-beta release of M33 Fio. Huge thanks to everyone who has tested and contributed to it over the last year!
+	* Profile editor allows setting printing and heatbed temperature when using a printer other than the Micro 3D
+	* Provides iMe V00.00.00.11 printer firmware
+	* Added support for 3MF files
+	* Fixed bug that prevented uploading files with spaces in their names
+
 V0.36.1 July 7, 2016
 
 	* Fixed issue with how the bed height offset wouldn't get cleared when calibrating before print

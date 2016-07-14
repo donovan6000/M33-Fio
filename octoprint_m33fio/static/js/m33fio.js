@@ -1658,6 +1658,8 @@ $(function() {
 						var loader = new THREE.VRMLLoader();
 					else if(type == "dae")
 						var loader = new THREE.ColladaLoader();
+					else if(type == "3mf")
+						var loader = new THREE.ThreeMFLoader();
 					else {
 						viewport.modelLoaded = true;
 						return;
@@ -1685,6 +1687,8 @@ $(function() {
 							mesh.rotation.set(0, 0, 0);
 						else if(type == "dae")
 							mesh.rotation.set(0, 0, 0);
+						else if(type == "3mf")
+							mesh.rotation.set(-Math.PI / 2, 0, Math.PI);
 						mesh.updateMatrix();
 						mesh.geometry.applyMatrix(mesh.matrix);
 						mesh.position.set(0, 0, 0);
@@ -2135,6 +2139,8 @@ $(function() {
 						else if(model.type == "wrl")
 							model.mesh.rotation.set(-Math.PI / 2, 0, Math.PI);
 						else if(model.type == "dae")
+							model.mesh.rotation.set(-Math.PI / 2, 0, Math.PI);
+						else if(model.type == "3mf")
 							model.mesh.rotation.set(-Math.PI / 2, 0, Math.PI);
 						model.mesh.scale.set(1, 1, 1);
 						model.mesh.updateMatrix();
@@ -3733,6 +3739,8 @@ $(function() {
 				var loader = new THREE.VRMLLoader();
 			else if(type == "dae")
 				var loader = new THREE.ColladaLoader();
+			else if(type == "3mf")
+				var loader = new THREE.ThreeMFLoader();
 		
 			// Load model
 			return loader.load(file, function(geometry) {
@@ -3751,6 +3759,8 @@ $(function() {
 					mesh.rotation.set(-Math.PI / 2, 0, Math.PI);
 				else if(type == "dae")
 					mesh.rotation.set(-Math.PI / 2, 0, Math.PI);
+				else if(type == "3mf")
+					mesh.rotation.set(0, 0, 0);
 			
 				// Set model's orientation
 				mesh.position.set(0, 0, 0);
@@ -3833,7 +3843,7 @@ $(function() {
 		// Add mid-print filament change settings
 		$("#gcode div.progress").after(`
 			<div class="midPrintFilamentChange micro3d">
-				<h1>Mid-Print Filament Change</h1>
+				<h1>Mid-print filament change</h1>
 				<label title="Mid-print filament change commands will be added at the start of each specified layer. Layer numbers should be seperated by a space.">Layers<input type="text" pattern="[\\d\\s]*" class="input-block-level"></label>
 				<button class="btn btn-block control-box" data-bind="enable: loginState.isUser() && enableReload">Add current layer</button>
 				<button class="btn btn-block control-box" data-bind="enable: loginState.isUser()">Clear all layers</button>
@@ -4102,7 +4112,7 @@ $(function() {
 								<label class="control-label">Heatbed Temperature</label>
 								<div class="controls">
 									<div class="input-append degreesCelsius">
-										<input type="number" step="1" min="40" max="110" class="input-block-level" data-bind="value: settings.plugins.m33fio.HeatbedTemperature">
+										<input type="number" step="1" min="0" max="110" class="input-block-level" data-bind="value: settings.plugins.m33fio.HeatbedTemperature">
 										<span class="add-on">°C</span>
 									</div>
 								</div>
@@ -4982,14 +4992,14 @@ $(function() {
 		
 			// Upload file with expanded file support
 			uploadWithExpandedFileSupport(event, this.files[0], $(this).attr("id") == "gcode_upload" ? "local" : "sdcard");
-		}).attr("accept", ".stl, .obj, .m3d, .amf, .wrl, .dae, .gcode, .gco, .g");
+		}).attr("accept", ".stl, .obj, .m3d, .amf, .wrl, .dae, .3mf, .gcode, .gco, .g");
 		
 		// Upload with expanded file support
 		function uploadWithExpandedFileSupport(event, file, location) {
 			
-			// Check if uploading a OBJ, M3D, AMF, VRML, or COLLADA file
+			// Check if uploading a OBJ, M3D, AMF, VRML, COLLADA, or 3MF file
 			var extension = typeof file !== "undefined" ? file.name.lastIndexOf('.') : -1;
-			if(extension != -1 && (file.name.substr(extension + 1).toLowerCase() == "obj" || file.name.substr(extension + 1).toLowerCase() == "m3d" || file.name.substr(extension + 1).toLowerCase() == "amf" || file.name.substr(extension + 1).toLowerCase() == "wrl" || file.name.substr(extension + 1).toLowerCase() == "dae")) {
+			if(extension != -1 && (file.name.substr(extension + 1).toLowerCase() == "obj" || file.name.substr(extension + 1).toLowerCase() == "m3d" || file.name.substr(extension + 1).toLowerCase() == "amf" || file.name.substr(extension + 1).toLowerCase() == "wrl" || file.name.substr(extension + 1).toLowerCase() == "dae" || file.name.substr(extension + 1).toLowerCase() == "3mf")) {
 			
 				// Stop default behavior
 				event.preventDefault();
@@ -5001,62 +5011,71 @@ $(function() {
 				// Display message
 				showMessage("Conversion Status", htmlEncode("Converting " + file.name + " to " + newFileName));
 				
-				// Convert file to STL
-				convertedModel = null;
-				convertToStl(URL.createObjectURL(file), file.name.substr(extension + 1).toLowerCase());
+				setTimeout(function() {
 				
-				// Clear value
-				$(event.target).val('');
+					// Convert file to STL
+					convertedModel = null;
+					convertToStl(URL.createObjectURL(file), file.name.substr(extension + 1).toLowerCase());
 				
-				function conversionDone() {
+					// Clear value
+					$(event.target).val('');
 				
-					// Check if conversion is done
-					if(convertedModel !== null) {
+					function conversionDone() {
+				
+						// Check if conversion is done
+						if(convertedModel !== null) {
 					
-						// Create request
-						var form = new FormData();
+							// Create request
+							var form = new FormData();
 						
-						// Set path to file
-						if(typeof self.files.currentPath === "undefined")
-							var path = newFileName;
-						else if(self.files.currentPath().length)
-							var path = '/' + self.files.currentPath() + '/' + newFileName;
-						else
-							var path = '/' + newFileName;
-						form.append("file", convertedModel, path);
+							// Set path to file
+							if(typeof self.files.currentPath === "undefined")
+								var path = newFileName;
+							else if(self.files.currentPath().length)
+								var path = '/' + self.files.currentPath() + '/' + newFileName;
+							else
+								var path = '/' + newFileName;
+							form.append("file", convertedModel, path);
 						
-						if(typeof self.files.currentPath !== "undefined")
-							path = path.substr(1);
+							if(typeof self.files.currentPath !== "undefined")
+								path = path.substr(1);
 					
-						// Send request
-						$.ajax({
-							url: API_BASEURL + "files/" + location,
-							type: "POST",
-							data: form,
-							processData: false,
-							contentType: false,
+							// Send request
+							$.ajax({
+								url: API_BASEURL + "files/" + location,
+								type: "POST",
+								data: form,
+								processData: false,
+								contentType: false,
 
-							// On success
-							success: function(data) {
-				
-								// Hide message
-								hideMessage();
+								// On success
+								success: function(data) {
+							
+									// Update path
+									if(location == "local")
+										path = data.files.local.name;
+									else
+										path = data.files.sdcard.name;
+								
+									// Hide message
+									hideMessage();
 						
-								// Show slicing dialog
-								self.files.requestData(path, location);
-								self.slicing.show(location, path);
-							}
-						});
-					}
+									// Show slicing dialog
+									self.files.requestData(path, location);
+									self.slicing.show(location, path);
+								}
+							});
+						}
 					
-					// Otherwise
-					else
+						// Otherwise
+						else
 					
-						// Check if conversion is done again
-						setTimeout(conversionDone, 100);
+							// Check if conversion is done again
+							setTimeout(conversionDone, 100);
 				
-				}
-				conversionDone();
+					}
+					conversionDone();
+				}, 600);
 			}
 		}
 		
@@ -5301,6 +5320,20 @@ $(function() {
 																<div class="group manual">
 																	<h3>Manual Settings</h3>
 																	<div class="wrapper">
+																		<div title="Printing temperature" class="option notMicro3d">
+																			<label>Printing temperature</label>
+																			<div class="input-append">
+																				<input class="printingTemperature" type="number" tabindex="-1" min="150" max="315" step="1">
+																				<span class="add-on">°C</span>
+																			</div>
+																		</div>
+																		<div title="Heatbed temperature" class="option notMicro3d requiresHeatbed">
+																			<label>Heatbed temperature</label>
+																			<div class="input-append">
+																				<input class="heatbedTemperature" type="number" tabindex="-1" min="0" max="110" step="1">
+																				<span class="add-on">°C</span>
+																			</div>
+																		</div>
 																		<div title="Height of each layer" class="option">
 																			<label>Layer height</label>
 																			<div class="input-append">
@@ -5438,6 +5471,8 @@ $(function() {
 										
 													// Set manual setting values
 													if(slicerName == "cura") {
+														$("#slicing_configuration_dialog .printingTemperature").val(getSlicerProfileValue("print_temperature"));
+														$("#slicing_configuration_dialog .heatbedTemperature").val(getSlicerProfileValue("print_bed_temperature"));
 														$("#slicing_configuration_dialog .layerHeight").val(getSlicerProfileValue("layer_height"));
 														$("#slicing_configuration_dialog .fillDensity").val(getSlicerProfileValue("fill_density"));
 														$("#slicing_configuration_dialog .thickness").val(Math.round(parseFloat(getSlicerProfileValue("wall_thickness")) / parseFloat(getSlicerProfileValue("nozzle_size"))));
@@ -5446,6 +5481,8 @@ $(function() {
 														$("#slicing_configuration_dialog .brimLineCount").val(getSlicerProfileValue("brim_line_count"));
 													}
 													else if(slicerName == "slic3r") {
+														$("#slicing_configuration_dialog .printingTemperature").val(getSlicerProfileValue("temperature"));
+														$("#slicing_configuration_dialog .heatbedTemperature").val(getSlicerProfileValue("bed_temperature"));
 														$("#slicing_configuration_dialog .layerHeight").val(getSlicerProfileValue("layer_height"));
 														$("#slicing_configuration_dialog .fillDensity").val(parseFloat(getSlicerProfileValue("fill_density")));
 														$("#slicing_configuration_dialog .thickness").val(parseInt(getSlicerProfileValue("perimeters")));
@@ -5505,6 +5542,14 @@ $(function() {
 															$("#slicing_configuration_dialog .skirts").parent("div").parent("div").removeClass("disabled");
 														}
 													}
+													
+													// Hide non Micro 3D options if using a Micro 3D printer
+													if(!self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter())
+														$("#slicing_configuration_dialog .notMicro3d").addClass("usingAMicro3DPrinter");
+													
+													// Otherwise hide heatbed options if not using a heatbed
+													else if(!self.printerProfile.currentProfileData().heatedBed())
+														$("#slicing_configuration_dialog .requiresHeatbed").addClass("notUsingAHeatbed");
 										
 													// Check if using a Cura or Slic3r profile
 													if(slicerName == "cura" || slicerName == "slic3r")
@@ -6135,9 +6180,35 @@ $(function() {
 										
 														// Initialize changed settings
 														var changedSettings = [];
-											
-														// Set changed settings if changing layer height
-														if($(this).hasClass("layerHeight")) {
+														
+														// Set changed settings if changing printing temperature
+														if($(this).hasClass("printingTemperature")) {
+												
+															if(slicerName == "cura")
+																changedSettings.push({
+																	print_temperature: $(this).val()
+																});
+															else if(slicerName == "slic3r")
+																changedSettings.push({
+																	temperature: $(this).val()
+																});
+														}
+														
+														// Otherwise set changed settings if changing heatbed temperature
+														else if($(this).hasClass("heatbedTemperature")) {
+														
+															if(slicerName == "cura")
+																changedSettings.push({
+																	print_bed_temperature: $(this).val()
+																});
+															else if(slicerName == "slic3r")
+																changedSettings.push({
+																	bed_temperature: $(this).val()
+																});
+														}
+														
+														// Otherwise set changed settings if changing layer height
+														else if($(this).hasClass("layerHeight")) {
 												
 															if(slicerName == "cura")
 																changedSettings.push({
@@ -6148,7 +6219,7 @@ $(function() {
 																changedSettings.push({
 																	layer_height: $(this).val(),
 																	bottom_solid_layers: parseInt($("#slicing_configuration_dialog.profile .bottomLayers").val()),
-																	top_solid_layers: parseInt($("#slicing_configuration_dialog.profile .topLayers").val()),
+																	top_solid_layers: parseInt($("#slicing_configuration_dialog.profile .topLayers").val())
 																});
 												
 															// Clear basic quality settings
@@ -6797,7 +6868,7 @@ $(function() {
 																		<button data-color="Black" title="Black"><span style="background-color: #404040;"></span><img src="` + PLUGIN_BASEURL + `m33fio/static/img/filament.png"></button>
 																	</div>
 																	<div class="model">
-																		<input type="file" accept=".stl, .obj, .m3d, .amf, .wrl, .dae">
+																		<input type="file" accept=".stl, .obj, .m3d, .amf, .wrl, .dae, .3mf">
 																		<button class="import" title="Import"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/import.png"></button>
 																		<button class="translate disabled" title="Translate"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/translate.png"></button>
 																		<button class="rotate" title="Rotate"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/rotate.png"></button>
