@@ -773,11 +773,11 @@ body > div.page-container > div.message > div > div > span.show {
 }
 
 #slicing_configuration_dialog .group.manual {
-	height: 82px;
+	height: 120px;
 }
 
 #slicing_configuration_dialog.slic3r .group.manual {
-	height: 120px;
+	height: 157px;
 }
 
 #slicing_configuration_dialog .group.advanced {
@@ -822,7 +822,7 @@ body > div.page-container > div.message > div > div > span.show {
 	text-align: center;
 }
 
-#slicing_configuration_dialog.cura .slicerSpecific .slic3r-only{
+#slicing_configuration_dialog.cura .slicerSpecific .slic3r-only {
 	display: none;
 }
 
@@ -855,11 +855,11 @@ body > div.page-container > div.message > div > div > span.show {
 	flex-wrap: wrap;
 	flex-direction: column;
 	margin-top: 11px;
-	height: 82px;
+	height: 120px;
 }
 
 #slicing_configuration_dialog.slic3r .group.manual .wrapper {
-	height: 120px;
+	height: 157px;
 }
 
 #slicing_configuration_dialog .group.manual .option {
@@ -1307,6 +1307,6 @@ body > div.page-container > div.message > div > div > span.show {
 	transition: none !important;
 }
 
-.notUsingAMicro3DPrinter {
+.notUsingAMicro3DPrinter, .usingAMicro3DPrinter, .notUsingAHeatbed {
 	display: none !important;
 }

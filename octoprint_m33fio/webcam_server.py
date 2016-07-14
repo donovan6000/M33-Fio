@@ -1,3 +1,7 @@
+#!/usr/bin/env python
+# -*- coding: UTF-8 -*-
+
+
 # Imports
 import sys
 import time
@@ -5,6 +9,7 @@ import platform
 import threading
 import BaseHTTPServer
 import SocketServer
+import socket
 
 # Check if using Windows or Linux
 if platform.uname()[0].startswith("Windows") or platform.uname()[0].startswith("Linux") :
@@ -164,6 +169,17 @@ else :
 	serverThread = threading.Thread(target = server.serve_forever)
 	serverThread.daemon = True
 	serverThread.start()
+	
+	# Get IP address
+	try :
+		ipAddress = [l for l in ([ip for ip in socket.gethostbyname_ex(socket.gethostname())[2] if not ip.startswith("127.")][:1], [[(s.connect(("8.8.8.8", 53)), s.getsockname()[0], s.close()) for s in [socket.socket(socket.AF_INET, socket.SOCK_DGRAM)]][0][1]]) if l][0][0]
+	except Exception :
+		ipAddress = socket.gethostbyname(socket.gethostname())
+	
+	# Display hosting information
+	print "Using webcam device " + str(cameraPort) + " with a resolution of " + str(cameraWidth) + 'x' + str(cameraHeight) + " running at " + str(int(1.0 / cameraFrameDelay)) + " frames per second"
+	print "Hosting webcam still image at http://" + ipAddress + ':' + str(httpPort) + "/snapshot.jpg"
+	print "Hosting webcam video stream at http://" + ipAddress + ':' + str(httpPort) + "/stream.mjpg"
 
 	# Check if pygame camera is usable
 	if "pygame.camera" in sys.modules :

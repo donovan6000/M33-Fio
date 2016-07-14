@@ -14,10 +14,10 @@ import octoprint.events
 import octoprint.filemanager
 import octoprint.printer
 import octoprint.settings
+import octoprint.slicing
 import tempfile
 import os
 import time
-import datetime
 import struct
 import shutil
 import sys
@@ -39,8 +39,6 @@ import subprocess
 import psutil
 import socket
 import threading
-import BaseHTTPServer
-import SocketServer
 import yaml
 import logging
 import logging.handlers
@@ -1361,11 +1359,16 @@ class M33FioPlugin(
 					index = 0
 					while index < len(settings[key]) :
 					
+						if key == "print_temperature" :
+							settingValue = str(int(settings[key][index]))
+						else :
+							settingValue = str(float(settings[key][index]))
+					
 						# Write setting part to output
 						if index == 0 :
-							output.write(str(key) + " = " + str(float(settings[key][index])) + '\n')
+							output.write(str(key) + " = " + settingValue + '\n')
 						else :
-							output.write(str(key) + str(index + 1) + " = " + str(float(settings[key][index])) + '\n')
+							output.write(str(key) + str(index + 1) + " = " + settingValue + '\n')
 						index += 1
 			
 			# Otherwise
@@ -1595,6 +1598,12 @@ class M33FioPlugin(
 			# Save printer profile if profile changed
 			if profileChanged :
 				self.savePrinterProfile()
+			
+			# Check if using a Micro 3D printer
+			if not self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
+			
+				# Select Micro 3D printer profile
+				self._printer_profile_manager.select("micro_3d")
 		
 		# Check if host camera setting changed
 		if oldHostCamera != self._settings.get_boolean(["HostCamera"]) :
@@ -1674,7 +1683,7 @@ class M33FioPlugin(
 	
 		# Return asset
 		return dict(
-			js = ["js/m33fio.js", "js/three.min.js", "js/OrbitControls.js", "js/STLLoader.js", "js/OBJLoader.js", "js/M3DLoader.js", "js/STLBinaryExporter.js", "js/TransformControls.js", "js/ThreeCSG.js", "js/AMFLoader.js", "js/VRMLLoader.js", "js/ColladaLoader.js", "js/Detector.js"],
+			js = ["js/m33fio.js", "js/three.min.js", "js/OrbitControls.js", "js/STLLoader.js", "js/OBJLoader.js", "js/M3DLoader.js", "js/STLBinaryExporter.js", "js/TransformControls.js", "js/ThreeCSG.js", "js/AMFLoader.js", "js/VRMLLoader.js", "js/ColladaLoader.js", "js/Detector.js", "js/3MFLoader.js", "js/jszip.min.js"],
 			css = ["css/m33fio.css"]
 		)
 	

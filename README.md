@@ -3,17 +3,15 @@ OctoPrint plugin that provides the world's first platform independent software s
 
 © 2015-2016 Exploit Kings. All rights reserved.
 
-M33 Fio has been discontinued on June 21st, 2016. I no longer feel like developing software for a product created by a company like M3D.
-
 ### Description
 M33 Fio is a plugin for [OctoPrint](http://octoprint.org/) that extends its capabilities to make it fully compatible with the Micro 3D printer. Both OctoPrint and M33 Fio can run on Windows, OS X, and Linux, so this solution is the first platform independent option available for this printer.
 
-The latest version of M33 Fio is V0.36.1 released on July 7th, 2016, and an entire changelog for it can be found [here](https://raw.githubusercontent.com/donovan6000/M33-Fio/master/Changelog).
+The latest version of M33 Fio is V1.0 released on July 13th, 2016, and an entire changelog for it can be found [here](https://raw.githubusercontent.com/donovan6000/M33-Fio/master/Changelog).
 
 ### Features
 * Platform independent
 * Open source (M33 Fio's source code can be found [here](https://github.com/donovan6000/M33-Fio))
-* Supports STL, OBJ, M3D, AMF, VRML, and COLLADA file formats
+* Supports STL, OBJ, M3D, AMF, VRML, COLLADA, and 3MF file formats
 * Allows printing multiple objects together
 * Displays an accurate representation of the printable region
 * Objects can be manipulated, cloned, cut, and merged
@@ -77,3 +75,7 @@ ___
 Q. OctoPrint's terminal shows an error about how it couldn't determine the printer's baud rate when trying to connect to the printer.
 
 A. Something caused M33 Fio to crash, so you'll need to restart it. This can be accomplished by restarting OctoPrint, which can be done by restarting your computer.
+___
+Q. Can I use this plugin if I don't have a Micro 3D printer?
+
+A. Enable M33 Fio's "Not using a Micro 3D printer" setting in OctoPrint's settings to disable all this plugin's Micro 3D specific functionality. All of M33 Fio's printer independent features are still usable when this option is enabled, so you'll be able to use the slicer profile editor, model editor, OctoPrint instance manager, expanded 3D file format support, webcam support, etc.
