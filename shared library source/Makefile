@@ -61,9 +61,7 @@ endif
 SRCS = preprocessor.cpp gcode.cpp vector.cpp
 CFLAGS += -Wall -std=c++11 -fvisibility=hidden -shared
 
-all: $(PROG)
-
-$(PROG): $(SRCS)
+all:
 	$(CC) $(CFLAGS) -o ../octoprint_m33fio/static/libraries/$(PROG) $(SRCS)
 
 clean:

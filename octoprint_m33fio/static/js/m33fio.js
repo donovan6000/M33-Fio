@@ -5900,8 +5900,7 @@ $(function() {
 																	changedSettings.push({
 																		platform_adhesion: "Raft; None, Brim, Raft",
 																		bottom_layer_speed: 12,
-																		skirt_line_count: 0,
-																		brim_line_count: null
+																		raft_airgap: $("#slicing_configuration_dialog.profile .raftAirgap").val()
 																	});
 																else if(slicerName == "slic3r") {
 																
@@ -5948,8 +5947,7 @@ $(function() {
 																	changedSettings.push({
 																		platform_adhesion: "None; None, Brim, Raft",
 																		bottom_layer_speed: 5,
-																		skirt_line_count: 0,
-																		brim_line_count: null
+																		skirt_line_count: 0
 																	});
 																	
 																	// Disable raft airgap manual setting
@@ -5985,7 +5983,6 @@ $(function() {
 																	changedSettings.push({
 																		platform_adhesion: "Brim; None, Brim, Raft",
 																		bottom_layer_speed: 12,
-																		skirt_line_count: null,
 																		brim_line_count: $("#slicing_configuration_dialog.profile .brimLineCount").val()
 																	});
 																}
@@ -6028,8 +6025,7 @@ $(function() {
 																	changedSettings.push({
 																		platform_adhesion: "None; None, Brim, Raft",
 																		bottom_layer_speed: 5,
-																		skirt_line_count: 0,
-																		brim_line_count: null
+																		skirt_line_count: 0
 																	});
 																	
 																	// Disable brim line count manual setting
@@ -6061,7 +6057,7 @@ $(function() {
 																		platform_adhesion: "None; None, Brim, Raft",
 																		bottom_layer_speed: 5,
 																		skirt_line_count: 1,
-																		brim_line_count: null
+																		skirt_gap: $("#slicing_configuration_dialog .skirtGap").val()
 																	});
 																else if(slicerName == "slic3r") {
 																	
@@ -6101,8 +6097,7 @@ $(function() {
 																	changedSettings.push({
 																		platform_adhesion: "None; None, Brim, Raft",
 																		bottom_layer_speed: 5,
-																		skirt_line_count: 0,
-																		brim_line_count: null
+																		skirt_line_count: 0
 																	});
 																else if(slicerName == "slic3r") {
 																	changedSettings.push({

@@ -91,6 +91,10 @@ for line in open(sys.argv[1], "rb") :
 		
 		elif key == "filamentDiameter" :
 			output.write("filament_diameter = " + str(float(value) / 1000) + '\n')
+			output.write("filament_diameter2 = 0\n")
+			output.write("filament_diameter3 = 0\n")
+			output.write("filament_diameter4 = 0\n")
+			output.write("filament_diameter5 = 0\n")
 		
 		elif key == "filamentFlow" :
 			output.write("filament_flow = " + str(int(value)) + '\n')
@@ -99,8 +103,8 @@ for line in open(sys.argv[1], "rb") :
 			output.write("skirt_gap = " + str(float(value) / 1000) + '\n')
 		
 		elif key == "skirtLineCount" :
-		
-			if int(value) != 0 :
+			usingBrim = int(value) != 0
+			if usingBrim :
 				output.write("platform_adhesion = Brim\n")
 				output.write("brim_line_count = " + str(int(value)) + '\n')
 			else :
@@ -372,17 +376,59 @@ output.write("layer0_width_factor = " + str(layer0extrusionWidth * 100 / (edgeWi
 output.write("wall_thickness = " + str(extrusionWidth * lineCount / 1000.0) + '\n')
 output.write("solid_layer_thickness = " + str(math.floor(solidLayerCount * (layerThickness - 0.0001)) / 1000) + '\n')
 
+# Set bed and print temperature
+if "abs-r" in sys.argv[1].lower() :
+	output.write("print_bed_temperature = 60\n")
+	output.write("print_temperature = 240\n")
+elif "abs" in sys.argv[1].lower() :
+	output.write("print_bed_temperature = 80\n")
+	output.write("print_temperature = 275\n")
+elif "flx" in sys.argv[1].lower() :
+	output.write("print_bed_temperature = 60\n")
+	output.write("print_temperature = 220\n")
+elif "hips" in sys.argv[1].lower() :
+	output.write("print_bed_temperature = 80\n")
+	output.write("print_temperature = 265\n")
+elif "pla" in sys.argv[1].lower() :
+	output.write("print_bed_temperature = 60\n")
+	output.write("print_temperature = 215\n")
+elif "tgh" in sys.argv[1].lower() :
+	output.write("print_bed_temperature = 60\n")
+	output.write("print_temperature = 220\n")
+else :
+	output.write("print_bed_temperature = 60\n")
+	output.write("print_temperature = 215\n")
+	
+output.write("print_temperature2 = 0\n")
+output.write("print_temperature3 = 0\n")
+output.write("print_temperature4 = 0\n")
+output.write("print_temperature5 = 0\n")
+
+# Set miscellaneous settings
+output.write("wipe_tower = False\n")
+output.write("nozzle_size = 0.35\n")
+if not usingBrim :
+	output.write("brim_line_count = 20\n")
+output.write("solidarea_speed = 0.0\n")
+output.write("perimeter_before_infill = False\n")
+output.write("raft_airgap_all = 0.0\n")
+output.write("raft_surface_thickness = 0.27\n")
+output.write("raft_surface_linewidth = 0.4\n")
+output.write("plugin_config = \n")
+output.write("object_center_x = -1\n")
+output.write("object_center_y = -1\n")
+
 # Set default alterations
 output.write("\n[alterations]\n")
 output.write("start.gcode = ; Sliced at: {day} {date} {time}\n")
 output.write("\t; Basic settings: Layer height: {layer_height} Walls: {wall_thickness} Fill: {fill_density}\n")
-output.write("start.gcode2 = \n")
-output.write("start.gcode3 = \n")
-output.write("start.gcode4 = \n")
+output.write("start2.gcode = \n")
+output.write("start3.gcode = \n")
+output.write("start4.gcode = \n")
 output.write("end.gcode = \n")
-output.write("end.gcode2 = \n")
-output.write("end.gcode3 = \n")
-output.write("end.gcode4 = \n")
+output.write("end2.gcode = \n")
+output.write("end3.gcode = \n")
+output.write("end4.gcode = \n")
 output.write("support_start.gcode = \n")
 output.write("support_end.gcode = \n")
 output.write("cool_start.gcode = \n")

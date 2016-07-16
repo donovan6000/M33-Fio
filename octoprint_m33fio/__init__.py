@@ -1176,11 +1176,20 @@ class M33FioPlugin(
 	# Covert Cura to profile
 	def convertCuraToProfile(self, input, output, name, displayName, description) :
 	
+		# Cura Engine plugin doesn't support solidarea_speed, perimeter_before_infill, raft_airgap_all, raft_surface_thickness, raft_surface_linewidth, plugin_config, object_center_x, and object_center_y
+	
 		# Create input file
 		fd, curaProfile = tempfile.mkstemp()
 			
-		# Remove comments from input
+		# Go through all lines
 		for line in open(input) :
+		
+			# Fix G-code lines
+			match = re.findall("^(.+)(\d+)\.gcode", line)
+			if len(match) :
+				line = match[0][0] + ".gcode" + match[0][1] + line[len(match[0][0]) + len(match[0][1]) + 6 :]
+			
+			# Remove comments from input
 			if ';' in line and ".gcode" not in line and line[0] != '\t' :
 				os.write(fd, line[0 : line.index(';')] + '\n')
 			else :
@@ -1202,8 +1211,10 @@ class M33FioPlugin(
 		# Create input file
 		fd, slic3rProfile = tempfile.mkstemp()
 			
-		# Remove comments from input
+		# Go through all lines
 		for line in open(input) :
+		
+			# Remove comments from input
 			if ';' in line and "_gcode" not in line and line[0] != '\t' :
 				os.write(fd, line[0 : line.index(';')] + '\n')
 			else :
@@ -1321,7 +1332,7 @@ class M33FioPlugin(
 				currentValue = "simple_mode"
 			
 			# Append values to alterations or settings
-			if currentValue.endswith("gcode") :
+			if currentValue.endswith(".gcode") :
 				alterations[currentValue] = values[key]
 			
 			else :
@@ -1402,7 +1413,7 @@ class M33FioPlugin(
 				if index == 0 :
 					output.write(str(key) + " = " + str(alterations[key][index]).replace("\n\n", '\n').replace('\n', "\n\t").rstrip() + '\n')
 				else :
-					output.write(str(key) + str(index + 1) + " = " + str(alterations[key][index]).replace("\n\n", '\n').replace('\n', "\n\t").rstrip() + '\n')
+					output.write(str(key)[0 : str(key).find('.')] + str(index + 1) + str(key)[str(key).find('.') : ] + " = " + str(alterations[key][index]).replace("\n\n", '\n').replace('\n', "\n\t").rstrip() + '\n')
 				index += 1
 	
 	# Covert Profile to Slic3r
@@ -8854,9 +8865,27 @@ class M33FioPlugin(
 					output.write(chr(ord(character)))
 				output.close()
 				
+				# Create input file
+				fd, curaProfile = tempfile.mkstemp()
+			
+				# Go through all lines
+				for line in open(temp) :
+		
+					# Fix G-code lines
+					match = re.findall("^(.+)(\d+)\.gcode", line)
+					if len(match) :
+						line = match[0][0] + ".gcode" + match[0][1] + line[len(match[0][0]) + len(match[0][1]) + 6 :]
+			
+					# Remove comments from input
+					if ';' in line and ".gcode" not in line and line[0] != '\t' :
+						os.write(fd, line[0 : line.index(';')] + '\n')
+					else :
+						os.write(fd, line)
+				os.close(fd)
+				
 				# Attempt to convert profile
 				try :
-					profile = profileManager.Profile.from_cura_ini(temp)
+					profile = profileManager.Profile.from_cura_ini(curaProfile)
 				
 				# Return error if conversion failed
 				except Exception :
@@ -8882,9 +8911,22 @@ class M33FioPlugin(
 					output.write(chr(ord(character)))
 				output.close()
 				
+				# Create input file
+				fd, slic3rProfile = tempfile.mkstemp()
+			
+				# Go through all lines
+				for line in open(temp) :
+		
+					# Remove comments from input
+					if ';' in line and "_gcode" not in line and line[0] != '\t' :
+						os.write(fd, line[0 : line.index(';')] + '\n')
+					else :
+						os.write(fd, line)
+				os.close(fd)
+				
 				# Attempt to convert profile
 				try :
-					profile = profileManager.Profile.from_slic3r_ini(temp)
+					profile = profileManager.Profile.from_slic3r_ini(slic3rProfile)
 				
 				# Return error if conversion failed
 				except Exception :
