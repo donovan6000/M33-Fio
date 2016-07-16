@@ -13074,6 +13074,34 @@ $(function() {
 			// Enable changing mid-print filement change layers
 			$("#gcode div.midPrintFilamentChange button").eq(2).removeClass("disabled");
 		}
+		
+		// On slicing started event
+		self.onEventSlicingStarted = function(payload) {
+		
+			// Show message
+			showMessage("Slicing Status", "Slicing …");
+			
+			// Update slicing status
+			function updateSlicingStatus() {
+			
+				// Check if not done slicing
+				if($("#gcode_upload_progress").hasClass("active")) {
+					
+					// Update message
+					$("body > div.page-container > div.message").find("p").eq(0).text($("#gcode_upload_progress").text());
+					
+					// Update slicing status again
+					setTimeout(updateSlicingStatus, 300);
+				}
+				
+				// Otherwise
+				else
+				
+					// Hide message
+					hideMessage();
+			}
+			setTimeout(updateSlicingStatus, 300);
+		}
 	}
 
 	// Register plugin

@@ -1178,10 +1178,48 @@ class M33FioPlugin(
 	
 		# Cura Engine plugin doesn't support solidarea_speed, perimeter_before_infill, raft_airgap_all, raft_surface_thickness, raft_surface_linewidth, plugin_config, object_center_x, and object_center_y
 	
-		# Create input file
-		fd, curaProfile = tempfile.mkstemp()
-			
-		# Go through all lines
+		# Clean up input
+		curaProfile = tempfile.mkstemp()[1]
+		self.curaProfileCleanUp(input, curaProfile)
+		
+		# Import profile manager
+		profileManager = imp.load_source("Profile", self._slicing_manager.get_slicer("cura")._basefolder.replace('\\', '/') + "/profile.py")
+		
+		# Create profile
+		profile = octoprint.slicing.SlicingProfile("cura", name, profileManager.Profile.from_cura_ini(curaProfile), displayName, description)
+		
+		# Remove temporary file
+		os.remove(curaProfile)
+		
+		# Save profile
+		self._slicing_manager.get_slicer("cura").save_slicer_profile(output, profile)
+	
+	# Covert Slic3r to profile
+	def convertSlic3rToProfile(self, input, output, name, displayName, description) :
+	
+		# Clean up input
+		slic3rProfile = tempfile.mkstemp()[1]
+		self.slic3rProfileCleanUp(input, slic3rProfile)
+		
+		# Import profile manager
+		profileManager = imp.load_source("Profile", self._slicing_manager.get_slicer("slic3r")._basefolder.replace('\\', '/') + "/profile.py")
+		
+		# Create profile
+		profile = octoprint.slicing.SlicingProfile("slic3r", name, profileManager.Profile.from_slic3r_ini(slic3rProfile)[0], displayName, description)
+		
+		# Remove temporary file
+		os.remove(slic3rProfile)
+		
+		# Save profile
+		self._slicing_manager.get_slicer("slic3r").save_slicer_profile(output, profile)
+	
+	# Cura profile cleanup
+	def curaProfileCleanUp(self, input, output) :
+	
+		# Create output
+		output = open(output, "wb")
+	
+		# Go through all lines in input
 		for line in open(input) :
 		
 			# Fix G-code lines
@@ -1191,44 +1229,30 @@ class M33FioPlugin(
 			
 			# Remove comments from input
 			if ';' in line and ".gcode" not in line and line[0] != '\t' :
-				os.write(fd, line[0 : line.index(';')] + '\n')
+				output.write(line[0 : line.index(';')] + '\n')
 			else :
-				os.write(fd, line)
-		os.close(fd)
+				output.write(line)
 		
-		# Import profile manager
-		profileManager = imp.load_source("Profile", self._slicing_manager.get_slicer("cura")._basefolder.replace('\\', '/') + "/profile.py")
-		
-		# Create profile
-		profile = octoprint.slicing.SlicingProfile("cura", name, profileManager.Profile.from_cura_ini(curaProfile), displayName, description)
-		
-		# Save profile
-		self._slicing_manager.get_slicer("cura").save_slicer_profile(output, profile)
+		# Close output
+		output.close()
 	
-	# Covert Slic3r to profile
-	def convertSlic3rToProfile(self, input, output, name, displayName, description) :
+	# Slic3r profile cleanup
+	def slic3rProfileCleanUp(self, input, output) :
 	
-		# Create input file
-		fd, slic3rProfile = tempfile.mkstemp()
-			
-		# Go through all lines
+		# Create output
+		output = open(output, "wb")
+	
+		# Go through all lines in input
 		for line in open(input) :
 		
 			# Remove comments from input
 			if ';' in line and "_gcode" not in line and line[0] != '\t' :
-				os.write(fd, line[0 : line.index(';')] + '\n')
+				output.write(line[0 : line.index(';')] + '\n')
 			else :
-				os.write(fd, line)
-		os.close(fd)
+				output.write(line)
 		
-		# Import profile manager
-		profileManager = imp.load_source("Profile", self._slicing_manager.get_slicer("slic3r")._basefolder.replace('\\', '/') + "/profile.py")
-		
-		# Create profile
-		profile = octoprint.slicing.SlicingProfile("slic3r", name, profileManager.Profile.from_slic3r_ini(slic3rProfile)[0], displayName, description)
-		
-		# Save profile
-		self._slicing_manager.get_slicer("slic3r").save_slicer_profile(output, profile)
+		# Close output
+		output.close()
 	
 	# Covert Profile to Cura
 	def convertProfileToCura(self, input, output, printerProfile) :
@@ -2333,17 +2357,14 @@ class M33FioPlugin(
 				# Remove file in destination if it already exists
 				if os.path.isfile(fileDestination) :
 					os.remove(fileDestination)
-			
-				# Copy file to accessible location
-				temp = tempfile.mkstemp()[1]
-				shutil.copyfile(fileLocation, temp)
 				
+				# Copy file to accessible location
 				if values["slicerName"] == "cura" :
-					self.convertProfileToCura(temp, fileDestination, values["printerProfileName"])
+					self.convertProfileToCura(fileLocation, fileDestination, values["printerProfileName"])
 				elif values["slicerName"] == "slic3r" :
-					self.convertProfileToSlic3r(temp, fileDestination, values["printerProfileName"])
+					self.convertProfileToSlic3r(fileLocation, fileDestination, values["printerProfileName"])
 				else :
-					shutil.move(temp, fileDestination)
+					shutil.copyfile(fileLocation, fileDestination)
 				
 				# Return location
 				return flask.jsonify(dict(value = "OK", path = "m33fio/download/" + destinationName))
@@ -4195,23 +4216,14 @@ class M33FioPlugin(
 		
 			# Move original files back
 			os.remove(self.slicerChanges["Slicer Profile Location"])
-			shutil.copyfile(self.slicerChanges["Slicer Profile Temporary"], self.slicerChanges["Slicer Profile Location"])
+			shutil.move(self.slicerChanges["Slicer Profile Temporary"], self.slicerChanges["Slicer Profile Location"])
 			
 			if "Model Temporary" in self.slicerChanges :
 				os.remove(self.slicerChanges["Model Location"])
-				shutil.copyfile(self.slicerChanges["Model Temporary"], self.slicerChanges["Model Location"])
+				shutil.move(self.slicerChanges["Model Temporary"], self.slicerChanges["Model Location"])
 		
 			# Restore printer profile
 			self._printer_profile_manager.save(self.slicerChanges["Printer Profile Content"], True)
-			
-			# Attempt to remove temporary files
-			try :
-				os.remove(self.slicerChanges["Slicer Profile Temporary"])
-				
-				if "Model Temporary" in self.slicerChanges :
-					os.remove(self.slicerChanges["Model Temporary"])
-			except Exception :
-				pass
 			
 			# Clear slicer changes
 			self.slicerChanges = None
@@ -6639,6 +6651,9 @@ class M33FioPlugin(
 				# Unload shared library
 				self.unloadSharedLibrary()
 				
+				# Remove temporary file
+				os.remove(input)
+				
 				# Return false
 				return False
 			
@@ -8733,7 +8748,10 @@ class M33FioPlugin(
 			elif flask.request.values["Slicer Name"] == "slic3r" :
 				self.convertSlic3rToProfile(temp, profileLocation, '', '', '')
 			else :
-				shutil.move(temp, profileLocation)
+				shutil.copyfile(temp, profileLocation)
+			
+			# Remove temporary file
+			os.remove(temp)
 			
 			# Get printer profile
 			printerProfile = self._printer_profile_manager.get(flask.request.values["Printer Profile Name"])
@@ -8865,31 +8883,21 @@ class M33FioPlugin(
 					output.write(chr(ord(character)))
 				output.close()
 				
-				# Create input file
-				fd, curaProfile = tempfile.mkstemp()
-			
-				# Go through all lines
-				for line in open(temp) :
-		
-					# Fix G-code lines
-					match = re.findall("^(.+)(\d+)\.gcode", line)
-					if len(match) :
-						line = match[0][0] + ".gcode" + match[0][1] + line[len(match[0][0]) + len(match[0][1]) + 6 :]
-			
-					# Remove comments from input
-					if ';' in line and ".gcode" not in line and line[0] != '\t' :
-						os.write(fd, line[0 : line.index(';')] + '\n')
-					else :
-						os.write(fd, line)
-				os.close(fd)
+				# Clean up input
+				curaProfile = tempfile.mkstemp()[1]
+				self.curaProfileCleanUp(temp, curaProfile)
 				
 				# Attempt to convert profile
 				try :
 					profile = profileManager.Profile.from_cura_ini(curaProfile)
 				
-				# Return error if conversion failed
+				# Set profile to none if conversion failed
 				except Exception :
-					return flask.jsonify(dict(value = "Error"))
+					profile = None
+				
+				# Remove temporary files
+				os.remove(temp)
+				os.remove(curaProfile);
 				
 				# Check if profile is invalid
 				if profile is None :
@@ -8911,26 +8919,21 @@ class M33FioPlugin(
 					output.write(chr(ord(character)))
 				output.close()
 				
-				# Create input file
-				fd, slic3rProfile = tempfile.mkstemp()
-			
-				# Go through all lines
-				for line in open(temp) :
-		
-					# Remove comments from input
-					if ';' in line and "_gcode" not in line and line[0] != '\t' :
-						os.write(fd, line[0 : line.index(';')] + '\n')
-					else :
-						os.write(fd, line)
-				os.close(fd)
+				# Clean up input
+				slic3rProfile = tempfile.mkstemp()[1]
+				self.slic3rProfileCleanUp(temp, slic3rProfile)
 				
 				# Attempt to convert profile
 				try :
 					profile = profileManager.Profile.from_slic3r_ini(slic3rProfile)
 				
-				# Return error if conversion failed
+				# Set profile to none if conversion failed
 				except Exception :
-					return flask.jsonify(dict(value = "Error"))
+					profile = None
+				
+				# Remove temporary files
+				os.remove(temp)
+				os.remove(slic3rProfile);
 				
 				# Check if profile is invalid
 				if profile is None :
