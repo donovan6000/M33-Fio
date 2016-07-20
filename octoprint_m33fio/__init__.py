@@ -446,6 +446,9 @@ class M33FioPlugin(
 		self.onNewPrintedLayer = False
 		self.tackPointAngle = 0.0
 		self.tackPointTime = 0.0
+		self.temperatureStabalizationDelay = 0
+		self.fanSpeed = 0
+		self.firstLayerTemperatureChange = 0
 		
 		# Print settings
 		self.resetPrintSettings()
@@ -4183,7 +4186,7 @@ class M33FioPlugin(
 			elif response[6 : 10] == "1007" :
 				response = "ok Move to large\n"
 			elif response[6 : 10] == "1008" :
-				response = "ok System has been inactive for too long, heater and motors have been turned off\n"
+				response = "ok Printer has been inactive for too long, heater and motors have been turned off\n"
 			elif response[6 : 10] == "1009" :
 				response = "ok Target address out of range\n"
 			elif response[6 : 10] == "1010" :
@@ -7019,6 +7022,33 @@ class M33FioPlugin(
 				# Return false
 				return False
 		
+		# Check if filement type is PLA, CAM, ABS, HIPS, FLX, TGH, or ABS-R
+		if str(self._settings.get(["FilamentType"])) == "PLA" or str(self._settings.get(["FilamentType"])) == "CAM" or str(self._settings.get(["FilamentType"])) == "ABS" or str(self._settings.get(["FilamentType"])) == "HIPS" or str(self._settings.get(["FilamentType"])) == "FLX" or str(self._settings.get(["FilamentType"])) == "TGH" or str(self._settings.get(["FilamentType"])) == "ABS-R" :
+		
+			# Set tack point angle and time
+			self.tackPointAngle = 90.0
+			self.tackPointTime = 0.01
+		
+			# Set temperature stabalization delay
+			if str(self._settings.get(["FilamentType"])) == "PLA" or str(self._settings.get(["FilamentType"])) == "CAM" or str(self._settings.get(["FilamentType"])) == "FLX" or str(self._settings.get(["FilamentType"])) == "TGH" :
+				self.temperatureStabalizationDelay = 15
+			else :
+				self.temperatureStabalizationDelay = 10
+		
+			# Set fan speed
+			if str(self._settings.get(["FilamentType"])) == "PLA" or str(self._settings.get(["FilamentType"])) == "CAM" or str(self._settings.get(["FilamentType"])) == "FLX" or str(self._settings.get(["FilamentType"])) == "TGH" :
+				self.fanSpeed = 255
+			else :
+				self.fanSpeed = 50
+			
+			# Set first layer temperature change
+			if str(self._settings.get(["FilamentType"])) == "PLA" or str(self._settings.get(["FilamentType"])) == "CAM" :
+				self.firstLayerTemperatureChange = 10
+			elif str(self._settings.get(["FilamentType"])) == "FLX" or str(self._settings.get(["FilamentType"])) == "TGH" :
+				self.firstLayerTemperatureChange = -5
+			elif str(self._settings.get(["FilamentType"])) == "ABS" or str(self._settings.get(["FilamentType"])) == "HIPS" or str(self._settings.get(["FilamentType"])) == "ABS-R" :
+				self.firstLayerTemperatureChange = 15
+		
 		# Check if all fan commands are being removed
 		if self.detectedFanSpeed is None or self._settings.get_boolean(["RemoveFanCommands"]) :
 		
@@ -7029,10 +7059,7 @@ class M33FioPlugin(
 		if self._settings.get_boolean(["UsePreparationPreprocessor"]) or self.printingTestBorder or self.printingBacklashCalibration :
 		
 			# Set detected fan speed
-			if str(self._settings.get(["FilamentType"])) == "PLA" or str(self._settings.get(["FilamentType"])) == "FLX" or str(self._settings.get(["FilamentType"])) == "TGH" :
-				self.detectedFanSpeed = 255
-			else :
-				self.detectedFanSpeed = 50
+			self.detectedFanSpeed = self.fanSpeed
 		
 		# Get mid-print filament change layers
 		self.midPrintFilamentChangeLayers = re.findall("\\d+", str(self._settings.get(["MidPrintFilamentChangeLayers"])))
@@ -7042,13 +7069,6 @@ class M33FioPlugin(
 		
 			# Set mid-print filament change
 			self.detectedMidPrintFilamentChange = True
-		
-		# Check if filement type is PLA, ABS, HIPS, FLX, TGH, CAM, or ABS-R
-		if str(self._settings.get(["FilamentType"])) == "PLA" or str(self._settings.get(["FilamentType"])) == "ABS" or str(self._settings.get(["FilamentType"])) == "HIPS" or str(self._settings.get(["FilamentType"])) == "FLX" or str(self._settings.get(["FilamentType"])) == "TGH" or str(self._settings.get(["FilamentType"])) == "CAM" or str(self._settings.get(["FilamentType"])) == "ABS-R" :
-		
-			# Set tack point angle and time
-			self.tackPointAngle = 90.0
-			self.tackPointTime = 0.01
 		
 		# Return true
 		return True
@@ -7650,10 +7670,7 @@ class M33FioPlugin(
 						newCommands.append(Command("M104 S0", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 						newCommands.append(Command("M107", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 						newCommands.append(Command("G30", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
-					if str(self._settings.get(["FilamentType"])) == "PLA" or str(self._settings.get(["FilamentType"])) == "FLX" or str(self._settings.get(["FilamentType"])) == "TGH" :
-						newCommands.append(Command("M106 S255", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
-					else :
-						newCommands.append(Command("M106 S50", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("M106 S1", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 					newCommands.append(Command("M17", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 					newCommands.append(Command("G90", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 					newCommands.append(Command("M104 S" + str(self._settings.get_int(["FilamentTemperature"])), "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
@@ -7670,7 +7687,9 @@ class M33FioPlugin(
 						# Prepare extruder the standard way
 						newCommands.append(Command("M18", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 						newCommands.append(Command("M109 S" + str(self._settings.get_int(["FilamentTemperature"])), "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G4 S2", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						if self.temperatureStabalizationDelay != 0 :
+							newCommands.append(Command("G4 S" + str(self.temperatureStabalizationDelay), "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M106 S" + str(self.fanSpeed), "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 						newCommands.append(Command("M17", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 						newCommands.append(Command("G92 E0", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 						newCommands.append(Command("G0 Z0.4 F48", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
@@ -7682,6 +7701,9 @@ class M33FioPlugin(
 						newCommands.append(Command("G0 X%f Y%f F1800" % (54 + cornerX, 50 + cornerY), "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 						newCommands.append(Command("M18", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 						newCommands.append(Command("M109 S" + str(self._settings.get_int(["FilamentTemperature"])), "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						if self.temperatureStabalizationDelay != 0 :
+							newCommands.append(Command("G4 S" + str(self.temperatureStabalizationDelay), "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M106 S" + str(self.fanSpeed), "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 						newCommands.append(Command("M17", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 						newCommands.append(Command("G0 Z%f F48" % (cornerZ + 3), "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 						newCommands.append(Command("G92 E0", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
@@ -8088,32 +8110,11 @@ class M33FioPlugin(
 					# Check if on first counted layer
 					if self.thermalBondingLayerCounter == 1 :
 		
-						# Check if filament type is ABS-R
-						if str(self._settings.get(["FilamentType"])) == "ABS-R" :
-		
-							# Add temperature to output
-							if self.currentFirmwareType == "M3D Mod" :
-								newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 15, 315)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
-							else :
-								newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 15, 285)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
-						
-						# Otherwise check if filament type is TGH or FLX
-						elif str(self._settings.get(["FilamentType"])) == "TGH" or str(self._settings.get(["FilamentType"])) == "FLX" :
-		
-							# Add temperature to output
-							if self.currentFirmwareType == "M3D Mod" :
-								newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) - 15, 315)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
-							else :
-								newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) - 15, 285)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
-							
-						# Otherwise
+						# Add temperature to output
+						if self.currentFirmwareType == "M3D Mod" :
+							newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + self.firstLayerTemperatureChange, 315)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
 						else :
-			
-							# Add temperature to output
-							if self.currentFirmwareType == "M3D Mod" :
-								newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 10, 315)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
-							else :
-								newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 10, 285)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
+							newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + self.firstLayerTemperatureChange, 285)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
 					
 					# Otherwise
 					else :
@@ -8897,7 +8898,7 @@ class M33FioPlugin(
 				
 				# Remove temporary files
 				os.remove(temp)
-				os.remove(curaProfile);
+				os.remove(curaProfile)
 				
 				# Check if profile is invalid
 				if profile is None :
@@ -8933,7 +8934,7 @@ class M33FioPlugin(
 				
 				# Remove temporary files
 				os.remove(temp)
-				os.remove(slic3rProfile);
+				os.remove(slic3rProfile)
 				
 				# Check if profile is invalid
 				if profile is None :
