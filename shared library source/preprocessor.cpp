@@ -186,6 +186,9 @@ list<double>printedLayers;
 bool onNewPrintedLayer;
 double tackPointAngle;
 double tackPointTime;
+uint8_t temperatureStabalizationDelay;
+uint8_t fanSpeed;
+int8_t firstLayerTemperatureChange;
 
 // Mid-print filament change pre-processor settings
 uint64_t midPrintFilamentChangeLayerCounter;
@@ -922,6 +925,9 @@ EXPORT void resetPreprocessorSettings() {
 	onNewPrintedLayer = false;
 	tackPointAngle = 0;
 	tackPointTime = 0;
+	temperatureStabalizationDelay = 0;
+	fanSpeed = 0;
+	firstLayerTemperatureChange = 0;
 	
 	// Mid-print filament change pre-processor
 	midPrintFilamentChangeLayerCounter = 0;
@@ -1327,6 +1333,28 @@ EXPORT bool collectPrintInformation(const char *file, bool applyPreprocessors) {
 				return false;
 		}
 		
+		// Check if filement type is PLA, CAM, ABS, HIPS, FLX, TGH, or ABS-R
+		if(filamentType == PLA || filamentType == CAM || filamentType == ABS || filamentType == HIPS || filamentType == FLX || filamentType == TGH || filamentType == ABS_R) {
+		
+			// Set tack point angle and time
+			tackPointAngle = 90;
+			tackPointTime = 0.01;
+		
+			// Set temperature stabalization delay
+			temperatureStabalizationDelay = filamentType == PLA || filamentType == CAM || filamentType == FLX || filamentType == TGH ? 15 : 10;
+		
+			// Set fan speed
+			fanSpeed = filamentType == PLA || filamentType == CAM || filamentType == FLX || filamentType == TGH ? 255 : 50;
+			
+			// Set first layer temperature change
+			if(filamentType == PLA || filamentType == CAM)
+				firstLayerTemperatureChange = 10;
+			else if(filamentType == FLX || filamentType == TGH)
+				firstLayerTemperatureChange = -5;
+			else if(filamentType == ABS || filamentType == HIPS || filamentType == ABS_R)
+				firstLayerTemperatureChange = 15;
+		}
+		
 		// Check if all fan commands are being removed
 		if(detectedFanSpeed == -1 || removeFanCommands)
 		
@@ -1334,27 +1362,16 @@ EXPORT bool collectPrintInformation(const char *file, bool applyPreprocessors) {
 			detectedFanSpeed = 0;
 		
 		// Check if using preparation pre-processor or printing a test border or backlash calibration
-		if(usePreparationPreprocessor || printingTestBorder || printingBacklashCalibration) {
+		if(usePreparationPreprocessor || printingTestBorder || printingBacklashCalibration)
 		
 			// Set detected fan speed
-			if(filamentType == PLA || filamentType == FLX || filamentType == TGH)
-				detectedFanSpeed = 255;
-			else
-				detectedFanSpeed = 50;
-		}
+			detectedFanSpeed = fanSpeed;
 		
 		// Check if mid-print filament change layers exist
 		if(midPrintFilamentChangeLayers.size())
 		
 			// Set mid-print filament change
 			detectedMidPrintFilamentChange = true;
-		
-		// Check if filement type is PLA, ABS, HIPS, FLX, TGH, CAM, or ABS-R
-		if(filamentType == PLA || filamentType == ABS || filamentType == HIPS || filamentType == FLX || filamentType == TGH || filamentType == CAM || filamentType == ABS_R)
-		
-			// Set tack point angle and time
-			tackPointAngle = 90;
-			tackPointTime = 0.01;
 		
 		// Return true
 		return true;
@@ -1678,7 +1695,7 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 					newCommands.push(Command("M107", PREPARATION, PREPARATION));
 					newCommands.push(Command("G30", PREPARATION, PREPARATION));
 				}
-				newCommands.push(Command("M106 S" + static_cast<string>(filamentType == PLA || filamentType == FLX || filamentType == TGH ? "255" : "50"), PREPARATION, PREPARATION));
+				newCommands.push(Command("M106 S1", PREPARATION, PREPARATION));
 				newCommands.push(Command("M17", PREPARATION, PREPARATION));
 				newCommands.push(Command("G90", PREPARATION, PREPARATION));
 				newCommands.push(Command("M104 S" + to_string(filamentTemperature), PREPARATION, PREPARATION));
@@ -1695,7 +1712,9 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 					// Prepare extruder the standard way
 					newCommands.push(Command("M18", PREPARATION, PREPARATION));
 					newCommands.push(Command("M109 S" + to_string(filamentTemperature), PREPARATION, PREPARATION));
-					newCommands.push(Command("G4 S2", PREPARATION, PREPARATION));
+					if(temperatureStabalizationDelay)
+						newCommands.push(Command("G4 S" + to_string(temperatureStabalizationDelay), PREPARATION, PREPARATION));
+					newCommands.push(Command("M106 S" + to_string(fanSpeed), PREPARATION, PREPARATION));
 					newCommands.push(Command("M17", PREPARATION, PREPARATION));
 					newCommands.push(Command("G92 E0", PREPARATION, PREPARATION));
 					newCommands.push(Command("G0 Z0.4 F48", PREPARATION, PREPARATION));
@@ -1708,6 +1727,9 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 					newCommands.push(Command("G0 X" + to_string(54 + cornerX) + " Y" + to_string(50 + cornerY) + " F1800", PREPARATION, PREPARATION));
 					newCommands.push(Command("M18", PREPARATION, PREPARATION));
 					newCommands.push(Command("M109 S" + to_string(filamentTemperature), PREPARATION, PREPARATION));
+					if(temperatureStabalizationDelay)
+						newCommands.push(Command("G4 S" + to_string(temperatureStabalizationDelay), PREPARATION, PREPARATION));
+					newCommands.push(Command("M106 S" + to_string(fanSpeed), PREPARATION, PREPARATION));
 					newCommands.push(Command("M17", PREPARATION, PREPARATION));
 					newCommands.push(Command("G0 Z" + to_string(cornerZ + 3) + " F48", PREPARATION, PREPARATION));
 					newCommands.push(Command("G92 E0", PREPARATION, PREPARATION));
@@ -2110,26 +2132,10 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 				thermalBondingLayerCounter++;
 	
 				// Check if on first counted layer
-				if(thermalBondingLayerCounter == 1) {
+				if(thermalBondingLayerCounter == 1)
 				
-					// Check if filament type is ABS-R
-					if(filamentType == ABS_R)
-					
-						// Add temperature to output
-						newCommands.push(Command("M109 S" + to_string(getBoundedTemperature(filamentTemperature + 15, firmwareType == M3D_MOD ? 315 : 285)), THERMAL, THERMAL));
-					
-					// Otherwise check if filament type is TGH or FLX
-					else if(filamentType == TGH || filamentType == FLX)
-					
-						// Add temperature to output
-						newCommands.push(Command("M109 S" + to_string(getBoundedTemperature(filamentTemperature - 15, firmwareType == M3D_MOD ? 315 : 285)), THERMAL, THERMAL));
-					
-					// Otherwise
-					else
-	
-						// Add temperature to output
-						newCommands.push(Command("M109 S" + to_string(getBoundedTemperature(filamentTemperature + 10, firmwareType == M3D_MOD ? 315 : 285)), THERMAL, THERMAL));
-				}
+					// Add temperature to output
+					newCommands.push(Command("M109 S" + to_string(getBoundedTemperature(filamentTemperature + firstLayerTemperatureChange, firmwareType == M3D_MOD ? 315 : 285)), THERMAL, THERMAL));
 		
 				// Otherwise
 				else

@@ -1,5 +1,12 @@
 Changelog:
 
+V1.1 July 20, 2016
+
+	* Added CAM slicer profile
+	* Displays dialog when slicing and pre-processing a file
+	* Fixed issue where temporary files wouldn't be deleted after they were done being used
+	* Provides iMe V00.00.00.12 printer firmware
+
 V1.0 July 13, 2016
 
 	* First non-beta release of M33 Fio. Huge thanks to everyone who has tested and contributed to it over the last year!

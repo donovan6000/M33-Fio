@@ -446,6 +446,9 @@ class M33FioPlugin(
 		self.onNewPrintedLayer = False
 		self.tackPointAngle = 0.0
 		self.tackPointTime = 0.0
+		self.temperatureStabalizationDelay = 0
+		self.fanSpeed = 0
+		self.firstLayerTemperatureChange = 0
 		
 		# Print settings
 		self.resetPrintSettings()
@@ -1176,16 +1179,11 @@ class M33FioPlugin(
 	# Covert Cura to profile
 	def convertCuraToProfile(self, input, output, name, displayName, description) :
 	
-		# Create input file
-		fd, curaProfile = tempfile.mkstemp()
-			
-		# Remove comments from input
-		for line in open(input) :
-			if ';' in line and ".gcode" not in line and line[0] != '\t' :
-				os.write(fd, line[0 : line.index(';')] + '\n')
-			else :
-				os.write(fd, line)
-		os.close(fd)
+		# Cura Engine plugin doesn't support solidarea_speed, perimeter_before_infill, raft_airgap_all, raft_surface_thickness, raft_surface_linewidth, plugin_config, object_center_x, and object_center_y
+	
+		# Clean up input
+		curaProfile = tempfile.mkstemp()[1]
+		self.curaProfileCleanUp(input, curaProfile)
 		
 		# Import profile manager
 		profileManager = imp.load_source("Profile", self._slicing_manager.get_slicer("cura")._basefolder.replace('\\', '/') + "/profile.py")
@@ -1193,22 +1191,18 @@ class M33FioPlugin(
 		# Create profile
 		profile = octoprint.slicing.SlicingProfile("cura", name, profileManager.Profile.from_cura_ini(curaProfile), displayName, description)
 		
+		# Remove temporary file
+		os.remove(curaProfile)
+		
 		# Save profile
 		self._slicing_manager.get_slicer("cura").save_slicer_profile(output, profile)
 	
 	# Covert Slic3r to profile
 	def convertSlic3rToProfile(self, input, output, name, displayName, description) :
 	
-		# Create input file
-		fd, slic3rProfile = tempfile.mkstemp()
-			
-		# Remove comments from input
-		for line in open(input) :
-			if ';' in line and "_gcode" not in line and line[0] != '\t' :
-				os.write(fd, line[0 : line.index(';')] + '\n')
-			else :
-				os.write(fd, line)
-		os.close(fd)
+		# Clean up input
+		slic3rProfile = tempfile.mkstemp()[1]
+		self.slic3rProfileCleanUp(input, slic3rProfile)
 		
 		# Import profile manager
 		profileManager = imp.load_source("Profile", self._slicing_manager.get_slicer("slic3r")._basefolder.replace('\\', '/') + "/profile.py")
@@ -1216,8 +1210,52 @@ class M33FioPlugin(
 		# Create profile
 		profile = octoprint.slicing.SlicingProfile("slic3r", name, profileManager.Profile.from_slic3r_ini(slic3rProfile)[0], displayName, description)
 		
+		# Remove temporary file
+		os.remove(slic3rProfile)
+		
 		# Save profile
 		self._slicing_manager.get_slicer("slic3r").save_slicer_profile(output, profile)
+	
+	# Cura profile cleanup
+	def curaProfileCleanUp(self, input, output) :
+	
+		# Create output
+		output = open(output, "wb")
+	
+		# Go through all lines in input
+		for line in open(input) :
+		
+			# Fix G-code lines
+			match = re.findall("^(.+)(\d+)\.gcode", line)
+			if len(match) :
+				line = match[0][0] + ".gcode" + match[0][1] + line[len(match[0][0]) + len(match[0][1]) + 6 :]
+			
+			# Remove comments from input
+			if ';' in line and ".gcode" not in line and line[0] != '\t' :
+				output.write(line[0 : line.index(';')] + '\n')
+			else :
+				output.write(line)
+		
+		# Close output
+		output.close()
+	
+	# Slic3r profile cleanup
+	def slic3rProfileCleanUp(self, input, output) :
+	
+		# Create output
+		output = open(output, "wb")
+	
+		# Go through all lines in input
+		for line in open(input) :
+		
+			# Remove comments from input
+			if ';' in line and "_gcode" not in line and line[0] != '\t' :
+				output.write(line[0 : line.index(';')] + '\n')
+			else :
+				output.write(line)
+		
+		# Close output
+		output.close()
 	
 	# Covert Profile to Cura
 	def convertProfileToCura(self, input, output, printerProfile) :
@@ -1321,7 +1359,7 @@ class M33FioPlugin(
 				currentValue = "simple_mode"
 			
 			# Append values to alterations or settings
-			if currentValue.endswith("gcode") :
+			if currentValue.endswith(".gcode") :
 				alterations[currentValue] = values[key]
 			
 			else :
@@ -1402,7 +1440,7 @@ class M33FioPlugin(
 				if index == 0 :
 					output.write(str(key) + " = " + str(alterations[key][index]).replace("\n\n", '\n').replace('\n', "\n\t").rstrip() + '\n')
 				else :
-					output.write(str(key) + str(index + 1) + " = " + str(alterations[key][index]).replace("\n\n", '\n').replace('\n', "\n\t").rstrip() + '\n')
+					output.write(str(key)[0 : str(key).find('.')] + str(index + 1) + str(key)[str(key).find('.') : ] + " = " + str(alterations[key][index]).replace("\n\n", '\n').replace('\n', "\n\t").rstrip() + '\n')
 				index += 1
 	
 	# Covert Profile to Slic3r
@@ -2322,17 +2360,14 @@ class M33FioPlugin(
 				# Remove file in destination if it already exists
 				if os.path.isfile(fileDestination) :
 					os.remove(fileDestination)
-			
-				# Copy file to accessible location
-				temp = tempfile.mkstemp()[1]
-				shutil.copyfile(fileLocation, temp)
 				
+				# Copy file to accessible location
 				if values["slicerName"] == "cura" :
-					self.convertProfileToCura(temp, fileDestination, values["printerProfileName"])
+					self.convertProfileToCura(fileLocation, fileDestination, values["printerProfileName"])
 				elif values["slicerName"] == "slic3r" :
-					self.convertProfileToSlic3r(temp, fileDestination, values["printerProfileName"])
+					self.convertProfileToSlic3r(fileLocation, fileDestination, values["printerProfileName"])
 				else :
-					shutil.move(temp, fileDestination)
+					shutil.copyfile(fileLocation, fileDestination)
 				
 				# Return location
 				return flask.jsonify(dict(value = "OK", path = "m33fio/download/" + destinationName))
@@ -4151,7 +4186,7 @@ class M33FioPlugin(
 			elif response[6 : 10] == "1007" :
 				response = "ok Move to large\n"
 			elif response[6 : 10] == "1008" :
-				response = "ok System has been inactive for too long, heater and motors have been turned off\n"
+				response = "ok Printer has been inactive for too long, heater and motors have been turned off\n"
 			elif response[6 : 10] == "1009" :
 				response = "ok Target address out of range\n"
 			elif response[6 : 10] == "1010" :
@@ -4184,23 +4219,14 @@ class M33FioPlugin(
 		
 			# Move original files back
 			os.remove(self.slicerChanges["Slicer Profile Location"])
-			shutil.copyfile(self.slicerChanges["Slicer Profile Temporary"], self.slicerChanges["Slicer Profile Location"])
+			shutil.move(self.slicerChanges["Slicer Profile Temporary"], self.slicerChanges["Slicer Profile Location"])
 			
 			if "Model Temporary" in self.slicerChanges :
 				os.remove(self.slicerChanges["Model Location"])
-				shutil.copyfile(self.slicerChanges["Model Temporary"], self.slicerChanges["Model Location"])
+				shutil.move(self.slicerChanges["Model Temporary"], self.slicerChanges["Model Location"])
 		
 			# Restore printer profile
 			self._printer_profile_manager.save(self.slicerChanges["Printer Profile Content"], True)
-			
-			# Attempt to remove temporary files
-			try :
-				os.remove(self.slicerChanges["Slicer Profile Temporary"])
-				
-				if "Model Temporary" in self.slicerChanges :
-					os.remove(self.slicerChanges["Model Temporary"])
-			except Exception :
-				pass
 			
 			# Clear slicer changes
 			self.slicerChanges = None
@@ -6628,6 +6654,9 @@ class M33FioPlugin(
 				# Unload shared library
 				self.unloadSharedLibrary()
 				
+				# Remove temporary file
+				os.remove(input)
+				
 				# Return false
 				return False
 			
@@ -6993,6 +7022,33 @@ class M33FioPlugin(
 				# Return false
 				return False
 		
+		# Check if filement type is PLA, CAM, ABS, HIPS, FLX, TGH, or ABS-R
+		if str(self._settings.get(["FilamentType"])) == "PLA" or str(self._settings.get(["FilamentType"])) == "CAM" or str(self._settings.get(["FilamentType"])) == "ABS" or str(self._settings.get(["FilamentType"])) == "HIPS" or str(self._settings.get(["FilamentType"])) == "FLX" or str(self._settings.get(["FilamentType"])) == "TGH" or str(self._settings.get(["FilamentType"])) == "ABS-R" :
+		
+			# Set tack point angle and time
+			self.tackPointAngle = 90.0
+			self.tackPointTime = 0.01
+		
+			# Set temperature stabalization delay
+			if str(self._settings.get(["FilamentType"])) == "PLA" or str(self._settings.get(["FilamentType"])) == "CAM" or str(self._settings.get(["FilamentType"])) == "FLX" or str(self._settings.get(["FilamentType"])) == "TGH" :
+				self.temperatureStabalizationDelay = 15
+			else :
+				self.temperatureStabalizationDelay = 10
+		
+			# Set fan speed
+			if str(self._settings.get(["FilamentType"])) == "PLA" or str(self._settings.get(["FilamentType"])) == "CAM" or str(self._settings.get(["FilamentType"])) == "FLX" or str(self._settings.get(["FilamentType"])) == "TGH" :
+				self.fanSpeed = 255
+			else :
+				self.fanSpeed = 50
+			
+			# Set first layer temperature change
+			if str(self._settings.get(["FilamentType"])) == "PLA" or str(self._settings.get(["FilamentType"])) == "CAM" :
+				self.firstLayerTemperatureChange = 10
+			elif str(self._settings.get(["FilamentType"])) == "FLX" or str(self._settings.get(["FilamentType"])) == "TGH" :
+				self.firstLayerTemperatureChange = -5
+			elif str(self._settings.get(["FilamentType"])) == "ABS" or str(self._settings.get(["FilamentType"])) == "HIPS" or str(self._settings.get(["FilamentType"])) == "ABS-R" :
+				self.firstLayerTemperatureChange = 15
+		
 		# Check if all fan commands are being removed
 		if self.detectedFanSpeed is None or self._settings.get_boolean(["RemoveFanCommands"]) :
 		
@@ -7003,10 +7059,7 @@ class M33FioPlugin(
 		if self._settings.get_boolean(["UsePreparationPreprocessor"]) or self.printingTestBorder or self.printingBacklashCalibration :
 		
 			# Set detected fan speed
-			if str(self._settings.get(["FilamentType"])) == "PLA" or str(self._settings.get(["FilamentType"])) == "FLX" or str(self._settings.get(["FilamentType"])) == "TGH" :
-				self.detectedFanSpeed = 255
-			else :
-				self.detectedFanSpeed = 50
+			self.detectedFanSpeed = self.fanSpeed
 		
 		# Get mid-print filament change layers
 		self.midPrintFilamentChangeLayers = re.findall("\\d+", str(self._settings.get(["MidPrintFilamentChangeLayers"])))
@@ -7016,13 +7069,6 @@ class M33FioPlugin(
 		
 			# Set mid-print filament change
 			self.detectedMidPrintFilamentChange = True
-		
-		# Check if filement type is PLA, ABS, HIPS, FLX, TGH, CAM, or ABS-R
-		if str(self._settings.get(["FilamentType"])) == "PLA" or str(self._settings.get(["FilamentType"])) == "ABS" or str(self._settings.get(["FilamentType"])) == "HIPS" or str(self._settings.get(["FilamentType"])) == "FLX" or str(self._settings.get(["FilamentType"])) == "TGH" or str(self._settings.get(["FilamentType"])) == "CAM" or str(self._settings.get(["FilamentType"])) == "ABS-R" :
-		
-			# Set tack point angle and time
-			self.tackPointAngle = 90.0
-			self.tackPointTime = 0.01
 		
 		# Return true
 		return True
@@ -7624,10 +7670,7 @@ class M33FioPlugin(
 						newCommands.append(Command("M104 S0", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 						newCommands.append(Command("M107", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 						newCommands.append(Command("G30", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
-					if str(self._settings.get(["FilamentType"])) == "PLA" or str(self._settings.get(["FilamentType"])) == "FLX" or str(self._settings.get(["FilamentType"])) == "TGH" :
-						newCommands.append(Command("M106 S255", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
-					else :
-						newCommands.append(Command("M106 S50", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					newCommands.append(Command("M106 S1", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 					newCommands.append(Command("M17", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 					newCommands.append(Command("G90", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 					newCommands.append(Command("M104 S" + str(self._settings.get_int(["FilamentTemperature"])), "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
@@ -7644,7 +7687,9 @@ class M33FioPlugin(
 						# Prepare extruder the standard way
 						newCommands.append(Command("M18", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 						newCommands.append(Command("M109 S" + str(self._settings.get_int(["FilamentTemperature"])), "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
-						newCommands.append(Command("G4 S2", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						if self.temperatureStabalizationDelay != 0 :
+							newCommands.append(Command("G4 S" + str(self.temperatureStabalizationDelay), "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M106 S" + str(self.fanSpeed), "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 						newCommands.append(Command("M17", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 						newCommands.append(Command("G92 E0", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 						newCommands.append(Command("G0 Z0.4 F48", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
@@ -7656,6 +7701,9 @@ class M33FioPlugin(
 						newCommands.append(Command("G0 X%f Y%f F1800" % (54 + cornerX, 50 + cornerY), "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 						newCommands.append(Command("M18", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 						newCommands.append(Command("M109 S" + str(self._settings.get_int(["FilamentTemperature"])), "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						if self.temperatureStabalizationDelay != 0 :
+							newCommands.append(Command("G4 S" + str(self.temperatureStabalizationDelay), "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						newCommands.append(Command("M106 S" + str(self.fanSpeed), "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 						newCommands.append(Command("M17", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 						newCommands.append(Command("G0 Z%f F48" % (cornerZ + 3), "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 						newCommands.append(Command("G92 E0", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
@@ -8062,32 +8110,11 @@ class M33FioPlugin(
 					# Check if on first counted layer
 					if self.thermalBondingLayerCounter == 1 :
 		
-						# Check if filament type is ABS-R
-						if str(self._settings.get(["FilamentType"])) == "ABS-R" :
-		
-							# Add temperature to output
-							if self.currentFirmwareType == "M3D Mod" :
-								newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 15, 315)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
-							else :
-								newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 15, 285)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
-						
-						# Otherwise check if filament type is TGH or FLX
-						elif str(self._settings.get(["FilamentType"])) == "TGH" or str(self._settings.get(["FilamentType"])) == "FLX" :
-		
-							# Add temperature to output
-							if self.currentFirmwareType == "M3D Mod" :
-								newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) - 15, 315)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
-							else :
-								newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) - 15, 285)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
-							
-						# Otherwise
+						# Add temperature to output
+						if self.currentFirmwareType == "M3D Mod" :
+							newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + self.firstLayerTemperatureChange, 315)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
 						else :
-			
-							# Add temperature to output
-							if self.currentFirmwareType == "M3D Mod" :
-								newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 10, 315)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
-							else :
-								newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + 10, 285)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
+							newCommands.append(Command("M109 S" + str(self.getBoundedTemperature(self._settings.get_int(["FilamentTemperature"]) + self.firstLayerTemperatureChange, 285)), "THERMAL", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL"))
 					
 					# Otherwise
 					else :
@@ -8722,7 +8749,10 @@ class M33FioPlugin(
 			elif flask.request.values["Slicer Name"] == "slic3r" :
 				self.convertSlic3rToProfile(temp, profileLocation, '', '', '')
 			else :
-				shutil.move(temp, profileLocation)
+				shutil.copyfile(temp, profileLocation)
+			
+			# Remove temporary file
+			os.remove(temp)
 			
 			# Get printer profile
 			printerProfile = self._printer_profile_manager.get(flask.request.values["Printer Profile Name"])
@@ -8854,13 +8884,21 @@ class M33FioPlugin(
 					output.write(chr(ord(character)))
 				output.close()
 				
+				# Clean up input
+				curaProfile = tempfile.mkstemp()[1]
+				self.curaProfileCleanUp(temp, curaProfile)
+				
 				# Attempt to convert profile
 				try :
-					profile = profileManager.Profile.from_cura_ini(temp)
+					profile = profileManager.Profile.from_cura_ini(curaProfile)
 				
-				# Return error if conversion failed
+				# Set profile to none if conversion failed
 				except Exception :
-					return flask.jsonify(dict(value = "Error"))
+					profile = None
+				
+				# Remove temporary files
+				os.remove(temp)
+				os.remove(curaProfile)
 				
 				# Check if profile is invalid
 				if profile is None :
@@ -8882,13 +8920,21 @@ class M33FioPlugin(
 					output.write(chr(ord(character)))
 				output.close()
 				
+				# Clean up input
+				slic3rProfile = tempfile.mkstemp()[1]
+				self.slic3rProfileCleanUp(temp, slic3rProfile)
+				
 				# Attempt to convert profile
 				try :
-					profile = profileManager.Profile.from_slic3r_ini(temp)
+					profile = profileManager.Profile.from_slic3r_ini(slic3rProfile)
 				
-				# Return error if conversion failed
+				# Set profile to none if conversion failed
 				except Exception :
-					return flask.jsonify(dict(value = "Error"))
+					profile = None
+				
+				# Remove temporary files
+				os.remove(temp)
+				os.remove(slic3rProfile)
 				
 				# Check if profile is invalid
 				if profile is None :
