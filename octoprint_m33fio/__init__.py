@@ -681,7 +681,7 @@ class M33FioPlugin(
 				if self._printer_profile_manager.exists("micro_3d") :
 					printerProfile = self._printer_profile_manager.get("micro_3d")
 					printerProfile["heatedBed"] = False
-					self._printer_profile_manager.save(printerProfile, True)
+					self._printer_profile_manager.save(printerProfile, True, not self._settings.get_boolean(["NotUsingAMicro3DPrinter"]))
 			
 				# Send message
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Heatbed Not Detected"))
@@ -751,7 +751,7 @@ class M33FioPlugin(
 							if self._printer_profile_manager.exists("micro_3d") :
 								printerProfile = self._printer_profile_manager.get("micro_3d")
 								printerProfile["heatedBed"] = True
-								self._printer_profile_manager.save(printerProfile, True)
+								self._printer_profile_manager.save(printerProfile, True, not self._settings.get_boolean(["NotUsingAMicro3DPrinter"]))
 							
 							# Set heatbed connected
 							self.heatbedConnected = True
@@ -821,7 +821,7 @@ class M33FioPlugin(
 		if self.heatbedConnected :
 			printerProfile["heatedBed"] = True
 		
-		self._printer_profile_manager.save(printerProfile, True)
+		self._printer_profile_manager.save(printerProfile, True, not self._settings.get_boolean(["NotUsingAMicro3DPrinter"]))
 	
 	# On startup
 	def on_startup(self, host, port) :
@@ -1182,7 +1182,8 @@ class M33FioPlugin(
 		# Cura Engine plugin doesn't support solidarea_speed, perimeter_before_infill, raft_airgap_all, raft_surface_thickness, raft_surface_linewidth, plugin_config, object_center_x, and object_center_y
 	
 		# Clean up input
-		curaProfile = tempfile.mkstemp()[1]
+		fd, curaProfile = tempfile.mkstemp()
+		os.close(fd)
 		self.curaProfileCleanUp(input, curaProfile)
 		
 		# Import profile manager
@@ -1201,7 +1202,8 @@ class M33FioPlugin(
 	def convertSlic3rToProfile(self, input, output, name, displayName, description) :
 	
 		# Clean up input
-		slic3rProfile = tempfile.mkstemp()[1]
+		fd, slic3rProfile = tempfile.mkstemp()
+		os.close(fd)
 		self.slic3rProfileCleanUp(input, slic3rProfile)
 		
 		# Import profile manager
@@ -1608,7 +1610,7 @@ class M33FioPlugin(
 		if self._printer_profile_manager.exists("micro_3d") :
 		
 			# Clear profile changed
-			profileChanged = False
+			profileChanged = not self._settings.get_boolean(["NotUsingAMicro3DPrinter"])
 		
 			# Check if external bed height setting changes
 			if oldExternalBedHeight != self._settings.get_float(["ExternalBedHeight"]) :
@@ -6682,7 +6684,8 @@ class M33FioPlugin(
 					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "notice", title = "Print warning", text = "Object too large to center on print bed"))
 			
 			# Move the input file to a temporary file
-			temp = tempfile.mkstemp()[1]
+			fd, temp = tempfile.mkstemp()
+			os.close(fd)
 			shutil.move(input, temp)
 			
 			# Check if shared library was loaded
@@ -8728,16 +8731,19 @@ class M33FioPlugin(
 				return flask.jsonify(dict(value = "Error"))
 		
 			# Move original slicer profile to temporary locations
-			profileTemp = tempfile.mkstemp()[1]
+			fd, profileTemp = tempfile.mkstemp()
+			os.close(fd)
 			shutil.move(profileLocation, profileTemp)
 			
 			# Move original model to temporary location
 			if modelModified :
-				modelTemp = tempfile.mkstemp()[1]
+				fd, modelTemp = tempfile.mkstemp()
+				os.close(fd)
 				shutil.move(modelLocation, modelTemp)
 		
 			# Save slicer profile to original slicer profile's location
-			temp = tempfile.mkstemp()[1]
+			fd, temp = tempfile.mkstemp()
+			os.close(fd)
 		
 			output = open(temp, "wb")
 			for character in flask.request.values["Slicer Profile Content"] :
@@ -8877,7 +8883,8 @@ class M33FioPlugin(
 				profileManager = imp.load_source("Profile", self._slicing_manager.get_slicer("cura")._basefolder.replace('\\', '/') + "/profile.py")
 					
 				# Save profile to temporary file
-				temp = tempfile.mkstemp()[1]
+				fd, temp = tempfile.mkstemp()
+				os.close(fd)
 				
 				output = open(temp, "wb")
 				for character in flask.request.values["Slicer Profile Content"] :
@@ -8885,7 +8892,8 @@ class M33FioPlugin(
 				output.close()
 				
 				# Clean up input
-				curaProfile = tempfile.mkstemp()[1]
+				fd, curaProfile = tempfile.mkstemp()
+				os.close(fd)
 				self.curaProfileCleanUp(temp, curaProfile)
 				
 				# Attempt to convert profile
@@ -8913,7 +8921,8 @@ class M33FioPlugin(
 				profileManager = imp.load_source("Profile", self._slicing_manager.get_slicer("slic3r")._basefolder.replace('\\', '/') + "/profile.py")
 					
 				# Save profile to temporary file
-				temp = tempfile.mkstemp()[1]
+				fd, temp = tempfile.mkstemp()
+				os.close(fd)
 				
 				output = open(temp, "wb")
 				for character in flask.request.values["Slicer Profile Content"] :
@@ -8921,7 +8930,8 @@ class M33FioPlugin(
 				output.close()
 				
 				# Clean up input
-				slic3rProfile = tempfile.mkstemp()[1]
+				fd, slic3rProfile = tempfile.mkstemp()
+				os.close(fd)
 				self.slic3rProfileCleanUp(temp, slic3rProfile)
 				
 				# Attempt to convert profile
