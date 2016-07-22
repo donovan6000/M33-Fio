@@ -1,5 +1,9 @@
 Changelog:
 
+V1.2 July 22, 2016
+
+	* Fixed issue with M33 Fio not working on Windows
+
 V1.1 July 20, 2016
 
 	* Added CAM slicer profile

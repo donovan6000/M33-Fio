@@ -13102,6 +13102,18 @@ $(function() {
 			}
 			setTimeout(updateSlicingStatus, 300);
 		}
+		
+		// Check if using Windows
+		if(navigator.platform.indexOf("Win") != -1)
+		
+			// Fix Windows specific CSS issues
+			$("#control div.jog-panel.eeprom input[type=\"radio\"]").addClass("windows");
+		
+		// Otherwise check if using OS X
+		else if(navigator.platform.indexOf("Mac") != -1)
+		
+			// Fix OS X specific CSS issues
+			$("#settings_plugin_m33fio label.checkbox > span, #control div.jog-panel.eeprom input, #control div.jog-panel.eeprom input[type=\"radio\"]").addClass("osx");
 	}
 
 	// Register plugin

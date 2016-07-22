@@ -78,6 +78,10 @@
 	top: 9px;
 }
 
+#settings_plugin_m33fio label.checkbox > span.osx {
+	top: 0;
+}
+
 #settings_plugin_m33fio input[type="checkbox"] {
 	background: transparent;
 	border: 0;
@@ -346,6 +350,10 @@
 	text-align: center;
 }
 
+#control div.jog-panel.eeprom input.osx {
+	padding: 0 2px 2px 2px;
+}
+
 #control div.jog-panel.eeprom input:disabled {
 	cursor: default;
 	background-color: #EEE !important;
@@ -357,6 +365,10 @@
 	top: 1px;
 	width: 13px;
 	height: 13px;
+}
+
+#control div.jog-panel.eeprom input[type="radio"].windows, #control div.jog-panel.eeprom input[type="radio"].osx {
+	top: 0;
 }
 
 #control div.jog-panel.eeprom input[type="radio"] + label {
@@ -646,8 +658,8 @@ body > div.page-container > div.message > div > div > span.show {
 }
 
 #slicing_configuration_dialog.profile {
-	max-width: 830px !important;
-	min-width: 770px !important;
+	max-width: 850px !important;
+	min-width: 810px !important;
 	min-height: 137px !important;
 }
 
@@ -828,6 +840,7 @@ body > div.page-container > div.message > div > div > span.show {
 
 #slicing_configuration_dialog .slicerSpecific .settings {
 	margin: 1px 0 -1px 0;
+	white-space: nowrap;
 }
 
 #slicing_configuration_dialog .slicerSpecific .settings label {
