@@ -177,7 +177,7 @@ else :
 		ipAddress = socket.gethostbyname(socket.gethostname())
 	
 	# Display hosting information
-	print "Using webcam device " + str(cameraPort) + " with a resolution of " + str(cameraWidth) + 'x' + str(cameraHeight) + " running at " + str(int(1.0 / cameraFrameDelay)) + " frames per second"
+	print "Using webcam device " + str(cameraPort) + " with a resolution of " + str(cameraWidth) + 'x' + str(cameraHeight) + " running at " + str(int(1.0 / cameraFrameDelay)) + " frames/second"
 	print "Hosting webcam still image at http://" + ipAddress + ':' + str(httpPort) + "/snapshot.jpg"
 	print "Hosting webcam video stream at http://" + ipAddress + ':' + str(httpPort) + "/stream.mjpg"
 
@@ -266,7 +266,7 @@ else :
 				# Create output device
 				outputDevice = QTKit.QTCaptureDecompressedVideoOutput.alloc().init()
 
-				# Set fames per second
+				# Set fames/second
 				outputDevice.setMinimumVideoFrameInterval_(cameraFrameDelay)
 				outputDevice.setAutomaticallyDropsLateVideoFrames_(True)
 

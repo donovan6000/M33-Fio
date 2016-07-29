@@ -1,5 +1,11 @@
 Changelog:
 
+V1.3 July 28, 2016
+
+	* Provides iMe V00.00.01.06 printer firmware
+	* Allows setting steps/mm for each of the motors
+	* Fixed compatibility with OctoPrint V1.2.14
+
 V1.2 July 22, 2016
 
 	* Fixed issue with M33 Fio not working on Windows
