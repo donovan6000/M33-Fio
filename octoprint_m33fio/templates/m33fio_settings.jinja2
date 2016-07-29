@@ -79,7 +79,7 @@
 		</div>
 	</div>
 	<div class="control-group dependant camera">
-		<label class="control-label">Camera Frames Per Second</label>
+		<label class="control-label">Camera Frames/Second</label>
 		<div class="controls">
 			<div class="input-append">
 				<input type="number" step="1" min="1" max="60" class="input-block-level" data-bind="value: settings.plugins.m33fio.CameraFramesPerSecond">
@@ -389,6 +389,45 @@
 			<div class="input-append mmPerMinute">
 				<input type="number" step="1" min="60" max="720" class="input-block-level" data-bind="value: settings.plugins.m33fio.SpeedLimitENegative">
 				<span class="add-on">mm/min</span>
+			</div>
+		</div>
+	</div>
+	<div class="control-group empty micro3d">
+		<h4><span class="label label-important">Steps/mm settings have no effect when using M3D or M3D Mod firmware</span></h4>
+	</div>
+	<div class="control-group micro3d" title="Amount of steps/mm for the X motor">
+		<label class="control-label">X Motor Steps/mm</label>
+		<div class="controls">
+			<div class="input-append stepsPerMm">
+				<input type="number" step="0.000001" min="0.000001" class="input-block-level" data-bind="value: settings.plugins.m33fio.XMotorStepsPerMm">
+				<span class="add-on">steps/mm</span>
+			</div>
+		</div>
+	</div>
+	<div class="control-group micro3d" title="Amount of steps/mm for the Y motor">
+		<label class="control-label">Y Motor Steps/mm</label>
+		<div class="controls">
+			<div class="input-append stepsPerMm">
+				<input type="number" step="0.000001" min="0.000001" class="input-block-level" data-bind="value: settings.plugins.m33fio.YMotorStepsPerMm">
+				<span class="add-on">steps/mm</span>
+			</div>
+		</div>
+	</div>
+	<div class="control-group micro3d" title="Amount of steps/mm for the Z motor">
+		<label class="control-label">Z Motor Steps/mm</label>
+		<div class="controls">
+			<div class="input-append stepsPerMm">
+				<input type="number" step="0.000001" min="0.000001" class="input-block-level" data-bind="value: settings.plugins.m33fio.ZMotorStepsPerMm">
+				<span class="add-on">steps/mm</span>
+			</div>
+		</div>
+	</div>
+	<div class="control-group micro3d" title="Amount of steps/mm for the E motor">
+		<label class="control-label">E Motor Steps/mm</label>
+		<div class="controls">
+			<div class="input-append stepsPerMm">
+				<input type="number" step="0.000001" min="0.000001" class="input-block-level" data-bind="value: settings.plugins.m33fio.EMotorStepsPerMm">
+				<span class="add-on">steps/mm</span>
 			</div>
 		</div>
 	</div>

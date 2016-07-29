@@ -347,19 +347,19 @@ class M33FioPlugin(
 				offset = 0x2C0,
 				bytes = 4
 			),
-			xAxisStepsPerMm = dict(
+			xMotorStepsPerMm = dict(
 				offset = 0x2D6,
 				bytes = 4
 			),
-			yAxisStepsPerMm = dict(
+			yMotorStepsPerMm = dict(
 				offset = 0x2DA,
 				bytes = 4
 			),
-			zAxisStepsPerMm = dict(
+			zMotorStepsPerMm = dict(
 				offset = 0x2DE,
 				bytes = 4
 			),
-			eAxisStepsPerMm = dict(
+			eMotorStepsPerMm = dict(
 				offset = 0x2E2,
 				bytes = 4
 			),
@@ -1552,6 +1552,10 @@ class M33FioPlugin(
 			SpeedLimitZ = 60,
 			SpeedLimitEPositive = 102,
 			SpeedLimitENegative = 360,
+			XMotorStepsPerMm = 19.3067875,
+			YMotorStepsPerMm = 18.00885,
+			ZMotorStepsPerMm = 646.3295,
+			EMotorStepsPerMm = 128.451375,
 			ChangeSettingsBeforePrint = True,
 			NotUsingAMicro3DPrinter = False,
 			CalibrateBeforePrint = False,
@@ -2399,7 +2403,11 @@ class M33FioPlugin(
 					SpeedLimitEPositive = self._settings.get_float(["SpeedLimitEPositive"]),
 					SpeedLimitENegative = self._settings.get_float(["SpeedLimitENegative"]),
 					ExternalBedHeight = self._settings.get_float(["ExternalBedHeight"]),
-					ExpandPrintableRegion = self._settings.get_boolean(["ExpandPrintableRegion"])
+					ExpandPrintableRegion = self._settings.get_boolean(["ExpandPrintableRegion"]),
+					XMotorStepsPerMm = self._settings.get_float(["XMotorStepsPerMm"]),
+					YMotorStepsPerMm = self._settings.get_float(["YMotorStepsPerMm"]),
+					ZMotorStepsPerMm = self._settings.get_float(["ZMotorStepsPerMm"]),
+					EMotorStepsPerMm = self._settings.get_float(["EMotorStepsPerMm"])
 				)
 				
 				# Set file's destination
@@ -2490,6 +2498,18 @@ class M33FioPlugin(
 				
 				if "ExpandPrintableRegion" in printerSettings :
 					self._settings.set_boolean(["ExpandPrintableRegion"], bool(printerSettings["ExpandPrintableRegion"]))
+				
+				if "XMotorStepsPerMm" in printerSettings :
+					self._settings.set_float(["XMotorStepsPerMm"], float(printerSettings["XMotorStepsPerMm"]))
+				
+				if "YMotorStepsPerMm" in printerSettings :
+					self._settings.set_float(["YMotorStepsPerMm"], float(printerSettings["YMotorStepsPerMm"]))
+				
+				if "ZMotorStepsPerMm" in printerSettings :
+					self._settings.set_float(["ZMotorStepsPerMm"], float(printerSettings["ZMotorStepsPerMm"]))
+				
+				if "EMotorStepsPerMm" in printerSettings :
+					self._settings.set_float(["EMotorStepsPerMm"], float(printerSettings["EMotorStepsPerMm"]))
 				
 				# Check if a Micro 3D is connected and not printing
 				if not self.invalidPrinter and not self._printer.is_printing() :
@@ -2973,7 +2993,6 @@ class M33FioPlugin(
 		decryptedRom = ''
 		oldChipCrc = 0
 		newChipCrc = 0
-		eepromCrc = 0
 		
 		# Check if rom isn't encrypted
 		if encryptedRom[0] == '\x0C' or encryptedRom[0] == '\xFD' :
@@ -3137,86 +3156,89 @@ class M33FioPlugin(
 					
 							# Check if firmware update was successful
 							if newChipCrc == romCrc :
-					
-								# Get firmware CRC from EEPROM
-								eepromCrc = self.eepromGetInt("firmwareCrc")
-								
-								# Check if Z state wasn't saved or previous firmware was corrupt
-								if self.eepromGetInt("savedZState") == 0 or oldChipCrc != eepromCrc :
-								
+							
+								# Check if Z state wasn't saved
+								if self.eepromGetInt("savedZState") == 0 :
+						
 									# Set error to if zeroing out last recorded Z value in EEPROM failed
 									error = self.eepromSetInt(connection, "lastRecordedZValue", 0)
 								
-								# Otherwise
-								else :
-								
+								# Check if an error hasn't occured
+								if not error :
+					
 									# Get firmware version from EEPROM
 									eepromFirmwareVersion = self.eepromGetInt("firmwareVersion")
-									
+								
 									# Get old firmware type
 									oldFirmwareType = None
 									for firmware in self.providedFirmwares :
 										if int(self.providedFirmwares[firmware]["Version"]) / 100000000 == eepromFirmwareVersion / 100000000 :
 											oldFirmwareType = self.providedFirmwares[firmware]["Type"]
 											break
-									
+								
 									# Get new firmware type
 									newFirmwareType = None
 									for firmware in self.providedFirmwares :
 										if int(self.providedFirmwares[firmware]["Version"]) / 100000000 == romVersion / 100000000 :
 											newFirmwareType = self.providedFirmwares[firmware]["Type"]
 											break
-									
+								
 									# Check if old and new firmware types are known
 									if oldFirmwareType is not None and newFirmwareType is not None :
-									
+								
 										# Check if going from M3D or M3D Mod firmware to iMe firmware
 										if (oldFirmwareType == "M3D" or oldFirmwareType == "M3D Mod") and newFirmwareType == "iMe" :
+									
+											# Check if Z state was saved
+											if self.eepromGetInt("savedZState") != 0 :
+									
+												# Get current Z value from EEPROM
+												currentValueZ = self.eepromGetInt("lastRecordedZValue")
 										
-											# Get current Z value from EEPROM
-											currentValueZ = self.eepromGetInt("lastRecordedZValue")
-											
-											# Convert current Z to single-precision floating-point format used by iMe firmware
-											currentValueZ /= 5170.635833481
-											
-											# Set error to if setting current Z in EEPROM failed
-											error = self.eepromSetFloat(connection, "lastRecordedZValue", currentValueZ)
+												# Convert current Z to single-precision floating-point format used by iMe firmware
+												currentValueZ /= 5170.635833481
 										
+												# Set error to if setting current Z in EEPROM failed
+												error = self.eepromSetFloat(connection, "lastRecordedZValue", currentValueZ)
+									
 										# Otherwise check if going from iMe firmware to M3D or M3D Mod firmware
 										elif oldFirmwareType == "iMe" and (newFirmwareType == "M3D" or newFirmwareType == "M3D Mod") :
+									
+											# Check if Z state was saved
+											if self.eepromGetInt("savedZState") != 0 :
+									
+												# Get current Z value from EEPROM
+												currentValueZ = self.eepromGetFloat("lastRecordedZValue")
 										
-											# Get current Z value from EEPROM
-											currentValueZ = self.eepromGetFloat("lastRecordedZValue")
-											
-											# Convert current Z to unsigned 32-bit integer format used by M3D and M3D Mod firmwares
-											currentValueZ = int(round(currentValueZ * 5170.635833481))
-											
-											# Set error to if saving current Z in EEPROM failed
-											error = self.eepromSetInt(connection, "lastRecordedZValue", currentValueZ)
+												# Convert current Z to unsigned 32-bit integer format used by M3D and M3D Mod firmwares
+												currentValueZ = int(round(currentValueZ * 5170.635833481))
+										
+												# Set error to if saving current Z in EEPROM failed
+												error = self.eepromSetInt(connection, "lastRecordedZValue", currentValueZ)
+										
+											# Check if an error hasn't occured
+											if not error :
+										
+												# Set error to if clearing X and Y value, direction, and validity in EEPROM failed
+												error = self.eepromSetInt(connection, "lastRecordedXValue", 0, self.eepromOffsets["savedYState"]["offset"] + self.eepromOffsets["savedYState"]["bytes"] - self.eepromOffsets["lastRecordedXValue"]["offset"])
 											
 											# Check if an error hasn't occured
 											if not error :
-											
-												# Set error to if clearing X and Y value, direction, and validity in EEPROM failed
-												error = self.eepromSetInt(connection, "lastRecordedXValue", 0, self.eepromOffsets["savedYState"]["offset"] + self.eepromOffsets["savedYState"]["bytes"] - self.eepromOffsets["lastRecordedXValue"]["offset"])
+							
+												# Set error to if zeroing out steps/mm in EEPROM failed
+												error = self.eepromSetInt(connection, "xMotorStepsPerMm", 0, self.eepromOffsets["eMotorStepsPerMm"]["offset"] + self.eepromOffsets["eMotorStepsPerMm"]["bytes"] - self.eepromOffsets["xMotorStepsPerMm"]["offset"])
 								
 								# Check if an error hasn't occured
 								if not error :
+							
+									# Set error to if updating firmware version in EEPROM failed
+									error = self.eepromSetInt(connection, "firmwareVersion", romVersion)
 								
-									# Set error to if zeroing out steps per mm in EEPROM failed
-									error = self.eepromSetInt(connection, "xAxisStepsPerMm", 0, self.eepromOffsets["eAxisStepsPerMm"]["offset"] + self.eepromOffsets["eAxisStepsPerMm"]["bytes"] - self.eepromOffsets["xAxisStepsPerMm"]["offset"])
-								
-									# Check if an error hasn't occured
-									if not error :
-								
-										# Set error to if updating firmware version in EEPROM failed
-										error = self.eepromSetInt(connection, "firmwareVersion", romVersion)
-									
-										# Check if an error hasn't occured
-										if not error :
-								
-											# Set error to if updating firmware version in EEPROM failed
-											error = self.eepromSetInt(connection, "firmwareCrc", romCrc)
+								# Check if an error hasn't occured
+								if not error :
+						
+									# Set error to if updating firmware version in EEPROM failed
+									error = self.eepromSetInt(connection, "firmwareCrc", romCrc)
 					
 							# Otherwise
 							else :
@@ -5407,18 +5429,45 @@ class M33FioPlugin(
 							
 									# Set error to if limiting speed limit E negative failed
 									error = self.eepromKeepFloatWithinRange(connection, "speedLimitENegative", 60, 720, self.get_settings_defaults()["SpeedLimitENegative"])
+								
+								# Check if using iMe firmware
+								if firmwareType == "iMe" :
+								
+									# Check if an error hasn't occured
+									if not error :
 							
-								# Check if an error hasn't occured and using iMe firmware
-								if not error and firmwareType == "iMe" :
+										# Set error to if limiting last recorded X value failed
+										error = self.eepromKeepFloatWithinRange(connection, "lastRecordedXValue", -sys.float_info.max, sys.float_info.max, 54)
 							
-									# Set error to if limiting last recorded X value failed
-									error = self.eepromKeepFloatWithinRange(connection, "lastRecordedXValue", -sys.float_info.max, sys.float_info.max, 54)
+									# Check if an error hasn't occured
+									if not error :
 							
-								# Check if an error hasn't occured and using iMe firmware
-								if not error and firmwareType == "iMe" :
+										# Set error to if limiting last recorded Y value failed
+										error = self.eepromKeepFloatWithinRange(connection, "lastRecordedYValue", -sys.float_info.max, sys.float_info.max, 50)
+									
+									# Check if an error hasn't occured
+									if not error :
 							
-									# Set error to if limiting last recorded Y value failed
-									error = self.eepromKeepFloatWithinRange(connection, "lastRecordedYValue", -sys.float_info.max, sys.float_info.max, 50)
+										# Set error to if limiting X motor steps/mm failed
+										error = self.eepromKeepFloatWithinRange(connection, "xMotorStepsPerMm", sys.float_info.min, sys.float_info.max, self.get_settings_defaults()["XMotorStepsPerMm"])
+									
+									# Check if an error hasn't occured
+									if not error :
+							
+										# Set error to if limiting Y motor steps/mm failed
+										error = self.eepromKeepFloatWithinRange(connection, "yMotorStepsPerMm", sys.float_info.min, sys.float_info.max, self.get_settings_defaults()["YMotorStepsPerMm"])
+									
+									# Check if an error hasn't occured
+									if not error :
+							
+										# Set error to if limiting Z motor steps/mm failed
+										error = self.eepromKeepFloatWithinRange(connection, "zMotorStepsPerMm", sys.float_info.min, sys.float_info.max, self.get_settings_defaults()["ZMotorStepsPerMm"])
+									
+									# Check if an error hasn't occured
+									if not error :
+							
+										# Set error to if limiting E motor steps/mm failed
+										error = self.eepromKeepFloatWithinRange(connection, "eMotorStepsPerMm", sys.float_info.min, sys.float_info.max, self.get_settings_defaults()["EMotorStepsPerMm"])
 							
 								# Check if an error hasn't occured
 								if not error :
@@ -5739,15 +5788,28 @@ class M33FioPlugin(
 					"M619 S" + str(self.eepromOffsets["speedLimitY"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitY"]["bytes"]),
 					"M619 S" + str(self.eepromOffsets["speedLimitZ"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitZ"]["bytes"]),
 					"M619 S" + str(self.eepromOffsets["speedLimitEPositive"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitEPositive"]["bytes"]),
-					"M619 S" + str(self.eepromOffsets["speedLimitENegative"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitENegative"]["bytes"]),
-					"M619 S" + str(self.eepromOffsets["bedOrientationVersion"]["offset"]) + " T" + str(self.eepromOffsets["bedOrientationVersion"]["bytes"])
+					"M619 S" + str(self.eepromOffsets["speedLimitENegative"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitENegative"]["bytes"])
 				]
-			
+				
+				# Check if using iMe firmware
+				if self.currentFirmwareType == "iMe" :
+				
+					# Request motor's steps/mm
+					commands += [
+						"M619 S" + str(self.eepromOffsets["xMotorStepsPerMm"]["offset"]) + " T" + str(self.eepromOffsets["xMotorStepsPerMm"]["bytes"]),
+						"M619 S" + str(self.eepromOffsets["yMotorStepsPerMm"]["offset"]) + " T" + str(self.eepromOffsets["yMotorStepsPerMm"]["bytes"]),
+						"M619 S" + str(self.eepromOffsets["zMotorStepsPerMm"]["offset"]) + " T" + str(self.eepromOffsets["zMotorStepsPerMm"]["bytes"]),
+						"M619 S" + str(self.eepromOffsets["eMotorStepsPerMm"]["offset"]) + " T" + str(self.eepromOffsets["eMotorStepsPerMm"]["bytes"])
+					]
+				
 				# Lower LED brightness for clear color printers
 				if self.printerColor == "Clear" :
 					commands += ["M420 T20"]
 				else :
 					commands += ["M420 T100"]
+				
+				# Request bed orientation version
+				commands += ["M619 S" + str(self.eepromOffsets["bedOrientationVersion"]["offset"]) + " T" + str(self.eepromOffsets["bedOrientationVersion"]["bytes"])]
 				
 				# Send commands
 				self.sendCommands(commands)
@@ -6326,6 +6388,66 @@ class M33FioPlugin(
 				if self._settings.get_boolean(["AutomaticallyObtainSettings"]) :
 					self._settings.set_float(["SpeedLimitENegative"], self.printerSpeedLimitENegative)
 			
+			# Otherwise check if data is for X motor steps/mm
+			elif "PT:" + str(self.eepromOffsets["xMotorStepsPerMm"]["offset"]) + ' ' in data :
+			
+				# Convert data to float
+				value = self.intToFloat(int(data[data.find("DT:") + 3 :]))
+				
+				if not isinstance(value, float) or math.isnan(value) :
+					self.printerXMotorStepsPerMm = self.get_settings_defaults()["XMotorStepsPerMm"]
+				else :
+					self.printerXMotorStepsPerMm = round(value, 6)
+				
+				# Check if set to automatically collect printer settings
+				if self._settings.get_boolean(["AutomaticallyObtainSettings"]) :
+					self._settings.set_float(["XMotorStepsPerMm"], self.printerXMotorStepsPerMm)
+			
+			# Otherwise check if data is for Y motor steps/mm
+			elif "PT:" + str(self.eepromOffsets["yMotorStepsPerMm"]["offset"]) + ' ' in data :
+			
+				# Convert data to float
+				value = self.intToFloat(int(data[data.find("DT:") + 3 :]))
+				
+				if not isinstance(value, float) or math.isnan(value) :
+					self.printerYMotorStepsPerMm = self.get_settings_defaults()["YMotorStepsPerMm"]
+				else :
+					self.printerYMotorStepsPerMm = round(value, 6)
+				
+				# Check if set to automatically collect printer settings
+				if self._settings.get_boolean(["AutomaticallyObtainSettings"]) :
+					self._settings.set_float(["YMotorStepsPerMm"], self.printerYMotorStepsPerMm)
+			
+			# Otherwise check if data is for Z motor steps/mm
+			elif "PT:" + str(self.eepromOffsets["zMotorStepsPerMm"]["offset"]) + ' ' in data :
+			
+				# Convert data to float
+				value = self.intToFloat(int(data[data.find("DT:") + 3 :]))
+				
+				if not isinstance(value, float) or math.isnan(value) :
+					self.printerZMotorStepsPerMm = self.get_settings_defaults()["ZMotorStepsPerMm"]
+				else :
+					self.printerZMotorStepsPerMm = round(value, 6)
+				
+				# Check if set to automatically collect printer settings
+				if self._settings.get_boolean(["AutomaticallyObtainSettings"]) :
+					self._settings.set_float(["ZMotorStepsPerMm"], self.printerZMotorStepsPerMm)
+			
+			# Otherwise check if data is for E motor steps/mm
+			elif "PT:" + str(self.eepromOffsets["eMotorStepsPerMm"]["offset"]) + ' ' in data :
+			
+				# Convert data to float
+				value = self.intToFloat(int(data[data.find("DT:") + 3 :]))
+				
+				if not isinstance(value, float) or math.isnan(value) :
+					self.printerEMotorStepsPerMm = self.get_settings_defaults()["EMotorStepsPerMm"]
+				else :
+					self.printerEMotorStepsPerMm = round(value, 6)
+				
+				# Check if set to automatically collect printer settings
+				if self._settings.get_boolean(["AutomaticallyObtainSettings"]) :
+					self._settings.set_float(["EMotorStepsPerMm"], self.printerEMotorStepsPerMm)
+			
 			# Otherwise check if data is for bed orientation version
 			elif "PT:" + str(self.eepromOffsets["bedOrientationVersion"]["offset"]) + ' ' in data :
 			
@@ -6426,6 +6548,22 @@ class M33FioPlugin(
 		softwareSpeedLimitENegative = self._settings.get_float(["SpeedLimitENegative"])
 		if not isinstance(softwareSpeedLimitENegative, float) :
 			softwareSpeedLimitENegative = self.get_settings_defaults()["SpeedLimitENegative"]
+		
+		softwareXMotorStepsPerMm = self._settings.get_float(["XMotorStepsPerMm"])
+		if not isinstance(softwareXMotorStepsPerMm, float) :
+			softwareXMotorStepsPerMm = self.get_settings_defaults()["XMotorStepsPerMm"]
+		
+		softwareYMotorStepsPerMm = self._settings.get_float(["YMotorStepsPerMm"])
+		if not isinstance(softwareYMotorStepsPerMm, float) :
+			softwareYMotorStepsPerMm = self.get_settings_defaults()["YMotorStepsPerMm"]
+		
+		softwareZMotorStepsPerMm = self._settings.get_float(["ZMotorStepsPerMm"])
+		if not isinstance(softwareZMotorStepsPerMm, float) :
+			softwareZMotorStepsPerMm = self.get_settings_defaults()["ZMotorStepsPerMm"]
+		
+		softwareEMotorStepsPerMm = self._settings.get_float(["EMotorStepsPerMm"])
+		if not isinstance(softwareEMotorStepsPerMm, float) :
+			softwareEMotorStepsPerMm = self.get_settings_defaults()["EMotorStepsPerMm"]
 	
 		# Check if backlash Xs differ
 		commandList = []
@@ -6559,6 +6697,33 @@ class M33FioPlugin(
 		
 			# Add new value to list
 			commandList += ["M618 S" + str(self.eepromOffsets["speedLimitENegative"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitENegative"]["bytes"]) + " P" + str(self.floatToInt(softwareSpeedLimitENegative)), "M619 S" + str(self.eepromOffsets["speedLimitENegative"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitENegative"]["bytes"])]
+		
+		# Check if using iMe firmware
+		if self.currentFirmwareType == "iMe" :
+		
+			# Check if X motor steps/mms differ
+			if hasattr(self, "printerXMotorStepsPerMm") and self.printerXMotorStepsPerMm != softwareXMotorStepsPerMm :
+
+				# Add new value to list
+				commandList += ["M618 S" + str(self.eepromOffsets["xMotorStepsPerMm"]["offset"]) + " T" + str(self.eepromOffsets["xMotorStepsPerMm"]["bytes"]) + " P" + str(self.floatToInt(softwareXMotorStepsPerMm)), "M619 S" + str(self.eepromOffsets["xMotorStepsPerMm"]["offset"]) + " T" + str(self.eepromOffsets["xMotorStepsPerMm"]["bytes"])]
+		
+			# Check if Y motor steps/mms differ
+			if hasattr(self, "printerYMotorStepsPerMm") and self.printerYMotorStepsPerMm != softwareYMotorStepsPerMm :
+
+				# Add new value to list
+				commandList += ["M618 S" + str(self.eepromOffsets["yMotorStepsPerMm"]["offset"]) + " T" + str(self.eepromOffsets["yMotorStepsPerMm"]["bytes"]) + " P" + str(self.floatToInt(softwareYMotorStepsPerMm)), "M619 S" + str(self.eepromOffsets["yMotorStepsPerMm"]["offset"]) + " T" + str(self.eepromOffsets["yMotorStepsPerMm"]["bytes"])]
+		
+			# Check if Z motor steps/mms differ
+			if hasattr(self, "printerZMotorStepsPerMm") and self.printerZMotorStepsPerMm != softwareZMotorStepsPerMm :
+
+				# Add new value to list
+				commandList += ["M618 S" + str(self.eepromOffsets["zMotorStepsPerMm"]["offset"]) + " T" + str(self.eepromOffsets["zMotorStepsPerMm"]["bytes"]) + " P" + str(self.floatToInt(softwareZMotorStepsPerMm)), "M619 S" + str(self.eepromOffsets["zMotorStepsPerMm"]["offset"]) + " T" + str(self.eepromOffsets["zMotorStepsPerMm"]["bytes"])]
+		
+			# Check if E motor steps/mms differ
+			if hasattr(self, "printerEMotorStepsPerMm") and self.printerEMotorStepsPerMm != softwareEMotorStepsPerMm :
+
+				# Add new value to list
+				commandList += ["M618 S" + str(self.eepromOffsets["eMotorStepsPerMm"]["offset"]) + " T" + str(self.eepromOffsets["eMotorStepsPerMm"]["bytes"]) + " P" + str(self.floatToInt(softwareEMotorStepsPerMm)), "M619 S" + str(self.eepromOffsets["eMotorStepsPerMm"]["offset"]) + " T" + str(self.eepromOffsets["eMotorStepsPerMm"]["bytes"])]
 		
 		# Return command list
 		return commandList
@@ -6696,6 +6861,9 @@ class M33FioPlugin(
 			
 				# Pre-process file
 				self.sharedLibrary.preprocess(ctypes.c_char_p(temp), ctypes.c_char_p(input), ctypes.c_bool(False))
+				
+				# Set progress bar percent
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar percent", percent = "0"))
 				
 				# Unload shared library
 				self.unloadSharedLibrary()
@@ -7414,6 +7582,12 @@ class M33FioPlugin(
 		
 					# Otherwise
 					else :
+					
+						# Check if not printing test border or backlash calibration
+						if not self.printingTestBorder and not self.printingBacklashCalibration :
+				
+							# Set progress bar percent
+							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar percent", percent = "0"))
 	
 						# Break
 						break
@@ -8971,6 +9145,65 @@ class M33FioPlugin(
 		# Return file
 		return flask.send_from_directory(self.get_plugin_data_folder().replace('\\', '/'), file)
 	
+	# Do send without checksum
+	def doSendWithoutChecksum(self, cmd) :
+	
+		# This function is taken from OctoPrint's maintenance branch
+		if self._printer._comm is None or self._printer._comm._serial is None:
+			return
+
+		self._printer._comm._log("Send: " + str(cmd))
+
+		cmd += "\n"
+		written = 0
+		passes = 0
+		while written < len(cmd):
+			to_send = cmd[written:]
+			old_written = written
+
+			try:
+				result = self._printer._comm._serial.write(to_send)
+				if result is None or not isinstance(result, int):
+					# probably some plugin not returning the written bytes, assuming all of them
+					written += len(cmd)
+				else:
+					written += result
+			except serial.SerialTimeoutException:
+				self._printer._comm._log("Serial timeout while writing to serial port, trying again.")
+				try:
+					result = self._printer._comm._serial.write(to_send)
+					if result is None or not isinstance(result, int):
+						# probably some plugin not returning the written bytes, assuming all of them
+						written += len(cmd)
+					else:
+						written += result
+				except:
+					if not self._printer._comm._connection_closing:
+						self._printer._comm._logger.exception("Unexpected error while writing to serial port")
+						self._printer._comm._log("Unexpected error while writing to serial port: %s" % (get_exception_string()))
+						self._printer._comm._errorValue = get_exception_string()
+						self._printer._comm.close(is_error=True)
+					break
+			except:
+				if not self._printer._comm._connection_closing:
+					self._printer._comm._logger.exception("Unexpected error while writing to serial port")
+					self._printer._comm._log("Unexpected error while writing to serial port: %s" % (get_exception_string()))
+					self._printer._comm._errorValue = get_exception_string()
+					self._printer._comm.close(is_error=True)
+				break
+
+			if old_written == written:
+				# nothing written this pass
+				passes += 1
+				if passes > self._printer._comm._max_write_passes:
+					# nothing written in max consecutive passes, we give up
+					message = "Could not write anything to the serial port in {} tries, something appears to be wrong with the printer communication".format(self._printer._comm._max_write_passes)
+					self._printer._comm._logger.error(message)
+					self._printer._comm._log(message)
+					self._printer._comm._errorValue = "Could not write to serial port"
+					self._printer._comm.close(is_error=True)
+					break
+	
 	# Auto connect
 	def autoConnect(self, comm_instance, port, baudrate, read_timeout, *args, **kwargs) :
 	
@@ -8979,7 +9212,10 @@ class M33FioPlugin(
 		
 			# Return
 			return
-	
+		
+		# Replace do send with checksum to fix connection issue
+		comm_instance._do_send_without_checksum = self.doSendWithoutChecksum
+		
 		# Set baudrate if not specified
 		if not baudrate or baudrate == 0 :
 			baudrate = 115200
@@ -8988,7 +9224,10 @@ class M33FioPlugin(
 		if not port or port == "AUTO" :
 			
 			# Set state to detecting
-			comm_instance._changeState(comm_instance.STATE_DETECT_SERIAL)
+			try :
+				comm_instance._changeState(comm_instance.STATE_DETECT_SERIAL)
+			except :
+				pass
 			
 			# Detect port
 			port = self.getPort()
@@ -8999,7 +9238,10 @@ class M33FioPlugin(
 				# Set state to failed
 				comm_instance._log("Failed to autodetect serial port")
 				comm_instance._errorValue = "Failed to autodetect serial port."
-				comm_instance._changeState(comm_instance.STATE_ERROR)
+				try :
+					comm_instance._changeState(comm_instance.STATE_ERROR)
+				except :
+					pass
 				
 				# Send message
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "No Micro 3D printer detected. Try cycling the printer's power and try again.", header = "Connection Status", confirm = True))

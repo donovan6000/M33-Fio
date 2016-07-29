@@ -536,26 +536,26 @@ $(function() {
 				bytes: 4,
 				color: "rgb(230, 230, 110)"
 			},
-			xAxisStepsPerMm: {
-				name: "X Axis Steps Per MM",
+			xMotorStepsPerMm: {
+				name: "X Motor Steps Per MM",
 				offset: 0x2D6,
 				bytes: 4,
 				color: "rgb(220, 170, 170)"
 			},
-			yAxisStepsPerMm: {
-				name: "Y Axis Steps Per MM",
+			yMotorStepsPerMm: {
+				name: "Y Motor Steps Per MM",
 				offset: 0x2DA,
 				bytes: 4,
 				color: "rgb(170, 170, 220)"
 			},
-			zAxisStepsPerMm: {
-				name: "Z Axis Steps Per MM",
+			zMotorStepsPerMm: {
+				name: "Z Motor Steps Per MM",
 				offset: 0x2DE,
 				bytes: 4,
 				color: "rgb(220, 170, 220)"
 			},
-			eAxisStepsPerMm: {
-				name: "E Axis Steps Per MM",
+			eMotorStepsPerMm: {
+				name: "E Motor Steps Per MM",
 				offset: 0x2E2,
 				bytes: 4,
 				color: "rgb(180, 230, 180)"
@@ -5208,12 +5208,17 @@ $(function() {
 					if(typeof self.slicing.path !== "undefined" && self.slicing.path.length)
 						modelPath = '/' + self.slicing.path + '/';
 					else
-						modelPath = '/'
+						modelPath = '/';
+					
+					if(typeof self.slicing.file === "function")
+						fullModelName = self.slicing.file();
+					else
+						fullModelName = self.slicing.file;
 					
 					if(modelPath.length > 1)
-						modelName = self.slicing.file.substr(modelPath.length - 1);
+						modelName = fullModelName.substr(modelPath.length - 1);
 					else
-						modelName = self.slicing.file
+						modelName = fullModelName;
 					
 					afterSlicingAction = $("#slicing_configuration_dialog").find(".control-group:nth-of-type(5) select").val();
 					
@@ -10409,24 +10414,105 @@ $(function() {
 				
 							// Set waiting callback
 							waitingCallback = function() {
+							
+								// Set commands
+								commands = [
+									"M117",
+									"M65536;wait"
+								];
+				
+								// Set waiting callback
+								waitingCallback = function() {
 						
-								// Show message
-								showMessage("Calibration Status", "Now raise the print head so that you can attach the external bed, and then lower the print head until it barely touches the external bed. One way to get to that point is to place a single sheet of paper on the bed under the print head, and lower the print head until the paper can no longer be moved.", "Done", function() {
-
-									// Hide message
-									hideMessage();
-			
 									// Show message
-									showMessage("Calibration Status", "Saving Z as external bed height");
-	
-									// Set commands
-									commands = [
-										"M114"
-									];
+									showMessage("Calibration Status", "Now raise the print head so that you can attach the external bed, and then lower the print head until it barely touches the external bed. One way to get to that point is to place a single sheet of paper on the bed under the print head, and lower the print head until the paper can no longer be moved.", "Done", function() {
+
+										// Hide message
+										hideMessage();
 			
-									// Set location callback
-									locationCallback = function() {
+										// Show message
+										showMessage("Calibration Status", "Saving Z as external bed height");
+	
+										// Set commands
+										commands = [
+											"M114"
+										];
+			
+										// Set location callback
+										locationCallback = function() {
 		
+											// Send request
+											$.ajax({
+												url: API_BASEURL + "plugin/m33fio",
+												type: "POST",
+												dataType: "json",
+												data: JSON.stringify({
+													command: "message",
+													value: "Set External Bed Height: " + currentZ
+												}),
+												contentType: "application/json; charset=UTF-8",
+					
+												// On success
+												success: function() {
+					
+													// Show message
+													showMessage("Calibration Status", "Does the external bed extend the printable region to its max?", "Yes", function() {
+										
+														// Hide message
+														hideMessage();
+			
+														// Show message
+														showMessage("Calibration Status", "Setting expand printable region");
+											
+														// Send request
+														$.ajax({
+															url: API_BASEURL + "plugin/m33fio",
+															type: "POST",
+															dataType: "json",
+															data: JSON.stringify({
+																command: "message",
+																value: "Set Expand Printable Region: True"
+															}),
+															contentType: "application/json; charset=UTF-8",
+					
+															// On success
+															success: function() {
+											
+																// Continue calibration
+																continueCalibration();
+															}
+														});
+													}, "No", function() {
+					
+														// Hide message
+														hideMessage();
+			
+														// Show message
+														showMessage("Calibration Status", "Clearing expand printable region");
+											
+														// Send request
+														$.ajax({
+															url: API_BASEURL + "plugin/m33fio",
+															type: "POST",
+															dataType: "json",
+															data: JSON.stringify({
+																command: "message",
+																value: "Set Expand Printable Region: False"
+															}),
+															contentType: "application/json; charset=UTF-8",
+					
+															// On success
+															success: function() {
+											
+																// Continue calibration
+																continueCalibration();
+															}
+														});
+													});
+												}
+											});
+										}
+			
 										// Send request
 										$.ajax({
 											url: API_BASEURL + "plugin/m33fio",
@@ -10434,82 +10520,23 @@ $(function() {
 											dataType: "json",
 											data: JSON.stringify({
 												command: "message",
-												value: "Set External Bed Height: " + currentZ
+												value: commands
 											}),
-											contentType: "application/json; charset=UTF-8",
-					
-											// On success
-											success: function() {
-					
-												// Show message
-												showMessage("Calibration Status", "Does the external bed extend the printable region to its max?", "Yes", function() {
-										
-													// Hide message
-													hideMessage();
-			
-													// Show message
-													showMessage("Calibration Status", "Setting expand printable region");
-											
-													// Send request
-													$.ajax({
-														url: API_BASEURL + "plugin/m33fio",
-														type: "POST",
-														dataType: "json",
-														data: JSON.stringify({
-															command: "message",
-															value: "Set Expand Printable Region: True"
-														}),
-														contentType: "application/json; charset=UTF-8",
-					
-														// On success
-														success: function() {
-											
-															// Continue calibration
-															continueCalibration();
-														}
-													});
-												}, "No", function() {
-					
-													// Hide message
-													hideMessage();
-			
-													// Show message
-													showMessage("Calibration Status", "Clearing expand printable region");
-											
-													// Send request
-													$.ajax({
-														url: API_BASEURL + "plugin/m33fio",
-														type: "POST",
-														dataType: "json",
-														data: JSON.stringify({
-															command: "message",
-															value: "Set Expand Printable Region: False"
-														}),
-														contentType: "application/json; charset=UTF-8",
-					
-														// On success
-														success: function() {
-											
-															// Continue calibration
-															continueCalibration();
-														}
-													});
-												});
-											}
+											contentType: "application/json; charset=UTF-8"
 										});
-									}
-			
-									// Send request
-									$.ajax({
-										url: API_BASEURL + "plugin/m33fio",
-										type: "POST",
-										dataType: "json",
-										data: JSON.stringify({
-											command: "message",
-											value: commands
-										}),
-										contentType: "application/json; charset=UTF-8"
 									});
+								}
+						
+								// Send request
+								$.ajax({
+									url: API_BASEURL + "plugin/m33fio",
+									type: "POST",
+									dataType: "json",
+									data: JSON.stringify({
+										command: "message",
+										value: commands
+									}),
+									contentType: "application/json; charset=UTF-8"
 								});
 							}
 						
@@ -11705,7 +11732,12 @@ $(function() {
 					// Reset progress bar				
 					$("#gcode_upload_progress > div.bar").css("width", "0%");
 					$("#gcode_upload_progress").removeClass("progress-striped active");
-					$("#gcode_upload_progress > div.bar").text('');
+					$("#gcode_upload_progress > span").text('');
+					
+					if($("#gcode_upload_progress > div.bar > span").length)
+						$("#gcode_upload_progress > div.bar > span").text('');
+					else
+						$("#gcode_upload_progress > div.bar").text('');
 				}
 				
 				// Otherwise
@@ -11713,15 +11745,27 @@ $(function() {
 			
 					// Set progress bar percent
 					$("#gcode_upload_progress").addClass("progress-striped active");
-					$("#gcode_upload_progress > div.bar").width(data.percent + '%').text("Uploading …");
+					$("#gcode_upload_progress > span").text('');
+					$("#gcode_upload_progress > div.bar").width(data.percent + '%');
+					
+					if($("#gcode_upload_progress > div.bar > span").length)
+						$("#gcode_upload_progress > div.bar > span").text("Uploading …");
+					else
+						$("#gcode_upload_progress > div.bar").text("Uploading …");
 				}
 			}
 			
 			// Otherwise check if data is to change progress text
-			else if(data.value == "Progress bar text" && typeof data.text !== "undefined")
+			else if(data.value == "Progress bar text" && typeof data.text !== "undefined") {
 			
 				// Set progress bar text
-				$("#gcode_upload_progress > div.bar").text(data.text);
+				$("#gcode_upload_progress > span").text('');
+				
+				if($("#gcode_upload_progress > div.bar > span").length)
+					$("#gcode_upload_progress > div.bar > span").text(data.text);
+				else
+					$("#gcode_upload_progress > div.bar").text(data.text);
+			}
 			
 			// Otherwise check if data is to change last message
 			else if(data.value == "Change last message" && typeof data.text !== "undefined")
@@ -13088,7 +13132,7 @@ $(function() {
 				if($("#gcode_upload_progress").hasClass("active")) {
 					
 					// Update message
-					$("body > div.page-container > div.message").find("p").eq(0).text($("#gcode_upload_progress").text());
+					$("body > div.page-container > div.message").find("p").eq(0).text($("#gcode_upload_progress > div.bar > span").length ? $("#gcode_upload_progress > div.bar > span").text() : $("#gcode_upload_progress > div.bar").text());
 					
 					// Update slicing status again
 					setTimeout(updateSlicingStatus, 300);
