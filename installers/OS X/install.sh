@@ -92,7 +92,10 @@ else
 		
 		# Install OctoPrint
 		sudo -u $SUDO_USER launchctl unload /Library/LaunchAgents/com.octoprint.app.plist
-		echo 'y' | sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/pip uninstall OctoPrint
+		while echo 'y' | sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/pip uninstall OctoPrint
+		do
+			:
+		done
 		curl -LOk https://github.com/foosel/OctoPrint/archive/master.zip
 		sudo -u $SUDO_USER unzip master.zip
 		cd OctoPrint-master
@@ -104,8 +107,14 @@ else
 		rm master.zip
 
 		# Install M33 Fio
-		echo 'y' | sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/pip uninstall OctoPrint-M3DFio
-		echo 'y' | sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/pip uninstall OctoPrint-M33Fio
+		while echo 'y' | sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/pip uninstall OctoPrint-M3DFio
+		do
+			:
+		done
+		while echo 'y' | sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/pip uninstall OctoPrint-M33Fio
+		do
+			:
+		done
 		curl -LOk https://github.com/donovan6000/M33-Fio/archive/master.zip
 		while ! sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/pip install master.zip --user
 		do
