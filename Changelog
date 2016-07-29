@@ -1,5 +1,9 @@
 Changelog:
 
+V1.4 July 19, 2016
+
+	* Really fixed compatibility with OctoPrint V1.2.14
+
 V1.3 July 28, 2016
 
 	* Provides iMe V00.00.01.06 printer firmware

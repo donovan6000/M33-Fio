@@ -92,6 +92,7 @@ else
 		
 		# Install OctoPrint
 		sudo -u $SUDO_USER launchctl unload /Library/LaunchAgents/com.octoprint.app.plist
+		echo 'y' | sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/pip uninstall OctoPrint
 		curl -LOk https://github.com/foosel/OctoPrint/archive/master.zip
 		sudo -u $SUDO_USER unzip master.zip
 		cd OctoPrint-master

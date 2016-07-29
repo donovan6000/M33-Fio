@@ -4017,6 +4017,10 @@ class M33FioPlugin(
 		# Get response
 		response = self.originalRead()
 		
+		# Reset consecutive timeouts
+		if self._printer._comm is not None and hasattr(self._printer._comm, "_consecutive_timeouts") and response is not None and response.strip() is not '' :
+			self._printer._comm._consecutive_timeouts = 0
+		
 		# Log received data
 		self._m33fio_logger.debug("Original Response: " + response)
 		
