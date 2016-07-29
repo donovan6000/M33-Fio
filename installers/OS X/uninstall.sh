@@ -18,11 +18,20 @@ else
 	sudo -u $SUDO_USER launchctl unload /Library/LaunchAgents/com.octoprint.app.plist
 	
 	# Uninstall M33 Fio
-	echo 'y' | sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/pip uninstall OctoPrint-M3DFio
-	echo 'y' | sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/pip uninstall OctoPrint-M33Fio
+	while echo 'y' | sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/pip uninstall OctoPrint-M3DFio
+	do
+		:
+	done
+	while echo 'y' | sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/pip uninstall OctoPrint-M33Fio
+	do
+		:
+	done
 	
 	# Uninstall OctoPrint
-	echo 'y' | sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/pip uninstall OctoPrint
+	while echo 'y' | sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/pip uninstall OctoPrint
+	do
+		:
+	done
 	rm -rf '/Users/'"$SUDO_USER"'/Library/Application Support/OctoPrint'
 	
 	# Uninstall PyObjC QTKit framework
