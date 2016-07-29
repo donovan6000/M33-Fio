@@ -3463,6 +3463,9 @@ class M33FioPlugin(
 	# Process write
 	def processWrite(self, data) :
 	
+		# Set return value
+		returnValue = len(data)
+	
 		# Log sent data
 		self._m33fio_logger.debug("Original Sent: " + data)
 	
@@ -3559,7 +3562,7 @@ class M33FioPlugin(
 				self.numberWrapCounter = 0
 				
 				# Return
-				return
+				return returnValue
 		
 			# Initialize variables
 			endWaitingAfterSend = False
@@ -3851,7 +3854,7 @@ class M33FioPlugin(
 						self.sendCommandsWithLineNumbers(commands)
 						
 						# Return
-						return
+						return returnValue
 					
 					# Otherwise
 					else :
@@ -3925,7 +3928,7 @@ class M33FioPlugin(
 					self.enableSleep()
 					
 					# Return
-					return
+					return returnValue
 				
 				# Check if using iMe firmware
 				if self.currentFirmwareType == "iMe" :
@@ -4004,6 +4007,9 @@ class M33FioPlugin(
 		
 				# Send message
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Mid-Print Filament Change"))
+		
+		# Return
+		return returnValue
 	
 	# Process read
 	def processRead(self) :
@@ -9130,65 +9136,6 @@ class M33FioPlugin(
 		# Return file
 		return flask.send_from_directory(self.get_plugin_data_folder().replace('\\', '/'), file)
 	
-	# Do send without checksum
-	def doSendWithoutChecksum(self, cmd) :
-	
-		# This function is taken from OctoPrint's maintenance branch
-		if self._printer._comm is None or self._printer._comm._serial is None:
-			return
-
-		self._printer._comm._log("Send: " + str(cmd))
-
-		cmd += "\n"
-		written = 0
-		passes = 0
-		while written < len(cmd):
-			to_send = cmd[written:]
-			old_written = written
-
-			try:
-				result = self._printer._comm._serial.write(to_send)
-				if result is None or not isinstance(result, int):
-					# probably some plugin not returning the written bytes, assuming all of them
-					written += len(cmd)
-				else:
-					written += result
-			except serial.SerialTimeoutException:
-				self._printer._comm._log("Serial timeout while writing to serial port, trying again.")
-				try:
-					result = self._printer._comm._serial.write(to_send)
-					if result is None or not isinstance(result, int):
-						# probably some plugin not returning the written bytes, assuming all of them
-						written += len(cmd)
-					else:
-						written += result
-				except:
-					if not self._printer._comm._connection_closing:
-						self._printer._comm._logger.exception("Unexpected error while writing to serial port")
-						self._printer._comm._log("Unexpected error while writing to serial port: %s" % (get_exception_string()))
-						self._printer._comm._errorValue = get_exception_string()
-						self._printer._comm.close(is_error=True)
-					break
-			except:
-				if not self._printer._comm._connection_closing:
-					self._printer._comm._logger.exception("Unexpected error while writing to serial port")
-					self._printer._comm._log("Unexpected error while writing to serial port: %s" % (get_exception_string()))
-					self._printer._comm._errorValue = get_exception_string()
-					self._printer._comm.close(is_error=True)
-				break
-
-			if old_written == written:
-				# nothing written this pass
-				passes += 1
-				if passes > self._printer._comm._max_write_passes:
-					# nothing written in max consecutive passes, we give up
-					message = "Could not write anything to the serial port in {} tries, something appears to be wrong with the printer communication".format(self._printer._comm._max_write_passes)
-					self._printer._comm._logger.error(message)
-					self._printer._comm._log(message)
-					self._printer._comm._errorValue = "Could not write to serial port"
-					self._printer._comm.close(is_error=True)
-					break
-	
 	# Auto connect
 	def autoConnect(self, comm_instance, port, baudrate, read_timeout, *args, **kwargs) :
 	
@@ -9197,9 +9144,6 @@ class M33FioPlugin(
 		
 			# Return
 			return
-		
-		# Replace do send with checksum to fix connection issue
-		comm_instance._do_send_without_checksum = self.doSendWithoutChecksum
 		
 		# Set baudrate if not specified
 		if not baudrate or baudrate == 0 :
