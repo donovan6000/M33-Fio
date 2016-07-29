@@ -2991,7 +2991,6 @@ class M33FioPlugin(
 		error = False
 		temp = ''
 		decryptedRom = ''
-		oldChipCrc = 0
 		newChipCrc = 0
 		
 		# Check if rom isn't encrypted
@@ -3019,20 +3018,6 @@ class M33FioPlugin(
 	
 		# Check if rom isn't too big
 		if len(encryptedRom) <= self.chipTotalMemory :
-		
-			# Request current CRC from chip
-			connection.write('C')
-			connection.write('A')
-
-			# Get response
-			response = connection.read(4)
-
-			# Get chip CRC
-			index = 3
-			while index >= 0 :
-				oldChipCrc <<= 8
-				oldChipCrc += int(ord(response[index]))
-				index -= 1
 		
 			# Request that chip be erased
 			connection.write('E')
