@@ -2951,7 +2951,7 @@ class M33FioPlugin(
 			return False
 	
 		# Check if EEPROM wasn't read successfully
-		if self.eeprom[-1] != '\r' :
+		if len(self.eeprom) != 0x301 or self.eeprom[-1] != '\r' :
 		
 			# Don't save response
 			self.eeprom = None
@@ -5099,11 +5099,11 @@ class M33FioPlugin(
 			# Otherwise
 			else :
 			
-				# Connect to the printer
-				connection = serial.Serial(currentPort, currentBaudrate)
-			
 				# Attempt to get current printer mode
 				try :
+				
+					connection = serial.Serial(currentPort, currentBaudrate)
+					
 					connection.write("M110")
 					bootloaderVersion = connection.read()
 				
@@ -5113,7 +5113,7 @@ class M33FioPlugin(
 						bootloaderVersion += connection.read(connection.in_waiting)
 			
 				# Check if an error occured
-				except serial.SerialException :
+				except :
 			
 					# Set error
 					error = True
