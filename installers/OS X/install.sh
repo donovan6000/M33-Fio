@@ -38,18 +38,6 @@ else
 		installer -pkg python.pkg -target /
 		rm python.pkg
 		
-		# Install Git
-		while ! curl -fLk -o git.dmg http://sourceforge.net/projects/git-osx-installer/files/git-2.3.5-intel-universal-snow-leopard.dmg/download?use_mirror=autoselect
-		do
-			:
-		done
-		mountPoint="$(/usr/bin/mktemp -d /tmp/git.XXXX")
-		hdiutil attach git.dmg -mountpoint "${mountPoint}" -nobrowse
-		installer -allowUntrusted -pkg "$(find ${mountPoint} -name '*.mpkg')" -target /
-		hdiutil detach "${mountPoint}"
-		rm -rf "${mountPoint}"
-		rm git.dmg
-		
 		# Install command line tools
 		while ! curl -f -O 'https://raw.githubusercontent.com/donovan6000/M33-Fio/master/installers/OS%20X/command%20line%20tools%20installer.bash'
 		do
@@ -174,11 +162,12 @@ else
 		do
 			:
 		done
-		while ! git clone https://github.com/foosel/OctoPrint.git
+		while ! curl -f -LOk https://github.com/foosel/OctoPrint/archive/master.zip
 		do
 			:
 		done
-		cd OctoPrint
+		sudo -u $SUDO_USER unzip master.zip
+		cd OctoPrint-master
 		while ! sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/python setup.py install --user
 		do
 			:
@@ -186,7 +175,8 @@ else
 		cd ..
 		sudo -u $SUDO_USER mkdir -p '/Users/'"$SUDO_USER"'/Library/Application Support/OctoPrint'
 		rm -rf '/Users/'"$SUDO_USER"'/Library/Application Support/OctoPrint/checkout'
-		sudo -u $SUDO_USER mv OctoPrint '/Users/'"$SUDO_USER"'/Library/Application Support/OctoPrint/checkout'
+		sudo -u $SUDO_USER mv OctoPrint-master '/Users/'"$SUDO_USER"'/Library/Application Support/OctoPrint/checkout'
+		rm master.zip
 
 		# Install M33 Fio
 		while echo 'y' | sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/pip uninstall OctoPrint-M3DFio

@@ -58,8 +58,6 @@ else
 		:
 	done
 	
-	# TODO Uninstall Git
-	
 	# TODO Uninstall command line tools
 	
 	# Uninstall Python
