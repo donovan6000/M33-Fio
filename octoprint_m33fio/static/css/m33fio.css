@@ -78,6 +78,10 @@
 	top: 9px;
 }
 
+#settings_plugin_m33fio label.checkbox > span.windows {
+	top: 10px;
+}
+
 #settings_plugin_m33fio label.checkbox > span.osx {
 	top: 0;
 }
