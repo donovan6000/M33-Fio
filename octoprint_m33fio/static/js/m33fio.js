@@ -3836,6 +3836,10 @@ $(function() {
 			PLUGIN_BASEURL + "m33fio/static/img/fill-quality_medium.png"
 		);
 		
+		// Remove software update message if using OctoPrint's master branch
+		if(htmlDecode(BRANCH) == "HEAD -> master")
+			$("#settings_plugin_softwareupdate div.alert:nth-of-type(2)").remove();
+		
 		// Add mid-print filament change settings
 		$("#gcode div.progress").after(`
 			<div class="midPrintFilamentChange micro3d">
