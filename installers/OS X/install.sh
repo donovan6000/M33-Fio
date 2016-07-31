@@ -38,6 +38,12 @@ else
 		installer -pkg python.pkg -target /
 		rm python.pkg
 		
+		# Update pip
+		while ! sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/python -m pip install --upgrade pip
+		do
+			:
+		done
+		
 		# Install command line tools
 		while ! curl -f -O 'https://raw.githubusercontent.com/donovan6000/M33-Fio/master/installers/OS%20X/command%20line%20tools%20installer.bash'
 		do
