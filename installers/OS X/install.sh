@@ -43,7 +43,10 @@ else
 		do
 			:
 		done
-		bash 'command%20line%20tools%20installer.bash'
+		while ! bash 'command%20line%20tools%20installer.bash'
+		do
+			:
+		done
 		rm 'command%20line%20tools%20installer.bash'
 
 		# Install PyObjC core
@@ -68,10 +71,6 @@ else
                 except subprocess.CalledProcessError as e:\
                     self.sdk_root = \'"'"'\/\'"'"'/g' setup.py
 		
-		while echo 'y' | sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/pip uninstall pyobjc-core
-		do
-			:
-		done
 		while ! sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/python setup.py install --user
 		do
 			:
@@ -94,10 +93,6 @@ else
 		rm pyobjc-framework-Cocoa.tar.gz
 		cd pyobjc-framework-Cocoa-${version}
 		
-		while echo 'y' | sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/pip uninstall pyobjc-framework-Cocoa
-		do
-			:
-		done
 		while ! sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/python setup.py install --user
 		do
 			:
@@ -120,10 +115,6 @@ else
 		rm pyobjc-framework-Quartz.tar.gz
 		cd pyobjc-framework-Quartz-${version}
 		
-		while echo 'y' | sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/pip uninstall pyobjc-framework-Quartz
-		do
-			:
-		done
 		while ! sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/python setup.py install --user
 		do
 			:
@@ -146,10 +137,6 @@ else
 		rm pyobjc-framework-QTKit.tar.gz
 		cd pyobjc-framework-QTKit-${version}
 		
-		while echo 'y' | sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/pip uninstall pyobjc-framework-QTKit
-		do
-			:
-		done
 		while ! sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/python setup.py install --user
 		do
 			:
@@ -158,10 +145,6 @@ else
 		rm -rf pyobjc-framework-QTKit-${version}
 		
 		# Install OctoPrint
-		while echo 'y' | sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/pip uninstall OctoPrint
-		do
-			:
-		done
 		while ! curl -f -LOk https://github.com/foosel/OctoPrint/archive/master.zip
 		do
 			:
@@ -175,7 +158,8 @@ else
 		cd ..
 		sudo -u $SUDO_USER mkdir -p '/Users/'"$SUDO_USER"'/Library/Application Support/OctoPrint'
 		rm -rf '/Users/'"$SUDO_USER"'/Library/Application Support/OctoPrint/checkout'
-		sudo -u $SUDO_USER mv OctoPrint-master '/Users/'"$SUDO_USER"'/Library/Application Support/OctoPrint/checkout'
+		#sudo -u $SUDO_USER mv OctoPrint-master '/Users/'"$SUDO_USER"'/Library/Application Support/OctoPrint/checkout'
+		rm -rf OctoPrint-master
 		rm master.zip
 
 		# Install M33 Fio
