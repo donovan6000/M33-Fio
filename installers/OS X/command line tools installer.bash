@@ -22,6 +22,9 @@ if [[ "$osx_vers" -ge 9 ]]; then
 	#Install the command line tools
 
 	softwareupdate -i "$cmd_line_tools" -v
+	if [ 0 -ne $? ]; then
+		exit 1
+	fi
 
 	# Remove the temp file
 
@@ -47,7 +50,10 @@ if [[ "$osx_vers" -eq 7 ]] || [[ "$osx_vers" -eq 8 ]]; then
 	fi
 
 		TOOLS=cltools.dmg
-		curl "$DMGURL" -o "$TOOLS"
+		curl "$DMGURL" -f -o "$TOOLS"
+		if [ 0 -ne $? ]; then
+			exit 1
+		fi
 		TMPMOUNT=`/usr/bin/mktemp -d /tmp/clitools.XXXX`
 		hdiutil attach "$TOOLS" -mountpoint "$TMPMOUNT" -nobrowse
 		# The "-allowUntrusted" flag has been added to the installer
