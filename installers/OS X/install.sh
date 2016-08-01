@@ -39,7 +39,7 @@ else
 		rm python.pkg
 		
 		# Update pip
-		while ! sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/python -m pip install --upgrade pip
+		while ! sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/pip install pip --user --upgrade
 		do
 			:
 		done

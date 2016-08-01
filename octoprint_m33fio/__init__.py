@@ -4175,7 +4175,7 @@ class M33FioPlugin(
 					# Resend command
 					self.originalWrite(self.sentCommands[lineNumber])
 			
-			# Otherwise
+			# Otherwise check if not canceling print
 			else :
 			
 				# Send last command
