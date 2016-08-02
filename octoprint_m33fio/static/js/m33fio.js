@@ -7524,8 +7524,8 @@ $(function() {
 							}
 					
 							// Check if printing after slicing, a printer is connected, and using a Micro 3D printer
-							if(afterSlicingAction == "print" && self.printerState.stateString() !== "Offline" && !self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
-						
+							if(afterSlicingAction == "print" && self.printerState.stateString() !== '' && self.printerState.stateString().substr(0, 7) !== "Offline" && !self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
+								
 								// Check if using on the fly pre-processing and changing settings before print
 								if(self.settings.settings.plugins.m33fio.PreprocessOnTheFly() && self.settings.settings.plugins.m33fio.ChangeSettingsBeforePrint()) {
 
@@ -7593,8 +7593,8 @@ $(function() {
 										// Hide message
 										hideMessage();
 								
-										// Don't slice file
-										button.prev('a').click();
+										// Enable button
+										button.removeClass("disabled");
 									});
 								}
 							
