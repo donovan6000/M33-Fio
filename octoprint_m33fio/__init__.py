@@ -143,6 +143,7 @@ class M33FioPlugin(
 		self.performCancelPrintMovement = False
 		self.currentFirmwareType = None
 		self.sharedLibraryIsUsable = False
+		self.cancelingPrint = False
 		
 		# Rom decryption and encryption tables
 		self.romDecryptionTable = [0x26, 0xE2, 0x63, 0xAC, 0x27, 0xDE, 0x0D, 0x94, 0x79, 0xAB, 0x29, 0x87, 0x14, 0x95, 0x1F, 0xAE, 0x5F, 0xED, 0x47, 0xCE, 0x60, 0xBC, 0x11, 0xC3, 0x42, 0xE3, 0x03, 0x8E, 0x6D, 0x9D, 0x6E, 0xF2, 0x4D, 0x84, 0x25, 0xFF, 0x40, 0xC0, 0x44, 0xFD, 0x0F, 0x9B, 0x67, 0x90, 0x16, 0xB4, 0x07, 0x80, 0x39, 0xFB, 0x1D, 0xF9, 0x5A, 0xCA, 0x57, 0xA9, 0x5E, 0xEF, 0x6B, 0xB6, 0x2F, 0x83, 0x65, 0x8A, 0x13, 0xF5, 0x3C, 0xDC, 0x37, 0xD3, 0x0A, 0xF4, 0x77, 0xF3, 0x20, 0xE8, 0x73, 0xDB, 0x7B, 0xBB, 0x0B, 0xFA, 0x64, 0x8F, 0x08, 0xA3, 0x7D, 0xEB, 0x5C, 0x9C, 0x3E, 0x8C, 0x30, 0xB0, 0x7F, 0xBE, 0x2A, 0xD0, 0x68, 0xA2, 0x22, 0xF7, 0x1C, 0xC2, 0x17, 0xCD, 0x78, 0xC7, 0x21, 0x9E, 0x70, 0x99, 0x1A, 0xF8, 0x58, 0xEA, 0x36, 0xB1, 0x69, 0xC9, 0x04, 0xEE, 0x3B, 0xD6, 0x34, 0xFE, 0x55, 0xE7, 0x1B, 0xA6, 0x4A, 0x9A, 0x54, 0xE6, 0x51, 0xA0, 0x4E, 0xCF, 0x32, 0x88, 0x48, 0xA4, 0x33, 0xA5, 0x5B, 0xB9, 0x62, 0xD4, 0x6F, 0x98, 0x6C, 0xE1, 0x53, 0xCB, 0x46, 0xDD, 0x01, 0xE5, 0x7A, 0x86, 0x75, 0xDF, 0x31, 0xD2, 0x02, 0x97, 0x66, 0xE4, 0x38, 0xEC, 0x12, 0xB7, 0x00, 0x93, 0x15, 0x8B, 0x6A, 0xC5, 0x71, 0x92, 0x45, 0xA1, 0x59, 0xF0, 0x06, 0xA8, 0x5D, 0x82, 0x2C, 0xC4, 0x43, 0xCC, 0x2D, 0xD5, 0x35, 0xD7, 0x3D, 0xB2, 0x74, 0xB3, 0x09, 0xC6, 0x7C, 0xBF, 0x2E, 0xB8, 0x28, 0x9F, 0x41, 0xBA, 0x10, 0xAF, 0x0C, 0xFC, 0x23, 0xD9, 0x49, 0xF6, 0x7E, 0x8D, 0x18, 0x96, 0x56, 0xD1, 0x2B, 0xAD, 0x4B, 0xC1, 0x4F, 0xC8, 0x3A, 0xF1, 0x1E, 0xBD, 0x4C, 0xDA, 0x50, 0xA7, 0x52, 0xE9, 0x76, 0xD8, 0x19, 0x91, 0x72, 0x85, 0x3F, 0x81, 0x61, 0xAA, 0x05, 0x89, 0x0E, 0xB5, 0x24, 0xE0]
@@ -3707,6 +3708,15 @@ class M33FioPlugin(
 	
 		# Log sent data
 		self._m33fio_logger.debug("Original Sent: " + data)
+		
+		# Check if canceling print
+		if self.cancelingPrint :
+		
+			# Fake confirmation
+			self._printer.fake_ack()
+			
+			# Return
+			return returnValue
 	
 		# Check if printing
 		if self._printer.is_printing() :
@@ -3725,6 +3735,19 @@ class M33FioPlugin(
 			
 				# Set command to hard emergency stop
 				data = "M0\n"
+				
+				# Empty command queue
+				self.emptyCommandQueue()
+
+				# Set first line number to zero and clear history
+				if self._printer._comm is not None :
+					self._printer._comm._gcode_M110_sending("N0")
+					self._printer._comm._long_running_command = True
+
+				# Clear sent commands
+				self.sentCommands = {}
+				self.resetLineNumberCommandSent = False
+				self.numberWrapCounter = 0
 		
 		# Check if request is invalid
 		if (not self._printer.is_printing() and (data.startswith("N0 M110 N0") or data.startswith("M110"))) or data == "M21\n" or data == "M84\n" :
@@ -3737,69 +3760,112 @@ class M33FioPlugin(
 			
 			# Check if request is hard emergency stop
 			if "M0" in data :
-		
+	
 				# Check if printing or paused
 				if self._printer.is_printing() or self._printer.is_paused() :
-		
-					# Clear perform cancel print movement
-					self.performCancelPrintMovement = False
-		
+				
+					# Set canceling print
+					self.cancelingPrint = True
+	
 					# Stop printing
 					self._printer.cancel_print()
-		
-				# Empty command queue
-				self.emptyCommandQueue()
-		
-				# Set first line number to zero and clear history
-				if self._printer._comm is not None :
-					self._printer._comm._gcode_M110_sending("N0")
-					self._printer._comm._long_running_command = True
-		
-				# Clear sent commands
-				self.sentCommands = {}
-				self.resetLineNumberCommandSent = False
-				self.numberWrapCounter = 0
+					
+					# Empty command queue
+					self.emptyCommandQueue()
+
+					# Set first line number to zero and clear history
+					if self._printer._comm is not None :
+						self._printer._comm._gcode_M110_sending("N0")
+						self._printer._comm._long_running_command = True
+
+					# Clear sent commands
+					self.sentCommands = {}
+					self.resetLineNumberCommandSent = False
+					self.numberWrapCounter = 0
+					
+					# Clear canceling print
+					self.cancelingPrint = False
+					
+					# Set commands
+					commands = [
+						"M104 S0"
+					]
+
+					if self.heatbedConnected :
+						commands += ["M140 S0"]
+			
+					if self._settings.get_boolean(["UseGpio"]) :
+						commands += ["M107 T1"]
+
+					commands += ["M18"]
+					commands += ["M107"]
+			
+					if self._settings.get_boolean(["ChangeLedBrightness"]) :
+						if self.printerColor == "Clear" :
+							commands += ["M420 T20"]
+						else :
+							commands += ["M420 T100"]
+			
+					# Append print done to command list
+					commands += ["M65541;print done"]
+				
+					# Send commands with line numbers
+					self.sendCommandsWithLineNumbers(commands)
 	
 			# Otherwise check if request is soft emergency stop
 			elif "M65537" in data :
+	
+				# Check if printing or paused
+				if self._printer.is_printing() or self._printer.is_paused() :
+				
+					# Set canceling print
+					self.cancelingPrint = True
 			
-				# Empty command queue
-				self.emptyCommandQueue()
+					# Wait until all sent commands have been processed
+					while len(self.sentCommands) :
+				
+						# Set long running command
+						self._printer._comm._long_running_command = True
+	
+						# Update communication timeout to prevent other commands from being sent
+						if self._printer._comm is not None :
+							self._printer._comm._gcode_G4_sent("G4 P10")
 		
-				# Wait until all sent commands have been processed
-				while len(self.sentCommands) :
+						time.sleep(0.01)
+	
+					# Stop printing
+					self._printer.cancel_print()
+					
+					# Empty command queue
+					self.emptyCommandQueue()
+	
+					# Set first line number to zero and clear history
+					if self._printer._comm is not None :
+						self._printer._comm._gcode_M110_sending("N0")
+						self._printer._comm._long_running_command = True
+	
+					# Clear sent commands
+					self.sentCommands = {}
+					self.resetLineNumberCommandSent = False
+					self.numberWrapCounter = 0
+					
+					# Clear canceling print
+					self.cancelingPrint = False
+					
+					# Set perform cancel print movement
+					self.performCancelPrintMovement = True
+					
+					# Set commands
+					commands = [
+						"M114"
+					]
 					
 					# Set long running command
 					self._printer._comm._long_running_command = True
 		
-					# Update communication timeout to prevent other commands from being sent
-					if self._printer._comm is not None :
-						self._printer._comm._gcode_G4_sent("G4 P10")
+					# Send commands with line numbers
+					self.sendCommandsWithLineNumbers(commands)
 			
-					time.sleep(0.01)
-		
-				# Check if printing or paused
-				if self._printer.is_printing() or self._printer.is_paused() :
-		
-					# Set perform cancel print movement
-					self.performCancelPrintMovement = True
-		
-					# Stop printing
-					self._printer.cancel_print()
-		
-				# Empty command queue
-				self.emptyCommandQueue()
-		
-				# Set first line number to zero and clear history
-				if self._printer._comm is not None :
-					self._printer._comm._gcode_M110_sending("N0")
-					self._printer._comm._long_running_command = True
-		
-				# Clear sent commands
-				self.sentCommands = {}
-				self.resetLineNumberCommandSent = False
-				self.numberWrapCounter = 0
-				
 				# Return
 				return returnValue
 		
@@ -3812,35 +3878,39 @@ class M33FioPlugin(
 			# Check if pre-processing on the fly and command is not a starting line number and wasn't added on the fly
 			if self._printer.is_printing() and self._settings.get_boolean(["PreprocessOnTheFly"]) and not data.startswith("N0 M110") and "**" not in data :
 			
-				# Get line number
-				lineNumber = int(re.findall("^N(\d+)", data)[0])
-				
-				# Check if shared library was loaded
-				if self.sharedLibrary :
-				
-					# Pre-process command
-					commands = self.sharedLibrary.preprocess(ctypes.c_char_p(data), ctypes.c_char_p(None), ctypes.c_bool(False)).split(',')
-				
-				# Otherwise
-				else :
-				
-					# Pre-process command
-					commands = self.preprocess(data)
-				
-				# Check if pre-processed commands were returned
-				if len(commands) and commands != [''] :
-				
-					# Set data to first pre-processed command
-					data = 'N' + str(lineNumber) + ' ' + commands[0] + '\n'
+				# Check if command contains a line number
+				lineNumberLocation = re.findall("^N(\d+)", data)
+				if len(lineNumberLocation) :
 			
-					# Send the remaining pre-processed commands to the printer
-					self.sendCommands(commands[1 :])
+					# Get line number
+					lineNumber = int(lineNumberLocation[0])
 				
-				# Otherwise
-				else :
+					# Check if shared library was loaded
+					if self.sharedLibrary :
 				
-					# Set command to nothing
-					data = 'N' + str(lineNumber) + " G4\n"
+						# Pre-process command
+						commands = self.sharedLibrary.preprocess(ctypes.c_char_p(data), ctypes.c_char_p(None), ctypes.c_bool(False)).split(',')
+				
+					# Otherwise
+					else :
+				
+						# Pre-process command
+						commands = self.preprocess(data)
+				
+					# Check if pre-processed commands were returned
+					if len(commands) and commands != [''] :
+				
+						# Set data to first pre-processed command
+						data = 'N' + str(lineNumber) + ' ' + commands[0] + '\n'
+			
+						# Send the remaining pre-processed commands to the printer
+						self.sendCommands(commands[1 :])
+				
+					# Otherwise
+					else :
+				
+						# Set command to nothing
+						data = 'N' + str(lineNumber) + " G4\n"
 			
 			# Check if command contains valid G-code
 			gcode = Gcode()
@@ -4215,8 +4285,11 @@ class M33FioPlugin(
 					# Store command
 					self.sentCommands[lineNumber % 0x10000] = data
 			
-			# Set last command sent
-			self.lastCommandSent = data
+			# Check if command doesn't have a line number
+			if not gcode.hasValue('N') :
+			
+				# Set last command sent
+				self.lastCommandSent = data
 			
 			# Send command to printer
 			self.originalWrite(data)
@@ -4959,10 +5032,7 @@ class M33FioPlugin(
 
 						# Create message
 						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "error", title = "Print failed", text = "Could not print the file. The dimensions of the model go outside the bounds of the printer."))
-					
-						# Clear perform cancel print movement
-						self.performCancelPrintMovement = False
-					
+						
 						# Stop printing
 						self._printer.cancel_print()
 			
@@ -5069,64 +5139,8 @@ class M33FioPlugin(
 			# Unload shared library
 			self.unloadSharedLibrary()
 		
-			# Check if using a Micro 3D printer
-			if not self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
-		
-				# Empty command queue
-				self.emptyCommandQueue()
-			
-				# Set first line number to zero and clear history
-				if self._printer._comm is not None :
-					self._printer._comm._gcode_M110_sending("N0")
-					self._printer._comm._long_running_command = True
-			
-				# Clear sent commands
-				self.sentCommands = {}
-				self.resetLineNumberCommandSent = False
-				self.numberWrapCounter = 0
-			
-				# Check if performing cancel print movement
-				if self.performCancelPrintMovement :
-			
-					# Set commands
-					commands = [
-						"M114"
-					]
-					
-					# Set long running command
-					self._printer._comm._long_running_command = True
-			
-				# Otherwise
-				else :
-			
-					# Set commands
-					commands = [
-						"M104 S0"
-					]
-
-					if self.heatbedConnected :
-						commands += ["M140 S0"]
-			
-					if self._settings.get_boolean(["UseGpio"]) :
-						commands += ["M107 T1"]
-
-					commands += ["M18"]
-					commands += ["M107"]
-			
-					if self._settings.get_boolean(["ChangeLedBrightness"]) :
-						if self.printerColor == "Clear" :
-							commands += ["M420 T20"]
-						else :
-							commands += ["M420 T100"]
-			
-					# Append print done to command list
-					commands += ["M65541;print done"]
-				
-				# Send commands with line numbers
-				self.sendCommandsWithLineNumbers(commands)
-					
-			# Otherwise
-			else :
+			# Check if not using a Micro 3D printer
+			if self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
 		
 				# Enable sleep
 				self.enableSleep()
@@ -6050,6 +6064,9 @@ class M33FioPlugin(
 												self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Connected To Printer"))
 									
 											except :
+											
+												# Clear EEPROM
+												self.eeprom = None
 				
 												# Close connection
 												if self._printer._comm is not None :

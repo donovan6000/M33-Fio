@@ -1,5 +1,11 @@
 Changelog:
 
+V1.5 August X, 2016
+
+	* Made canceling a print and emergency stop more reliable
+	* Added more exeption handling when connecting to the printer
+	* Fixed issue in setting the extruder's current
+
 V1.4 July 29, 2016
 
 	* Really fixed compatibility with OctoPrint V1.2.14
