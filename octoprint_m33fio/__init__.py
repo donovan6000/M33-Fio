@@ -9227,7 +9227,7 @@ class M33FioPlugin(
 		if "Slicer Profile Name" in flask.request.values and "Slicer Name" in flask.request.values and "Printer Profile Name" in flask.request.values and "Slicer Profile Content" in flask.request.values and "After Slicing Action" in flask.request.values :
 		
 			# Check if printing after slicing and a printer isn't connected
-			if flask.request.values["After Slicing Action"] != "none" and self._printer.get_state_string() == "Offline" :
+			if flask.request.values["After Slicing Action"] != "none" and self._printer.is_closed_or_error() :
 			
 				# Return error
 				return flask.jsonify(dict(value = "Error"))

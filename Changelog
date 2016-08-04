@@ -1,6 +1,6 @@
 Changelog:
 
-V1.5 August X, 2016
+V1.5 August 3, 2016
 
 	* Made canceling a print and emergency stop more reliable
 	* Added more exeption handling when connecting to the printer

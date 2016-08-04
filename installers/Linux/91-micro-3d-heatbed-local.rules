@@ -1,5 +1,5 @@
 # Run the following commands to install this rule
-# cp ./91-micro-3d-heatbed-local.rules /etc/udev/rules.d/
+# sudo cp ./91-micro-3d-heatbed-local.rules /etc/udev/rules.d/
 # sudo udevadm control --reload-rules
 # sudo udevadm trigger
 
