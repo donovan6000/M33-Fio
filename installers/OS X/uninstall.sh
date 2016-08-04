@@ -35,16 +35,28 @@ else
 	rm -rf '/Users/'"$SUDO_USER"'/Library/Application Support/OctoPrint'
 	
 	# Uninstall PyObjC QTKit framework
-	echo 'y' | sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/pip uninstall pyobjc-framework-QTKit
+	while echo 'y' | sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/pip uninstall pyobjc-framework-QTKit
+	do
+		:
+	done
 	
 	# Uninstall PyObjC Quartz framework
-	echo 'y' | sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/pip uninstall pyobjc-framework-Quartz
+	while echo 'y' | sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/pip uninstall pyobjc-framework-Quartz
+	do
+		:
+	done
 	
 	# Uninstall PyObjC Cocoa framework
-	echo 'y' | sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/pip uninstall pyobjc-framework-Cocoa
+	while echo 'y' | sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/pip uninstall pyobjc-framework-Cocoa
+	do
+		:
+	done
 	
 	# Uninstall PyObjC core
-	echo 'y' | sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/pip uninstall pyobjc-core
+	while echo 'y' | sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/pip uninstall pyobjc-core
+	do
+		:
+	done
 	
 	# TODO Uninstall command line tools
 	

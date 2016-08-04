@@ -1,5 +1,5 @@
 # Run the following commands to install this rule
-# cp ./90-micro-3d-local.rules /etc/udev/rules.d/
+# sudo cp ./90-micro-3d-local.rules /etc/udev/rules.d/
 # sudo udevadm control --reload-rules
 # sudo udevadm trigger
 

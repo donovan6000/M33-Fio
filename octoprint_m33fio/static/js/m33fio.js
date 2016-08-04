@@ -7522,10 +7522,10 @@ $(function() {
 									});
 								}, 600);
 							}
-					
+							
 							// Check if printing after slicing, a printer is connected, and using a Micro 3D printer
-							if(afterSlicingAction == "print" && self.printerState.stateString() !== "Offline" && !self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
-						
+							if(afterSlicingAction == "print" && self.printerState.isErrorOrClosed() !== true && !self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
+								
 								// Check if using on the fly pre-processing and changing settings before print
 								if(self.settings.settings.plugins.m33fio.PreprocessOnTheFly() && self.settings.settings.plugins.m33fio.ChangeSettingsBeforePrint()) {
 
@@ -7593,8 +7593,8 @@ $(function() {
 										// Hide message
 										hideMessage();
 								
-										// Don't slice file
-										button.prev('a').click();
+										// Enable button
+										button.removeClass("disabled");
 									});
 								}
 							
@@ -13151,7 +13151,7 @@ $(function() {
 		if(navigator.platform.indexOf("Win") != -1)
 		
 			// Fix Windows specific CSS issues
-			$("#control div.jog-panel.eeprom input[type=\"radio\"]").addClass("windows");
+			$("#settings_plugin_m33fio label.checkbox > span, #control div.jog-panel.eeprom input[type=\"radio\"]").addClass("windows");
 		
 		// Otherwise check if using OS X
 		else if(navigator.platform.indexOf("Mac") != -1)
