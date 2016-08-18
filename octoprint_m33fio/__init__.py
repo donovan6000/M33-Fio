@@ -3434,8 +3434,8 @@ class M33FioPlugin(
 									# Check if old and new firmware types are known
 									if oldFirmwareType is not None and newFirmwareType is not None :
 								
-										# Check if going from M3D or M3D Mod firmware to iMe firmware
-										if (oldFirmwareType == "M3D" or oldFirmwareType == "M3D Mod") and newFirmwareType == "iMe" :
+										# Check if going from M3D or M3D Mod firmware to a different firmware
+										if (oldFirmwareType == "M3D" or oldFirmwareType == "M3D Mod") and newFirmwareType != "M3D" and newFirmwareType != "M3D Mod" :
 									
 											# Check if Z state was saved
 											if self.eepromGetInt("savedZState") != 0 :
@@ -3443,14 +3443,14 @@ class M33FioPlugin(
 												# Get current Z value from EEPROM
 												currentValueZ = self.eepromGetInt("lastRecordedZValue")
 										
-												# Convert current Z to single-precision floating-point format used by iMe firmware
+												# Convert current Z to single-precision floating-point format used by other firmwares
 												currentValueZ /= 5170.635833481
 										
 												# Set error to if setting current Z in EEPROM failed
 												error = self.eepromSetFloat(connection, "lastRecordedZValue", currentValueZ)
 									
-										# Otherwise check if going from iMe firmware to M3D or M3D Mod firmware
-										elif oldFirmwareType == "iMe" and (newFirmwareType == "M3D" or newFirmwareType == "M3D Mod") :
+										# Otherwise check if going from a different firmware to M3D or M3D Mod firmware
+										elif oldFirmwareType != "M3D" and oldFirmwareType != "M3D Mod" and (newFirmwareType == "M3D" or newFirmwareType == "M3D Mod") :
 									
 											# Check if Z state was saved
 											if self.eepromGetInt("savedZState") != 0 :
