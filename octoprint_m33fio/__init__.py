@@ -284,6 +284,14 @@ class M33FioPlugin(
 				offset = 0x106,
 				bytes = 4
 			),
+			xJerkSensitivity = dict(
+				offset = 0x29D,
+				bytes = 1
+			),
+			yJerkSensitivity = dict(
+				offset = 0x29E,
+				bytes = 1
+			),
 			lastRecordedXValue = dict(
 				offset = 0x29F,
 				bytes = 4
@@ -442,7 +450,7 @@ class M33FioPlugin(
 		self.currentE = 0
 		self.currentF = None
 		self.currentZ = 0
-		self.relativeMode = False
+		self.layerDetectionRelativeMode = False
 		self.printedLayers = []
 		self.onNewPrintedLayer = False
 		self.tackPointAngle = 0.0
@@ -1578,6 +1586,8 @@ class M33FioPlugin(
 			YMotorStepsPerMm = 18.00885,
 			ZMotorStepsPerMm = 646.3295,
 			EMotorStepsPerMm = 128.451375,
+			XJerkSensitivity = 195,
+			YJerkSensitivity = 195,
 			ChangeSettingsBeforePrint = True,
 			NotUsingAMicro3DPrinter = False,
 			CalibrateBeforePrint = False,
@@ -2590,7 +2600,9 @@ class M33FioPlugin(
 					XMotorStepsPerMm = self._settings.get_float(["XMotorStepsPerMm"]),
 					YMotorStepsPerMm = self._settings.get_float(["YMotorStepsPerMm"]),
 					ZMotorStepsPerMm = self._settings.get_float(["ZMotorStepsPerMm"]),
-					EMotorStepsPerMm = self._settings.get_float(["EMotorStepsPerMm"])
+					EMotorStepsPerMm = self._settings.get_float(["EMotorStepsPerMm"]),
+					XJerkSensitivity = self._settings.get_int(["XJerkSensitivity"]),
+					YJerkSensitivity = self._settings.get_int(["YJerkSensitivity"])
 				)
 				
 				# Set file's destination
@@ -2693,6 +2705,12 @@ class M33FioPlugin(
 				
 				if "EMotorStepsPerMm" in printerSettings :
 					self._settings.set_float(["EMotorStepsPerMm"], float(printerSettings["EMotorStepsPerMm"]))
+				
+				if "XJerkSensitivity" in printerSettings :
+					self._settings.set_int(["XJerkSensitivity"], int(printerSettings["XJerkSensitivity"]))
+				
+				if "YJerkSensitivity" in printerSettings :
+					self._settings.set_int(["YJerkSensitivity"], int(printerSettings["YJerkSensitivity"]))
 				
 				# Check if a Micro 3D is connected and not printing
 				if not self.invalidPrinter and not self._printer.is_printing() :
@@ -3449,8 +3467,8 @@ class M33FioPlugin(
 											# Check if an error hasn't occured
 											if not error :
 										
-												# Set error to if clearing X and Y value, direction, and validity in EEPROM failed
-												error = self.eepromSetInt(connection, "lastRecordedXValue", 0, self.eepromOffsets["savedYState"]["offset"] + self.eepromOffsets["savedYState"]["bytes"] - self.eepromOffsets["lastRecordedXValue"]["offset"])
+												# Set error to if clearing X and Y sensitivity, value, direction, and validity in EEPROM failed
+												error = self.eepromSetInt(connection, "xJerkSensitivity", 0, self.eepromOffsets["savedYState"]["offset"] + self.eepromOffsets["savedYState"]["bytes"] - self.eepromOffsets["xJerkSensitivity"]["offset"])
 											
 											# Check if an error hasn't occured
 											if not error :
@@ -4239,18 +4257,18 @@ class M33FioPlugin(
 					# Return
 					return returnValue
 				
-				# Check if using iMe firmware
-				if self.currentFirmwareType == "iMe" :
+				# Check if using M3D or M3D Mod firmware
+				if self.currentFirmwareType == "M3D" or self.currentFirmwareType == "M3D Mod" :
 				
-					# Get the command's ASCII representation with checksum
-					data = gcode.getAscii()
-					data += self.calculateChecksum(data)
+					# Get the command's binary representation
+					data = gcode.getBinary()
 				
 				# Otherwise
 				else :
 				
-					# Get the command's binary representation
-					data = gcode.getBinary()
+					# Get the command's ASCII representation with checksum
+					data = gcode.getAscii()
+					data += self.calculateChecksum(data)
 				
 				# Log sent data
 				self._m33fio_logger.debug("Processed Sent: " + gcode.getAscii())
@@ -5286,6 +5304,24 @@ class M33FioPlugin(
 		# Get string from EEPROM
 		return self.eeprom[self.eepromOffsets[eepromName]["offset"] : self.eepromOffsets[eepromName]["offset"] + self.eepromOffsets[eepromName]["bytes"] - 1]
 	
+	# EEPROM keep int within range
+	def eepromKeepIntWithinRange(self, connection, eepromName, minValue, maxValue, defaultValue) :
+	
+		# Set error
+		error = False
+		
+		# Get EEROM value in an unsigned integer format
+		intValue = self.eepromGetInt(eepromName)
+
+		# Check if EEPROM value is invalid
+		if not isinstance(intValue, int) or intValue < minValue or intValue > maxValue :
+		
+			# Set error to if setting default value in EEPROM failed
+			error = self.eepromSetInt(connection, eepromName, defaultValue)
+		
+		# Return error
+		return error
+	
 	# EEPROM keep float within range
 	def eepromKeepFloatWithinRange(self, connection, eepromName, minValue, maxValue, defaultValue) :
 	
@@ -5707,8 +5743,8 @@ class M33FioPlugin(
 											# Set error to if limiting speed limit E negative failed
 											error = self.eepromKeepFloatWithinRange(connection, "speedLimitENegative", 60, 720, self.get_settings_defaults()["SpeedLimitENegative"])
 								
-										# Check if using iMe firmware
-										if firmwareType == "iMe" :
+										# Check if not using M3D or M3D Mod firmware
+										if firmwareType != "M3D" and firmwareType != "M3D Mod" :
 								
 											# Check if an error hasn't occured
 											if not error :
@@ -5745,7 +5781,19 @@ class M33FioPlugin(
 							
 												# Set error to if limiting E motor steps/mm failed
 												error = self.eepromKeepFloatWithinRange(connection, "eMotorStepsPerMm", sys.float_info.min, sys.float_info.max, self.get_settings_defaults()["EMotorStepsPerMm"])
+											
+											# Check if an error hasn't occured
+											if not error :
 							
+												# Set error to if limiting X jerk sensitivity failed
+												error = self.eepromKeepIntWithinRange(connection, "xJerkSensitivity", 1, 255, self.get_settings_defaults()["XJerkSensitivity"])
+											
+											# Check if an error hasn't occured
+											if not error :
+							
+												# Set error to if limiting Y jerk sensitivity failed
+												error = self.eepromKeepIntWithinRange(connection, "yJerkSensitivity", 1, 255, self.get_settings_defaults()["YJerkSensitivity"])
+										
 										# Check if an error hasn't occured
 										if not error :
 							
@@ -5816,7 +5864,7 @@ class M33FioPlugin(
 										elif firmwareType == "M3D Mod" :
 											incompatible = firmwareVersion < 2115122112
 										elif firmwareType == "iMe" :
-											incompatible = firmwareVersion < 1900000006
+											incompatible = firmwareVersion < 1900000112
 								
 										# Check if printer is incompatible or not reconnecting to printer
 										if incompatible or not self.reconnectingToPrinter :
@@ -6151,15 +6199,17 @@ class M33FioPlugin(
 					"M619 S" + str(self.eepromOffsets["speedLimitENegative"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitENegative"]["bytes"])
 				]
 				
-				# Check if using iMe firmware
-				if self.currentFirmwareType == "iMe" :
+				# Check if not using M3D or M3D Mod firmware
+				if self.currentFirmwareType != "M3D" and self.currentFirmwareType != "M3D Mod" :
 				
-					# Request motor's steps/mm
+					# Request motor's steps/mm and homing sensitivity
 					commands += [
 						"M619 S" + str(self.eepromOffsets["xMotorStepsPerMm"]["offset"]) + " T" + str(self.eepromOffsets["xMotorStepsPerMm"]["bytes"]),
 						"M619 S" + str(self.eepromOffsets["yMotorStepsPerMm"]["offset"]) + " T" + str(self.eepromOffsets["yMotorStepsPerMm"]["bytes"]),
 						"M619 S" + str(self.eepromOffsets["zMotorStepsPerMm"]["offset"]) + " T" + str(self.eepromOffsets["zMotorStepsPerMm"]["bytes"]),
-						"M619 S" + str(self.eepromOffsets["eMotorStepsPerMm"]["offset"]) + " T" + str(self.eepromOffsets["eMotorStepsPerMm"]["bytes"])
+						"M619 S" + str(self.eepromOffsets["eMotorStepsPerMm"]["offset"]) + " T" + str(self.eepromOffsets["eMotorStepsPerMm"]["bytes"]),
+						"M619 S" + str(self.eepromOffsets["xJerkSensitivity"]["offset"]) + " T" + str(self.eepromOffsets["xJerkSensitivity"]["bytes"]),
+						"M619 S" + str(self.eepromOffsets["yJerkSensitivity"]["offset"]) + " T" + str(self.eepromOffsets["yJerkSensitivity"]["bytes"])
 					]
 				
 				# Lower LED brightness for clear color printers
@@ -6808,6 +6858,26 @@ class M33FioPlugin(
 				if self._settings.get_boolean(["AutomaticallyObtainSettings"]) :
 					self._settings.set_float(["EMotorStepsPerMm"], self.printerEMotorStepsPerMm)
 			
+			# Otherwise check if data is for X jerk sensitivity
+			elif "PT:" + str(self.eepromOffsets["xJerkSensitivity"]["offset"]) + ' ' in data :
+			
+				# Convert data to value
+				self.printerXJerkSensitivity = int(data[data.find("DT:") + 3 :])
+				
+				# Check if set to automatically collect printer settings
+				if self._settings.get_boolean(["AutomaticallyObtainSettings"]) :
+					self._settings.set_int(["XJerkSensitivity"], self.printerXJerkSensitivity)
+			
+			# Otherwise check if data is for Y jerk sensitivity
+			elif "PT:" + str(self.eepromOffsets["yJerkSensitivity"]["offset"]) + ' ' in data :
+			
+				# Convert data to value
+				self.printerYJerkSensitivity = int(data[data.find("DT:") + 3 :])
+				
+				# Check if set to automatically collect printer settings
+				if self._settings.get_boolean(["AutomaticallyObtainSettings"]) :
+					self._settings.set_int(["YJerkSensitivity"], self.printerYJerkSensitivity)
+			
 			# Otherwise check if data is for bed orientation version
 			elif "PT:" + str(self.eepromOffsets["bedOrientationVersion"]["offset"]) + ' ' in data :
 			
@@ -6924,7 +6994,15 @@ class M33FioPlugin(
 		softwareEMotorStepsPerMm = self._settings.get_float(["EMotorStepsPerMm"])
 		if not isinstance(softwareEMotorStepsPerMm, float) :
 			softwareEMotorStepsPerMm = self.get_settings_defaults()["EMotorStepsPerMm"]
-	
+		
+		softwareXJerkSensitivity = self._settings.get_int(["XJerkSensitivity"])
+		if not isinstance(softwareXJerkSensitivity, int) :
+			softwareXJerkSensitivity = self.get_settings_defaults()["XJerkSensitivity"]
+		
+		softwareYJerkSensitivity = self._settings.get_int(["YJerkSensitivity"])
+		if not isinstance(softwareYJerkSensitivity, int) :
+			softwareYJerkSensitivity = self.get_settings_defaults()["YJerkSensitivity"]
+		
 		# Check if backlash Xs differ
 		commandList = []
 		if hasattr(self, "printerBacklashX") and self.printerBacklashX != softwareBacklashX :
@@ -7058,8 +7136,8 @@ class M33FioPlugin(
 			# Add new value to list
 			commandList += ["M618 S" + str(self.eepromOffsets["speedLimitENegative"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitENegative"]["bytes"]) + " P" + str(self.floatToInt(softwareSpeedLimitENegative)), "M619 S" + str(self.eepromOffsets["speedLimitENegative"]["offset"]) + " T" + str(self.eepromOffsets["speedLimitENegative"]["bytes"])]
 		
-		# Check if using iMe firmware
-		if self.currentFirmwareType == "iMe" :
+		# Check if not using M3D or M3D Mod firmware
+		if self.currentFirmwareType != "M3D" and self.currentFirmwareType != "M3D Mod" :
 		
 			# Check if X motor steps/mms differ
 			if hasattr(self, "printerXMotorStepsPerMm") and self.printerXMotorStepsPerMm != softwareXMotorStepsPerMm :
@@ -7084,6 +7162,18 @@ class M33FioPlugin(
 
 				# Add new value to list
 				commandList += ["M618 S" + str(self.eepromOffsets["eMotorStepsPerMm"]["offset"]) + " T" + str(self.eepromOffsets["eMotorStepsPerMm"]["bytes"]) + " P" + str(self.floatToInt(softwareEMotorStepsPerMm)), "M619 S" + str(self.eepromOffsets["eMotorStepsPerMm"]["offset"]) + " T" + str(self.eepromOffsets["eMotorStepsPerMm"]["bytes"])]
+			
+			# Check if X jerk sensitivities differ
+			if hasattr(self, "printerXJerkSensitivity") and self.printerXJerkSensitivity != softwareXJerkSensitivity :
+
+				# Add new value to list
+				commandList += ["M618 S" + str(self.eepromOffsets["xJerkSensitivity"]["offset"]) + " T" + str(self.eepromOffsets["xJerkSensitivity"]["bytes"]) + " P" + str(softwareXJerkSensitivity), "M619 S" + str(self.eepromOffsets["xJerkSensitivity"]["offset"]) + " T" + str(self.eepromOffsets["xJerkSensitivity"]["bytes"])]
+			
+			# Check if Y jerk sensitivities differ
+			if hasattr(self, "printerYJerkSensitivity") and self.printerYJerkSensitivity != softwareYJerkSensitivity :
+
+				# Add new value to list
+				commandList += ["M618 S" + str(self.eepromOffsets["yJerkSensitivity"]["offset"]) + " T" + str(self.eepromOffsets["yJerkSensitivity"]["bytes"]) + " P" + str(softwareYJerkSensitivity), "M619 S" + str(self.eepromOffsets["yJerkSensitivity"]["offset"]) + " T" + str(self.eepromOffsets["yJerkSensitivity"]["bytes"])]
 		
 		# Return command list
 		return commandList
@@ -7296,9 +7386,9 @@ class M33FioPlugin(
 				
 					# Get fan speed
 					if gcode.hasValue('S') :
-						self.detectedFanSpeed = int(gcode.getValue('S'))
+						self.detectedFanSpeed = max(int(gcode.getValue('S')), 255)
 					elif gcode.hasValue('P') :
-						self.detectedFanSpeed = int(gcode.getValue('P'))
+						self.detectedFanSpeed = max(int(gcode.getValue('P')), 255)
 					else :
 						self.detectedFanSpeed = 0
 				
@@ -7429,6 +7519,31 @@ class M33FioPlugin(
 		
 						# Set relative mode
 						relativeMode = True
+					
+					# Otherwise check if command is G92
+					elif gcode.getValue('G') == "92" :
+
+						# Check if command doesn't have an X, Y, Z, and E value
+						if not gcode.hasValue('X') and not gcode.hasValue('Y') and not gcode.hasValue('Z') and not gcode.hasValue('E') :
+
+							# Set command values to zero
+							gcode.setValue('X', "0")
+							gcode.setValue('Y', "0")
+							gcode.setValue('Z', "0")
+							gcode.setValue('E', "0")
+
+						# Check if not using M3D or M3D Mod firmware
+						if self.currentFirmwareType != "M3D" and self.currentFirmwareType != "M3D Mod" :
+
+							# Set local values
+							if gcode.hasValue('X') :
+								localX = float(gcode.getValue('X'))
+
+							if gcode.hasValue('Y') :
+								localY = float(gcode.getValue('Y'))
+
+							if gcode.hasValue('Z') :
+								localZ = float(gcode.getValue('Z'))
 	
 		# Check if applying pre-processors, center model pre-processor is set, and not printing a test border or backlash calibration
 		if applyPreprocessors and self._settings.get_boolean(["UseCenterModelPreprocessor"]) and not self.printingTestBorder and not self.printingBacklashCalibration :
@@ -8000,7 +8115,7 @@ class M33FioPlugin(
 						if gcode.hasValue('Z') :
 			
 							# Set current Z
-							if self.relativeMode :
+							if self.layerDetectionRelativeMode :
 								self.currentZ += float(gcode.getValue('Z'))
 							else :
 								self.currentZ = float(gcode.getValue('Z'))
@@ -8009,7 +8124,7 @@ class M33FioPlugin(
 						if gcode.hasValue('E') :
 				
 							# Set new E
-							if self.relativeMode :
+							if self.layerDetectionRelativeMode :
 								newE += float(gcode.getValue('E'))
 							else :
 								newE = float(gcode.getValue('E'))
@@ -8018,22 +8133,31 @@ class M33FioPlugin(
 					elif gcode.getValue('G') == "90" :
 				
 						# Clear relative mode
-						self.relativeMode = False
+						self.layerDetectionRelativeMode = False
 				
 					# Otherwise check if command is G91
 					elif gcode.getValue('G') == "91" :
 				
 						# Set relative mode
-						self.relativeMode = True
+						self.layerDetectionRelativeMode = True
 				
 					# Otherwise check if command is G92
 					elif gcode.getValue('G') == "92" :
+					
+						# Check if command doesn't have an X, Y, Z, and E value
+						if not gcode.hasValue('X') and not gcode.hasValue('Y') and not gcode.hasValue('Z') and not gcode.hasValue('E') :
+
+							# Set command values to zero
+							gcode.setValue('X', "0")
+							gcode.setValue('Y', "0")
+							gcode.setValue('Z', "0")
+							gcode.setValue('E', "0")
 			
-						# Set new E
+						# Check if an E value is provided
 						if gcode.hasValue('E') :
+						
+							# Set new E to value
 							newE = float(gcode.getValue('E'))
-						else :
-							newE = 0
 				
 					# Check if first time layer extrudes filament
 					if newE > self.currentE and self.currentZ not in self.printedLayers :
@@ -8114,8 +8238,8 @@ class M33FioPlugin(
 				# Check if command contains valid G-code
 				if not gcode.isEmpty() :
 
-					# Check if extruder absolute mode, extruder relative mode, stop idle hold, request coordinates, or not using iMe firmware and request temperature command
-					if gcode.hasValue('M') and (gcode.getValue('M') == "82" or gcode.getValue('M') == "83" or gcode.getValue('M') == "84" or gcode.getValue('M') == "117" or (self.currentFirmwareType != "iMe" and gcode.getValue('M') == "105")) :
+					# Check if extruder absolute mode, extruder relative mode, stop idle hold, request coordinates, or using M3D or M3D Mod firmware and request temperature command
+					if gcode.hasValue('M') and (gcode.getValue('M') == "82" or gcode.getValue('M') == "83" or gcode.getValue('M') == "84" or gcode.getValue('M') == "117" or ((self.currentFirmwareType == "M3D" or self.currentFirmwareType == "M3D Mod") and gcode.getValue('M') == "105")) :
 
 						# Get next line
 						continue
@@ -8179,8 +8303,8 @@ class M33FioPlugin(
 						elif self.maxYExtruderLow < self.bedLowMaxY :
 							cornerY = (self.bedLowMaxY - self.bedLowMinY - 10) / 2
 					
-					# Check if not using iMe firmware and both of the corners are set
-					if self.currentFirmwareType != "iMe" and cornerX != 0 and cornerY != 0 :
+					# Check if using M3D or M3D Mod firmware and both of the corners are set
+					if (self.currentFirmwareType == "M3D" or self.currentFirmwareType == "M3D Mod") and cornerX != 0 and cornerY != 0 :
 					
 						# Set corner Z
 						if cornerX > 0 and cornerY > 0 :
@@ -8597,8 +8721,8 @@ class M33FioPlugin(
 									gcode.setValue('Z', "0")
 									gcode.setValue('E', "0")
 
-								# Otherwise
-								else :
+								# Check if not using M3D or M3D Mod firmware
+								if self.currentFirmwareType != "M3D" and self.currentFirmwareType != "M3D Mod" :
 
 									# Set relative positions
 									if gcode.hasValue('X') :
@@ -8609,9 +8733,10 @@ class M33FioPlugin(
 	
 									if gcode.hasValue('Z') :
 										self.waveBondingPositionRelativeZ = float(gcode.getValue('Z'))
-
-									if gcode.hasValue('E') :
-										self.waveBondingPositionRelativeE = float(gcode.getValue('E'))
+								
+								# Set relative positions
+								if gcode.hasValue('E') :
+									self.waveBondingPositionRelativeE = float(gcode.getValue('E'))
 				
 				# Check if new commands exist
 				if len(newCommands) :
@@ -8722,8 +8847,8 @@ class M33FioPlugin(
 					# Get next command
 					continue
 
-			# Check if not using iMe firmware and printing test border or backlash calibration or using bed compensation pre-processor
-			if self.currentFirmwareType != "iMe" and (self.printingTestBorder or self.printingBacklashCalibration or self._settings.get_boolean(["UseBedCompensationPreprocessor"])) and "BED" not in command.skip :
+			# Check if using M3D or M3D Mod firmware and printing test border or backlash calibration or using bed compensation pre-processor
+			if (self.currentFirmwareType == "M3D" or self.currentFirmwareType == "M3D Mod") and (self.printingTestBorder or self.printingBacklashCalibration or self._settings.get_boolean(["UseBedCompensationPreprocessor"])) and "BED" not in command.skip :
 
 				# Set command skip
 				command.skip += " BED"
@@ -8952,21 +9077,22 @@ class M33FioPlugin(
 								gcode.setValue('Z', "0")
 								gcode.setValue('E', "0")
 
-							# Otherwise
-							else :
+							# Check if not using M3D or M3D Mod firmware
+							if self.currentFirmwareType != "M3D" and self.currentFirmwareType != "M3D Mod" :
 
-								# Set relative positions
+								# Set relative and absolute positions
 								if gcode.hasValue('X') :
-									self.bedCompensationPositionRelativeX = float(gcode.getValue('X'))
+									self.bedCompensationPositionRelativeX = self.bedCompensationPositionAbsoluteX = float(gcode.getValue('X'))
 		
 								if gcode.hasValue('Y') :
-									self.bedCompensationPositionRelativeY = float(gcode.getValue('Y'))
+									self.bedCompensationPositionRelativeY = self.bedCompensationPositionAbsoluteY = float(gcode.getValue('Y'))
 		
 								if gcode.hasValue('Z') :
 									self.bedCompensationPositionRelativeZ = float(gcode.getValue('Z'))
-	
-								if gcode.hasValue('E') :
-									self.bedCompensationPositionRelativeE = float(gcode.getValue('E'))
+							
+							# Set relative and absolute positions
+							if gcode.hasValue('E') :
+								self.bedCompensationPositionRelativeE = float(gcode.getValue('E'))
 				
 				# Check if new commands exist
 				if len(newCommands) :
@@ -8984,8 +9110,8 @@ class M33FioPlugin(
 					# Get next command
 					continue
 
-			# Check if not using iMe firmware and printing test border or backlash calibration or using backlash compentation pre-processor
-			if self.currentFirmwareType != "iMe" and (self.printingTestBorder or self.printingBacklashCalibration or self._settings.get_boolean(["UseBacklashCompensationPreprocessor"])) and "BACKLASH" not in command.skip :
+			# Check if using M3D or M3D Mod and printing test border or backlash calibration or using backlash compentation pre-processor
+			if (self.currentFirmwareType == "M3D" or self.currentFirmwareType == "M3D Mod") and (self.printingTestBorder or self.printingBacklashCalibration or self._settings.get_boolean(["UseBacklashCompensationPreprocessor"])) and "BACKLASH" not in command.skip :
 
 				# Set command skip
 				command.skip += " BACKLASH"
@@ -9112,7 +9238,6 @@ class M33FioPlugin(
 							self.backlashPositionRelativeY = 50
 		
 							# Reset values
-							self.valueF = "1000"
 							self.previousDirectionX = "Neither"
 							self.previousDirectionY = "Neither"
 							self.compensationX = 0
@@ -9142,8 +9267,8 @@ class M33FioPlugin(
 								gcode.setValue('Z', "0")
 								gcode.setValue('E', "0")
 
-							# Otherwise
-							else :
+							# Check if not using M3D or M3D Mod firmware
+							if self.currentFirmwareType != "M3D" and self.currentFirmwareType != "M3D Mod" :
 
 								# Set relative positions
 								if gcode.hasValue('X') :
@@ -9154,9 +9279,10 @@ class M33FioPlugin(
 			
 								if gcode.hasValue('Z') :
 									self.backlashPositionRelativeZ = float(gcode.getValue('Z'))
-		
-								if gcode.hasValue('E') :
-									self.backlashPositionRelativeE = float(gcode.getValue('E'))
+							
+							# Set relative positions
+							if gcode.hasValue('E') :
+								self.backlashPositionRelativeE = float(gcode.getValue('E'))
 				
 				# Check if new commands exist
 				if len(newCommands) :

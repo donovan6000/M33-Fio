@@ -181,7 +181,7 @@ string returnValue;
 double currentE;
 string currentF;
 double currentZ;
-bool relativeMode;
+bool layerDetectionRelativeMode;
 list<double>printedLayers;
 bool onNewPrintedLayer;
 double tackPointAngle;
@@ -920,7 +920,7 @@ EXPORT void resetPreprocessorSettings() {
 	currentE = 0;
 	currentF.clear();
 	currentZ = 0;
-	relativeMode = false;
+	layerDetectionRelativeMode = false;
 	printedLayers.clear();
 	onNewPrintedLayer = false;
 	tackPointAngle = 0;
@@ -1049,9 +1049,9 @@ EXPORT bool collectPrintInformation(const char *file, bool applyPreprocessors) {
 				
 					// Get fan speed
 					if(gcode.hasValue('S'))
-						detectedFanSpeed = stoi(gcode.getValue('S'));
+						detectedFanSpeed = max(stoi(gcode.getValue('S')), UINT8_MAX);
 					else if(gcode.hasValue('P'))
-						detectedFanSpeed = stoi(gcode.getValue('P'));
+						detectedFanSpeed = max(stoi(gcode.getValue('P')), UINT8_MAX);
 					else
 						detectedFanSpeed = 0;
 				}
@@ -1202,6 +1202,34 @@ EXPORT bool collectPrintInformation(const char *file, bool applyPreprocessors) {
 				
 							// Set relative mode
 							relativeMode = true;
+						break;
+						
+						// G92
+						case 92:
+				
+							// Check if command doesn't have an X, Y, Z, and E value
+							if(!gcode.hasValue('X') && !gcode.hasValue('Y') && !gcode.hasValue('Z') && !gcode.hasValue('E')) {
+
+								// Set command values to zero
+								gcode.setValue('X', "0");
+								gcode.setValue('Y', "0");
+								gcode.setValue('Z', "0");
+								gcode.setValue('E', "0");
+							}
+							
+							// Check if not using M3D or M3D Mod firmware
+							if(firmwareType != M3D && firmwareType != M3D_MOD) {
+
+								// Set local values
+								if(gcode.hasValue('X'))
+									localX = stod(gcode.getValue('X'));
+
+								if(gcode.hasValue('Y'))
+									localY = stod(gcode.getValue('Y'));
+
+								if(gcode.hasValue('Z'))
+									localZ = stod(gcode.getValue('Z'));
+							}
 						break;
 					}
 				}
@@ -1476,34 +1504,47 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 						if(gcode.hasValue('Z'))
 		
 							// Set current Z
-							currentZ = relativeMode ? currentZ + stod(gcode.getValue('Z')) : stod(gcode.getValue('Z'));
+							currentZ = layerDetectionRelativeMode ? currentZ + stod(gcode.getValue('Z')) : stod(gcode.getValue('Z'));
 					
 						// Check if command contains an E value
 						if(gcode.hasValue('E'))
 			
 							// Set new E
-							newE = relativeMode ? newE + stod(gcode.getValue('E')) : stod(gcode.getValue('E'));
+							newE = layerDetectionRelativeMode ? newE + stod(gcode.getValue('E')) : stod(gcode.getValue('E'));
 					break;
 				
 					// G90
 					case 90:
 					
 						// Clear relative mode
-						relativeMode = false;
+						layerDetectionRelativeMode = false;
 					break;
 					
 					// G91
 					case 91:
 					
 						// Set relative mode
-						relativeMode = true;
+						layerDetectionRelativeMode = true;
 					break;
 					
 					// G92
 					case 92:
 					
-						// Set new E
-						newE = gcode.hasValue('E') ? stod(gcode.getValue('E')) : 0;
+						// Check if command doesn't have an X, Y, Z, and E value
+						if(!gcode.hasValue('X') && !gcode.hasValue('Y') && !gcode.hasValue('Z') && !gcode.hasValue('E')) {
+
+							// Set command values to zero
+							gcode.setValue('X', "0");
+							gcode.setValue('Y', "0");
+							gcode.setValue('Z', "0");
+							gcode.setValue('E', "0");
+						}
+
+						// Check if an E value is provided
+						if(gcode.hasValue('E'))
+							
+							// Set new E to value
+							newE = stod(gcode.getValue('E'));
 					break;
 				}
 			
@@ -1596,8 +1637,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			// Check if command contains valid G-code
 			if(!gcode.isEmpty()) {
 
-				// Check if extruder absolute mode, extruder relative mode, stop idle hold, request coordinates, or not using iMe firmware and request temperature command
-				if(gcode.hasValue('M') && (gcode.getValue('M') == "82" || gcode.getValue('M') == "83" || gcode.getValue('M') == "84" || gcode.getValue('M') == "117" || (firmwareType != IME && gcode.getValue('M') == "105")))
+				// Check if extruder absolute mode, extruder relative mode, stop idle hold, request coordinates, or using M3D or M3D Mod firmware and request temperature command
+				if(gcode.hasValue('M') && (gcode.getValue('M') == "82" || gcode.getValue('M') == "83" || gcode.getValue('M') == "84" || gcode.getValue('M') == "117" || ((firmwareType == M3D || firmwareType == M3D_MOD) && gcode.getValue('M') == "105")))
 
 					// Get next line
 					continue;
@@ -1665,8 +1706,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 						cornerY = (BED_LOW_MAX_Y - bedLowMinY - 10) / 2;
 				}
 				
-				// Check if not using iMe firmware and both of the corners are set
-				if(firmwareType != IME && cornerX && cornerY) {
+				// Check if using M3D or M3D Mod firmware and both of the corners are set
+				if((firmwareType == M3D || firmwareType == M3D_MOD) && cornerX && cornerY) {
 				
 					// Set corner Z
 					if(cornerX > 0 && cornerY > 0)
@@ -2074,9 +2115,9 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 								gcode.setValue('Z', "0");
 								gcode.setValue('E', "0");
 							}
-
-							// Otherwise
-							else {
+							
+							// Check if not using M3D or M3D Mod firmware
+							if(firmwareType != M3D && firmwareType != M3D_MOD) {
 
 								// Set relative positions
 								if(gcode.hasValue('X'))
@@ -2087,10 +2128,11 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 
 								if(gcode.hasValue('Z'))
 									waveBondingPositionRelativeZ = stod(gcode.getValue('Z'));
-
-								if(gcode.hasValue('E'))
-									waveBondingPositionRelativeE = stod(gcode.getValue('E'));
 							}
+
+							// Set relative positions
+							if(gcode.hasValue('E'))
+								waveBondingPositionRelativeE = stod(gcode.getValue('E'));
 						}
 					}
 				}
@@ -2217,8 +2259,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			}
 		}
 
-		// Check if not using iMe firmware and printing test border or backlash calibration or using bed compensation pre-processor
-		if(firmwareType != IME && (printingTestBorder || printingBacklashCalibration || useBedCompensationPreprocessor) && command.skip < BED) {
+		// Check if using M3D or M3D Mod firmware and printing test border or backlash calibration or using bed compensation pre-processor
+		if((firmwareType == M3D || firmwareType == M3D_MOD) && (printingTestBorder || printingBacklashCalibration || useBedCompensationPreprocessor) && command.skip < BED) {
 
 			// Set command skip
 			command.skip = BED;
@@ -2438,23 +2480,24 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 							gcode.setValue('Z', "0");
 							gcode.setValue('E', "0");
 						}
+						
+						// Check if not using M3D or M3D Mod firmware
+						if(firmwareType != M3D && firmwareType != M3D_MOD) {
 
-						// Otherwise
-						else {
-
-							// Set relative positions
+							// Set relative and absolute positions
 							if(gcode.hasValue('X'))
-								bedCompensationPositionRelativeX = stod(gcode.getValue('X'));
+								bedCompensationPositionRelativeX = bedCompensationPositionAbsoluteX = stod(gcode.getValue('X'));
 
 							if(gcode.hasValue('Y'))
-								bedCompensationPositionRelativeY = stod(gcode.getValue('Y'));
+								bedCompensationPositionRelativeY = bedCompensationPositionAbsoluteY = stod(gcode.getValue('Y'));
 
 							if(gcode.hasValue('Z'))
 								bedCompensationPositionRelativeZ = stod(gcode.getValue('Z'));
-
-							if(gcode.hasValue('E'))
-								bedCompensationPositionRelativeE = stod(gcode.getValue('E'));
 						}
+						
+						// Set relative and absolute positions
+						if(gcode.hasValue('E'))
+							bedCompensationPositionRelativeE = stod(gcode.getValue('E'));
 					}
 				}
 	
@@ -2478,8 +2521,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			}
 		}
 
-		// Check if not using iMe firmware and printing test border or backlash calibration or using backlash compentation pre-processor
-		if(firmwareType != IME && (printingTestBorder || printingBacklashCalibration || useBacklashCompensationPreprocessor) && command.skip < BACKLASH) {
+		// Check if using M3D or M3D Mod firmware and printing test border or backlash calibration or using backlash compentation pre-processor
+		if((firmwareType == M3D || firmwareType == M3D_MOD) && (printingTestBorder || printingBacklashCalibration || useBacklashCompensationPreprocessor) && command.skip < BACKLASH) {
 
 			// Set command skip
 			command.skip = BACKLASH;
@@ -2576,7 +2619,6 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 						backlashPositionRelativeY = 50;
 
 						// Reset values
-						valueF = "1000";
 						previousDirectionX = previousDirectionY = NEITHER;
 						compensationX = compensationY = 0;
 					}
@@ -2605,23 +2647,24 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 							gcode.setValue('Z', "0");
 							gcode.setValue('E', "0");
 						}
-
-						// Otherwise
-						else {
+						
+						// Check if not using M3D or M3D Mod firmware
+						if(firmwareType != M3D && firmwareType != M3D_MOD) {
 
 							// Set relative positions
 							if(gcode.hasValue('X'))
 								backlashPositionRelativeX = stod(gcode.getValue('X'));
-	
+
 							if(gcode.hasValue('Y'))
 								backlashPositionRelativeY = stod(gcode.getValue('Y'));
-	
+
 							if(gcode.hasValue('Z'))
 								backlashPositionRelativeZ = stod(gcode.getValue('Z'));
-
-							if(gcode.hasValue('E'))
-								backlashPositionRelativeE = stod(gcode.getValue('E'));
 						}
+						
+						// Set relative positions
+						if(gcode.hasValue('E'))
+							backlashPositionRelativeE = stod(gcode.getValue('E'));
 					}
 				}
 	

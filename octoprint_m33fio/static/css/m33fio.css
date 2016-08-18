@@ -121,6 +121,10 @@
 	width: calc(100% - 72px);
 }
 
+#settings_plugin_m33fio div.input-append.ratio255 input[type="number"] {
+	width: calc(100% - 42px);
+}
+
 #settings_plugin_m33fio div.control-group.dependant {
 	margin-left: 30px;
 }

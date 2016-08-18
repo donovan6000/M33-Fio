@@ -214,7 +214,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="control-group micro3d" title="The sum of this value and the back left offset is the total vertical displacement for the back left corner">
+	<div class="control-group micro3d" title="The sum of this value and the back left offset is the total vertical displacement for the back left corner. A positive vertical displacement means that the back left corner is higher than the bed's center, and a negative vertical displacement means that the back left corner is lower than the bed's center.">
 		<label class="control-label">Back Left Orientation</label>
 		<div class="controls">
 			<div class="input-append">
@@ -223,7 +223,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="control-group micro3d" title="The sum of this value and the back right offset is the total vertical displacement for the back right corner">
+	<div class="control-group micro3d" title="The sum of this value and the back right offset is the total vertical displacement for the back right corner. A positive vertical displacement means that the back right corner is higher than the bed's center, and a negative vertical displacement means that the back right corner is lower than the bed's center.">
 		<label class="control-label">Back Right Orientation</label>
 		<div class="controls">
 			<div class="input-append">
@@ -232,7 +232,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="control-group micro3d" title="The sum of this value and the front right offset is the total vertical displacement for the front right corner">
+	<div class="control-group micro3d" title="The sum of this value and the front right offset is the total vertical displacement for the front right corner. A positive vertical displacement means that the front right corner is higher than the bed's center, and a negative vertical displacement means that the front right corner is lower than the bed's center.">
 		<label class="control-label">Front Right Orientation</label>
 		<div class="controls">
 			<div class="input-append">
@@ -241,7 +241,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="control-group micro3d" title="The sum of this value and the front left offset is the total vertical displacement for the front left corner">
+	<div class="control-group micro3d" title="The sum of this value and the front left offset is the total vertical displacement for the front left corner. A positive vertical displacement means that the front left corner is higher than the bed's center, and a negative vertical displacement means that the front left corner is lower than the bed's center.">
 		<label class="control-label">Front Left Orientation</label>
 		<div class="controls">
 			<div class="input-append">
@@ -250,7 +250,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="control-group micro3d" title="Shifts a print vertically by this value">
+	<div class="control-group micro3d" title="The vertical displacement for the bed's center. A positive vertical displacement means that the bed's center is higher than the actual bed's center, and a negative vertical displacement means that the bed's center is lower than the actual bed's center.">
 		<label class="control-label">Bed Height Offset</label>
 		<div class="controls">
 			<div class="input-append">
@@ -259,7 +259,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="control-group micro3d" title="The sum of this value and the back left orientation is the total vertical displacement for the back left corner">
+	<div class="control-group micro3d" title="The sum of this value and the back left orientation is the total vertical displacement for the back left corner. A positive vertical displacement means that the back left corner is higher than the bed's center, and a negative vertical displacement means that the back left corner is lower than the bed's center.">
 		<label class="control-label">Back Left Offset</label>
 		<div class="controls">
 			<div class="input-append">
@@ -268,7 +268,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="control-group micro3d" title="The sum of this value and the back right orientation is the total vertical displacement for the back right corner">
+	<div class="control-group micro3d" title="The sum of this value and the back right orientation is the total vertical displacement for the back right corner. A positive vertical displacement means that the back right corner is higher than the bed's center, and a negative vertical displacement means that the back right corner is lower than the bed's center.">
 		<label class="control-label">Back Right Offset</label>
 		<div class="controls">
 			<div class="input-append">
@@ -277,7 +277,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="control-group micro3d" title="The sum of this value and the front right orientation is the total vertical displacement for the front right corner">
+	<div class="control-group micro3d" title="The sum of this value and the front right orientation is the total vertical displacement for the front right corner. A positive vertical displacement means that the front right corner is higher than the bed's center, and a negative vertical displacement means that the front right corner is lower than the bed's center.">
 		<label class="control-label">Front Right Offset</label>
 		<div class="controls">
 			<div class="input-append">
@@ -286,7 +286,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="control-group micro3d" title="The sum of this value and the front left orientation is the total vertical displacement for the front left corner">
+	<div class="control-group micro3d" title="The sum of this value and the front left orientation is the total vertical displacement for the front left corner. A positive vertical displacement means that the front left corner is higher than the bed's center, and a negative vertical displacement means that the front left corner is lower than the bed's center.">
 		<label class="control-label">Front Left Offset</label>
 		<div class="controls">
 			<div class="input-append">
@@ -393,7 +393,7 @@
 		</div>
 	</div>
 	<div class="control-group empty micro3d">
-		<h4><span class="label label-important">Steps/mm settings have no effect when using M3D or M3D Mod firmware</span></h4>
+		<h4><span class="label label-important">Steps/mm and jerk sensitivity settings have no effect when using M3D or M3D Mod firmware</span></h4>
 	</div>
 	<div class="control-group micro3d" title="Amount of steps/mm for the X motor">
 		<label class="control-label">X Motor Steps/mm</label>
@@ -428,6 +428,24 @@
 			<div class="input-append stepsPerMm">
 				<input type="number" step="0.000001" min="0.000001" class="input-block-level" data-bind="value: settings.plugins.m33fio.EMotorStepsPerMm">
 				<span class="add-on">steps/mm</span>
+			</div>
+		</div>
+	</div>
+	<div class="control-group micro3d" title="sensitivity of the X jerk detection when homing. Lower values mean less sensitivity and higher values mean more sensitivity.">
+		<label class="control-label">X Jerk Homing Sensitivity</label>
+		<div class="controls">
+			<div class="input-append ratio255">
+				<input type="number" step="1" min="1" max="255" class="input-block-level" data-bind="value: settings.plugins.m33fio.XJerkSensitivity">
+				<span class="add-on">/ 255</span>
+			</div>
+		</div>
+	</div>
+	<div class="control-group micro3d" title="sensitivity of the Y jerk detection when homing. Lower values mean less sensitivity and higher values mean more sensitivity.">
+		<label class="control-label">Y Jerk Homing Sensitivity</label>
+		<div class="controls">
+			<div class="input-append ratio255">
+				<input type="number" step="1" min="1" max="255" class="input-block-level" data-bind="value: settings.plugins.m33fio.YJerkSensitivity">
+				<span class="add-on">/ 255</span>
 			</div>
 		</div>
 	</div>
