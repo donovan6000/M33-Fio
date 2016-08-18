@@ -1,5 +1,11 @@
 Changelog:
 
+V1.6 August 17, 2016
+
+	* Provides iMe V00.00.01.12 printer firmware
+	* Allows setting homing sensitivity for iMe firmware
+	* Fixed potential issue when printing files that contains G92 commands without any parameters
+
 V1.5 August 3, 2016
 
 	* Made canceling a print and emergency stop more reliable

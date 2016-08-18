@@ -440,6 +440,18 @@ $(function() {
 				bytes: 4,
 				color: "rgb(200, 200, 200)"
 			},
+			xJerkSensitivity: {
+				name: "X Jerk Sensitivity",
+				offset: 0x29D,
+				bytes: 1,
+				color: "rgb(220, 140, 140)"
+			},
+			yJerkSensitivity: {
+				name: "Y Jerk Sensitivity",
+				offset: 0x29E,
+				bytes: 1,
+				color: "rgb(140, 220, 140)"
+			},
 			lastRecordedXValue: {
 				name: "Last Recorded X Value",
 				offset: 0x29F,
