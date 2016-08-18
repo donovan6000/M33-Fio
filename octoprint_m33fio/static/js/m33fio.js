@@ -8977,7 +8977,7 @@ $(function() {
 				// Set commands
 				var commands = [
 					"G90",
-					"G0 Z" + (currentFirmwareType === "iMe" ? 0 : (parseFloat(self.settings.settings.plugins.m33fio.FrontLeftOrientation()) + parseFloat(self.settings.settings.plugins.m33fio.FrontLeftOffset()))) + " F90"
+					"G0 Z" + (currentFirmwareType === "M3D" || currentFirmwareType === "M3D Mod" ? (parseFloat(self.settings.settings.plugins.m33fio.FrontLeftOrientation()) + parseFloat(self.settings.settings.plugins.m33fio.FrontLeftOffset())) : 0) + " F90"
 				];
 		
 				// Send request
@@ -9010,7 +9010,7 @@ $(function() {
 				// Set commands
 				var commands = [
 					"G90",
-					"G0 Z" + (currentFirmwareType === "iMe" ? 0 : (parseFloat(self.settings.settings.plugins.m33fio.FrontRightOrientation()) + parseFloat(self.settings.settings.plugins.m33fio.FrontRightOffset()))) + " F90"
+					"G0 Z" + (currentFirmwareType === "M3D" || currentFirmwareType === "M3D Mod" ? (parseFloat(self.settings.settings.plugins.m33fio.FrontRightOrientation()) + parseFloat(self.settings.settings.plugins.m33fio.FrontRightOffset())) : 0) + " F90"
 				];
 		
 				// Send request
@@ -9043,7 +9043,7 @@ $(function() {
 				// Set commands
 				var commands = [
 					"G90",
-					"G0 Z" + (currentFirmwareType === "iMe" ? 0 : (parseFloat(self.settings.settings.plugins.m33fio.BackRightOrientation()) + parseFloat(self.settings.settings.plugins.m33fio.BackRightOffset()))) + " F90"
+					"G0 Z" + (currentFirmwareType === "M3D" || currentFirmwareType === "M3D Mod" ? (parseFloat(self.settings.settings.plugins.m33fio.BackRightOrientation()) + parseFloat(self.settings.settings.plugins.m33fio.BackRightOffset())) : 0) + " F90"
 				];
 		
 				// Send request
@@ -9076,7 +9076,7 @@ $(function() {
 				// Set commands
 				var commands = [
 					"G90",
-					"G0 Z" + (currentFirmwareType === "iMe" ? 0 : (parseFloat(self.settings.settings.plugins.m33fio.BackLeftOrientation()) + parseFloat(self.settings.settings.plugins.m33fio.BackLeftOffset()))) + " F90"
+					"G0 Z" + (currentFirmwareType === "M3D" || currentFirmwareType === "M3D Mod" ? (parseFloat(self.settings.settings.plugins.m33fio.BackLeftOrientation()) + parseFloat(self.settings.settings.plugins.m33fio.BackLeftOffset())) : 0) + " F90"
 				];
 		
 				// Send request
@@ -9119,7 +9119,7 @@ $(function() {
 				
 					// Set commands
 					commands = [
-						"M618 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "iMe" ? (currentZ + parseFloat(self.settings.settings.plugins.m33fio.FrontLeftOffset())) : (currentZ - parseFloat(self.settings.settings.plugins.m33fio.FrontLeftOrientation()))),
+						"M618 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "M3D" || currentFirmwareType === "M3D Mod" ? (currentZ - parseFloat(self.settings.settings.plugins.m33fio.FrontLeftOrientation())) : (currentZ + parseFloat(self.settings.settings.plugins.m33fio.FrontLeftOffset()))),
 						"M619 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"],
 						"M65536;wait"
 					];
@@ -9201,7 +9201,7 @@ $(function() {
 			
 					// Set commands
 					commands = [
-						"M618 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "iMe" ? (currentZ + parseFloat(self.settings.settings.plugins.m33fio.FrontRightOffset())) : (currentZ - parseFloat(self.settings.settings.plugins.m33fio.FrontRightOrientation()))),
+						"M618 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "M3D" || currentFirmwareType === "M3D Mod" ? (currentZ - parseFloat(self.settings.settings.plugins.m33fio.FrontRightOrientation())) : (currentZ + parseFloat(self.settings.settings.plugins.m33fio.FrontRightOffset()))),
 						"M619 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"],
 						"M65536;wait"
 					];
@@ -9283,7 +9283,7 @@ $(function() {
 			
 					// Set commands
 					commands = [
-						"M618 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "iMe" ? (currentZ + parseFloat(self.settings.settings.plugins.m33fio.BackRightOffset())) : (currentZ - parseFloat(self.settings.settings.plugins.m33fio.BackRightOrientation()))),
+						"M618 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "M3D" || currentFirmwareType === "M3D Mod" ? (currentZ - parseFloat(self.settings.settings.plugins.m33fio.BackRightOrientation())) : (currentZ + parseFloat(self.settings.settings.plugins.m33fio.BackRightOffset()))),
 						"M619 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"],
 						"M65536;wait"
 					];
@@ -9365,7 +9365,7 @@ $(function() {
 			
 					// Set commands
 					commands = [
-						"M618 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "iMe" ? (currentZ + parseFloat(self.settings.settings.plugins.m33fio.BackLeftOffset())) : (currentZ - parseFloat(self.settings.settings.plugins.m33fio.BackLeftOrientation()))),
+						"M618 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "M3D" || currentFirmwareType === "M3D Mod" ? (currentZ - parseFloat(self.settings.settings.plugins.m33fio.BackLeftOrientation())) : (currentZ + parseFloat(self.settings.settings.plugins.m33fio.BackLeftOffset()))),
 						"M619 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"],
 						"M65536;wait"
 					];
@@ -9448,10 +9448,10 @@ $(function() {
 				waitingCallback = function() {
 			
 					// Set commands
-					commands = currentFirmwareType === "iMe" ? [] : [
+					commands = currentFirmwareType === "M3D" || currentFirmwareType === "M3D Mod" ? [
 						"G91",
 						"G0 Z0.1 F90"
-					];
+					] : [];
 				
 					commands.push("G33");
 					commands.push("M65536;wait");
@@ -9940,7 +9940,7 @@ $(function() {
 								
 															// Set commands
 															commands = [
-																"M618 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "iMe" ? (currentZ + parseFloat(self.settings.settings.plugins.m33fio.FrontLeftOffset())) : (currentZ - parseFloat(self.settings.settings.plugins.m33fio.FrontLeftOrientation()))),
+																"M618 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "M3D" || currentFirmwareType === "M3D Mod" ? (currentZ - parseFloat(self.settings.settings.plugins.m33fio.FrontLeftOrientation())) : (currentZ + parseFloat(self.settings.settings.plugins.m33fio.FrontLeftOffset()))),
 																"M619 S" + eepromOffsets["bedOffsetFrontLeft"]["offset"] + " T" + eepromOffsets["bedOffsetFrontLeft"]["bytes"],
 																"M65536;wait"
 															];
@@ -9982,7 +9982,7 @@ $(function() {
 											
 																			// Set commands
 																			commands = [
-																				"M618 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "iMe" ? (currentZ + parseFloat(self.settings.settings.plugins.m33fio.FrontRightOffset())) : (currentZ - parseFloat(self.settings.settings.plugins.m33fio.FrontRightOrientation()))),
+																				"M618 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "M3D" || currentFirmwareType === "M3D Mod" ? (currentZ - parseFloat(self.settings.settings.plugins.m33fio.FrontRightOrientation())) : (currentZ + parseFloat(self.settings.settings.plugins.m33fio.FrontRightOffset()))),
 																				"M619 S" + eepromOffsets["bedOffsetFrontRight"]["offset"] + " T" + eepromOffsets["bedOffsetFrontRight"]["bytes"],
 																				"M65536;wait"
 																			];
@@ -10024,7 +10024,7 @@ $(function() {
 													
 																							// Set commands
 																							commands = [
-																								"M618 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "iMe" ? (currentZ + parseFloat(self.settings.settings.plugins.m33fio.BackRightOffset())) : (currentZ - parseFloat(self.settings.settings.plugins.m33fio.BackRightOrientation()))),
+																								"M618 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "M3D" || currentFirmwareType === "M3D Mod" ? (currentZ - parseFloat(self.settings.settings.plugins.m33fio.BackRightOrientation())) : (currentZ + parseFloat(self.settings.settings.plugins.m33fio.BackRightOffset()))),
 																								"M619 S" + eepromOffsets["bedOffsetBackRight"]["offset"] + " T" + eepromOffsets["bedOffsetBackRight"]["bytes"],
 																								"M65536;wait"
 																							];
@@ -10066,7 +10066,7 @@ $(function() {
 																	
 																											// Set commands
 																											commands = [
-																												"M618 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "iMe" ? (currentZ + parseFloat(self.settings.settings.plugins.m33fio.BackLeftOffset())) : (currentZ - parseFloat(self.settings.settings.plugins.m33fio.BackLeftOrientation()))),
+																												"M618 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"] + " P" + floatToBinary(currentFirmwareType === "M3D" || currentFirmwareType === "M3D Mod" ? (currentZ - parseFloat(self.settings.settings.plugins.m33fio.BackLeftOrientation())) : (currentZ + parseFloat(self.settings.settings.plugins.m33fio.BackLeftOffset()))),
 																												"M619 S" + eepromOffsets["bedOffsetBackLeft"]["offset"] + " T" + eepromOffsets["bedOffsetBackLeft"]["bytes"],
 																												"M65536;wait"
 																											];
