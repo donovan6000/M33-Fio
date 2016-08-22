@@ -70,12 +70,15 @@ else
 		rm pyobjc-core.tar.gz
 		cd pyobjc-core-${version}
 
-		# Patch installer
+		# Patch installer to fix compiling issues
 		sudo -u $SUDO_USER sed -i '' -e 's/\(self\.sdk_root = subprocess.*\)/try:\
                     \1/g' setup.py
 		sudo -u $SUDO_USER sed -i '' -e 's/\(universal_newlines=True.*\)/\1\
                 except subprocess.CalledProcessError as e:\
                     self.sdk_root = \'"'"'\/\'"'"'/g' setup.py
+		
+		# Unset flags to fix compiling issues
+		unset CFLAGS
 		
 		while ! sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/python setup.py install --user
 		do
