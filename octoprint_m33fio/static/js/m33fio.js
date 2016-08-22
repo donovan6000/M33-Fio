@@ -5293,6 +5293,7 @@ $(function() {
 														<div class="modal-extra">
 															<div class="slicerSpecific cura">
 																<div class="group basic">
+																	<img>
 																	<h3>Basic Settings</h3>
 																	<p class="quality">` + (usingProvidedProfile ? `Medium Quality` : `Unknown Quality`) + `</p>
 																	<div class="quality">
@@ -5335,6 +5336,7 @@ $(function() {
 																	</div>
 																</div>
 																<div class="group manual">
+																	<img>
 																	<h3>Manual Settings</h3>
 																	<div class="wrapper">
 																		<div title="Printing temperature" class="option notMicro3d">
@@ -5445,6 +5447,7 @@ $(function() {
 																	</div>
 																</div>
 																<div class="group advanced">
+																	<img>
 																	<h3>Advanced Settings</h3>
 																	<div>
 																		<aside></aside>
@@ -5673,19 +5676,19 @@ $(function() {
 										
 													// Open and close setting groups
 													if(typeof localStorage.basicSettingsOpen === "undefined" || localStorage.basicSettingsOpen == "true")
-														$("#slicing_configuration_dialog.profile .modal-extra div.group.basic").addClass("noTransition").removeClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m33fio/static/img/up-arrow.png");
+														$("#slicing_configuration_dialog.profile .modal-extra div.group.basic").addClass("noTransition").removeClass("closed").children("img").attr("src", PLUGIN_BASEURL + "m33fio/static/img/up-arrow.png").attr("title", "Close");
 													else
-														$("#slicing_configuration_dialog.profile .modal-extra div.group.basic").addClass("noTransition closed").css("background-image", "url(" + PLUGIN_BASEURL + "m33fio/static/img/down-arrow.png");
+														$("#slicing_configuration_dialog.profile .modal-extra div.group.basic").addClass("noTransition closed").children("img").attr("src", PLUGIN_BASEURL + "m33fio/static/img/down-arrow.png").attr("title", "Open");
 	
 													if(typeof localStorage.manualSettingsOpen === "undefined" || localStorage.manualSettingsOpen == "false")
-														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual").addClass("noTransition closed").css("background-image", "url(" + PLUGIN_BASEURL + "m33fio/static/img/down-arrow.png");
+														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual").addClass("noTransition closed").children("img").attr("src", PLUGIN_BASEURL + "m33fio/static/img/down-arrow.png").attr("title", "Open");
 													else
-														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual").addClass("noTransition").removeClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m33fio/static/img/up-arrow.png");
+														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual").addClass("noTransition").removeClass("closed").children("img").attr("src", PLUGIN_BASEURL + "m33fio/static/img/up-arrow.png").attr("title", "Close");
 										
 													if(typeof localStorage.advancedSettingsOpen === "undefined" || localStorage.advancedSettingsOpen == "false")
-														$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced").addClass("noTransition closed").css("background-image", "url(" + PLUGIN_BASEURL + "m33fio/static/img/down-arrow.png");
+														$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced").addClass("noTransition closed").children("img").attr("src", PLUGIN_BASEURL + "m33fio/static/img/down-arrow.png").attr("title", "Open");
 													else {
-														$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced").addClass("noTransition").removeClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m33fio/static/img/up-arrow.png");
+														$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced").addClass("noTransition").removeClass("closed").children("img").attr("src", PLUGIN_BASEURL + "m33fio/static/img/up-arrow.png").attr("title", "Close");
 														$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced > span").css("display", "block");
 													}
 													
@@ -5701,109 +5704,92 @@ $(function() {
 													// Open and close group
 													function openAndCloseGroup(group, event) {
 													
-														// Check if clicking on corner
-														if(group.offset().left - event.pageX >= -12 && group.offset().top - event.pageY >= -12) {
+														// Disable opening and closing groups
+														$("#slicing_configuration_dialog.profile .modal-extra div.group > img").off("click");
 														
-															// Disable opening and closing groups
-															$("#slicing_configuration_dialog.profile .modal-extra div.group").off("mousedown");
-															
-															// Save current height and scroll
-															var currentHeight = $("#slicing_configuration_dialog.profile").css("height");
-															var currentScroll = $("#slicing_configuration_dialog.profile .modal-extra").scrollTop();
-															$("#slicing_configuration_dialog.profile").css("height", '');
-															
-															// Get new height
-															group.addClass("noTransition");
-															if(group.hasClass("closed"))
-																group.removeClass("closed");
-															else
-																group.addClass("closed");
+														// Save current height and scroll
+														var currentHeight = $("#slicing_configuration_dialog.profile").css("height");
+														var currentScroll = $("#slicing_configuration_dialog.profile .modal-extra").scrollTop();
+														$("#slicing_configuration_dialog.profile").css("height", '');
 														
-															var newHeight = $("#slicing_configuration_dialog.profile").height();
-															if(group.hasClass("closed"))
-																group.removeClass("closed");
-															else
-																group.addClass("closed");
-															
-															// Restore current height and scroll
-															$("#slicing_configuration_dialog.profile")[0].style.setProperty("height", currentHeight, "important");
-															$("#slicing_configuration_dialog.profile .modal-extra").scrollTop(currentScroll);
+														// Get new height
+														group.addClass("noTransition");
+														if(group.hasClass("closed"))
+															group.removeClass("closed");
+														else
+															group.addClass("closed");
+													
+														var newHeight = $("#slicing_configuration_dialog.profile").height();
+														if(group.hasClass("closed"))
+															group.removeClass("closed");
+														else
+															group.addClass("closed");
 														
-															setTimeout(function() {
+														// Restore current height and scroll
+														$("#slicing_configuration_dialog.profile")[0].style.setProperty("height", currentHeight, "important");
+														$("#slicing_configuration_dialog.profile .modal-extra").scrollTop(currentScroll);
+													
+														setTimeout(function() {
+														
+															group.removeClass("noTransition");
 															
-																group.removeClass("noTransition");
-																
-																// Open or close group
-																if(group.hasClass("closed")) {
-																	group.removeClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m33fio/static/img/up-arrow.png");
-							
-																	 if(group.hasClass("advanced"))
-																		setTimeout(function() {
-																			$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced > span").css("display", "block");
-																		}, 100);
-							
-																	// Save that group is open
-																	if(group.hasClass("basic"))
-																		localStorage.basicSettingsOpen = "true";
-																	else if(group.hasClass("manual"))
-																		localStorage.manualSettingsOpen = "true";
-																	else if(group.hasClass("advanced"))
-																		localStorage.advancedSettingsOpen = "true";
-																}
-																else {
-																	group.addClass("closed").css("background-image", "url(" + PLUGIN_BASEURL + "m33fio/static/img/down-arrow.png");
-							
-																	if(group.hasClass("advanced"))
-																		setTimeout(function() {
-																			$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced > span").css("display", "none");
-																		}, 100);
-							
-																	// Save that group is closed
-																	if(group.hasClass("basic"))
-																		localStorage.basicSettingsOpen = "false";
-																	else if(group.hasClass("manual"))
-																		localStorage.manualSettingsOpen = "false";
-																	else if(group.hasClass("advanced"))
-																		localStorage.advancedSettingsOpen = "false";
-																}
+															// Open or close group
+															if(group.hasClass("closed")) {
+																group.removeClass("closed").children("img").attr("src", PLUGIN_BASEURL + "m33fio/static/img/up-arrow.png").attr("title", "Close");
 						
-																// Update cursor and title
-																group.mousemove();
+																 if(group.hasClass("advanced"))
+																	setTimeout(function() {
+																		$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced > span").css("display", "block");
+																	}, 100);
+						
+																// Save that group is open
+																if(group.hasClass("basic"))
+																	localStorage.basicSettingsOpen = "true";
+																else if(group.hasClass("manual"))
+																	localStorage.manualSettingsOpen = "true";
+																else if(group.hasClass("advanced"))
+																	localStorage.advancedSettingsOpen = "true";
+															}
+															else {
+																group.addClass("closed").children("img").attr("src", PLUGIN_BASEURL + "m33fio/static/img/down-arrow.png").attr("title", "Open");
+						
+																if(group.hasClass("advanced"))
+																	setTimeout(function() {
+																		$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced > span").css("display", "none");
+																	}, 100);
+						
+																// Save that group is closed
+																if(group.hasClass("basic"))
+																	localStorage.basicSettingsOpen = "false";
+																else if(group.hasClass("manual"))
+																	localStorage.manualSettingsOpen = "false";
+																else if(group.hasClass("advanced"))
+																	localStorage.advancedSettingsOpen = "false";
+															}
+					
+															// Update cursor and title
+															group.mousemove();
+															
+															// Set dialogs's height
+															$("#slicing_configuration_dialog.profile").addClass("transitionHeight")[0].style.setProperty("height", newHeight + "px", "important");
+															setTimeout(function() {
+																$("#slicing_configuration_dialog.profile").removeClass("transitionHeight");
 																
-																// Set dialogs's height
-																$("#slicing_configuration_dialog.profile").addClass("transitionHeight")[0].style.setProperty("height", newHeight + "px", "important");
-																setTimeout(function() {
-																	$("#slicing_configuration_dialog.profile").removeClass("transitionHeight");
-																	
-																	// Mouse down on group
-																	$("#slicing_configuration_dialog.profile .modal-extra div.group").mousedown(function(event) {
-										
-																		// Open and close group
-																		openAndCloseGroup($(this), event);
-																	});
-																}, 300);
-															}, 0);
-														}
+																// Enable opening and closing groups
+																$("#slicing_configuration_dialog.profile .modal-extra div.group > img").click(function(event) {
+									
+																	// Open and close group
+																	openAndCloseGroup($(this).parent(), event);
+																});
+															}, 300);
+														}, 0);
 													}
 													
-													// Mouse move on group
-													$("#slicing_configuration_dialog.profile .modal-extra div.group").mousemove(function(event) {
-
-														// Set tooltip if hovering over corner
-														if($(this).offset().left - event.pageX >= -12 && $(this).offset().top - event.pageY >= -12) {
-															$(this).attr("title", $(this).hasClass("closed") ? "Open" : "Close");
-															$(this).css("cursor", "pointer");
-														}
-														else {
-															$(this).removeAttr("title");
-															$(this).css("cursor", '');
-														}
-										
-													// Mouse down on group
-													}).mousedown(function(event) {
+													// Expand/collapse group
+													$("#slicing_configuration_dialog.profile .modal-extra div.group > img").click(function(event) {
 										
 														// Open and close group
-														openAndCloseGroup($(this), event);
+														openAndCloseGroup($(this).parent(), event);
 													});
 									
 													// Text area scroll event
@@ -12959,11 +12945,11 @@ $(function() {
 			// Enable/disable Micro 3D printer specific features
 			if(self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
 				$(".micro3d").addClass("notUsingAMicro3DPrinter");
-				$("#temperature-graph").css("background-image", '');
+				$("#temperature-graph").removeClass("micro3dImage");
 			}
 			else {
 				$(".micro3d").removeClass("notUsingAMicro3DPrinter");
-				$("#temperature-graph").css("background-image", "url(" + PLUGIN_BASEURL + "m33fio/static/img/graph-background.png");
+				$("#temperature-graph").addClass("micro3dImage");
 			}
 			
 			// Check if printing or paused
@@ -13044,11 +13030,11 @@ $(function() {
 				// Enable/disable Micro 3D printer specific features
 				if(self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
 					$(".micro3d").addClass("notUsingAMicro3DPrinter");
-					$("#temperature-graph").css("background-image", '');
+					$("#temperature-graph").removeClass("micro3dImage");
 				}
 				else {
 					$(".micro3d").removeClass("notUsingAMicro3DPrinter");
-					$("#temperature-graph").css("background-image", "url(" + PLUGIN_BASEURL + "m33fio/static/img/graph-background.png");
+					$("#temperature-graph").addClass("micro3dImage");
 					
 					// Set bed dimensions
 					bedLowMaxX = 106.0;

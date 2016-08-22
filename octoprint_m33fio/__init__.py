@@ -7990,6 +7990,12 @@ class M33FioPlugin(
 	# Get Z from X, Y, and plane
 	def getZFromXYAndPlane(self, point, planeABC) :
 	
+		# Check if divide by zero
+		if planeABC[2] == 0 :
+		
+			# Return zero
+			return 0
+	
 		# Return Z
 		return (planeABC[0] * point.x + planeABC[1] * point.y + planeABC[3]) / -planeABC[2]
 	
