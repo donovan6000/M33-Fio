@@ -1,5 +1,12 @@
 Changelog:
 
+V1.7 August X, 2016
+
+	* Fixed issues with browser incompatibilities with the CSS background-image property
+	* Fixed divide by 0 error in bed leveling pre-processor
+	* Provides iMe V00.00.01.15 printer firmware
+	* Allows setting calibrate Z0 correction for iMe firmware
+
 V1.6 August 17, 2016
 
 	* Provides iMe V00.00.01.12 printer firmware

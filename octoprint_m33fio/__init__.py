@@ -284,6 +284,10 @@ class M33FioPlugin(
 				offset = 0x106,
 				bytes = 4
 			),
+			calibrateZ0Correction = dict(
+				offset = 0x299,
+				bytes = 4
+			),
 			xJerkSensitivity = dict(
 				offset = 0x29D,
 				bytes = 1
@@ -1588,6 +1592,7 @@ class M33FioPlugin(
 			EMotorStepsPerMm = 128.451375,
 			XJerkSensitivity = 195,
 			YJerkSensitivity = 195,
+			CalibrateZ0Correction = 0,
 			ChangeSettingsBeforePrint = True,
 			NotUsingAMicro3DPrinter = False,
 			CalibrateBeforePrint = False,
@@ -2602,7 +2607,8 @@ class M33FioPlugin(
 					ZMotorStepsPerMm = self._settings.get_float(["ZMotorStepsPerMm"]),
 					EMotorStepsPerMm = self._settings.get_float(["EMotorStepsPerMm"]),
 					XJerkSensitivity = self._settings.get_int(["XJerkSensitivity"]),
-					YJerkSensitivity = self._settings.get_int(["YJerkSensitivity"])
+					YJerkSensitivity = self._settings.get_int(["YJerkSensitivity"]),
+					CalibrateZ0Correction = self._settings.get_float(["CalibrateZ0Correction"])
 				)
 				
 				# Set file's destination
@@ -2711,6 +2717,9 @@ class M33FioPlugin(
 				
 				if "YJerkSensitivity" in printerSettings :
 					self._settings.set_int(["YJerkSensitivity"], int(printerSettings["YJerkSensitivity"]))
+				
+				if "CalibrateZ0Correction" in printerSettings :
+					self._settings.set_float(["CalibrateZ0Correction"], float(printerSettings["CalibrateZ0Correction"]))
 				
 				# Check if a Micro 3D is connected and not printing
 				if not self.invalidPrinter and not self._printer.is_printing() :
@@ -3467,8 +3476,8 @@ class M33FioPlugin(
 											# Check if an error hasn't occured
 											if not error :
 										
-												# Set error to if clearing X and Y sensitivity, value, direction, and validity in EEPROM failed
-												error = self.eepromSetInt(connection, "xJerkSensitivity", 0, self.eepromOffsets["savedYState"]["offset"] + self.eepromOffsets["savedYState"]["bytes"] - self.eepromOffsets["xJerkSensitivity"]["offset"])
+												# Set error to if clearing calibrate Z0 correction and X and Y sensitivity, value, direction, and validity in EEPROM failed
+												error = self.eepromSetInt(connection, "calibrateZ0Correction", 0, self.eepromOffsets["savedYState"]["offset"] + self.eepromOffsets["savedYState"]["bytes"] - self.eepromOffsets["calibrateZ0Correction"]["offset"])
 											
 											# Check if an error hasn't occured
 											if not error :
@@ -5710,7 +5719,7 @@ class M33FioPlugin(
 										# Check if an error hasn't occured
 										if not error :
 							
-											# Set error to if limiting bed height offset offset failed
+											# Set error to if limiting bed height offset failed
 											error = self.eepromKeepFloatWithinRange(connection, "bedHeightOffset", -sys.float_info.max, sys.float_info.max, self.get_settings_defaults()["BedHeightOffset"])
 								
 										# Check if an error hasn't occured
@@ -5793,6 +5802,12 @@ class M33FioPlugin(
 							
 												# Set error to if limiting Y jerk sensitivity failed
 												error = self.eepromKeepIntWithinRange(connection, "yJerkSensitivity", 1, 255, self.get_settings_defaults()["YJerkSensitivity"])
+											
+											# Check if an error hasn't occured
+											if not error :
+							
+												# Set error to if limiting calibrate Z0 correction failed
+												error = self.eepromKeepFloatWithinRange(connection, "calibrateZ0Correction", -sys.float_info.max, sys.float_info.max, self.get_settings_defaults()["CalibrateZ0Correction"])
 										
 										# Check if an error hasn't occured
 										if not error :
@@ -5864,7 +5879,7 @@ class M33FioPlugin(
 										elif firmwareType == "M3D Mod" :
 											incompatible = firmwareVersion < 2115122112
 										elif firmwareType == "iMe" :
-											incompatible = firmwareVersion < 1900000112
+											incompatible = firmwareVersion < 1900000114
 								
 										# Check if printer is incompatible or not reconnecting to printer
 										if incompatible or not self.reconnectingToPrinter :
@@ -6209,7 +6224,8 @@ class M33FioPlugin(
 						"M619 S" + str(self.eepromOffsets["zMotorStepsPerMm"]["offset"]) + " T" + str(self.eepromOffsets["zMotorStepsPerMm"]["bytes"]),
 						"M619 S" + str(self.eepromOffsets["eMotorStepsPerMm"]["offset"]) + " T" + str(self.eepromOffsets["eMotorStepsPerMm"]["bytes"]),
 						"M619 S" + str(self.eepromOffsets["xJerkSensitivity"]["offset"]) + " T" + str(self.eepromOffsets["xJerkSensitivity"]["bytes"]),
-						"M619 S" + str(self.eepromOffsets["yJerkSensitivity"]["offset"]) + " T" + str(self.eepromOffsets["yJerkSensitivity"]["bytes"])
+						"M619 S" + str(self.eepromOffsets["yJerkSensitivity"]["offset"]) + " T" + str(self.eepromOffsets["yJerkSensitivity"]["bytes"]),
+						"M619 S" + str(self.eepromOffsets["calibrateZ0Correction"]["offset"]) + " T" + str(self.eepromOffsets["calibrateZ0Correction"]["bytes"])
 					]
 				
 				# Lower LED brightness for clear color printers
@@ -6878,6 +6894,21 @@ class M33FioPlugin(
 				if self._settings.get_boolean(["AutomaticallyObtainSettings"]) :
 					self._settings.set_int(["YJerkSensitivity"], self.printerYJerkSensitivity)
 			
+			# Otherwise check if data is for calibrate Z0 correction
+			elif "PT:" + str(self.eepromOffsets["calibrateZ0Correction"]["offset"]) + ' ' in data :
+			
+				# Convert data to float
+				value = self.intToFloat(int(data[data.find("DT:") + 3 :]))
+				
+				if not isinstance(value, float) or math.isnan(value) :
+					self.printerCalibrateZ0Correction = self.get_settings_defaults()["CalibrateZ0Correction"]
+				else :
+					self.printerCalibrateZ0Correction = round(value, 6)
+				
+				# Check if set to automatically collect printer settings
+				if self._settings.get_boolean(["AutomaticallyObtainSettings"]) :
+					self._settings.set_float(["CalibrateZ0Correction"], self.printerCalibrateZ0Correction)
+			
 			# Otherwise check if data is for bed orientation version
 			elif "PT:" + str(self.eepromOffsets["bedOrientationVersion"]["offset"]) + ' ' in data :
 			
@@ -7002,6 +7033,10 @@ class M33FioPlugin(
 		softwareYJerkSensitivity = self._settings.get_int(["YJerkSensitivity"])
 		if not isinstance(softwareYJerkSensitivity, int) :
 			softwareYJerkSensitivity = self.get_settings_defaults()["YJerkSensitivity"]
+		
+		softwareCalibrateZ0Correction = self._settings.get_float(["CalibrateZ0Correction"])
+		if not isinstance(softwareCalibrateZ0Correction, float) :
+			softwareCalibrateZ0Correction = self.get_settings_defaults()["CalibrateZ0Correction"]
 		
 		# Check if backlash Xs differ
 		commandList = []
@@ -7174,7 +7209,13 @@ class M33FioPlugin(
 
 				# Add new value to list
 				commandList += ["M618 S" + str(self.eepromOffsets["yJerkSensitivity"]["offset"]) + " T" + str(self.eepromOffsets["yJerkSensitivity"]["bytes"]) + " P" + str(softwareYJerkSensitivity), "M619 S" + str(self.eepromOffsets["yJerkSensitivity"]["offset"]) + " T" + str(self.eepromOffsets["yJerkSensitivity"]["bytes"])]
-		
+			
+			# Check if calibrate Z0 corrections differ
+			if hasattr(self, "printerCalibrateZ0Correction") and self.printerCalibrateZ0Correction != softwareCalibrateZ0Correction :
+
+				# Add new value to list
+				commandList += ["M618 S" + str(self.eepromOffsets["calibrateZ0Correction"]["offset"]) + " T" + str(self.eepromOffsets["calibrateZ0Correction"]["bytes"]) + " P" + str(self.floatToInt(softwareCalibrateZ0Correction)), "M619 S" + str(self.eepromOffsets["calibrateZ0Correction"]["offset"]) + " T" + str(self.eepromOffsets["calibrateZ0Correction"]["bytes"])]
+			
 		# Return command list
 		return commandList
 	

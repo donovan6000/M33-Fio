@@ -440,6 +440,12 @@ $(function() {
 				bytes: 4,
 				color: "rgb(200, 200, 200)"
 			},
+			calibrateZ0Correction: {
+				name: "Calibrate Z0 Correction",
+				offset: 0x299,
+				bytes: 4,
+				color: "rgb(140, 140, 220)"
+			},
 			xJerkSensitivity: {
 				name: "X Jerk Sensitivity",
 				offset: 0x29D,
