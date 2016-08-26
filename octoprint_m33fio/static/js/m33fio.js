@@ -11967,7 +11967,9 @@ $(function() {
 				var currentPosition = $("#control > div.jog-panel.advanced").find("div > button:nth-of-type(8)");
 				
 				// Sort firmwares
-				var firmwares = Object.keys(data.firmwares).sort();
+				var firmwares = Object.keys(data.firmwares).sort(function(a, b) {
+					return a.toUpperCase() > b.toUpperCase();
+				});
 				
 				// Go through all provided firmwares
 				for(var i = 0; i < firmwares.length; i++) {

@@ -1334,6 +1334,10 @@ body > div.page-container > div.message > div > div > span.show {
 	padding-bottom: 10px;
 }
 
+#temperature-graph {
+	transition: background-image 0.3s ease-out;
+}
+
 #temperature-graph.micro3dImage {
 	background-image: url("../img/graph-background.png");
 }

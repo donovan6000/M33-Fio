@@ -5823,7 +5823,7 @@ class M33FioPlugin(
 					
 										# Set current firmware type
 										if firmwareType is None :
-											currentFirmwareType = "M3D"
+											currentFirmwareType = "iMe"
 										else :
 											currentFirmwareType = firmwareType
 				
@@ -5873,7 +5873,7 @@ class M33FioPlugin(
 										# Set if firmware is incompatible
 										if firmwareType is None :
 											incompatible = True
-											firmwareType = "M3D"
+											firmwareType = "iMe"
 										elif firmwareType == "M3D" :
 											incompatible = firmwareVersion < 2015122112
 										elif firmwareType == "M3D Mod" :
