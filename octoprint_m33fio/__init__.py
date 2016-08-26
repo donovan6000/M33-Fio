@@ -1167,13 +1167,13 @@ class M33FioPlugin(
 		
 		# Go through all firmwares
 		for firmware in self.providedFirmwares :
-		
+	
 			# Check if current firmware is the type specified
 			if self.providedFirmwares[firmware]["Type"] == firmwareType :
-			
+		
 				# Check if current firmware has a newer version than newest firmware
 				if newestFirmwareName is None or int(self.providedFirmwares[newestFirmwareName]["Version"]) < int(self.providedFirmwares[firmware]["Version"]) :
-				
+			
 					# Set newest firmware name to current firmware name
 					newestFirmwareName = firmware
 		
@@ -1199,7 +1199,7 @@ class M33FioPlugin(
 		
 			# Get firmware release
 			firmwareRelease = format(firmwareVersion, "010")
-			if firmwareType is None or (firmwareType != "M3D" and firmwareType != "M3D Mod") :
+			if firmwareType != "M3D" and firmwareType != "M3D Mod" :
 				firmwareRelease = firmwareRelease[2 : 4] + '.' + firmwareRelease[4 : 6] + '.' + firmwareRelease[6 : 8] + '.' + firmwareRelease[8 : 10]
 			elif firmwareType == "M3D Mod" :
 				firmwareRelease= str(int(firmwareRelease) - 100000000)
@@ -3440,50 +3440,47 @@ class M33FioPlugin(
 											newFirmwareType = self.providedFirmwares[firmware]["Type"]
 											break
 								
-									# Check if old and new firmware types are known
-									if oldFirmwareType is not None and newFirmwareType is not None :
+									# Check if going from M3D or M3D Mod firmware to a different firmware
+									if (oldFirmwareType == "M3D" or oldFirmwareType == "M3D Mod") and (newFirmwareType != "M3D" and newFirmwareType != "M3D Mod") :
 								
-										# Check if going from M3D or M3D Mod firmware to a different firmware
-										if (oldFirmwareType == "M3D" or oldFirmwareType == "M3D Mod") and newFirmwareType != "M3D" and newFirmwareType != "M3D Mod" :
+										# Check if Z state was saved
+										if self.eepromGetInt("savedZState") != 0 :
+								
+											# Get current Z value from EEPROM
+											currentValueZ = self.eepromGetInt("lastRecordedZValue")
 									
-											# Check if Z state was saved
-											if self.eepromGetInt("savedZState") != 0 :
+											# Convert current Z to single-precision floating-point format used by other firmwares
+											currentValueZ /= 5170.635833481
 									
-												# Get current Z value from EEPROM
-												currentValueZ = self.eepromGetInt("lastRecordedZValue")
-										
-												# Convert current Z to single-precision floating-point format used by other firmwares
-												currentValueZ /= 5170.635833481
-										
-												# Set error to if setting current Z in EEPROM failed
-												error = self.eepromSetFloat(connection, "lastRecordedZValue", currentValueZ)
+											# Set error to if setting current Z in EEPROM failed
+											error = self.eepromSetFloat(connection, "lastRecordedZValue", currentValueZ)
+								
+									# Otherwise check if going from a different firmware to M3D or M3D Mod firmware
+									elif (oldFirmwareType != "M3D" and oldFirmwareType != "M3D Mod") and (newFirmwareType == "M3D" or newFirmwareType == "M3D Mod") :
+								
+										# Check if Z state was saved
+										if self.eepromGetInt("savedZState") != 0 :
+								
+											# Get current Z value from EEPROM
+											currentValueZ = self.eepromGetFloat("lastRecordedZValue")
 									
-										# Otherwise check if going from a different firmware to M3D or M3D Mod firmware
-										elif oldFirmwareType != "M3D" and oldFirmwareType != "M3D Mod" and (newFirmwareType == "M3D" or newFirmwareType == "M3D Mod") :
+											# Convert current Z to unsigned 32-bit integer format used by M3D and M3D Mod firmwares
+											currentValueZ = int(round(currentValueZ * 5170.635833481))
 									
-											# Check if Z state was saved
-											if self.eepromGetInt("savedZState") != 0 :
+											# Set error to if saving current Z in EEPROM failed
+											error = self.eepromSetInt(connection, "lastRecordedZValue", currentValueZ)
 									
-												# Get current Z value from EEPROM
-												currentValueZ = self.eepromGetFloat("lastRecordedZValue")
+										# Check if an error hasn't occured
+										if not error :
+									
+											# Set error to if clearing calibrate Z0 correction and X and Y sensitivity, value, direction, and validity in EEPROM failed
+											error = self.eepromSetInt(connection, "calibrateZ0Correction", 0, self.eepromOffsets["savedYState"]["offset"] + self.eepromOffsets["savedYState"]["bytes"] - self.eepromOffsets["calibrateZ0Correction"]["offset"])
 										
-												# Convert current Z to unsigned 32-bit integer format used by M3D and M3D Mod firmwares
-												currentValueZ = int(round(currentValueZ * 5170.635833481))
-										
-												# Set error to if saving current Z in EEPROM failed
-												error = self.eepromSetInt(connection, "lastRecordedZValue", currentValueZ)
-										
-											# Check if an error hasn't occured
-											if not error :
-										
-												# Set error to if clearing calibrate Z0 correction and X and Y sensitivity, value, direction, and validity in EEPROM failed
-												error = self.eepromSetInt(connection, "calibrateZ0Correction", 0, self.eepromOffsets["savedYState"]["offset"] + self.eepromOffsets["savedYState"]["bytes"] - self.eepromOffsets["calibrateZ0Correction"]["offset"])
-											
-											# Check if an error hasn't occured
-											if not error :
-							
-												# Set error to if zeroing out steps/mm in EEPROM failed
-												error = self.eepromSetInt(connection, "xMotorStepsPerMm", 0, self.eepromOffsets["eMotorStepsPerMm"]["offset"] + self.eepromOffsets["eMotorStepsPerMm"]["bytes"] - self.eepromOffsets["xMotorStepsPerMm"]["offset"])
+										# Check if an error hasn't occured
+										if not error :
+						
+											# Set error to if zeroing out steps/mm in EEPROM failed
+											error = self.eepromSetInt(connection, "xMotorStepsPerMm", 0, self.eepromOffsets["eMotorStepsPerMm"]["offset"] + self.eepromOffsets["eMotorStepsPerMm"]["bytes"] - self.eepromOffsets["xMotorStepsPerMm"]["offset"])
 								
 								# Check if an error hasn't occured
 								if not error :
@@ -5633,7 +5630,7 @@ class M33FioPlugin(
 											self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Updating extruder current failed", header = "Error Status", confirm = True))
 				
 									# Check if using M3D or M3D Mod firmware and it's from before new bed orientation and adjustable backlash speed
-									if not error and firmwareType is not None and ((firmwareType == "M3D" and firmwareVersion < 2015080402) or (firmwareType == "M3D Mod" and firmwareVersion < 2115080402)) :
+									if not error and ((firmwareType == "M3D" and firmwareVersion < 2015080402) or (firmwareType == "M3D Mod" and firmwareVersion < 2115080402)) :
 							
 										# Set error to if zeroing out all bed offets in EEPROM failed
 										error = self.eepromSetInt(connection, "bedOffsetBackLeft", 0, self.eepromOffsets["bedHeightOffset"]["offset"] + self.eepromOffsets["bedHeightOffset"]["bytes"] - self.eepromOffsets["bedOffsetBackLeft"]["offset"])
@@ -5870,16 +5867,19 @@ class M33FioPlugin(
 												while self.messageResponse is None :
 													time.sleep(0.01)
 					
-									# Otherwise check if firmware is outdated
-									elif not error and firmwareType is not None and firmwareVersion < int(self.providedFirmwares[self.getNewestFirmwareName(firmwareType)]["Version"]) :
+									# Otherwise check if firmware is outdated or incompatible
+									elif not error and (firmwareType is None or firmwareVersion < int(self.providedFirmwares[self.getNewestFirmwareName(firmwareType)]["Version"])) :
 				
 										# Set if firmware is incompatible
-										if firmwareType == "M3D" :
+										if firmwareType is None :
+											incompatible = True
+											firmwareType = "M3D"
+										elif firmwareType == "M3D" :
 											incompatible = firmwareVersion < 2015122112
 										elif firmwareType == "M3D Mod" :
 											incompatible = firmwareVersion < 2115122112
 										elif firmwareType == "iMe" :
-											incompatible = firmwareVersion < 1900000115
+											incompatible = firmwareVersion < 1900000117
 								
 										# Check if printer is incompatible or not reconnecting to printer
 										if incompatible or not self.reconnectingToPrinter :
