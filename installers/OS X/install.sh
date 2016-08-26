@@ -71,7 +71,8 @@ else
 		cd pyobjc-core-${version}
 
 		# Patch installer to fix compiling issues
-		sudo -u $SUDO_USER sed -i '' -e 's/get_sdk_level() or get_os_level()/get_os_level() or get_sdk_level()/g' setup.py
+		sudo -u $SUDO_USER sed -i '' -e 's/def get_sdk_level():/def get_sdk_level():\
+    return None/g' setup.py
 		sudo -u $SUDO_USER sed -i '' -e 's/\(self\.sdk_root = subprocess.*\)/try:\
                     \1/g' setup.py
 		sudo -u $SUDO_USER sed -i '' -e 's/\(universal_newlines=True.*\)/\1\
@@ -100,6 +101,10 @@ else
 		rm pyobjc-framework-Cocoa.tar.gz
 		cd pyobjc-framework-Cocoa-${version}
 		
+		# Patch installer to fix compiling issues
+		sudo -u $SUDO_USER sed -i '' -e 's/def get_sdk_level():/def get_sdk_level():\
+    return None/g' pyobjc_setup.py
+		
 		while ! sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/python setup.py install --user
 		do
 			:
@@ -122,6 +127,10 @@ else
 		rm pyobjc-framework-Quartz.tar.gz
 		cd pyobjc-framework-Quartz-${version}
 		
+		# Patch installer to fix compiling issues
+		sudo -u $SUDO_USER sed -i '' -e 's/def get_sdk_level():/def get_sdk_level():\
+    return None/g' pyobjc_setup.py
+		
 		while ! sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/python setup.py install --user
 		do
 			:
@@ -143,6 +152,10 @@ else
 		sudo -u $SUDO_USER tar zxvf pyobjc-framework-QTKit.tar.gz
 		rm pyobjc-framework-QTKit.tar.gz
 		cd pyobjc-framework-QTKit-${version}
+		
+		# Patch installer to fix compiling issues
+		sudo -u $SUDO_USER sed -i '' -e 's/def get_sdk_level():/def get_sdk_level():\
+    return None/g' pyobjc_setup.py
 		
 		while ! sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/python setup.py install --user
 		do
