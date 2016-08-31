@@ -393,7 +393,7 @@
 		</div>
 	</div>
 	<div class="control-group empty micro3d">
-		<h4><span class="label label-important">Steps/mm and jerk sensitivity settings have no effect when using M3D or M3D Mod firmware</span></h4>
+		<h4><span class="label label-important">Steps/mm, jerk sensitivity, and calibrate Z0 correction settings have no effect when using M3D or M3D Mod firmware</span></h4>
 	</div>
 	<div class="control-group micro3d" title="Amount of steps/mm for the X motor">
 		<label class="control-label">X Motor Steps/mm</label>
@@ -431,7 +431,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="control-group micro3d" title="sensitivity of the X jerk detection when homing. Lower values mean less sensitivity and higher values mean more sensitivity.">
+	<div class="control-group micro3d" title="Sensitivity of the X jerk detection when homing. Lower values mean less sensitivity and higher values mean more sensitivity.">
 		<label class="control-label">X Jerk Homing Sensitivity</label>
 		<div class="controls">
 			<div class="input-append ratio255">
@@ -440,12 +440,21 @@
 			</div>
 		</div>
 	</div>
-	<div class="control-group micro3d" title="sensitivity of the Y jerk detection when homing. Lower values mean less sensitivity and higher values mean more sensitivity.">
+	<div class="control-group micro3d" title="Sensitivity of the Y jerk detection when homing. Lower values mean less sensitivity and higher values mean more sensitivity.">
 		<label class="control-label">Y Jerk Homing Sensitivity</label>
 		<div class="controls">
 			<div class="input-append ratio255">
 				<input type="number" step="1" min="1" max="255" class="input-block-level" data-bind="value: settings.plugins.m33fio.YJerkSensitivity">
 				<span class="add-on">/ 255</span>
+			</div>
+		</div>
+	</div>
+	<div class="control-group micro3d" title="Vertical displacement to adjust the Z0 height calibrated by the G30 and G32 commands. A negative value will make the Z0 height lower by the specified amount, and a positive value will make the Z0 height higher by the specified amount.">
+		<label class="control-label">Calibrate Z0 correction</label>
+		<div class="controls">
+			<div class="input-append">
+				<input type="number" step="0.000001" min="0.000001" class="input-block-level" data-bind="value: settings.plugins.m33fio.CalibrateZ0Correction">
+				<span class="add-on">mm</span>
 			</div>
 		</div>
 	</div>

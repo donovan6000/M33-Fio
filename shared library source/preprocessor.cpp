@@ -516,7 +516,7 @@ double getHeightAdjustmentRequired(double x, double y) {
 double getZFromXYAndPlane(const Vector &point, const Vector &planeABC) {
 
 	// Return Z
-	return (planeABC[0] * point.x + planeABC[1] * point.y + planeABC[3]) / -planeABC[2];
+	return planeABC[2] ? (planeABC[0] * point.x + planeABC[1] * point.y + planeABC[3]) / -planeABC[2] : 0;
 }
 
 bool isPointInTriangle(const Vector &pt, const Vector &v1, const Vector &v2, const Vector &v3) {

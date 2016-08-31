@@ -779,12 +779,18 @@ body > div.page-container > div.message > div > div > span.show {
 	border-top: 1px solid #ddd;
 	box-shadow: inset 0 1px 0 #fff;
 	padding: 3px 0;
-	background-position: 2px 0;
-	background-repeat: no-repeat;
-	background-size: 12px 12px;
 	position: relative;
 	transition: height 0.3s ease-out;
 	overflow: hidden;
+}
+
+#slicing_configuration_dialog .group > img {
+	width: 12px;
+	height: 12px;
+	position: absolute;
+	left: 2px;
+	top: 0;
+	cursor: pointer;
 }
 
 #slicing_configuration_dialog .group.basic {
@@ -1326,6 +1332,14 @@ body > div.page-container > div.message > div > div > span.show {
 
 #control {
 	padding-bottom: 10px;
+}
+
+#temperature-graph {
+	transition: background-image 0.3s ease-out;
+}
+
+#temperature-graph.micro3dImage {
+	background-image: url("../img/graph-background.png");
 }
 
 .noTransition {
