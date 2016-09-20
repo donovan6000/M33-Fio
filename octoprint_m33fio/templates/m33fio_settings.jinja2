@@ -173,14 +173,14 @@
 	<div class="control-group micro3d">
 		<div class="controls">
 			<label class="checkbox" title="Adjusts the Z value of every G-code command to account for bed leveling">
-				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.UseBedCompensationPreprocessor"><span>Bed Compensation <span class="label label-important">Has no effect when using iMe firmware</span></span>
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.UseBedCompensationPreprocessor"><span>Bed Compensation <span class="label label-important">Always internally enabled when using iMe firmware</span></span>
 			</label>
 		</div>
 	</div>
 	<div class="control-group micro3d">
 		<div class="controls">
 			<label class="checkbox" title="Adjusts the X and Y values of G-code commands that change the current X or Y direction to account for backlash when changing directions">
-				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.UseBacklashCompensationPreprocessor"><span>Backlash Compensation <span class="label label-important">Has no effect when using iMe firmware</span></span>
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.UseBacklashCompensationPreprocessor"><span>Backlash Compensation <span class="label label-important">Always internally enabled when using iMe firmware</span></span>
 			</label>
 		</div>
 	</div>
@@ -393,7 +393,7 @@
 		</div>
 	</div>
 	<div class="control-group empty micro3d">
-		<h4><span class="label label-important">Steps/mm, jerk sensitivity, and calibrate Z0 correction settings<br>have no effect when using M3D or M3D Mod firmware</span></h4>
+		<h4><span class="label label-important">Steps/mm, jerk sensitivity, and calibrate Z0 correction<br>settings are only used by iMe firmware</span></h4>
 	</div>
 	<div class="control-group micro3d" title="Amount of steps/mm for the X motor">
 		<label class="control-label">X Motor Steps/mm</label>
