@@ -5879,7 +5879,7 @@ class M33FioPlugin(
 										elif firmwareType == "M3D Mod" :
 											incompatible = firmwareVersion < 2115122112
 										elif firmwareType == "iMe" :
-											incompatible = firmwareVersion < 1900000120
+											incompatible = firmwareVersion < 1900000121
 								
 										# Check if printer is incompatible or not reconnecting to printer
 										if incompatible or not self.reconnectingToPrinter :
