@@ -19,7 +19,7 @@ else
 	if [ $? -eq 0 ]; then
 
 		# Move to temporary location
-		cd $TMPDIR
+		cd "$TMPDIR"
 		
 		# Stop OctoPrint
 		sudo -u $SUDO_USER launchctl unload /Library/LaunchAgents/com.octoprint.app.plist
