@@ -5467,6 +5467,12 @@ $(function() {
 													$("#slicing_configuration_dialog .modal-extra textarea").val(data.slice(-1) == '\n' ? data.slice(0, -1) : data);
 													$("#slicing_configuration_dialog").addClass(slicerName);
 													
+													// Check if using Firefox
+													if(navigator.userAgent.toLowerCase().indexOf("firefox") != -1)
+	
+														// Fix Firefox specific CSS issues
+														$("#slicing_configuration_dialog .group.advanced > span").addClass("firefox");
+													
 													// Set basic setting values
 													if(slicerName == "cura") {
 														$("#slicing_configuration_dialog .useSupportMaterial").prop("checked", getSlicerProfileValue("support") == "Everywhere" || getSlicerProfileValue("support") == "Touching buildplate");

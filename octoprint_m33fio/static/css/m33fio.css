@@ -937,12 +937,16 @@ body > div.page-container > div.message > div > div > span.show {
 #slicing_configuration_dialog .group.advanced > span {
 	width: 100%;
 	display: none;
-	height: 15px;
+	height: 16px;
 	background-color: white;
 	position: absolute;
 	margin-top: -10px;
 	bottom: -1px;
 	left: 0;
+}
+
+#slicing_configuration_dialog .group.advanced > span.firefox {
+	height: 13px;
 }
 
 #slicing_configuration_dialog .group.advanced aside {
