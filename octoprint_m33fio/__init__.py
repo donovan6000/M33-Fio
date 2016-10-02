@@ -1495,7 +1495,7 @@ class M33FioPlugin(
 		for key in profile._profile[0] :
 		
 			# Fix incorrect settings
-			if (str(key).endswith("_gcode") or str(key).endswith("_processing")) and str(profile._profile[0][key]) == "None" :
+			if (str(key).endswith("_gcode") or str(key).endswith("_processing") or str(key).endswith("_process")) and str(profile._profile[0][key]) == "None" :
 				profile._profile[0][key] = ''
 			
 			# Append list to settings
@@ -1513,7 +1513,11 @@ class M33FioPlugin(
 				profile._profile[0][key] = str(profile._profile[0][key]) + "; archimedeanchords, rectilinear, flowsnake, octagramspiral, hilbertcurve, line, concentric, honeycomb, 3dhoneycomb"
 			elif str(key) == "support_material_pattern" :
 				profile._profile[0][key] = str(profile._profile[0][key]) + "; honeycomb, rectilinear, rectilinear-grid"
-		
+			# slic3r post_processing option not found workaround
+			elif str(key) == "post_processing":
+				profile._profile[0]["post_process"] = profile._profile[0][key]
+				del profile._profile[0][key]
+			
 		# Set settings in profile
 		profile._profile[0]["bed_shape"] = "0x0,%.1fx0,%.1fx%.1f,0x%.1f" % (printerProfile["volume"]["width"], printerProfile["volume"]["width"], printerProfile["volume"]["depth"], printerProfile["volume"]["depth"])
 		profile._profile[0]["bed_size"] = "%.1f,%.1f" % (printerProfile["volume"]["width"], printerProfile["volume"]["depth"])

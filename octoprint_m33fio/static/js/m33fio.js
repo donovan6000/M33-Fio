@@ -5331,6 +5331,14 @@ $(function() {
 																		<button title="Octagram Spiral Fill Pattern" data-target="pattern" data-value="octagramspiral"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-pattern_octagramspiral.png"></button>
 																		<button title="Archimedean Chords Fill Pattern" data-target="pattern" data-value="archimedeanchords"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-pattern_archimedeanchords.png"></button>
 																	</div>
+																	<p class="solid_pattern slic3r-only">` + (usingProvidedProfile ? `Rectalinear Top/Bottom Fill Pattern` : `Unknown Top/Bottom Fill Pattern`) + `</p>
+																	<div class="solid_pattern slic3r-only">
+																		<button title="Rectalinear Fill Pattern" data-target="solid_pattern" data-value="rectalinear" ` + (usingProvidedProfile ? ` class="disabled"` : ``) + `>><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-pattern_rectalinear.png"></button>
+																		<button title="Concentric Fill Pattern" data-target="solid_pattern" data-value="concentric"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-pattern_concentric.png"></button>
+																		<button title="Hilbert Curve Fill Pattern" data-target="solid_pattern" data-value="hilbertcurve"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-pattern_hilbertcurve.png"></button>
+																		<button title="Archimedean Chords Fill Pattern" data-target="solid_pattern" data-value="archimedeanchords"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-pattern_archimedeanchords.png"></button>
+																		<button title="Octagram Spiral Fill Pattern" data-target="solid_pattern" data-value="octagramspiral"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-pattern_octagramspiral.png"></button>
+																	</div>
 																	<div class="settings">
 																		<label title="Prints a breakaway support underneath overhanging parts of the model"><input class="useSupportMaterial" type="checkbox" tabindex="-1">Use support material</label>
 																		<label title="Allows support material to be created on top of models" class="cura-only"><input class="useModelOnModelSupport" type="checkbox" tabindex="-1">Use model on model support</label>
@@ -6736,6 +6744,15 @@ $(function() {
 															
 																changedSettings.push({
 																	fill_pattern: $(this).attr("data-value") + "; archimedeanchords, rectilinear, flowsnake, octagramspiral, hilbertcurve, line, concentric, honeycomb, 3dhoneycomb"
+																});
+																
+																break;
+															
+															// Top/Bottom Fill pattern
+															case "solid_pattern":
+															
+																changedSettings.push({
+																	solid_fill_pattern: $(this).attr("data-value") + "; archimedeanchords, rectilinear, octagramspiral, hilbertcurve, concentric"
 																});
 																
 																break;
