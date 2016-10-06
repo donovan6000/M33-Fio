@@ -114,7 +114,10 @@ for line in open(sys.argv[1], "rb") :
 			output.write("skirt_minimal_length = " + str(float(value) / 1000) + '\n')
 		
 		elif key == "initialLayerSpeed" :
-			output.write("bottom_layer_speed = " + str(int(value)) + '\n')
+			initialLayerSpeed = int(value)
+		
+		elif key == "raftBaseSpeed" :
+			raftBaseSpeed = int(value)
 		
 		elif key == "printSpeed" :
 			printSpeed = int(value)
@@ -164,8 +167,10 @@ for line in open(sys.argv[1], "rb") :
 		elif key == "raftMargin" :
 			output.write("raft_margin = " + str(float(value) / 1000) + '\n')
 		
-		elif key == "raftFanSpeed" :
-			output.write("platform_adhesion = Raft\n")
+		elif key == "raftSurfaceSpeed" :
+			usingRaft = int(value) != 0
+			if usingRaft :
+				output.write("platform_adhesion = Raft\n")
 		
 		elif key == "raftLineSpacing" :
 			#output.write("raft_line_spacing = " + str(float(value) / 1000) + '\n')
@@ -338,6 +343,11 @@ for line in open(sys.argv[1], "rb") :
 			print "skipping " + str(key)
 	
 # Obtain Cura settings from a combination of Cura Engine parameters
+if usingRaft :
+	output.write("bottom_layer_speed = " + str(raftBaseSpeed) + '\n')
+else :
+	output.write("bottom_layer_speed = " + str(initialLayerSpeed) + '\n')
+
 if fanSpeedMin != 0 or fanSpeedMax != 0 :
 	output.write("fan_enabled = True\n")
 else :
@@ -374,7 +384,7 @@ if insetXSpeed != printSpeed :
 
 output.write("layer0_width_factor = " + str(layer0extrusionWidth * 100 / (edgeWidth * 1000)) + '\n')
 output.write("wall_thickness = " + str(extrusionWidth * lineCount / 1000.0) + '\n')
-output.write("solid_layer_thickness = " + str(math.floor(solidLayerCount * (layerThickness - 0.0001)) / 1000) + '\n')
+output.write("solid_layer_thickness = " + str(round(math.floor(solidLayerCount * (layerThickness - 0.0001)) / 1000, 2)) + '\n')
 
 # Set bed and print temperature
 if "abs-r" in sys.argv[1].lower() :

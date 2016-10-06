@@ -5279,7 +5279,7 @@ $(function() {
 											success: function(data) {
 									
 												// Set using provided profile
-												var usingProvidedProfile = (slicerName == "cura" || slicerName == "slic3r") && (slicerProfileName == "micro_3d_pla" || slicerProfileName == "micro_3d_abs" || slicerProfileName == "micro_3d_hips" || slicerProfileName == "micro_3d_flx" || slicerProfileName == "micro_3d_tgh" || slicerProfileName == "micro_3d_abs-r");
+												var usingProvidedProfile = (slicerName == "cura" || slicerName == "slic3r") && (slicerProfileName == "micro_3d_pla" || slicerProfileName == "micro_3d_abs" || slicerProfileName == "micro_3d_hips" || slicerProfileName == "micro_3d_flx" || slicerProfileName == "micro_3d_tgh" || slicerProfileName == "micro_3d_abs-r" || slicerProfileName == "micro_3d_cam");
 										
 												// Hide dialog
 												$("#slicing_configuration_dialog").removeClass("in");
@@ -5297,7 +5297,7 @@ $(function() {
 													$("#slicing_configuration_dialog p.currentMenu").text("Modify Profile");
 													$("#slicing_configuration_dialog .modal-body").css("display", "none").after(`
 														<div class="modal-extra">
-															<div class="slicerSpecific cura">
+															<div class="groups">
 																<div class="group basic">
 																	<img>
 																	<h3>Basic Settings</h3>
@@ -5333,11 +5333,11 @@ $(function() {
 																	</div>
 																	<p class="solid_pattern slic3r-only">` + (usingProvidedProfile ? `Rectalinear Top/Bottom Fill Pattern` : `Unknown Top/Bottom Fill Pattern`) + `</p>
 																	<div class="solid_pattern slic3r-only">
-																		<button title="Rectalinear Fill Pattern" data-target="solid_pattern" data-value="rectalinear" ` + (usingProvidedProfile ? ` class="disabled"` : ``) + `>><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-pattern_rectalinear.png"></button>
-																		<button title="Concentric Fill Pattern" data-target="solid_pattern" data-value="concentric"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-pattern_concentric.png"></button>
-																		<button title="Hilbert Curve Fill Pattern" data-target="solid_pattern" data-value="hilbertcurve"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-pattern_hilbertcurve.png"></button>
-																		<button title="Archimedean Chords Fill Pattern" data-target="solid_pattern" data-value="archimedeanchords"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-pattern_archimedeanchords.png"></button>
-																		<button title="Octagram Spiral Fill Pattern" data-target="solid_pattern" data-value="octagramspiral"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-pattern_octagramspiral.png"></button>
+																		<button title="Rectalinear Top/Bottom Fill Pattern" data-target="solid_pattern" data-value="rectalinear" ` + (usingProvidedProfile ? ` class="disabled"` : ``) + `><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-pattern_rectalinear.png"></button>
+																		<button title="Concentric Top/Bottom Fill Pattern" data-target="solid_pattern" data-value="concentric"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-pattern_concentric.png"></button>
+																		<button title="Hilbert Curve Top/Bottom Fill Pattern" data-target="solid_pattern" data-value="hilbertcurve"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-pattern_hilbertcurve.png"></button>
+																		<button title="Archimedean Chords Top/Bottom Fill Pattern" data-target="solid_pattern" data-value="archimedeanchords"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-pattern_archimedeanchords.png"></button>
+																		<button title="Octagram Spiral Top/Bottom Fill Pattern" data-target="solid_pattern" data-value="octagramspiral"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-pattern_octagramspiral.png"></button>
 																	</div>
 																	<div class="settings">
 																		<label title="Prints a breakaway support underneath overhanging parts of the model"><input class="useSupportMaterial" type="checkbox" tabindex="-1">Use support material</label>
@@ -5479,7 +5479,7 @@ $(function() {
 													if(navigator.userAgent.toLowerCase().indexOf("firefox") != -1)
 	
 														// Fix Firefox specific CSS issues
-														$("#slicing_configuration_dialog .group.advanced > span").addClass("firefox");
+														$("#slicing_configuration_dialog .group.advanced > span, #slicing_configuration_dialog .group.advanced textarea").addClass("firefox");
 													
 													// Set basic setting values
 													if(slicerName == "cura") {
@@ -5511,24 +5511,24 @@ $(function() {
 										
 													// Set manual setting values
 													if(slicerName == "cura") {
-														$("#slicing_configuration_dialog .printingTemperature").val(getSlicerProfileValue("print_temperature"));
-														$("#slicing_configuration_dialog .heatbedTemperature").val(getSlicerProfileValue("print_bed_temperature"));
-														$("#slicing_configuration_dialog .layerHeight").val(getSlicerProfileValue("layer_height"));
-														$("#slicing_configuration_dialog .fillDensity").val(getSlicerProfileValue("fill_density"));
+														$("#slicing_configuration_dialog .printingTemperature").val(parseInt(getSlicerProfileValue("print_temperature")));
+														$("#slicing_configuration_dialog .heatbedTemperature").val(parseInt(getSlicerProfileValue("print_bed_temperature")));
+														$("#slicing_configuration_dialog .layerHeight").val(parseFloat(getSlicerProfileValue("layer_height")).toFixed(2));
+														$("#slicing_configuration_dialog .fillDensity").val(parseFloat(getSlicerProfileValue("fill_density")).toFixed(2));
 														$("#slicing_configuration_dialog .thickness").val(Math.round(parseFloat(getSlicerProfileValue("wall_thickness")) / parseFloat(getSlicerProfileValue("nozzle_size"))));
-														$("#slicing_configuration_dialog .printSpeed").val(getSlicerProfileValue("print_speed"));
-														$("#slicing_configuration_dialog .raftAirgap").val(getSlicerProfileValue("raft_airgap"));
-														$("#slicing_configuration_dialog .brimLineCount").val(getSlicerProfileValue("brim_line_count"));
+														$("#slicing_configuration_dialog .printSpeed").val(parseFloat(getSlicerProfileValue("print_speed")).toFixed(2));
+														$("#slicing_configuration_dialog .raftAirgap").val(parseFloat(getSlicerProfileValue("raft_airgap")).toFixed(2));
+														$("#slicing_configuration_dialog .brimLineCount").val(parseInt(getSlicerProfileValue("brim_line_count")));
 													}
 													else if(slicerName == "slic3r") {
-														$("#slicing_configuration_dialog .printingTemperature").val(getSlicerProfileValue("temperature"));
-														$("#slicing_configuration_dialog .heatbedTemperature").val(getSlicerProfileValue("bed_temperature"));
-														$("#slicing_configuration_dialog .layerHeight").val(getSlicerProfileValue("layer_height"));
-														$("#slicing_configuration_dialog .fillDensity").val(parseFloat(getSlicerProfileValue("fill_density")));
+														$("#slicing_configuration_dialog .printingTemperature").val(parseInt(getSlicerProfileValue("temperature")));
+														$("#slicing_configuration_dialog .heatbedTemperature").val(parseInt(getSlicerProfileValue("bed_temperature")));
+														$("#slicing_configuration_dialog .layerHeight").val(parseFloat(getSlicerProfileValue("layer_height")).toFixed(2));
+														$("#slicing_configuration_dialog .fillDensity").val(parseFloat(getSlicerProfileValue("fill_density")).toFixed(2));
 														$("#slicing_configuration_dialog .thickness").val(parseInt(getSlicerProfileValue("perimeters")));
-														$("#slicing_configuration_dialog .printSpeed").val(parseInt(getSlicerProfileValue("max_print_speed")) / 2);
-														$("#slicing_configuration_dialog .raftLayers").val(getSlicerProfileValue("raft_layers"));
-														$("#slicing_configuration_dialog .brimWidth").val(getSlicerProfileValue("brim_width"));
+														$("#slicing_configuration_dialog .printSpeed").val(parseFloat(parseInt(getSlicerProfileValue("max_print_speed")) / 2).toFixed(2));
+														$("#slicing_configuration_dialog .raftLayers").val(parseInt(getSlicerProfileValue("raft_layers")));
+														$("#slicing_configuration_dialog .brimWidth").val(parseFloat(getSlicerProfileValue("brim_width")).toFixed(2));
 													}
 											
 													if(slicerName == "cura") {
@@ -5536,14 +5536,14 @@ $(function() {
 														if(!$("#slicing_configuration_dialog .brimLineCount").val().length)
 															$("#slicing_configuration_dialog .brimLineCount").val(20);
 														
-														$("#slicing_configuration_dialog .skirtGap").val(getSlicerProfileValue("skirt_gap"));
+														$("#slicing_configuration_dialog .skirtGap").val(parseFloat(getSlicerProfileValue("skirt_gap")).toFixed(2));
 													}
 													else if(slicerName == "slic3r") {
 													
 														if(!$("#slicing_configuration_dialog .brimWidth").val().length || $("#slicing_configuration_dialog .brimWidth").val() == 0)
 															$("#slicing_configuration_dialog .brimWidth").val(5);
 														
-														$("#slicing_configuration_dialog .skirtGap").val(getSlicerProfileValue("skirt_distance"));
+														$("#slicing_configuration_dialog .skirtGap").val(parseFloat(getSlicerProfileValue("skirt_distance")).toFixed(2));
 														$("#slicing_configuration_dialog .skirts").val(parseInt(getSlicerProfileValue("skirts")));
 														
 														if(!$("#slicing_configuration_dialog .brimWidth").val().length || $("#slicing_configuration_dialog .brimWidth").val() == 0)
@@ -5554,7 +5554,7 @@ $(function() {
 														$("#slicing_configuration_dialog .skirtGap").val(3);
 											
 													if(slicerName == "cura") {
-														$("#slicing_configuration_dialog .topBottomLayers").val(Math.round(parseFloat(getSlicerProfileValue("solid_layer_thickness")) / parseFloat(getSlicerProfileValue("layer_height"))));
+														$("#slicing_configuration_dialog .topBottomLayers").val(Math.round(parseFloat(getSlicerProfileValue("solid_layer_thickness")) / (parseFloat(getSlicerProfileValue("layer_height")) - 0.0000001)));
 														
 														if(getSlicerProfileValue("platform_adhesion") != "Raft")
 															$("#slicing_configuration_dialog .raftAirgap").parent("div").parent("div").addClass("disabled");
@@ -5591,17 +5591,15 @@ $(function() {
 													else if(!self.printerProfile.currentProfileData().heatedBed())
 														$("#slicing_configuration_dialog .requiresHeatbed").addClass("notUsingAHeatbed");
 										
-													// Check if using a Cura or Slic3r profile
-													if(slicerName == "cura" || slicerName == "slic3r")
+													// Check if not using a Cura or Slic3r profile
+													if(slicerName != "cura" && slicerName != "slic3r") {
 										
-														// Show slicer specific settings
-														$("#slicing_configuration_dialog .slicerSpecific").addClass("show");
-										
-													// Otherwise
-													else
-										
+														// Hide basic and manual settings
+														$("#slicing_configuration_dialog .basic, #slicing_configuration_dialog .manual").addClass("dontShow");
+														
 														// Grow text area
 														$("#slicing_configuration_dialog .advanced").addClass("fullSpace");
+													}
 										
 													// Set slicer menu
 													slicerMenu = "Modify Profile";
@@ -5826,7 +5824,7 @@ $(function() {
 													});
 										
 													// Settings checkbox change event
-													$("#slicing_configuration_dialog .modal-extra div.slicerSpecific div input[type=\"checkbox\"]").change(function() {
+													$("#slicing_configuration_dialog .modal-extra div.groups div input[type=\"checkbox\"]").change(function() {
 										
 														// Initialize changed settings
 														var changedSettings = [];
@@ -5922,7 +5920,7 @@ $(function() {
 																if(slicerName == "cura")
 																	changedSettings.push({
 																		platform_adhesion: "Raft; None, Brim, Raft",
-																		bottom_layer_speed: 12,
+																		bottom_layer_speed: 8,
 																		raft_airgap: $("#slicing_configuration_dialog.profile .raftAirgap").val()
 																	});
 																else if(slicerName == "slic3r") {
@@ -5933,7 +5931,7 @@ $(function() {
 																	
 																	changedSettings.push({
 																		raft_layers: $("#slicing_configuration_dialog.profile .raftLayers").val(),
-																		first_layer_speed: "60%",
+																		first_layer_speed: "50%",
 																		first_layer_height: "100%",
 																		skirts: 0,
 																		brim_width: 0
@@ -5943,9 +5941,9 @@ $(function() {
 																if(usingProvidedProfile && (slicerProfileName == "micro_3d_abs" || slicerProfileName == "micro_3d_hips")) {
 														
 																	if(slicerName == "cura")
-																		changedSettings[0]["bottom_layer_speed"] = 16;
+																		changedSettings[0]["bottom_layer_speed"] = 10;
 																	else if(slicerName == "slic3r")
-																		changedSettings[0]["first_layer_speed"] = "80%";
+																		changedSettings[0]["first_layer_speed"] = "50%";
 																}
 													
 																// Uncheck use brim and use skirt basic setting, disable brim line count and skirt gap manual setting, and enable raft airgap manual setting
@@ -5969,7 +5967,7 @@ $(function() {
 																if(slicerName == "cura") {
 																	changedSettings.push({
 																		platform_adhesion: "None; None, Brim, Raft",
-																		bottom_layer_speed: 5,
+																		bottom_layer_speed: 4,
 																		skirt_line_count: 0
 																	});
 																	
@@ -5988,6 +5986,14 @@ $(function() {
 																	// Disable raft layers manual setting
 																	$("#slicing_configuration_dialog.profile .raftLayers").parent("div").parent("div").addClass("disabled");
 																}
+																
+																if(usingProvidedProfile && (slicerProfileName == "micro_3d_abs" || slicerProfileName == "micro_3d_hips")) {
+														
+																	if(slicerName == "cura")
+																		changedSettings[0]["bottom_layer_speed"] = 5;
+																	else if(slicerName == "slic3r")
+																		changedSettings[0]["first_layer_speed"] = "25%";
+																}
 															}
 														}
 											
@@ -6005,14 +6011,14 @@ $(function() {
 																	
 																	changedSettings.push({
 																		platform_adhesion: "Brim; None, Brim, Raft",
-																		bottom_layer_speed: 12,
+																		bottom_layer_speed: 8,
 																		brim_line_count: $("#slicing_configuration_dialog.profile .brimLineCount").val()
 																	});
 																}
 																else if(slicerName == "slic3r")
 																	changedSettings.push({
 																		raft_layers: 0,
-																		first_layer_speed: "60%",
+																		first_layer_speed: "50%",
 																		first_layer_height: "100%",
 																		skirts: 0,
 																		brim_width: $("#slicing_configuration_dialog.profile .brimWidth").val()
@@ -6021,9 +6027,9 @@ $(function() {
 																if(usingProvidedProfile && (slicerProfileName == "micro_3d_abs" || slicerProfileName == "micro_3d_hips")) {
 														
 																	if(slicerName == "cura")
-																		changedSettings[0]["bottom_layer_speed"] = 16;
+																		changedSettings[0]["bottom_layer_speed"] = 10;
 																	else if(slicerName == "slic3r")
-																		changedSettings[0]["first_layer_speed"] = "80%";
+																		changedSettings[0]["first_layer_speed"] = "50%";
 																}
 													
 																// Uncheck use raft and skirt basic setting, enable brim line count manual setting, and disable raft airgap and skirt gap manual setting
@@ -6047,7 +6053,7 @@ $(function() {
 																if(slicerName == "cura") {
 																	changedSettings.push({
 																		platform_adhesion: "None; None, Brim, Raft",
-																		bottom_layer_speed: 5,
+																		bottom_layer_speed: 4,
 																		skirt_line_count: 0
 																	});
 																	
@@ -6066,6 +6072,14 @@ $(function() {
 																	// Disable brim width manual setting
 																	$("#slicing_configuration_dialog .brimWidth").parent("div").parent("div").addClass("disabled");
 																}
+																
+																if(usingProvidedProfile && (slicerProfileName == "micro_3d_abs" || slicerProfileName == "micro_3d_hips")) {
+														
+																	if(slicerName == "cura")
+																		changedSettings[0]["bottom_layer_speed"] = 5;
+																	else if(slicerName == "slic3r")
+																		changedSettings[0]["first_layer_speed"] = "25%";
+																}
 															}
 														}
 												
@@ -6078,10 +6092,11 @@ $(function() {
 																if(slicerName == "cura")
 																	changedSettings.push({
 																		platform_adhesion: "None; None, Brim, Raft",
-																		bottom_layer_speed: 5,
+																		bottom_layer_speed: 4,
 																		skirt_line_count: 1,
 																		skirt_gap: $("#slicing_configuration_dialog .skirtGap").val()
 																	});
+																
 																else if(slicerName == "slic3r") {
 																	
 																	// Make skirts 
@@ -6096,6 +6111,14 @@ $(function() {
 																		skirt_distance: $("#slicing_configuration_dialog .skirtGap").val(),
 																		brim_width: 0
 																	});
+																}
+																
+																if(usingProvidedProfile && (slicerProfileName == "micro_3d_abs" || slicerProfileName == "micro_3d_hips")) {
+														
+																	if(slicerName == "cura")
+																		changedSettings[0]["bottom_layer_speed"] = 5;
+																	else if(slicerName == "slic3r")
+																		changedSettings[0]["first_layer_speed"] = "25%";
 																}
 													
 																// Uncheck use raft and brim basic setting, enable skirt gap manual setting, and disable raft airgap and brim line count manual setting
@@ -6119,7 +6142,7 @@ $(function() {
 																if(slicerName == "cura")
 																	changedSettings.push({
 																		platform_adhesion: "None; None, Brim, Raft",
-																		bottom_layer_speed: 5,
+																		bottom_layer_speed: 4,
 																		skirt_line_count: 0
 																	});
 																else if(slicerName == "slic3r") {
@@ -6132,6 +6155,14 @@ $(function() {
 																	
 																	// Disable skirt count
 																	$("#slicing_configuration_dialog.profile .skirts").parent("div").parent("div").addClass("disabled");
+																}
+																
+																if(usingProvidedProfile && (slicerProfileName == "micro_3d_abs" || slicerProfileName == "micro_3d_hips")) {
+														
+																	if(slicerName == "cura")
+																		changedSettings[0]["bottom_layer_speed"] = 5;
+																	else if(slicerName == "slic3r")
+																		changedSettings[0]["first_layer_speed"] = "25%";
 																}
 													
 																// Disable skirt gap manual setting
@@ -6179,7 +6210,7 @@ $(function() {
 													});
 										
 													// Settings drag image event
-													$("#slicing_configuration_dialog .slicerSpecific button img").on("dragstart", function(event) {
+													$("#slicing_configuration_dialog .groups button img").on("dragstart", function(event) {
 
 														// Prevent default
 														event.preventDefault();
@@ -6231,7 +6262,7 @@ $(function() {
 															if(slicerName == "cura")
 																changedSettings.push({
 																	layer_height: $(this).val(),
-																	solid_layer_thickness: parseFloat(parseInt($("#slicing_configuration_dialog.profile .topBottomLayers").val()) * parseFloat($(this).val()) - 0.001).toFixed(3)
+																	solid_layer_thickness: parseFloat(parseInt($("#slicing_configuration_dialog.profile .topBottomLayers").val()) * (parseFloat($(this).val()) - 0.0000001)).toFixed(3)
 																});
 															else if(slicerName == "slic3r")
 																changedSettings.push({
@@ -6322,10 +6353,14 @@ $(function() {
 												
 															if(usingProvidedProfile && (slicerProfileName == "micro_3d_abs" || slicerProfileName == "micro_3d_hips")) {
 													
-																if(slicerName == "cura")
+																if(slicerName == "cura") {
 																	changedSettings[0]["travel_speed"] = $(this).val();
-																else if(slicerName == "slic3r")
+																	changedSettings[0]["insetx_speed"] = parseFloat($(this).val()) - 3 >= 1 ? parseFloat(parseFloat($(this).val()) - 3).toFixed(3) : 1;
+																}
+																else if(slicerName == "slic3r") {
 																	changedSettings[0]["travel_speed"] = $(this).val();
+																	changedSettings[0]["solid_infill_speed"] = parseFloat($(this).val()) - 3 >= 1 ? parseFloat(parseFloat($(this).val()) - 3).toFixed(3) : 1;
+																}
 															}
 														}
 											
@@ -6336,7 +6371,7 @@ $(function() {
 															var layerHeight = getSlicerProfileValue("layer_height");
 															
 															changedSettings.push({
-																solid_layer_thickness: parseFloat(parseInt($(this).val()) * parseFloat(layerHeight == '' ? 0.25 : layerHeight) - 0.001).toFixed(3)
+																solid_layer_thickness: parseFloat(parseInt($(this).val()) * (parseFloat(layerHeight == '' ? 0.25 : layerHeight) - 0.0000001)).toFixed(3)
 															});
 												
 															if(layerHeight == '')
@@ -6424,7 +6459,7 @@ $(function() {
 													});
 										
 													// Settings button click event
-													$("#slicing_configuration_dialog .slicerSpecific div button").click(function() {
+													$("#slicing_configuration_dialog .groups div button").click(function() {
 										
 														// Select button
 														$(this).blur();
@@ -6435,7 +6470,7 @@ $(function() {
 														var target = $(this).attr("data-target");
 														
 														// Set setting's text
-														$("#slicing_configuration_dialog .slicerSpecific p." + target).text($(this).attr("title"));
+														$("#slicing_configuration_dialog .groups p." + target).text($(this).attr("title"));
 														
 														// Check which setting was changes
 														switch(target) {
@@ -6456,18 +6491,18 @@ $(function() {
 																			changedSettings.push({
 																				layer_height: 0.35,
 																				bottom_thickness: 0.3,
-																				fan_full_height: 0.301,
-																				solid_layer_thickness: 2.799
+																				fan_full_height: parseFloat((1 - 1) * 0.35 + 0.3 + 0.001).toFixed(3),
+																				solid_layer_thickness: parseFloat(8 * (0.35 - 0.0000001)).toFixed(3)
 																			});
 																		else if(slicerName == "slic3r")
 																			changedSettings.push({
 																				layer_height: 0.35,
-																				first_layer_height: Math.round((0.3 / 0.35) * 100) + "%",
-																				top_solid_layers: Math.round(2.799 / 0.35),
-																				bottom_solid_layers: Math.round(2.799 / 0.35)
+																				first_layer_height: Math.round(0.3 / 0.35 * 100) + "%",
+																				top_solid_layers: 8,
+																				bottom_solid_layers: 8
 																			});
 																		
-																		fan_full_height= 0.651;
+																		fan_full_height = (2 - 1) * 0.35 + 0.3 + 0.001;
 																		break;
 																	
 																	// Low quality
@@ -6477,18 +6512,18 @@ $(function() {
 																			changedSettings.push({
 																				layer_height: 0.30,
 																				bottom_thickness: 0.3,
-																				fan_full_height: 0.301,
-																				solid_layer_thickness: 2.399
+																				fan_full_height: parseFloat((1 - 1) * 0.30 + 0.3 + 0.001).toFixed(3),
+																				solid_layer_thickness: parseFloat(8 * (0.30 - 0.0000001)).toFixed(3)
 																			});
 																		else if(slicerName == "slic3r")
 																			changedSettings.push({
 																				layer_height: 0.30,
-																				first_layer_height: "100%",
-																				top_solid_layers: Math.round(2.399 / 0.30),
-																				bottom_solid_layers: Math.round(2.399 / 0.30)
+																				first_layer_height: Math.round(0.3 / 0.30 * 100) + "%",
+																				top_solid_layers: 8,
+																				bottom_solid_layers: 8
 																			});
 																		
-																		fan_full_height= 0.601;
+																		fan_full_height = (2 - 1) * 0.30 + 0.3 + 0.001;
 																		break;
 																	
 																	// Medium quality
@@ -6498,18 +6533,18 @@ $(function() {
 																			changedSettings.push({
 																				layer_height: 0.25,
 																				bottom_thickness: 0.3,
-																				fan_full_height: 0.301,
-																				solid_layer_thickness: 1.999
+																				fan_full_height: parseFloat((1 - 1) * 0.25 + 0.3 + 0.001).toFixed(3),
+																				solid_layer_thickness: parseFloat(8 * (0.25 - 0.0000001)).toFixed(3)
 																			});
 																		else if(slicerName == "slic3r")
 																			changedSettings.push({
 																				layer_height: 0.25,
-																				first_layer_height: Math.round((0.3 / 0.25) * 100) + "%",
-																				top_solid_layers: Math.round(1.999 / 0.25),
-																				bottom_solid_layers: Math.round(1.999 / 0.25)
+																				first_layer_height: Math.round(0.3 / 0.25 * 100) + "%",
+																				top_solid_layers: 8,
+																				bottom_solid_layers: 8
 																			});
 																		
-																		fan_full_height= 0.551;
+																		fan_full_height = (2 - 1) * 0.25 + 0.3 + 0.001;
 																		break;
 																	
 																	// High quality
@@ -6519,18 +6554,18 @@ $(function() {
 																			changedSettings.push({
 																				layer_height: 0.20,
 																				bottom_thickness: 0.3,
-																				fan_full_height: 0.301,
-																				solid_layer_thickness: 1.599
+																				fan_full_height: parseFloat((1 - 1) * 0.20 + 0.3 + 0.001).toFixed(3),
+																				solid_layer_thickness: parseFloat(8 * (0.20 - 0.0000001)).toFixed(3)
 																			});
 																		else if(slicerName == "slic3r")
 																			changedSettings.push({
 																				layer_height: 0.20,
-																				first_layer_height: Math.round((0.3 / 0.2) * 100) + "%",
-																				top_solid_layers: Math.round(1.599 / 0.20),
-																				bottom_solid_layers: Math.round(1.599 / 0.20)
+																				first_layer_height: Math.round(0.3 / 0.2 * 100) + "%",
+																				top_solid_layers: 8,
+																				bottom_solid_layers: 8
 																			});
 																		
-																		fan_full_height = 0.501;
+																		fan_full_height = (2 - 1) * 0.20 + 0.3 + 0.001;
 																		break;
 																	
 																	// Extra high quality
@@ -6540,18 +6575,18 @@ $(function() {
 																			changedSettings.push({
 																				layer_height: 0.15,
 																				bottom_thickness: 0.3,
-																				fan_full_height: 0.301,
-																				solid_layer_thickness: 1.199
+																				fan_full_height: parseFloat((1 - 1) * 0.15 + 0.3 + 0.001).toFixed(3),
+																				solid_layer_thickness: parseFloat(8 * (0.15 - 0.0000001)).toFixed(3)
 																			});
 																		else if(slicerName == "slic3r")
 																			changedSettings.push({
 																				layer_height: 0.15,
-																				first_layer_height: Math.round((0.3 / 0.15) * 100) + "%",
-																				top_solid_layers: Math.round(1.199 / 0.15),
-																				bottom_solid_layers: Math.round(1.199 / 0.15)
+																				first_layer_height: Math.round(0.3 / 0.15 * 100) + "%",
+																				top_solid_layers: 8,
+																				bottom_solid_layers: 8
 																			});
 																		
-																		fan_full_height = 0.451;
+																		fan_full_height = (2 - 1) * 0.15 + 0.3 + 0.001;
 																		break;
 																	
 																	// Highest quality
@@ -6560,36 +6595,36 @@ $(function() {
 																		if(slicerName == "cura")
 																			changedSettings.push({
 																				layer_height: 0.05,
-																				bottom_thickness: 0.1,
-																				fan_full_height: 0.101,
-																				solid_layer_thickness: 0.399
+																				bottom_thickness: 0.3,
+																				fan_full_height: parseFloat((1 - 1) * 0.05 + 0.3 + 0.001).toFixed(3),
+																				solid_layer_thickness: parseFloat(8 * (0.05 - 0.0000001)).toFixed(3)
 																			});
 																		else if(slicerName == "slic3r")
 																			changedSettings.push({
 																				layer_height: 0.05,
-																				first_layer_height: Math.round((0.1 / 0.05) * 100) + "%",
-																				top_solid_layers: Math.round(0.399 / 0.05),
-																				bottom_solid_layers: Math.round(0.399 / 0.05)
+																				first_layer_height: Math.round(0.3 / 0.05 * 100) + "%",
+																				top_solid_layers: 8,
+																				bottom_solid_layers: 8
 																			});
 																		
-																		fan_full_height = 0.151
+																		fan_full_height = (2 - 1) * 0.05 + 0.3 + 0.001;
 																		break;
 																}
 																
-																if(usingProvidedProfile && (slicerProfileName == "micro_3d_abs" || slicerProfileName == "micro_3d_hips" || slicerProfileName == "micro_3d_abs-r")) {
+																if(usingProvidedProfile && (slicerProfileName == "micro_3d_abs" || slicerProfileName == "micro_3d_hips" || slicerProfileName == "micro_3d_abs-r" || slicerProfileName == "micro_3d_cam")) {
 																	if(slicerName == "cura")
-																		changedSettings[0]["fan_full_height"] = fan_full_height;
+																		changedSettings[0]["fan_full_height"] = parseFloat(fan_full_height).toFixed(3);
 																}
 																
 																// Set layer height and top/bottom layers manual settings
 																if(slicerName == "cura") {
 																	$("#slicing_configuration_dialog .layerHeight").val(parseFloat(changedSettings[0]["layer_height"]).toFixed(2));
-																	$("#slicing_configuration_dialog .topBottomLayers").val(Math.round(parseFloat(changedSettings[0]["solid_layer_thickness"]) / parseFloat(changedSettings[0]["layer_height"])));
+																	$("#slicing_configuration_dialog .topBottomLayers").val(Math.round(parseFloat(changedSettings[0]["solid_layer_thickness"]) / (parseFloat(changedSettings[0]["layer_height"]) - 0.0000001)));
 																}
 																else if(slicerName == "slic3r") {
 																	$("#slicing_configuration_dialog .layerHeight").val(parseFloat(changedSettings[0]["layer_height"]).toFixed(2));
-																	$("#slicing_configuration_dialog .topLayers").val(parseFloat(changedSettings[0]["top_solid_layers"]));
-																	$("#slicing_configuration_dialog .bottomLayers").val(parseFloat(changedSettings[0]["bottom_solid_layers"]));
+																	$("#slicing_configuration_dialog .topLayers").val(parseInt(changedSettings[0]["top_solid_layers"]));
+																	$("#slicing_configuration_dialog .bottomLayers").val(parseInt(changedSettings[0]["bottom_solid_layers"]));
 																}
 																
 																break;
@@ -6606,12 +6641,12 @@ $(function() {
 																		if(slicerName == "cura")
 																			changedSettings.push({
 																				fill_density: 0,
-																				wall_thickness: 0.35,
+																				wall_thickness: parseFloat(1 * 0.35).toFixed(3),
 																				nozzle_size: 0.35
 																			});
 																		else if(slicerName == "slic3r")
 																			changedSettings.push({
-																				fill_density: "0%",
+																				fill_density: 0 + "%",
 																				perimeters: 1,
 																				perimeter_extrusion_width: 0.35
 																			});
@@ -6624,13 +6659,13 @@ $(function() {
 																		if(slicerName == "cura")
 																			changedSettings.push({
 																				fill_density: 0,
-																				wall_thickness: 1.05,
+																				wall_thickness: parseFloat(3 * 0.35).toFixed(3),
 																				nozzle_size: 0.35
 																			});
 																		else if(slicerName == "slic3r")
 																			changedSettings.push({
-																				fill_density: "0%",
-																				perimeters: Math.round(1.05 / 0.35),
+																				fill_density: 0 + "%",
+																				perimeters: 3,
 																				perimeter_extrusion_width: 0.35
 																			});
 																		
@@ -6641,14 +6676,14 @@ $(function() {
 																	
 																		if(slicerName == "cura")
 																			changedSettings.push({
-																				fill_density: 6.364,
-																				wall_thickness: 1.05,
+																				fill_density: parseFloat(0.35 / 5500 * 100000).toFixed(3),
+																				wall_thickness: parseFloat(3 * 0.35).toFixed(3),
 																				nozzle_size: 0.35
 																			});
 																		else if(slicerName == "slic3r")
 																			changedSettings.push({
-																				fill_density: "6.364%",
-																				perimeters: Math.round(1.05 / 0.35),
+																				fill_density: parseFloat(0.35 / 5500 * 100000).toFixed(3) + "%",
+																				perimeters: 3,
 																				perimeter_extrusion_width: 0.35
 																			});
 																		
@@ -6659,14 +6694,14 @@ $(function() {
 																	
 																		if(slicerName == "cura")
 																			changedSettings.push({
-																				fill_density: 8.75,
-																				wall_thickness: 1.4,
+																				fill_density: parseFloat(0.35 / 4000 * 100000).toFixed(3),
+																				wall_thickness: parseFloat(4 * 0.35).toFixed(3),
 																				nozzle_size: 0.35
 																			});
 																		else if(slicerName == "slic3r")
 																			changedSettings.push({
-																				fill_density: "8.75%",
-																				perimeters: Math.round(1.4 / 0.35),
+																				fill_density: parseFloat(0.35 / 4000 * 100000).toFixed(3) + "%",
+																				perimeters: 4,
 																				perimeter_extrusion_width: 0.35
 																			});
 																		
@@ -6677,14 +6712,14 @@ $(function() {
 																	
 																		if(slicerName == "cura")
 																			changedSettings.push({
-																				fill_density: 14.0,
-																				wall_thickness: 1.4,
+																				fill_density: parseFloat(0.35 / 2500 * 100000).toFixed(3),
+																				wall_thickness: parseFloat(4 * 0.35).toFixed(3),
 																				nozzle_size: 0.35
 																			});
 																		else if(slicerName == "slic3r")
 																			changedSettings.push({
-																				fill_density: "14.0%",
-																				perimeters: Math.round(1.4 / 0.35),
+																				fill_density: parseFloat(0.35 / 2500 * 100000).toFixed(3) + "%",
+																				perimeters: 4,
 																				perimeter_extrusion_width: 0.35
 																			});
 																		
@@ -6695,14 +6730,14 @@ $(function() {
 																	
 																		if(slicerName == "cura")
 																			changedSettings.push({
-																				fill_density: 23.333,
-																				wall_thickness: 1.4,
+																				fill_density: parseFloat(0.35 / 1500 * 100000).toFixed(3),
+																				wall_thickness: parseFloat(4 * 0.35).toFixed(3),
 																				nozzle_size: 0.35
 																			});
 																		else if(slicerName == "slic3r")
 																			changedSettings.push({
-																				fill_density: "23.333%",
-																				perimeters: Math.round(1.4 / 0.35),
+																				fill_density: parseFloat(0.35 / 1500 * 100000).toFixed(3) + "%",
+																				perimeters: 4,
 																				perimeter_extrusion_width: 0.35
 																			});
 																		
@@ -6714,13 +6749,13 @@ $(function() {
 																		if(slicerName == "cura")
 																			changedSettings.push({
 																				fill_density: 100,
-																				wall_thickness: 1.4,
+																				wall_thickness: parseFloat(4 * 0.35).toFixed(3),
 																				nozzle_size: 0.35
 																			});
 																		else if(slicerName == "slic3r")
 																			changedSettings.push({
-																				fill_density: "100%",
-																				perimeters: Math.round(1.4 / 0.35),
+																				fill_density: 100 + "%",
+																				perimeters: 4,
 																				perimeter_extrusion_width: 0.35
 																			});
 																		
@@ -6734,7 +6769,7 @@ $(function() {
 																}
 																else if(slicerName == "slic3r") {
 																	$("#slicing_configuration_dialog .fillDensity").val(parseFloat(changedSettings[0]["fill_density"]).toFixed(2));
-																	$("#slicing_configuration_dialog .thickness").val(parseFloat(changedSettings[0]["perimeters"]));
+																	$("#slicing_configuration_dialog .thickness").val(parseInt(changedSettings[0]["perimeters"]));
 																}
 																
 																break;

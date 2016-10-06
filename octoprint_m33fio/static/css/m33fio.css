@@ -728,21 +728,17 @@ body > div.page-container > div.message > div > div > span.show {
 	border-top: none !important;
 }
 
-#slicing_configuration_dialog.profile .modal-extra div.slicerSpecific {
+#slicing_configuration_dialog.profile .modal-extra div.groups {
 	flex-direction: column;
 }
 
-#slicing_configuration_dialog.profile .modal-extra div.slicerSpecific:not(.show) {
-	display: none;
-}
-
-#slicing_configuration_dialog.profile .modal-extra div.slicerSpecific p {
+#slicing_configuration_dialog.profile .modal-extra div.groups p {
 	text-align: center;
 	line-height: 10px;
 	margin: 12px 0 6px 0;
 }
 
-#slicing_configuration_dialog.profile .modal-extra div.slicerSpecific button {
+#slicing_configuration_dialog.profile .modal-extra div.groups button {
 	padding: 0;
 	border-radius: 5px;
 	border: 1px solid rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
@@ -754,7 +750,7 @@ body > div.page-container > div.message > div > div > span.show {
 	height: 70px;
 }
 
-#slicing_configuration_dialog .slicerSpecific button img {
+#slicing_configuration_dialog .groups button img {
 	position: absolute;
 	top: 50%;
 	left: 50%;
@@ -763,11 +759,11 @@ body > div.page-container > div.message > div > div > span.show {
 	height: auto;
 }
 
-#slicing_configuration_dialog .slicerSpecific p:not(:first-of-type) {
+#slicing_configuration_dialog .groups p:not(:first-of-type) {
 	margin-top: 10px;
 }
 
-#slicing_configuration_dialog .slicerSpecific .group {
+#slicing_configuration_dialog .groups .group {
 	width: 100%;
 	margin: 0 auto;
 	display: block;
@@ -845,40 +841,45 @@ body > div.page-container > div.message > div > div > span.show {
 	text-align: left;
 }
 
-#slicing_configuration_dialog .slicerSpecific div:not(.group) {
+#slicing_configuration_dialog .groups div:not(.group) {
 	width: 100%;
 	margin: 0 auto;
 	display: block;
 	text-align: center;
 }
 
-#slicing_configuration_dialog.cura .slicerSpecific .slic3r-only {
+#slicing_configuration_dialog.cura .groups .slic3r-only {
 	display: none;
 }
 
-#slicing_configuration_dialog .slicerSpecific .settings {
+#slicing_configuration_dialog .groups .settings {
 	margin: 1px 0 -1px 0;
 	white-space: nowrap;
 }
 
-#slicing_configuration_dialog .slicerSpecific .settings label {
+#slicing_configuration_dialog .groups .settings label {
 	display: inline-block;
 	margin: 4px 8px 0 8px;
 }
 
-#slicing_configuration_dialog.cura .slicerSpecific .settings label.slic3r-only {
+#slicing_configuration_dialog.cura .groups .settings label.slic3r-only {
 	display: none;
 }
 
-#slicing_configuration_dialog.slic3r .slicerSpecific .settings label.cura-only {
+#slicing_configuration_dialog.slic3r .groups .settings label.cura-only {
 	display: none;
 }
 
 
-#slicing_configuration_dialog .slicerSpecific .settings input {
+#slicing_configuration_dialog .groups .settings input {
 	position: relative;
 	top: -3px;
 	right: 2px;
+}
+
+
+#slicing_configuration_dialog .groups .settings input[type="checkbox"]:focus {
+	outline: none;
 }
 
 #slicing_configuration_dialog .group.manual .wrapper {
@@ -896,7 +897,7 @@ body > div.page-container > div.message > div > div > span.show {
 #slicing_configuration_dialog .group.manual .option {
 	display: inline-block;
 	width: calc(100% / 3);
-	margin: 3px 0;
+	margin: 3px auto;
 }
 
 #slicing_configuration_dialog .group.manual .option.disabled {
@@ -946,7 +947,7 @@ body > div.page-container > div.message > div > div > span.show {
 }
 
 #slicing_configuration_dialog .group.advanced > span.firefox {
-	height: 13px;
+	height: 11px;
 }
 
 #slicing_configuration_dialog .group.advanced aside {
@@ -981,6 +982,11 @@ body > div.page-container > div.message > div > div > span.show {
 	position: relative;
 	z-index: 1;
 	color: #333;
+}
+
+#slicing_configuration_dialog .group.advanced textarea.firefox {
+	height: calc(100% - 8px) !important;
+	padding: 0px 2px 0px 5px !important;
 }
 
 #slicing_configuration_dialog .modal-cover {
@@ -1350,6 +1356,6 @@ body > div.page-container > div.message > div > div > span.show {
 	transition: none !important;
 }
 
-.notUsingAMicro3DPrinter, .usingAMicro3DPrinter, .notUsingAHeatbed {
+.notUsingAMicro3DPrinter, .usingAMicro3DPrinter, .notUsingAHeatbed, .dontShow {
 	display: none !important;
 }

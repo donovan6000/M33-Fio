@@ -871,7 +871,7 @@ class M33FioPlugin(
 	
 	# On after startup
 	def on_after_startup(self) :
-	
+		
 		# Check if shared library is usable
 		if self.loadSharedLibrary(True) :
 	
@@ -1510,9 +1510,10 @@ class M33FioPlugin(
 			elif str(key) == "seam_position" :
 				profile._profile[0][key] = str(profile._profile[0][key]) + "; random, aligned, nearest"
 			elif str(key) == "solid_fill_pattern" :
-				profile._profile[0][key] = str(profile._profile[0][key]) + "; archimedeanchords, rectilinear, flowsnake, octagramspiral, hilbertcurve, line, concentric, honeycomb, 3dhoneycomb"
+				profile._profile[0][key] = str(profile._profile[0][key]) + "; archimedeanchords, rectilinear, octagramspiral, hilbertcurve, concentric"
 			elif str(key) == "support_material_pattern" :
 				profile._profile[0][key] = str(profile._profile[0][key]) + "; honeycomb, rectilinear, rectilinear-grid"
+			
 			# slic3r post_processing option not found workaround
 			elif str(key) == "post_processing":
 				profile._profile[0]["post_process"] = profile._profile[0][key]
@@ -4260,6 +4261,9 @@ class M33FioPlugin(
 					
 					# Reset print settings
 					self.resetPrintSettings()
+					
+					# Unload shared library if it's loaded
+					self.unloadSharedLibrary()
 			
 					# Enable sleep
 					self.enableSleep()
@@ -5167,11 +5171,8 @@ class M33FioPlugin(
 			# Unload shared library
 			self.unloadSharedLibrary()
 		
-			# Check if not using a Micro 3D printer
-			if self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
-		
-				# Enable sleep
-				self.enableSleep()
+			# Enable sleep
+			self.enableSleep()
 	
 	# Is port open
 	def isPortOpen(self, port) :
