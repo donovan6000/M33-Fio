@@ -7250,6 +7250,12 @@ class M33FioPlugin(
 			# Set progress bar percent and text
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Collecting Print Information …"))
 			
+			# Check if not processing a slice
+			if not self.processingSlice :
+			
+				# Display message
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Pre-processing file"))
+			
 			# Check if shared library was loaded
 			if self.loadSharedLibrary() :
 			

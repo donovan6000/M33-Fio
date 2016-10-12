@@ -13,10 +13,11 @@
 
 #gcode div.midPrintFilamentChange label input {
 	display: inline;
-	width: calc(100% - 200px);
+	width: calc(100% - 197px);
 	position: relative;
 	top: 4px;
 	margin-left: 5px;
+	margin-right: 5px;
 }
 
 #gcode div.midPrintFilamentChange button:first-of-type {
@@ -68,22 +69,23 @@
 	top: 10px;
 }
 
-#settings_plugin_m33fio label.checkbox:first-of-type {
+#settings_plugin_m33fio label.checkbox:first-of-type, #settings_plugin_m33fio label.noCheckbox {
 	margin-top: -5px;
 	width: calc(100% - 24px);
+	white-space: nowrap;
 }
 
 #settings_plugin_m33fio label.checkbox > span {
 	position: relative;
-	top: 9px;
+	top: 9px !important;
 }
 
 #settings_plugin_m33fio label.checkbox > span.windows {
-	top: 10px;
+	top: 10px !important;
 }
 
 #settings_plugin_m33fio label.checkbox > span.osx {
-	top: 0;
+	top: 0 !important;
 }
 
 #settings_plugin_m33fio input[type="checkbox"] {
@@ -144,6 +146,14 @@
 	position: relative;
 	top: 13px;
 	text-align: center;
+}
+
+#settings_plugin_m33fio select.short.windows {
+	top: 14px;
+}
+
+#settings_plugin_m33fio select.short.osx {
+	top: 5px;
 }
 
 #settings_plugin_m33fio .disabled {
@@ -209,10 +219,19 @@
 	left: 8px;
 }
 
-#control div.jog-panel.extruder > div div.slider {
-	width: 124px !important;
+#control div.jog-panel.controls > div > div:nth-of-type(1) > div {
 	position: relative;
-	right: 2px;
+	left: 10px;
+}
+
+#control div.jog-panel.extruder > div div.slider {
+	width: 125px !important;
+	position: relative;
+	right: 1px;
+}
+
+#control div.jog-panel.extruder > div div.slider .slider-handle {
+	margin-left: -8px;
 }
 
 #control div.jog-panel.extruder > div > div > input {
@@ -253,7 +272,7 @@
 
 #control div.jog-panel.calibration button.arrow:not(.point) {
 	clear: both;
-	margin-right: 15px;
+	margin-right: 8px;
 }
 
 #control div.jog-panel.calibration button.arrow.point {
@@ -261,32 +280,28 @@
 
 #control div.jog-panel.calibration button:nth-of-type(5), #control div.jog-panel.calibration button:nth-of-type(8), #control div.jog-panel.calibration button:nth-of-type(11), #control div.jog-panel.calibration button:nth-of-type(14) {
 	position: relative;
-	left: 5px;
-	width: 151px;
-} 
+	left: 8px;
+	width: 155px;
+}
 
-#control div.jog-panel.calibration > div > button:nth-of-type(3) {
-	position: relative;
-	left: 5px;
+#control div.jog-panel.calibration > div > button:nth-of-type(3) > i {
 	transform: rotate(45deg);
+	display: inline-block;
 }
 
-#control div.jog-panel.calibration > div > button:nth-of-type(6) {
-	position: relative;
-	left: 5px;
+#control div.jog-panel.calibration > div > button:nth-of-type(6) > i {
 	transform: rotate(-45deg);
+	display: inline-block;
 }
 
-#control div.jog-panel.calibration > div > button:nth-of-type(9) {
-	position: relative;
-	left: 5px;
+#control div.jog-panel.calibration > div > button:nth-of-type(9) > i {
 	transform: rotate(45deg);
+	display: inline-block;
 }
 
-#control div.jog-panel.calibration > div > button:nth-of-type(12) {
-	position: relative;
-	left: 5px;
+#control div.jog-panel.calibration > div > button:nth-of-type(12) > i {
 	transform: rotate(-45deg);
+	display: inline-block;
 }
 
 #control div.jog-panel.advanced button {
@@ -326,7 +341,7 @@
 
 #control div.jog-panel.eeprom button {
 	width: 150px;
-	margin: 7px 5px 10px 5px;
+	margin: 3px 5px 10px 5px;
 	display: inline-block;
 }
 
@@ -376,10 +391,10 @@
 	position: relative;
 	top: 1px;
 	width: 13px;
-	height: 13px;
+	height: 19px;
 }
 
-#control div.jog-panel.eeprom input[type="radio"].windows, #control div.jog-panel.eeprom input[type="radio"].osx {
+#control div.jog-panel.eeprom input[type="radio"].osx {
 	top: 0;
 }
 
@@ -1328,11 +1343,24 @@ body > div.page-container > div.message > div > div > span.show {
 	margin-right: 40px !important;
 }
 
+#control div.jog-panel.controls > div > div.jog-panel:nth-of-type(2) {
+	left: 18px;
+	position: relative;
+}
+
 #control > div.jog-panel.controls > div h1 {
 	font-size: 14px;
 	margin-top: -10px;
 	position: relative;
 	right: 4px;
+}
+
+#control > div.jog-panel.controls > div:first-of-type h1 {
+	margin-left: 10px;
+}
+
+#control div.jog-panel.controls > div > div.jog-panel:nth-of-type(2) h1 {
+	right: 15px;
 }
 
 #control > div.jog-panel.closed > div {

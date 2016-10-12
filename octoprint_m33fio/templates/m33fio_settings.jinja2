@@ -56,7 +56,7 @@
 			<label class="checkbox" title="Hosts a camera's stream and snapshot at port 4999 at /stream.mjpg and /snapshot.jpg respectively">
 				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.HostCamera"><span>Host Camera</span>
 				<select class="input-block-level short" data-bind="value: settings.plugins.m33fio.CameraPort"></select>
-				&nbsp;&nbsp;<span class="label label-important">Changes require restart</span>
+				&nbsp;<span class="label label-important">Changes require restart</span>
 			</label>
 		</div>
 	</div>
@@ -92,7 +92,7 @@
 	</div>
 	<div class="control-group micro3d">
 		<div class="controls">
-			<label title="Adds in mid-print filament change commands at the start of each specified layer. Layer numbers should be seperated by a space.">
+			<label class="noCheckbox" title="Adds in mid-print filament change commands at the start of each specified layer. Layer numbers should be seperated by a space.">
 				<span class="noCheckbox">Mid-print filament change layers</span>
 				<input type="text" pattern="[\d\s]*" class="input-block-level short" data-bind="value: settings.plugins.m33fio.MidPrintFilamentChangeLayers">
 			</label>

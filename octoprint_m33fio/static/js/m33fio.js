@@ -11258,14 +11258,18 @@ $(function() {
 			// Set checkbox
 			var checkbox = $(this).prev("input[type=\"radio\"]");
 			
-			// Check checkbox
-			checkbox.prop("checked", true);
-		
-			// Update EEPROM table
-			updateEepromTable();
+			// Check if checkbox is enabled
+			if(checkbox.prop("disabled") === false) {
 			
-			// Update EEPROM display type
-			eepromDisplayType = checkbox.val();
+				// Check checkbox
+				checkbox.prop("checked", true);
+		
+				// Update EEPROM table
+				updateEepromTable();
+			
+				// Update EEPROM display type
+				eepromDisplayType = checkbox.val();
+			}
 		});
 		
 		// Read EEPROM control
@@ -11827,6 +11831,34 @@ $(function() {
 					$("#gcode_upload_progress > div.bar > span").text(data.text);
 				else
 					$("#gcode_upload_progress > div.bar").text(data.text);
+			}
+			
+			// Otherwise check if data is pre-processing file
+			else if(data.value == "Pre-processing file") {
+			
+				// Show message
+				showMessage("Pre-processing Status", "Collecting Print Information …");
+			
+				// Update pre-processing status
+				function updatePreprocessingStatus() {
+			
+					// Check if not done slicing
+					if($("#gcode_upload_progress").hasClass("active")) {
+					
+						// Update message
+						$("body > div.page-container > div.message").find("p").eq(0).text($("#gcode_upload_progress > div.bar > span").length ? $("#gcode_upload_progress > div.bar > span").text() : $("#gcode_upload_progress > div.bar").text());
+					
+						// Update pre-processing status again
+						setTimeout(updatePreprocessingStatus, 300);
+					}
+				
+					// Otherwise
+					else
+				
+						// Hide message
+						hideMessage();
+				}
+				setTimeout(updatePreprocessingStatus, 300);
 			}
 			
 			// Otherwise check if data is to change last message
@@ -13084,6 +13116,13 @@ $(function() {
 			}
 		}
 		
+		// On settings shown
+		self.onSettingsShown = function() {
+		
+			// Resize window
+			$(window).resize();
+		}
+		
 		// On settings hidden
 		self.onSettingsHidden = function() {
 		
@@ -13198,6 +13237,10 @@ $(function() {
 					// Update message
 					$("body > div.page-container > div.message").find("p").eq(0).text($("#gcode_upload_progress > div.bar > span").length ? $("#gcode_upload_progress > div.bar > span").text() : $("#gcode_upload_progress > div.bar").text());
 					
+					// Update message header
+					if($("body > div.page-container > div.message").find("p").eq(0).text().substr(0, 7) != "Slicing")
+						$("body > div.page-container > div.message").find("h4").text("Pre-processing Status");
+					
 					// Update slicing status again
 					setTimeout(updateSlicingStatus, 300);
 				}
@@ -13215,13 +13258,13 @@ $(function() {
 		if(navigator.platform.indexOf("Win") != -1)
 		
 			// Fix Windows specific CSS issues
-			$("#settings_plugin_m33fio label.checkbox > span, #control div.jog-panel.eeprom input[type=\"radio\"]").addClass("windows");
+			$("#settings_plugin_m33fio label.checkbox > span, #settings_plugin_m33fio select.short").addClass("windows");
 		
 		// Otherwise check if using OS X
 		else if(navigator.platform.indexOf("Mac") != -1)
 		
 			// Fix OS X specific CSS issues
-			$("#settings_plugin_m33fio label.checkbox > span, #control div.jog-panel.eeprom input, #control div.jog-panel.eeprom input[type=\"radio\"]").addClass("osx");
+			$("#settings_plugin_m33fio label.checkbox > span, #control div.jog-panel.eeprom input, #control div.jog-panel.eeprom input[type=\"radio\"], #settings_plugin_m33fio select.short").addClass("osx");
 	}
 
 	// Register plugin

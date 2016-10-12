@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Installing the Xcode command line tools on 10.7.x or higher
-# Created by rtrouton
+# Created by rtrouton, modified by donovan6000
 
 osx_vers=$(sw_vers -productVersion | awk -F "." '{print $2}')
 cmd_line_tools_temp_file="/tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress"
@@ -19,7 +19,7 @@ if [[ "$osx_vers" -ge 9 ]]; then
 
 	cmd_line_tools=$(softwareupdate -l | awk '/\*\ Command Line Tools/ { $1=$1;print }' | tail -1 | sed 's/^[[ \t]]*//;s/[[ \t]]*$//;s/*//' | cut -c 2-)
 
-	#Install the command line tools
+	# Install the command line tools
 
 	softwareupdate -i "$cmd_line_tools"
 	if [ 0 -ne $? ]; then
