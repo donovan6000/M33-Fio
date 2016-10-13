@@ -1741,7 +1741,12 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 				newCommands.push(Command("G90", PREPARATION, PREPARATION));
 				newCommands.push(Command("M104 S" + to_string(filamentTemperature), PREPARATION, PREPARATION));
 				newCommands.push(Command("G0 Z5 F48", PREPARATION, PREPARATION));
-				newCommands.push(Command("G28", PREPARATION, PREPARATION));
+				
+				// Check if using M3D or M3D Mod firmware
+				if(firmwareType == M3D || firmwareType == M3D_MOD)
+				
+					// Home extruder
+					newCommands.push(Command("G28", PREPARATION, PREPARATION));
 
 				// Add heatbed command if using a heatbed
 				if(usingHeatbed)

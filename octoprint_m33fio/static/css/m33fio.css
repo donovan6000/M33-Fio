@@ -222,6 +222,7 @@
 #control div.jog-panel.controls > div > div:nth-of-type(1) > div {
 	position: relative;
 	left: 10px;
+	height: 40px;
 }
 
 #control div.jog-panel.extruder > div div.slider {
@@ -524,15 +525,24 @@ body > div.page-container > div.message > div > div {
 	border: 1px solid #e5e5e5;
 	border-radius: 0 0 4px 4px;
 	margin: 0 1px 1px 1px;
-	padding: 8px 12px 0 12px;
+	padding: 8px 12px 33px 12px;
 	min-width: 200px;
 	max-width: 500px;
 }
 
+body > div.page-container > div.message > div > div.loading {
+	padding-bottom: 0;
+}
+
 body > div.page-container > div.message > div > div > div:not(.calibrate) {
 	position: relative;
-	left: calc(100% - 135px);
+	left: 10px;
 	padding-bottom: 2px;
+}
+
+body > div.page-container > div.message > div > div > div:not(.calibrate):not(.printSettings):not(.filamentSettings) {
+	float: right;
+	white-space: nowrap;
 }
 
 body > div.page-container > div.message > div > div > div:not(.show) {
@@ -541,15 +551,20 @@ body > div.page-container > div.message > div > div > div:not(.show) {
 
 body > div.page-container > div.message > div > div > div:not(.calibrate) > button {
 	display: inline;
-	width: 70px;
+	min-width: 70px;
+	width: auto;
+	padding-right: 10px;
+	padding-left: 10px;
 	visibility: hidden;
 	margin: 0 1px 0 0;
+	white-space: nowrap;
 }
 
 body > div.page-container > div.message > div > div > div.calibrate, body > div.page-container > div.message > div > div > div.printSettings, body > div.page-container > div.message > div > div > div.filamentSettings {
 	visibility: hidden;
 	position: relative;
 	top: -2px;
+	padding-bottom: 7px;
 }
 
 body > div.page-container > div.message > div > div > div.calibrate > div {
@@ -589,6 +604,10 @@ body > div.page-container > div.message > div > div > div.printSettings, body > 
 	margin: 0;
 	padding: 0;
 	top: 4px;
+}
+
+body > div.page-container > div.message > div > div > div.printSettings {
+	margin-bottom: -4px;
 }
 
 body > div.page-container > div.message > div > div > div.printSettings h3, body > div.page-container > div.message > div > div > div.filamentSettings h3 {
@@ -658,7 +677,7 @@ body > div.page-container > div.message > div > div > span {
 }
 
 body > div.page-container > div.message > div > div > span.show {
-	display: inline;
+	display: inline-block;
 }
 
 #slicing_configuration_dialog.cura .slic3r-only {

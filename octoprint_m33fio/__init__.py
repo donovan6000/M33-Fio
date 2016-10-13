@@ -141,6 +141,7 @@ class M33FioPlugin(
 		self.showMidPrintFilamentChange = False
 		self.reconnectingToPrinter = False
 		self.performCancelPrintMovement = False
+		self.performFinishPrintMovement = False
 		self.currentFirmwareType = None
 		self.sharedLibraryIsUsable = False
 		self.cancelingPrint = False
@@ -1616,7 +1617,9 @@ class M33FioPlugin(
 			CameraFramesPerSecond = 20,
 			MidPrintFilamentChangeLayers = '',
 			ChangeLedBrightness = True,
-			UseDebugLogging = False
+			UseDebugLogging = False,
+			SlicerNeverRemind = False,
+			SleepNeverRemind = False
 		)
 	
 	# Get IP address
@@ -1751,7 +1754,7 @@ class M33FioPlugin(
 		if not self.invalidPrinter and not self._printer.is_printing() :
 	
 			# Save settings to the printer
-			self.sendCommands(self.getSaveCommands())
+			self.sendCommandsWithLineNumbers(self.getSaveCommands())
 	
 	# Template manager
 	def get_template_configs(self) :
@@ -2527,19 +2530,33 @@ class M33FioPlugin(
 					else :
 						self.messageResponse = True
 			
-			# Otherwise check if parameter is to disable reminder
-			elif data["value"].startswith("Disable Reminder:") :
+			# Otherwise check if parameter is to temporarily disable reminder
+			elif data["value"].startswith("Temporarily Disable Reminder:") :
 			
 				# Get value
-				value = data["value"][18 :]
+				value = data["value"][30 :]
 				
-				# Disable slicer reminder
+				# Temporarily disable slicer reminder
 				if value == "Slicer" :
 					self.slicerReminder = False
 				
-				# Disable sleep reminder
+				# Temporarily disable sleep reminder
 				elif value == "Sleep" :
 					self.sleepReminder = False
+			
+			# Otherwise check if parameter is to permanently disable reminder
+			elif data["value"].startswith("Permanently Disable Reminder:") :
+			
+				# Get value
+				value = data["value"][30 :]
+				
+				# Permanently disable slicer reminder
+				if value == "Slicer" :
+					self._settings.set_boolean(["SlicerNeverRemind"], True)
+				
+				# Permanently disable sleep reminder
+				elif value == "Sleep" :
+					self._settings.set_boolean(["SleepNeverRemind"], True)
 			
 			# Otherwise check if parameter is to view a profile
 			elif data["value"].startswith("View Profile:") :
@@ -2730,7 +2747,7 @@ class M33FioPlugin(
 				if not self.invalidPrinter and not self._printer.is_printing() :
 				
 					# Save settings to the printer
-					self.sendCommands(self.getSaveCommands())
+					self.sendCommandsWithLineNumbers(self.getSaveCommands())
 				
 				# Save software settings
 				octoprint.settings.settings().save()
@@ -3676,8 +3693,8 @@ class M33FioPlugin(
 		# Go through all commands
 		for command in commands :
 	
-			# Check if command provides feedback
-			if command == "M114" or command == "M117" or command.startswith("M618 ") or command.startswith("M619 ") :
+			# Check if command only provides feedback when it doesn't have a line number
+			if (self.currentFirmwareType == "M3D" or self.currentFirmwareType == "M3D Mod") and (command == "M114" or command == "M117" or command.startswith("M618 ") or command.startswith("M619 ")) :
 		
 				# Send command to printer
 				self.sendCommands(command)
@@ -3853,11 +3870,9 @@ class M33FioPlugin(
 					# Wait until all sent commands have been processed
 					while len(self.sentCommands) :
 				
-						# Set long running command
-						self._printer._comm._long_running_command = True
-	
 						# Update communication timeout to prevent other commands from being sent
 						if self._printer._comm is not None :
+							self._printer._comm._long_running_command = True
 							self._printer._comm._gcode_G4_sent("G4 P10")
 		
 						time.sleep(0.01)
@@ -3886,11 +3901,13 @@ class M33FioPlugin(
 					
 					# Set commands
 					commands = [
-						"M114"
+						"M114",
+						"G4"
 					]
 					
 					# Set long running command
-					self._printer._comm._long_running_command = True
+					if self._printer._comm is not None :
+						self._printer._comm._long_running_command = True
 		
 					# Send commands with line numbers
 					self.sendCommandsWithLineNumbers(commands)
@@ -3998,7 +4015,7 @@ class M33FioPlugin(
 							
 							# Loop forever
 							readingTemperature = True
-							while readingTemperature :
+							while readingTemperature and self._printer._comm is not None :
 							
 								# Read heatbed temperature
 								heatbedTemperature = ''
@@ -4076,11 +4093,9 @@ class M33FioPlugin(
 						# Wait until all sent commands have been processed
 						while len(self.sentCommands) :
 						
-							# Set long running command
-							self._printer._comm._long_running_command = True
-			
 							# Update communication timeout to prevent other commands from being sent
 							if self._printer._comm is not None :
+								self._printer._comm._long_running_command = True
 								self._printer._comm._gcode_G4_sent("G4 P10")
 				
 							time.sleep(0.01)
@@ -4151,11 +4166,9 @@ class M33FioPlugin(
 						# Wait until all sent commands have been processed
 						while len(self.sentCommands) :
 						
-							# Set long running command
-							self._printer._comm._long_running_command = True
-			
 							# Update communication timeout to prevent other commands from being sent
 							if self._printer._comm is not None :
+								self._printer._comm._long_running_command = True
 								self._printer._comm._gcode_G4_sent("G4 P10")
 				
 							time.sleep(0.01)
@@ -4182,11 +4195,13 @@ class M33FioPlugin(
 						
 						# Set commands
 						commands = [
-							"M114"
+							"M114",
+							"G4"
 						]
 						
 						# Set long running command
-						self._printer._comm._long_running_command = True
+						if self._printer._comm is not None :
+							self._printer._comm._long_running_command = True
 			
 						# Send commands with line numbers
 						self.sendCommandsWithLineNumbers(commands)
@@ -4237,11 +4252,9 @@ class M33FioPlugin(
 					# Wait until all sent commands have been processed
 					while len(self.sentCommands) :
 					
-						# Set long running command
-						self._printer._comm._long_running_command = True
-		
 						# Update communication timeout to prevent other commands from being sent
 						if self._printer._comm is not None :
+							self._printer._comm._long_running_command = True
 							self._printer._comm._gcode_G4_sent("G4 P10")
 			
 						time.sleep(0.01)
@@ -4942,7 +4955,7 @@ class M33FioPlugin(
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Disable GPIO Buttons"))
 			
 			# Check if sending slicer reminder and Cura or Slic3r are registered slicers
-			if self.slicerReminder and ("cura" in self._slicing_manager.registered_slicers or "slic3r" in self._slicing_manager.registered_slicers) :
+			if self.slicerReminder and not self._settings.get_boolean(["SlicerNeverRemind"]) and ("cura" in self._slicing_manager.registered_slicers or "slic3r" in self._slicing_manager.registered_slicers) :
 			
 				# Check if Cura and Slic3r are not configured
 				if "cura" not in self._slicing_manager.configured_slicers and "slic3r" not in self._slicing_manager.configured_slicers :
@@ -4951,7 +4964,7 @@ class M33FioPlugin(
 					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Reminder", type = "Slicer", cura = "cura" in self._slicing_manager.registered_slicers and "cura" not in self._slicing_manager.configured_slicers, slic3r = "slic3r" in self._slicing_manager.registered_slicers and "slic3r" not in self._slicing_manager.configured_slicers))
 			
 			# Check if sending sleep reminder
-			if not self._printer.is_printing() and not self._printer.is_paused() and self.sleepReminder :
+			if not self._printer.is_printing() and not self._printer.is_paused() and self.sleepReminder and not self._settings.get_boolean(["SleepNeverRemind"]) :
 			
 				# Check if disabling sleep doesn't works
 				if not self.disableSleep() :
@@ -5100,59 +5113,43 @@ class M33FioPlugin(
 		
 			# Check if using a Micro 3D printer
 			if not self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
-		
+			
 				# Wait until all sent commands have been processed
 				while len(self.sentCommands) :
-				
-					# Set long running command
-					self._printer._comm._long_running_command = True
 			
 					# Update communication timeout to prevent other commands from being sent
 					if self._printer._comm is not None :
+						self._printer._comm._long_running_command = True
 						self._printer._comm._gcode_G4_sent("G4 P10")
-				
+	
 					time.sleep(0.01)
-		
+
 				# Empty command queue
 				self.emptyCommandQueue()
-			
+
 				# Set first line number to zero and clear history
 				if self._printer._comm is not None :
 					self._printer._comm._gcode_M110_sending("N0")
 					self._printer._comm._long_running_command = True
-			
+
 				# Clear sent commands
 				self.sentCommands = {}
 				self.resetLineNumberCommandSent = False
 				self.numberWrapCounter = 0
-		
-				# Check if pre-processing on the fly
-				if self._settings.get_boolean(["PreprocessOnTheFly"]) :
 				
-					# Check if shared library was loaded
-					if self.sharedLibrary :
+				# Set perform finish print movement
+				self.performFinishPrintMovement = True
 				
-						# Pre-process command
-						commands = self.sharedLibrary.preprocess(ctypes.c_char_p("G4"), ctypes.c_char_p(None), ctypes.c_bool(True)).split(',')
-						
-						# Unload shared library
-						self.unloadSharedLibrary()
+				# Set commands
+				commands = [
+					"M114",
+					"G4"
+				]
 				
-					# Otherwise
-					else :
-				
-						# Pre-process command
-						commands = self.preprocess("G4", None, True)
-				
-				# Otherwise
-				else :
-				
-					# Set commands to nothing
-					commands = []
-					
-				# Append print done to command list
-				commands += ["M65541;print done"]
-			
+				# Set long running command
+				if self._printer._comm is not None :
+					self._printer._comm._long_running_command = True
+	
 				# Send commands with line numbers
 				self.sendCommandsWithLineNumbers(commands)
 			
@@ -6243,7 +6240,7 @@ class M33FioPlugin(
 				commands += ["M619 S" + str(self.eepromOffsets["bedOrientationVersion"]["offset"]) + " T" + str(self.eepromOffsets["bedOrientationVersion"]["bytes"])]
 				
 				# Send commands
-				self.sendCommands(commands)
+				self.sendCommandsWithLineNumbers(commands)
 		
 		# Otherwise check if data contains valid Z information
 		elif "ZV:" in data :
@@ -6318,8 +6315,44 @@ class M33FioPlugin(
 			else :
 				locationZ = data[start : data[start :].find(' ') + start]
 			
-			# Check if performing cancel print movement
-			if self.performCancelPrintMovement :
+			# Check if performing finish print movement
+			if self.performFinishPrintMovement :
+			
+				# Clear perform finish print movement
+				self.performFinishPrintMovement = False
+				
+				# Check if pre-processing on the fly
+				if self._settings.get_boolean(["PreprocessOnTheFly"]) :
+				
+					# Check if shared library was loaded
+					if self.sharedLibrary :
+				
+						# Pre-process command
+						commands = self.sharedLibrary.preprocess(ctypes.c_char_p("G4"), ctypes.c_char_p(None), ctypes.c_bool(True)).split(',')
+						
+						# Unload shared library
+						self.unloadSharedLibrary()
+				
+					# Otherwise
+					else :
+				
+						# Pre-process command
+						commands = self.preprocess("G4", None, True)
+				
+				# Otherwise
+				else :
+				
+					# Set commands to nothing
+					commands = []
+					
+				# Append print done to command list
+				commands += ["M65541;print done"]
+			
+				# Send commands with line numbers
+				self.sendCommandsWithLineNumbers(commands)
+			
+			# Otherwise check if performing cancel print movement
+			elif self.performCancelPrintMovement :
 			
 				# Clear perform cancel print movement
 				self.performCancelPrintMovement = False
@@ -6924,7 +6957,7 @@ class M33FioPlugin(
 				if not self._settings.get_boolean(["AutomaticallyObtainSettings"]) :
 				
 					# Save settings to the printer
-					self.sendCommands(self.getSaveCommands())
+					self.sendCommandsWithLineNumbers(self.getSaveCommands())
 				
 				# Otherwise
 				else :
@@ -8394,7 +8427,12 @@ class M33FioPlugin(
 					newCommands.append(Command("G90", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 					newCommands.append(Command("M104 S" + str(self._settings.get_int(["FilamentTemperature"])), "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 					newCommands.append(Command("G0 Z5 F48", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
-					newCommands.append(Command("G28", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					
+					# Check if using M3D or M3D Mod firmware
+					if self.currentFirmwareType == "M3D" or self.currentFirmwareType == "M3D Mod" :
+					
+						# Home extruder
+						newCommands.append(Command("G28", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 
 					# Add heatbed command if using a heatbed
 					if self.heatbedConnected :

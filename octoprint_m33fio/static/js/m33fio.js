@@ -714,7 +714,7 @@ $(function() {
 		
 					// Set header and text
 					message.find("h4").text(currentMessage.header);
-					message.find("p").eq(0).html(currentMessage.text).addClass("show");
+					message.find("p").eq(0).html(currentMessage.text).addClass("show").scrollTop(0);
 					
 					// Set first button if specified
 					var buttons = message.find("button.confirm");
@@ -731,6 +731,7 @@ $(function() {
 
 					// Hide button area and show loading if no buttons are specified
 					if(typeof currentMessage.secondButton === "undefined" && typeof currentMessage.firstButton === "undefined") {
+						$("body > div.page-container > div.message > div > div").addClass("loading");
 						$("body > div.page-container > div.message > div > div > div").removeClass("show");
 						$("body > div.page-container > div.message > div > img").addClass("show");
 						$("body > div.page-container > div.message > div > div > span").addClass("show");
@@ -738,6 +739,7 @@ $(function() {
 		
 					// Otherwise show button area and hide loading
 					else {
+						$("body > div.page-container > div.message > div > div").removeClass("loading");
 						$("body > div.page-container > div.message > div > div > div:not(.calibrate)").addClass("show");
 						$("body > div.page-container > div.message > div > img").removeClass("show");
 						$("body > div.page-container > div.message > div > div > span").removeClass("show");
@@ -7993,7 +7995,8 @@ $(function() {
 			
 				// Set commands
 				var commands = [
-					"M114"
+					"M114",
+					"G4"
 				];
 			
 				// Set location callback
@@ -9161,7 +9164,8 @@ $(function() {
 			
 				// Set commands
 				var commands = [
-					"M114"
+					"M114",
+					"G4"
 				];
 				
 				// Set location callback
@@ -9243,7 +9247,8 @@ $(function() {
 		
 				// Set commands
 				var commands = [
-					"M114"
+					"M114",
+					"G4"
 				];
 				
 				// Set location callback
@@ -9325,7 +9330,8 @@ $(function() {
 		
 				// Set commands
 				var commands = [
-					"M114"
+					"M114",
+					"G4"
 				];
 				
 				// Set location callback
@@ -9407,7 +9413,8 @@ $(function() {
 		
 				// Set commands
 				var commands = [
-					"M114"
+					"M114",
+					"G4"
 				];
 				
 				// Set location callback
@@ -9597,7 +9604,8 @@ $(function() {
 		
 				// Set commands
 				var commands = [
-					"M114"
+					"M114",
+					"G4"
 				];
 				
 				// Set location callback
@@ -9982,7 +9990,8 @@ $(function() {
 								
 														// Set commands
 														commands = [
-															"M114"
+															"M114",
+															"G4"
 														];
 			
 														// Set location callback
@@ -10024,7 +10033,8 @@ $(function() {
 											
 																		// Set commands
 																		commands = [
-																			"M114"
+																			"M114",
+																			"G4"
 																		];
 		
 																		// Set location callback
@@ -10066,7 +10076,8 @@ $(function() {
 														
 																						// Set commands
 																						commands = [
-																							"M114"
+																							"M114",
+																							"G4"
 																						];
 	
 																						// Set location callback
@@ -10108,7 +10119,8 @@ $(function() {
 																	
 																										// Set commands
 																										commands = [
-																											"M114"
+																											"M114",
+																											"G4"
 																										];
 
 																										// Set location callback
@@ -10497,7 +10509,8 @@ $(function() {
 	
 										// Set commands
 										commands = [
-											"M114"
+											"M114",
+											"G4"
 										];
 			
 										// Set location callback
@@ -11928,7 +11941,7 @@ $(function() {
 							return;
 			
 					// Show message
-					showMessage("Slicer Status", text, "OK", function() {
+					showMessage("Slicer Status", text, "Remind Later", function() {
 					
 						// Hide message
 						hideMessage();
@@ -11940,7 +11953,23 @@ $(function() {
 							dataType: "json",
 							data: JSON.stringify({
 								command: "message",
-								value: "Disable Reminder: Slicer"
+								value: "Temporarily Disable Reminder: Slicer"
+							}),
+							contentType: "application/json; charset=UTF-8"
+						});
+					}, "Disable Reminder", function() {
+					
+						// Hide message
+						hideMessage();
+					
+						// Send request
+						$.ajax({
+							url: API_BASEURL + "plugin/m33fio",
+							type: "POST",
+							dataType: "json",
+							data: JSON.stringify({
+								command: "message",
+								value: "Permanently Disable Reminder: Slicer"
 							}),
 							contentType: "application/json; charset=UTF-8"
 						});
@@ -11969,7 +11998,7 @@ $(function() {
 							return;
 			
 					// Show message
-					showMessage("Sleep Status", text, "OK", function() {
+					showMessage("Sleep Status", text, "Remind Later", function() {
 				
 						// Hide message
 						hideMessage();
@@ -11981,7 +12010,23 @@ $(function() {
 							dataType: "json",
 							data: JSON.stringify({
 								command: "message",
-								value: "Disable Reminder: Sleep"
+								value: "Temporarily Disable Reminder: Sleep"
+							}),
+							contentType: "application/json; charset=UTF-8"
+						});
+					}, "Disable Reminder", function() {
+				
+						// Hide message
+						hideMessage();
+					
+						// Send request
+						$.ajax({
+							url: API_BASEURL + "plugin/m33fio",
+							type: "POST",
+							dataType: "json",
+							data: JSON.stringify({
+								command: "message",
+								value: "Permanently Disable Reminder: Sleep"
 							}),
 							contentType: "application/json; charset=UTF-8"
 						});
