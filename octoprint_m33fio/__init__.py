@@ -872,6 +872,9 @@ class M33FioPlugin(
 	
 	# On after startup
 	def on_after_startup(self) :
+	
+		# Guarantee settings are valid
+		self.guaranteeSettingsAreValid()
 		
 		# Check if shared library is usable
 		if self.loadSharedLibrary(True) :
@@ -1557,6 +1560,229 @@ class M33FioPlugin(
 		for file in os.listdir(path) :
 			os.remove(path + file)
 	
+	# Guarantee settings are valid
+	def guaranteeSettingsAreValid(self) :
+	
+		# Make sure backlash X is valid
+		if self._settings.get_float(["BacklashX"]) is None :
+			self._settings.set_float(["BacklashX"], self.get_settings_defaults()["BacklashX"])
+		
+		# Make sure backlash Y is valid
+		if self._settings.get_float(["BacklashY"]) is None :
+			self._settings.set_float(["BacklashY"], self.get_settings_defaults()["BacklashY"])
+		
+		# Make sure back left orientation is valid
+		if self._settings.get_float(["BackLeftOrientation"]) is None :
+			self._settings.set_float(["BackLeftOrientation"], self.get_settings_defaults()["BackLeftOrientation"])
+		
+		# Make sure back right orientation is valid
+		if self._settings.get_float(["BackRightOrientation"]) is None :
+			self._settings.set_float(["BackRightOrientation"], self.get_settings_defaults()["BackRightOrientation"])
+		
+		# Make sure front right orientation is valid
+		if self._settings.get_float(["FrontRightOrientation"]) is None :
+			self._settings.set_float(["FrontRightOrientation"], self.get_settings_defaults()["FrontRightOrientation"])
+		
+		# Make sure front left orientation is valid
+		if self._settings.get_float(["FrontLeftOrientation"]) is None :
+			self._settings.set_float(["FrontLeftOrientation"], self.get_settings_defaults()["FrontLeftOrientation"])
+		
+		# Make sure backlash speed is valid
+		if self._settings.get_float(["BacklashSpeed"]) is None :
+			self._settings.set_float(["BacklashSpeed"], self.get_settings_defaults()["BacklashSpeed"])
+		
+		# Make sure back left offset is valid
+		if self._settings.get_float(["BackLeftOffset"]) is None :
+			self._settings.set_float(["BackLeftOffset"], self.get_settings_defaults()["BackLeftOffset"])
+		
+		# Make sure back right offset is valid
+		if self._settings.get_float(["BackRightOffset"]) is None :
+			self._settings.set_float(["BackRightOffset"], self.get_settings_defaults()["BackRightOffset"])
+		
+		# Make sure front right offset is valid
+		if self._settings.get_float(["FrontRightOffset"]) is None :
+			self._settings.set_float(["FrontRightOffset"], self.get_settings_defaults()["FrontRightOffset"])
+		
+		# Make sure front left offset is valid
+		if self._settings.get_float(["FrontLeftOffset"]) is None :
+			self._settings.set_float(["FrontLeftOffset"], self.get_settings_defaults()["FrontLeftOffset"])
+		
+		# Make sure bed height offset is valid
+		if self._settings.get_float(["BedHeightOffset"]) is None :
+			self._settings.set_float(["BedHeightOffset"], self.get_settings_defaults()["BedHeightOffset"])
+		
+		# Make sure filament temperature is valid
+		if self._settings.get_int(["FilamentTemperature"]) is None :
+			self._settings.set_int(["FilamentTemperature"], self.get_settings_defaults()["FilamentTemperature"])
+		
+		# Make sure filament type is valid
+		if self._settings.get(["FilamentType"]) is None :
+			self._settings.set(["FilamentType"], self.get_settings_defaults()["FilamentType"])
+		
+		# Make sure use validation preprocessor is valid
+		if self._settings.get_boolean(["UseValidationPreprocessor"]) is None :
+			self._settings.set_boolean(["UseValidationPreprocessor"], self.get_settings_defaults()["UseValidationPreprocessor"])
+		
+		# Make sure use preparation preprocessor is valid
+		if self._settings.get_boolean(["UsePreparationPreprocessor"]) is None :
+			self._settings.set_boolean(["UsePreparationPreprocessor"], self.get_settings_defaults()["UsePreparationPreprocessor"])
+		
+		# Make sure use thermal bonding preprocessor is valid
+		if self._settings.get_boolean(["UseThermalBondingPreprocessor"]) is None :
+			self._settings.set_boolean(["UseThermalBondingPreprocessor"], self.get_settings_defaults()["UseThermalBondingPreprocessor"])
+		
+		# Make sure use wave bonding preprocessor is valid
+		if self._settings.get_boolean(["UseWaveBondingPreprocessor"]) is None :
+			self._settings.set_boolean(["UseWaveBondingPreprocessor"], self.get_settings_defaults()["UseWaveBondingPreprocessor"])
+		
+		# Make sure use bed compensation preprocessor is valid
+		if self._settings.get_boolean(["UseBedCompensationPreprocessor"]) is None :
+			self._settings.set_boolean(["UseBedCompensationPreprocessor"], self.get_settings_defaults()["UseBedCompensationPreprocessor"])
+		
+		# Make sure use backlash compensation preprocessor is valid
+		if self._settings.get_boolean(["UseBacklashCompensationPreprocessor"]) is None :
+			self._settings.set_boolean(["UseBacklashCompensationPreprocessor"], self.get_settings_defaults()["UseBacklashCompensationPreprocessor"])
+		
+		# Make sure automatically obtain settings is valid
+		if self._settings.get_boolean(["AutomaticallyObtainSettings"]) is None :
+			self._settings.set_boolean(["AutomaticallyObtainSettings"], self.get_settings_defaults()["AutomaticallyObtainSettings"])
+		
+		# Make sure use center model preprocessor is valid
+		if self._settings.get_boolean(["UseCenterModelPreprocessor"]) is None :
+			self._settings.set_boolean(["UseCenterModelPreprocessor"], self.get_settings_defaults()["UseCenterModelPreprocessor"])
+		
+		# Make sure ignore print dimension limitations is valid
+		if self._settings.get_boolean(["IgnorePrintDimensionLimitations"]) is None :
+			self._settings.set_boolean(["IgnorePrintDimensionLimitations"], self.get_settings_defaults()["IgnorePrintDimensionLimitations"])
+
+		# Make sure preprocess on the fly is valid
+		if self._settings.get_boolean(["PreprocessOnTheFly"]) is None :
+			self._settings.set_boolean(["PreprocessOnTheFly"], self.get_settings_defaults()["PreprocessOnTheFly"])
+		
+		# Make sure use shared library is valid
+		if self._settings.get_boolean(["UseSharedLibrary"]) is None :
+			self._settings.set_boolean(["UseSharedLibrary"], self.get_settings_defaults()["UseSharedLibrary"])
+		
+		# Make sure speed limit X is valid
+		if self._settings.get_float(["SpeedLimitX"]) is None :
+			self._settings.set_float(["SpeedLimitX"], self.get_settings_defaults()["SpeedLimitX"])
+		
+		# Make sure speed limit Y is valid
+		if self._settings.get_float(["SpeedLimitY"]) is None :
+			self._settings.set_float(["SpeedLimitY"], self.get_settings_defaults()["SpeedLimitY"])
+		
+		# Make sure speed limit Z is valid
+		if self._settings.get_float(["SpeedLimitZ"]) is None :
+			self._settings.set_float(["SpeedLimitZ"], self.get_settings_defaults()["SpeedLimitZ"])
+		
+		# Make sure speed limit E positive is valid
+		if self._settings.get_float(["SpeedLimitEPositive"]) is None :
+			self._settings.set_float(["SpeedLimitEPositive"], self.get_settings_defaults()["SpeedLimitEPositive"])
+		
+		# Make sure speed limit E negative is valid
+		if self._settings.get_float(["SpeedLimitENegative"]) is None :
+			self._settings.set_float(["SpeedLimitENegative"], self.get_settings_defaults()["SpeedLimitENegative"])
+		
+		# Make sure X motor steps/mm is valid
+		if self._settings.get_float(["XMotorStepsPerMm"]) is None :
+			self._settings.set_float(["XMotorStepsPerMm"], self.get_settings_defaults()["XMotorStepsPerMm"])
+		
+		# Make sure Y motor steps/mm is valid
+		if self._settings.get_float(["YMotorStepsPerMm"]) is None :
+			self._settings.set_float(["YMotorStepsPerMm"], self.get_settings_defaults()["YMotorStepsPerMm"])
+		
+		# Make sure Z motor steps/mm is valid
+		if self._settings.get_float(["ZMotorStepsPerMm"]) is None :
+			self._settings.set_float(["ZMotorStepsPerMm"], self.get_settings_defaults()["ZMotorStepsPerMm"])
+		
+		# Make sure E motor steps/mm is valid
+		if self._settings.get_float(["EMotorStepsPerMm"]) is None :
+			self._settings.set_float(["EMotorStepsPerMm"], self.get_settings_defaults()["EMotorStepsPerMm"])
+		
+		# Make sure X jerk sensitivity is valid
+		if self._settings.get_int(["XJerkSensitivity"]) is None :
+			self._settings.set_int(["XJerkSensitivity"], self.get_settings_defaults()["XJerkSensitivity"])
+		
+		# Make sure Y jerk sensitivity is valid
+		if self._settings.get_int(["YJerkSensitivity"]) is None :
+			self._settings.set_int(["YJerkSensitivity"], self.get_settings_defaults()["YJerkSensitivity"])
+		
+		# Make sure calibrate Z0 correction is valid
+		if self._settings.get_float(["CalibrateZ0Correction"]) is None :
+			self._settings.set_float(["CalibrateZ0Correction"], self.get_settings_defaults()["CalibrateZ0Correction"])
+		
+		# Make sure change settings before print is valid
+		if self._settings.get_boolean(["ChangeSettingsBeforePrint"]) is None :
+			self._settings.set_boolean(["ChangeSettingsBeforePrint"], self.get_settings_defaults()["ChangeSettingsBeforePrint"])
+		
+		# Make sure not using a Micro 3D printer is valid
+		if self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) is None :
+			self._settings.set_boolean(["NotUsingAMicro3DPrinter"], self.get_settings_defaults()["NotUsingAMicro3DPrinter"])
+		
+		# Make sure calibrate before print is valid
+		if self._settings.get_boolean(["CalibrateBeforePrint"]) is None :
+			self._settings.set_boolean(["CalibrateBeforePrint"], self.get_settings_defaults()["CalibrateBeforePrint"])
+		
+		# Make sure remove fan commands is valid
+		if self._settings.get_boolean(["RemoveFanCommands"]) is None :
+			self._settings.set_boolean(["RemoveFanCommands"], self.get_settings_defaults()["RemoveFanCommands"])
+		
+		# Make sure remove temperature commands is valid
+		if self._settings.get_boolean(["RemoveTemperatureCommands"]) is None :
+			self._settings.set_boolean(["RemoveTemperatureCommands"], self.get_settings_defaults()["RemoveTemperatureCommands"])
+		
+		# Make sure use GPIO is valid
+		if self._settings.get_boolean(["UseGpio"]) is None :
+			self._settings.set_boolean(["UseGpio"], self.get_settings_defaults()["UseGpio"])
+
+		# Make sure heatbed temperature is valid
+		if self._settings.get_int(["HeatbedTemperature"]) is None :
+			self._settings.set_int(["HeatbedTemperature"], self.get_settings_defaults()["HeatbedTemperature"])
+		
+		# Make sure external bed height is valid
+		if self._settings.get_float(["ExternalBedHeight"]) is None :
+			self._settings.set_float(["ExternalBedHeight"], self.get_settings_defaults()["ExternalBedHeight"])
+		
+		# Make sure expand printable region is valid
+		if self._settings.get_boolean(["ExpandPrintableRegion"]) is None :
+			self._settings.set_boolean(["ExpandPrintableRegion"], self.get_settings_defaults()["ExpandPrintableRegion"])
+		
+		# Make sure host camera is valid
+		if self._settings.get_boolean(["HostCamera"]) is None :
+			self._settings.set_boolean(["HostCamera"], self.get_settings_defaults()["HostCamera"])
+		
+		# Make sure camera width is valid
+		if self._settings.get_int(["CameraWidth"]) is None :
+			self._settings.set_int(["CameraWidth"], self.get_settings_defaults()["CameraWidth"])
+		
+		# Make sure camera height is valid
+		if self._settings.get_int(["CameraHeight"]) is None :
+			self._settings.set_int(["CameraHeight"], self.get_settings_defaults()["CameraHeight"])
+		
+		# Make sure camera frames/second is valid
+		if self._settings.get_int(["CameraFramesPerSecond"]) is None :
+			self._settings.set_int(["CameraFramesPerSecond"], self.get_settings_defaults()["CameraFramesPerSecond"])
+		
+		# Make sure mid print filament change layers is valid
+		if self._settings.get(["MidPrintFilamentChangeLayers"]) is None :
+			self._settings.set(["MidPrintFilamentChangeLayers"], self.get_settings_defaults()["MidPrintFilamentChangeLayers"])
+		
+		# Make sure change led brightness is valid
+		if self._settings.get_boolean(["ChangeLedBrightness"]) is None :
+			self._settings.set_boolean(["ChangeLedBrightness"], self.get_settings_defaults()["ChangeLedBrightness"])
+		
+		# Make sure use debug logging is valid
+		if self._settings.get_boolean(["UseDebugLogging"]) is None :
+			self._settings.set_boolean(["UseDebugLogging"], self.get_settings_defaults()["UseDebugLogging"])
+		
+		# Make sure slicer never remind is valid
+		if self._settings.get_boolean(["SlicerNeverRemind"]) is None :
+			self._settings.set_boolean(["SlicerNeverRemind"], self.get_settings_defaults()["SlicerNeverRemind"])
+		
+		# Make sure sleep never remind is valid
+		if self._settings.get_boolean(["SleepNeverRemind"]) is None :
+			self._settings.set_boolean(["SleepNeverRemind"], self.get_settings_defaults()["SleepNeverRemind"])
+	
 	# Get default settings
 	def get_settings_defaults(self) :
 	
@@ -1564,16 +1790,16 @@ class M33FioPlugin(
 		return dict(
 			BacklashX = 0.3,
 			BacklashY = 0.6,
-			BackLeftOrientation = 0,
-			BackRightOrientation = 0,
-			FrontRightOrientation = 0,
-			FrontLeftOrientation = 0,
-			BacklashSpeed = 1500,
-			BackLeftOffset = 0,
-			BackRightOffset = 0,
-			FrontRightOffset = 0,
-			FrontLeftOffset = 0,
-			BedHeightOffset = 0,
+			BackLeftOrientation = 0.0,
+			BackRightOrientation = 0.0,
+			FrontRightOrientation = 0.0,
+			FrontLeftOrientation = 0.0,
+			BacklashSpeed = 1500.0,
+			BackLeftOffset = 0.0,
+			BackRightOffset = 0.0,
+			FrontRightOffset = 0.0,
+			FrontLeftOffset = 0.0,
+			BedHeightOffset = 0.0,
 			FilamentTemperature = 215,
 			FilamentType = "PLA",
 			UseValidationPreprocessor = True,
@@ -1587,18 +1813,18 @@ class M33FioPlugin(
 			IgnorePrintDimensionLimitations = False,
 			PreprocessOnTheFly = True,
 			UseSharedLibrary = True,
-			SpeedLimitX = 1500,
-			SpeedLimitY = 1500,
-			SpeedLimitZ = 60,
-			SpeedLimitEPositive = 102,
-			SpeedLimitENegative = 360,
+			SpeedLimitX = 1500.0,
+			SpeedLimitY = 1500.0,
+			SpeedLimitZ = 60.0,
+			SpeedLimitEPositive = 102.0,
+			SpeedLimitENegative = 360.0,
 			XMotorStepsPerMm = 19.3067875,
 			YMotorStepsPerMm = 18.00885,
 			ZMotorStepsPerMm = 646.3295,
 			EMotorStepsPerMm = 128.451375,
 			XJerkSensitivity = 195,
 			YJerkSensitivity = 195,
-			CalibrateZ0Correction = 0,
+			CalibrateZ0Correction = 0.0,
 			ChangeSettingsBeforePrint = True,
 			NotUsingAMicro3DPrinter = False,
 			CalibrateBeforePrint = False,
@@ -1608,7 +1834,7 @@ class M33FioPlugin(
 			GpioPin = None,
 			GpioLayer = None,
 			HeatbedTemperature = 70,
-			ExternalBedHeight = 0,
+			ExternalBedHeight = 0.0,
 			ExpandPrintableRegion = False,
 			HostCamera = False,
 			CameraPort = None,
