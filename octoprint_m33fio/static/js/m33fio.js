@@ -4190,13 +4190,21 @@ $(function() {
 			</div>\
 		');
 		
-		// Add cover to slicer
+		// Add covers to slicer
 		$("#slicing_configuration_dialog").append('\
 			<div class="modal-cover">\
 				<img src="' + PLUGIN_BASEURL + 'm33fio/static/img/loading.gif">\
 				<p></p>\
 			</div>\
+			<div class="modal-drag-and-drop"></div>\
 		');
+		
+		// Drag and drop cover drag leave event
+		$("#slicing_configuration_dialog .modal-drag-and-drop").on("dragleave", function() {
+		
+			// Hide self
+			$(this).removeClass("show");
+		});
 		
 		// Change slicer text
 		$("#slicing_configuration_dialog").find("h3").before('\
@@ -5165,7 +5173,7 @@ $(function() {
 							viewport.destroy();
 		
 						// Restore slicer dialog
-						$("#slicing_configuration_dialog").removeClass("profile model").css("height", '');
+						$("#slicing_configuration_dialog").off("drop dragenter").removeClass("profile model").css("height", '');
 						$("#slicing_configuration_dialog p.currentMenu").text("Select Profile");
 						$("#slicing_configuration_dialog .modal-extra").remove();
 						$("#slicing_configuration_dialog .modal-body").css("display", '');
@@ -5619,6 +5627,28 @@ $(function() {
 														// Grow text area
 														$("#slicing_configuration_dialog .advanced").addClass("fullSpace");
 													}
+													
+													/*// Slicing configuration dialog drop event
+													$("#slicing_configuration_dialog").on("drop", function(event) {
+													
+														// Prevent default
+														event.preventDefault();
+														
+														// Hide drag and drop cover
+														$("#slicing_configuration_dialog .modal-drag-and-drop").removeClass("show");
+													
+														// Load profile from file
+														loadProfileFromFile(event.originalEvent.dataTransfer.files[0]);
+													
+													// Slicing configuration dialog drag enter event
+													}).on("dragenter", function(event) {
+													
+														// Prevent default
+														event.preventDefault();
+													
+														// Show drag and drop cover
+														$("#slicing_configuration_dialog .modal-drag-and-drop").addClass("show");
+													});*/
 										
 													// Set slicer menu
 													slicerMenu = "Modify Profile";
@@ -7000,17 +7030,17 @@ $(function() {
 																	// Prevent default
 																	event.preventDefault();
 																});
-
-																// Input change event
-																$("#slicing_configuration_dialog .modal-extra input[type=\"file\"]").change(function(event) {
-
+																
+																// Import model from file
+																function importModelFromFile(file) {
+																
 																	// Set file type
-																	var extension = this.files[0].name.lastIndexOf('.');
-																	var type = extension != -1 ? this.files[0].name.substr(extension + 1).toLowerCase() : "stl";
-																	var url = URL.createObjectURL(this.files[0]);
+																	var extension = file.name.lastIndexOf('.');
+																	var type = extension != -1 ? file.name.substr(extension + 1).toLowerCase() : "stl";
+																	var url = URL.createObjectURL(file);
 																
 																	// Clear value
-																	$(this).val('');
+																	$("#slicing_configuration_dialog .modal-extra input[type=\"file\"]").val('');
 
 																	// Display cover
 																	$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").text("Loading model…");
@@ -7041,6 +7071,13 @@ $(function() {
 																		}
 																		isModelLoaded();
 																	}, 600);
+																}
+
+																// Input change event
+																$("#slicing_configuration_dialog .modal-extra input[type=\"file\"]").change(function() {
+
+																	// Import model from file
+																	importModelFromFile(this.files[0]);
 																});
 
 																// Button click event
@@ -7428,37 +7465,27 @@ $(function() {
 																	}
 																});
 																
-																/*// Draw options canvas drop
-																$("#slicing_configuration_dialog").on("drop", function(event) {
-	
-																	// Set file
-																	var file = event.originalEvent.dataTransfer.files[0];
+																// Slicing configuration dialog drop event
+																$("#slicing_configuration_dialog").off("drop dragenter").on("drop", function(event) {
+																
+																	// Prevent default
+																	event.preventDefault();
 																	
-																	// Check if dropped event is a OBJ, M3D, AMF, VRML, COLLADA, or 3MF file
-																	var extension = file.name.lastIndexOf('.');
-																	if(file.name.substr(extension + 1).toLowerCase() == "stl" || file.name.substr(extension + 1).toLowerCase() == "obj" || file.name.substr(extension + 1).toLowerCase() == "m3d" || file.name.substr(extension + 1).toLowerCase() == "amf" || file.name.substr(extension + 1).toLowerCase() == "wrl" || file.name.substr(extension + 1).toLowerCase() == "dae" || file.name.substr(extension + 1).toLowerCase() == "3mf") {
-	
-																		// Prevent default behavior
-																		event.preventDefault();
-			
-																		console.log(file)	
-																	}
-	
-																// Draw options canvas drag over
+																	// Hide drag and drop cover
+																	$("#slicing_configuration_dialog .modal-drag-and-drop").removeClass("show");
+																
+																	// Import model from file
+																	importModelFromFile(event.originalEvent.dataTransfer.files[0]);
+																
+																// Slicing configuration dialog drag enter event
 																}).on("dragenter", function(event) {
-																	
-																	// Display cover
-																	$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").text("Import model");
+																
+																	// Prevent default
+																	event.preventDefault();
+																
+																	// Show drag and drop cover
+																	$("#slicing_configuration_dialog .modal-drag-and-drop").addClass("show");
 																});
-																
-																$("#slicing_configuration_dialog .modal-cover").on("dragleave", function(event) {
-																
-																	// Hide cover
-																	$("#slicing_configuration_dialog .modal-cover").removeClass("show");
-																	setTimeout(function() {
-																		$("#slicing_configuration_dialog .modal-cover").css("z-index", '');
-																	}, 200);
-																});*/
 
 																// Update model changes
 																viewport.updateModelChanges();

@@ -1043,6 +1043,27 @@ body > div.page-container > div.message > div > div > span.show {
 	padding: 0px 2px 0px 5px !important;
 }
 
+#slicing_configuration_dialog .modal-drag-and-drop {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(255, 255, 255, 0.25);
+	outline: 3px dotted rgba(200, 200, 200, 0);
+	outline-offset: -3px;
+	z-index: 9999;
+	visibility: hidden;
+	opacity: 0;
+	transition: visibility 0.2s linear, opacity 0.2s linear, outline-color 0.2s linear;
+}
+
+#slicing_configuration_dialog .modal-drag-and-drop.show {
+	visibility: visible;
+	opacity: 1;
+	outline-color: rgba(200, 200, 200, 0.9);
+}
+
 #slicing_configuration_dialog .modal-cover {
 	position: absolute;
 	top: 0;
