@@ -8,6 +8,7 @@ V1.9 October X, 2016
 	* Fixed OS X installer to work with OS X V10.12
 	* Removed homing before a print in the preparation pre-processor stage when using iMe firmware
 	* Allows disabling sleep and slicer reminders
+	* Fixed compatibility with Internet Explorer 11
 
 V1.8 September 22, 2016
 

@@ -200,45 +200,45 @@ $(function() {
 		};
 		
 		// Set glow shader
-		var glowVertexShader = `
-			uniform vec3 viewVector;
-			uniform float c;
-			uniform float p;
-			varying float intensity;
-			void main() {
-				vec3 vNormal = normalize(normalMatrix * normal);
-				vec3 vNormel = normalize(normalMatrix * viewVector);
-				intensity = pow(c - dot(vNormal, vNormel), p);
-				gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-			}
-		`;
+		var glowVertexShader = '\
+			uniform vec3 viewVector;\
+			uniform float c;\
+			uniform float p;\
+			varying float intensity;\
+			void main() {\
+				vec3 vNormal = normalize(normalMatrix * normal);\
+				vec3 vNormel = normalize(normalMatrix * viewVector);\
+				intensity = pow(c - dot(vNormal, vNormel), p);\
+				gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);\
+			}\
+		';
 	
-		var glowFragmentShader = `
-			uniform vec3 color;
-			varying float intensity;
-			uniform float alpha;
-			void main() {
-				vec3 glow = color * intensity;
-				gl_FragColor = vec4(glow, alpha);
-			}
-		`;
+		var glowFragmentShader = '\
+			uniform vec3 color;\
+			varying float intensity;\
+			uniform float alpha;\
+			void main() {\
+				vec3 glow = color * intensity;\
+				gl_FragColor = vec4(glow, alpha);\
+			}\
+		';
 		
 		// Set outline shader
-		var outlineVertexShader = `
-			uniform float offset;
-			void main() {
-				vec4 pos = modelViewMatrix * vec4(position + normal * offset, 1.0);
-				gl_Position = projectionMatrix * pos;
-			}
-		`;
+		var outlineVertexShader = '\
+			uniform float offset;\
+			void main() {\
+				vec4 pos = modelViewMatrix * vec4(position + normal * offset, 1.0);\
+				gl_Position = projectionMatrix * pos;\
+			}\
+		';
 
-		var outlineFragmentShader = `
-			uniform vec3 color;
-			uniform float alpha;
-			void main() {
-				gl_FragColor = vec4(color, alpha);
-			}
-		`;
+		var outlineFragmentShader = '\
+			uniform vec3 color;\
+			uniform float alpha;\
+			void main() {\
+				gl_FragColor = vec4(color, alpha);\
+			}\
+		';
 		
 		// EEPROM offsets
 		var eepromOffsets = {
@@ -819,10 +819,17 @@ $(function() {
 		function saveFile(blob, name) {
 		
 			// Download file
-			var anchor = $("#slicing_configuration_dialog .modal-footer a.link")[0];
-			anchor.href = URL.createObjectURL(blob);
-			anchor.download = name;
-			anchor.click();
+			if(typeof window.navigator.msSaveBlob === "function")
+
+                        	window.navigator.msSaveBlob(blob, name);
+                        
+                        else {
+                        
+				var anchor = $("#slicing_configuration_dialog .modal-footer a.link")[0];
+				anchor.href = URL.createObjectURL(blob);
+				anchor.download = name;
+				anchor.click();
+			}
 		}
 
 		// Update EEPROM table
@@ -2186,7 +2193,7 @@ $(function() {
 	
 					// Get merged mesh as an STL
 					var exporter = new THREE.STLBinaryExporter();
-					var stl = new Blob([exporter.parse(mergedMesh)], {type: "text/plain"});
+					var stl = new Blob([exporter.parse(mergedMesh).buffer], {type: "text/plain"});
 				
 					// Set scene exported
 					viewport.sceneExported = true;
@@ -3790,7 +3797,7 @@ $(function() {
 			
 				// Get mesh as an STL
 				var exporter = new THREE.STLBinaryExporter();
-				convertedModel = new Blob([exporter.parse(mesh)], {type: "text/plain"});
+				convertedModel = new Blob([exporter.parse(mesh).buffer], {type: "text/plain"});
 			});
 		}
 		
@@ -3861,20 +3868,20 @@ $(function() {
 			$("#settings_plugin_softwareupdate div.alert:nth-of-type(2)").remove();
 		
 		// Add mid-print filament change settings
-		$("#gcode div.progress").after(`
-			<div class="midPrintFilamentChange micro3d">
-				<h1>Mid-print filament change</h1>
-				<label title="Mid-print filament change commands will be added at the start of each specified layer. Layer numbers should be seperated by a space.">Layers<input type="text" pattern="[\\d\\s]*" class="input-block-level"></label>
-				<button class="btn btn-block control-box" data-bind="enable: loginState.isUser() && enableReload">Add current layer</button>
-				<button class="btn btn-block control-box" data-bind="enable: loginState.isUser()">Clear all layers</button>
-				<button class="btn btn-block control-box" data-bind="enable: loginState.isUser()">Save</button>
-			</div>
-		`);
+		$("#gcode div.progress").after('\
+			<div class="midPrintFilamentChange micro3d">\
+				<h1>Mid-print filament change</h1>\
+				<label title="Mid-print filament change commands will be added at the start of each specified layer. Layer numbers should be seperated by a space.">Layers<input type="text" pattern="[\\d\\s]*" class="input-block-level"></label>\
+				<button class="btn btn-block control-box" data-bind="enable: loginState.isUser() && enableReload">Add current layer</button>\
+				<button class="btn btn-block control-box" data-bind="enable: loginState.isUser()">Clear all layers</button>\
+				<button class="btn btn-block control-box" data-bind="enable: loginState.isUser()">Save</button>\
+			</div>\
+		');
 		
 		// Add 0.01 movement control
-		$("#control > div.jog-panel").eq(0).addClass("controls").find("div.distance > div").prepend(`
-			<button type="button" id="control-distance001" class="btn distance" data-distance="0.01" data-bind="enable: loginState.isUser()">0.01</button>
-		`);
+		$("#control > div.jog-panel").eq(0).addClass("controls").find("div.distance > div").prepend('\
+			<button type="button" id="control-distance001" class="btn distance" data-distance="0.01" data-bind="enable: loginState.isUser()">0.01</button>\
+		');
 		$("#control-distance001").attr("title", "Sets extruder's position adjustment to 0.01mm");
 		$("#control-distance01").attr("title", "Sets extruder's position adjustment to 0.1mm");
 		$("#control-distance1").attr("title", "Sets extruder's position adjustment to 1mm");
@@ -3883,132 +3890,132 @@ $(function() {
 		$("#control > div.jog-panel.controls").find("div.distance > div > button:nth-of-type(3)").click();
 	
 		// Change tool section text
-		$("#control > div.jog-panel").eq(1).addClass("extruder").find("h1").text("Extruder").next("div").prepend(`
-			<h1 class="heatbed">Extruder</h1>
-		`);
+		$("#control > div.jog-panel").eq(1).addClass("extruder").find("h1").text("Extruder").next("div").prepend('\
+			<h1 class="heatbed">Extruder</h1>\
+		');
 
 		// Create motor on control
-		$("#control > div.jog-panel").eq(2).addClass("general").find("div").prepend(`
-			<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() {
-				$root.sendCustomCommand({
-					type: 'command',
-					command: 'M17'
-				})
-			}" title="Turns on printer's motors">Motors on</button>
-		`);
+		$("#control > div.jog-panel").eq(2).addClass("general").find("div").prepend('\
+			<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() {\
+				$root.sendCustomCommand({\
+					type: \'command\',\
+					command: \'M17\'\
+				})\
+			}" title="Turns on printer\'s motors">Motors on</button>\
+		');
 		$("#control > div.jog-panel.general").find("button:nth-of-type(2)").attr("title", "Turns off printer's motors");
 		
 		// Change fan controls
-		$("#control > div.jog-panel.general").find("button:nth-of-type(2)").after(`
-			<button class="btn btn-block control-box" data-bind="enable: isOperational() && loginState.isUser()">Fan on</button>
-			<button class="btn btn-block control-box" data-bind="enable: isOperational() && loginState.isUser()">Fan off</button>
-		`);
+		$("#control > div.jog-panel.general").find("button:nth-of-type(2)").after('\
+			<button class="btn btn-block control-box" data-bind="enable: isOperational() && loginState.isUser()">Fan on</button>\
+			<button class="btn btn-block control-box" data-bind="enable: isOperational() && loginState.isUser()">Fan off</button>\
+		');
 		$("#control > div.jog-panel.general").find("button:nth-of-type(5)").remove();
 		$("#control > div.jog-panel.general").find("button:nth-of-type(5)").remove();
 		
 		// Create absolute and relative controls, print settings, and emergency stop
-		$("#control > div.jog-panel.general").find("div").append(`
-			<button class="btn btn-block control-box micro3d" data-bind="enable: isOperational() && loginState.isUser()">LED on</button>
-			<button class="btn btn-block control-box micro3d" data-bind="enable: isOperational() && loginState.isUser(), click: function() {
-				$root.sendCustomCommand({
-					type: 'command',
-					command: 'M420 T0*'
-				})
-			}" title="Turns off front LED">LED off</button>
-			<button class="btn btn-block control-box gpio micro3d" data-bind="enable: isOperational() && loginState.isUser(), click: function() {
-				$root.sendCustomCommand({
-					type: 'command',
-					command: 'M106 T1*'
-				})
-			}" title="Sets GPIO pin high">GPIO high</button>
-			<button class="btn btn-block control-box gpio micro3d" data-bind="enable: isOperational() && loginState.isUser(), click: function() {
-				$root.sendCustomCommand({
-					type: 'command',
-					command: 'M107 T1*'
-				})
-			}" title="Sets GPIO pin low">GPIO low</button>
-			<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() {
-				$root.sendCustomCommand({
-					type: 'command',
-					command: 'G90'
-				})
-			}" title="Sets extruder to use absolute positioning">Absolute mode</button>
-			<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() {
-				$root.sendCustomCommand({
-					type: 'command',
-					command: 'G91'
-				})
-			}" title="Sets extruder to use relative positioning">Relative mode</button>
-			<button class="btn btn-block control-box micro3d" data-bind="enable: loginState.isUser()">Print settings</button>
-			<button class="btn btn-block control-box micro3d" data-bind="enable: isOperational() && loginState.isUser()">Emergency stop</button>
-		`);
+		$("#control > div.jog-panel.general").find("div").append('\
+			<button class="btn btn-block control-box micro3d" data-bind="enable: isOperational() && loginState.isUser()">LED on</button>\
+			<button class="btn btn-block control-box micro3d" data-bind="enable: isOperational() && loginState.isUser(), click: function() {\
+				$root.sendCustomCommand({\
+					type: \'command\',\
+					command: \'M420 T0*\'\
+				})\
+			}" title="Turns off front LED">LED off</button>\
+			<button class="btn btn-block control-box gpio micro3d" data-bind="enable: isOperational() && loginState.isUser(), click: function() {\
+				$root.sendCustomCommand({\
+					type: \'command\',\
+					command: \'M106 T1*\'\
+				})\
+			}" title="Sets GPIO pin high">GPIO high</button>\
+			<button class="btn btn-block control-box gpio micro3d" data-bind="enable: isOperational() && loginState.isUser(), click: function() {\
+				$root.sendCustomCommand({\
+					type: \'command\',\
+					command: \'M107 T1*\'\
+				})\
+			}" title="Sets GPIO pin low">GPIO low</button>\
+			<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() {\
+				$root.sendCustomCommand({\
+					type: \'command\',\
+					command: \'G90\'\
+				})\
+			}" title="Sets extruder to use absolute positioning">Absolute mode</button>\
+			<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() {\
+				$root.sendCustomCommand({\
+					type: \'command\',\
+					command: \'G91\'\
+				})\
+			}" title="Sets extruder to use relative positioning">Relative mode</button>\
+			<button class="btn btn-block control-box micro3d" data-bind="enable: loginState.isUser()">Print settings</button>\
+			<button class="btn btn-block control-box micro3d" data-bind="enable: isOperational() && loginState.isUser()">Emergency stop</button>\
+		');
 	
 		// Add filament controls
-		$("#control > div.jog-panel.general").after(`
-			<div class="jog-panel filament micro3d" data-bind="visible: loginState.isUser">
-				<h1>Filament</h1>
-				<div>
-					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Unload</button>
-					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Load</button>
-					<button class="btn btn-block control-box" data-bind="enable: isOperational() && isPrinting() && loginState.isUser()">Mid-print change</button>
-				</div>
-			</div>
-		`);
+		$("#control > div.jog-panel.general").after('\
+			<div class="jog-panel filament micro3d" data-bind="visible: loginState.isUser">\
+				<h1>Filament</h1>\
+				<div>\
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Unload</button>\
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Load</button>\
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && isPrinting() && loginState.isUser()">Mid-print change</button>\
+				</div>\
+			</div>\
+		');
 	
 		// Add calibration controls
-		$("#control > div.jog-panel.filament").after(`
-			<div class="jog-panel calibration micro3d" data-bind="visible: loginState.isUser">
-				<h1>Calibration</h1>
-				<div>
-					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Calibrate bed center Z0</button>
-					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Calibrate bed orientation</button>
-					<button class="btn btn-block control-box arrow" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><i class="icon-arrow-down"></i></button>
-					<button class="btn btn-block control-box arrow point" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><i class="icon-arrow-down"></i></button>
-					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Save Z as front left Z0</button>
-					<button class="btn btn-block control-box arrow" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><i class="icon-arrow-down"></i></button>
-					<button class="btn btn-block control-box arrow point" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><i class="icon-arrow-down"></i></button>
-					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Save Z as front right Z0</button>
-					<button class="btn btn-block control-box arrow" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><i class="icon-arrow-up"></i></button>
-					<button class="btn btn-block control-box arrow point" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><i class="icon-arrow-down"></i></button>
-					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Save Z as back right Z0</button>
-					<button class="btn btn-block control-box arrow" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><i class="icon-arrow-up"></i></button>
-					<button class="btn btn-block control-box arrow point" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><i class="icon-arrow-down"></i></button>
-					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Save Z as back left Z0</button>
-					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Save Z as bed center Z0</button>
-					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Save Z as external bed height</button>
-					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Print 0.4mm test border</button>
-					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Print backlash calibration</button>
-					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Run complete bed calibration</button>
-					<button class="btn btn-block control-box" data-bind="enable: loginState.isUser() && !isPrinting()">Save printer settings to file</button>
-					<button class="btn btn-block control-box" data-bind="enable: loginState.isUser() && !isPrinting()">Restore printer settings from file</button>
-					<input type="file" accept=".yaml">
-				</div>
-			</div>
-		`);
+		$("#control > div.jog-panel.filament").after('\
+			<div class="jog-panel calibration micro3d" data-bind="visible: loginState.isUser">\
+				<h1>Calibration</h1>\
+				<div>\
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Calibrate bed center Z0</button>\
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Calibrate bed orientation</button>\
+					<button class="btn btn-block control-box arrow" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><i class="icon-arrow-down"></i></button>\
+					<button class="btn btn-block control-box arrow point" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><i class="icon-arrow-down"></i></button>\
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Save Z as front left Z0</button>\
+					<button class="btn btn-block control-box arrow" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><i class="icon-arrow-down"></i></button>\
+					<button class="btn btn-block control-box arrow point" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><i class="icon-arrow-down"></i></button>\
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Save Z as front right Z0</button>\
+					<button class="btn btn-block control-box arrow" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><i class="icon-arrow-up"></i></button>\
+					<button class="btn btn-block control-box arrow point" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><i class="icon-arrow-down"></i></button>\
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Save Z as back right Z0</button>\
+					<button class="btn btn-block control-box arrow" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><i class="icon-arrow-up"></i></button>\
+					<button class="btn btn-block control-box arrow point" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><i class="icon-arrow-down"></i></button>\
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Save Z as back left Z0</button>\
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Save Z as bed center Z0</button>\
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Save Z as external bed height</button>\
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Print 0.4mm test border</button>\
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Print backlash calibration</button>\
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Run complete bed calibration</button>\
+					<button class="btn btn-block control-box" data-bind="enable: loginState.isUser() && !isPrinting()">Save printer settings to file</button>\
+					<button class="btn btn-block control-box" data-bind="enable: loginState.isUser() && !isPrinting()">Restore printer settings from file</button>\
+					<input type="file" accept=".yaml">\
+				</div>\
+			</div>\
+		');
 	
 		// Add advanced controls
-		$("#control > div.jog-panel.calibration").after(`
-			<div class="jog-panel advanced micro3d" data-bind="visible: loginState.isUser">
-				<h1>Advanced</h1>
-				<div>
-					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/hengLiXin.png">HengLiXin fan</button>
-					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/listener.png">Listener fan</button>
-					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/shenzhew.png">Shenzhew fan</button>
-					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/xinyujie.png">Xinyujie fan</button>
-					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/custom.png">Custom fan</button>
-					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">500mA extruder current</button>
-					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">660mA extruder current</button>
-					<button class="btn btn-block control-box placeHolder" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"></button>
-					<button class="btn btn-block control-box placeHolder" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"></button>
-					<button class="btn btn-block control-box placeHolder" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"></button>
-					<button class="btn btn-block control-box placeHolder" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"></button>
-					<button class="btn btn-block control-box placeHolder" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"></button>
-					<button class="btn btn-block control-box placeHolder" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"></button>
-					<p></p>
-					<input type="file" accept=".rom, .bin, .hex">
-				</div>
-			</div>
-		`);
+		$("#control > div.jog-panel.calibration").after('\
+			<div class="jog-panel advanced micro3d" data-bind="visible: loginState.isUser">\
+				<h1>Advanced</h1>\
+				<div>\
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/hengLiXin.png">HengLiXin fan</button>\
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/listener.png">Listener fan</button>\
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/shenzhew.png">Shenzhew fan</button>\
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/xinyujie.png">Xinyujie fan</button>\
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/custom.png">Custom fan</button>\
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">500mA extruder current</button>\
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">660mA extruder current</button>\
+					<button class="btn btn-block control-box placeHolder" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"></button>\
+					<button class="btn btn-block control-box placeHolder" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"></button>\
+					<button class="btn btn-block control-box placeHolder" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"></button>\
+					<button class="btn btn-block control-box placeHolder" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"></button>\
+					<button class="btn btn-block control-box placeHolder" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"></button>\
+					<button class="btn btn-block control-box placeHolder" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()"></button>\
+					<p></p>\
+					<input type="file" accept=".rom, .bin, .hex">\
+				</div>\
+			</div>\
+		');
 		
 		// Create EEPROM table
 		var table = "<tr><td></td>";
@@ -4038,163 +4045,163 @@ $(function() {
 		table += "</tr>";
 		
 		// Add EEPROM controls
-		$("#control > div.jog-panel.advanced").after(`
-			<div class="jog-panel eeprom micro3d" data-bind="visible: loginState.isUser">
-				<h1>EEPROM</h1>
-				<div>
-					<table><tbody>` + table + `</tbody></table>
-					<input data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()" type="radio" name="display" value="hexadecimal" checked><label>Hexadecimal</label>
-					<input data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()" type="radio" name="display" value="decimal"><label>Decimal</label>
-					<input data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()" type="radio" name="display" value="ascii"><label>ASCII</label><br>
-					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Read EEPROM</button>
-					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Write EEPROM</button>
-				</div>
-			</div>
-		`);
+		$("#control > div.jog-panel.advanced").after('\
+			<div class="jog-panel eeprom micro3d" data-bind="visible: loginState.isUser">\
+				<h1>EEPROM</h1>\
+				<div>\
+					<table><tbody>' + table + '</tbody></table>\
+					<input data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()" type="radio" name="display" value="hexadecimal" checked><label>Hexadecimal</label>\
+					<input data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()" type="radio" name="display" value="decimal"><label>Decimal</label>\
+					<input data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()" type="radio" name="display" value="ascii"><label>ASCII</label><br>\
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Read EEPROM</button>\
+					<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser()">Write EEPROM</button>\
+				</div>\
+			</div>\
+		');
 	
 		// Add temperature controls
-		$("#control > div.jog-panel.extruder").find("div > button:nth-of-type(3)").after(`
-			<div style="width: 114px;" class="slider slider-horizontal">
-				<div class="slider-track">
-					<div style="left: 0%; width: 0%;" class="slider-selection"></div>
-					<div style="left: 0%;" class="slider-handle round"></div>
-					<div style="left: 0%;" class="slider-handle round hide"></div>
-				</div>
-				<div style="top: -24px; left: -19px;" class="tooltip top hide">
-					<div class="tooltip-arrow"></div>
-					<div class="tooltip-inner"></div>
-				</div>
-				<input style="width: 100px;" data-bind="slider: {min: 100, max: 265, step: 1, value: flowRate, tooltip: 'hide'}" type="number">
-			</div>
-			<button class="btn btn-block control-box" data-bind="enable: isOperational() && loginState.isUser()">Temperature:<span data-bind="text: flowRate() + 50 + '°C'"></span></button>
-			<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() {
-				$root.sendCustomCommand({
-					type: 'command',
-					command: 'M104 S0'
-				})
-			}" title="Turns off extruder's heater">Heater off</button>
-			<div class="heatbed">
-				<h1 class="heatbed">Heatbed</h1>
-				<div style="width: 114px;" class="slider slider-horizontal">
-					<div class="slider-track">
-						<div style="left: 0%; width: 0%;" class="slider-selection"></div>
-						<div style="left: 0%;" class="slider-handle round"></div>
-						<div style="left: 0%;" class="slider-handle round hide"></div>
-					</div>
-					<div style="top: -24px; left: -19px;" class="tooltip top hide">
-						<div class="tooltip-arrow"></div>
-						<div class="tooltip-inner"></div>
-					</div>
-					<input style="width: 100px;" data-bind="slider: {min: 100, max: 170, step: 1, value: feedRate, tooltip: 'hide'}" type="number">
-				</div>
-				<button class="btn btn-block control-box" data-bind="enable: isOperational() && loginState.isUser()">Temperature:<span data-bind="text: feedRate() -60 + '°C'"></span></button>
-				<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() {
-					$root.sendCustomCommand({
-						type: 'command',
-						command: 'M140 S0'
-					})
-				}" title="Turns off heatbed's heater">Heater off</button>
-			<div>
-		`);
+		$("#control > div.jog-panel.extruder").find("div > button:nth-of-type(3)").after('\
+			<div style="width: 114px;" class="slider slider-horizontal">\
+				<div class="slider-track">\
+					<div style="left: 0%; width: 0%;" class="slider-selection"></div>\
+					<div style="left: 0%;" class="slider-handle round"></div>\
+					<div style="left: 0%;" class="slider-handle round hide"></div>\
+				</div>\
+				<div style="top: -24px; left: -19px;" class="tooltip top hide">\
+					<div class="tooltip-arrow"></div>\
+					<div class="tooltip-inner"></div>\
+				</div>\
+				<input style="width: 100px;" data-bind="slider: {min: 100, max: 265, step: 1, value: flowRate, tooltip: \'hide\'}" type="number">\
+			</div>\
+			<button class="btn btn-block control-box" data-bind="enable: isOperational() && loginState.isUser()">Temperature:<span data-bind="text: flowRate() + 50 + \'°C\'"></span></button>\
+			<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() {\
+				$root.sendCustomCommand({\
+					type: \'command\',\
+					command: \'M104 S0\'\
+				})\
+			}" title="Turns off extruder\'s heater">Heater off</button>\
+			<div class="heatbed">\
+				<h1 class="heatbed">Heatbed</h1>\
+				<div style="width: 114px;" class="slider slider-horizontal">\
+					<div class="slider-track">\
+						<div style="left: 0%; width: 0%;" class="slider-selection"></div>\
+						<div style="left: 0%;" class="slider-handle round"></div>\
+						<div style="left: 0%;" class="slider-handle round hide"></div>\
+					</div>\
+					<div style="top: -24px; left: -19px;" class="tooltip top hide">\
+						<div class="tooltip-arrow"></div>\
+						<div class="tooltip-inner"></div>\
+					</div>\
+					<input style="width: 100px;" data-bind="slider: {min: 100, max: 170, step: 1, value: feedRate, tooltip: \'hide\'}" type="number">\
+				</div>\
+				<button class="btn btn-block control-box" data-bind="enable: isOperational() && loginState.isUser()">Temperature:<span data-bind="text: feedRate() -60 + \'°C\'"></span></button>\
+				<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() {\
+					$root.sendCustomCommand({\
+						type: \'command\',\
+						command: \'M140 S0\'\
+					})\
+				}" title="Turns off heatbed\'s heater">Heater off</button>\
+			<div>\
+		');
 		
 		// Add message
-		$("body > div.page-container").append(`
-			<div class="message">
-				<div>
-					<h4></h4>
-					<img src="` + PLUGIN_BASEURL + `m33fio/static/img/loading.gif">
-					<div>
-						<p></p>
-						<div class="calibrate">
-							<div class="arrows">
-								<button class="btn btn-block control-box arrow up" title="Applies extruder's position adjustment in the positive direction"><i class="icon-arrow-up"></i></button>
-								<button class="btn btn-block control-box arrow down" title="Applies extruder's position adjustment in the negative direction"><i class="icon-arrow-down"></i></button>
-							</div>
-							<div class="distance">
-								<button type="button" class="btn distance" title="Sets extruder's position adjustment to 0.01mm">0.01</button>
-								<button type="button" class="btn distance" title="Sets extruder's position adjustment to 0.1mm">0.1</button>
-								<button type="button" class="btn distance active" title="Sets extruder's position adjustment to 1mm">1</button>
-								<button type="button" class="btn distance" title="Sets extruder's position adjustment to 10mm">10</button>
-							</div>
-						</div>
-						<div class="printSettings">
-							<h3>Print settings</h3>
-							<div class="control-group">
-								<label class="control-label">Filament Temperature</label>
-								<div class="controls">
-									<div class="input-append degreesCelsius">
-										<input type="number" step="1" min="150" max="315" class="input-block-level">
-										<span class="add-on">°C</span>
-									</div>
-								</div>
-							</div>
-							<div class="control-group heatbed">
-								<label class="control-label">Heatbed Temperature</label>
-								<div class="controls">
-									<div class="input-append degreesCelsius">
-										<input type="number" step="1" min="0" max="110" class="input-block-level" data-bind="value: settings.plugins.m33fio.HeatbedTemperature">
-										<span class="add-on">°C</span>
-									</div>
-								</div>
-							</div>
-							<div class="control-group">
-								<label class="control-label">Filament Type</label>
-								<div class="controls">
-									<select class="input-block-level" data-bind="value: settings.plugins.m33fio.FilamentType">
-										<option value="ABS">ABS (Recommended 275°C)</option>
-										<option value="PLA">PLA (Recommended 215°C)</option>
-										<option value="HIPS">HIPS (Recommended 265°C)</option>
-										<option value="FLX">FLX (Recommended 220°C)</option>
-										<option value="TGH">TGH (Recommended 220°C)</option>
-										<option value="CAM">CAM (Recommended 215°C)</option>
-										<option value="ABS-R">ABS-R (Recommended 240°C)</option>
-										<option value="OTHER">Other</option>
-									</select> 
-								</div>
-							</div>
-							<div class="control-group">
-								<div class="controls">
-									<label class="checkbox" title="Smooths out the bottom layer">
-										<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.UseWaveBondingPreprocessor"><span>Use Wave Bonding</span>
-									</label>
-								</div>
-							</div>
-						</div>
-						<div class="filamentSettings">
-							<h3>Filament settings</h3>
-							<div class="control-group">
-								<label class="control-label">Unload/Load Temperature</label>
-								<div class="controls">
-									<div class="input-append degreesCelsius">
-										<input type="number" step="1" min="150" max="315" class="input-block-level">
-										<span class="add-on">°C</span>
-									</div>
-								</div>
-							</div>
-							<p></p>
-						</div>
-						<div>
-							<button class="btn btn-block confirm"></button>
-							<button class="btn btn-block confirm"></button>
-						</div>
-						<span>Do not refresh this page or disconnect from the server at this time</span>
-					</div>
-				</div>
-			</div>
-		`);
+		$("body > div.page-container").append('\
+			<div class="message">\
+				<div>\
+					<h4></h4>\
+					<img src="' + PLUGIN_BASEURL + 'm33fio/static/img/loading.gif">\
+					<div>\
+						<p></p>\
+						<div class="calibrate">\
+							<div class="arrows">\
+								<button class="btn btn-block control-box arrow up" title="Applies extruder\'s position adjustment in the positive direction"><i class="icon-arrow-up"></i></button>\
+								<button class="btn btn-block control-box arrow down" title="Applies extruder\'s position adjustment in the negative direction"><i class="icon-arrow-down"></i></button>\
+							</div>\
+							<div class="distance">\
+								<button type="button" class="btn distance" title="Sets extruder\'s position adjustment to 0.01mm">0.01</button>\
+								<button type="button" class="btn distance" title="Sets extruder\'s position adjustment to 0.1mm">0.1</button>\
+								<button type="button" class="btn distance active" title="Sets extruder\'s position adjustment to 1mm">1</button>\
+								<button type="button" class="btn distance" title="Sets extruder\'s position adjustment to 10mm">10</button>\
+							</div>\
+						</div>\
+						<div class="printSettings">\
+							<h3>Print settings</h3>\
+							<div class="control-group">\
+								<label class="control-label">Filament Temperature</label>\
+								<div class="controls">\
+									<div class="input-append degreesCelsius">\
+										<input type="number" step="1" min="150" max="315" class="input-block-level">\
+										<span class="add-on">°C</span>\
+									</div>\
+								</div>\
+							</div>\
+							<div class="control-group heatbed">\
+								<label class="control-label">Heatbed Temperature</label>\
+								<div class="controls">\
+									<div class="input-append degreesCelsius">\
+										<input type="number" step="1" min="0" max="110" class="input-block-level" data-bind="value: settings.plugins.m33fio.HeatbedTemperature">\
+										<span class="add-on">°C</span>\
+									</div>\
+								</div>\
+							</div>\
+							<div class="control-group">\
+								<label class="control-label">Filament Type</label>\
+								<div class="controls">\
+									<select class="input-block-level" data-bind="value: settings.plugins.m33fio.FilamentType">\
+										<option value="ABS">ABS (Recommended 275°C)</option>\
+										<option value="PLA">PLA (Recommended 215°C)</option>\
+										<option value="HIPS">HIPS (Recommended 265°C)</option>\
+										<option value="FLX">FLX (Recommended 220°C)</option>\
+										<option value="TGH">TGH (Recommended 220°C)</option>\
+										<option value="CAM">CAM (Recommended 215°C)</option>\
+										<option value="ABS-R">ABS-R (Recommended 240°C)</option>\
+										<option value="OTHER">Other</option>\
+									</select>\
+								</div>\
+							</div>\
+							<div class="control-group">\
+								<div class="controls">\
+									<label class="checkbox" title="Smooths out the bottom layer">\
+										<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.UseWaveBondingPreprocessor"><span>Use Wave Bonding</span>\
+									</label>\
+								</div>\
+							</div>\
+						</div>\
+						<div class="filamentSettings">\
+							<h3>Filament settings</h3>\
+							<div class="control-group">\
+								<label class="control-label">Unload/Load Temperature</label>\
+								<div class="controls">\
+									<div class="input-append degreesCelsius">\
+										<input type="number" step="1" min="150" max="315" class="input-block-level">\
+										<span class="add-on">°C</span>\
+									</div>\
+								</div>\
+							</div>\
+							<p></p>\
+						</div>\
+						<div>\
+							<button class="btn btn-block confirm"></button>\
+							<button class="btn btn-block confirm"></button>\
+						</div>\
+						<span>Do not refresh this page or disconnect from the server at this time</span>\
+					</div>\
+				</div>\
+			</div>\
+		');
 		
 		// Add cover to slicer
-		$("#slicing_configuration_dialog").append(`
-			<div class="modal-cover">
-				<img src="` + PLUGIN_BASEURL + `m33fio/static/img/loading.gif">
-				<p></p>
-			</div>
-		`);
+		$("#slicing_configuration_dialog").append('\
+			<div class="modal-cover">\
+				<img src="' + PLUGIN_BASEURL + 'm33fio/static/img/loading.gif">\
+				<p></p>\
+			</div>\
+		');
 		
 		// Change slicer text
-		$("#slicing_configuration_dialog").find("h3").before(`
-			<p class="currentMenu">Select Profile</p>
-		`);
+		$("#slicing_configuration_dialog").find("h3").before('\
+			<p class="currentMenu">Select Profile</p>\
+		');
 		$("#slicing_configuration_dialog").find(".control-group:nth-of-type(2) > label").text("Base Slicing Profile");
 		
 		// Add save button and warning
@@ -4211,14 +4218,14 @@ $(function() {
 		$("#control > div.jog-panel.controls > *").wrapAll("<div></div>");
 		
 		// Add section control arrows
-		$("#control > div.jog-panel").append(`
-			<img>
-		`);
+		$("#control > div.jog-panel").append('\
+			<img>\
+		');
 		
 		// Add header to movement controls
-		$("#control > div.jog-panel.controls").prepend(`
-			<h1>Movement</h1>
-		`);
+		$("#control > div.jog-panel.controls").prepend('\
+			<h1>Movement</h1>\
+		');
 		
 		// Open and close control sections
 		if(typeof localStorage.movementControlsOpen === "undefined" || localStorage.movementControlsOpen == "true")
@@ -4321,8 +4328,12 @@ $(function() {
 				var location = $(this).siblings("div");
 				var height = location.height() + "px";
 				location.css("height", height);
+				var image = $(this);
 				
 				setTimeout(function() {
+				
+					// Change arrow image
+					$(this).attr("src", PLUGIN_BASEURL + "m33fio/static/img/down-arrow.png");
 			
 					// Transition into no height
 					location.parent().addClass("closed");
@@ -4343,7 +4354,7 @@ $(function() {
 						localStorage.advancedControlsOpen = "false";
 					else if(location.parent().hasClass("eeprom"))
 						localStorage.eepromControlsOpen = "false";
-				}, 0);
+				}, 50);
 				
 				// Change arrow image
 				$(this).attr("src", PLUGIN_BASEURL + "m33fio/static/img/down-arrow.png");
@@ -5111,6 +5122,9 @@ $(function() {
 					
 					// Prevent closing slicer by clicking outside
 					$("div.modal-scrollable").off("click.modal");
+					
+					// Disable uploading file by drag and drop
+					self.files._enableDragNDrop(false);
 				}
 			}
 			
@@ -5122,6 +5136,9 @@ $(function() {
 				
 					// Clear slicer open
 					slicerOpen = false;
+					
+					// Enable uploading file by drag and drop
+					self.files._enableDragNDrop(true);
 					
 					// Send request
 					$.ajax({
@@ -5297,183 +5314,183 @@ $(function() {
 													// Display profile editor
 													$("#slicing_configuration_dialog").addClass("profile in");
 													$("#slicing_configuration_dialog p.currentMenu").text("Modify Profile");
-													$("#slicing_configuration_dialog .modal-body").css("display", "none").after(`
-														<div class="modal-extra">
-															<div class="groups">
-																<div class="group basic">
-																	<img>
-																	<h3>Basic Settings</h3>
-																	<p class="quality">` + (usingProvidedProfile ? `Medium Quality` : `Unknown Quality`) + `</p>
-																	<div class="quality">
-																		<button title="Extra Low Quality" data-target="quality" data-value="0.35"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-quality_extra-low.png"></button>
-																		<button title="Low Quality" data-target="quality" data-value="0.30"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-quality_low.png"></button>
-																		<button title="Medium Quality" data-target="quality" data-value="0.25"` + (usingProvidedProfile ? ` class="disabled"` : ``) + `><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-quality_medium.png"></button>
-																		<button title="High Quality" data-target="quality" data-value="0.20"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-quality_high.png"></button>
-																		<button title="Extra High Quality" data-target="quality" data-value="0.15"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-quality_extra-high.png"></button>
-																		<button title="Highest Quality" data-target="quality" data-value="0.05"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-quality_highest.png"></button>
-																	</div>
-																	<p class="fill">` + (usingProvidedProfile ? `Medium Fill` : `Unknown Fill`) + `</p>
-																	<div class="fill">
-																		<button title="Hollow Thin Fill" data-target="fill" data-value="thin"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-density_thin.png"></button>
-																		<button title="Hollow Thick Fill" data-target="fill" data-value="thick"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-density_thick.png"></button>
-																		<button title="Low Fill" data-target="fill" data-value="low"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-density_low.png"></button>
-																		<button title="Medium Fill" data-target="fill" data-value="medium"` + (usingProvidedProfile ? ` class="disabled"` : ``) + `><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-density_medium.png"></button>
-																		<button title="High Fill" data-target="fill" data-value="high"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-density_high.png"></button>
-																		<button title="Extra High Fill"data-target="fill" data-value="extra-high"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-density_extra-high.png"></button>
-																		<button title="Full Fill" data-target="fill" data-value="full"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-density_full.png"></button>
-																	</div>
-																	<p class="pattern slic3r-only">` + (usingProvidedProfile ? `Honeycomb Fill Pattern` : `Unknown Fill Pattern`) + `</p>
-																	<div class="pattern slic3r-only">
-																		<button title="Line Fill Pattern" data-target="pattern" data-value="line"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-pattern_line.png"></button>
-																		<button title="Rectalinear Fill Pattern" data-target="pattern" data-value="rectalinear"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-pattern_rectalinear.png"></button>
-																		<button title="Honeycomb Fill Pattern" data-target="pattern" data-value="honeycomb"` + (usingProvidedProfile ? ` class="disabled"` : ``) + `><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-pattern_honeycomb.png"></button>
-																		<button title="3D Honeycomb Fill Pattern" data-target="pattern" data-value="3dhoneycomb"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-pattern_3dhoneycomb.png"></button>
-																		<button title="Concentric Fill Pattern" data-target="pattern" data-value="concentric"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-pattern_concentric.png"></button>
-																		<button title="Hilbert Curve Fill Pattern" data-target="pattern" data-value="hilbertcurve"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-pattern_hilbertcurve.png"></button>
-																		<button title="Octagram Spiral Fill Pattern" data-target="pattern" data-value="octagramspiral"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-pattern_octagramspiral.png"></button>
-																		<button title="Archimedean Chords Fill Pattern" data-target="pattern" data-value="archimedeanchords"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-pattern_archimedeanchords.png"></button>
-																	</div>
-																	<p class="solid_pattern slic3r-only">` + (usingProvidedProfile ? `Rectalinear Top/Bottom Fill Pattern` : `Unknown Top/Bottom Fill Pattern`) + `</p>
-																	<div class="solid_pattern slic3r-only">
-																		<button title="Rectalinear Top/Bottom Fill Pattern" data-target="solid_pattern" data-value="rectalinear" ` + (usingProvidedProfile ? ` class="disabled"` : ``) + `><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-pattern_rectalinear.png"></button>
-																		<button title="Concentric Top/Bottom Fill Pattern" data-target="solid_pattern" data-value="concentric"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-pattern_concentric.png"></button>
-																		<button title="Hilbert Curve Top/Bottom Fill Pattern" data-target="solid_pattern" data-value="hilbertcurve"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-pattern_hilbertcurve.png"></button>
-																		<button title="Archimedean Chords Top/Bottom Fill Pattern" data-target="solid_pattern" data-value="archimedeanchords"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-pattern_archimedeanchords.png"></button>
-																		<button title="Octagram Spiral Top/Bottom Fill Pattern" data-target="solid_pattern" data-value="octagramspiral"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/fill-pattern_octagramspiral.png"></button>
-																	</div>
-																	<div class="settings">
-																		<label title="Prints a breakaway support underneath overhanging parts of the model"><input class="useSupportMaterial" type="checkbox" tabindex="-1">Use support material</label>
-																		<label title="Allows support material to be created on top of models" class="cura-only"><input class="useModelOnModelSupport" type="checkbox" tabindex="-1">Use model on model support</label>
-																		<label title="Experimental option for preventing support material from being generated under bridged areas." class="slic3r-only"><input class="dontSupportBridges" type="checkbox" tabindex="-1">Don't support bridges</label>
-																		<label title="Prints a raft underneath the model"><input class="useRaft" type="checkbox" tabindex="-1">Use raft</label>
-																		<label title="Prints a brim connected to the first layer of the model"><input class="useBrim" type="checkbox" tabindex="-1">Use brim</label>
-																		<label title="Prints an outline around the model"><input class="useSkirt" type="checkbox" tabindex="-1">Use skirt</label>
-																		<label title="Retracts the filament when moving over gaps"><input class="useRetraction" type="checkbox" tabindex="-1">Use retraction</label>
-																	</div>
-																</div>
-																<div class="group manual">
-																	<img>
-																	<h3>Manual Settings</h3>
-																	<div class="wrapper">
-																		<div title="Printing temperature" class="option notMicro3d">
-																			<label>Printing temperature</label>
-																			<div class="input-append">
-																				<input class="printingTemperature" type="number" tabindex="-1" min="150" max="315" step="1">
-																				<span class="add-on">°C</span>
-																			</div>
-																		</div>
-																		<div title="Heatbed temperature" class="option notMicro3d requiresHeatbed">
-																			<label>Heatbed temperature</label>
-																			<div class="input-append">
-																				<input class="heatbedTemperature" type="number" tabindex="-1" min="0" max="110" step="1">
-																				<span class="add-on">°C</span>
-																			</div>
-																		</div>
-																		<div title="Height of each layer" class="option">
-																			<label>Layer height</label>
-																			<div class="input-append">
-																				<input class="layerHeight" type="number" tabindex="-1" min="0.01" max="0.35" step="0.01">
-																				<span class="add-on">mm</span>
-																			</div>
-																		</div>
-																		<div title="Percentage of the model that is filled in" class="option">
-																			<label>Fill density</label>
-																			<div class="input-append">
-																				<input class="fillDensity" type="number" tabindex="-1" min="0" max="100" step="0.01">
-																				<span class="add-on">%</span>
-																			</div>
-																		</div>
-																		<div title="Thickness of the model" class="option">
-																			<label>Thickness</label>
-																			<div class="input-append">
-																				<input class="thickness" type="number" tabindex="-1" min="1" max="25" step="1">
-																				<span class="add-on">wall(s)</span>
-																			</div>
-																		</div>
-																		<div title="Speed of the extruder's movements while printing" class="option">
-																			<label>Print speed</label>
-																			<div class="input-append">
-																				<input class="printSpeed" type="number" tabindex="-1" min="2" max="80" step="0.01">
-																				<span class="add-on">mm/s</span>
-																			</div>
-																		</div>
-																		<div title="Number of layers that the top and bottom each consist of" class="cura-only option">
-																			<label>Top/bottom</label>
-																			<div class="input-append">
-																				<input class="topBottomLayers" type="number" tabindex="-1" min="1" max="25" step="1">
-																				<span class="add-on">layer(s)</span>
-																			</div>
-																		</div>
-																		<div title="Number of layers that the top consist of" class="slic3r-only option">
-																			<label>Top</label>
-																			<div class="input-append">
-																				<input class="topLayers" type="number" tabindex="-1" min="1" max="25" step="1">
-																				<span class="add-on">layer(s)</span>
-																			</div>
-																		</div>
-																		<div title="Number of layers that the bottom consist of" class="slic3r-only option">
-																			<label>Bottom</label>
-																			<div class="input-append">
-																				<input class="bottomLayers" type="number" tabindex="-1" min="1" max="25" step="1">
-																				<span class="add-on">layer(s)</span>
-																			</div>
-																		</div>
-																		<div title="Distance between the raft and the model" class="cura-only option">
-																			<label>Raft airgap</label>
-																			<div class="input-append">
-																				<input class="raftAirgap" type="number" tabindex="-1" min="0" max="4" step="0.01">
-																				<span class="add-on">mm</span>
-																			</div>
-																		</div>
-																		<div title="The amount of lines used for the brim" class="cura-only option">
-																			<label>Brim line count</label>
-																			<div class="input-append">
-																				<input class="brimLineCount" type="number" tabindex="-1" min="0" max="50" step="1">
-																				<span class="add-on">line(s)</span>
-																			</div>
-																		</div>
-																		<div title="Raft height in number of layers" class="slic3r-only option">
-																			<label>Raft</label>
-																			<div class="input-append">
-																				<input class="raftLayers" type="number" tabindex="-1" min="0" max="16" step="1">
-																				<span class="add-on">layer(s)</span>
-																			</div>
-																		</div>
-																		<div title="Width of brim around perimeters" class="slic3r-only option">
-																			<label>Brim width</label>
-																			<div class="input-append">
-																				<input class="brimWidth" type="number" tabindex="-1" min="0" max="20" step="0.01">
-																				<span class="add-on">mm</span>
-																			</div>
-																		</div>
-																		<div title="How far away the skirt is from the model" class="option">
-																			<label>Skirt gap</label>
-																			<div class="input-append">
-																				<input class="skirtGap" type="number" tabindex="-1" min="0" max="100" step="0.01">
-																				<span class="add-on">mm</span>
-																			</div>
-																		</div>
-																		<div title="Number of loops for the skirt. If the Minimum Extrusion Length option is set, the number of loops might be greater than the one configured here. Set this to zero to disable skirt completely." class="slic3r-only option">
-																			<label>Skirts</label>
-																			<div class="input-append">
-																				<input class="skirts" type="number" tabindex="-1" min="0" max="40" step="1">
-																				<span class="add-on">line(s)</span>
-																			</div>
-																		</div>
-																	</div>
-																</div>
-																<div class="group advanced">
-																	<img>
-																	<h3>Advanced Settings</h3>
-																	<div>
-																		<aside></aside>
-																		<textarea tabindex="-1" spellcheck="false"></textarea>
-																	</div>
-																	<span></span>
-																</div>
-															</div>
-														</div>
-													`);
+													$("#slicing_configuration_dialog .modal-body").css("display", "none").after('\
+														<div class="modal-extra">\
+															<div class="groups">\
+																<div class="group basic">\
+																	<img>\
+																	<h3>Basic Settings</h3>\
+																	<p class="quality">' + (usingProvidedProfile ? 'Medium Quality' : 'Unknown Quality') + '</p>\
+																	<div class="quality">\
+																		<button title="Extra Low Quality" data-target="quality" data-value="0.35"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/fill-quality_extra-low.png"></button>\
+																		<button title="Low Quality" data-target="quality" data-value="0.30"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/fill-quality_low.png"></button>\
+																		<button title="Medium Quality" data-target="quality" data-value="0.25"' + (usingProvidedProfile ? ' class="disabled"' : '') + '><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/fill-quality_medium.png"></button>\
+																		<button title="High Quality" data-target="quality" data-value="0.20"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/fill-quality_high.png"></button>\
+																		<button title="Extra High Quality" data-target="quality" data-value="0.15"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/fill-quality_extra-high.png"></button>\
+																		<button title="Highest Quality" data-target="quality" data-value="0.05"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/fill-quality_highest.png"></button>\
+																	</div>\
+																	<p class="fill">' + (usingProvidedProfile ? 'Medium Fill' : 'Unknown Fill') + '</p>\
+																	<div class="fill">\
+																		<button title="Hollow Thin Fill" data-target="fill" data-value="thin"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/fill-density_thin.png"></button>\
+																		<button title="Hollow Thick Fill" data-target="fill" data-value="thick"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/fill-density_thick.png"></button>\
+																		<button title="Low Fill" data-target="fill" data-value="low"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/fill-density_low.png"></button>\
+																		<button title="Medium Fill" data-target="fill" data-value="medium"' + (usingProvidedProfile ? ' class="disabled"' : '') + '><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/fill-density_medium.png"></button>\
+																		<button title="High Fill" data-target="fill" data-value="high"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/fill-density_high.png"></button>\
+																		<button title="Extra High Fill"data-target="fill" data-value="extra-high"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/fill-density_extra-high.png"></button>\
+																		<button title="Full Fill" data-target="fill" data-value="full"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/fill-density_full.png"></button>\
+																	</div>\
+																	<p class="pattern slic3r-only">' + (usingProvidedProfile ? 'Honeycomb Fill Pattern' : 'Unknown Fill Pattern') + '</p>\
+																	<div class="pattern slic3r-only">\
+																		<button title="Line Fill Pattern" data-target="pattern" data-value="line"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/fill-pattern_line.png"></button>\
+																		<button title="Rectalinear Fill Pattern" data-target="pattern" data-value="rectalinear"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/fill-pattern_rectalinear.png"></button>\
+																		<button title="Honeycomb Fill Pattern" data-target="pattern" data-value="honeycomb"' + (usingProvidedProfile ? ' class="disabled"' : '') + '><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/fill-pattern_honeycomb.png"></button>\
+																		<button title="3D Honeycomb Fill Pattern" data-target="pattern" data-value="3dhoneycomb"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/fill-pattern_3dhoneycomb.png"></button>\
+																		<button title="Concentric Fill Pattern" data-target="pattern" data-value="concentric"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/fill-pattern_concentric.png"></button>\
+																		<button title="Hilbert Curve Fill Pattern" data-target="pattern" data-value="hilbertcurve"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/fill-pattern_hilbertcurve.png"></button>\
+																		<button title="Octagram Spiral Fill Pattern" data-target="pattern" data-value="octagramspiral"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/fill-pattern_octagramspiral.png"></button>\
+																		<button title="Archimedean Chords Fill Pattern" data-target="pattern" data-value="archimedeanchords"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/fill-pattern_archimedeanchords.png"></button>\
+																	</div>\
+																	<p class="solid_pattern slic3r-only">' + (usingProvidedProfile ? 'Rectalinear Top/Bottom Fill Pattern' : 'Unknown Top/Bottom Fill Pattern') + '</p>\
+																	<div class="solid_pattern slic3r-only">\
+																		<button title="Rectalinear Top/Bottom Fill Pattern" data-target="solid_pattern" data-value="rectalinear" ' + (usingProvidedProfile ? ' class="disabled"' : '') + '><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/fill-pattern_rectalinear.png"></button>\
+																		<button title="Concentric Top/Bottom Fill Pattern" data-target="solid_pattern" data-value="concentric"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/fill-pattern_concentric.png"></button>\
+																		<button title="Hilbert Curve Top/Bottom Fill Pattern" data-target="solid_pattern" data-value="hilbertcurve"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/fill-pattern_hilbertcurve.png"></button>\
+																		<button title="Archimedean Chords Top/Bottom Fill Pattern" data-target="solid_pattern" data-value="archimedeanchords"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/fill-pattern_archimedeanchords.png"></button>\
+																		<button title="Octagram Spiral Top/Bottom Fill Pattern" data-target="solid_pattern" data-value="octagramspiral"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/fill-pattern_octagramspiral.png"></button>\
+																	</div>\
+																	<div class="settings">\
+																		<label title="Prints a breakaway support underneath overhanging parts of the model"><input class="useSupportMaterial" type="checkbox" tabindex="-1">Use support material</label>\
+																		<label title="Allows support material to be created on top of models" class="cura-only"><input class="useModelOnModelSupport" type="checkbox" tabindex="-1">Use model on model support</label>\
+																		<label title="Experimental option for preventing support material from being generated under bridged areas." class="slic3r-only"><input class="dontSupportBridges" type="checkbox" tabindex="-1">Don\'t support bridges</label>\
+																		<label title="Prints a raft underneath the model"><input class="useRaft" type="checkbox" tabindex="-1">Use raft</label>\
+																		<label title="Prints a brim connected to the first layer of the model"><input class="useBrim" type="checkbox" tabindex="-1">Use brim</label>\
+																		<label title="Prints an outline around the model"><input class="useSkirt" type="checkbox" tabindex="-1">Use skirt</label>\
+																		<label title="Retracts the filament when moving over gaps"><input class="useRetraction" type="checkbox" tabindex="-1">Use retraction</label>\
+																	</div>\
+																</div>\
+																<div class="group manual">\
+																	<img>\
+																	<h3>Manual Settings</h3>\
+																	<div class="wrapper">\
+																		<div title="Printing temperature" class="option notMicro3d">\
+																			<label>Printing temperature</label>\
+																			<div class="input-append">\
+																				<input class="printingTemperature" type="number" tabindex="-1" min="150" max="315" step="1">\
+																				<span class="add-on">°C</span>\
+																			</div>\
+																		</div>\
+																		<div title="Heatbed temperature" class="option notMicro3d requiresHeatbed">\
+																			<label>Heatbed temperature</label>\
+																			<div class="input-append">\
+																				<input class="heatbedTemperature" type="number" tabindex="-1" min="0" max="110" step="1">\
+																				<span class="add-on">°C</span>\
+																			</div>\
+																		</div>\
+																		<div title="Height of each layer" class="option">\
+																			<label>Layer height</label>\
+																			<div class="input-append">\
+																				<input class="layerHeight" type="number" tabindex="-1" min="0.01" max="0.35" step="0.01">\
+																				<span class="add-on">mm</span>\
+																			</div>\
+																		</div>\
+																		<div title="Percentage of the model that is filled in" class="option">\
+																			<label>Fill density</label>\
+																			<div class="input-append">\
+																				<input class="fillDensity" type="number" tabindex="-1" min="0" max="100" step="0.01">\
+																				<span class="add-on">%</span>\
+																			</div>\
+																		</div>\
+																		<div title="Thickness of the model" class="option">\
+																			<label>Thickness</label>\
+																			<div class="input-append">\
+																				<input class="thickness" type="number" tabindex="-1" min="1" max="25" step="1">\
+																				<span class="add-on">wall(s)</span>\
+																			</div>\
+																		</div>\
+																		<div title="Speed of the extruder\'s movements while printing" class="option">\
+																			<label>Print speed</label>\
+																			<div class="input-append">\
+																				<input class="printSpeed" type="number" tabindex="-1" min="2" max="80" step="0.01">\
+																				<span class="add-on">mm/s</span>\
+																			</div>\
+																		</div>\
+																		<div title="Number of layers that the top and bottom each consist of" class="cura-only option">\
+																			<label>Top/bottom</label>\
+																			<div class="input-append">\
+																				<input class="topBottomLayers" type="number" tabindex="-1" min="1" max="25" step="1">\
+																				<span class="add-on">layer(s)</span>\
+																			</div>\
+																		</div>\
+																		<div title="Number of layers that the top consist of" class="slic3r-only option">\
+																			<label>Top</label>\
+																			<div class="input-append">\
+																				<input class="topLayers" type="number" tabindex="-1" min="1" max="25" step="1">\
+																				<span class="add-on">layer(s)</span>\
+																			</div>\
+																		</div>\
+																		<div title="Number of layers that the bottom consist of" class="slic3r-only option">\
+																			<label>Bottom</label>\
+																			<div class="input-append">\
+																				<input class="bottomLayers" type="number" tabindex="-1" min="1" max="25" step="1">\
+																				<span class="add-on">layer(s)</span>\
+																			</div>\
+																		</div>\
+																		<div title="Distance between the raft and the model" class="cura-only option">\
+																			<label>Raft airgap</label>\
+																			<div class="input-append">\
+																				<input class="raftAirgap" type="number" tabindex="-1" min="0" max="4" step="0.01">\
+																				<span class="add-on">mm</span>\
+																			</div>\
+																		</div>\
+																		<div title="The amount of lines used for the brim" class="cura-only option">\
+																			<label>Brim line count</label>\
+																			<div class="input-append">\
+																				<input class="brimLineCount" type="number" tabindex="-1" min="0" max="50" step="1">\
+																				<span class="add-on">line(s)</span>\
+																			</div>\
+																		</div>\
+																		<div title="Raft height in number of layers" class="slic3r-only option">\
+																			<label>Raft</label>\
+																			<div class="input-append">\
+																				<input class="raftLayers" type="number" tabindex="-1" min="0" max="16" step="1">\
+																				<span class="add-on">layer(s)</span>\
+																			</div>\
+																		</div>\
+																		<div title="Width of brim around perimeters" class="slic3r-only option">\
+																			<label>Brim width</label>\
+																			<div class="input-append">\
+																				<input class="brimWidth" type="number" tabindex="-1" min="0" max="20" step="0.01">\
+																				<span class="add-on">mm</span>\
+																			</div>\
+																		</div>\
+																		<div title="How far away the skirt is from the model" class="option">\
+																			<label>Skirt gap</label>\
+																			<div class="input-append">\
+																				<input class="skirtGap" type="number" tabindex="-1" min="0" max="100" step="0.01">\
+																				<span class="add-on">mm</span>\
+																			</div>\
+																		</div>\
+																		<div title="Number of loops for the skirt. If the Minimum Extrusion Length option is set, the number of loops might be greater than the one configured here. Set this to zero to disable skirt completely." class="slic3r-only option">\
+																			<label>Skirts</label>\
+																			<div class="input-append">\
+																				<input class="skirts" type="number" tabindex="-1" min="0" max="40" step="1">\
+																				<span class="add-on">line(s)</span>\
+																			</div>\
+																		</div>\
+																	</div>\
+																</div>\
+																<div class="group advanced">\
+																	<img>\
+																	<h3>Advanced Settings</h3>\
+																	<div>\
+																		<aside></aside>\
+																		<textarea tabindex="-1" spellcheck="false"></textarea>\
+																	</div>\
+																	<span></span>\
+																</div>\
+															</div>\
+														</div>\
+													');
 													$("#slicing_configuration_dialog .modal-extra textarea").val(data.slice(-1) == '\n' ? data.slice(0, -1) : data);
 													$("#slicing_configuration_dialog").addClass(slicerName);
 													
@@ -5612,7 +5629,7 @@ $(function() {
 													// Skip model editor and show warning if WebGL isn't supported
 													if(!Detector.webgl) {
 														button.text("Slice");
-														$("#slicing_configuration_dialog .modal-footer p.warning").text("Model editor will be skipped since your browser doesn't support WebGL");
+														$("#slicing_configuration_dialog .modal-footer p.warning").text("Model editor will be skipped since your web browser doesn't support WebGL");
 														$("#slicing_configuration_dialog .modal-footer a.skip").css("display", "none");
 													}
 									
@@ -6908,67 +6925,67 @@ $(function() {
 																// Display model editor
 																$("#slicing_configuration_dialog").removeClass("profile").addClass("model in");
 																$("#slicing_configuration_dialog p.currentMenu").text("Modify Model");
-																$("#slicing_configuration_dialog .modal-extra").empty().append(`
-																	<div class="printer">
-																		<button class="micro3d" data-color="Black" title="Black"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/black.png"></button>
-																		<button class="micro3d" data-color="White" title="White"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/white.png"></button>
-																		<button class="micro3d" data-color="Blue" title="Blue"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/blue.png"></button>
-																		<button class="micro3d" data-color="Green" title="Green"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/green.png"></button>
-																		<button class="micro3d" data-color="Orange" title="Orange"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/orange.png"></button>
-																		<button class="micro3d" data-color="Clear" title="Clear"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/clear.png"></button>
-																		<button class="micro3d" data-color="Silver" title="Silver"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/silver.png"></button>
-																		<button class="micro3d" data-color="Purple" title="Purple"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/purple.png"></button>
-																	</div>
-																	<div class="filament">
-																		<button data-color="White" title="White"><span style="background-color: #F4F3E9;"></span><img src="` + PLUGIN_BASEURL + `m33fio/static/img/filament.png"></button>
-																		<button data-color="Pink" title="Pink"><span style="background-color: #FF006B;"></span><img src="` + PLUGIN_BASEURL + `m33fio/static/img/filament.png"></button>
-																		<button data-color="Red" title="Red"><span style="background-color: #EE0000;"></span><img src="` + PLUGIN_BASEURL + `m33fio/static/img/filament.png"></button>
-																		<button data-color="Orange" title="Orange"><span style="background-color: #FE9800;"></span><img src="` + PLUGIN_BASEURL + `m33fio/static/img/filament.png"></button>
-																		<button data-color="Yellow" title="Yellow"><span style="background-color: #FFEA00;"></span><img src="` + PLUGIN_BASEURL + `m33fio/static/img/filament.png"></button>
-																		<button data-color="Green" title="Green"><span style="background-color: #009E60;"></span><img src="` + PLUGIN_BASEURL + `m33fio/static/img/filament.png"></button>
-																		<button data-color="Light Blue" title="Light Blue"><span style="background-color: #00EEEE;"></span><img src="` + PLUGIN_BASEURL + `m33fio/static/img/filament.png"></button>
-																		<button data-color="Blue" title="Blue"><span style="background-color: #236B8E;"></span><img src="` + PLUGIN_BASEURL + `m33fio/static/img/filament.png"></button>
-																		<button data-color="Purple" title="Purple"><span style="background-color: #9A009A;"></span><img src="` + PLUGIN_BASEURL + `m33fio/static/img/filament.png"></button>
-																		<button data-color="Black" title="Black"><span style="background-color: #404040;"></span><img src="` + PLUGIN_BASEURL + `m33fio/static/img/filament.png"></button>
-																	</div>
-																	<div class="model">
-																		<input type="file" accept=".stl, .obj, .m3d, .amf, .wrl, .dae, .3mf">
-																		<button class="import" title="Import"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/import.png"></button>
-																		<button class="translate disabled" title="Translate"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/translate.png"></button>
-																		<button class="rotate" title="Rotate"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/rotate.png"></button>
-																		<button class="scale" title="Scale"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/scale.png"></button>
-																		<button class="snap" title="Snap"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/snap.png"></button>
-																		<button class="delete disabled" title="Delete"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/delete.png"></button>
-																		<button class="clone disabled" title="Clone"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/clone.png"></button>
-																		<button class="reset disabled" title="Reset"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/reset.png"></button>
-																		<button class="cut" title="Cut"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/cut.png"></button>
-																		<button class="merge" title="Merge"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/merge.png"></button>
-																	</div>
-																	<div class="display">
-																		<button class="boundaries" title="Boundaries"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/boundaries.png"></button>
-																		<button class="measurements" title="Measurements"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/measurements.png"></button>
-																	</div>
-																	<div class="values translate">
-																		<div>
-																			<p><span class="axis x">X</span><input type="number" step="any" name="x"><span></span></p>
-																			<p><span class="axis y">Y</span><input type="number" step="any" name="y"><span></span></p>
-																			<p><span class="axis z">Z</span><input type="number" step="any" name="z"><span></span></p>
-																			<span></span>
-																		</div>
-																	</div>
-																	<div class="cutShape">
-																		<div>
-																			<button class="cube disabled" title="Cube"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/cube.png"></button>
-																			<button class="sphere" title="Sphere"><img src="` + PLUGIN_BASEURL + `m33fio/static/img/sphere.png"></button>
-																			<span></span>
-																		</div>
-																	</div>
-																	<div class="measurements">
-																		<p class="width"></p>
-																		<p class="depth"></p>
-																		<p class="height"></p>
-																	</div>
-																`);
+																$("#slicing_configuration_dialog .modal-extra").empty().append('\
+																	<div class="printer">\
+																		<button class="micro3d" data-color="Black" title="Black"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/black.png"></button>\
+																		<button class="micro3d" data-color="White" title="White"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/white.png"></button>\
+																		<button class="micro3d" data-color="Blue" title="Blue"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/blue.png"></button>\
+																		<button class="micro3d" data-color="Green" title="Green"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/green.png"></button>\
+																		<button class="micro3d" data-color="Orange" title="Orange"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/orange.png"></button>\
+																		<button class="micro3d" data-color="Clear" title="Clear"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/clear.png"></button>\
+																		<button class="micro3d" data-color="Silver" title="Silver"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/silver.png"></button>\
+																		<button class="micro3d" data-color="Purple" title="Purple"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/purple.png"></button>\
+																	</div>\
+																	<div class="filament">\
+																		<button data-color="White" title="White"><span style="background-color: #F4F3E9;"></span><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/filament.png"></button>\
+																		<button data-color="Pink" title="Pink"><span style="background-color: #FF006B;"></span><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/filament.png"></button>\
+																		<button data-color="Red" title="Red"><span style="background-color: #EE0000;"></span><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/filament.png"></button>\
+																		<button data-color="Orange" title="Orange"><span style="background-color: #FE9800;"></span><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/filament.png"></button>\
+																		<button data-color="Yellow" title="Yellow"><span style="background-color: #FFEA00;"></span><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/filament.png"></button>\
+																		<button data-color="Green" title="Green"><span style="background-color: #009E60;"></span><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/filament.png"></button>\
+																		<button data-color="Light Blue" title="Light Blue"><span style="background-color: #00EEEE;"></span><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/filament.png"></button>\
+																		<button data-color="Blue" title="Blue"><span style="background-color: #236B8E;"></span><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/filament.png"></button>\
+																		<button data-color="Purple" title="Purple"><span style="background-color: #9A009A;"></span><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/filament.png"></button>\
+																		<button data-color="Black" title="Black"><span style="background-color: #404040;"></span><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/filament.png"></button>\
+																	</div>\
+																	<div class="model">\
+																		<input type="file" accept=".stl, .obj, .m3d, .amf, .wrl, .dae, .3mf">\
+																		<button class="import" title="Import"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/import.png"></button>\
+																		<button class="translate disabled" title="Translate"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/translate.png"></button>\
+																		<button class="rotate" title="Rotate"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/rotate.png"></button>\
+																		<button class="scale" title="Scale"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/scale.png"></button>\
+																		<button class="snap" title="Snap"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/snap.png"></button>\
+																		<button class="delete disabled" title="Delete"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/delete.png"></button>\
+																		<button class="clone disabled" title="Clone"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/clone.png"></button>\
+																		<button class="reset disabled" title="Reset"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/reset.png"></button>\
+																		<button class="cut" title="Cut"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/cut.png"></button>\
+																		<button class="merge" title="Merge"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/merge.png"></button>\
+																	</div>\
+																	<div class="display">\
+																		<button class="boundaries" title="Boundaries"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/boundaries.png"></button>\
+																		<button class="measurements" title="Measurements"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/measurements.png"></button>\
+																	</div>\
+																	<div class="values translate">\
+																		<div>\
+																			<p><span class="axis x">X</span><input type="number" step="any" name="x"><span></span></p>\
+																			<p><span class="axis y">Y</span><input type="number" step="any" name="y"><span></span></p>\
+																			<p><span class="axis z">Z</span><input type="number" step="any" name="z"><span></span></p>\
+																			<span></span>\
+																		</div>\
+																	</div>\
+																	<div class="cutShape">\
+																		<div>\
+																			<button class="cube disabled" title="Cube"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/cube.png"></button>\
+																			<button class="sphere" title="Sphere"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/sphere.png"></button>\
+																			<span></span>\
+																		</div>\
+																	</div>\
+																	<div class="measurements">\
+																		<p class="width"></p>\
+																		<p class="depth"></p>\
+																		<p class="height"></p>\
+																	</div>\
+																');
 
 																$("#slicing_configuration_dialog .modal-extra div.printer button[data-color=\"" + viewportPrinterColor + "\"]").addClass("disabled");
 																$("#slicing_configuration_dialog .modal-extra div.filament button[data-color=\"" + viewportFilamentColor + "\"]").addClass("disabled");
@@ -7410,6 +7427,38 @@ $(function() {
 																		viewport.applyChanges($(this).attr("name"), $(this).val());
 																	}
 																});
+																
+																/*// Draw options canvas drop
+																$("#slicing_configuration_dialog").on("drop", function(event) {
+	
+																	// Set file
+																	var file = event.originalEvent.dataTransfer.files[0];
+																	
+																	// Check if dropped event is a OBJ, M3D, AMF, VRML, COLLADA, or 3MF file
+																	var extension = file.name.lastIndexOf('.');
+																	if(file.name.substr(extension + 1).toLowerCase() == "stl" || file.name.substr(extension + 1).toLowerCase() == "obj" || file.name.substr(extension + 1).toLowerCase() == "m3d" || file.name.substr(extension + 1).toLowerCase() == "amf" || file.name.substr(extension + 1).toLowerCase() == "wrl" || file.name.substr(extension + 1).toLowerCase() == "dae" || file.name.substr(extension + 1).toLowerCase() == "3mf") {
+	
+																		// Prevent default behavior
+																		event.preventDefault();
+			
+																		console.log(file)	
+																	}
+	
+																// Draw options canvas drag over
+																}).on("dragenter", function(event) {
+																	
+																	// Display cover
+																	$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").text("Import model");
+																});
+																
+																$("#slicing_configuration_dialog .modal-cover").on("dragleave", function(event) {
+																
+																	// Hide cover
+																	$("#slicing_configuration_dialog .modal-cover").removeClass("show");
+																	setTimeout(function() {
+																		$("#slicing_configuration_dialog .modal-cover").css("z-index", '');
+																	}, 200);
+																});*/
 
 																// Update model changes
 																viewport.updateModelChanges();
@@ -10757,10 +10806,18 @@ $(function() {
 
 				// Read in file
 				var reader = new FileReader();
-				reader.readAsBinaryString(file);
+				reader.readAsArrayBuffer(file);
 			
 				// On file load
 				reader.onload = function(event) {
+
+					// Convert array buffer to a binary string
+					var binary = "";
+					var bytes = new Uint8Array(event.target.result);
+					var length = bytes.byteLength;
+
+					for(var i = 0; i < length; i++) 
+						binary += String.fromCharCode(bytes[i]);
 	
 					// Send request
 					$.ajax({
@@ -10769,7 +10826,7 @@ $(function() {
 						dataType: "json",
 						data: JSON.stringify({
 							command: "message",
-							value: "Set Printer Settings:" + event.target.result
+							value: "Set Printer Settings:" + binary
 						}),
 						contentType: "application/json; charset=UTF-8",
 
@@ -11524,6 +11581,27 @@ $(function() {
 								// Hide message
 								hideMessage();
 							});
+					},
+					
+					// On error
+					error: function() {
+					
+						// Go through all options
+						$("#navbar_plugin_m33fio > select > option").each(function() {
+					
+							// Check if another OctoPrint instance exists
+							if($(this).attr("value") != "new" && $(this).attr("value") != "close" && $(this).attr("value") != window.location.port) {
+						
+								var port = $(this).attr("value")
+								setTimeout(function() {
+			
+									// Go to OctoPrint instance
+									window.location.port = port;
+								}, 1000);
+						
+								return false;
+							}
+						});
 					}
 				});
 			}
@@ -11577,10 +11655,18 @@ $(function() {
 
 				// Read in file
 				var reader = new FileReader();
-				reader.readAsBinaryString(file);
-
+				reader.readAsArrayBuffer(file);
+			
 				// On file load
 				reader.onload = function(event) {
+
+					// Convert array buffer to a binary string
+					var binary = "";
+					var bytes = new Uint8Array(event.target.result);
+					var length = bytes.byteLength;
+
+					for(var i = 0; i < length; i++) 
+						binary += String.fromCharCode(bytes[i]);
 			
 					// Send request
 					$.ajax({
@@ -11589,7 +11675,7 @@ $(function() {
 						dataType: "json",
 						data: JSON.stringify({
 							command: "file",
-							name: file.name, content: event.target.result
+							name: file.name, content: binary
 						}),
 						contentType: "application/json; charset=UTF-8",
 	
@@ -11753,30 +11839,13 @@ $(function() {
 				$("#settings_plugin_m33fio .camera select > option").remove();
 				
 				// Go through all cameras
-				var currentCamera = 0;
-				for(var i = 0; i < data.cameras.length; i++) {
+				for(var i = 0; i < data.cameras.length; i++)
 			
 					// Insert option
-					$("#settings_plugin_m33fio .camera select").append("<option value = \"" + data.cameras[i] + "\">Device " + data.cameras[i] + "</option>");
-						
-					// Set current port
-					if(typeof self.settings.settings !== "undefined" && data.cameras[i] == self.settings.settings.plugins.m33fio.CameraPort)
-						currentCamera = i;
-				}
+					$("#settings_plugin_m33fio .camera select").append("<option" + (typeof self.settings.settings !== "undefined" && data.cameras[i] == self.settings.settings.plugins.m33fio.CameraPort ? " selected=\"true\"" : "") + " value = \"" + data.cameras[i] + "\">Device " + data.cameras[i] + "</option>");
 				
-				// Go through all options
-				$("#settings_plugin_m33fio .camera select > option").each(function() {
-				
-					// Check if current port
-					if($(this).attr("value") == data.cameras[currentCamera]) {
-				
-						// Select current port
-						$(this).attr("selected", "true");
-						
-						// Return false
-						return false;
-					}
-				});
+				// Refresh selection	
+				$("#settings_plugin_m33fio .camera select").html($("#settings_plugin_m33fio .camera select").html());
 			}
 			
 			// Otherwise check if data is that camera is not hostable
@@ -12057,9 +12126,9 @@ $(function() {
 			
 				// Reset process details
 				$("#navbar_plugin_m33fio > select > option:not([value=\"new\"]):not([value=\"close\"])").remove();
+				$("#navbar_plugin_m33fio > select > option").removeAttr("selected");
 				
 				// Go through all processes
-				var currentPort;
 				for(var i = 0; i < data.processes.length; i++)
 			
 					// Go through all options
@@ -12069,30 +12138,15 @@ $(function() {
 						if($(this).attr("value") == "new" || parseInt($(this).attr("value")) > parseInt(data.processes[i][0])) {
 			
 							// Insert option
-							$(this).before("<option value = \"" + data.processes[i][0] + "\">Port " + data.processes[i][0] + "</option>");
-							
-							// Set current port
-							if(data.processes[i][1] == true)
-								currentPort = i;
+							$(this).before("<option" + (data.processes[i][1] == true ? " selected=\"true\"" : "") + " value = \"" + data.processes[i][0] + "\">Port " + data.processes[i][0] + "</option>");
 							
 							// Return false
 							return false;
 						}
 					});
 				
-				// Go through all options
-				$("#navbar_plugin_m33fio > select > option").each(function() {
-				
-					// Check if current port
-					if(parseInt($(this).attr("value")) == parseInt(data.processes[currentPort][0])) {
-				
-						// Select current port
-						$(this).attr("selected", "true");
-						
-						// Return false
-						return false;
-					}
-				});	
+				// Refresh selection	
+				$("#navbar_plugin_m33fio > select").html($("#navbar_plugin_m33fio > select").html());
 			}
 			
 			// Otherwise check if data is provided firmware versions

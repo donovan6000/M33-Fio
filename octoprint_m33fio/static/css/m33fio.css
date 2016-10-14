@@ -1,3 +1,7 @@
+body > div.modal-scrollable {
+	overflow: hidden !important;
+}
+
 #job_pause.active {
 	background-image: linear-gradient(to bottom, #FFF, #E6E6E6);
 	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05);
@@ -223,6 +227,11 @@
 	position: relative;
 	left: 10px;
 	height: 40px;
+}
+
+#control > div.jog-panel.controls div.distance {
+	width: 1px;
+	cursor: default;
 }
 
 #control div.jog-panel.extruder > div div.slider {
@@ -876,7 +885,7 @@ body > div.page-container > div.message > div > div > span.show {
 
 #slicing_configuration_dialog .group h3 {
 	position: absolute;
-	top: -5px;
+	top: -4px;
 	left: 15px;
 	font-size: 12px;
 	font-weight: bold;
@@ -942,6 +951,7 @@ body > div.page-container > div.message > div > div > span.show {
 	display: inline-block;
 	width: calc(100% / 3);
 	margin: 3px auto;
+	height: 30px;
 }
 
 #slicing_configuration_dialog .group.manual .option.disabled {
@@ -1375,6 +1385,8 @@ body > div.page-container > div.message > div > div > span.show {
 #control div.jog-panel.controls > div > div.jog-panel:nth-of-type(2) {
 	left: 18px;
 	position: relative;
+	padding-right: 23px;
+	margin-right: 0;
 }
 
 #control > div.jog-panel.controls > div h1 {
