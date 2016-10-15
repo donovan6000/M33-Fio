@@ -3873,7 +3873,7 @@ $(function() {
 		);
 		
 		// Remove software update message if using OctoPrint's master branch
-		if(htmlDecode(BRANCH) == "HEAD -> master")
+		if(typeof BRANCH !== "undefined" && htmlDecode(BRANCH) == "HEAD -> master")
 			$("#settings_plugin_softwareupdate div.alert:nth-of-type(2)").remove();
 		
 		// Add mid-print filament change settings
@@ -5079,12 +5079,12 @@ $(function() {
 						
 							// Set path to file
 							if(typeof self.files.currentPath === "undefined")
-								var path = newFileName;
+								var path = '';
 							else if(self.files.currentPath().length)
-								var path = '/' + self.files.currentPath() + '/' + newFileName;
+								var path = '/' + self.files.currentPath() + '/';
 							else
-								var path = '/' + newFileName;
-							form.append("file", convertedModel, path);
+								var path = '/';
+							form.append("file", convertedModel, path + newFileName);
 						
 							if(typeof self.files.currentPath !== "undefined")
 								path = path.substr(1);
@@ -5102,15 +5102,18 @@ $(function() {
 							
 									// Update path
 									if(location == "local")
-										path = data.files.local.name;
+										path += data.files.local.name;
 									else
-										path = data.files.sdcard.name;
+										path += data.files.sdcard.name;
 								
 									// Hide message
 									hideMessage();
 						
 									// Show slicing dialog
-									self.files.requestData(path, location);
+									if(self.files.requestData.toString().split('\n')[0].indexOf("params") != -1)
+										self.files.requestData({focus: {location: location, path: path}});
+									else
+										self.files.requestData(path, location);
 									self.slicing.show(location, path);
 								}
 							});
