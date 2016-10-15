@@ -9,6 +9,7 @@ V1.9 October X, 2016
 	* Removed homing before a print in the preparation pre-processor stage when using iMe firmware
 	* Allows disabling sleep and slicer reminders
 	* Fixed compatibility with Internet Explorer 11
+	* Added the ability to drag and drop files onto the profile and model editors to load the profile or import the model
 
 V1.8 September 22, 2016
 

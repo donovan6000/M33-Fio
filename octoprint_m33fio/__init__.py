@@ -1416,10 +1416,7 @@ class M33FioPlugin(
 		for key in machine.keys() :
 		
 			# Write setting to output
-			output.write(str(key) + " = " + str(machine[key]))
-			if str(key) == "machine_shape" :
-				output.write("; Square, Circular")
-			output.write('\n')
+			output.write(str(key) + " = " + str(machine[key]) + '\n')
 		
 		# Write profile
 		output.write("\n[profile]\n")
@@ -1453,18 +1450,7 @@ class M33FioPlugin(
 			else :
 			
 				# Write setting to output
-				output.write(str(key) + " = " + str(settings[key]))
-				if str(key) == "retraction_combing" :
-					output.write("; Off, All, No Skin")
-				elif str(key) == "support" :
-					output.write("; None, Touching buildplate, Everywhere")
-				elif str(key) == "platform_adhesion" :
-					output.write("; None, Brim, Raft")
-				elif str(key) == "support_dual_extrusion" :
-					output.write("; Both, First extruder, Second extruder")
-				elif str(key) == "support_type" :
-					output.write("; Grid, Lines")
-				output.write('\n')
+				output.write(str(key) + " = " + str(settings[key]) + '\n')
 		
 		# Write alterations
 		output.write("\n[alterations]\n")
@@ -1501,22 +1487,6 @@ class M33FioPlugin(
 			# Fix incorrect settings
 			if (str(key).endswith("_gcode") or str(key).endswith("_processing") or str(key).endswith("_process")) and str(profile._profile[0][key]) == "None" :
 				profile._profile[0][key] = ''
-			
-			# Append list to settings
-			elif str(key) == "external_fill_pattern" :
-				profile._profile[0][key] = str(profile._profile[0][key]) + "; archimedeanchords, rectilinear, flowsnake, octagramspiral, hilbertcurve, line, concentric, honeycomb, 3dhoneycomb"
-			elif str(key) == "extrusion_axis" :
-				profile._profile[0][key] = str(profile._profile[0][key]) + "; X, Y, Z, E"
-			elif str(key) == "fill_pattern" :
-				profile._profile[0][key] = str(profile._profile[0][key]) + "; archimedeanchords, rectilinear, flowsnake, octagramspiral, hilbertcurve, line, concentric, honeycomb, 3dhoneycomb"
-			elif str(key) == "gcode_flavor" :
-				profile._profile[0][key] = str(profile._profile[0][key]) + "; reprap, teacup, makerware, sailfish, mach3, no-extrusion"
-			elif str(key) == "seam_position" :
-				profile._profile[0][key] = str(profile._profile[0][key]) + "; random, aligned, nearest"
-			elif str(key) == "solid_fill_pattern" :
-				profile._profile[0][key] = str(profile._profile[0][key]) + "; archimedeanchords, rectilinear, octagramspiral, hilbertcurve, concentric"
-			elif str(key) == "support_material_pattern" :
-				profile._profile[0][key] = str(profile._profile[0][key]) + "; honeycomb, rectilinear, rectilinear-grid"
 			
 			# slic3r post_processing option not found workaround
 			elif str(key) == "post_processing":
