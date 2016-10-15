@@ -1,4 +1,4 @@
-body > div.modal-scrollable {
+body > div.modal-scrollable.hideOverflow {
 	overflow: hidden !important;
 }
 
@@ -885,13 +885,17 @@ body > div.page-container > div.message > div > div > span.show {
 
 #slicing_configuration_dialog .group h3 {
 	position: absolute;
-	top: -4px;
+	top: -5px;
 	left: 15px;
 	font-size: 12px;
 	font-weight: bold;
 	cursor: default;
 	width: 100%;
 	text-align: left;
+}
+
+#slicing_configuration_dialog .group h3.windows, #slicing_configuration_dialog .group h3.osx {
+	top: -4px;
 }
 
 #slicing_configuration_dialog .groups div:not(.group) {

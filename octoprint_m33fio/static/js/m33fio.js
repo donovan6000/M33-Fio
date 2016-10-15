@@ -850,22 +850,28 @@ $(function() {
 			
 						// Get current value
 						var value = $(this).val();
-				
+						
 						// Convert current value to hexadecimal
 						if(eepromDisplayType == "ascii")
 							value = value.charCodeAt(0).toString(16);
 						else if(eepromDisplayType == "decimal")
 							value = parseInt(value).toString(16);
 				
+						// Check if value is invalid
+						if(!value.length || value.length > 2 || !/^[0-9a-fA-F]+$/.test(value))
+						
+							// Restore valid value
+							value = $(this).data("validValue");
+						
+						// Otherwise
+						else
+						
+							// Save original value
+							$(this).data("validValue", value);
+						
 						if(value.length == 1)
 							value = '0' + value;
 						value = value.toUpperCase();
-				
-						// Check if value is invalid
-						if(!value.length || value.length > 2 || !/^[0-9a-fA-F]+$/.test(value))
-				
-							// Clear value
-							value = "00";
 				
 						// Convert hexadecimal value to type and set max length
 						if(type == "ascii") {
@@ -889,6 +895,9 @@ $(function() {
 		
 					// Get value
 					var value = eeprom.substr(index * 2, 2).toUpperCase();
+					
+					// Save original value
+					$(this).data("validValue", value)
 			
 					// Convert hexadecimal value to type
 					if(type == "ascii")
@@ -5130,10 +5139,10 @@ $(function() {
 					slicerOpen = true;
 					
 					// Prevent closing slicer by clicking outside
-					$("div.modal-scrollable").off("click.modal");
+					$("div.modal-scrollable").off("click.modal").addClass("hideOverflow");
 					
 					// Disable uploading file by drag and drop
-					self.files._enableDragNDrop(false);
+					$("#drop_overlay").css("display", "none");
 				}
 			}
 			
@@ -5147,7 +5156,7 @@ $(function() {
 					slicerOpen = false;
 					
 					// Enable uploading file by drag and drop
-					self.files._enableDragNDrop(true);
+					$("#drop_overlay").css("display", "");
 					
 					// Send request
 					$.ajax({
@@ -5564,6 +5573,18 @@ $(function() {
 	
 														// Fix Firefox specific CSS issues
 														$("#slicing_configuration_dialog .group.advanced > span, #slicing_configuration_dialog .group.advanced textarea").addClass("firefox");
+													
+													// Check if using Windows
+													if(navigator.platform.indexOf("Win") != -1)
+		
+														// Fix Windows specific CSS issues
+														$("#slicing_configuration_dialog .group h3").addClass("windows");
+		
+													// Otherwise check if using OS X
+													else if(navigator.platform.indexOf("Mac") != -1)
+		
+														// Fix OS X specific CSS issues
+														$("#slicing_configuration_dialog .group h3").addClass("osx");
 													
 													// Update settings from profile
 													function updateSettingsFromProfile() {
@@ -11572,17 +11593,15 @@ $(function() {
 					else if(type == "ascii")
 						value = value.charCodeAt(0).toString(16);
 				
+					// Check if value is invalid
+					if(!value.length || value.length > 2 || !/^[0-9a-fA-F]+$/.test(value))
+						
+						// Restore valid value
+						value = $(this).data("validValue");
+					
 					// Make sure value is 2 digits
 					if(value.length == 1)
 						value = '0' + value;
-				
-					// Check if value is invalid
-					if(!value.length || value.length > 2 || !/^[0-9a-fA-F]+$/.test(value)) {
-				
-						// Clear EEPROM and return false
-						eeprom = '';
-						return false;
-					}
 				
 					// Append value to EEPROM
 					eeprom += value.toUpperCase();
