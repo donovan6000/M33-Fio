@@ -5589,11 +5589,11 @@ $(function() {
 																if(lines[i].indexOf("_gcode") == -1 && lines[i][0] != '\t') {
 																
 																	if(/^external_fill_pattern[\s=]/.test(lines[i]))
-																		lines[i] += "; archimedeanchords, rectilinear, octagramspiral, hilbertcurve, line, concentric, honeycomb, 3dhoneycomb";
+																		lines[i] += "; rectilinear, concentric, hilbertcurve, archimedeanchords, octagramspiral";
 																	else if(/^extrusion_axis[\s=]/.test(lines[i]))
 																		lines[i] += "; X, Y, Z, E";
 																	else if(/^fill_pattern[\s=]/.test(lines[i]))
-																		lines[i] += "; archimedeanchords, rectilinear, octagramspiral, hilbertcurve, line, concentric, honeycomb, 3dhoneycomb";
+																		lines[i] += "; rectalinear, grid, line, concentric, honeycomb, 3dhoneycomb, hilbertcurve, archimedeanchords, octagramspiral";
 																	else if(/^gcode_flavor[\s=]/.test(lines[i]))
 																		lines[i] += "; reprap, teacup, makerware, sailfish, mach3, no-extrusion";
 																	else if(/^seam_position[\s=]/.test(lines[i]))
