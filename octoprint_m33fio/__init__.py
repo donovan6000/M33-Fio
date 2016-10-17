@@ -1951,6 +1951,9 @@ class M33FioPlugin(
 	
 			# Save settings to the printer
 			self.sendCommandsWithLineNumbers(self.getSaveCommands())
+		
+		# Set file locations
+		self.setFileLocations()
 	
 	# Template manager
 	def get_template_configs(self) :
@@ -4994,9 +4997,19 @@ class M33FioPlugin(
 				# Set profile version, identifier, and name
 				profileIdentifier = profile[0 : profile.find('.')]
 				profileName = self._slicing_manager.get_profile_path("cura", profileIdentifier)[len(profileDestination) :].lower()
+				
+				# Check if not using a Micro 3D printer
+				if self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
+				
+					# Remove Cura profile
+					if os.path.isfile(profileDestination + profileName) :
+						os.remove(profileDestination + profileName)
+				
+				# Otherwise
+				else :
 	
-				# Import Cura profile
-				self.convertCuraToProfile(profileLocation + profile, profileDestination + profileName, profileName, profileIdentifier, "Imported by M33 Fio on " + time.strftime("%Y-%m-%d %H:%M"))
+					# Import Cura profile
+					self.convertCuraToProfile(profileLocation + profile, profileDestination + profileName, profileName, profileIdentifier, "Imported by M33 Fio on " + time.strftime("%Y-%m-%d %H:%M"))
 		
 		# Check if Slic3r is configured
 		if "slic3r" in self._slicing_manager.configured_slicers :
@@ -5015,10 +5028,28 @@ class M33FioPlugin(
 				# Set profile version, identifier, and name
 				profileIdentifier = profile[0 : profile.find('.')]
 				profileName = self._slicing_manager.get_profile_path("slic3r", profileIdentifier)[len(profileDestination) :].lower()
-	
-				# Import Slic3r profile
-				self.convertSlic3rToProfile(profileLocation + profile, profileDestination + profileName, profileName, profileIdentifier, "Imported by M33 Fio on " + time.strftime("%Y-%m-%d %H:%M"))
-	
+				
+				# Check if not using a Micro 3D printer
+				if self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
+				
+					# Remove Slic3r profile
+					if os.path.isfile(profileDestination + profileName) :
+						os.remove(profileDestination + profileName)
+				
+				# Otherwise
+				else :
+				
+					# Import Slic3r profile
+					self.convertSlic3rToProfile(profileLocation + profile, profileDestination + profileName, profileName, profileIdentifier, "Imported by M33 Fio on " + time.strftime("%Y-%m-%d %H:%M"))
+		
+		# Check if not using a Micro 3D printer
+		if self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
+		
+			# Remove Micro 3D printer profile
+			if self._printer_profile_manager.exists("micro_3d") :
+				self._printer_profile_manager.remove("micro_3d")
+		else :
+			self.savePrinterProfile()
 	# Event monitor
 	def on_event(self, event, payload) :
 	
