@@ -6008,56 +6008,60 @@ $(function() {
 														// Prevent default
 														event.preventDefault();
 														
-														// Hide drag and drop cover
-														$("#slicing_configuration_dialog .modal-drag-and-drop").removeClass("show");
+														// Check if loading profile is applicable
+														if($("#slicing_configuration_dialog .modal-drag-and-drop").hasClass("show")) {
+														
+															// Hide drag and drop cover
+															$("#slicing_configuration_dialog .modal-drag-and-drop").removeClass("show");
 													
-														// Set file type
-														var file = event.originalEvent.dataTransfer.files[0];
-														var extension = typeof file !== "undefined" ? file.name.lastIndexOf('.'): -1;
-														var type = extension != -1 ? file.name.substr(extension + 1).toLowerCase() : "";
+															// Set file type
+															var file = event.originalEvent.dataTransfer.files[0];
+															var extension = typeof file !== "undefined" ? file.name.lastIndexOf('.'): -1;
+															var type = extension != -1 ? file.name.substr(extension + 1).toLowerCase() : "";
 														
-														// Check if file has the correct extension
-														if((slicerName != "cura" && slicerName != "slic3r") || (slicerName == "cura" && type == "ini") || (slicerName == "slic3r" && type == "ini")) {
+															// Check if file has the correct extension
+															if((slicerName != "cura" && slicerName != "slic3r") || (slicerName == "cura" && type == "ini") || (slicerName == "slic3r" && type == "ini")) {
 														
-															// Display cover
-															$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").text("Loading profile…");
+																// Display cover
+																$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").text("Loading profile…");
 
-															setTimeout(function() {
+																setTimeout(function() {
 														
-																// Read in file
-																var reader = new FileReader();
-																reader.readAsArrayBuffer(file);
+																	// Read in file
+																	var reader = new FileReader();
+																	reader.readAsArrayBuffer(file);
 			
-																// On file load
-																reader.onload = function(event) {
+																	// On file load
+																	reader.onload = function(event) {
 
-																	// Convert array buffer to a binary string
-																	var binary = "";
-																	var bytes = new Uint8Array(event.target.result);
-																	var length = bytes.byteLength;
+																		// Convert array buffer to a binary string
+																		var binary = "";
+																		var bytes = new Uint8Array(event.target.result);
+																		var length = bytes.byteLength;
 
-																	for(var i = 0; i < length; i++) 
-																		binary += String.fromCharCode(bytes[i]);
+																		for(var i = 0; i < length; i++) 
+																			binary += String.fromCharCode(bytes[i]);
 
-																	// Clear using provided profile
-																	var usingProvidedProfile = false;
+																		// Clear using provided profile
+																		var usingProvidedProfile = false;
 																	
-																	// Set new profile
-																	$("#slicing_configuration_dialog .modal-extra textarea").val(addCommentsToText(binary));
+																		// Set new profile
+																		$("#slicing_configuration_dialog .modal-extra textarea").val(addCommentsToText(binary));
 																
-																	// Update line numbers
-																	updateLineNumbers();
+																		// Update line numbers
+																		updateLineNumbers();
 																	
-																	// Update settings from profile
-																	updateSettingsFromProfile();
+																		// Update settings from profile
+																		updateSettingsFromProfile();
 
-																	// Hide cover
-																	$("#slicing_configuration_dialog .modal-cover").removeClass("show");
-																	setTimeout(function() {
-																		$("#slicing_configuration_dialog .modal-cover").css("z-index", '');
-																	}, 200);
-																}
-															}, 600);
+																		// Hide cover
+																		$("#slicing_configuration_dialog .modal-cover").removeClass("show");
+																		setTimeout(function() {
+																			$("#slicing_configuration_dialog .modal-cover").css("z-index", '');
+																		}, 200);
+																	}
+																}, 600);
+															}
 														}
 													
 													// Slicing configuration dialog drag enter event
@@ -7929,8 +7933,8 @@ $(function() {
 																	// Prevent default
 																	event.preventDefault();
 																	
-																	// Check if not cutting models
-																	if(viewport.cutShape === null) {
+																	// Check if importing model is applicable
+																	if($("#slicing_configuration_dialog .modal-drag-and-drop").hasClass("show")) {
 																	
 																		// Hide drag and drop cover
 																		$("#slicing_configuration_dialog .modal-drag-and-drop").removeClass("show");
