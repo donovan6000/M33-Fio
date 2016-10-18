@@ -165,7 +165,13 @@ else :
 		pass
 
 	# Start server
-	server = ThreadedHTTPServer(('', httpPort), requestHandler)
+	try :
+		server = ThreadedHTTPServer(('', httpPort), requestHandler)
+	except :
+	
+		# Exit
+		exit()
+	
 	serverThread = threading.Thread(target = server.serve_forever)
 	serverThread.daemon = True
 	serverThread.start()

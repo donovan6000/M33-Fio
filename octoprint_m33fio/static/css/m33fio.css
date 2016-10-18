@@ -2,6 +2,10 @@ body > div.modal-scrollable.hideOverflow {
 	overflow: hidden !important;
 }
 
+#webcam_image[src^="None"] {
+	display: none;
+}
+
 #job_pause.active {
 	background-image: linear-gradient(to bottom, #FFF, #E6E6E6);
 	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05);

@@ -55,6 +55,7 @@ $(function() {
 		self.terminal = parameters[5];
 		self.loginState = parameters[6];
 		self.printerProfile = parameters[7];
+		self.control = parameters[8];
 		
 		// Bed dimensions
 		var bedLowMaxX = 106.0;
@@ -1028,6 +1029,7 @@ $(function() {
 				printerModel: null,
 				axes: [],
 				showAxes: typeof localStorage.viewportShowAxes === "undefined" || localStorage.viewportShowAxes == "true",
+				allowTab: true,
 				
 				// Initialize
 				init: function() {
@@ -1315,8 +1317,8 @@ $(function() {
 					// Create controls
 					this.orbitControls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
 					this.orbitControls.target.set(0, bedHighMaxZ / 2 + externalBedHeight, 0);
-					this.orbitControls.minDistance = 160;
-					this.orbitControls.maxDistance = 600;
+					this.orbitControls.minDistance = (bedHighMaxZ - bedLowMinZ) * 1.43;
+					this.orbitControls.maxDistance = (bedHighMaxZ - bedLowMinZ) * 5.35;
 					this.orbitControls.minPolarAngle = 0;
 					this.orbitControls.maxPolarAngle = THREE.Math.degToRad(100);
 					this.orbitControls.enablePan = false;
@@ -1834,25 +1836,29 @@ $(function() {
 						
 									// Prevent default action
 									event.preventDefault();
+									
+									// Check if not cutting models
+									if(viewport.cutShape === null) {
 							
-									// Get currently selected model
-									var current = viewport.transformControls.object;
+										// Get currently selected model
+										var current = viewport.transformControls.object;
 							
-									// Go through all models
-									for(var i = 1; i < viewport.models.length; i++)
+										// Go through all models
+										for(var i = 1; i < viewport.models.length; i++)
 							
-										// Check if not currently selected model
-										if(viewport.models[i].mesh !== current)
+											// Check if not currently selected model
+											if(viewport.models[i].mesh !== current)
 							
-											// Select first model
-											viewport.selectModel(viewport.models[i].mesh);
+												// Select first model
+												viewport.selectModel(viewport.models[i].mesh);
 							
-									// Select currently selected model
-									if(current)
-										viewport.selectModel(current);
+										// Select currently selected model
+										if(current)
+											viewport.selectModel(current);
 							
-									// Render
-									viewport.render();
+										// Render
+										viewport.render();
+									}
 								}
 							break;
 	
@@ -1862,65 +1868,72 @@ $(function() {
 								// Prevent default action
 								event.preventDefault();
 								
-								// Check if not cutting models
-								if(viewport.cutShape === null) {
+								// Check if tab isn't already pressed
+								if(viewport.allowTab) {
+								
+									// Clear allow tab
+									viewport.allowTab = false;
+								
+									// Check if not cutting models
+									if(viewport.cutShape === null) {
 	
-									// Check if an object is selected
-									if(viewport.transformControls.object) {
+										// Check if an object is selected
+										if(viewport.transformControls.object) {
 		
-										// Go through all models
-										for(var i = 1; i < viewport.models.length; i++)
+											// Go through all models
+											for(var i = 1; i < viewport.models.length; i++)
 			
-											// Check if model is currently selected
-											if(viewport.models[i].mesh == viewport.transformControls.object) {
+												// Check if model is currently selected
+												if(viewport.models[i].mesh == viewport.transformControls.object) {
 								
-												// Check if shift isn't pressed
-												if(!event.shiftKey)
+													// Check if shift isn't pressed
+													if(!event.shiftKey)
 									
-													// Remove selection
-													viewport.removeSelection();
+														// Remove selection
+														viewport.removeSelection();
 								
-												// Check if model isn't the last one
-												if(i != viewport.models.length - 1)
+													// Check if model isn't the last one
+													if(i != viewport.models.length - 1)
 									
-													// Select next model
-													viewport.selectModel(viewport.models[i + 1].mesh);
+														// Select next model
+														viewport.selectModel(viewport.models[i + 1].mesh);
 									
-												// Otherwise
-												else
+													// Otherwise
+													else
 									
-													// Select first model
-													viewport.selectModel(viewport.models[1].mesh);
+														// Select first model
+														viewport.selectModel(viewport.models[1].mesh);
 					
-												// Break
-												break;
-											}
-									}
+													// Break
+													break;
+												}
+										}
 				
-									// Otherwise check if a model exists
-									else if(viewport.models.length > 1)
+										// Otherwise check if a model exists
+										else if(viewport.models.length > 1)
 			
-										// Select first model
-										viewport.selectModel(viewport.models[1].mesh);
+											// Select first model
+											viewport.selectModel(viewport.models[1].mesh);
 									
-									// Render
-									viewport.render();
-								}
+										// Render
+										viewport.render();
+									}
 								
-								// Otherwise
-								else {
+									// Otherwise
+									else {
 								
-									// Check if cut chape is a cube
-									if(viewport.cutShape.geometry.type == "BoxGeometry")
+										// Check if cut chape is a cube
+										if(viewport.cutShape.geometry.type == "BoxGeometry")
 									
-										// Change cut shape to a sphere
-										viewport.setCutShape("sphere");
+											// Change cut shape to a sphere
+											viewport.setCutShape("sphere");
 									
-									// Otherwise check if cut shape is a sphere
-									else if(viewport.cutShape.geometry.type == "SphereGeometry")
+										// Otherwise check if cut shape is a sphere
+										else if(viewport.cutShape.geometry.type == "SphereGeometry")
 									
-										// Change cut shape to a sube
-										viewport.setCutShape("cube");
+											// Change cut shape to a sube
+											viewport.setCutShape("cube");
+									}
 								}
 							break;
 	
@@ -1981,6 +1994,13 @@ $(function() {
 
 					// Check what key was pressed
 					switch(event.keyCode) {
+					
+						// Check if tab was released
+						case 9 :
+						
+							// Set allow tab
+							viewport.allowTab = true;
+						break;
 		
 						// Check if shift was released
 						case 16 :
@@ -2377,7 +2397,7 @@ $(function() {
 					if(viewport.cutShape !== null) {
 				
 						// Reset cut shape's orientation
-						viewport.cutShape.position.set(0, bedHighMaxZ - bedLowMinZ - viewport.models[0].mesh.position.y, 0);
+						viewport.cutShape.position.set(0, (bedHighMaxZ - bedLowMinZ) / 2 + externalBedHeight, 0);
 						viewport.cutShape.rotation.set(0, 0, 0);
 						viewport.cutShape.scale.set(1, 1, 1);
 					}
@@ -7909,20 +7929,27 @@ $(function() {
 																	// Prevent default
 																	event.preventDefault();
 																	
-																	// Hide drag and drop cover
-																	$("#slicing_configuration_dialog .modal-drag-and-drop").removeClass("show");
+																	// Check if not cutting models
+																	if(viewport.cutShape === null) {
+																	
+																		// Hide drag and drop cover
+																		$("#slicing_configuration_dialog .modal-drag-and-drop").removeClass("show");
 																
-																	// Import model from file
-																	importModelFromFile(event.originalEvent.dataTransfer.files[0]);
+																		// Import model from file
+																		importModelFromFile(event.originalEvent.dataTransfer.files[0]);
+																	}
 																
 																// Slicing configuration dialog drag enter event
 																}).on("dragenter", function(event) {
 																
 																	// Prevent default
 																	event.preventDefault();
+																	
+																	// Check if not cutting models
+																	if(viewport.cutShape === null)
 																
-																	// Show drag and drop cover
-																	$("#slicing_configuration_dialog .modal-drag-and-drop").addClass("show");
+																		// Show drag and drop cover
+																		$("#slicing_configuration_dialog .modal-drag-and-drop").addClass("show");
 																});
 
 																// Update model changes
@@ -12446,14 +12473,23 @@ $(function() {
 					// Initialize variables
 					var text = "It's recommended that you install";
 					
-					if(data.cura) {
-						text += " the latest <a href=\"https://ultimaker.com/en/products/cura-software/list\" target=\"_blank\">Cura 15.04</a> release ";
-						if(data.slic3r)
-							text += "or"
-					}
+					// Check if neither Cura or Slic3r plugins are installed
+					if(!data.cura && !data.slic3r)
 					
-					if(data.slic3r)
-						text += " the latest <a href=\"http://slic3r.org/download\" target=\"_blank\">Slic3r</a> release ";
+						text += " a slicer ";
+					
+					// Otherwise
+					else {
+					
+						if(data.cura) {
+							text += " the latest <a href=\"https://ultimaker.com/en/products/cura-software/list\" target=\"_blank\">Cura 15.04</a> release ";
+							if(data.slic3r)
+								text += "or"
+						}
+					
+						if(data.slic3r)
+							text += " the latest <a href=\"http://slic3r.org/download\" target=\"_blank\">Slic3r</a> release ";
+					}
 					
 					text += "on this server to allow slicing from within OctoPrint";
 					
@@ -12473,7 +12509,7 @@ $(function() {
 							return;
 			
 					// Show message
-					showMessage("Slicer Status", text, "Remind Later", function() {
+					showMessage("Slicer Status", text, "OK", function() {
 					
 						// Hide message
 						hideMessage();
@@ -12487,7 +12523,27 @@ $(function() {
 								command: "message",
 								value: "Temporarily Disable Reminder: Slicer"
 							}),
-							contentType: "application/json; charset=UTF-8"
+							contentType: "application/json; charset=UTF-8",
+	
+							// On success
+							success: function(data) {
+							
+								// Update values
+								function updateValues() {
+				
+									// Update printer profile
+									self.printerProfile.requestData();
+				
+									// Update slicers
+									self.slicing.requestData();
+								}
+
+								// Update settings
+								if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
+									self.settings.requestData(updateValues);
+								else
+									self.settings.requestData().done(updateValues);
+							}
 						});
 					}, "Disable Reminder", function() {
 					
@@ -12503,7 +12559,27 @@ $(function() {
 								command: "message",
 								value: "Permanently Disable Reminder: Slicer"
 							}),
-							contentType: "application/json; charset=UTF-8"
+							contentType: "application/json; charset=UTF-8",
+	
+							// On success
+							success: function(data) {
+							
+								// Update values
+								function updateValues() {
+				
+									// Update printer profile
+									self.printerProfile.requestData();
+				
+									// Update slicers
+									self.slicing.requestData();
+								}
+
+								// Update settings
+								if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
+									self.settings.requestData(updateValues);
+								else
+									self.settings.requestData().done(updateValues);
+							}
 						});
 					});
 				}
@@ -12530,7 +12606,7 @@ $(function() {
 							return;
 			
 					// Show message
-					showMessage("Sleep Status", text, "Remind Later", function() {
+					showMessage("Sleep Status", text, "OK", function() {
 				
 						// Hide message
 						hideMessage();
@@ -13564,41 +13640,6 @@ $(function() {
 		// On startup complete
 		self.onStartupComplete = function() {
 		
-			// Disable settings
-			function disableSettings() {
-			
-				// Go through all settings that aren't dependant
-				$("#settings_plugin_m33fio div.control-group:not(.dependant)").each(function() {
-	
-					// Initialize variables
-					var parent = $(this)
-					var checked = $(this).find("input[type=\"checkbox\"]").is(":checked");
-	
-					// Go through all dependant values
-					while(parent.next().length && parent.next().hasClass("dependant")) {
-		
-						parent = parent.next();
-			
-						// Check if value is enabled
-						if(checked)
-			
-							// Allow setting dependant value
-							parent.removeClass("disabled");
-			
-						// Otherwise
-						else
-			
-							// Disable setting dependant value
-							parent.addClass("disabled");
-					}
-				});
-			}
-		
-			if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
-				self.settings.requestData(disableSettings);
-			else
-				self.settings.requestData().done(disableSettings);
-		
 			// Set mid-print filament change layer input
 			$("#gcode div.midPrintFilamentChange input").val(self.settings.settings.plugins.m33fio.MidPrintFilamentChangeLayers());
 			
@@ -13681,6 +13722,32 @@ $(function() {
 		// On settings shown
 		self.onSettingsShown = function() {
 		
+			// Go through all settings that aren't dependant
+			$("#settings_plugin_m33fio div.control-group:not(.dependant)").each(function() {
+
+				// Initialize variables
+				var parent = $(this)
+				var checked = $(this).find("input[type=\"checkbox\"]").is(":checked");
+
+				// Go through all dependant values
+				while(parent.next().length && parent.next().hasClass("dependant")) {
+	
+					parent = parent.next();
+		
+					// Check if value is enabled
+					if(checked)
+		
+						// Allow setting dependant value
+						parent.removeClass("disabled");
+		
+					// Otherwise
+					else
+		
+						// Disable setting dependant value
+						parent.addClass("disabled");
+				}
+			});
+		
 			// Resize window
 			$(window).resize();
 		}
@@ -13743,6 +13810,23 @@ $(function() {
 					// Set print bed offset
 					printBedOffsetX = 0.0;
 					printBedOffsetY = 2.0;
+				}
+				
+				// Update printer profile
+				self.printerProfile.requestData();
+				
+				// Update slicers
+				self.slicing.requestData();
+				
+				// Update webcam stream
+				CONFIG_WEBCAM_STREAM = self.settings.settings.webcam.streamUrl();
+				if(CONFIG_WEBCAM_STREAM === null)
+					CONFIG_WEBCAM_STREAM = "None"
+			
+				// Update webcam display
+				if($("#control_link").hasClass("active")) {
+					$("#webcam_image").attr("src", "");
+					self.control.onTabChange("#control", "");
 				}
 			}
 
@@ -13834,6 +13918,6 @@ $(function() {
 	
 		// Constructor
 		M33FioViewModel,
-		["printerStateViewModel", "temperatureViewModel", "settingsViewModel", "gcodeFilesViewModel", "slicingViewModel", "terminalViewModel", "loginStateViewModel", "printerProfilesViewModel"]
+		["printerStateViewModel", "temperatureViewModel", "settingsViewModel", "gcodeFilesViewModel", "slicingViewModel", "terminalViewModel", "loginStateViewModel", "printerProfilesViewModel", "controlViewModel"]
 	]);
 });

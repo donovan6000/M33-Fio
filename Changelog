@@ -12,6 +12,7 @@ V1.9 October X, 2016
 	* Added the ability to drag and drop files onto the profile and model editors to load the profile or import the model
 	* Model editor can now display an axes indicator in the from left corner to better see the orientation of the bed
 	* Micro 3D profile and slicer profiles will be removed if not using a Micro 3D printer and added if using a Micro 3D printer
+	* Webcam server no longer requires OctoPrint to be restarted for its changed settings to take affect
 
 V1.8 September 22, 2016
 
