@@ -5592,7 +5592,7 @@ $(function() {
 																	else if(/^extrusion_axis[\s=]/.test(lines[i]))
 																		lines[i] += "; X, Y, Z, E";
 																	else if(/^fill_pattern[\s=]/.test(lines[i]))
-																		lines[i] += "; rectalinear, grid, line, concentric, honeycomb, 3dhoneycomb, hilbertcurve, archimedeanchords, octagramspiral";
+																		lines[i] += "; rectilinear, grid, line, concentric, honeycomb, 3dhoneycomb, hilbertcurve, archimedeanchords, octagramspiral";
 																	else if(/^gcode_flavor[\s=]/.test(lines[i]))
 																		lines[i] += "; reprap, teacup, makerware, sailfish, mach3, no-extrusion";
 																	else if(/^seam_position[\s=]/.test(lines[i]))
