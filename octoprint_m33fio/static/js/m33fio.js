@@ -1364,36 +1364,33 @@ $(function() {
 				
 					// Create axis geometry
 					var axisGeometry = new THREE.Geometry();
-					axisGeometry.vertices.push(new THREE.Vector3(printBedWidth / 2 - 1.0 / 2, -0.25 + 1.0 / 2, -printBedDepth / 2 + 1.0 / 2));
-					axisGeometry.vertices.push(new THREE.Vector3(printBedWidth / 2 - 1.0 / 2, -0.25 + 1.0 / 2, -printBedDepth / 2 + 1.0 / 2));
+					axisGeometry.vertices.push(new THREE.Vector3(printBedWidth / 2 - 0.05, 0.05, -printBedDepth / 2 + 0.05));
+					axisGeometry.vertices.push(new THREE.Vector3(printBedWidth / 2 - 0.05, 0.05, -printBedDepth / 2 + 0.05));
 				
 					// Create X axis
 					this.axes[0] = new THREE.Line(axisGeometry.clone(), axisMaterial.clone());
 					this.axes[0].geometry.vertices[1].x -= 20;
 					this.axes[0].position.set(printBedOffsetX, -0.25 + bedLowMinZ, (bedLowMinY + printBedOffsetY) / 2);
 					this.axes[0].material.color.setHex(0xFF0000);
-					this.axes[0].renderOrder = 4;
 					
 					// Create Y axis
 					this.axes[1] = new THREE.Line(axisGeometry.clone(), axisMaterial.clone());
 					this.axes[1].geometry.vertices[1].y += 20;
 					this.axes[1].position.set(printBedOffsetX, -0.25 + bedLowMinZ, (bedLowMinY + printBedOffsetY) / 2);
 					this.axes[1].material.color.setHex(0x00FF00);
-					this.axes[1].renderOrder = 4;
 					
 					// Create Z axis
 					this.axes[2] = new THREE.Line(axisGeometry.clone(), axisMaterial.clone());
 					this.axes[2].geometry.vertices[1].z += 20;
 					this.axes[2].position.set(printBedOffsetX, -0.25 + bedLowMinZ, (bedLowMinY + printBedOffsetY) / 2);
 					this.axes[2].material.color.setHex(0x0000FF);
-					this.axes[2].renderOrder = 4;
 					
 					// Go through all axes
 					for(var i = 0; i < this.axes.length; i++) {
 				
 						// Add axis to scene
 						this.axes[i].visible = this.showAxes;
-						this.scene[0].add(this.axes[i]);
+						this.scene[1].add(this.axes[i]);
 					}
 					
 					// Check if a printer model is available
@@ -1469,8 +1466,9 @@ $(function() {
 			
 					// Create measurement material
 					var measurementMaterial = new THREE.LineBasicMaterial({
-						color: 0x0000FF,
-						side: THREE.FrontSide
+						color: 0xFF00FF,
+						side: THREE.FrontSide,
+						linewidth: 2
 					});
 		
 					// Create measurement geometry
@@ -3884,6 +3882,7 @@ $(function() {
 			PLUGIN_BASEURL + "m33fio/static/img/reset.png",
 			PLUGIN_BASEURL + "m33fio/static/img/cut.png",
 			PLUGIN_BASEURL + "m33fio/static/img/merge.png",
+			PLUGIN_BASEURL + "m33fio/static/img/axes.png",
 			PLUGIN_BASEURL + "m33fio/static/img/boundaries.png",
 			PLUGIN_BASEURL + "m33fio/static/img/measurements.png",
 			PLUGIN_BASEURL + "m33fio/static/img/cube.png",

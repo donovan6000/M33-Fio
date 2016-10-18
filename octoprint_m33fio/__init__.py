@@ -4959,7 +4959,8 @@ class M33FioPlugin(
 					elif platform.uname()[0].startswith("Linux") :
 				
 						slic3rLocations = [
-							"/usr/bin/slic3r"
+							"/usr/bin/slic3r",
+							"/opt/Slic3r/bin/slic3r"
 						]
 				
 					# Go through all slic3r location
