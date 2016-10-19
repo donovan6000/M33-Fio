@@ -4,7 +4,6 @@ V1.9 October X, 2016
 
 	* Provides iMe V00.00.01.23 printer firmware
 	* Added options for solid layer fill patterns when using Slic3r
-	* Fixed some issues with the slicer profile editor
 	* Fixed OS X installer to work with OS X V10.12
 	* Removed homing before a print in the preparation pre-processor stage when using iMe firmware
 	* Allows disabling sleep and slicer reminders

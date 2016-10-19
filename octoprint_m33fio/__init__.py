@@ -3230,7 +3230,17 @@ class M33FioPlugin(
 				shutil.copyfile(self._settings.global_get_basefolder("base").replace('\\', '/') + "/config.yaml", self._settings.global_get_basefolder("base").replace('\\', '/') + "/config.yaml" + str(port))
 				
 				# Create instance
-				subprocess.Popen([sys.executable.replace('\\', '/'), "-c", "import octoprint;octoprint.main()", "--port", str(port), "--config", self._settings.global_get_basefolder("base").replace('\\', '/') + "/config.yaml" + str(port)])
+				octoprintProcess = subprocess.Popen([sys.executable.replace('\\', '/'), "-c", "import octoprint;octoprint.main()", "--port", str(port), "--config", self._settings.global_get_basefolder("base").replace('\\', '/') + "/config.yaml" + str(port)])
+				
+				# Wait until new instance is ready
+				while self.isPortOpen(port) :
+					time.sleep(0.5)
+					
+					# Check if creating instance failed
+					if octoprintProcess.poll() is not None :
+						
+						# Send response
+						return flask.jsonify(dict(value = "Error"))
 				
 				# Send response
 				return flask.jsonify(dict(value = "OK", port = port))

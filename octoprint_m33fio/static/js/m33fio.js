@@ -4444,6 +4444,13 @@ $(function() {
 			$(this).mousemove();
 		});
 		
+		// Window resize event
+		$(window).resize(function() {
+
+			// Position navbar
+			$("#navbar_plugin_m33fio").addClass("show").css("left", $("#state_wrapper").offset().left - $("#navbar a.brand").offset().left + "px");
+		});
+		
 		// Control button click event
 		$(document).on("click", "#control button", function() {
 
@@ -12017,11 +12024,8 @@ $(function() {
 						// Otherwise
 						else
 						
-							setTimeout(function() {
-						
-								// Go to OctoPrint instance
-								window.location.port = data.port;
-							}, 1000);
+							// Go to OctoPrint instance
+							window.location.port = data.port;
 					}
 				});
 			}
@@ -13643,6 +13647,22 @@ $(function() {
 		
 		// On startup complete
 		self.onStartupComplete = function() {
+		
+			// Update webcam stream
+			CONFIG_WEBCAM_STREAM = self.settings.settings.webcam.streamUrl();
+			if(CONFIG_WEBCAM_STREAM === null)
+				CONFIG_WEBCAM_STREAM = "None"
+		
+			// Update webcam display
+			if($("#control_link").hasClass("active")) {
+				$("#webcam_image").attr("src", "");
+				self.control.onTabChange("#control", "");
+			}
+		
+			// Resize window
+			setTimeout(function() {
+				$(window).resize();
+			}, 0);
 		
 			// Set mid-print filament change layer input
 			$("#gcode div.midPrintFilamentChange input").val(self.settings.settings.plugins.m33fio.MidPrintFilamentChangeLayers());

@@ -174,10 +174,15 @@ body > div.modal-scrollable.hideOverflow {
 }
 
 #navbar_plugin_m33fio {
-	display: inline;
 	position: absolute;
 	top: 44px;
-	left: 30px;
+	left: 0;
+	margin-left: 10px;
+	display: none;
+}
+
+#navbar_plugin_m33fio.show {
+	display: inline;
 }
 
 #navbar_plugin_m33fio > select {
