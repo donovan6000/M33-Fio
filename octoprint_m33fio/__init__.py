@@ -148,6 +148,7 @@ class M33FioPlugin(
 		self.slicerReminder = False
 		self.sleepReminder = False
 		self.webcamProcess = None
+		self.serialPortsList = []
 		
 		# Rom decryption and encryption tables
 		self.romDecryptionTable = [0x26, 0xE2, 0x63, 0xAC, 0x27, 0xDE, 0x0D, 0x94, 0x79, 0xAB, 0x29, 0x87, 0x14, 0x95, 0x1F, 0xAE, 0x5F, 0xED, 0x47, 0xCE, 0x60, 0xBC, 0x11, 0xC3, 0x42, 0xE3, 0x03, 0x8E, 0x6D, 0x9D, 0x6E, 0xF2, 0x4D, 0x84, 0x25, 0xFF, 0x40, 0xC0, 0x44, 0xFD, 0x0F, 0x9B, 0x67, 0x90, 0x16, 0xB4, 0x07, 0x80, 0x39, 0xFB, 0x1D, 0xF9, 0x5A, 0xCA, 0x57, 0xA9, 0x5E, 0xEF, 0x6B, 0xB6, 0x2F, 0x83, 0x65, 0x8A, 0x13, 0xF5, 0x3C, 0xDC, 0x37, 0xD3, 0x0A, 0xF4, 0x77, 0xF3, 0x20, 0xE8, 0x73, 0xDB, 0x7B, 0xBB, 0x0B, 0xFA, 0x64, 0x8F, 0x08, 0xA3, 0x7D, 0xEB, 0x5C, 0x9C, 0x3E, 0x8C, 0x30, 0xB0, 0x7F, 0xBE, 0x2A, 0xD0, 0x68, 0xA2, 0x22, 0xF7, 0x1C, 0xC2, 0x17, 0xCD, 0x78, 0xC7, 0x21, 0x9E, 0x70, 0x99, 0x1A, 0xF8, 0x58, 0xEA, 0x36, 0xB1, 0x69, 0xC9, 0x04, 0xEE, 0x3B, 0xD6, 0x34, 0xFE, 0x55, 0xE7, 0x1B, 0xA6, 0x4A, 0x9A, 0x54, 0xE6, 0x51, 0xA0, 0x4E, 0xCF, 0x32, 0x88, 0x48, 0xA4, 0x33, 0xA5, 0x5B, 0xB9, 0x62, 0xD4, 0x6F, 0x98, 0x6C, 0xE1, 0x53, 0xCB, 0x46, 0xDD, 0x01, 0xE5, 0x7A, 0x86, 0x75, 0xDF, 0x31, 0xD2, 0x02, 0x97, 0x66, 0xE4, 0x38, 0xEC, 0x12, 0xB7, 0x00, 0x93, 0x15, 0x8B, 0x6A, 0xC5, 0x71, 0x92, 0x45, 0xA1, 0x59, 0xF0, 0x06, 0xA8, 0x5D, 0x82, 0x2C, 0xC4, 0x43, 0xCC, 0x2D, 0xD5, 0x35, 0xD7, 0x3D, 0xB2, 0x74, 0xB3, 0x09, 0xC6, 0x7C, 0xBF, 0x2E, 0xB8, 0x28, 0x9F, 0x41, 0xBA, 0x10, 0xAF, 0x0C, 0xFC, 0x23, 0xD9, 0x49, 0xF6, 0x7E, 0x8D, 0x18, 0x96, 0x56, 0xD1, 0x2B, 0xAD, 0x4B, 0xC1, 0x4F, 0xC8, 0x3A, 0xF1, 0x1E, 0xBD, 0x4C, 0xDA, 0x50, 0xA7, 0x52, 0xE9, 0x76, 0xD8, 0x19, 0x91, 0x72, 0x85, 0x3F, 0x81, 0x61, 0xAA, 0x05, 0x89, 0x0E, 0xB5, 0x24, 0xE0]
@@ -642,8 +643,21 @@ class M33FioPlugin(
 	# Get heatbed port
 	def getHeatbedPort(self) :
 	
+		# Check if available serial ports have changed
+		newestSerialPortsList = list(serial.tools.list_ports.comports())
+		if cmp(self.serialPortsList, newestSerialPortsList) != 0 :
+	
+			# Update all serial ports
+			self.serialPortsList = newestSerialPortsList
+	
+			# Check if not currently connected to a printer
+			if self._printer.is_closed_or_error() :
+	
+				# Update serial ports
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Update Serial Ports"))
+	
 		# Go through all connected serial ports
-		for port in list(serial.tools.list_ports.comports()) :
+		for port in newestSerialPortsList :
 		
 			# Get device
 			device = port[2].upper()
@@ -724,7 +738,7 @@ class M33FioPlugin(
 					else :
 					
 						# Set connection timeout
-						if float(serial.VERSION) < 3 :
+						if int(serial.VERSION.split('.', 1)[0]) < 3 :
 							self.heatbedConnection.writeTimeout = 1
 						else :
 							self.heatbedConnection.write_timeout = 1
@@ -751,7 +765,7 @@ class M33FioPlugin(
 				
 						# Put heatbed into temperature mode
 						try :
-							if float(serial.VERSION) < 3 :
+							if int(serial.VERSION.split('.', 1)[0]) < 3 :
 								self.heatbedConnection.flushInput()
 								self.heatbedConnection.flushOutput()
 							else :
@@ -762,7 +776,7 @@ class M33FioPlugin(
 							
 							time.sleep(0.5)
 							
-							if float(serial.VERSION) < 3 :
+							if int(serial.VERSION.split('.', 1)[0]) < 3 :
 								self.heatbedConnection.flushInput()
 								self.heatbedConnection.flushOutput()
 							else :
@@ -3227,7 +3241,8 @@ class M33FioPlugin(
 					port += 1
 			
 				# Create config file
-				shutil.copyfile(self._settings.global_get_basefolder("base").replace('\\', '/') + "/config.yaml", self._settings.global_get_basefolder("base").replace('\\', '/') + "/config.yaml" + str(port))
+				configFile = self._settings.global_get_basefolder("base").replace('\\', '/') + "/config.yaml" + str(port)
+				shutil.copyfile(self._settings.global_get_basefolder("base").replace('\\', '/') + "/config.yaml", configFile)
 				
 				# Create instance
 				octoprintProcess = subprocess.Popen([sys.executable.replace('\\', '/'), "-c", "import octoprint;octoprint.main()", "--port", str(port), "--config", self._settings.global_get_basefolder("base").replace('\\', '/') + "/config.yaml" + str(port)])
@@ -3238,6 +3253,10 @@ class M33FioPlugin(
 					
 					# Check if creating instance failed
 					if octoprintProcess.poll() is not None :
+					
+						# Remove config file
+						if os.path.isfile(configFile) :
+							os.remove(configFile)
 						
 						# Send response
 						return flask.jsonify(dict(value = "Error"))
@@ -5711,7 +5730,7 @@ class M33FioPlugin(
 			if currentPort is None :
 				
 				# Send message
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "No Micro 3D printer detected. Try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "No Micro 3D printer detected. If your not using a Micro 3D printer then make sure to enable the 'Not using a Micro 3D printer' setting in the M33 Fio tab in OctoPrint's settings. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
 			
 			# Otherwise
 			else :
@@ -5730,7 +5749,7 @@ class M33FioPlugin(
 					error = True
 					
 					# Send message
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. Try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the 'Not using a Micro 3D printer' setting in the M33 Fio tab in OctoPrint's settings. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
 				
 				# Check if no errors occured
 				if not error :
@@ -5753,7 +5772,7 @@ class M33FioPlugin(
 							connection.write("M110")
 							bootloaderVersion = connection.read()
 				
-							if float(serial.VERSION) < 3 :
+							if int(serial.VERSION.split('.', 1)[0]) < 3 :
 								bootloaderVersion += connection.read(connection.inWaiting())
 							else :
 								bootloaderVersion += connection.read(connection.in_waiting)
@@ -5765,7 +5784,7 @@ class M33FioPlugin(
 							error = True
 					
 							# Send message
-							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. Try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
+							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the 'Not using a Micro 3D printer' setting in the M33 Fio tab in OctoPrint's settings. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
 			
 						# Check if no errors occured
 						if not error :
@@ -5803,7 +5822,7 @@ class M33FioPlugin(
 									error = True
 							
 									# Send message
-									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. Try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
+									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the 'Not using a Micro 3D printer' setting in the M33 Fio tab in OctoPrint's settings. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
 					
 								# Otherwise
 								else :
@@ -5825,7 +5844,7 @@ class M33FioPlugin(
 										error = True
 								
 										# Send message
-										self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. Try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
+										self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the 'Not using a Micro 3D printer' setting in the M33 Fio tab in OctoPrint's settings. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
 								
 									# Otherwise check if using OS X or Linux and the user lacks read/write access to the printer
 									elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(currentPort, os.R_OK | os.W_OK) :
@@ -5838,380 +5857,352 @@ class M33FioPlugin(
 			
 							# Check if an error hasn't occured
 							if not error :
+								
+								# Attempt to get current printer mode to
+								try :
 					
-								# Check if getting EEPROM was successful
-								if self.getEeprom(connection) :
-					
-									# Get firmware CRC from EEPROM
-									eepromCrc = self.eepromGetInt("firmwareCrc")
+									connection.write("M110")
+									bootloaderVersion = connection.read()
 				
-									# Request firmware CRC from chip
-									connection.write('C')
-									connection.write('A')
-
-									# Get response
-									response = connection.read(4)
-
-									# Get chip CRC
-									chipCrc = 0
-									index = 3
-									while index >= 0 :
-										chipCrc <<= 8
-										chipCrc += int(ord(response[index]))
-										index -= 1
-					
-									# Get firmware details
-									firmwareType, firmwareVersion, firmwareRelease = self.getFirmwareDetails()
-					
-									# Get serial number from EEPROM
-									serialNumber = self.eepromGetString("serialNumber")
-				
-									# Set printer color
-									color = serialNumber[0 : 2]
-									if color == "BK" :
-										self.printerColor = "Black"
-									elif color == "WH" :
-										self.printerColor = "White"
-									elif color == "BL" :
-										self.printerColor = "Blue"
-									elif color == "GR" :
-										self.printerColor = "Green"
-									elif color == "OR" :
-										self.printerColor = "Orange"
-									elif color == "CL" :
-										self.printerColor = "Clear"
-									elif color == "SL" :
-										self.printerColor = "Silver"
-									elif color == "PL" :
-										self.printerColor = "Purple"
-				
-									# Get fan type from EEPROM
-									fanType = self.eepromGetInt("fanType")
-				
-									# Check if fan hasn't been set yet
-									if fanType == 0 or fanType == 0xFF :
-		
-										# Check if device is newer
-										if int(serialNumber[2 : 8]) >= 150602 :
-		
-											# Set default newer fan
-											fanName = "Shenzhew"
-					
-										# Otherwise
-										else :
-					
-											# Set default older fan
-											fanName = "HengLiXin"
-					
-										# Check if setting fan failed
-										if not self.setFan(connection, fanName) :
-			
-											# Set error
-											error = True
-					
-										# Check if an error occured
-										if error :
-					
-											# Display error
-											self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Setting fan failed", header = "Error Status", confirm = True))
-				
-									# Otherwise
+									if int(serial.VERSION.split('.', 1)[0]) < 3 :
+										bootloaderVersion += connection.read(connection.inWaiting())
 									else :
-				
-										# Set fan name
-										fanName = None
-										if fanType == 1 :
-											fanName = "HengLiXin"
-										elif fanType == 2 :
-											fanName = "Listener"
-										elif fanType == 3 :
-											fanName = "Shenzhew"
-										elif fanType == 4 :
-											fanName = "Xinyujie"
-					
-										# Check if updating fan failed
-										if fanName is not None and not self.setFan(connection, fanName) :
-					
-											# Set error
-											error = True
-					
-											# Display error
-											self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Updating fan settings failed", header = "Error Status", confirm = True))
-				
-									# Check if printer uses 500mA extruder current
-									shortSerialNumber = serialNumber[0 : 13]
-									if not error and (shortSerialNumber == "BK15033001100" or shortSerialNumber == "BK15040201050" or shortSerialNumber == "BK15040301050" or shortSerialNumber == "BK15040602050" or shortSerialNumber == "BK15040801050" or shortSerialNumber == "BK15040802100" or shortSerialNumber == "GR15032702100" or shortSerialNumber == "GR15033101100" or shortSerialNumber == "GR15040601100" or shortSerialNumber == "GR15040701100" or shortSerialNumber == "OR15032701100" or shortSerialNumber == "SL15032601050") :
-				
-										# Check if setting extruder current failed
-										if not self.setExtruderCurrent(connection, 500) :
-					
-											# Set error
-											error = True
-					
-											# Display error
-											self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Updating extruder current failed", header = "Error Status", confirm = True))
-				
-									# Check if using M3D or M3D Mod firmware and it's from before new bed orientation and adjustable backlash speed
-									if not error and ((firmwareType == "M3D" and firmwareVersion < 2015080402) or (firmwareType == "M3D Mod" and firmwareVersion < 2115080402)) :
-							
-										# Set error to if zeroing out all bed offets in EEPROM failed
-										error = self.eepromSetInt(connection, "bedOffsetBackLeft", 0, self.eepromOffsets["bedHeightOffset"]["offset"] + self.eepromOffsets["bedHeightOffset"]["bytes"] - self.eepromOffsets["bedOffsetBackLeft"]["offset"])
-					
-										# Check if an error hasn't occured
-										if not error :
-								
-											# Set error to if setting default backlash speed failed
-											error = self.eepromSetFloat(connection, "backlashSpeed", 1500)
-						
-										# Check if an error has occured
-										if error :
-					
-											# Display error
-											self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Updating version changes failed", header = "Error Status", confirm = True))
-							
-									# Check if an error hasn't occured
-									if not error :
-							
-										# Set error to if limiting backlash X failed
-										error = self.eepromKeepFloatWithinRange(connection, "backlashX", 0, 2, self.get_settings_defaults()["BacklashX"])
-							
-										# Check if an error hasn't occured
-										if not error :
-							
-											# Set error to if limiting backlash Y failed
-											error = self.eepromKeepFloatWithinRange(connection, "backlashY", 0, 2, self.get_settings_defaults()["BacklashY"])
-							
-										# Check if an error hasn't occured
-										if not error :
-							
-											# Set error to if limiting backlash speed failed
-											error = self.eepromKeepFloatWithinRange(connection, "backlashSpeed", 1, 5000, self.get_settings_defaults()["BacklashSpeed"])
-							
-										# Check if an error hasn't occured
-										if not error :
-							
-											# Set error to if limiting back left orientation failed
-											error = self.eepromKeepFloatWithinRange(connection, "bedOrientationBackLeft", -3, 3, self.get_settings_defaults()["BackLeftOrientation"])
-							
-										# Check if an error hasn't occured
-										if not error :
-							
-											# Set error to if limiting back right orientation failed
-											error = self.eepromKeepFloatWithinRange(connection, "bedOrientationBackRight", -3, 3, self.get_settings_defaults()["BackRightOrientation"])
-							
-										# Check if an error hasn't occured
-										if not error :
-							
-											# Set error to if limiting front right orientation failed
-											error = self.eepromKeepFloatWithinRange(connection, "bedOrientationFrontRight", -3, 3, self.get_settings_defaults()["FrontRightOrientation"])
-							
-										# Check if an error hasn't occured
-										if not error :
-							
-											# Set error to if limiting front left orientation failed
-											error = self.eepromKeepFloatWithinRange(connection, "bedOrientationFrontLeft", -3, 3, self.get_settings_defaults()["FrontLeftOrientation"])
-							
-										# Check if an error hasn't occured
-										if not error :
-							
-											# Set error to if limiting back left offset failed
-											error = self.eepromKeepFloatWithinRange(connection, "bedOffsetBackLeft", -sys.float_info.max, sys.float_info.max, self.get_settings_defaults()["BackLeftOffset"])
-							
-										# Check if an error hasn't occured
-										if not error :
-							
-											# Set error to if limiting back right offset failed
-											error = self.eepromKeepFloatWithinRange(connection, "bedOffsetBackRight", -sys.float_info.max, sys.float_info.max, self.get_settings_defaults()["BackRightOffset"])
-							
-										# Check if an error hasn't occured
-										if not error :
-							
-											# Set error to if limiting front right offset failed
-											error = self.eepromKeepFloatWithinRange(connection, "bedOffsetFrontRight", -sys.float_info.max, sys.float_info.max, self.get_settings_defaults()["FrontRightOffset"])
-							
-										# Check if an error hasn't occured
-										if not error :
-							
-											# Set error to if limiting front left offset failed
-											error = self.eepromKeepFloatWithinRange(connection, "bedOffsetFrontLeft", -sys.float_info.max, sys.float_info.max, self.get_settings_defaults()["FrontLeftOffset"])
-							
-										# Check if an error hasn't occured
-										if not error :
-							
-											# Set error to if limiting bed height offset failed
-											error = self.eepromKeepFloatWithinRange(connection, "bedHeightOffset", -sys.float_info.max, sys.float_info.max, self.get_settings_defaults()["BedHeightOffset"])
-								
-										# Check if an error hasn't occured
-										if not error :
-							
-											# Set error to if limiting speed limit X failed
-											error = self.eepromKeepFloatWithinRange(connection, "speedLimitX", 120, 4800, self.get_settings_defaults()["SpeedLimitX"])
-							
-										# Check if an error hasn't occured
-										if not error :
-							
-											# Set error to if limiting speed limit Y failed
-											error = self.eepromKeepFloatWithinRange(connection, "speedLimitY", 120, 4800, self.get_settings_defaults()["SpeedLimitY"])
-				
-										# Check if an error hasn't occured
-										if not error :
-							
-											# Set error to if limiting speed limit Z failed
-											error = self.eepromKeepFloatWithinRange(connection, "speedLimitZ", 30, 60, self.get_settings_defaults()["SpeedLimitZ"])
-							
-										# Check if an error hasn't occured
-										if not error :
-							
-											# Set error to if limiting speed limit E positive failed
-											error = self.eepromKeepFloatWithinRange(connection, "speedLimitEPositive", 60, 600, self.get_settings_defaults()["SpeedLimitEPositive"])
-							
-										# Check if an error hasn't occured
-										if not error :
-							
-											# Set error to if limiting speed limit E negative failed
-											error = self.eepromKeepFloatWithinRange(connection, "speedLimitENegative", 60, 720, self.get_settings_defaults()["SpeedLimitENegative"])
-								
-										# Check if not using M3D or M3D Mod firmware
-										if firmwareType != "M3D" and firmwareType != "M3D Mod" :
-								
-											# Check if an error hasn't occured
-											if not error :
-							
-												# Set error to if limiting last recorded X value failed
-												error = self.eepromKeepFloatWithinRange(connection, "lastRecordedXValue", -sys.float_info.max, sys.float_info.max, 54)
-							
-											# Check if an error hasn't occured
-											if not error :
-							
-												# Set error to if limiting last recorded Y value failed
-												error = self.eepromKeepFloatWithinRange(connection, "lastRecordedYValue", -sys.float_info.max, sys.float_info.max, 50)
+										bootloaderVersion += connection.read(connection.in_waiting)
 									
-											# Check if an error hasn't occured
-											if not error :
-							
-												# Set error to if limiting X motor steps/mm failed
-												error = self.eepromKeepFloatWithinRange(connection, "xMotorStepsPerMm", sys.float_info.min, sys.float_info.max, self.get_settings_defaults()["XMotorStepsPerMm"])
+									# Check if not in bootloader mode
+									if not bootloaderVersion.startswith('B') :
 									
-											# Check if an error hasn't occured
-											if not error :
-							
-												# Set error to if limiting Y motor steps/mm failed
-												error = self.eepromKeepFloatWithinRange(connection, "yMotorStepsPerMm", sys.float_info.min, sys.float_info.max, self.get_settings_defaults()["YMotorStepsPerMm"])
-									
-											# Check if an error hasn't occured
-											if not error :
-							
-												# Set error to if limiting Z motor steps/mm failed
-												error = self.eepromKeepFloatWithinRange(connection, "zMotorStepsPerMm", sys.float_info.min, sys.float_info.max, self.get_settings_defaults()["ZMotorStepsPerMm"])
-									
-											# Check if an error hasn't occured
-											if not error :
-							
-												# Set error to if limiting E motor steps/mm failed
-												error = self.eepromKeepFloatWithinRange(connection, "eMotorStepsPerMm", sys.float_info.min, sys.float_info.max, self.get_settings_defaults()["EMotorStepsPerMm"])
-											
-											# Check if an error hasn't occured
-											if not error :
-							
-												# Set error to if limiting X jerk sensitivity failed
-												error = self.eepromKeepIntWithinRange(connection, "xJerkSensitivity", 1, 255, self.get_settings_defaults()["XJerkSensitivity"])
-											
-											# Check if an error hasn't occured
-											if not error :
-							
-												# Set error to if limiting Y jerk sensitivity failed
-												error = self.eepromKeepIntWithinRange(connection, "yJerkSensitivity", 1, 255, self.get_settings_defaults()["YJerkSensitivity"])
-											
-											# Check if an error hasn't occured
-											if not error :
-							
-												# Set error to if limiting calibrate Z0 correction failed
-												error = self.eepromKeepFloatWithinRange(connection, "calibrateZ0Correction", -sys.float_info.max, sys.float_info.max, self.get_settings_defaults()["CalibrateZ0Correction"])
+										# Set error
+										error = True
 										
-										# Check if an error hasn't occured
-										if not error :
-							
-											# Set error to if limiting last recorded Z value failed
-											error = self.eepromKeepFloatWithinRange(connection, "lastRecordedZValue", -sys.float_info.max, sys.float_info.max, 5)
+										# Send message
+										self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the 'Not using a Micro 3D printer' setting in the M33 Fio tab in OctoPrint's settings. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
+			
+								# Check if an error occured
+								except :
+			
+									# Set error
+									error = True
+					
+									# Send message
+									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the 'Not using a Micro 3D printer' setting in the M33 Fio tab in OctoPrint's settings. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
 								
-										# Check if an error has occured
-										if error :
-					
-											# Display error
-											self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Updating EEPROM values failed", header = "Error Status", confirm = True))
+								# Check if an error hasn't occured
+								if not error :
 								
-									# Check if firmware is corrupt
-									if not error and eepromCrc != chipCrc :
+									# Check if getting EEPROM was successful
+									if self.getEeprom(connection) :
 					
-										# Set current firmware type
-										if firmwareType is None :
-											currentFirmwareType = "iMe"
-										else :
-											currentFirmwareType = firmwareType
+										# Get firmware CRC from EEPROM
+										eepromCrc = self.eepromGetInt("firmwareCrc")
 				
-										# Display message
-										self.messageResponse = None
-										self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Question", message = "Firmware is corrupt. Update to " + currentFirmwareType + " firmware version " + self.providedFirmwares[self.getNewestFirmwareName(currentFirmwareType)]["Release"] + '?', header = "Firmware Status", response = True))
+										# Request firmware CRC from chip
+										connection.write('C')
+										connection.write('A')
+
+										# Get response
+										response = connection.read(4)
+
+										# Get chip CRC
+										chipCrc = 0
+										index = 3
+										while index >= 0 :
+											chipCrc <<= 8
+											chipCrc += int(ord(response[index]))
+											index -= 1
 					
-										# Wait until response is obtained
-										while self.messageResponse is None :
-											time.sleep(0.01)
+										# Get firmware details
+										firmwareType, firmwareVersion, firmwareRelease = self.getFirmwareDetails()
 					
-										# Check if response was no
-										if not self.messageResponse :
-					
-											# Set error
-											error = True
+										# Get serial number from EEPROM
+										serialNumber = self.eepromGetString("serialNumber")
 				
-										# Otherwise
-										else :
+										# Set printer color
+										color = serialNumber[0 : 2]
+										if color == "BK" :
+											self.printerColor = "Black"
+										elif color == "WH" :
+											self.printerColor = "White"
+										elif color == "BL" :
+											self.printerColor = "Blue"
+										elif color == "GR" :
+											self.printerColor = "Green"
+										elif color == "OR" :
+											self.printerColor = "Orange"
+										elif color == "CL" :
+											self.printerColor = "Clear"
+										elif color == "SL" :
+											self.printerColor = "Silver"
+										elif color == "PL" :
+											self.printerColor = "Purple"
+				
+										# Get fan type from EEPROM
+										fanType = self.eepromGetInt("fanType")
+				
+										# Check if fan hasn't been set yet
+										if fanType == 0 or fanType == 0xFF :
+		
+											# Check if device is newer
+											if int(serialNumber[2 : 8]) >= 150602 :
+		
+												# Set default newer fan
+												fanName = "Shenzhew"
 					
-											# Send message
-											self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Updating firmware", header = "Firmware Status"))
-					
-											# Check if updating firmware failed
-											if not self.updateToProvidedFirmware(connection, self.getNewestFirmwareName(currentFirmwareType)) :
-					
-												# Set error
-												error = True
-										
-												# Send message
-												self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Updating firmware failed", header = "Firmware Status", confirm = True))
-						
 											# Otherwise
 											else :
 					
-												# Send message
-												self.messageResponse = None
-												self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Question", message = "Updating firmware was successful", header = "Firmware Status", confirm = True))
+												# Set default older fan
+												fanName = "HengLiXin"
 					
-												# Wait until response is obtained
-												while self.messageResponse is None :
-													time.sleep(0.01)
+											# Check if setting fan failed
+											if not self.setFan(connection, fanName) :
+			
+												# Set error
+												error = True
 					
-									# Otherwise check if firmware is outdated or incompatible
-									elif not error and (firmwareType is None or firmwareVersion < int(self.providedFirmwares[self.getNewestFirmwareName(firmwareType)]["Version"])) :
+											# Check if an error occured
+											if error :
+					
+												# Display error
+												self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Setting fan failed", header = "Error Status", confirm = True))
 				
-										# Set if firmware is incompatible
-										if firmwareType is None :
-											incompatible = True
-											firmwareType = "iMe"
-										elif firmwareType == "M3D" :
-											incompatible = firmwareVersion < 2015122112
-										elif firmwareType == "M3D Mod" :
-											incompatible = firmwareVersion < 2115122112
-										elif firmwareType == "iMe" :
-											incompatible = firmwareVersion < 1900000123
+										# Otherwise
+										else :
+				
+											# Set fan name
+											fanName = None
+											if fanType == 1 :
+												fanName = "HengLiXin"
+											elif fanType == 2 :
+												fanName = "Listener"
+											elif fanType == 3 :
+												fanName = "Shenzhew"
+											elif fanType == 4 :
+												fanName = "Xinyujie"
+					
+											# Check if updating fan failed
+											if fanName is not None and not self.setFan(connection, fanName) :
+					
+												# Set error
+												error = True
+					
+												# Display error
+												self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Updating fan settings failed", header = "Error Status", confirm = True))
+				
+										# Check if printer uses 500mA extruder current
+										shortSerialNumber = serialNumber[0 : 13]
+										if not error and (shortSerialNumber == "BK15033001100" or shortSerialNumber == "BK15040201050" or shortSerialNumber == "BK15040301050" or shortSerialNumber == "BK15040602050" or shortSerialNumber == "BK15040801050" or shortSerialNumber == "BK15040802100" or shortSerialNumber == "GR15032702100" or shortSerialNumber == "GR15033101100" or shortSerialNumber == "GR15040601100" or shortSerialNumber == "GR15040701100" or shortSerialNumber == "OR15032701100" or shortSerialNumber == "SL15032601050") :
+				
+											# Check if setting extruder current failed
+											if not self.setExtruderCurrent(connection, 500) :
+					
+												# Set error
+												error = True
+					
+												# Display error
+												self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Updating extruder current failed", header = "Error Status", confirm = True))
+				
+										# Check if using M3D or M3D Mod firmware and it's from before new bed orientation and adjustable backlash speed
+										if not error and ((firmwareType == "M3D" and firmwareVersion < 2015080402) or (firmwareType == "M3D Mod" and firmwareVersion < 2115080402)) :
+							
+											# Set error to if zeroing out all bed offets in EEPROM failed
+											error = self.eepromSetInt(connection, "bedOffsetBackLeft", 0, self.eepromOffsets["bedHeightOffset"]["offset"] + self.eepromOffsets["bedHeightOffset"]["bytes"] - self.eepromOffsets["bedOffsetBackLeft"]["offset"])
+					
+											# Check if an error hasn't occured
+											if not error :
 								
-										# Check if printer is incompatible or not reconnecting to printer
-										if incompatible or not self.reconnectingToPrinter :
+												# Set error to if setting default backlash speed failed
+												error = self.eepromSetFloat(connection, "backlashSpeed", 1500)
 						
+											# Check if an error has occured
+											if error :
+					
+												# Display error
+												self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Updating version changes failed", header = "Error Status", confirm = True))
+							
+										# Check if an error hasn't occured
+										if not error :
+							
+											# Set error to if limiting backlash X failed
+											error = self.eepromKeepFloatWithinRange(connection, "backlashX", 0, 2, self.get_settings_defaults()["BacklashX"])
+							
+											# Check if an error hasn't occured
+											if not error :
+							
+												# Set error to if limiting backlash Y failed
+												error = self.eepromKeepFloatWithinRange(connection, "backlashY", 0, 2, self.get_settings_defaults()["BacklashY"])
+							
+											# Check if an error hasn't occured
+											if not error :
+							
+												# Set error to if limiting backlash speed failed
+												error = self.eepromKeepFloatWithinRange(connection, "backlashSpeed", 1, 5000, self.get_settings_defaults()["BacklashSpeed"])
+							
+											# Check if an error hasn't occured
+											if not error :
+							
+												# Set error to if limiting back left orientation failed
+												error = self.eepromKeepFloatWithinRange(connection, "bedOrientationBackLeft", -3, 3, self.get_settings_defaults()["BackLeftOrientation"])
+							
+											# Check if an error hasn't occured
+											if not error :
+							
+												# Set error to if limiting back right orientation failed
+												error = self.eepromKeepFloatWithinRange(connection, "bedOrientationBackRight", -3, 3, self.get_settings_defaults()["BackRightOrientation"])
+							
+											# Check if an error hasn't occured
+											if not error :
+							
+												# Set error to if limiting front right orientation failed
+												error = self.eepromKeepFloatWithinRange(connection, "bedOrientationFrontRight", -3, 3, self.get_settings_defaults()["FrontRightOrientation"])
+							
+											# Check if an error hasn't occured
+											if not error :
+							
+												# Set error to if limiting front left orientation failed
+												error = self.eepromKeepFloatWithinRange(connection, "bedOrientationFrontLeft", -3, 3, self.get_settings_defaults()["FrontLeftOrientation"])
+							
+											# Check if an error hasn't occured
+											if not error :
+							
+												# Set error to if limiting back left offset failed
+												error = self.eepromKeepFloatWithinRange(connection, "bedOffsetBackLeft", -sys.float_info.max, sys.float_info.max, self.get_settings_defaults()["BackLeftOffset"])
+							
+											# Check if an error hasn't occured
+											if not error :
+							
+												# Set error to if limiting back right offset failed
+												error = self.eepromKeepFloatWithinRange(connection, "bedOffsetBackRight", -sys.float_info.max, sys.float_info.max, self.get_settings_defaults()["BackRightOffset"])
+							
+											# Check if an error hasn't occured
+											if not error :
+							
+												# Set error to if limiting front right offset failed
+												error = self.eepromKeepFloatWithinRange(connection, "bedOffsetFrontRight", -sys.float_info.max, sys.float_info.max, self.get_settings_defaults()["FrontRightOffset"])
+							
+											# Check if an error hasn't occured
+											if not error :
+							
+												# Set error to if limiting front left offset failed
+												error = self.eepromKeepFloatWithinRange(connection, "bedOffsetFrontLeft", -sys.float_info.max, sys.float_info.max, self.get_settings_defaults()["FrontLeftOffset"])
+							
+											# Check if an error hasn't occured
+											if not error :
+							
+												# Set error to if limiting bed height offset failed
+												error = self.eepromKeepFloatWithinRange(connection, "bedHeightOffset", -sys.float_info.max, sys.float_info.max, self.get_settings_defaults()["BedHeightOffset"])
+								
+											# Check if an error hasn't occured
+											if not error :
+							
+												# Set error to if limiting speed limit X failed
+												error = self.eepromKeepFloatWithinRange(connection, "speedLimitX", 120, 4800, self.get_settings_defaults()["SpeedLimitX"])
+							
+											# Check if an error hasn't occured
+											if not error :
+							
+												# Set error to if limiting speed limit Y failed
+												error = self.eepromKeepFloatWithinRange(connection, "speedLimitY", 120, 4800, self.get_settings_defaults()["SpeedLimitY"])
+				
+											# Check if an error hasn't occured
+											if not error :
+							
+												# Set error to if limiting speed limit Z failed
+												error = self.eepromKeepFloatWithinRange(connection, "speedLimitZ", 30, 60, self.get_settings_defaults()["SpeedLimitZ"])
+							
+											# Check if an error hasn't occured
+											if not error :
+							
+												# Set error to if limiting speed limit E positive failed
+												error = self.eepromKeepFloatWithinRange(connection, "speedLimitEPositive", 60, 600, self.get_settings_defaults()["SpeedLimitEPositive"])
+							
+											# Check if an error hasn't occured
+											if not error :
+							
+												# Set error to if limiting speed limit E negative failed
+												error = self.eepromKeepFloatWithinRange(connection, "speedLimitENegative", 60, 720, self.get_settings_defaults()["SpeedLimitENegative"])
+								
+											# Check if not using M3D or M3D Mod firmware
+											if firmwareType != "M3D" and firmwareType != "M3D Mod" :
+								
+												# Check if an error hasn't occured
+												if not error :
+							
+													# Set error to if limiting last recorded X value failed
+													error = self.eepromKeepFloatWithinRange(connection, "lastRecordedXValue", -sys.float_info.max, sys.float_info.max, 54)
+							
+												# Check if an error hasn't occured
+												if not error :
+							
+													# Set error to if limiting last recorded Y value failed
+													error = self.eepromKeepFloatWithinRange(connection, "lastRecordedYValue", -sys.float_info.max, sys.float_info.max, 50)
+									
+												# Check if an error hasn't occured
+												if not error :
+							
+													# Set error to if limiting X motor steps/mm failed
+													error = self.eepromKeepFloatWithinRange(connection, "xMotorStepsPerMm", sys.float_info.min, sys.float_info.max, self.get_settings_defaults()["XMotorStepsPerMm"])
+									
+												# Check if an error hasn't occured
+												if not error :
+							
+													# Set error to if limiting Y motor steps/mm failed
+													error = self.eepromKeepFloatWithinRange(connection, "yMotorStepsPerMm", sys.float_info.min, sys.float_info.max, self.get_settings_defaults()["YMotorStepsPerMm"])
+									
+												# Check if an error hasn't occured
+												if not error :
+							
+													# Set error to if limiting Z motor steps/mm failed
+													error = self.eepromKeepFloatWithinRange(connection, "zMotorStepsPerMm", sys.float_info.min, sys.float_info.max, self.get_settings_defaults()["ZMotorStepsPerMm"])
+									
+												# Check if an error hasn't occured
+												if not error :
+							
+													# Set error to if limiting E motor steps/mm failed
+													error = self.eepromKeepFloatWithinRange(connection, "eMotorStepsPerMm", sys.float_info.min, sys.float_info.max, self.get_settings_defaults()["EMotorStepsPerMm"])
+											
+												# Check if an error hasn't occured
+												if not error :
+							
+													# Set error to if limiting X jerk sensitivity failed
+													error = self.eepromKeepIntWithinRange(connection, "xJerkSensitivity", 1, 255, self.get_settings_defaults()["XJerkSensitivity"])
+											
+												# Check if an error hasn't occured
+												if not error :
+							
+													# Set error to if limiting Y jerk sensitivity failed
+													error = self.eepromKeepIntWithinRange(connection, "yJerkSensitivity", 1, 255, self.get_settings_defaults()["YJerkSensitivity"])
+											
+												# Check if an error hasn't occured
+												if not error :
+							
+													# Set error to if limiting calibrate Z0 correction failed
+													error = self.eepromKeepFloatWithinRange(connection, "calibrateZ0Correction", -sys.float_info.max, sys.float_info.max, self.get_settings_defaults()["CalibrateZ0Correction"])
+										
+											# Check if an error hasn't occured
+											if not error :
+							
+												# Set error to if limiting last recorded Z value failed
+												error = self.eepromKeepFloatWithinRange(connection, "lastRecordedZValue", -sys.float_info.max, sys.float_info.max, 5)
+								
+											# Check if an error has occured
+											if error :
+					
+												# Display error
+												self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Updating EEPROM values failed", header = "Error Status", confirm = True))
+								
+										# Check if firmware is corrupt
+										if not error and eepromCrc != chipCrc :
+					
+											# Set current firmware type
+											if firmwareType is None :
+												currentFirmwareType = "iMe"
+											else :
+												currentFirmwareType = firmwareType
+				
 											# Display message
 											self.messageResponse = None
-											if incompatible :
-												self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Question", message = "Firmware is incompatible. Update to " + firmwareType + " firmware version " + self.providedFirmwares[self.getNewestFirmwareName(firmwareType)]["Release"] + '?', header = "Firmware Status", response = True))
-											else :
-												self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Question", message = "Newer firmware available. Update to " + firmwareType + " firmware version " + self.providedFirmwares[self.getNewestFirmwareName(firmwareType)]["Release"] + '?', header = "Firmware Status", response = True))
+											self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Question", message = "Firmware is corrupt. Update to " + currentFirmwareType + " firmware version " + self.providedFirmwares[self.getNewestFirmwareName(currentFirmwareType)]["Release"] + '?', header = "Firmware Status", response = True))
 					
 											# Wait until response is obtained
 											while self.messageResponse is None :
@@ -6220,18 +6211,17 @@ class M33FioPlugin(
 											# Check if response was no
 											if not self.messageResponse :
 					
-												# Set error if incompatible
-												if incompatible :
-													error = True
+												# Set error
+												error = True
 				
 											# Otherwise
 											else :
 					
 												# Send message
 												self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Updating firmware", header = "Firmware Status"))
-							
+					
 												# Check if updating firmware failed
-												if not self.updateToProvidedFirmware(connection, self.getNewestFirmwareName(firmwareType)) :
+												if not self.updateToProvidedFirmware(connection, self.getNewestFirmwareName(currentFirmwareType)) :
 					
 													# Set error
 													error = True
@@ -6249,24 +6239,85 @@ class M33FioPlugin(
 													# Wait until response is obtained
 													while self.messageResponse is None :
 														time.sleep(0.01)
+					
+										# Otherwise check if firmware is outdated or incompatible
+										elif not error and (firmwareType is None or firmwareVersion < int(self.providedFirmwares[self.getNewestFirmwareName(firmwareType)]["Version"])) :
 				
-									# Check if no errors occured and getting EEPROM failed
-									if not error and not self.getEeprom(connection, True) :
+											# Set if firmware is incompatible
+											if firmwareType is None :
+												incompatible = True
+												firmwareType = "iMe"
+											elif firmwareType == "M3D" :
+												incompatible = firmwareVersion < 2015122112
+											elif firmwareType == "M3D Mod" :
+												incompatible = firmwareVersion < 2115122112
+											elif firmwareType == "iMe" :
+												incompatible = firmwareVersion < 1900000123
+								
+											# Check if printer is incompatible or not reconnecting to printer
+											if incompatible or not self.reconnectingToPrinter :
+						
+												# Display message
+												self.messageResponse = None
+												if incompatible :
+													self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Question", message = "Firmware is incompatible. Update to " + firmwareType + " firmware version " + self.providedFirmwares[self.getNewestFirmwareName(firmwareType)]["Release"] + '?', header = "Firmware Status", response = True))
+												else :
+													self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Question", message = "Newer firmware available. Update to " + firmwareType + " firmware version " + self.providedFirmwares[self.getNewestFirmwareName(firmwareType)]["Release"] + '?', header = "Firmware Status", response = True))
+					
+												# Wait until response is obtained
+												while self.messageResponse is None :
+													time.sleep(0.01)
+					
+												# Check if response was no
+												if not self.messageResponse :
+					
+													# Set error if incompatible
+													if incompatible :
+														error = True
+				
+												# Otherwise
+												else :
+					
+													# Send message
+													self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Updating firmware", header = "Firmware Status"))
 							
+													# Check if updating firmware failed
+													if not self.updateToProvidedFirmware(connection, self.getNewestFirmwareName(firmwareType)) :
+					
+														# Set error
+														error = True
+										
+														# Send message
+														self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Updating firmware failed", header = "Firmware Status", confirm = True))
+						
+													# Otherwise
+													else :
+					
+														# Send message
+														self.messageResponse = None
+														self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Question", message = "Updating firmware was successful", header = "Firmware Status", confirm = True))
+					
+														# Wait until response is obtained
+														while self.messageResponse is None :
+															time.sleep(0.01)
+				
+										# Check if no errors occured and getting EEPROM failed
+										if not error and not self.getEeprom(connection, True) :
+							
+											# Set error
+											error = True
+						
+											# Send message
+											self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the 'Not using a Micro 3D printer' setting in the M33 Fio tab in OctoPrint's settings. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
+			
+									# Otherwise
+									else :
+			
 										# Set error
 										error = True
 						
 										# Send message
-										self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. Try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
-			
-								# Otherwise
-								else :
-			
-									# Set error
-									error = True
-						
-									# Send message
-									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. Try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
+										self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the 'Not using a Micro 3D printer' setting in the M33 Fio tab in OctoPrint's settings. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
 			
 				# Check if connected to the printer
 				if connection is not None :
@@ -6307,7 +6358,7 @@ class M33FioPlugin(
 						self.eeprom = None
 						
 						# Send message
-						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. Try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
+						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the 'Not using a Micro 3D printer' setting in the M33 Fio tab in OctoPrint's settings. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
 					
 					# Check if an error hasn't occured
 					if not error :
@@ -6350,7 +6401,7 @@ class M33FioPlugin(
 								self.eeprom = None
 
 								# Send message
-								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. Try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
+								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the 'Not using a Micro 3D printer' setting in the M33 Fio tab in OctoPrint's settings. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
 				
 							# Otherwise
 							else :
@@ -6407,7 +6458,7 @@ class M33FioPlugin(
 									
 										# Remove serial timeout
 										self._printer.get_transport().timeout = None
-										if float(serial.VERSION) < 3 :
+										if int(serial.VERSION.split('.', 1)[0]) < 3 :
 											self._printer.get_transport().writeTimeout = None
 										else :
 											self._printer.get_transport().write_timeout = None
@@ -6464,7 +6515,7 @@ class M33FioPlugin(
 												self._printer.disconnect()
 								
 												# Send message
-												self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. Try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
+												self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the 'Not using a Micro 3D printer' setting in the M33 Fio tab in OctoPrint's settings. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
 					
 										# Otherwise
 										else :
@@ -6483,7 +6534,7 @@ class M33FioPlugin(
 											self._printer.disconnect()
 							
 											# Send message
-											self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. Try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
+											self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the 'Not using a Micro 3D printer' setting in the M33 Fio tab in OctoPrint's settings. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
 			
 			# Clear reconnecting to printer
 			self.reconnectingToPrinter = False
@@ -10084,13 +10135,16 @@ class M33FioPlugin(
 					pass
 				
 				# Send message
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "No Micro 3D printer detected. Try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "No Micro 3D printer detected. If your not using a Micro 3D printer then make sure to enable the 'Not using a Micro 3D printer' setting in the M33 Fio tab in OctoPrint's settings. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
 				
 				# Enable printer connect button
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Allow Connecting"))
 				
 				# Return none
 				return None
+		
+		# Replace baudrate list
+		comm_instance._baudrateDetectList = [baudrate]
 		
 		# Set state to connecting
 		comm_instance._log("Connecting to: " + str(port))
@@ -10110,7 +10164,7 @@ class M33FioPlugin(
 		if connection is None :
 		
 			# Send message
-			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. Try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
+			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the 'Not using a Micro 3D printer' setting in the M33 Fio tab in OctoPrint's settings. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
 			
 			# Enable printer connect button
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Allow Connecting"))

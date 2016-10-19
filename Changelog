@@ -3,7 +3,7 @@ Changelog:
 V1.9 October X, 2016
 
 	* Provides iMe V00.00.01.23 printer firmware
-	* Added options for solid layer fill patterns when using Slic3r
+	* Added options for solid layer fill patterns when using Slic3r. Thanks again ra100!
 	* Fixed OS X installer to work with OS X V10.12
 	* Removed homing before a print in the preparation pre-processor stage when using iMe firmware
 	* Allows disabling sleep and slicer reminders
@@ -12,6 +12,9 @@ V1.9 October X, 2016
 	* Model editor can now display an axes indicator in the from left corner to better see the orientation of the bed
 	* Micro 3D profile and slicer profiles will be removed if not using a Micro 3D printer and added if using a Micro 3D printer
 	* Webcam server no longer requires OctoPrint to be restarted for its changed settings to take affect
+	* Fixed an issue with the EEPROM manager that occurs when converting newline and carriage return characters from ASCII to decimal or hexadecimal values
+	* OctoPrint's available serial ports will now update in real-time
+	* Compatible with all versions of OctoPrint >= 1.2.5
 
 V1.8 September 22, 2016
 

@@ -56,6 +56,7 @@ $(function() {
 		self.loginState = parameters[6];
 		self.printerProfile = parameters[7];
 		self.control = parameters[8];
+		self.connection = parameters[9];
 		
 		// Bed dimensions
 		var bedLowMaxX = 106.0;
@@ -998,6 +999,27 @@ $(function() {
 
 			// Return bytes
 			return bytes;
+		}
+		
+		// Update webcam
+		function updateWebcam() {
+		
+			// Update webcam stream
+			CONFIG_WEBCAM_STREAM = self.settings.settings.webcam.streamUrl();
+			if(CONFIG_WEBCAM_STREAM === null)
+				CONFIG_WEBCAM_STREAM = "None"
+			
+			// Hide hint text if stream doesn't exist
+			if(CONFIG_WEBCAM_STREAM == "None" || /^None\?/.test(CONFIG_WEBCAM_STREAM))
+				$("#webcam_container + div .muted").css("display", "none");
+			else
+				$("#webcam_container + div .muted").css("display", "");
+		
+			// Update webcam display
+			if($("#control_link").hasClass("active")) {
+				$("#webcam_image").attr("src", "");
+				self.control.onTabChange("#control", "");
+			}
 		}
 		
 		// Load model
@@ -3941,7 +3963,7 @@ $(function() {
 		
 		// Add mid-print filament change settings
 		$("#gcode div.progress").after('\
-			<div class="midPrintFilamentChange micro3d">\
+			<div class="midPrintFilamentChange notUsingAMicro3DPrinter micro3d">\
 				<h1>Mid-print filament change</h1>\
 				<label title="Mid-print filament change commands will be added at the start of each specified layer. Layer numbers should be seperated by a space.">Layers<input type="text" pattern="[\\d\\s]*" class="input-block-level"></label>\
 				<button class="btn btn-block control-box" data-bind="enable: loginState.isUser() && enableReload">Add current layer</button>\
@@ -4447,7 +4469,7 @@ $(function() {
 		// Window resize event
 		$(window).resize(function() {
 
-			// Position navbar
+			// Position OctoPrint instance manager
 			$("#navbar_plugin_m33fio").addClass("show").css("left", $("#state_wrapper").offset().left - $("#navbar a.brand").offset().left + "px");
 		});
 		
@@ -8208,6 +8230,13 @@ $(function() {
 
 										// Hide message
 										hideMessage();
+										
+										// Clear skip model editor
+										skipModelEditor = false;
+										
+										// Set slicer menu back to modifying profile if it's currently there
+										if($("#slicing_configuration_dialog").hasClass("profile"))
+											slicerMenu = "Modify Profile";
 								
 										// Enable button
 										button.removeClass("disabled");
@@ -13625,6 +13654,14 @@ $(function() {
 					});
 				});
 			}
+			
+			// Otherwise check if data is to update serial ports
+			else if(data.value == "Update Serial Ports") {
+			
+				// Update serial ports
+				self.connection.requestData();
+				$("#connection_ports").blur();
+			}
 		}
 		
 		// User log in event
@@ -13636,46 +13673,13 @@ $(function() {
 			// Disable closing initial OctoPrint instance
 			if(window.location.port == 5000)
 				$("#navbar_plugin_m33fio > select > option").last().prop("disabled", true)
-		}
-		
-		// User log out event
-		self.onUserLoggedOut = function() {
-		
-			// Disable managing OctoPrint instances
-			$("#navbar_plugin_m33fio > select > option").last().prop("disabled", true).prev().prop("disabled", true);
-		}
-		
-		// On startup complete
-		self.onStartupComplete = function() {
-		
-			// Update webcam stream
-			CONFIG_WEBCAM_STREAM = self.settings.settings.webcam.streamUrl();
-			if(CONFIG_WEBCAM_STREAM === null)
-				CONFIG_WEBCAM_STREAM = "None"
-		
-			// Update webcam display
-			if($("#control_link").hasClass("active")) {
-				$("#webcam_image").attr("src", "");
-				self.control.onTabChange("#control", "");
-			}
-		
-			// Resize window
-			setTimeout(function() {
-				$(window).resize();
-			}, 0);
-		
+			
+			// Show mid-print filament change settings if using a Micro 3D printer
+			if(!self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter())
+				$("div.midPrintFilamentChange").removeClass("notUsingAMicro3DPrinter");
+			
 			// Set mid-print filament change layer input
 			$("#gcode div.midPrintFilamentChange input").val(self.settings.settings.plugins.m33fio.MidPrintFilamentChangeLayers());
-			
-			// Enable/disable Micro 3D printer specific features
-			if(self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
-				$(".micro3d").addClass("notUsingAMicro3DPrinter");
-				$("#temperature-graph").removeClass("micro3dImage");
-			}
-			else {
-				$(".micro3d").removeClass("notUsingAMicro3DPrinter");
-				$("#temperature-graph").addClass("micro3dImage");
-			}
 			
 			// Check if printing or paused
 			if(self.printerState.isPrinting() === true || self.printerState.isPaused() === true)
@@ -13688,6 +13692,38 @@ $(function() {
 		
 				// Enable changing mid-print filement change layers
 				$("#gcode div.midPrintFilamentChange button").eq(2).removeClass("disabled");
+		}
+		
+		// User log out event
+		self.onUserLoggedOut = function() {
+		
+			// Disable managing OctoPrint instances
+			$("#navbar_plugin_m33fio > select > option").last().prop("disabled", true).prev().prop("disabled", true);
+			
+			// Hide mid-print filament change settings
+			$("div.midPrintFilamentChange").addClass("notUsingAMicro3DPrinter");
+		}
+		
+		// On startup complete
+		self.onStartupComplete = function() {
+		
+			// Update webcam
+			updateWebcam();
+		
+			// Resize window
+			setTimeout(function() {
+				$(window).resize();
+			}, 0);
+			
+			// Enable/disable Micro 3D printer specific features
+			if(self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
+				$(".micro3d").addClass("notUsingAMicro3DPrinter");
+				$("#temperature-graph").removeClass("micro3dImage");
+			}
+			else {
+				$(".micro3d").removeClass("notUsingAMicro3DPrinter");
+				$("#temperature-graph").addClass("micro3dImage");
+			}
 		
 			// On server disconnect event
 			self.onServerDisconnect = function() {
@@ -13842,16 +13878,8 @@ $(function() {
 				// Update slicers
 				self.slicing.requestData();
 				
-				// Update webcam stream
-				CONFIG_WEBCAM_STREAM = self.settings.settings.webcam.streamUrl();
-				if(CONFIG_WEBCAM_STREAM === null)
-					CONFIG_WEBCAM_STREAM = "None"
-			
-				// Update webcam display
-				if($("#control_link").hasClass("active")) {
-					$("#webcam_image").attr("src", "");
-					self.control.onTabChange("#control", "");
-				}
+				// Update webcam
+				updateWebcam();
 			}
 
 			// Update settings
@@ -13869,6 +13897,26 @@ $(function() {
 			
 				// Remove error
 				$("div.ui-pnotify:last-of-type").remove();
+			
+			// Update serial ports
+			self.connection.requestData();
+			$("#connection_ports").blur();
+		}
+		
+		// On printer connected event
+		self.onEventConnected = function(payload) {
+		
+			// Update serial ports
+			self.connection.requestData();
+			$("#connection_ports").blur();
+		}
+		
+		// On printer disconnected event
+		self.onEventDisconnected = function() {
+		
+			// Update serial ports
+			self.connection.requestData();
+			$("#connection_ports").blur();
 		}
 		
 		// On print started event
@@ -13928,7 +13976,7 @@ $(function() {
 		if(navigator.platform.indexOf("Win") != -1)
 		
 			// Fix Windows specific CSS issues
-			$("#settings_plugin_m33fio label.checkbox > span, #settings_plugin_m33fio select.short").addClass("windows");
+			$("#settings_plugin_m33fio select.short").addClass("windows");
 		
 		// Otherwise check if using OS X
 		else if(navigator.platform.indexOf("Mac") != -1)
@@ -13942,6 +13990,6 @@ $(function() {
 	
 		// Constructor
 		M33FioViewModel,
-		["printerStateViewModel", "temperatureViewModel", "settingsViewModel", "gcodeFilesViewModel", "slicingViewModel", "terminalViewModel", "loginStateViewModel", "printerProfilesViewModel", "controlViewModel"]
+		["printerStateViewModel", "temperatureViewModel", "settingsViewModel", "gcodeFilesViewModel", "slicingViewModel", "terminalViewModel", "loginStateViewModel", "printerProfilesViewModel", "controlViewModel", "connectionViewModel"]
 	]);
 });

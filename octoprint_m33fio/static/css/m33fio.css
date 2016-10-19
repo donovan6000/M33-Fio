@@ -2,6 +2,10 @@ body > div.modal-scrollable.hideOverflow {
 	overflow: hidden !important;
 }
 
+#terminal-output > span {
+	white-space: nowrap;
+}
+
 #webcam_image[src^="None"] {
 	display: none;
 }
@@ -59,6 +63,7 @@ body > div.modal-scrollable.hideOverflow {
 	position: relative;
 	top: -1px;
 	text-align: center;
+	white-space: normal;
 }
 
 #settings_plugin_m33fio h4 > span {
@@ -80,16 +85,15 @@ body > div.modal-scrollable.hideOverflow {
 #settings_plugin_m33fio label.checkbox:first-of-type, #settings_plugin_m33fio label.noCheckbox {
 	margin-top: -5px;
 	width: calc(100% - 24px);
+}
+
+#settings_plugin_m33fio label.noWrap {
 	white-space: nowrap;
 }
 
 #settings_plugin_m33fio label.checkbox > span {
 	position: relative;
 	top: 9px !important;
-}
-
-#settings_plugin_m33fio label.checkbox > span.windows {
-	top: 10px !important;
 }
 
 #settings_plugin_m33fio label.checkbox > span.osx {
@@ -150,7 +154,8 @@ body > div.modal-scrollable.hideOverflow {
 #settings_plugin_m33fio input.short, #settings_plugin_m33fio select.short {
 	width: 160px;
 	margin-top: -10px;
-	margin-left: 6px;
+	margin-left: 4px;
+	margin-right: 4px;
 	position: relative;
 	top: 13px;
 	text-align: center;
@@ -1060,21 +1065,21 @@ body > div.page-container > div.message > div > div > span.show {
 	position: absolute;
 	top: 0;
 	left: 0;
-	width: 100%;
-	height: 100%;
+	width: calc(100% - 6px);
+	height: calc(100% - 6px);
+	border-radius: 6px;
 	background-color: rgba(255, 255, 255, 0.25);
-	outline: 3px dotted rgba(200, 200, 200, 0);
-	outline-offset: -3px;
+	border: 3px dotted rgba(200, 200, 200, 0);
 	z-index: 9999;
 	visibility: hidden;
 	opacity: 0;
-	transition: visibility 0.2s linear, opacity 0.2s linear, outline-color 0.2s linear;
+	transition: visibility 0.2s linear, opacity 0.2s linear, border-color 0.2s linear;
 }
 
 #slicing_configuration_dialog .modal-drag-and-drop.show {
 	visibility: visible;
 	opacity: 1;
-	outline-color: rgba(200, 200, 200, 0.9);
+	border-color: rgba(200, 200, 200, 0.9);
 }
 
 #slicing_configuration_dialog .modal-cover {
