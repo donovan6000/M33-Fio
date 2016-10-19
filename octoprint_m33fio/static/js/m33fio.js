@@ -50,13 +50,13 @@ $(function() {
 		self.printerState = parameters[0];
 		self.temperature = parameters[1];
 		self.settings = parameters[2];
-		self.files = parameters[3];
-		self.slicing = parameters[4];
-		self.terminal = parameters[5];
-		self.loginState = parameters[6];
-		self.printerProfile = parameters[7];
-		self.control = parameters[8];
-		self.connection = parameters[9];
+		self.slicing = parameters[3];
+		self.terminal = parameters[4];
+		self.loginState = parameters[5];
+		self.printerProfile = parameters[6];
+		self.control = parameters[7];
+		self.connection = parameters[8];
+		self.files = null;
 		
 		// Bed dimensions
 		var bedLowMaxX = 106.0;
@@ -4544,112 +4544,6 @@ $(function() {
 				});
 			}, 500);
 		});
-		
-		// Replace load file function
-		var originalLoadFile = self.files.loadFile;
-		self.files.loadFile = function(file, printAfterLoad) {
-		
-			// Check if printing after load and using a Micro 3D printer
-			if(printAfterLoad && !self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
-			
-				// Check if using on the fly pre-processing and changing settings before print
-				if(self.settings.settings.plugins.m33fio.PreprocessOnTheFly() && self.settings.settings.plugins.m33fio.ChangeSettingsBeforePrint()) {
-			
-					// Show message
-					showMessage("Printing Status", '', "Print", function() {
-			
-						// Hide message
-						hideMessage();
-				
-						// Send request
-						$.ajax({
-							url: API_BASEURL + "plugin/m33fio",
-							type: "POST",
-							dataType: "json",
-							data: JSON.stringify({
-								command: "message",
-								value: "Print Settings: " + JSON.stringify({
-									filamentTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").eq(0).val(),
-									heatbedTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").eq(1).val(),
-									filamentType: $("body > div.page-container > div.message > div > div > div.printSettings select").val(),
-									useWaveBondingPreprocessor: $("body > div.page-container > div.message > div > div > div.printSettings input[type=\"checkbox\"]").is(":checked")
-								})
-							}),
-							contentType: "application/json; charset=UTF-8",
-					
-							// On success								
-							success: function() {
-					
-								// Print file
-								function printFile() {
-							
-									// Save software settings
-									self.settings.saveData();
-								
-									// Send request
-									$.ajax({
-										url: API_BASEURL + "plugin/m33fio",
-										type: "POST",
-										dataType: "json",
-										data: JSON.stringify({
-											command: "message",
-											value: "Starting Print"
-										}),
-										contentType: "application/json; charset=UTF-8",
-				
-										// On success									
-										success: function() {
-			
-											// Load file and print
-											originalLoadFile(file, printAfterLoad);
-										}
-									});
-								}
-						
-								// Update settings
-								if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
-									self.settings.requestData(printFile);
-								else
-									self.settings.requestData().done(printFile);
-							}
-						});
-					}, "Cancel", function() {
-			
-						// Hide message
-						hideMessage();
-					});
-				}
-				
-				// Otherwise
-				else {
-				
-					// Send request
-					$.ajax({
-						url: API_BASEURL + "plugin/m33fio",
-						type: "POST",
-						dataType: "json",
-						data: JSON.stringify({
-							command: "message",
-							value: "Starting Print"
-						}),
-						contentType: "application/json; charset=UTF-8",
-				
-						// On success									
-						success: function() {
-			
-							// Load file and print
-							originalLoadFile(file, printAfterLoad);
-						}
-					});
-				}
-			}
-			
-			// Otherwise
-			else
-			
-				// Print file
-				originalLoadFile(file, printAfterLoad);
-		}
 		
 		// Print button click event
 		$("#job_print").click(function(event) {
@@ -13704,6 +13598,129 @@ $(function() {
 			$("div.midPrintFilamentChange").addClass("notUsingAMicro3DPrinter");
 		}
 		
+		// All view models bound event
+		self.onAllBound = function(payload) {
+		
+			// Go through all view models
+			for(var viewModel in payload)
+			
+				// Check if view model is files view model
+				if(payload[viewModel].constructor.name == "GcodeFilesViewModel" || payload[viewModel].constructor.name == "FilesViewModel") {
+					
+					// Set files
+					self.files = payload[viewModel];
+					
+					// Replace load file function
+					var originalLoadFile = self.files.loadFile;
+					self.files.loadFile = function(file, printAfterLoad) {
+		
+						// Check if printing after load and using a Micro 3D printer
+						if(printAfterLoad && !self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
+			
+							// Check if using on the fly pre-processing and changing settings before print
+							if(self.settings.settings.plugins.m33fio.PreprocessOnTheFly() && self.settings.settings.plugins.m33fio.ChangeSettingsBeforePrint()) {
+			
+								// Show message
+								showMessage("Printing Status", '', "Print", function() {
+			
+									// Hide message
+									hideMessage();
+				
+									// Send request
+									$.ajax({
+										url: API_BASEURL + "plugin/m33fio",
+										type: "POST",
+										dataType: "json",
+										data: JSON.stringify({
+											command: "message",
+											value: "Print Settings: " + JSON.stringify({
+												filamentTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").eq(0).val(),
+												heatbedTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").eq(1).val(),
+												filamentType: $("body > div.page-container > div.message > div > div > div.printSettings select").val(),
+												useWaveBondingPreprocessor: $("body > div.page-container > div.message > div > div > div.printSettings input[type=\"checkbox\"]").is(":checked")
+											})
+										}),
+										contentType: "application/json; charset=UTF-8",
+					
+										// On success								
+										success: function() {
+					
+											// Print file
+											function printFile() {
+							
+												// Save software settings
+												self.settings.saveData();
+								
+												// Send request
+												$.ajax({
+													url: API_BASEURL + "plugin/m33fio",
+													type: "POST",
+													dataType: "json",
+													data: JSON.stringify({
+														command: "message",
+														value: "Starting Print"
+													}),
+													contentType: "application/json; charset=UTF-8",
+				
+													// On success									
+													success: function() {
+			
+														// Load file and print
+														originalLoadFile(file, printAfterLoad);
+													}
+												});
+											}
+						
+											// Update settings
+											if(self.settings.requestData.toString().split('\n')[0].indexOf("callback") != -1)
+												self.settings.requestData(printFile);
+											else
+												self.settings.requestData().done(printFile);
+										}
+									});
+								}, "Cancel", function() {
+			
+									// Hide message
+									hideMessage();
+								});
+							}
+				
+							// Otherwise
+							else {
+				
+								// Send request
+								$.ajax({
+									url: API_BASEURL + "plugin/m33fio",
+									type: "POST",
+									dataType: "json",
+									data: JSON.stringify({
+										command: "message",
+										value: "Starting Print"
+									}),
+									contentType: "application/json; charset=UTF-8",
+				
+									// On success									
+									success: function() {
+			
+										// Load file and print
+										originalLoadFile(file, printAfterLoad);
+									}
+								});
+							}
+						}
+			
+						// Otherwise
+						else
+			
+							// Print file
+							originalLoadFile(file, printAfterLoad);
+					}
+					
+					// Break
+					break;
+				}
+		}
+		
 		// On startup complete
 		self.onStartupComplete = function() {
 		
@@ -13990,6 +14007,6 @@ $(function() {
 	
 		// Constructor
 		M33FioViewModel,
-		["printerStateViewModel", "temperatureViewModel", "settingsViewModel", "gcodeFilesViewModel", "slicingViewModel", "terminalViewModel", "loginStateViewModel", "printerProfilesViewModel", "controlViewModel", "connectionViewModel"]
+		["printerStateViewModel", "temperatureViewModel", "settingsViewModel", "slicingViewModel", "terminalViewModel", "loginStateViewModel", "printerProfilesViewModel", "controlViewModel", "connectionViewModel"]
 	]);
 });

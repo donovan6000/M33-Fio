@@ -5858,7 +5858,7 @@ class M33FioPlugin(
 							# Check if an error hasn't occured
 							if not error :
 								
-								# Attempt to get current printer mode to
+								# Attempt to get current printer mode
 								try :
 					
 									connection.write("M110")
