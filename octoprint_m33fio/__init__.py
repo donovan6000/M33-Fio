@@ -1316,13 +1316,17 @@ class M33FioPlugin(
 		# Go through all lines in input
 		for line in open(input) :
 		
-			# Check if using OctoPrint < 1.3.x
-			if tuple(map(int, (octoprint.__version__.split(".", 2)[: 2]))) < tuple(map(int, ("1.3".split(".")))) :
+			try :
+			
+				# Check if using OctoPrint < 1.3.x
+				if tuple(map(int, (octoprint.__version__.split(".", 2)[: 2]))) < tuple(map(int, ("1.3".split(".")))) :
 		
-				# Fix G-code lines
-				match = re.findall("^(.+)(\d+)\.gcode", line)
-				if len(match) :
-					line = match[0][0] + ".gcode" + match[0][1] + line[len(match[0][0]) + len(match[0][1]) + 6 :]
+					# Fix G-code lines
+					match = re.findall("^(.+)(\d+)\.gcode", line)
+					if len(match) :
+						line = match[0][0] + ".gcode" + match[0][1] + line[len(match[0][0]) + len(match[0][1]) + 6 :]
+			except :
+				pass
 			
 			# Remove comments from input
 			if ';' in line and ".gcode" not in line and line[0] != '\t' :
@@ -5155,8 +5159,14 @@ class M33FioPlugin(
 		# Check if not using a Micro 3D printer
 		if self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
 		
-			# Remove Micro 3D printer profile
+			# Check if Micro 3D printer profile exists
 			if self._printer_profile_manager.exists("micro_3d") :
+			
+				# Deselect the Micro 3D printer profile if it's selected
+				if self._printer_profile_manager.get_current() is not None and self._printer_profile_manager.get_current()["id"] == "micro_3d" :
+					self._printer_profile_manager.deselect()
+				
+				# Remove Micro 3D printer profile
 				self._printer_profile_manager.remove("micro_3d")
 		
 		# Otherwise
