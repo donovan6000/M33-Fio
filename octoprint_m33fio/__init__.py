@@ -1316,10 +1316,13 @@ class M33FioPlugin(
 		# Go through all lines in input
 		for line in open(input) :
 		
-			# Fix G-code lines
-			match = re.findall("^(.+)(\d+)\.gcode", line)
-			if len(match) :
-				line = match[0][0] + ".gcode" + match[0][1] + line[len(match[0][0]) + len(match[0][1]) + 6 :]
+			# Check if using OctoPrint < 1.3.x
+			if tuple(map(int, (octoprint.__version__.split(".", 2)[: 2]))) < tuple(map(int, ("1.3".split(".")))) :
+		
+				# Fix G-code lines
+				match = re.findall("^(.+)(\d+)\.gcode", line)
+				if len(match) :
+					line = match[0][0] + ".gcode" + match[0][1] + line[len(match[0][0]) + len(match[0][1]) + 6 :]
 			
 			# Remove comments from input
 			if ';' in line and ".gcode" not in line and line[0] != '\t' :
