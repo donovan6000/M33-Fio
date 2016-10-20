@@ -1065,8 +1065,8 @@ body > div.page-container > div.message > div > div > span.show {
 	position: absolute;
 	top: 0;
 	left: 0;
-	width: calc(100% - 6px);
-	height: calc(100% - 6px);
+	right: 0;
+	bottom: 0;
 	border-radius: 6px;
 	background-color: rgba(255, 255, 255, 0.25);
 	border: 3px dotted rgba(200, 200, 200, 0);

@@ -38,6 +38,18 @@ OctoPrint uses external slicers to convert 3D object files into printable G-code
 
 OctoPrint is a web server, and it can allow remotely connecting to it. So you can open port 5000 in your computer's firewall and configure your router to route all traffic on that port to your computer to allow using your printer from anywhere in the world.
 
+### Known Issues
+* Everything works in all versions of OctoPrint >= 1.2.0 except the Micro 3D printer connection routine which only works with versions of OctoPrint >= 1.2.5
+* Microsoft Internet Explorer 11 doesn't display webcam stream
+* Microsoft Internet Explorer 11 doesn't resize profile editor correctly
+* Microsoft Edge displays webcam stream as a still image
+* Can't host more than one webcam stream at a time since it always hosts on port 4999
+* Has only been tested on the latest versions of Microsoft Internet Explorer 11, Microsoft Edge, Mozilla Firefox, and Google Chrome, so it might have issues with web browsers other than thoses
+* Will occasionally not perform the Micro 3D printer's standby movements, like turning off the heater and fan, when a print is canceled or finished
+* Mid-print filament change layers might not match up exactly with those shown in the G-code viewer
+* Windows can occasionally have issues connecting to the Micro 3D printer
+* Some issues can occur when unloading/loading shared libraries
+
 ### Images
 Additional controls are added to OctoPrint's control panel that allow doing everything from loading filament to updating the firmware.
 ![alt text](https://raw.githubusercontent.com/donovan6000/M33-Fio/master/images/controls.png "Controls")

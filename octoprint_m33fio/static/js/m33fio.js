@@ -4293,13 +4293,6 @@ $(function() {
 			<div class="modal-drag-and-drop"></div>\
 		');
 		
-		// Drag and drop cover drag leave event
-		$("#slicing_configuration_dialog .modal-drag-and-drop").on("dragleave", function() {
-		
-			// Hide self
-			$(this).removeClass("show");
-		});
-		
 		// Change slicer text
 		$("#slicing_configuration_dialog").find("h3").before('\
 			<p class="currentMenu">Select Profile</p>\
@@ -4464,13 +4457,6 @@ $(function() {
 			
 			// Update title
 			$(this).mousemove();
-		});
-		
-		// Window resize event
-		$(window).resize(function() {
-
-			// Position OctoPrint instance manager
-			$("#navbar_plugin_m33fio").addClass("show").css("left", $("#state_wrapper").offset().left - $("#navbar a.brand").offset().left + "px");
 		});
 		
 		// Control button click event
@@ -5046,14 +5032,17 @@ $(function() {
 				// Display message
 				showMessage("Conversion Status", htmlEncode("Converting " + file.name + " to " + newFileName));
 				
+				// Set URL
+				var url = URL.createObjectURL(file);
+			
+				// Clear value
+				$(event.target).val('');
+				
 				setTimeout(function() {
 				
 					// Convert file to STL
 					convertedModel = null;
-					convertToStl(URL.createObjectURL(file), file.name.substr(extension + 1).toLowerCase());
-				
-					// Clear value
-					$(event.target).val('');
+					convertToStl(url, file.name.substr(extension + 1).toLowerCase());
 				
 					function conversionDone() {
 				
@@ -5172,7 +5161,7 @@ $(function() {
 							viewport.destroy();
 		
 						// Restore slicer dialog
-						$("#slicing_configuration_dialog").off("drop dragenter").removeClass("profile model").css("height", '');
+						$("#slicing_configuration_dialog").off("drop dragenter dragleave").removeClass("profile model").css("height", '');
 						$("#slicing_configuration_dialog p.currentMenu").text("Select Profile");
 						$("#slicing_configuration_dialog .modal-extra").remove();
 						$("#slicing_configuration_dialog .modal-body").css("display", '');
@@ -5203,6 +5192,9 @@ $(function() {
 		
 		// Resize event
 		$(window).resize(function() {
+		
+			// Position OctoPrint instance manager
+			$("#navbar_plugin_m33fio").addClass("show").css("left", $("#state_wrapper").offset().left - $("#navbar a.brand").offset().left + "px");
 		
 			// Check if profile editor is showing
 			var dialog = $("#slicing_configuration_dialog");
@@ -5925,11 +5917,17 @@ $(function() {
 														$("#slicing_configuration_dialog .advanced").addClass("fullSpace");
 													}
 													
+													// Initialize drag leave counter
+													var dragLeaveCounter = 0;
+													
 													// Slicing configuration dialog drop event
 													$("#slicing_configuration_dialog").on("drop", function(event) {
 													
 														// Prevent default
 														event.preventDefault();
+														
+														// Clear drag leave counter
+														dragLeaveCounter = 0;
 														
 														// Check if loading profile is applicable
 														if($("#slicing_configuration_dialog .modal-drag-and-drop").hasClass("show")) {
@@ -5992,9 +5990,26 @@ $(function() {
 													
 														// Prevent default
 														event.preventDefault();
+														
+														// Increment drag leave counter
+														dragLeaveCounter++;
 													
 														// Show drag and drop cover
 														$("#slicing_configuration_dialog .modal-drag-and-drop").addClass("show");
+													
+													// Slicing configuration dialog drag leave event
+													}).on("dragleave", function(event) {
+													
+														// Prevent default
+														event.preventDefault();
+														
+														// Decrement drag leave counter
+														if(dragLeaveCounter > 0)
+															dragLeaveCounter--;
+													
+														// Hide drag and drop cover if not dragging anymore
+														if(dragLeaveCounter === 0)
+															$("#slicing_configuration_dialog .modal-drag-and-drop").removeClass("show");
 													});
 										
 													// Set slicer menu
@@ -7429,9 +7444,15 @@ $(function() {
 
 																// Input change event
 																$("#slicing_configuration_dialog .modal-extra input[type=\"file\"]").change(function() {
-
-																	// Import model from file
-																	importModelFromFile(this.files[0]);
+																	
+																	// Check if not cutting models
+																	if(viewport.cutShape === null)
+																	
+																		// Import model from file
+																		importModelFromFile(this.files[0]);
+																	
+																	// Clear value
+																	$(this).val('');
 																});
 
 																// Button click event
@@ -7850,11 +7871,17 @@ $(function() {
 																	}
 																});
 																
+																// Initialize drag leave counter
+																var dragLeaveCounter = 0;
+																
 																// Slicing configuration dialog drop event
-																$("#slicing_configuration_dialog").off("drop dragenter").on("drop", function(event) {
+																$("#slicing_configuration_dialog").off("drop dragenter dragleave").on("drop", function(event) {
 																
 																	// Prevent default
 																	event.preventDefault();
+																	
+																	// Clear drag leave counter
+																	dragLeaveCounter = 0;
 																	
 																	// Check if importing model is applicable
 																	if($("#slicing_configuration_dialog .modal-drag-and-drop").hasClass("show")) {
@@ -7872,11 +7899,28 @@ $(function() {
 																	// Prevent default
 																	event.preventDefault();
 																	
+																	// Increment drag leave counter
+																	dragLeaveCounter++;
+																	
 																	// Check if not cutting models
 																	if(viewport.cutShape === null)
 																
 																		// Show drag and drop cover
 																		$("#slicing_configuration_dialog .modal-drag-and-drop").addClass("show");
+																
+																// Slicing configuration dialog drag leave event
+																}).on("dragleave", function(event) {
+													
+																	// Prevent default
+																	event.preventDefault();
+														
+																	// Decrement drag leave counter
+																	if(dragLeaveCounter > 0)
+																		dragLeaveCounter--;
+													
+																	// Hide drag and drop cover if not dragging anymore
+																	if(dragLeaveCounter === 0)
+																		$("#slicing_configuration_dialog .modal-drag-and-drop").removeClass("show");
 																});
 
 																// Update model changes
@@ -7945,7 +7989,7 @@ $(function() {
 								$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").text("Applying changes…");
 						
 								setTimeout(function() {
-							
+								
 									// Set parameter
 									var parameter = [];
 								
@@ -7997,7 +8041,7 @@ $(function() {
 									},
 									{
 										name: "After Slicing Action",
-										value: afterSlicingAction
+										value: self.printerState.isErrorOrClosed() === true ? "none" : afterSlicingAction
 									});
 								
 									// Send request
@@ -8034,6 +8078,10 @@ $(function() {
 										
 														// Set slicer menu to done
 														slicerMenu = "Done";
+														
+														// Clear after slicing action if printer isn't connected
+														if(self.printerState.isErrorOrClosed() === true)
+															$("#slicing_configuration_dialog").find(".control-group:nth-of-type(5) select").val("none").change();
 										
 														// Slice file
 														button.removeClass("disabled").click();
@@ -8046,6 +8094,10 @@ $(function() {
 										
 												// Set slicer menu to done
 												slicerMenu = "Done";
+												
+												// Clear after slicing action if printer isn't connected
+												if(self.printerState.isErrorOrClosed() === true)
+													$("#slicing_configuration_dialog").find(".control-group:nth-of-type(5) select").val("none").change();
 								
 												// Slice file
 												button.removeClass("disabled").click();
@@ -11221,19 +11273,19 @@ $(function() {
 		
 			// Get file
 			var file = this.files[0];
-			
+		
 			// Clear input
 			$(this).val('');
-
+			
 			// Show message
 			showMessage("Settings Status", "Restoring printer settings");
-			
+		
 			setTimeout(function() {
 
 				// Read in file
 				var reader = new FileReader();
 				reader.readAsArrayBuffer(file);
-			
+		
 				// On file load
 				reader.onload = function(event) {
 
@@ -11244,7 +11296,7 @@ $(function() {
 
 					for(var i = 0; i < length; i++) 
 						binary += String.fromCharCode(bytes[i]);
-	
+
 					// Send request
 					$.ajax({
 						url: API_BASEURL + "plugin/m33fio",
@@ -11264,7 +11316,7 @@ $(function() {
 
 								// Hide message
 								hideMessage();
-							
+						
 								// Update settings
 								self.settings.requestData();
 							});
@@ -11913,8 +11965,11 @@ $(function() {
 		// OctoPrint instance manager change event
 		$("#navbar_plugin_m33fio > select").change(function() {
 		
+			// Set select
+			var select = $(this);
+		
 			// Check if creating a new instance
-			if($(this).val() == "new") {
+			if(select.val() == "new") {
 			
 				// Show message
 				showMessage("OctoPrint Status", "Creating OctoPrint instance");
@@ -11936,6 +11991,9 @@ $(function() {
 						// Check if an error occured
 						if(data.value == "Error") {
 						
+							// Set current port
+							select.val(window.location.port);
+						
 							// Show message
 							showMessage("OctoPrint Status", "Failed to create OctoPrint instance", "OK", function() {
 							
@@ -11954,7 +12012,7 @@ $(function() {
 			}
 			
 			// Check if closing an instance
-			else if($(this).val() == "close") {
+			else if(select.val() == "close") {
 			
 				// Show message
 				showMessage("OctoPrint Status", "Closing OctoPrint instance");
@@ -11974,7 +12032,10 @@ $(function() {
 					success: function(data) {
 					
 						// Check if OctoPrint instance was closed
-						if(data.value == "OK")
+						if(data.value == "OK") {
+						
+							// Clear found port
+							var foundPort = false;
 					
 							// Go through all options
 							$("#navbar_plugin_m33fio > select > option").each(function() {
@@ -11982,6 +12043,9 @@ $(function() {
 								// Check if another OctoPrint instance exists
 								if($(this).attr("value") != "new" && $(this).attr("value") != "close" && $(this).attr("value") != window.location.port) {
 							
+									// Set found port
+									foundPort = true;
+									
 									var port = $(this).attr("value")
 									setTimeout(function() {
 				
@@ -11992,9 +12056,19 @@ $(function() {
 									return false;
 								}
 							});
+							
+							// Check if port wasn't found
+							if(!foundPort)
+							
+								// Set current port
+								select.val(window.location.port);
+						}
 						
 						// Otherwise
-						else
+						else {
+						
+							// Set current port
+							select.val(window.location.port);
 						
 							// Show message
 							showMessage("OctoPrint Status", "Unable to close the OctoPrint instance", "OK", function() {
@@ -12002,17 +12076,24 @@ $(function() {
 								// Hide message
 								hideMessage();
 							});
+						}
 					},
 					
 					// On error
 					error: function() {
+					
+						// Clear found port
+						var foundPort = false;
 					
 						// Go through all options
 						$("#navbar_plugin_m33fio > select > option").each(function() {
 					
 							// Check if another OctoPrint instance exists
 							if($(this).attr("value") != "new" && $(this).attr("value") != "close" && $(this).attr("value") != window.location.port) {
-						
+							
+								// Set found port
+								foundPort = true;
+								
 								var port = $(this).attr("value")
 								setTimeout(function() {
 			
@@ -12023,6 +12104,12 @@ $(function() {
 								return false;
 							}
 						});
+						
+						// Check if port wasn't found
+						if(!foundPort)
+						
+							// Set current port
+							select.val(window.location.port);
 					}
 				});
 			}
@@ -12031,99 +12118,103 @@ $(function() {
 			else
 			
 				// Go to OctoPrint instance
-				window.location.port = $(this).val();
+				window.location.port = select.val();
 		});
 		
 		// On update firmware with file input change
 		$("#control > div.jog-panel.advanced").find("div > input").change(function(event) {
-
+		
 			// Initialize variables
 			var file = this.files[0];
 
 			// Clear input
 			$(this).val('');
 			
-			// Check if file has no name or name doesn't contain a version number
-			if(!file.name.length || file.name.search(/(^| )\d{10}(\.|$)/) == -1) {
+			// Check if printer is still connected
+			if(self.printerState.isErrorOrClosed() !== true) {
 			
-				// Show message
-				showMessage("Firmware Status", "Invalid file name", "OK", function() {
-
-					// Hide message
-					hideMessage();
-				});
-	
-				// Return
-				return;
-			}
-
-			// Check if the file is too big
-			if(file.size > 32768) {
-
-				// Show message
-				showMessage("Firmware Status", "Invalid file size", "OK", function() {
-		
-					// Hide message
-					hideMessage();
-				});
-			}
-
-			// Otherwise
-			else {
-
-				// Show message
-				showMessage("Firmware Status", "Updating firmware");
-
-				// Read in file
-				var reader = new FileReader();
-				reader.readAsArrayBuffer(file);
+				// Check if file has no name or name doesn't contain a version number
+				if(!file.name.length || file.name.search(/(^| )\d{10}(\.|$)/) == -1) {
 			
-				// On file load
-				reader.onload = function(event) {
+					// Show message
+					showMessage("Firmware Status", "Invalid file name", "OK", function() {
 
-					// Convert array buffer to a binary string
-					var binary = "";
-					var bytes = new Uint8Array(event.target.result);
-					var length = bytes.byteLength;
-
-					for(var i = 0; i < length; i++) 
-						binary += String.fromCharCode(bytes[i]);
-			
-					// Send request
-					$.ajax({
-						url: API_BASEURL + "plugin/m33fio",
-						type: "POST",
-						dataType: "json",
-						data: JSON.stringify({
-							command: "file",
-							name: file.name, content: binary
-						}),
-						contentType: "application/json; charset=UTF-8",
-	
-						// On success
-						success: function(data) {
-	
-							// Show message
-							showMessage("Firmware Status", data.value == "OK" ? "Done" : "Failed", "OK", function() {
-	
-								// Hide message
-								hideMessage();
-								
-								// Send request
-								$.ajax({
-									url: API_BASEURL + "plugin/m33fio",
-									type: "POST",
-									dataType: "json",
-									data: JSON.stringify({
-										command: "message",
-										value: "Reconnect To Printer"
-									}),
-									contentType: "application/json; charset=UTF-8"
-								});
-							});
-						}
+						// Hide message
+						hideMessage();
 					});
-				};
+	
+					// Return
+					return;
+				}
+
+				// Check if the file is too big
+				if(file.size > 32768) {
+
+					// Show message
+					showMessage("Firmware Status", "Invalid file size", "OK", function() {
+		
+						// Hide message
+						hideMessage();
+					});
+				}
+
+				// Otherwise
+				else {
+
+					// Show message
+					showMessage("Firmware Status", "Updating firmware");
+
+					// Read in file
+					var reader = new FileReader();
+					reader.readAsArrayBuffer(file);
+			
+					// On file load
+					reader.onload = function(event) {
+
+						// Convert array buffer to a binary string
+						var binary = "";
+						var bytes = new Uint8Array(event.target.result);
+						var length = bytes.byteLength;
+
+						for(var i = 0; i < length; i++) 
+							binary += String.fromCharCode(bytes[i]);
+			
+						// Send request
+						$.ajax({
+							url: API_BASEURL + "plugin/m33fio",
+							type: "POST",
+							dataType: "json",
+							data: JSON.stringify({
+								command: "file",
+								name: file.name, content: binary
+							}),
+							contentType: "application/json; charset=UTF-8",
+	
+							// On success
+							success: function(data) {
+	
+								// Show message
+								showMessage("Firmware Status", data.value == "OK" ? "Done" : "Failed", "OK", function() {
+	
+									// Hide message
+									hideMessage();
+								
+									// Send request
+									$.ajax({
+										url: API_BASEURL + "plugin/m33fio",
+										type: "POST",
+										dataType: "json",
+										data: JSON.stringify({
+											command: "message",
+											value: "Reconnect To Printer"
+										}),
+										contentType: "application/json; charset=UTF-8"
+									});
+								});
+							}
+						});
+					};
+				}
 			}
 		});
 		
