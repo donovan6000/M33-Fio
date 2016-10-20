@@ -5994,8 +5994,9 @@ $(function() {
 														// Increment drag leave counter
 														dragLeaveCounter++;
 													
-														// Show drag and drop cover
-														$("#slicing_configuration_dialog .modal-drag-and-drop").addClass("show");
+														// Show drag and drop cover if cover isn't showing
+														if(!$("#slicing_configuration_dialog .modal-cover").hasClass("show"))
+															$("#slicing_configuration_dialog .modal-drag-and-drop").addClass("show");
 													
 													// Slicing configuration dialog drag leave event
 													}).on("dragleave", function(event) {
@@ -7905,8 +7906,9 @@ $(function() {
 																	// Check if not cutting models
 																	if(viewport.cutShape === null)
 																
-																		// Show drag and drop cover
-																		$("#slicing_configuration_dialog .modal-drag-and-drop").addClass("show");
+																		// Show drag and drop cover if cover isn't showing
+																		if(!$("#slicing_configuration_dialog .modal-cover").hasClass("show"))
+																			$("#slicing_configuration_dialog .modal-drag-and-drop").addClass("show");
 																
 																// Slicing configuration dialog drag leave event
 																}).on("dragleave", function(event) {
