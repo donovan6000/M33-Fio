@@ -1511,6 +1511,16 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			
 							// Set new E
 							newE = layerDetectionRelativeMode ? newE + stod(gcode.getValue('E')) : stod(gcode.getValue('E'));
+						
+						// Check if first time layer extrudes filament
+						if(newE > currentE && find(printedLayers.begin(), printedLayers.end(), currentZ) == printedLayers.end()) {
+				
+							// Append layer to list
+							printedLayers.push_back(currentZ);
+					
+							// Set on new printed layer
+							onNewPrintedLayer = true;
+						}
 					break;
 				
 					// G90
@@ -1539,6 +1549,12 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 							gcode.setValue('Z', "0");
 							gcode.setValue('E', "0");
 						}
+						
+						// Check if a Z value is provided
+						if(gcode.hasValue('Z'))
+							
+							// Set current Z
+							currentZ = stod(gcode.getValue('Z'));
 
 						// Check if an E value is provided
 						if(gcode.hasValue('E'))
@@ -1546,16 +1562,6 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 							// Set new E to value
 							newE = stod(gcode.getValue('E'));
 					break;
-				}
-			
-				// Check if first time layer extrudes filament
-				if(newE > currentE && find(printedLayers.begin(), printedLayers.end(), currentZ) == printedLayers.end()) {
-				
-					// Append layer to list
-					printedLayers.push_back(currentZ);
-					
-					// Set on new printed layer
-					onNewPrintedLayer = true;
 				}
 		
 				// Set current E

@@ -14063,10 +14063,13 @@ $(function() {
 				if($("#gcode_upload_progress").hasClass("active")) {
 					
 					// Update message
-					$("body > div.page-container > div.message").find("p").eq(0).text($("#gcode_upload_progress > div.bar > span").length ? $("#gcode_upload_progress > div.bar > span").text() : $("#gcode_upload_progress > div.bar").text());
+					var text = $("#gcode_upload_progress > div.bar > span").length ? $("#gcode_upload_progress > div.bar > span").text() : $("#gcode_upload_progress > div.bar").text();
+					if(text.length)
+						$("body > div.page-container > div.message").find("p").eq(0).text(text);
 					
 					// Update message header
-					if($("body > div.page-container > div.message").find("p").eq(0).text().substr(0, 7) != "Slicing")
+					var header = $("body > div.page-container > div.message").find("p").eq(0).text();
+					if(header.length && header.substr(0, 7) != "Slicing")
 						$("body > div.page-container > div.message").find("h4").text("Pre-processing Status");
 					
 					// Update slicing status again

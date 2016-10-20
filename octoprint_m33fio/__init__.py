@@ -874,6 +874,12 @@ class M33FioPlugin(
 			printerProfile["heatedBed"] = True
 		
 		self._printer_profile_manager.save(printerProfile, True, not self._settings.get_boolean(["NotUsingAMicro3DPrinter"]))
+		
+		# Check if using a Micro 3D printer
+		if not self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
+	
+			# Select Micro 3D printer profile
+			self._printer_profile_manager.select("micro_3d")
 	
 	# On startup
 	def on_startup(self, host, port) :
@@ -941,12 +947,6 @@ class M33FioPlugin(
 
 		# Save printer profile
 		self.savePrinterProfile()
-		
-		# Check if using a Micro 3D printer
-		if not self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
-	
-			# Select Micro 3D printer profile
-			self._printer_profile_manager.select("micro_3d")
 		
 		# Find provided firmwares
 		for file in os.listdir(self._basefolder.replace('\\', '/') + "/static/files/") :
@@ -1951,8 +1951,8 @@ class M33FioPlugin(
 			if profileChanged :
 				self.savePrinterProfile()
 			
-			# Check if using a Micro 3D printer
-			if not self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
+			# Otherwise check if using a Micro 3D printer
+			elif not self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
 			
 				# Select Micro 3D printer profile
 				self._printer_profile_manager.select("micro_3d")
@@ -8603,6 +8603,15 @@ class M33FioPlugin(
 								newE += float(gcode.getValue('E'))
 							else :
 								newE = float(gcode.getValue('E'))
+						
+						# Check if first time layer extrudes filament
+						if newE > self.currentE and self.currentZ not in self.printedLayers :
+					
+							# Append layer to list
+							self.printedLayers.append(self.currentZ)
+						
+							# Set on new printed layer
+							self.onNewPrintedLayer = True
 			
 					# Otherwise check if command is G90
 					elif gcode.getValue('G') == "90" :
@@ -8627,22 +8636,19 @@ class M33FioPlugin(
 							gcode.setValue('Y', "0")
 							gcode.setValue('Z', "0")
 							gcode.setValue('E', "0")
+						
+						# Check if a Z value is provided
+						if gcode.hasValue('Z') :
+						
+							# Set current Z
+							self.currentZ = float(gcode.getValue('Z'))
 			
 						# Check if an E value is provided
 						if gcode.hasValue('E') :
 						
 							# Set new E to value
 							newE = float(gcode.getValue('E'))
-				
-					# Check if first time layer extrudes filament
-					if newE > self.currentE and self.currentZ not in self.printedLayers :
 					
-						# Append layer to list
-						self.printedLayers.append(self.currentZ)
-						
-						# Set on new printed layer
-						self.onNewPrintedLayer = True
-			
 					# Set current E
 					self.currentE = newE
 			
