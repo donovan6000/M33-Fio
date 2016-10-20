@@ -46,8 +46,6 @@ OctoPrint is a web server, and it can allow remotely connecting to it. So you ca
 * Can't host more than one webcam stream at a time since it always hosts on port 4999
 * Has only been tested on the latest versions of Microsoft Internet Explorer 11, Microsoft Edge, Mozilla Firefox, and Google Chrome, so it might have issues with web browsers other than those
 * Will occasionally not perform the Micro 3D printer's standby movements, like turning off the heater and fan, when a print is canceled or finished
-* Windows can occasionally have issues connecting to the Micro 3D printer
-* Some issues can occur when unloading/loading shared libraries
 
 ### Images
 Additional controls are added to OctoPrint's control panel that allow doing everything from loading filament to updating the firmware.

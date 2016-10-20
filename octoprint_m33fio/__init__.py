@@ -6713,9 +6713,6 @@ class M33FioPlugin(
 				
 						# Pre-process command
 						commands = self.sharedLibrary.preprocess(ctypes.c_char_p("G4"), ctypes.c_char_p(None), ctypes.c_bool(True)).split(',')
-						
-						# Unload shared library
-						self.unloadSharedLibrary()
 				
 					# Otherwise
 					else :
