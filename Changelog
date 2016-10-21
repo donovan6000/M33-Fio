@@ -1,6 +1,6 @@
 Changelog:
 
-V1.9 October X, 2016
+V1.9 October 20, 2016
 
 	* Provides iMe V00.00.01.23 printer firmware
 	* Added options for solid layer fill patterns when using Slic3r. Thanks again ra100!
@@ -14,7 +14,6 @@ V1.9 October X, 2016
 	* Webcam server no longer requires OctoPrint to be restarted for its changed settings to take affect
 	* Fixed an issue with the EEPROM manager that occurs when converting newline and carriage return characters from ASCII to decimal or hexadecimal values
 	* OctoPrint's available serial ports will now update in real-time
-	* Compatible with all versions of OctoPrint >= 1.2.5
 
 V1.8 September 22, 2016
 

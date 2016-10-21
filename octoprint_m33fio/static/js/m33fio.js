@@ -11346,57 +11346,61 @@ $(function() {
 		
 			// Get file
 			var file = this.files[0];
-		
+			
 			// Clear input
 			$(this).val('');
+		
+			// Check if file is valid
+			if(typeof file !== "undefined") {
 			
-			// Show message
-			showMessage("Settings Status", "Restoring printer settings");
+				// Show message
+				showMessage("Settings Status", "Restoring printer settings");
 		
-			setTimeout(function() {
+				setTimeout(function() {
 
-				// Read in file
-				var reader = new FileReader();
-				reader.readAsArrayBuffer(file);
+					// Read in file
+					var reader = new FileReader();
+					reader.readAsArrayBuffer(file);
 		
-				// On file load
-				reader.onload = function(event) {
+					// On file load
+					reader.onload = function(event) {
 
-					// Convert array buffer to a binary string
-					var binary = "";
-					var bytes = new Uint8Array(event.target.result);
-					var length = bytes.byteLength;
+						// Convert array buffer to a binary string
+						var binary = "";
+						var bytes = new Uint8Array(event.target.result);
+						var length = bytes.byteLength;
 
-					for(var i = 0; i < length; i++) 
-						binary += String.fromCharCode(bytes[i]);
+						for(var i = 0; i < length; i++) 
+							binary += String.fromCharCode(bytes[i]);
 
-					// Send request
-					$.ajax({
-						url: API_BASEURL + "plugin/m33fio",
-						type: "POST",
-						dataType: "json",
-						data: JSON.stringify({
-							command: "message",
-							value: "Set Printer Settings:" + binary
-						}),
-						contentType: "application/json; charset=UTF-8",
+						// Send request
+						$.ajax({
+							url: API_BASEURL + "plugin/m33fio",
+							type: "POST",
+							dataType: "json",
+							data: JSON.stringify({
+								command: "message",
+								value: "Set Printer Settings:" + binary
+							}),
+							contentType: "application/json; charset=UTF-8",
 
-						// On success
-						success: function(data) {
+							// On success
+							success: function(data) {
 
-							// Show message
-							showMessage("Settings Status", data.value == "OK" ? "Done" : "Failed", "OK", function() {
+								// Show message
+								showMessage("Settings Status", data.value == "OK" ? "Done" : "Failed", "OK", function() {
 
-								// Hide message
-								hideMessage();
+									// Hide message
+									hideMessage();
 						
-								// Update settings
-								self.settings.requestData();
-							});
-						}
-					});
-				}
-			}, 500);
+									// Update settings
+									self.settings.requestData();
+								});
+							}
+						});
+					}
+				}, 500);
+			}
 		});
 		
 		// Set HengLiXin fan control
@@ -12203,90 +12207,108 @@ $(function() {
 			// Clear input
 			$(this).val('');
 			
-			// Check if printer is still connected
-			if(self.printerState.isErrorOrClosed() !== true) {
+			// Check if file is valid
+			if(typeof file !== "undefined") {
 			
-				// Check if file has no name or name doesn't contain a version number
-				if(!file.name.length || file.name.search(/(^| )\d{10}(\.|$)/) == -1) {
+				// Check if printer is still connected
+				if(self.printerState.isErrorOrClosed() !== true) {
 			
-					// Show message
-					showMessage("Firmware Status", "Invalid file name", "OK", function() {
-
-						// Hide message
-						hideMessage();
-					});
-	
-					// Return
-					return;
-				}
-
-				// Check if the file is too big
-				if(file.size > 32768) {
-
-					// Show message
-					showMessage("Firmware Status", "Invalid file size", "OK", function() {
-		
-						// Hide message
-						hideMessage();
-					});
-				}
-
-				// Otherwise
-				else {
-
-					// Show message
-					showMessage("Firmware Status", "Updating firmware");
-
-					// Read in file
-					var reader = new FileReader();
-					reader.readAsArrayBuffer(file);
+					// Check if file is invalid
+					if(typeof file === "undefined") {
 			
-					// On file load
-					reader.onload = function(event) {
+						// Show message
+						showMessage("Firmware Status", "Invalid file", "OK", function() {
 
-						// Convert array buffer to a binary string
-						var binary = "";
-						var bytes = new Uint8Array(event.target.result);
-						var length = bytes.byteLength;
-
-						for(var i = 0; i < length; i++) 
-							binary += String.fromCharCode(bytes[i]);
-			
-						// Send request
-						$.ajax({
-							url: API_BASEURL + "plugin/m33fio",
-							type: "POST",
-							dataType: "json",
-							data: JSON.stringify({
-								command: "file",
-								name: file.name, content: binary
-							}),
-							contentType: "application/json; charset=UTF-8",
-	
-							// On success
-							success: function(data) {
-	
-								// Show message
-								showMessage("Firmware Status", data.value == "OK" ? "Done" : "Failed", "OK", function() {
-	
-									// Hide message
-									hideMessage();
-								
-									// Send request
-									$.ajax({
-										url: API_BASEURL + "plugin/m33fio",
-										type: "POST",
-										dataType: "json",
-										data: JSON.stringify({
-											command: "message",
-											value: "Reconnect To Printer"
-										}),
-										contentType: "application/json; charset=UTF-8"
-									});
-								});
-							}
+							// Hide message
+							hideMessage();
 						});
-					};
+	
+						// Return
+						return;
+					}
+			
+					// Check if file has no name or name doesn't contain a version number
+					if(!file.name.length || file.name.search(/(^| )\d{10}(\.|$)/) == -1) {
+			
+						// Show message
+						showMessage("Firmware Status", "Invalid file name", "OK", function() {
+
+							// Hide message
+							hideMessage();
+						});
+	
+						// Return
+						return;
+					}
+
+					// Check if the file is too big
+					if(file.size > 32768) {
+
+						// Show message
+						showMessage("Firmware Status", "Invalid file size", "OK", function() {
+		
+							// Hide message
+							hideMessage();
+						});
+					}
+
+					// Otherwise
+					else {
+
+						// Show message
+						showMessage("Firmware Status", "Updating firmware");
+
+						// Read in file
+						var reader = new FileReader();
+						reader.readAsArrayBuffer(file);
+			
+						// On file load
+						reader.onload = function(event) {
+
+							// Convert array buffer to a binary string
+							var binary = "";
+							var bytes = new Uint8Array(event.target.result);
+							var length = bytes.byteLength;
+
+							for(var i = 0; i < length; i++) 
+								binary += String.fromCharCode(bytes[i]);
+			
+							// Send request
+							$.ajax({
+								url: API_BASEURL + "plugin/m33fio",
+								type: "POST",
+								dataType: "json",
+								data: JSON.stringify({
+									command: "file",
+									name: file.name, content: binary
+								}),
+								contentType: "application/json; charset=UTF-8",
+	
+								// On success
+								success: function(data) {
+	
+									// Show message
+									showMessage("Firmware Status", data.value == "OK" ? "Done" : "Failed", "OK", function() {
+	
+										// Hide message
+										hideMessage();
+								
+										// Send request
+										$.ajax({
+											url: API_BASEURL + "plugin/m33fio",
+											type: "POST",
+											dataType: "json",
+											data: JSON.stringify({
+												command: "message",
+												value: "Reconnect To Printer"
+											}),
+											contentType: "application/json; charset=UTF-8"
+										});
+									});
+								}
+							});
+						};
+					}
 				}
 			}
 		});
