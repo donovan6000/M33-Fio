@@ -1,3 +1,15 @@
+body > div.modal-scrollable.hideOverflow {
+	overflow: hidden !important;
+}
+
+#terminal-output > span {
+	white-space: nowrap;
+}
+
+#webcam_image[src^="None"] {
+	display: none;
+}
+
 #job_pause.active {
 	background-image: linear-gradient(to bottom, #FFF, #E6E6E6);
 	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05);
@@ -13,10 +25,11 @@
 
 #gcode div.midPrintFilamentChange label input {
 	display: inline;
-	width: calc(100% - 200px);
+	width: calc(100% - 197px);
 	position: relative;
 	top: 4px;
 	margin-left: 5px;
+	margin-right: 5px;
 }
 
 #gcode div.midPrintFilamentChange button:first-of-type {
@@ -50,6 +63,7 @@
 	position: relative;
 	top: -1px;
 	text-align: center;
+	white-space: normal;
 }
 
 #settings_plugin_m33fio h4 > span {
@@ -68,22 +82,22 @@
 	top: 10px;
 }
 
-#settings_plugin_m33fio label.checkbox:first-of-type {
+#settings_plugin_m33fio label.checkbox:first-of-type, #settings_plugin_m33fio label.noCheckbox {
 	margin-top: -5px;
 	width: calc(100% - 24px);
 }
 
-#settings_plugin_m33fio label.checkbox > span {
-	position: relative;
-	top: 9px;
+#settings_plugin_m33fio label.noWrap {
+	white-space: nowrap;
 }
 
-#settings_plugin_m33fio label.checkbox > span.windows {
-	top: 10px;
+#settings_plugin_m33fio label.checkbox > span {
+	position: relative;
+	top: 9px !important;
 }
 
 #settings_plugin_m33fio label.checkbox > span.osx {
-	top: 0;
+	top: 0 !important;
 }
 
 #settings_plugin_m33fio input[type="checkbox"] {
@@ -140,10 +154,19 @@
 #settings_plugin_m33fio input.short, #settings_plugin_m33fio select.short {
 	width: 160px;
 	margin-top: -10px;
-	margin-left: 6px;
+	margin-left: 4px;
+	margin-right: 4px;
 	position: relative;
 	top: 13px;
 	text-align: center;
+}
+
+#settings_plugin_m33fio select.short.windows {
+	top: 14px;
+}
+
+#settings_plugin_m33fio select.short.osx {
+	top: 5px;
 }
 
 #settings_plugin_m33fio .disabled {
@@ -156,10 +179,15 @@
 }
 
 #navbar_plugin_m33fio {
-	display: inline;
 	position: absolute;
 	top: 44px;
-	left: 30px;
+	left: 0;
+	margin-left: 10px;
+	display: none;
+}
+
+#navbar_plugin_m33fio.show {
+	display: inline;
 }
 
 #navbar_plugin_m33fio > select {
@@ -209,10 +237,25 @@
 	left: 8px;
 }
 
-#control div.jog-panel.extruder > div div.slider {
-	width: 124px !important;
+#control div.jog-panel.controls > div > div:nth-of-type(1) > div {
 	position: relative;
-	right: 2px;
+	left: 10px;
+	height: 40px;
+}
+
+#control > div.jog-panel.controls div.distance {
+	width: 1px;
+	cursor: default;
+}
+
+#control div.jog-panel.extruder > div div.slider {
+	width: 125px !important;
+	position: relative;
+	right: 1px;
+}
+
+#control div.jog-panel.extruder > div div.slider .slider-handle {
+	margin-left: -8px;
 }
 
 #control div.jog-panel.extruder > div > div > input {
@@ -253,7 +296,7 @@
 
 #control div.jog-panel.calibration button.arrow:not(.point) {
 	clear: both;
-	margin-right: 15px;
+	margin-right: 8px;
 }
 
 #control div.jog-panel.calibration button.arrow.point {
@@ -261,32 +304,38 @@
 
 #control div.jog-panel.calibration button:nth-of-type(5), #control div.jog-panel.calibration button:nth-of-type(8), #control div.jog-panel.calibration button:nth-of-type(11), #control div.jog-panel.calibration button:nth-of-type(14) {
 	position: relative;
-	left: 5px;
-	width: 151px;
-} 
+	left: 8px;
+	width: 155px;
+}
 
-#control div.jog-panel.calibration > div > button:nth-of-type(3) {
-	position: relative;
-	left: 5px;
+#control div.jog-panel.calibration > div > button:nth-of-type(3) > i {
 	transform: rotate(45deg);
+	display: inline-block;
+	position: relative;
+	top: 1px;
 }
 
-#control div.jog-panel.calibration > div > button:nth-of-type(6) {
-	position: relative;
-	left: 5px;
+#control div.jog-panel.calibration > div > button:nth-of-type(6) > i {
 	transform: rotate(-45deg);
+	display: inline-block;
+	position: relative;
+	top: 1px;
+	left: 1px;
 }
 
-#control div.jog-panel.calibration > div > button:nth-of-type(9) {
-	position: relative;
-	left: 5px;
+#control div.jog-panel.calibration > div > button:nth-of-type(9) > i {
 	transform: rotate(45deg);
+	display: inline-block;
+	position: relative;
+	top: 1px;
+	left: 1px;
 }
 
-#control div.jog-panel.calibration > div > button:nth-of-type(12) {
-	position: relative;
-	left: 5px;
+#control div.jog-panel.calibration > div > button:nth-of-type(12) > i {
 	transform: rotate(-45deg);
+	display: inline-block;
+	position: relative;
+	top: 0px;
 }
 
 #control div.jog-panel.advanced button {
@@ -326,7 +375,7 @@
 
 #control div.jog-panel.eeprom button {
 	width: 150px;
-	margin: 7px 5px 10px 5px;
+	margin: 3px 5px 10px 5px;
 	display: inline-block;
 }
 
@@ -376,10 +425,10 @@
 	position: relative;
 	top: 1px;
 	width: 13px;
-	height: 13px;
+	height: 19px;
 }
 
-#control div.jog-panel.eeprom input[type="radio"].windows, #control div.jog-panel.eeprom input[type="radio"].osx {
+#control div.jog-panel.eeprom input[type="radio"].osx {
 	top: 0;
 }
 
@@ -509,15 +558,24 @@ body > div.page-container > div.message > div > div {
 	border: 1px solid #e5e5e5;
 	border-radius: 0 0 4px 4px;
 	margin: 0 1px 1px 1px;
-	padding: 8px 12px 0 12px;
+	padding: 8px 12px 33px 12px;
 	min-width: 200px;
 	max-width: 500px;
 }
 
+body > div.page-container > div.message > div > div.loading {
+	padding-bottom: 0;
+}
+
 body > div.page-container > div.message > div > div > div:not(.calibrate) {
 	position: relative;
-	left: calc(100% - 135px);
+	left: 10px;
 	padding-bottom: 2px;
+}
+
+body > div.page-container > div.message > div > div > div:not(.calibrate):not(.printSettings):not(.filamentSettings) {
+	float: right;
+	white-space: nowrap;
 }
 
 body > div.page-container > div.message > div > div > div:not(.show) {
@@ -526,15 +584,20 @@ body > div.page-container > div.message > div > div > div:not(.show) {
 
 body > div.page-container > div.message > div > div > div:not(.calibrate) > button {
 	display: inline;
-	width: 70px;
+	min-width: 70px;
+	width: auto;
+	padding-right: 10px;
+	padding-left: 10px;
 	visibility: hidden;
 	margin: 0 1px 0 0;
+	white-space: nowrap;
 }
 
 body > div.page-container > div.message > div > div > div.calibrate, body > div.page-container > div.message > div > div > div.printSettings, body > div.page-container > div.message > div > div > div.filamentSettings {
 	visibility: hidden;
 	position: relative;
 	top: -2px;
+	padding-bottom: 7px;
 }
 
 body > div.page-container > div.message > div > div > div.calibrate > div {
@@ -574,6 +637,10 @@ body > div.page-container > div.message > div > div > div.printSettings, body > 
 	margin: 0;
 	padding: 0;
 	top: 4px;
+}
+
+body > div.page-container > div.message > div > div > div.printSettings {
+	margin-bottom: -4px;
 }
 
 body > div.page-container > div.message > div > div > div.printSettings h3, body > div.page-container > div.message > div > div > div.filamentSettings h3 {
@@ -643,7 +710,7 @@ body > div.page-container > div.message > div > div > span {
 }
 
 body > div.page-container > div.message > div > div > span.show {
-	display: inline;
+	display: inline-block;
 }
 
 #slicing_configuration_dialog.cura .slic3r-only {
@@ -728,21 +795,17 @@ body > div.page-container > div.message > div > div > span.show {
 	border-top: none !important;
 }
 
-#slicing_configuration_dialog.profile .modal-extra div.slicerSpecific {
+#slicing_configuration_dialog.profile .modal-extra div.groups {
 	flex-direction: column;
 }
 
-#slicing_configuration_dialog.profile .modal-extra div.slicerSpecific:not(.show) {
-	display: none;
-}
-
-#slicing_configuration_dialog.profile .modal-extra div.slicerSpecific p {
+#slicing_configuration_dialog.profile .modal-extra div.groups p {
 	text-align: center;
 	line-height: 10px;
 	margin: 12px 0 6px 0;
 }
 
-#slicing_configuration_dialog.profile .modal-extra div.slicerSpecific button {
+#slicing_configuration_dialog.profile .modal-extra div.groups button {
 	padding: 0;
 	border-radius: 5px;
 	border: 1px solid rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
@@ -754,7 +817,7 @@ body > div.page-container > div.message > div > div > span.show {
 	height: 70px;
 }
 
-#slicing_configuration_dialog .slicerSpecific button img {
+#slicing_configuration_dialog .groups button img {
 	position: absolute;
 	top: 50%;
 	left: 50%;
@@ -763,11 +826,11 @@ body > div.page-container > div.message > div > div > span.show {
 	height: auto;
 }
 
-#slicing_configuration_dialog .slicerSpecific p:not(:first-of-type) {
+#slicing_configuration_dialog .groups p:not(:first-of-type) {
 	margin-top: 10px;
 }
 
-#slicing_configuration_dialog .slicerSpecific .group {
+#slicing_configuration_dialog .groups .group {
 	width: 100%;
 	margin: 0 auto;
 	display: block;
@@ -799,7 +862,7 @@ body > div.page-container > div.message > div > div > span.show {
 }
 
 #slicing_configuration_dialog.slic3r .group.basic {
-	height: 320px;
+	height: 415px;
 }
 
 #slicing_configuration_dialog .group.manual {
@@ -845,40 +908,49 @@ body > div.page-container > div.message > div > div > span.show {
 	text-align: left;
 }
 
-#slicing_configuration_dialog .slicerSpecific div:not(.group) {
+#slicing_configuration_dialog .group h3.windows, #slicing_configuration_dialog .group h3.osx {
+	top: -4px;
+}
+
+#slicing_configuration_dialog .groups div:not(.group) {
 	width: 100%;
 	margin: 0 auto;
 	display: block;
 	text-align: center;
 }
 
-#slicing_configuration_dialog.cura .slicerSpecific .slic3r-only {
+#slicing_configuration_dialog.cura .groups .slic3r-only {
 	display: none;
 }
 
-#slicing_configuration_dialog .slicerSpecific .settings {
+#slicing_configuration_dialog .groups .settings {
 	margin: 1px 0 -1px 0;
 	white-space: nowrap;
 }
 
-#slicing_configuration_dialog .slicerSpecific .settings label {
+#slicing_configuration_dialog .groups .settings label {
 	display: inline-block;
 	margin: 4px 8px 0 8px;
 }
 
-#slicing_configuration_dialog.cura .slicerSpecific .settings label.slic3r-only {
+#slicing_configuration_dialog.cura .groups .settings label.slic3r-only {
 	display: none;
 }
 
-#slicing_configuration_dialog.slic3r .slicerSpecific .settings label.cura-only {
+#slicing_configuration_dialog.slic3r .groups .settings label.cura-only {
 	display: none;
 }
 
 
-#slicing_configuration_dialog .slicerSpecific .settings input {
+#slicing_configuration_dialog .groups .settings input {
 	position: relative;
 	top: -3px;
 	right: 2px;
+}
+
+
+#slicing_configuration_dialog .groups .settings input[type="checkbox"]:focus {
+	outline: none;
 }
 
 #slicing_configuration_dialog .group.manual .wrapper {
@@ -896,7 +968,8 @@ body > div.page-container > div.message > div > div > span.show {
 #slicing_configuration_dialog .group.manual .option {
 	display: inline-block;
 	width: calc(100% / 3);
-	margin: 3px 0;
+	margin: 3px auto;
+	height: 30px;
 }
 
 #slicing_configuration_dialog .group.manual .option.disabled {
@@ -937,12 +1010,16 @@ body > div.page-container > div.message > div > div > span.show {
 #slicing_configuration_dialog .group.advanced > span {
 	width: 100%;
 	display: none;
-	height: 15px;
+	height: 16px;
 	background-color: white;
 	position: absolute;
 	margin-top: -10px;
 	bottom: -1px;
 	left: 0;
+}
+
+#slicing_configuration_dialog .group.advanced > span.firefox {
+	height: 11px;
 }
 
 #slicing_configuration_dialog .group.advanced aside {
@@ -977,6 +1054,32 @@ body > div.page-container > div.message > div > div > span.show {
 	position: relative;
 	z-index: 1;
 	color: #333;
+}
+
+#slicing_configuration_dialog .group.advanced textarea.firefox {
+	height: calc(100% - 8px) !important;
+	padding: 0px 2px 0px 5px !important;
+}
+
+#slicing_configuration_dialog .modal-drag-and-drop {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	border-radius: 6px;
+	background-color: rgba(255, 255, 255, 0.25);
+	border: 3px dotted rgba(200, 200, 200, 0);
+	z-index: 9999;
+	visibility: hidden;
+	opacity: 0;
+	transition: visibility 0.2s linear, opacity 0.2s linear, border-color 0.2s linear;
+}
+
+#slicing_configuration_dialog .modal-drag-and-drop.show {
+	visibility: visible;
+	opacity: 1;
+	border-color: rgba(200, 200, 200, 0.9);
 }
 
 #slicing_configuration_dialog .modal-cover {
@@ -1318,11 +1421,26 @@ body > div.page-container > div.message > div > div > span.show {
 	margin-right: 40px !important;
 }
 
+#control div.jog-panel.controls > div > div.jog-panel:nth-of-type(2) {
+	left: 18px;
+	position: relative;
+	padding-right: 23px;
+	margin-right: 0;
+}
+
 #control > div.jog-panel.controls > div h1 {
 	font-size: 14px;
 	margin-top: -10px;
 	position: relative;
 	right: 4px;
+}
+
+#control > div.jog-panel.controls > div:first-of-type h1 {
+	margin-left: 10px;
+}
+
+#control div.jog-panel.controls > div > div.jog-panel:nth-of-type(2) h1 {
+	right: 15px;
 }
 
 #control > div.jog-panel.closed > div {
@@ -1346,6 +1464,6 @@ body > div.page-container > div.message > div > div > span.show {
 	transition: none !important;
 }
 
-.notUsingAMicro3DPrinter, .usingAMicro3DPrinter, .notUsingAHeatbed {
+.notUsingAMicro3DPrinter, .usingAMicro3DPrinter, .notUsingAHeatbed, .dontShow {
 	display: none !important;
 }

@@ -1,12 +1,15 @@
 # coding=utf-8
 import setuptools
+import os
+import sys
+import subprocess
 
 ########################################################################################################################
 
 plugin_identifier = "m33fio"
 plugin_package = "octoprint_%s" % plugin_identifier
 plugin_name = "OctoPrint-M33Fio"
-plugin_version = "1.8"
+plugin_version = "1.9"
 plugin_description = "Makes OctoPrint fully compatible with the Micro 3D printer"
 plugin_author = "donovan6000"
 plugin_author_email = "donovan6000@exploitkings.com"
@@ -65,4 +68,42 @@ def params():
 
 	return locals()
 
+def findPip() :
+
+	# Created by Gina Häußge <osd@foosel.net>
+	# Copyright (C) 2014 The OctoPrint Project - Released under terms of the AGPLv3 License
+	python_command = sys.executable
+	binary_dir = os.path.dirname(python_command)
+
+	pip_command = os.path.join(binary_dir, "pip")
+	if sys.platform == "win32":
+		# Windows is a bit special... first of all the file will be called pip.exe, not just pip, and secondly
+		# for a non-virtualenv install (e.g. global install) the pip binary will not be located in the
+		# same folder as python.exe, but in a subfolder Scripts, e.g.
+		#
+		# C:\Python2.7\
+		#  |- python.exe
+		#  `- Scripts
+		#      `- pip.exe
+
+		# virtual env?
+		pip_command = os.path.join(binary_dir, "pip.exe")
+
+		if not os.path.isfile(pip_command):
+			# nope, let's try the Scripts folder then
+			scripts_dir = os.path.join(binary_dir, "Scripts")
+			if os.path.isdir(scripts_dir):
+				pip_command = os.path.join(scripts_dir, "pip.exe")
+
+	if not os.path.isfile(pip_command) or not os.access(pip_command, os.X_OK):
+		pip_command = None
+	
+	return pip_command
+
+# Uninstall M3D Fio
+pipCommand = findPip()
+if pipCommand is not None :
+	subprocess.call([pipCommand, "uninstall", "OctoPrint-M3DFio", "-y"])
+
+# Install package
 setuptools.setup(**params())

@@ -2,6 +2,13 @@
 	<div class="control-group title">
 		<h4>General</h4>
 	</div>
+	<div class="control-group">
+		<div class="controls">
+			<label class="checkbox" title="Disables all the Micro 3D printer specific features which allows using other types of printers">
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.NotUsingAMicro3DPrinter"><span>Not using a Micro 3D printer</span>
+			</label>
+		</div>
+	</div>
 	<div class="control-group micro3d">
 		<div class="controls">
 			<label class="checkbox" title="Uses settings obtained from the printer to overwrite existing settings when a Micro 3D printer connects">
@@ -39,13 +46,6 @@
 	</div>
 	<div class="control-group">
 		<div class="controls">
-			<label class="checkbox" title="Disables all the Micro 3D printer specific features which allows using other types of printers">
-				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.NotUsingAMicro3DPrinter"><span>Not using a Micro 3D printer</span>
-			</label>
-		</div>
-	</div>
-	<div class="control-group">
-		<div class="controls">
 			<label class="checkbox" title="Logs debug information to plugin_m33fio_debug.log">
 				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.UseDebugLogging"><span>Log debug information to plugin_m33fio_debug.log</span>
 			</label>
@@ -53,10 +53,9 @@
 	</div>
 	<div class="control-group camera">
 		<div class="controls">
-			<label class="checkbox" title="Hosts a camera's stream and snapshot at port 4999 at /stream.mjpg and /snapshot.jpg respectively">
+			<label class="checkbox noWrap" title="Hosts a camera's stream and snapshot at port 4999 at /stream.mjpg and /snapshot.jpg respectively">
 				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.HostCamera"><span>Host Camera</span>
 				<select class="input-block-level short" data-bind="value: settings.plugins.m33fio.CameraPort"></select>
-				&nbsp;&nbsp;<span class="label label-important">Changes require restart</span>
 			</label>
 		</div>
 	</div>
@@ -92,7 +91,7 @@
 	</div>
 	<div class="control-group micro3d">
 		<div class="controls">
-			<label title="Adds in mid-print filament change commands at the start of each specified layer. Layer numbers should be seperated by a space.">
+			<label class="noCheckbox noWrap" title="Adds in mid-print filament change commands at the start of each specified layer. Layer numbers should be seperated by a space.">
 				<span class="noCheckbox">Mid-print filament change layers</span>
 				<input type="text" pattern="[\d\s]*" class="input-block-level short" data-bind="value: settings.plugins.m33fio.MidPrintFilamentChangeLayers">
 			</label>
@@ -149,7 +148,7 @@
 	</div>
 	<div class="control-group dependant gpio micro3d">
 		<div class="controls">
-			<label class="checkbox" title="Sets a GPIO pin high at the start of the specified layer and sets it low when the print is done">
+			<label class="checkbox noWrap" title="Sets a GPIO pin high at the start of the specified layer and sets it low when the print is done">
 				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.UseGpio"><span>Use GPIO</span>
 				<input type="number" step="1" min="0" class="input-block-level short" data-bind="value: settings.plugins.m33fio.GpioPin" placeholder="GPIO pin number">
 				<input type="number" step="1" min="1" class="input-block-level short" data-bind="value: settings.plugins.m33fio.GpioLayer" placeholder="GPIO start layer">
@@ -209,7 +208,7 @@
 		<label class="control-label">Backlash Speed</label>
 		<div class="controls">
 			<div class="input-append mmPerMinute">
-				<input type="number" step="0.000001" min="1" max="4999" class="input-block-level" data-bind="value: settings.plugins.m33fio.BacklashSpeed">
+				<input type="number" step="0.000001" min="1" max="5000" class="input-block-level" data-bind="value: settings.plugins.m33fio.BacklashSpeed">
 				<span class="add-on">mm/min</span>
 			</div>
 		</div>
@@ -250,7 +249,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="control-group micro3d" title="The vertical displacement for the bed's center. A positive vertical displacement means that the bed's center is higher than the actual bed's center, and a negative vertical displacement means that the bed's center is lower than the actual bed's center.">
+	<div class="control-group micro3d" title="The vertical displacement for the entire bed. A positive vertical displacement means that the entire bed is higher than it is, and a negative vertical displacement means that the entire bed is lower than it is.">
 		<label class="control-label">Bed Height Offset</label>
 		<div class="controls">
 			<div class="input-append">
