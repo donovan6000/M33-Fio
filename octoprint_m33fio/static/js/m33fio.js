@@ -823,10 +823,10 @@ $(function() {
 			// Download file
 			if(typeof window.navigator.msSaveBlob === "function")
 
-                        	window.navigator.msSaveBlob(blob, name);
-                        
-                        else {
-                        
+				window.navigator.msSaveBlob(blob, name);
+
+			else {
+
 				var anchor = $("#slicing_configuration_dialog .modal-footer a.link")[0];
 				anchor.href = URL.createObjectURL(blob);
 				anchor.download = name;

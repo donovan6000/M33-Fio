@@ -45,7 +45,7 @@ OctoPrint is a web server, and it can allow remotely connecting to it. So you ca
 * Microsoft Edge displays webcam stream as a still image
 * Can't host more than one webcam stream at a time since it always hosts on port 4999
 * Has only been tested on the latest versions of Microsoft Internet Explorer 11, Microsoft Edge, Mozilla Firefox, and Google Chrome, so it might have issues with web browsers other than those
-* Has problems performing standy commands when a print is finished or canceled with versions of OctoPrint  >= 1.3.0
+* Has problems performing standy commands when a print is finished or canceled with versions of OctoPrint >= 1.3.0
 
 ### Images
 Additional controls are added to OctoPrint's control panel that allow doing everything from loading filament to updating the firmware.
