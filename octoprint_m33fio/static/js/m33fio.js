@@ -4537,8 +4537,8 @@ $(function() {
 			// Initialize variables
 			var button = $(this);
 			
-			// Check if not continuing with print and using a Micro 3D printer
-			if(!continueWithPrint && !self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
+			// Check if not continuing with print, using a Micro 3D printer, and starting a print
+			if(!continueWithPrint && !self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter() && button.text().trim() == "Print") {
 			
 				// Stop default behavior
 				event.stopImmediatePropagation();
@@ -4568,7 +4568,7 @@ $(function() {
 							}),
 							contentType: "application/json; charset=UTF-8",
 					
-							// On success									
+							// On success
 							success: function() {
 					
 								// Print file
@@ -4588,7 +4588,7 @@ $(function() {
 										}),
 										contentType: "application/json; charset=UTF-8",
 				
-										// On success									
+										// On success
 										success: function() {
 			
 											// Continue with print
@@ -4626,7 +4626,7 @@ $(function() {
 						}),
 						contentType: "application/json; charset=UTF-8",
 				
-						// On success									
+						// On success
 						success: function() {
 			
 							// Continue with print
@@ -4634,6 +4634,77 @@ $(function() {
 							button.click();
 						}
 					});
+				}
+			}
+			
+			// Otherwise check if using a Micro 3D printer and restarting a print
+			else if(!self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter() && button.text().trim() == "Restart") {
+			
+				// Stop default behavior
+				event.stopImmediatePropagation();
+				
+				// Check if using new dialog system
+				if(typeof OctoPrint !== "undefined" && typeof OctoPrint.job !== "undefined" && typeof OctoPrint.job.restart === "function")
+				
+					// Show confirmation dialog
+					showConfirmationDialog({
+						message: gettext("This will restart the print job from the beginning."),
+						onproceed: function() {
+							
+							// Send request
+							$.ajax({
+								url: API_BASEURL + "plugin/m33fio",
+								type: "POST",
+								dataType: "json",
+								data: JSON.stringify({
+									command: "message",
+									value: "Restarting Print"
+								}),
+								contentType: "application/json; charset=UTF-8",
+			
+								// On success
+								success: function() {
+								
+									// Restart print
+									OctoPrint.job.restart();
+								}
+							});
+						}
+					});
+				
+				// Otherwise
+				else {
+				
+					// Show confirmation dialog
+					$("#confirmation_dialog .confirmation_dialog_message").text(gettext("This will restart the print job from the beginning."));
+					$("#confirmation_dialog .confirmation_dialog_acknowledge").unbind("click").click(function(event) {
+				
+						// Stop default behavior
+						event.preventDefault();
+					
+						// Hide dialog
+						$("#confirmation_dialog").modal("hide");
+					
+						// Send request
+						$.ajax({
+							url: API_BASEURL + "plugin/m33fio",
+							type: "POST",
+							dataType: "json",
+							data: JSON.stringify({
+								command: "message",
+								value: "Restarting Print"
+							}),
+							contentType: "application/json; charset=UTF-8",
+			
+							// On success
+							success: function() {
+		
+								// Restart print
+								self.printerState._jobCommand("restart");
+							}
+						});
+					});
+					$("#confirmation_dialog").modal("show");
 				}
 			}
 			
@@ -8137,7 +8208,7 @@ $(function() {
 											}),
 											contentType: "application/json; charset=UTF-8",
 
-											// On success									
+											// On success
 											success: function() {
 									
 												// Slice file
@@ -8158,7 +8229,7 @@ $(function() {
 														}),
 														contentType: "application/json; charset=UTF-8",
 				
-														// On success									
+														// On success
 														success: function() {
 			
 															// Apply changes
@@ -8205,7 +8276,7 @@ $(function() {
 										}),
 										contentType: "application/json; charset=UTF-8",
 				
-										// On success									
+										// On success
 										success: function() {
 			
 											// Apply changes
@@ -10219,7 +10290,7 @@ $(function() {
 							}),
 							contentType: "application/json; charset=UTF-8",
 					
-							// On success									
+							// On success
 							success: function() {
 					
 								// Print file
@@ -10340,7 +10411,7 @@ $(function() {
 						}),
 						contentType: "application/json; charset=UTF-8",
 				
-						// On success									
+						// On success
 						success: function() {
 				
 							// Print file
@@ -12462,7 +12533,9 @@ $(function() {
 			
 				// Set error message text
 				setTimeout(function() {
-					$("div.ui-pnotify:last-of-type > div > div.ui-pnotify-text > p").text(data.text);
+					var lastMessage = $("div.ui-pnotify:last-of-type > div > div.ui-pnotify-text");
+					lastMessage.children("p").text(data.text);
+					lastMessage.children("div.pnotify_additional_info").remove();
 				}, 100);
 			
 			// Otherwise check if data is to create a message
@@ -13735,7 +13808,7 @@ $(function() {
 										}),
 										contentType: "application/json; charset=UTF-8",
 					
-										// On success								
+										// On success
 										success: function() {
 					
 											// Print file
@@ -13755,7 +13828,7 @@ $(function() {
 													}),
 													contentType: "application/json; charset=UTF-8",
 				
-													// On success									
+													// On success
 													success: function() {
 			
 														// Load file and print
@@ -13792,7 +13865,7 @@ $(function() {
 									}),
 									contentType: "application/json; charset=UTF-8",
 				
-									// On success									
+									// On success
 									success: function() {
 			
 										// Load file and print

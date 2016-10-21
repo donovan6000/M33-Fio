@@ -899,6 +899,10 @@ class M33FioPlugin(
 		# Make sure webcam stream is set so that HTML is added to web page
 		if not octoprint.settings.settings().get(["webcam", "stream"]) :
 			octoprint.settings.settings().set(["webcam", "stream"], "None", True)
+		
+		# Disable OctoPrint's boundary detection if using a Micro 3D printer
+		if not self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
+			octoprint.settings.settings().set(["feature", "modelSizeDetection"], False, True)
 	
 		# Guarantee settings are valid
 		self.guaranteeSettingsAreValid()
@@ -1028,8 +1032,9 @@ class M33FioPlugin(
 					# Clear host camera
 					self._settings.set_boolean(["HostCamera"], False)
 					
-					# Clear webcam stream
+					# Clear webcam stream and snapshot
 					octoprint.settings.settings().set(["webcam", "stream"], "None", True)
+					octoprint.settings.settings().set(["webcam", "snapshot"], None, True)
 					
 					# Save settings
 					octoprint.settings.settings().save()
@@ -2014,6 +2019,9 @@ class M33FioPlugin(
 				# Disable printer callbacks
 				while self in self._printer._callbacks :
 					self._printer.unregister_callback(self)
+				
+				# Enable OctoPrint's boundary detection
+				octoprint.settings.settings().set(["feature", "modelSizeDetection"], True, True)
 			
 			# Otherwise
 			else :
@@ -2021,6 +2029,9 @@ class M33FioPlugin(
 				# Enable printer callbacks
 				if self not in self._printer._callbacks :
 					self._printer.register_callback(self)
+				
+				# Disable OctoPrint's boundary detection
+				octoprint.settings.settings().set(["feature", "modelSizeDetection"], False, True)
 			
 			# Check if not printing or paused
 			if not self._printer.is_printing() and not self._printer.is_paused() :
@@ -3371,6 +3382,31 @@ class M33FioPlugin(
 			# Otherwise check if parameter is starting print
 			elif data["value"] == "Starting Print" :
 			
+				# Empty command queue
+				self.emptyCommandQueue()
+				
+				# Set first line number to zero and clear history
+				if self._printer._comm is not None :
+					self._printer._comm._gcode_M110_sending("N0")
+					self._printer._comm._long_running_command = True
+				
+				# Clear sent commands
+				self.sentCommands = {}
+				self.resetLineNumberCommandSent = False
+				self.numberWrapCounter = 0
+				
+				# Clear ready to print
+				self.readyToPrint = False
+			
+			# Otherwise check if parameter is restarting print
+			elif data["value"] == "Restarting Print" :
+			
+				# Unload shared library
+				self.unloadSharedLibrary()
+		
+				# Enable sleep
+				self.enableSleep()
+				
 				# Empty command queue
 				self.emptyCommandQueue()
 				
@@ -5743,7 +5779,7 @@ class M33FioPlugin(
 			if currentPort is None :
 				
 				# Send message
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "No Micro 3D printer detected. If your not using a Micro 3D printer then make sure to enable the 'Not using a Micro 3D printer' setting in the M33 Fio tab in OctoPrint's settings. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "No Micro 3D printer detected. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
 			
 			# Otherwise
 			else :
@@ -5762,7 +5798,7 @@ class M33FioPlugin(
 					error = True
 					
 					# Send message
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the 'Not using a Micro 3D printer' setting in the M33 Fio tab in OctoPrint's settings. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
 				
 				# Check if no errors occured
 				if not error :
@@ -5797,7 +5833,7 @@ class M33FioPlugin(
 							error = True
 					
 							# Send message
-							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the 'Not using a Micro 3D printer' setting in the M33 Fio tab in OctoPrint's settings. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
+							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
 			
 						# Check if no errors occured
 						if not error :
@@ -5835,7 +5871,7 @@ class M33FioPlugin(
 									error = True
 							
 									# Send message
-									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the 'Not using a Micro 3D printer' setting in the M33 Fio tab in OctoPrint's settings. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
+									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
 					
 								# Otherwise
 								else :
@@ -5857,7 +5893,7 @@ class M33FioPlugin(
 										error = True
 								
 										# Send message
-										self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the 'Not using a Micro 3D printer' setting in the M33 Fio tab in OctoPrint's settings. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
+										self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
 								
 									# Otherwise check if using OS X or Linux and the user lacks read/write access to the printer
 									elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(currentPort, os.R_OK | os.W_OK) :
@@ -5889,7 +5925,7 @@ class M33FioPlugin(
 										error = True
 										
 										# Send message
-										self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the 'Not using a Micro 3D printer' setting in the M33 Fio tab in OctoPrint's settings. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
+										self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
 			
 								# Check if an error occured
 								except :
@@ -5898,7 +5934,7 @@ class M33FioPlugin(
 									error = True
 					
 									# Send message
-									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the 'Not using a Micro 3D printer' setting in the M33 Fio tab in OctoPrint's settings. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
+									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
 								
 								# Check if an error hasn't occured
 								if not error :
@@ -6321,7 +6357,7 @@ class M33FioPlugin(
 											error = True
 						
 											# Send message
-											self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the 'Not using a Micro 3D printer' setting in the M33 Fio tab in OctoPrint's settings. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
+											self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
 			
 									# Otherwise
 									else :
@@ -6330,7 +6366,7 @@ class M33FioPlugin(
 										error = True
 						
 										# Send message
-										self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the 'Not using a Micro 3D printer' setting in the M33 Fio tab in OctoPrint's settings. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
+										self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
 			
 				# Check if connected to the printer
 				if connection is not None :
@@ -6371,7 +6407,7 @@ class M33FioPlugin(
 						self.eeprom = None
 						
 						# Send message
-						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the 'Not using a Micro 3D printer' setting in the M33 Fio tab in OctoPrint's settings. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
+						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
 					
 					# Check if an error hasn't occured
 					if not error :
@@ -6414,7 +6450,7 @@ class M33FioPlugin(
 								self.eeprom = None
 
 								# Send message
-								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the 'Not using a Micro 3D printer' setting in the M33 Fio tab in OctoPrint's settings. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
+								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
 				
 							# Otherwise
 							else :
@@ -6528,7 +6564,7 @@ class M33FioPlugin(
 												self._printer.disconnect()
 								
 												# Send message
-												self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the 'Not using a Micro 3D printer' setting in the M33 Fio tab in OctoPrint's settings. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
+												self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
 					
 										# Otherwise
 										else :
@@ -6547,7 +6583,7 @@ class M33FioPlugin(
 											self._printer.disconnect()
 							
 											# Send message
-											self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the 'Not using a Micro 3D printer' setting in the M33 Fio tab in OctoPrint's settings. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
+											self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
 			
 			# Clear reconnecting to printer
 			self.reconnectingToPrinter = False
@@ -10151,7 +10187,7 @@ class M33FioPlugin(
 					pass
 				
 				# Send message
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "No Micro 3D printer detected. If your not using a Micro 3D printer then make sure to enable the 'Not using a Micro 3D printer' setting in the M33 Fio tab in OctoPrint's settings. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "No Micro 3D printer detected. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
 				
 				# Enable printer connect button
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Allow Connecting"))
@@ -10180,7 +10216,7 @@ class M33FioPlugin(
 		if connection is None :
 		
 			# Send message
-			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the 'Not using a Micro 3D printer' setting in the M33 Fio tab in OctoPrint's settings. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
+			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
 			
 			# Enable printer connect button
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Allow Connecting"))
