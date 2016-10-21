@@ -19,7 +19,7 @@ $(function() {
 		var gCodeFileName;
 		var modelCenter = [0, 0];
 		var currentX = null, currentY = null, currentZ = null, currentE = null;
-		var viewport = null;
+		var modelEditor = null;
 		var convertedModel = null;
 		var messages = [];
 		var skippedMessages = 0;
@@ -31,20 +31,21 @@ $(function() {
 		var skipModelEditor = false;
 		var currentFirmwareType = null;
 		var printerColor = "Black"
+		var modelViewer = null;
 		var self = this;
 		
-		// Set viewport printer and filament color
-		var viewportPrinterColor;
-		if(typeof localStorage.viewportPrinterColor !== "undefined")
-			viewportPrinterColor = localStorage.viewportPrinterColor;
+		// Set model editor printer and filament color
+		var modelEditorPrinterColor;
+		if(typeof localStorage.modelEditorPrinterColor !== "undefined")
+			modelEditorPrinterColor = localStorage.modelEditorPrinterColor;
 		else
-			viewportPrinterColor = "Black";
+			modelEditorPrinterColor = "Black";
 		
-		var viewportFilamentColor;
-		if(typeof localStorage.viewportFilamentColor !== "undefined")
-			viewportFilamentColor = localStorage.viewportFilamentColor;
+		var modelEditorFilamentColor;
+		if(typeof localStorage.modelEditorFilamentColor !== "undefined")
+			modelEditorFilamentColor = localStorage.modelEditorFilamentColor;
 		else
-			viewportFilamentColor = "White";
+			modelEditorFilamentColor = "White";
 		
 		// Get state views
 		self.printerState = parameters[0];
@@ -1022,11 +1023,137 @@ $(function() {
 			}
 		}
 		
-		// Load model
-		function loadModel(file) {
+		// Get model upload date
+		function getModelUploadDate(entry, modelUrl) {
+	
+			// Check if entry is a folder
+			if(entry && entry.hasOwnProperty("children"))
+		
+				// Go through each entry in the folder
+				for(var child in entry.children)
+			
+					// Check if current child is the specified model
+					getModelUploadDate(entry.children[child], modelUrl);
+		
+			// Otherwise check if entry is the specified model
+			else if(entry && entry.date && entry.refs && entry.refs.hasOwnProperty("download") && entry["refs"]["download"] === modelUrl)
+			
+				// Return upload date
+				return entry.date;
+		}
+		
+		// Add view buttons to models
+		function addViewButtonsToModels() {
+		
+			// Remove all view buttons
+			$("#files div.gcode_files div.entry .action-buttons div.btn-mini[title=\"View\"]").remove();
+			
+			// Go through all file entires
+			$("#files div.gcode_files div.entry .action-buttons").each(function() {
+				
+				// Check if file is a model
+				if(!$(this).children().children("i.icon-print").length)
+				
+					// Add view button
+					$(this).children("a.btn-mini").after('\
+						<div class="btn btn-mini' + ($(this).children("a.btn-mini").attr("href") === modelViewer.modelUrl ? " disabled" : "") + '" title="View">\
+							<i class="icon-view"></i>\
+						</div>\
+					');
+			});
+			
+			// Check if WebGL isn't supported
+			if(!Detector.webgl)
+			
+				// Disable view buttons
+				$("#files div.gcode_files div.entry .action-buttons div.btn-mini[title=\"View\"]").addClass("disabled");
+			
+			// View button click event
+			$("#files div.gcode_files div.entry .action-buttons div.btn-mini[title=\"View\"]").click(function() {
+			
+				// Check if button is not disabled
+				if(!$(this).hasClass("disabled")) {
+					
+					// Get model URL
+					var modelUrl = $(this).parent().children("a.btn-mini").attr("href");
+					
+					// Go through all uploaded entries
+					for(var entry in self.files.listHelper.allItems) {
+					
+						// Check if model's upload date was found
+						var uploadDate = getModelUploadDate(self.files.listHelper.allItems[entry], modelUrl);
+						if(typeof uploadDate !== "undefined") {
+						
+							// Disable self
+							$("#files div.gcode_files div.entry .action-buttons div.btn-mini[title=\"View\"]").removeClass("disabled");
+							$(this).addClass("disabled");
+						
+							// Load model into model viewer
+							modelViewer.loadModel(modelUrl, uploadDate);
+							
+							// Go to model viewer tab
+							$("#model_link > a").tab("show");
+					
+							// Break
+							break;
+						}	
+					}
+				}
+			});
+		}
+		
+		// Create model viewer
+		function createModelViewer() {
 
-			// View port
-			viewport = {
+			// Model viewer
+			modelViewer = {
+
+				// Data members
+				modelUrl: null,
+				modelUploadDate: null,
+				
+				// Initialize
+				init: function() {
+				},
+				
+				loadModel: function(file, date) {
+				
+					// Check if a model is already loaded
+					if(this.modelUrl !== null)
+					
+						// Unload model
+						this.unloadModel();
+				
+					// Set model URL
+					this.modelUrl = file;
+					this.modelUploadDate = date;
+					
+					console.log("Loaded: " + this.modelUrl);
+				},
+				
+				unloadModel: function() {
+				
+					// Check if a model is loaded
+					if(this.modelUrl !== null) {
+				
+						// Clear model URL
+						this.modelUrl = null;
+						this.modelUploadDate = null;
+					
+						console.log("Unloaded");
+					}
+				}
+			};
+			
+			// Create model viewer
+			modelViewer.init();
+		}
+		
+		// Create model editor
+		function createModelEditor(file) {
+
+			// Model editor
+			modelEditor = {
 
 				// Data members
 				scene: [],
@@ -1038,9 +1165,9 @@ $(function() {
 				modelLoaded: false,
 				sceneExported: false,
 				boundaries: [],
-				showBoundaries: typeof localStorage.viewportShowBoundaries !== "undefined" && localStorage.viewportShowBoundaries == "true",
+				showBoundaries: typeof localStorage.modelEditorShowBoundaries !== "undefined" && localStorage.modelEditorShowBoundaries == "true",
 				measurements: [],
-				showMeasurements: typeof localStorage.viewportShowMeasurements !== "undefined" && localStorage.viewportShowMeasurements == "true",
+				showMeasurements: typeof localStorage.modelEditorShowMeasurements !== "undefined" && localStorage.modelEditorShowMeasurements == "true",
 				removeSelectionTimeout: null,
 				savedMatrix: null,
 				cutShape: null,
@@ -1050,7 +1177,7 @@ $(function() {
 				scaleLock: [],
 				printerModel: null,
 				axes: [],
-				showAxes: typeof localStorage.viewportShowAxes === "undefined" || localStorage.viewportShowAxes == "true",
+				showAxes: typeof localStorage.modelEditorShowAxes === "undefined" || localStorage.modelEditorShowAxes == "true",
 				allowTab: true,
 				
 				// Initialize
@@ -1378,7 +1505,7 @@ $(function() {
 					mesh.renderOrder = 4;
 				
 					// Add print bed to scene
-					viewport.scene[0].add(mesh);
+					modelEditor.scene[0].add(mesh);
 					
 					// Create axis material
 					var axisMaterial = new THREE.LineBasicMaterial({
@@ -1425,7 +1552,7 @@ $(function() {
 						loader.load(PLUGIN_BASEURL + "m33fio/static/models/" + this.printerModel, function(geometry) {
 					
 							// Create printer's mesh
-							var mesh = new THREE.Mesh(geometry, printerMaterials[viewportPrinterColor]);
+							var mesh = new THREE.Mesh(geometry, printerMaterials[modelEditorPrinterColor]);
 	
 							// Set printer's orientation
 							mesh.rotation.set(3 * Math.PI / 2, 0, Math.PI);
@@ -1434,7 +1561,7 @@ $(function() {
 							mesh.renderOrder = 3;
 		
 							// Append model to list
-							viewport.models.push({
+							modelEditor.models.push({
 								mesh: mesh,
 								type: "stl",
 								glow: null,
@@ -1442,7 +1569,7 @@ $(function() {
 							});
 	
 							// Add printer to scene
-							viewport.scene[0].add(mesh);
+							modelEditor.scene[0].add(mesh);
 					
 							// Load logo
 							var loader = new THREE.TextureLoader();
@@ -1460,13 +1587,13 @@ $(function() {
 								mesh.renderOrder = 4;
 						
 								// Add logo to scene
-								viewport.scene[0].add(mesh);
+								modelEditor.scene[0].add(mesh);
 			
 								// Render
-								viewport.render();
+								modelEditor.render();
 				
 								// Import model
-								viewport.importModel(file, "stl");
+								modelEditor.importModel(file, "stl");
 							});
 						});
 					}
@@ -1477,7 +1604,7 @@ $(function() {
 						
 					
 						// Append empty model to list
-						viewport.models.push({
+						modelEditor.models.push({
 							mesh: null,
 							type: null,
 							glow: null,
@@ -1485,7 +1612,7 @@ $(function() {
 						});
 					
 						// Import model
-						viewport.importModel(file, "stl");
+						modelEditor.importModel(file, "stl");
 					}
 			
 					// Create measurement material
@@ -1703,7 +1830,7 @@ $(function() {
 					}
 		
 					// Render
-					viewport.render();
+					modelEditor.render();
 		
 					// Enable events
 					this.transformControls.addEventListener("mouseDown", this.startTransform);
@@ -1712,40 +1839,40 @@ $(function() {
 					this.transformControls.addEventListener("change", this.updateModelChanges);
 					this.transformControls.addEventListener("change", this.render);
 					this.orbitControls.addEventListener("change", this.render);
-					$(document).on("mousedown.viewport", this.mouseDownEvent);
-					$(window).on("resize.viewport", this.resizeEvent);
-					$(window).on("keydown.viewport", this.keyDownEvent);
-					$(window).on("keyup.viewport", this.keyUpEvent);
+					$(document).on("mousedown.modelEditor", this.mouseDownEvent);
+					$(window).on("resize.modelEditor", this.resizeEvent);
+					$(window).on("keydown.modelEditor", this.keyDownEvent);
+					$(window).on("keyup.modelEditor", this.keyUpEvent);
 				},
 	
 				// Start transform
 				startTransform: function() {
 		
 					// Save matrix
-					viewport.savedMatrix = viewport.transformControls.object.matrix.clone();
+					modelEditor.savedMatrix = modelEditor.transformControls.object.matrix.clone();
 	
 					// Blur input
 					$("#slicing_configuration_dialog .modal-extra div.values input").blur();
 	
 					// Disable orbit controls
-					viewport.orbitControls.enabled = false;
+					modelEditor.orbitControls.enabled = false;
 				},
 	
 				// End transform
 				endTransform: function() {
 		
 					// Clear saved matrix
-					viewport.savedMatrix = null;
+					modelEditor.savedMatrix = null;
 	
 					// Enable orbit controls
-					viewport.orbitControls.enabled = true;
+					modelEditor.orbitControls.enabled = true;
 				},
 
 				// Import model
 				importModel: function(file, type) {
 
 					// Clear model loaded
-					viewport.modelLoaded = false;
+					modelEditor.modelLoaded = false;
 	
 					// Set loader
 					if(type == "stl")
@@ -1763,7 +1890,7 @@ $(function() {
 					else if(type == "3mf")
 						var loader = new THREE.ThreeMFLoader();
 					else {
-						viewport.modelLoaded = true;
+						modelEditor.modelLoaded = true;
 						return;
 					}
 
@@ -1774,7 +1901,7 @@ $(function() {
 						geometry.center();
 
 						// Create model's mesh
-						var mesh = new THREE.Mesh(geometry, filamentMaterials[viewportFilamentColor]);
+						var mesh = new THREE.Mesh(geometry, filamentMaterials[modelEditorFilamentColor]);
 
 						// Set model's orientation
 						if(type == "stl")
@@ -1799,25 +1926,25 @@ $(function() {
 						mesh.renderOrder = 0;
 
 						// Add model to scene
-						viewport.scene[0].add(mesh);
+						modelEditor.scene[0].add(mesh);
 		
 						// Append model to list
-						viewport.models.push({
+						modelEditor.models.push({
 							mesh: mesh,
 							type: type,
 							glow: null,
-							adhesion: viewport.createPlatformAdhesion(mesh)
+							adhesion: modelEditor.createPlatformAdhesion(mesh)
 						});
 					
 						// Select model
-						viewport.removeSelection();
-						viewport.selectModel(mesh);
+						modelEditor.removeSelection();
+						modelEditor.selectModel(mesh);
 
 						// Fix model's Y
-						viewport.fixModelY();
+						modelEditor.fixModelY();
 			
 						// Set model loaded
-						viewport.modelLoaded = true;
+						modelEditor.modelLoaded = true;
 					});
 				},
 				
@@ -1825,13 +1952,13 @@ $(function() {
 				createPlatformAdhesion: function(mesh) {
 				
 					// Check if using platform adhesion
-					if(viewport.platformAdhesion != "None") {
+					if(modelEditor.platformAdhesion != "None") {
 					
 						// Create adhesion mesh
-						var adhesionMesh = new THREE.Mesh(mesh.geometry.clone(), filamentMaterials[viewportFilamentColor]);
+						var adhesionMesh = new THREE.Mesh(mesh.geometry.clone(), filamentMaterials[modelEditorFilamentColor]);
 
 						// Add adhesion to scene
-						viewport.scene[0].add(adhesionMesh);
+						modelEditor.scene[0].add(adhesionMesh);
 						
 						// Return adhesion mesh
 						return {mesh: adhesionMesh, glow: null, geometry: adhesionMesh.geometry.clone()};
@@ -1860,26 +1987,26 @@ $(function() {
 									event.preventDefault();
 									
 									// Check if not cutting models
-									if(viewport.cutShape === null) {
+									if(modelEditor.cutShape === null) {
 							
 										// Get currently selected model
-										var current = viewport.transformControls.object;
+										var current = modelEditor.transformControls.object;
 							
 										// Go through all models
-										for(var i = 1; i < viewport.models.length; i++)
+										for(var i = 1; i < modelEditor.models.length; i++)
 							
 											// Check if not currently selected model
-											if(viewport.models[i].mesh !== current)
+											if(modelEditor.models[i].mesh !== current)
 							
 												// Select first model
-												viewport.selectModel(viewport.models[i].mesh);
+												modelEditor.selectModel(modelEditor.models[i].mesh);
 							
 										// Select currently selected model
 										if(current)
-											viewport.selectModel(current);
+											modelEditor.selectModel(current);
 							
 										// Render
-										viewport.render();
+										modelEditor.render();
 									}
 								}
 							break;
@@ -1891,40 +2018,40 @@ $(function() {
 								event.preventDefault();
 								
 								// Check if tab isn't already pressed
-								if(viewport.allowTab) {
+								if(modelEditor.allowTab) {
 								
 									// Clear allow tab
-									viewport.allowTab = false;
+									modelEditor.allowTab = false;
 								
 									// Check if not cutting models
-									if(viewport.cutShape === null) {
+									if(modelEditor.cutShape === null) {
 	
 										// Check if an object is selected
-										if(viewport.transformControls.object) {
+										if(modelEditor.transformControls.object) {
 		
 											// Go through all models
-											for(var i = 1; i < viewport.models.length; i++)
+											for(var i = 1; i < modelEditor.models.length; i++)
 			
 												// Check if model is currently selected
-												if(viewport.models[i].mesh == viewport.transformControls.object) {
+												if(modelEditor.models[i].mesh == modelEditor.transformControls.object) {
 								
 													// Check if shift isn't pressed
 													if(!event.shiftKey)
 									
 														// Remove selection
-														viewport.removeSelection();
+														modelEditor.removeSelection();
 								
 													// Check if model isn't the last one
-													if(i != viewport.models.length - 1)
+													if(i != modelEditor.models.length - 1)
 									
 														// Select next model
-														viewport.selectModel(viewport.models[i + 1].mesh);
+														modelEditor.selectModel(modelEditor.models[i + 1].mesh);
 									
 													// Otherwise
 													else
 									
 														// Select first model
-														viewport.selectModel(viewport.models[1].mesh);
+														modelEditor.selectModel(modelEditor.models[1].mesh);
 					
 													// Break
 													break;
@@ -1932,29 +2059,29 @@ $(function() {
 										}
 				
 										// Otherwise check if a model exists
-										else if(viewport.models.length > 1)
+										else if(modelEditor.models.length > 1)
 			
 											// Select first model
-											viewport.selectModel(viewport.models[1].mesh);
+											modelEditor.selectModel(modelEditor.models[1].mesh);
 									
 										// Render
-										viewport.render();
+										modelEditor.render();
 									}
 								
 									// Otherwise
 									else {
 								
 										// Check if cut chape is a cube
-										if(viewport.cutShape.geometry.type == "BoxGeometry")
+										if(modelEditor.cutShape.geometry.type == "BoxGeometry")
 									
 											// Change cut shape to a sphere
-											viewport.setCutShape("sphere");
+											modelEditor.setCutShape("sphere");
 									
 										// Otherwise check if cut shape is a sphere
-										else if(viewport.cutShape.geometry.type == "SphereGeometry")
+										else if(modelEditor.cutShape.geometry.type == "SphereGeometry")
 									
 											// Change cut shape to a sube
-											viewport.setCutShape("cube");
+											modelEditor.setCutShape("cube");
 									}
 								}
 							break;
@@ -1963,10 +2090,10 @@ $(function() {
 							case 46 :
 		
 								// Check if an object is selected
-								if(viewport.transformControls.object)
+								if(modelEditor.transformControls.object)
 			
 									// Delete model
-									viewport.deleteModel();
+									modelEditor.deleteModel();
 							break;
 			
 		
@@ -1974,38 +2101,38 @@ $(function() {
 							case 16 :
 		
 								// Enable grid and rotation snap
-								viewport.enableSnap();
+								modelEditor.enableSnap();
 							break;
 
 							// Check if W was pressed
 							case 87 :
 	
 								// Set selection mode to translate
-								viewport.setMode("translate");
+								modelEditor.setMode("translate");
 							break;
 	
 							// Check if E was pressed
 							case 69 :
 	
 								// Set selection mode to rotate
-								viewport.setMode("rotate");
+								modelEditor.setMode("rotate");
 							break;
 	
 							// Check if R was pressed
 							case 82 :
 	
 								// Set selection mode to scale
-								viewport.setMode("scale");
+								modelEditor.setMode("scale");
 							break;
 						
 							// Check if enter was pressed
 							case 13 :
 						
 								// Check if cutting models
-								if(viewport.cutShape !== null)
+								if(modelEditor.cutShape !== null)
 							
 									// Apply cut
-									viewport.applyCut();
+									modelEditor.applyCut();
 							break;
 						}
 					}
@@ -2021,14 +2148,14 @@ $(function() {
 						case 9 :
 						
 							// Set allow tab
-							viewport.allowTab = true;
+							modelEditor.allowTab = true;
 						break;
 		
 						// Check if shift was released
 						case 16 :
 		
 							// Disable grid and rotation snap
-							viewport.disableSnap();
+							modelEditor.disableSnap();
 						break;
 					}
 				},
@@ -2037,68 +2164,68 @@ $(function() {
 				mouseDownEvent: function(event) {
 
 					// Check if not in cutting models, clicking inside the model editor, and not clicking on a button or input
-					if(viewport.cutShape === null && $(event.target).closest(".modal-extra").length && !$(event.target).is("button, img, input")) {
+					if(modelEditor.cutShape === null && $(event.target).closest(".modal-extra").length && !$(event.target).is("button, img, input")) {
 
 						// Initialize variables
 						var raycaster = new THREE.Raycaster();
 						var mouse = new THREE.Vector2();
-						var offset = $(viewport.renderer.domElement).offset();
+						var offset = $(modelEditor.renderer.domElement).offset();
 	
 						// Set mouse coordinates
-						mouse.x = ((event.clientX - offset.left) / viewport.renderer.domElement.clientWidth) * 2 - 1;
-						mouse.y = - ((event.clientY - offset.top) / viewport.renderer.domElement.clientHeight) * 2 + 1;
+						mouse.x = ((event.clientX - offset.left) / modelEditor.renderer.domElement.clientWidth) * 2 - 1;
+						mouse.y = - ((event.clientY - offset.top) / modelEditor.renderer.domElement.clientHeight) * 2 + 1;
 	
 						// Set ray caster's perspective
-						raycaster.setFromCamera(mouse, viewport.camera);
+						raycaster.setFromCamera(mouse, modelEditor.camera);
 	
 						// Get models' meshes
 						var modelMeshes = []
-						for(var i = 0; i < viewport.models.length; i++) {
-							if(viewport.models[i].mesh !== null)
-								modelMeshes.push(viewport.models[i].mesh);
-							if(viewport.models[i].adhesion !== null)
-								modelMeshes.push(viewport.models[i].adhesion.mesh);
+						for(var i = 0; i < modelEditor.models.length; i++) {
+							if(modelEditor.models[i].mesh !== null)
+								modelMeshes.push(modelEditor.models[i].mesh);
+							if(modelEditor.models[i].adhesion !== null)
+								modelMeshes.push(modelEditor.models[i].adhesion.mesh);
 						}
 	
 						// Get objects that intersect ray caster
 						var intersects = raycaster.intersectObjects(modelMeshes); 
 	
 						// Check if an object intersects and it's not the printer
-						if(intersects.length > 0 && intersects[0].object != viewport.models[0].mesh) {
+						if(intersects.length > 0 && intersects[0].object != modelEditor.models[0].mesh) {
 				
 							// Check if ctrl is pressed
 							if(event.ctrlKey) {
 					
 								// Go through all models
-								for(var i = 0; i < viewport.models.length; i++)
+								for(var i = 0; i < modelEditor.models.length; i++)
 						
 									// Check if model was selected
-									if(viewport.models[i].mesh == intersects[0].object || (viewport.models[i].adhesion !== null && viewport.models[i].adhesion.mesh == intersects[0].object)) {
+									if(modelEditor.models[i].mesh == intersects[0].object || (modelEditor.models[i].adhesion !== null && modelEditor.models[i].adhesion.mesh == intersects[0].object)) {
 							
 										// Set model's color
-										viewport.models[i].mesh.material = filamentMaterials[viewportFilamentColor];
+										modelEditor.models[i].mesh.material = filamentMaterials[modelEditorFilamentColor];
 										
 										// Set adhesion's color
-										if(viewport.models[i].adhesion !== null) {
-											viewport.models[i].adhesion.mesh.material = filamentMaterials[viewportFilamentColor];
-											viewport.scene[1].remove(viewport.models[i].adhesion.glow);
-											viewport.models[i].adhesion.glow = null;
+										if(modelEditor.models[i].adhesion !== null) {
+											modelEditor.models[i].adhesion.mesh.material = filamentMaterials[modelEditorFilamentColor];
+											modelEditor.scene[1].remove(modelEditor.models[i].adhesion.glow);
+											modelEditor.models[i].adhesion.glow = null;
 										}
 		
 										// Remove glow
-										viewport.scene[1].remove(viewport.models[i].glow);
-										viewport.models[i].glow = null;
+										modelEditor.scene[1].remove(modelEditor.models[i].glow);
+										modelEditor.models[i].glow = null;
 			
 										// Remove selection and select new model
-										if(viewport.models[i].mesh == viewport.transformControls.object) {
-											viewport.transformControls.detach();
-											for(var j = 0; j < viewport.models.length; j++)
-												if(viewport.models[j].glow && j != i)
-													viewport.selectModel(viewport.models[j].mesh)
+										if(modelEditor.models[i].mesh == modelEditor.transformControls.object) {
+											modelEditor.transformControls.detach();
+											for(var j = 0; j < modelEditor.models.length; j++)
+												if(modelEditor.models[j].glow && j != i)
+													modelEditor.selectModel(modelEditor.models[j].mesh)
 										}
 								
 										// Update model changes
-										viewport.updateModelChanges();
+										modelEditor.updateModelChanges();
 								
 										// Break;
 										break;
@@ -2112,16 +2239,16 @@ $(function() {
 								if(!event.shiftKey)
 				
 									// Remove selection
-									viewport.removeSelection();
+									modelEditor.removeSelection();
 								
 								// Go through all models
-								for(var i = 0; i < viewport.models.length; i++)
+								for(var i = 0; i < modelEditor.models.length; i++)
 						
 									// Check if model was selected
-									if(viewport.models[i].mesh == intersects[0].object || (viewport.models[i].adhesion !== null && viewport.models[i].adhesion.mesh == intersects[0].object))
+									if(modelEditor.models[i].mesh == intersects[0].object || (modelEditor.models[i].adhesion !== null && modelEditor.models[i].adhesion.mesh == intersects[0].object))
 				
 										// Select object
-										viewport.selectModel(viewport.models[i].mesh);
+										modelEditor.selectModel(modelEditor.models[i].mesh);
 							}
 						}
 	
@@ -2129,20 +2256,20 @@ $(function() {
 						else {
 			
 							// Set remove selection interval
-							viewport.removeSelectionTimeout = setTimeout(function() {
+							modelEditor.removeSelectionTimeout = setTimeout(function() {
 				
 								// Remove selection
-								viewport.removeSelection();
+								modelEditor.removeSelection();
 					
 								// Render
-								viewport.render();
+								modelEditor.render();
 							}, 125);
 				
-							$(document).on("mousemove.viewport", viewport.stopRemoveSelectionTimeout);
+							$(document).on("mousemove.modelEditor", modelEditor.stopRemoveSelectionTimeout);
 						}
 			
 						// Render
-						viewport.render();
+						modelEditor.render();
 					}
 				},
 		
@@ -2150,16 +2277,16 @@ $(function() {
 				stopRemoveSelectionTimeout: function() {
 	
 					// Clear remove selection timeout
-					clearTimeout(viewport.removeSelectionTimeout);
+					clearTimeout(modelEditor.removeSelectionTimeout);
 				},
 	
 				// Enable snap
 				enableSnap: function() {
 	
 					// Enable grid and rotation snap
-					viewport.transformControls.setTranslationSnap(5);
-					viewport.transformControls.setScaleSnap(0.05);
-					viewport.transformControls.setRotationSnap(THREE.Math.degToRad(15));
+					modelEditor.transformControls.setTranslationSnap(5);
+					modelEditor.transformControls.setScaleSnap(0.05);
+					modelEditor.transformControls.setRotationSnap(THREE.Math.degToRad(15));
 					$("#slicing_configuration_dialog .modal-extra button.snap").addClass("disabled");
 				},
 	
@@ -2167,9 +2294,9 @@ $(function() {
 				disableSnap: function() {
 	
 					// Disable grid and rotation snap
-					viewport.transformControls.setTranslationSnap(null);
-					viewport.transformControls.setScaleSnap(null);
-					viewport.transformControls.setRotationSnap(null);
+					modelEditor.transformControls.setTranslationSnap(null);
+					modelEditor.transformControls.setScaleSnap(null);
+					modelEditor.transformControls.setRotationSnap(null);
 					$("#slicing_configuration_dialog .modal-extra button.snap").removeClass("disabled");
 				},
 	
@@ -2182,48 +2309,48 @@ $(function() {
 						case "translate" :
 			
 							// Set selection mode to translate
-							viewport.transformControls.setMode("translate");
-							viewport.transformControls.space = "world";
+							modelEditor.transformControls.setMode("translate");
+							modelEditor.transformControls.space = "world";
 						break;
 			
 						// Check if rotate mode
 						case "rotate" :
 			
 							// Set selection mode to rotate
-							viewport.transformControls.setMode("rotate");
-							viewport.transformControls.space = "local";
+							modelEditor.transformControls.setMode("rotate");
+							modelEditor.transformControls.space = "local";
 						break;
 			
 						// Check if scale mode
 						case "scale" :
 			
 							// Set selection mode to scale
-							viewport.transformControls.setMode("scale");
-							viewport.transformControls.space = "local";
+							modelEditor.transformControls.setMode("scale");
+							modelEditor.transformControls.space = "local";
 						break;
 					}
 		
 					// Render
-					viewport.render();
+					modelEditor.render();
 				},
 
 				// Resize event
 				resizeEvent: function() {
 
 					// Update camera
-					viewport.camera.aspect = $("#slicing_configuration_dialog").width() / ($("#slicing_configuration_dialog").height() - 123);
-					viewport.camera.updateProjectionMatrix();
-					viewport.renderer.setSize($("#slicing_configuration_dialog").width(), $("#slicing_configuration_dialog").height() - 123);
+					modelEditor.camera.aspect = $("#slicing_configuration_dialog").width() / ($("#slicing_configuration_dialog").height() - 123);
+					modelEditor.camera.updateProjectionMatrix();
+					modelEditor.renderer.setSize($("#slicing_configuration_dialog").width(), $("#slicing_configuration_dialog").height() - 123);
 		
 					// Render
-					viewport.render();
+					modelEditor.render();
 				},
 
 				// Export scene
 				exportScene: function() {
 			
 					// Clear scene exported
-					viewport.sceneExported = false;
+					modelEditor.sceneExported = false;
 
 					// Initialize variables
 					var centerX = -(extruderCenterX - (bedLowMaxX + bedLowMinX) / 2) + bedLowMinX;
@@ -2231,10 +2358,10 @@ $(function() {
 					var mergedGeometry = new THREE.Geometry();
 				
 					// Go through all models
-					for(var i = 1; i < viewport.models.length; i++) {
+					for(var i = 1; i < modelEditor.models.length; i++) {
 	
 						// Get current model
-						var model = viewport.models[i];
+						var model = modelEditor.models[i];
 
 						// Sum model's center together
 						centerX -= model.mesh.position.x;
@@ -2275,8 +2402,8 @@ $(function() {
 					}
 		
 					// Get average center for models
-					centerX /= (viewport.models.length - 1);
-					centerZ /= (viewport.models.length - 1);
+					centerX /= (modelEditor.models.length - 1);
+					centerZ /= (modelEditor.models.length - 1);
 			
 					// Save model's center
 					modelCenter = [centerX, centerZ];
@@ -2289,7 +2416,7 @@ $(function() {
 					var stl = new Blob([exporter.parse(mergedMesh).buffer], {type: "text/plain"});
 				
 					// Set scene exported
-					viewport.sceneExported = true;
+					modelEditor.sceneExported = true;
 				
 					// Return STL
 					return stl;
@@ -2299,83 +2426,83 @@ $(function() {
 				destroy: function() {
 
 					// Disable events
-					$(document).off("mousedown.viewport mousemove.viewport");
-					$(window).off("resize.viewport keydown.viewport keyup.viewport");
+					$(document).off("mousedown.modelEditor mousemove.modelEditor");
+					$(window).off("resize.modelEditor keydown.modelEditor keyup.modelEditor");
 
-					// Clear viewport
-					viewport = null;
+					// Clear model editor
+					modelEditor = null;
 				},
 
 				// Fix model Y
 				fixModelY: function() {
 			
 					// Go through all models
-					for(var i = 1; i < viewport.models.length; i++)
+					for(var i = 1; i < modelEditor.models.length; i++)
 
 						// Check if model is selected
-						if(viewport.models[i].glow !== null) {
+						if(modelEditor.models[i].glow !== null) {
 
 							// Get model's boundary box
-							var boundaryBox = new THREE.Box3().setFromObject(viewport.models[i].mesh);
-							boundaryBox.min.sub(viewport.models[i].mesh.position);
-							boundaryBox.max.sub(viewport.models[i].mesh.position);
+							var boundaryBox = new THREE.Box3().setFromObject(modelEditor.models[i].mesh);
+							boundaryBox.min.sub(modelEditor.models[i].mesh.position);
+							boundaryBox.max.sub(modelEditor.models[i].mesh.position);
 
 							// Set model's lowest Y value to be on the bed
-							viewport.models[i].mesh.position.y -= viewport.models[i].mesh.position.y + boundaryBox.min.y - bedLowMinZ;
+							modelEditor.models[i].mesh.position.y -= modelEditor.models[i].mesh.position.y + boundaryBox.min.y - bedLowMinZ;
 						}
 				
 					// Check if cutting models
-					if(viewport.cutShape !== null) {
+					if(modelEditor.cutShape !== null) {
 
 						// Select cut shape
-						viewport.removeSelection();
-						viewport.transformControls.attach(viewport.cutShape);
+						modelEditor.removeSelection();
+						modelEditor.transformControls.attach(modelEditor.cutShape);
 					}
 			
 					// Update boundaries
-					viewport.updateBoundaries();
+					modelEditor.updateBoundaries();
 			
 					// Upate measurements
-					viewport.updateModelChanges();
+					modelEditor.updateModelChanges();
 			
 					// Render
-					viewport.render();
+					modelEditor.render();
 				},
 	
 				// Clone model
 				cloneModel: function() {
 		
 					// Clear model loaded
-					viewport.modelLoaded = false;
+					modelEditor.modelLoaded = false;
 			
 					// Initialize clones models
 					var clonedModels = [];
 			
 					// Go through all models
-					for(var i = 1; i < viewport.models.length; i++)
+					for(var i = 1; i < modelEditor.models.length; i++)
 
 						// Check if model is selected
-						if(viewport.models[i].glow !== null) {
+						if(modelEditor.models[i].glow !== null) {
 
 							// Clone model
-							var clonedModel = new THREE.Mesh(viewport.models[i].mesh.geometry.clone(), viewport.models[i].mesh.material.clone());
+							var clonedModel = new THREE.Mesh(modelEditor.models[i].mesh.geometry.clone(), modelEditor.models[i].mesh.material.clone());
 		
 							// Copy original orientation
-							clonedModel.applyMatrix(viewport.models[i].mesh.matrix);
+							clonedModel.applyMatrix(modelEditor.models[i].mesh.matrix);
 		
 							// Add cloned model to scene
-							viewport.scene[0].add(clonedModel);
+							modelEditor.scene[0].add(clonedModel);
 		
 							// Append model to list
-							viewport.models.push({
+							modelEditor.models.push({
 								mesh: clonedModel,
-								type: viewport.models[i].type,
+								type: modelEditor.models[i].type,
 								glow: null,
-								adhesion: viewport.createPlatformAdhesion(clonedModel)
+								adhesion: modelEditor.createPlatformAdhesion(clonedModel)
 							});
 					
 							// Append cloned model to list
-							if(viewport.models[i].mesh == viewport.transformControls.object)
+							if(modelEditor.models[i].mesh == modelEditor.transformControls.object)
 								clonedModels.unshift(clonedModel);
 							else
 								clonedModels.push(clonedModel);
@@ -2385,16 +2512,16 @@ $(function() {
 					for(var i = clonedModels.length - 1; i >= 0; i--)
 			
 						// Select model
-						viewport.selectModel(clonedModels[i]);
+						modelEditor.selectModel(clonedModels[i]);
 
 					// Fix model's Y
-					viewport.fixModelY();
+					modelEditor.fixModelY();
 				
 					// Remove current selection
-					viewport.removeSelection();
+					modelEditor.removeSelection();
 				
 					// Render
-					viewport.render();
+					modelEditor.render();
 				
 					setTimeout(function() {
 				
@@ -2402,13 +2529,13 @@ $(function() {
 						for(var i = clonedModels.length - 1; i >= 0; i--)
 			
 							// Select model
-							viewport.selectModel(clonedModels[i]);
+							modelEditor.selectModel(clonedModels[i]);
 			
 						// Render
-						viewport.render();
+						modelEditor.render();
 			
 						// Set model loaded
-						viewport.modelLoaded = true;
+						modelEditor.modelLoaded = true;
 					}, 200);
 				},
 	
@@ -2416,44 +2543,44 @@ $(function() {
 				resetModel: function() {
 			
 					// Check if cutting models
-					if(viewport.cutShape !== null) {
+					if(modelEditor.cutShape !== null) {
 				
 						// Reset cut shape's orientation
-						viewport.cutShape.position.set(0, (bedHighMaxZ - bedLowMinZ) / 2 + externalBedHeight, 0);
-						viewport.cutShape.rotation.set(0, 0, 0);
-						viewport.cutShape.scale.set(1, 1, 1);
+						modelEditor.cutShape.position.set(0, (bedHighMaxZ - bedLowMinZ) / 2 + externalBedHeight, 0);
+						modelEditor.cutShape.rotation.set(0, 0, 0);
+						modelEditor.cutShape.scale.set(1, 1, 1);
 					}
 				
 					// Otherwise
 					else
 			
 						// Go through all models
-						for(var i = 1; i < viewport.models.length; i++)
+						for(var i = 1; i < modelEditor.models.length; i++)
 
 							// Check if model is selected
-							if(viewport.models[i].glow !== null) {
+							if(modelEditor.models[i].glow !== null) {
 				
 								// Reset model's orientation
-								viewport.models[i].mesh.position.set(0, 0, 0);
-								viewport.models[i].mesh.rotation.set(0, 0, 0);
-								viewport.models[i].mesh.scale.set(1, 1, 1);
+								modelEditor.models[i].mesh.position.set(0, 0, 0);
+								modelEditor.models[i].mesh.rotation.set(0, 0, 0);
+								modelEditor.models[i].mesh.scale.set(1, 1, 1);
 							}
 					
 					// Fix model's Y
-					viewport.fixModelY();
+					modelEditor.fixModelY();
 				},
 	
 				// Delete model
 				deleteModel: function() {
 			
 					// Check if cutting models
-					if(viewport.cutShape !== null) {
+					if(modelEditor.cutShape !== null) {
 				
 						// Remove cut shape
-						viewport.scene[0].remove(viewport.cutShape);
-						viewport.scene[0].remove(viewport.cutShapeOutline);
-						viewport.cutShape = null;
-						viewport.cutShapeOutline = null;
+						modelEditor.scene[0].remove(modelEditor.cutShape);
+						modelEditor.scene[0].remove(modelEditor.cutShapeOutline);
+						modelEditor.cutShape = null;
+						modelEditor.cutShapeOutline = null;
 					
 						// Deselect button
 						$("#slicing_configuration_dialog .modal-extra button.cut").removeClass("disabled");
@@ -2469,67 +2596,67 @@ $(function() {
 					else
 		
 						// Go through all models
-						for(var i = 1; i < viewport.models.length; i++)
+						for(var i = 1; i < modelEditor.models.length; i++)
 
 							// Check if model is selected
-							if(viewport.models[i].glow !== null) {
+							if(modelEditor.models[i].glow !== null) {
 				
 								// Remove model
-								viewport.scene[0].remove(viewport.models[i].mesh);
-								viewport.scene[1].remove(viewport.models[i].glow);
-								if(viewport.models[i].adhesion !== null) {
-									viewport.scene[0].remove(viewport.models[i].adhesion.mesh);
-									viewport.scene[1].remove(viewport.models[i].adhesion.glow);
+								modelEditor.scene[0].remove(modelEditor.models[i].mesh);
+								modelEditor.scene[1].remove(modelEditor.models[i].glow);
+								if(modelEditor.models[i].adhesion !== null) {
+									modelEditor.scene[0].remove(modelEditor.models[i].adhesion.mesh);
+									modelEditor.scene[1].remove(modelEditor.models[i].adhesion.glow);
 								}
-								viewport.models.splice(i--, 1);
+								modelEditor.models.splice(i--, 1);
 							}
 	
 					// Remove selection
-					viewport.transformControls.setAllowedTranslation("XZ");
-					viewport.transformControls.detach();
+					modelEditor.transformControls.setAllowedTranslation("XZ");
+					modelEditor.transformControls.detach();
 	
 					// Update model changes
-					viewport.updateModelChanges();
+					modelEditor.updateModelChanges();
 			
 					// Update boundaries
-					viewport.updateBoundaries();
+					modelEditor.updateBoundaries();
 			
 					// Render
-					viewport.render();
+					modelEditor.render();
 				},
 	
 				// Remove selection
 				removeSelection: function() {
 		
 					// Check if an object is selected
-					if(viewport.transformControls.object) {
+					if(modelEditor.transformControls.object) {
 	
 						// Go through all models
-						for(var i = 1; i < viewport.models.length; i++)
+						for(var i = 1; i < modelEditor.models.length; i++)
 		
 							// Check if glow exists
-							if(viewport.models[i].glow !== null) {
+							if(modelEditor.models[i].glow !== null) {
 	
 								// Set model's color
-								viewport.models[i].mesh.material = filamentMaterials[viewportFilamentColor];
+								modelEditor.models[i].mesh.material = filamentMaterials[modelEditorFilamentColor];
 								
 								// Set adhesion's color
-								if(viewport.models[i].adhesion !== null) {
-									viewport.models[i].adhesion.mesh.material = filamentMaterials[viewportFilamentColor];
-									viewport.scene[1].remove(viewport.models[i].adhesion.glow);
-									viewport.models[i].adhesion.glow = null;
+								if(modelEditor.models[i].adhesion !== null) {
+									modelEditor.models[i].adhesion.mesh.material = filamentMaterials[modelEditorFilamentColor];
+									modelEditor.scene[1].remove(modelEditor.models[i].adhesion.glow);
+									modelEditor.models[i].adhesion.glow = null;
 								}
 		
 								// Remove glow
-								viewport.scene[1].remove(viewport.models[i].glow);
-								viewport.models[i].glow = null;
+								modelEditor.scene[1].remove(modelEditor.models[i].glow);
+								modelEditor.models[i].glow = null;
 							}
 			
 						// Remove selection
-						viewport.transformControls.detach();
+						modelEditor.transformControls.detach();
 		
 						// Update model changes
-						viewport.updateModelChanges();
+						modelEditor.updateModelChanges();
 					}
 				},
 	
@@ -2553,7 +2680,7 @@ $(function() {
 							},
 							viewVector: {
 								type: "v3",
-								value: viewport.camera.position
+								value: modelEditor.camera.position
 							},
 							alpha: {
 								type: 'f',
@@ -2589,13 +2716,13 @@ $(function() {
 					});
 			
 					// Go through all models
-					for(var i = 1; i < viewport.models.length; i++)
+					for(var i = 1; i < modelEditor.models.length; i++)
 			
 						// Check if model is being selected
-						if(viewport.models[i].mesh == model) {
+						if(modelEditor.models[i].mesh == model) {
 				
 							// Select model
-							viewport.transformControls.attach(model);
+							modelEditor.transformControls.attach(model);
 							
 							// Set select material
 							var selectMaterial = new THREE.MeshLambertMaterial({
@@ -2607,51 +2734,51 @@ $(function() {
 							model.material = selectMaterial;
 							
 							// Set adhesion's color
-							if(viewport.models[i].adhesion !== null) {
-								viewport.models[i].adhesion.mesh.material = selectMaterial;
-								if(viewport.models[i].adhesion.glow !== null)
-									viewport.scene[1].remove(viewport.models[i].adhesion.glow);
+							if(modelEditor.models[i].adhesion !== null) {
+								modelEditor.models[i].adhesion.mesh.material = selectMaterial;
+								if(modelEditor.models[i].adhesion.glow !== null)
+									modelEditor.scene[1].remove(modelEditor.models[i].adhesion.glow);
 							}
 					
 							// Remove existing glow
-							if(viewport.models[i].glow !== null)
-								viewport.scene[1].remove(viewport.models[i].glow);
+							if(modelEditor.models[i].glow !== null)
+								modelEditor.scene[1].remove(modelEditor.models[i].glow);
 					
 							// Create glow
 							model.updateMatrix();
-							viewport.models[i].glow = new THREE.Mesh(model.geometry, glowMaterial.clone());
-						 	viewport.models[i].glow.applyMatrix(model.matrix);
-						 	viewport.models[i].glow.renderOrder = 1;
+							modelEditor.models[i].glow = new THREE.Mesh(model.geometry, glowMaterial.clone());
+						 	modelEditor.models[i].glow.applyMatrix(model.matrix);
+						 	modelEditor.models[i].glow.renderOrder = 1;
 							
 							// Add glow to scene
-							viewport.scene[1].add(viewport.models[i].glow);
+							modelEditor.scene[1].add(modelEditor.models[i].glow);
 							
 							// Check if adhesion exists
-							if(viewport.models[i].adhesion !== null) {
+							if(modelEditor.models[i].adhesion !== null) {
 							
 								// Create adhesion glow
-								viewport.models[i].adhesion.mesh.updateMatrix();
-								viewport.models[i].adhesion.glow = new THREE.Mesh(viewport.models[i].adhesion.mesh.geometry, outlineMaterial.clone());
-							 	viewport.models[i].adhesion.glow.applyMatrix(viewport.models[i].adhesion.mesh.matrix);
-								viewport.models[i].adhesion.glow.renderOrder = 0;
+								modelEditor.models[i].adhesion.mesh.updateMatrix();
+								modelEditor.models[i].adhesion.glow = new THREE.Mesh(modelEditor.models[i].adhesion.mesh.geometry, outlineMaterial.clone());
+							 	modelEditor.models[i].adhesion.glow.applyMatrix(modelEditor.models[i].adhesion.mesh.matrix);
+								modelEditor.models[i].adhesion.glow.renderOrder = 0;
 								
 								// Add glow to scene
-								viewport.scene[1].add(viewport.models[i].adhesion.glow);
+								modelEditor.scene[1].add(modelEditor.models[i].adhesion.glow);
 							}
 		
 							// Update model changes
-							viewport.updateModelChanges();
+							modelEditor.updateModelChanges();
 						}
 				
 						// Otherwise check if model is selected
-						else if(viewport.models[i].glow !== null) {
+						else if(modelEditor.models[i].glow !== null) {
 				
 							// Set model's glow color
-							viewport.models[i].glow.material.uniforms.color.value.setHex(0xFFFFB3);
+							modelEditor.models[i].glow.material.uniforms.color.value.setHex(0xFFFFB3);
 							
 							// Set adhesion's glow color
-							if(viewport.models[i].adhesion !== null)
-								viewport.models[i].adhesion.glow.material.uniforms.color.value.setHex(0xFFFFB3);
+							if(modelEditor.models[i].adhesion !== null)
+								modelEditor.models[i].adhesion.glow.material.uniforms.color.value.setHex(0xFFFFB3);
 						}
 				},
 		
@@ -2659,10 +2786,10 @@ $(function() {
 				applyChanges: function(name, value) {
 
 					// Get currently selected model
-					var model = viewport.transformControls.object;
+					var model = modelEditor.transformControls.object;
 			
 					// Save matrix
-					viewport.savedMatrix = model.matrix.clone();
+					modelEditor.savedMatrix = model.matrix.clone();
 
 					// Check if in translate mode
 					if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("translate")) {
@@ -2692,61 +2819,61 @@ $(function() {
 					else if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("scale")) {
 
 						// Set model's scale
-						if(name == 'x' || viewport.scaleLock[0])
+						if(name == 'x' || modelEditor.scaleLock[0])
 							model.scale.x = parseFloat(value) == 0 ? 0.000000000001 : parseFloat(value);
-						if(name == 'y' || viewport.scaleLock[1])
+						if(name == 'y' || modelEditor.scaleLock[1])
 							model.scale.y = parseFloat(value) == 0 ? 0.000000000001 : parseFloat(value);
-						if(name == 'z' || viewport.scaleLock[2])
+						if(name == 'z' || modelEditor.scaleLock[2])
 							model.scale.z = parseFloat(value == 0 ? 0.000000000001 : parseFloat(value));
 					}
 			
 					// Apply group transformation
-					viewport.applyGroupTransformation();
+					modelEditor.applyGroupTransformation();
 			
 					// Clear saved matrix
-					viewport.savedMatrix = null;
+					modelEditor.savedMatrix = null;
 
 					// Fix model's Y
-					viewport.fixModelY();
+					modelEditor.fixModelY();
 				},
 	
 				// Update model changes
 				updateModelChanges: function() {
 		
 					// Get currently selected model
-					var model = viewport.transformControls.object;
+					var model = modelEditor.transformControls.object;
 				
 					// Check if a showing measurements, a model is currently selected, and not cutting models
-					if(viewport.showMeasurements && model && viewport.cutShape === null) {
+					if(modelEditor.showMeasurements && model && modelEditor.cutShape === null) {
 		
 						// Get model's boundary box
 						var boundaryBox = new THREE.Box3().setFromObject(model);
 			
 						// Set width measurement
-						viewport.measurements[0][0].geometry.vertices[0].set(boundaryBox.max.x + 1, boundaryBox.min.y - 1, boundaryBox.min.z - 1);
-						viewport.measurements[0][0].geometry.vertices[1].set(boundaryBox.min.x - 1, boundaryBox.min.y - 1, boundaryBox.min.z - 1);
-						viewport.measurements[0][1].set(boundaryBox.max.x + (boundaryBox.min.x - boundaryBox.max.x) / 2, boundaryBox.min.y, boundaryBox.min.z);
+						modelEditor.measurements[0][0].geometry.vertices[0].set(boundaryBox.max.x + 1, boundaryBox.min.y - 1, boundaryBox.min.z - 1);
+						modelEditor.measurements[0][0].geometry.vertices[1].set(boundaryBox.min.x - 1, boundaryBox.min.y - 1, boundaryBox.min.z - 1);
+						modelEditor.measurements[0][1].set(boundaryBox.max.x + (boundaryBox.min.x - boundaryBox.max.x) / 2, boundaryBox.min.y, boundaryBox.min.z);
 						var value = boundaryBox.max.x - boundaryBox.min.x;
 						$("#slicing_configuration_dialog .modal-extra div.measurements > p.width").text(value.toFixed(3) + "mm / " + (value / 25.4).toFixed(3) + "in");
 		
 						// Set depth measurement
-						viewport.measurements[1][0].geometry.vertices[0].set(boundaryBox.min.x - 1, boundaryBox.min.y - 1, boundaryBox.min.z - 1);
-						viewport.measurements[1][0].geometry.vertices[1].set(boundaryBox.min.x - 1, boundaryBox.min.y - 1, boundaryBox.max.z + 1);
-						viewport.measurements[1][1].set(boundaryBox.min.x, boundaryBox.min.y, boundaryBox.min.z + (boundaryBox.max.z - boundaryBox.min.z) / 2);
+						modelEditor.measurements[1][0].geometry.vertices[0].set(boundaryBox.min.x - 1, boundaryBox.min.y - 1, boundaryBox.min.z - 1);
+						modelEditor.measurements[1][0].geometry.vertices[1].set(boundaryBox.min.x - 1, boundaryBox.min.y - 1, boundaryBox.max.z + 1);
+						modelEditor.measurements[1][1].set(boundaryBox.min.x, boundaryBox.min.y, boundaryBox.min.z + (boundaryBox.max.z - boundaryBox.min.z) / 2);
 						value = boundaryBox.max.z - boundaryBox.min.z;
 						$("#slicing_configuration_dialog .modal-extra div.measurements > p.depth").text(value.toFixed(3) + "mm / " + (value / 25.4).toFixed(3) + "in");
 			
 						// Set height measurement
-						viewport.measurements[2][0].geometry.vertices[0].set(boundaryBox.min.x - 1, boundaryBox.min.y - 1, boundaryBox.max.z + 1);
-						viewport.measurements[2][0].geometry.vertices[1].set(boundaryBox.min.x - 1, boundaryBox.max.y + 1, boundaryBox.max.z + 1);
-						viewport.measurements[2][1].set(boundaryBox.min.x, boundaryBox.min.y + (boundaryBox.max.y - boundaryBox.min.y) / 2, boundaryBox.max.z);
+						modelEditor.measurements[2][0].geometry.vertices[0].set(boundaryBox.min.x - 1, boundaryBox.min.y - 1, boundaryBox.max.z + 1);
+						modelEditor.measurements[2][0].geometry.vertices[1].set(boundaryBox.min.x - 1, boundaryBox.max.y + 1, boundaryBox.max.z + 1);
+						modelEditor.measurements[2][1].set(boundaryBox.min.x, boundaryBox.min.y + (boundaryBox.max.y - boundaryBox.min.y) / 2, boundaryBox.max.z);
 						value = boundaryBox.max.y - boundaryBox.min.y;
 						$("#slicing_configuration_dialog .modal-extra div.measurements > p.height").text(value.toFixed(3) + "mm / " + (value / 25.4).toFixed(3) + "in");
 			
 						// Show measurements
-						for(var i = 0; i < viewport.measurements.length; i++) {
-							viewport.measurements[i][0].geometry.verticesNeedUpdate = true;
-							viewport.measurements[i][0].visible = viewport.showMeasurements;
+						for(var i = 0; i < modelEditor.measurements.length; i++) {
+							modelEditor.measurements[i][0].geometry.verticesNeedUpdate = true;
+							modelEditor.measurements[i][0].visible = modelEditor.showMeasurements;
 						}
 			
 						$("#slicing_configuration_dialog .modal-extra div.measurements > p").addClass("show");
@@ -2756,16 +2883,16 @@ $(function() {
 					else {
 		
 						// Hide measurements
-						for(var i = 0; i < viewport.measurements.length; i++)
-							viewport.measurements[i][0].visible = false;
+						for(var i = 0; i < modelEditor.measurements.length; i++)
+							modelEditor.measurements[i][0].visible = false;
 			
 						$("#slicing_configuration_dialog .modal-extra div.measurements > p").removeClass("show");
 					}
 		
 					// Set currently active buttons
 					$("#slicing_configuration_dialog .modal-extra button.translate, #slicing_configuration_dialog .modal-extra button.rotate, #slicing_configuration_dialog .modal-extra button.scale").removeClass("disabled");
-					$("#slicing_configuration_dialog .modal-extra div.values").removeClass("translate rotate scale").addClass(viewport.transformControls.getMode());
-					$("#slicing_configuration_dialog .modal-extra button." + viewport.transformControls.getMode()).addClass("disabled");
+					$("#slicing_configuration_dialog .modal-extra div.values").removeClass("translate rotate scale").addClass(modelEditor.transformControls.getMode());
+					$("#slicing_configuration_dialog .modal-extra button." + modelEditor.transformControls.getMode()).addClass("disabled");
 
 					// Check if a model is currently selected
 					if(model) {
@@ -2775,7 +2902,7 @@ $(function() {
 
 						// Show values
 						$("#slicing_configuration_dialog .modal-extra div.values div").addClass("show").children('p').addClass("show");
-						if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("translate") && viewport.cutShape === null)
+						if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("translate") && modelEditor.cutShape === null)
 							$("#slicing_configuration_dialog .modal-extra div.values input[name=\"y\"]").parent().removeClass("show");
 
 						// Check if an input is not focused
@@ -2806,7 +2933,7 @@ $(function() {
 
 								// Display scale values
 								for(var i = 0; i < 3; i++)
-									$("#slicing_configuration_dialog .modal-extra div.values p span:not(.axis)").eq(i).text(viewport.scaleLock[i] ? '🔒' : '🔓').attr("title", viewport.scaleLock[i] ? "Unlock" : "Lock");
+									$("#slicing_configuration_dialog .modal-extra div.values p span:not(.axis)").eq(i).text(modelEditor.scaleLock[i] ? '\uF023' : '\uF13E').attr("title", modelEditor.scaleLock[i] ? "Lock" : "Unlock");
 								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"x\"]").val(model.scale.x.toFixed(3)).attr("min", '0');
 								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"y\"]").val(model.scale.y.toFixed(3)).attr("min", '0');
 								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"z\"]").val(model.scale.z.toFixed(3)).attr("min", '0');
@@ -2814,49 +2941,49 @@ $(function() {
 						}
 			
 						// Apply group transformation
-						viewport.applyGroupTransformation();
+						modelEditor.applyGroupTransformation();
 					
 						// Go through all models
 						var numberOfModelsSelected = 0;
-						for(var i = 1; i < viewport.models.length; i++)
+						for(var i = 1; i < modelEditor.models.length; i++)
 		
 							// Check if glow exists
-							if(viewport.models[i].glow !== null) {
+							if(modelEditor.models[i].glow !== null) {
 						
 								// Increment number of models selected
 								numberOfModelsSelected++;
 	
 								// Update glow's orientation
-								viewport.models[i].glow.position.copy(viewport.models[i].mesh.position);
-								viewport.models[i].glow.rotation.copy(viewport.models[i].mesh.rotation);
-								viewport.models[i].glow.scale.copy(viewport.models[i].mesh.scale);
+								modelEditor.models[i].glow.position.copy(modelEditor.models[i].mesh.position);
+								modelEditor.models[i].glow.rotation.copy(modelEditor.models[i].mesh.rotation);
+								modelEditor.models[i].glow.scale.copy(modelEditor.models[i].mesh.scale);
 								
 								// Check if adhesion exists
-								if(viewport.models[i].adhesion !== null) {
+								if(modelEditor.models[i].adhesion !== null) {
 								
 									// Restore original geometry
-									viewport.models[i].adhesion.mesh.geometry = viewport.models[i].adhesion.geometry.clone();
+									modelEditor.models[i].adhesion.mesh.geometry = modelEditor.models[i].adhesion.geometry.clone();
 								
 									// Update adhesion's orientation
-									viewport.models[i].adhesion.mesh.rotation.copy(viewport.models[i].mesh.rotation);
-									viewport.models[i].adhesion.mesh.scale.copy(viewport.models[i].mesh.scale);
+									modelEditor.models[i].adhesion.mesh.rotation.copy(modelEditor.models[i].mesh.rotation);
+									modelEditor.models[i].adhesion.mesh.scale.copy(modelEditor.models[i].mesh.scale);
 									
 									// Apply transformation to adhesion's geometry
-									viewport.models[i].adhesion.mesh.updateMatrix();
-									viewport.models[i].adhesion.mesh.geometry.applyMatrix(viewport.models[i].adhesion.mesh.matrix);
-									viewport.models[i].adhesion.mesh.geometry.center();
+									modelEditor.models[i].adhesion.mesh.updateMatrix();
+									modelEditor.models[i].adhesion.mesh.geometry.applyMatrix(modelEditor.models[i].adhesion.mesh.matrix);
+									modelEditor.models[i].adhesion.mesh.geometry.center();
 									
 									// Set adhesion's orientation
-									viewport.models[i].adhesion.mesh.position.set(viewport.models[i].mesh.position.x, bedLowMinZ, viewport.models[i].mesh.position.z);
-									viewport.models[i].adhesion.mesh.rotation.set(0, 0, 0);
-									var boundaryBox = new THREE.Box3().setFromObject(viewport.models[i].mesh);
-									viewport.models[i].adhesion.mesh.scale.set((boundaryBox.max.x - boundaryBox.min.x + viewport.adhesionSize * 2) / (boundaryBox.max.x - boundaryBox.min.x), 0.000000000001, (boundaryBox.max.z - boundaryBox.min.z + viewport.adhesionSize * 2) / (boundaryBox.max.z - boundaryBox.min.z));
+									modelEditor.models[i].adhesion.mesh.position.set(modelEditor.models[i].mesh.position.x, bedLowMinZ, modelEditor.models[i].mesh.position.z);
+									modelEditor.models[i].adhesion.mesh.rotation.set(0, 0, 0);
+									var boundaryBox = new THREE.Box3().setFromObject(modelEditor.models[i].mesh);
+									modelEditor.models[i].adhesion.mesh.scale.set((boundaryBox.max.x - boundaryBox.min.x + modelEditor.adhesionSize * 2) / (boundaryBox.max.x - boundaryBox.min.x), 0.000000000001, (boundaryBox.max.z - boundaryBox.min.z + modelEditor.adhesionSize * 2) / (boundaryBox.max.z - boundaryBox.min.z));
 									
 									// Update adhesion glow's orientation
-									viewport.models[i].adhesion.glow.geometry = viewport.models[i].adhesion.mesh.geometry;
-									viewport.models[i].adhesion.glow.position.copy(viewport.models[i].adhesion.mesh.position);
-									viewport.models[i].adhesion.glow.rotation.copy(viewport.models[i].adhesion.mesh.rotation);
-									viewport.models[i].adhesion.glow.scale.copy(viewport.models[i].adhesion.mesh.scale);
+									modelEditor.models[i].adhesion.glow.geometry = modelEditor.models[i].adhesion.mesh.geometry;
+									modelEditor.models[i].adhesion.glow.position.copy(modelEditor.models[i].adhesion.mesh.position);
+									modelEditor.models[i].adhesion.glow.rotation.copy(modelEditor.models[i].adhesion.mesh.rotation);
+									modelEditor.models[i].adhesion.glow.scale.copy(modelEditor.models[i].adhesion.mesh.scale);
 								}
 							}
 					
@@ -2867,17 +2994,17 @@ $(function() {
 							$("#slicing_configuration_dialog .modal-extra button.merge").addClass("disabled");
 						
 						// Check if cutting models
-						if(viewport.cutShape !== null) {
+						if(modelEditor.cutShape !== null) {
 						
 							// Update cut shape's outline's orientation
-							viewport.cutShapeOutline.position.copy(viewport.cutShape.position);
-							viewport.cutShapeOutline.rotation.copy(viewport.cutShape.rotation);
-							viewport.cutShapeOutline.scale.copy(viewport.cutShape.scale);
+							modelEditor.cutShapeOutline.position.copy(modelEditor.cutShape.position);
+							modelEditor.cutShapeOutline.rotation.copy(modelEditor.cutShape.rotation);
+							modelEditor.cutShapeOutline.scale.copy(modelEditor.cutShape.scale);
 						}
 					}
 
 					// Otherwise check if not cutting models
-					else if(viewport.cutShape === null) {
+					else if(modelEditor.cutShape === null) {
 
 						// Disable delete, clone, and reset
 						$("#slicing_configuration_dialog .modal-extra button.delete, #slicing_configuration_dialog .modal-extra button.clone, #slicing_configuration_dialog .modal-extra button.reset").addClass("disabled");
@@ -2896,7 +3023,7 @@ $(function() {
 						$("#slicing_configuration_dialog .modal-extra button.merge").addClass("disabled");
 					
 					// Check if no models exist
-					if(viewport.models.length == 1)
+					if(modelEditor.models.length == 1)
 					
 						// Disable cut button
 						$("#slicing_configuration_dialog .modal-extra button.cut").addClass("off");
@@ -2912,21 +3039,21 @@ $(function() {
 				applyGroupTransformation: function() {
 		
 					// Check if a matrix was saved
-					if(viewport.savedMatrix) {
+					if(modelEditor.savedMatrix) {
 			
 						// Get new matrix
-						viewport.transformControls.object.updateMatrix();
-						var newMatrix = viewport.transformControls.object.matrix;
+						modelEditor.transformControls.object.updateMatrix();
+						var newMatrix = modelEditor.transformControls.object.matrix;
 				
 						// Check current mode
-						switch(viewport.transformControls.getMode()) {
+						switch(modelEditor.transformControls.getMode()) {
 				
 							// Check if in translate mode
 							case "translate" :
 					
 								// Get saved position
 								var savedValue = new THREE.Vector3();
-								savedValue.setFromMatrixPosition(viewport.savedMatrix);
+								savedValue.setFromMatrixPosition(modelEditor.savedMatrix);
 				
 								// Get new position
 								var newValue = new THREE.Vector3();
@@ -2938,7 +3065,7 @@ $(function() {
 					
 								// Get saved position
 								var savedRotation = new THREE.Euler();
-								savedRotation.setFromRotationMatrix(viewport.savedMatrix);
+								savedRotation.setFromRotationMatrix(modelEditor.savedMatrix);
 								var savedValue = savedRotation.toVector3();
 						
 								// Get new position
@@ -2952,7 +3079,7 @@ $(function() {
 					
 								// Get saved position
 								var savedValue = new THREE.Vector3();
-								savedValue.setFromMatrixScale(viewport.savedMatrix);
+								savedValue.setFromMatrixScale(modelEditor.savedMatrix);
 				
 								// Get new position
 								var newValue = new THREE.Vector3();
@@ -2964,46 +3091,46 @@ $(function() {
 						var changes = savedValue.sub(newValue);
 		
 						// Go through all models
-						for(var i = 1; i < viewport.models.length; i++)
+						for(var i = 1; i < modelEditor.models.length; i++)
 
 							// Check if model is selected
-							if(viewport.models[i].glow && viewport.models[i].mesh != viewport.transformControls.object)
+							if(modelEditor.models[i].glow && modelEditor.models[i].mesh != modelEditor.transformControls.object)
 					
 								// Check current mode
-								switch(viewport.transformControls.getMode()) {
+								switch(modelEditor.transformControls.getMode()) {
 						
 									// Check if in translate mode
 									case "translate" :
 							
 										// Update model's position
-										viewport.models[i].mesh.position.sub(changes);
+										modelEditor.models[i].mesh.position.sub(changes);
 									break;
 							
 									// Check if in rotate mode
 									case "rotate" :
 							
 										// Update model's rotation
-										viewport.models[i].mesh.rotation.setFromVector3(viewport.models[i].mesh.rotation.toVector3().sub(changes));
+										modelEditor.models[i].mesh.rotation.setFromVector3(modelEditor.models[i].mesh.rotation.toVector3().sub(changes));
 									break;
 							
 									// Check if in scale mode
 									case "scale" :
 							
 										// Update model's size
-										viewport.models[i].mesh.scale.sub(changes);
+										modelEditor.models[i].mesh.scale.sub(changes);
 										
 										// Prevent scaling less than zero
-										if(viewport.models[i].mesh.scale.x <= 0)
-											viewport.models[i].mesh.scale.x = 0.000000000001;
-										if(viewport.models[i].mesh.scale.y <= 0)
-											viewport.models[i].mesh.scale.y = 0.000000000001;
-										if(viewport.models[i].mesh.scale.z <= 0)
-											viewport.models[i].mesh.scale.z = 0.000000000001;
+										if(modelEditor.models[i].mesh.scale.x <= 0)
+											modelEditor.models[i].mesh.scale.x = 0.000000000001;
+										if(modelEditor.models[i].mesh.scale.y <= 0)
+											modelEditor.models[i].mesh.scale.y = 0.000000000001;
+										if(modelEditor.models[i].mesh.scale.z <= 0)
+											modelEditor.models[i].mesh.scale.z = 0.000000000001;
 									break;
 								}
 				
 						// Save new matrix
-						viewport.savedMatrix = newMatrix.clone();
+						modelEditor.savedMatrix = newMatrix.clone();
 					}
 				},
 	
@@ -3015,11 +3142,11 @@ $(function() {
 					var position = new THREE.Vector2();
 		
 					// Normalized device coordinate
-					clonedVector.project(viewport.camera);
+					clonedVector.project(modelEditor.camera);
 
 					// Get 2D position
-					position.x = Math.round((clonedVector.x + 1) * viewport.renderer.domElement.width / 2);
-					position.y = Math.round((-clonedVector.y + 1) * viewport.renderer.domElement.height / 2);
+					position.x = Math.round((clonedVector.x + 1) * modelEditor.renderer.domElement.width / 2);
+					position.y = Math.round((-clonedVector.y + 1) * modelEditor.renderer.domElement.height / 2);
 		
 					// Return position
 					return position;
@@ -3037,10 +3164,10 @@ $(function() {
 					}
 	
 					// Go through all models
-					for(var i = 1; i < viewport.models.length; i++) {
+					for(var i = 1; i < modelEditor.models.length; i++) {
 	
 						// Get current model
-						var model = viewport.models[i].mesh;
+						var model = modelEditor.models[i].mesh;
 		
 						// Update model's matrix
 						model.updateMatrixWorld();
@@ -3072,350 +3199,350 @@ $(function() {
 					}
 		
 					// Go through all boundaries
-					for(var i = 0; i < viewport.boundaries.length; i++) {
+					for(var i = 0; i < modelEditor.boundaries.length; i++) {
 		
 						// Reset boundary
-						viewport.boundaries[i].material.color.setHex(0x00FF00);
-						viewport.boundaries[i].material.opacity = 0.2;
-						viewport.boundaries[i].visible = viewport.showBoundaries;
-						viewport.boundaries[i].renderOrder = 2;
+						modelEditor.boundaries[i].material.color.setHex(0x00FF00);
+						modelEditor.boundaries[i].material.opacity = 0.2;
+						modelEditor.boundaries[i].visible = modelEditor.showBoundaries;
+						modelEditor.boundaries[i].renderOrder = 2;
 					}
 		
 					// Check if models goes out of bounds on low front
-					if((viewport.platformAdhesion != "None" && (minimums[0].z - viewport.adhesionSize < bedLowMinY - extruderCenterY || minimums[1].z - viewport.adhesionSize < bedLowMinY - extruderCenterY || minimums[2].z - viewport.adhesionSize < bedLowMinY - extruderCenterY)) || (viewport.platformAdhesion == "None" && minimums[0].z < bedLowMinY - extruderCenterY)) {
+					if((modelEditor.platformAdhesion != "None" && (minimums[0].z - modelEditor.adhesionSize < bedLowMinY - extruderCenterY || minimums[1].z - modelEditor.adhesionSize < bedLowMinY - extruderCenterY || minimums[2].z - modelEditor.adhesionSize < bedLowMinY - extruderCenterY)) || (modelEditor.platformAdhesion == "None" && minimums[0].z < bedLowMinY - extruderCenterY)) {
 		
 						// Set boundary
-						viewport.boundaries[1].material.color.setHex(0xFF0000);
-						viewport.boundaries[1].material.opacity = 0.7;
-						viewport.boundaries[1].visible = true;
-						viewport.boundaries[1].renderOrder = 1;
+						modelEditor.boundaries[1].material.color.setHex(0xFF0000);
+						modelEditor.boundaries[1].material.opacity = 0.7;
+						modelEditor.boundaries[1].visible = true;
+						modelEditor.boundaries[1].renderOrder = 1;
 					}
 		
 					// Otherwise
 					else
 		
 						// Set boundary's visibility
-						viewport.boundaries[1].visible = viewport.showBoundaries;
+						modelEditor.boundaries[1].visible = modelEditor.showBoundaries;
 		
 					// Check if models goes out of bounds on low back
-					if((viewport.platformAdhesion != "None" && (maximums[0].z + viewport.adhesionSize > bedLowMaxY - extruderCenterY || maximums[1].z + viewport.adhesionSize > bedLowMaxY - extruderCenterY || maximums[2].z + viewport.adhesionSize > bedLowMaxY - extruderCenterY)) || (viewport.platformAdhesion == "None" && maximums[0].z > bedLowMaxY - extruderCenterY)) {
+					if((modelEditor.platformAdhesion != "None" && (maximums[0].z + modelEditor.adhesionSize > bedLowMaxY - extruderCenterY || maximums[1].z + modelEditor.adhesionSize > bedLowMaxY - extruderCenterY || maximums[2].z + modelEditor.adhesionSize > bedLowMaxY - extruderCenterY)) || (modelEditor.platformAdhesion == "None" && maximums[0].z > bedLowMaxY - extruderCenterY)) {
 		
 						// Set boundary
-						viewport.boundaries[2].material.color.setHex(0xFF0000);
-						viewport.boundaries[2].material.opacity = 0.7;
-						viewport.boundaries[2].visible = true;
-						viewport.boundaries[2].renderOrder = 1;
+						modelEditor.boundaries[2].material.color.setHex(0xFF0000);
+						modelEditor.boundaries[2].material.opacity = 0.7;
+						modelEditor.boundaries[2].visible = true;
+						modelEditor.boundaries[2].renderOrder = 1;
 					}
 		
 					// Otherwise
 					else
 		
 						// Set boundary's visibility
-						viewport.boundaries[2].visible = viewport.showBoundaries;
+						modelEditor.boundaries[2].visible = modelEditor.showBoundaries;
 		
 					// Check if models goes out of bounds on low right
-					if((viewport.platformAdhesion != "None" && (maximums[0].x + viewport.adhesionSize > bedLowMaxX - extruderCenterX || maximums[1].x + viewport.adhesionSize > bedLowMaxX - extruderCenterX || maximums[2].x + viewport.adhesionSize > bedLowMaxX - extruderCenterX)) || (viewport.platformAdhesion == "None" && maximums[0].x > bedLowMaxX - extruderCenterX)) {
+					if((modelEditor.platformAdhesion != "None" && (maximums[0].x + modelEditor.adhesionSize > bedLowMaxX - extruderCenterX || maximums[1].x + modelEditor.adhesionSize > bedLowMaxX - extruderCenterX || maximums[2].x + modelEditor.adhesionSize > bedLowMaxX - extruderCenterX)) || (modelEditor.platformAdhesion == "None" && maximums[0].x > bedLowMaxX - extruderCenterX)) {
 		
 						// Set boundary
-						viewport.boundaries[3].material.color.setHex(0xFF0000);
-						viewport.boundaries[3].material.opacity = 0.7;
-						viewport.boundaries[3].visible = true;
-						viewport.boundaries[3].renderOrder = 1;
+						modelEditor.boundaries[3].material.color.setHex(0xFF0000);
+						modelEditor.boundaries[3].material.opacity = 0.7;
+						modelEditor.boundaries[3].visible = true;
+						modelEditor.boundaries[3].renderOrder = 1;
 					}
 		
 					// Otherwise
 					else
 		
 						// Set boundary's visibility
-						viewport.boundaries[3].visible = viewport.showBoundaries;
+						modelEditor.boundaries[3].visible = modelEditor.showBoundaries;
 		
 					// Check if models goes out of bounds on low left
-					if((viewport.platformAdhesion != "None" && (minimums[0].x - viewport.adhesionSize < bedLowMinX - extruderCenterX || minimums[1].x - viewport.adhesionSize < bedLowMinX - extruderCenterX || minimums[2].x - viewport.adhesionSize < bedLowMinX - extruderCenterX)) || (viewport.platformAdhesion == "None" && minimums[0].x < bedLowMinX - extruderCenterX)) {
+					if((modelEditor.platformAdhesion != "None" && (minimums[0].x - modelEditor.adhesionSize < bedLowMinX - extruderCenterX || minimums[1].x - modelEditor.adhesionSize < bedLowMinX - extruderCenterX || minimums[2].x - modelEditor.adhesionSize < bedLowMinX - extruderCenterX)) || (modelEditor.platformAdhesion == "None" && minimums[0].x < bedLowMinX - extruderCenterX)) {
 		
 						// Set boundary
-						viewport.boundaries[4].material.color.setHex(0xFF0000);
-						viewport.boundaries[4].material.opacity = 0.7;
-						viewport.boundaries[4].visible = true;
-						viewport.boundaries[4].renderOrder = 1;
+						modelEditor.boundaries[4].material.color.setHex(0xFF0000);
+						modelEditor.boundaries[4].material.opacity = 0.7;
+						modelEditor.boundaries[4].visible = true;
+						modelEditor.boundaries[4].renderOrder = 1;
 					}
 		
 					// Otherwise
 					else
 		
 						// Set boundary's visibility
-						viewport.boundaries[4].visible = viewport.showBoundaries;
+						modelEditor.boundaries[4].visible = modelEditor.showBoundaries;
 		
 					// Check if models goes out of bounds on medium front
 					if(minimums[1].z < bedMediumMinY - extruderCenterY) {
 		
 						// Set boundary
-						viewport.boundaries[5].material.color.setHex(0xFF0000);
-						viewport.boundaries[5].material.opacity = 0.7;
-						viewport.boundaries[5].visible = true;
-						viewport.boundaries[5].renderOrder = 1;
+						modelEditor.boundaries[5].material.color.setHex(0xFF0000);
+						modelEditor.boundaries[5].material.opacity = 0.7;
+						modelEditor.boundaries[5].visible = true;
+						modelEditor.boundaries[5].renderOrder = 1;
 					}
 		
 					// Otherwise
 					else
 		
 						// Set boundary's visibility
-						viewport.boundaries[5].visible = viewport.showBoundaries;
+						modelEditor.boundaries[5].visible = modelEditor.showBoundaries;
 		
 					// Check if models goes out of bounds on medium back
 					if(maximums[1].z > bedMediumMaxY - extruderCenterY) {
 		
 						// Set boundary
-						viewport.boundaries[6].material.color.setHex(0xFF0000);
-						viewport.boundaries[6].material.opacity = 0.7;
-						viewport.boundaries[6].visible = true;
-						viewport.boundaries[6].renderOrder = 1;
+						modelEditor.boundaries[6].material.color.setHex(0xFF0000);
+						modelEditor.boundaries[6].material.opacity = 0.7;
+						modelEditor.boundaries[6].visible = true;
+						modelEditor.boundaries[6].renderOrder = 1;
 					}
 		
 					// Otherwise
 					else
 		
 						// Set boundary's visibility
-						viewport.boundaries[6].visible = viewport.showBoundaries;
+						modelEditor.boundaries[6].visible = modelEditor.showBoundaries;
 		
 					// Check if models goes out of bounds on medium right
 					if(maximums[1].x > bedMediumMaxX - extruderCenterX) {
 		
 						// Set boundary
-						viewport.boundaries[7].material.color.setHex(0xFF0000);
-						viewport.boundaries[7].material.opacity = 0.7;
-						viewport.boundaries[7].visible = true;
-						viewport.boundaries[7].renderOrder = 1;
+						modelEditor.boundaries[7].material.color.setHex(0xFF0000);
+						modelEditor.boundaries[7].material.opacity = 0.7;
+						modelEditor.boundaries[7].visible = true;
+						modelEditor.boundaries[7].renderOrder = 1;
 					}
 		
 					// Otherwise
 					else
 		
 						// Set boundary's visibility
-						viewport.boundaries[7].visible = viewport.showBoundaries;
+						modelEditor.boundaries[7].visible = modelEditor.showBoundaries;
 		
 					// Check if models goes out of bounds on medium left
 					if(minimums[1].x < bedMediumMinX - extruderCenterX) {
 		
 						// Set boundary
-						viewport.boundaries[8].material.color.setHex(0xFF0000);
-						viewport.boundaries[8].material.opacity = 0.7;
-						viewport.boundaries[8].visible = true;
-						viewport.boundaries[8].renderOrder = 1;
+						modelEditor.boundaries[8].material.color.setHex(0xFF0000);
+						modelEditor.boundaries[8].material.opacity = 0.7;
+						modelEditor.boundaries[8].visible = true;
+						modelEditor.boundaries[8].renderOrder = 1;
 					}
 		
 					// Otherwise
 					else
 		
 						// Set boundary's visibility
-						viewport.boundaries[8].visible = viewport.showBoundaries;
+						modelEditor.boundaries[8].visible = modelEditor.showBoundaries;
 		
 					// Check if models goes out of bounds on high front
 					if(minimums[2].z < bedHighMinY - extruderCenterY) {
 		
 						// Set boundary
-						viewport.boundaries[9].material.color.setHex(0xFF0000);
-						viewport.boundaries[9].material.opacity = 0.7;
-						viewport.boundaries[9].visible = true;
-						viewport.boundaries[9].renderOrder = 1;
+						modelEditor.boundaries[9].material.color.setHex(0xFF0000);
+						modelEditor.boundaries[9].material.opacity = 0.7;
+						modelEditor.boundaries[9].visible = true;
+						modelEditor.boundaries[9].renderOrder = 1;
 					}
 		
 					// Otherwise
 					else
 		
 						// Set boundary's visibility
-						viewport.boundaries[9].visible = viewport.showBoundaries;
+						modelEditor.boundaries[9].visible = modelEditor.showBoundaries;
 		
 					// Check if models goes out of bounds on high back
 					if(maximums[2].z > bedHighMaxY - extruderCenterY) {
 		
 						// Set boundary
-						viewport.boundaries[10].material.color.setHex(0xFF0000);
-						viewport.boundaries[10].material.opacity = 0.7;
-						viewport.boundaries[10].visible = true;
-						viewport.boundaries[10].renderOrder = 1;
+						modelEditor.boundaries[10].material.color.setHex(0xFF0000);
+						modelEditor.boundaries[10].material.opacity = 0.7;
+						modelEditor.boundaries[10].visible = true;
+						modelEditor.boundaries[10].renderOrder = 1;
 					}
 		
 					// Otherwise
 					else
 		
 						// Set boundary's visibility
-						viewport.boundaries[10].visible = viewport.showBoundaries;
+						modelEditor.boundaries[10].visible = modelEditor.showBoundaries;
 		
 					// Check if models goes out of bounds on high right
 					if(maximums[2].x > bedHighMaxX - extruderCenterX) {
 		
 						// Set boundary
-						viewport.boundaries[11].material.color.setHex(0xFF0000);
-						viewport.boundaries[11].material.opacity = 0.7;
-						viewport.boundaries[11].visible = true;
-						viewport.boundaries[11].renderOrder = 1;
+						modelEditor.boundaries[11].material.color.setHex(0xFF0000);
+						modelEditor.boundaries[11].material.opacity = 0.7;
+						modelEditor.boundaries[11].visible = true;
+						modelEditor.boundaries[11].renderOrder = 1;
 					}
 		
 					// Otherwise
 					else
 		
 						// Set boundary's visibility
-						viewport.boundaries[11].visible = viewport.showBoundaries;
+						modelEditor.boundaries[11].visible = modelEditor.showBoundaries;
 		
 					// Check if models goes out of bounds on high left
 					if(minimums[2].x < bedHighMinX - extruderCenterX) {
 		
 						// Set boundary
-						viewport.boundaries[12].material.color.setHex(0xFF0000);
-						viewport.boundaries[12].material.opacity = 0.7;
-						viewport.boundaries[12].visible = true;
-						viewport.boundaries[12].renderOrder = 1;
+						modelEditor.boundaries[12].material.color.setHex(0xFF0000);
+						modelEditor.boundaries[12].material.opacity = 0.7;
+						modelEditor.boundaries[12].visible = true;
+						modelEditor.boundaries[12].renderOrder = 1;
 					}
 		
 					// Otherwise
 					else
 		
 						// Set boundary's visibility
-						viewport.boundaries[12].visible = viewport.showBoundaries;
+						modelEditor.boundaries[12].visible = modelEditor.showBoundaries;
 		
 					// Check if models goes out of bounds on high top
 					if(maximums[2].y > bedHighMaxZ) {
 		
 						// Set boundary
-						viewport.boundaries[13].material.color.setHex(0xFF0000);
-						viewport.boundaries[13].material.opacity = 0.7;
-						viewport.boundaries[13].visible = true;
-						viewport.boundaries[13].renderOrder = 1;
+						modelEditor.boundaries[13].material.color.setHex(0xFF0000);
+						modelEditor.boundaries[13].material.opacity = 0.7;
+						modelEditor.boundaries[13].visible = true;
+						modelEditor.boundaries[13].renderOrder = 1;
 					}
 		
 					// Otherwise
 					else
 		
 						// Set boundary's visibility
-						viewport.boundaries[13].visible = viewport.showBoundaries;
+						modelEditor.boundaries[13].visible = modelEditor.showBoundaries;
 		
 					// Check if models goes out of bounds on connector between low and medium front
-					if((bedMediumMinY < bedLowMinY && viewport.boundaries[1].material.color.getHex() == 0xFF0000) || viewport.boundaries[5].material.color.getHex() == 0xFF0000) {
+					if((bedMediumMinY < bedLowMinY && modelEditor.boundaries[1].material.color.getHex() == 0xFF0000) || modelEditor.boundaries[5].material.color.getHex() == 0xFF0000) {
 		
 						// Set boundary
-						viewport.boundaries[14].material.color.setHex(0xFF0000);
-						viewport.boundaries[14].material.opacity = 0.7;
-						viewport.boundaries[14].visible = true;
-						viewport.boundaries[14].renderOrder = 1;
+						modelEditor.boundaries[14].material.color.setHex(0xFF0000);
+						modelEditor.boundaries[14].material.opacity = 0.7;
+						modelEditor.boundaries[14].visible = true;
+						modelEditor.boundaries[14].renderOrder = 1;
 					}
 		
 					// Otherwise
 					else
 		
 						// Set boundary's visibility
-						viewport.boundaries[14].visible = viewport.showBoundaries;
+						modelEditor.boundaries[14].visible = modelEditor.showBoundaries;
 		
 					// Check if models goes out of bounds on connector between low and medium back
-					if((bedMediumMaxY > bedLowMaxY && viewport.boundaries[2].material.color.getHex() == 0xFF0000) || viewport.boundaries[6].material.color.getHex() == 0xFF0000) {
+					if((bedMediumMaxY > bedLowMaxY && modelEditor.boundaries[2].material.color.getHex() == 0xFF0000) || modelEditor.boundaries[6].material.color.getHex() == 0xFF0000) {
 		
 						// Set boundary
-						viewport.boundaries[15].material.color.setHex(0xFF0000);
-						viewport.boundaries[15].material.opacity = 0.7;
-						viewport.boundaries[15].visible = true;
-						viewport.boundaries[15].renderOrder = 1;
+						modelEditor.boundaries[15].material.color.setHex(0xFF0000);
+						modelEditor.boundaries[15].material.opacity = 0.7;
+						modelEditor.boundaries[15].visible = true;
+						modelEditor.boundaries[15].renderOrder = 1;
 					}
 		
 					// Otherwise
 					else
 		
 						// Set boundary's visibility
-						viewport.boundaries[15].visible = viewport.showBoundaries;
+						modelEditor.boundaries[15].visible = modelEditor.showBoundaries;
 		
 					// Check if models goes out of bounds on connector between low and medium right
-					if((bedMediumMaxX > bedLowMaxX && viewport.boundaries[3].material.color.getHex() == 0xFF0000) || viewport.boundaries[7].material.color.getHex() == 0xFF0000) {
+					if((bedMediumMaxX > bedLowMaxX && modelEditor.boundaries[3].material.color.getHex() == 0xFF0000) || modelEditor.boundaries[7].material.color.getHex() == 0xFF0000) {
 		
 						// Set boundary
-						viewport.boundaries[16].material.color.setHex(0xFF0000);
-						viewport.boundaries[16].material.opacity = 0.7;
-						viewport.boundaries[16].visible = true;
-						viewport.boundaries[16].renderOrder = 1;
+						modelEditor.boundaries[16].material.color.setHex(0xFF0000);
+						modelEditor.boundaries[16].material.opacity = 0.7;
+						modelEditor.boundaries[16].visible = true;
+						modelEditor.boundaries[16].renderOrder = 1;
 					}
 		
 					// Otherwise
 					else
 		
 						// Set boundary's visibility
-						viewport.boundaries[16].visible = viewport.showBoundaries;
+						modelEditor.boundaries[16].visible = modelEditor.showBoundaries;
 		
 					// Check if models goes out of bounds on connector between low and medium left
-					if((bedMediumMinX < bedLowMinX && viewport.boundaries[4].material.color.getHex() == 0xFF0000) || viewport.boundaries[8].material.color.getHex() == 0xFF0000) {
+					if((bedMediumMinX < bedLowMinX && modelEditor.boundaries[4].material.color.getHex() == 0xFF0000) || modelEditor.boundaries[8].material.color.getHex() == 0xFF0000) {
 		
 						// Set boundary
-						viewport.boundaries[17].material.color.setHex(0xFF0000);
-						viewport.boundaries[17].material.opacity = 0.7;
-						viewport.boundaries[17].visible = true;
-						viewport.boundaries[17].renderOrder = 1;
+						modelEditor.boundaries[17].material.color.setHex(0xFF0000);
+						modelEditor.boundaries[17].material.opacity = 0.7;
+						modelEditor.boundaries[17].visible = true;
+						modelEditor.boundaries[17].renderOrder = 1;
 					}
 		
 					// Otherwise
 					else
 		
 						// Set boundary's visibility
-						viewport.boundaries[17].visible = viewport.showBoundaries;
+						modelEditor.boundaries[17].visible = modelEditor.showBoundaries;
 		
 					// Check if models goes out of bounds on connector between medium and high front
-					if((bedHighMinY < bedMediumMinY && viewport.boundaries[5].material.color.getHex() == 0xFF0000) || viewport.boundaries[9].material.color.getHex() == 0xFF0000) {
+					if((bedHighMinY < bedMediumMinY && modelEditor.boundaries[5].material.color.getHex() == 0xFF0000) || modelEditor.boundaries[9].material.color.getHex() == 0xFF0000) {
 		
 						// Set boundary
-						viewport.boundaries[18].material.color.setHex(0xFF0000);
-						viewport.boundaries[18].material.opacity = 0.7;
-						viewport.boundaries[18].visible = true;
-						viewport.boundaries[18].renderOrder = 1;
+						modelEditor.boundaries[18].material.color.setHex(0xFF0000);
+						modelEditor.boundaries[18].material.opacity = 0.7;
+						modelEditor.boundaries[18].visible = true;
+						modelEditor.boundaries[18].renderOrder = 1;
 					}
 		
 					// Otherwise
 					else
 		
 						// Set boundary's visibility
-						viewport.boundaries[18].visible = viewport.showBoundaries;
+						modelEditor.boundaries[18].visible = modelEditor.showBoundaries;
 		
 					// Check if models goes out of bounds on connector between medium and high back
-					if((bedHighMaxY > bedMediumMaxY && viewport.boundaries[6].material.color.getHex() == 0xFF0000) || viewport.boundaries[10].material.color.getHex() == 0xFF0000) {
+					if((bedHighMaxY > bedMediumMaxY && modelEditor.boundaries[6].material.color.getHex() == 0xFF0000) || modelEditor.boundaries[10].material.color.getHex() == 0xFF0000) {
 		
 						// Set boundary
-						viewport.boundaries[19].material.color.setHex(0xFF0000);
-						viewport.boundaries[19].material.opacity = 0.7;
-						viewport.boundaries[19].visible = true;
-						viewport.boundaries[19].renderOrder = 1;
+						modelEditor.boundaries[19].material.color.setHex(0xFF0000);
+						modelEditor.boundaries[19].material.opacity = 0.7;
+						modelEditor.boundaries[19].visible = true;
+						modelEditor.boundaries[19].renderOrder = 1;
 					}
 		
 					// Otherwise
 					else
 		
 						// Set boundary's visibility
-						viewport.boundaries[19].visible = viewport.showBoundaries;
+						modelEditor.boundaries[19].visible = modelEditor.showBoundaries;
 		
 					// Check if models goes out of bounds on connector between medium and high right
-					if((bedHighMaxX > bedMediumMaxX && viewport.boundaries[7].material.color.getHex() == 0xFF0000) || viewport.boundaries[11].material.color.getHex() == 0xFF0000) {
+					if((bedHighMaxX > bedMediumMaxX && modelEditor.boundaries[7].material.color.getHex() == 0xFF0000) || modelEditor.boundaries[11].material.color.getHex() == 0xFF0000) {
 		
 						// Set boundary
-						viewport.boundaries[20].material.color.setHex(0xFF0000);
-						viewport.boundaries[20].material.opacity = 0.7;
-						viewport.boundaries[20].visible = true;
-						viewport.boundaries[20].renderOrder = 1;
+						modelEditor.boundaries[20].material.color.setHex(0xFF0000);
+						modelEditor.boundaries[20].material.opacity = 0.7;
+						modelEditor.boundaries[20].visible = true;
+						modelEditor.boundaries[20].renderOrder = 1;
 					}
 		
 					// Otherwise
 					else
 		
 						// Set boundary's visibility
-						viewport.boundaries[20].visible = viewport.showBoundaries;
+						modelEditor.boundaries[20].visible = modelEditor.showBoundaries;
 		
 					// Check if models goes out of bounds on connector between medium and high left
-					if((bedHighMinX < bedMediumMinX && viewport.boundaries[8].material.color.getHex() == 0xFF0000) || viewport.boundaries[12].material.color.getHex() == 0xFF0000) {
+					if((bedHighMinX < bedMediumMinX && modelEditor.boundaries[8].material.color.getHex() == 0xFF0000) || modelEditor.boundaries[12].material.color.getHex() == 0xFF0000) {
 		
 						// Set boundary
-						viewport.boundaries[21].material.color.setHex(0xFF0000);
-						viewport.boundaries[21].material.opacity = 0.7;
-						viewport.boundaries[21].visible = true;
-						viewport.boundaries[21].renderOrder = 1;
+						modelEditor.boundaries[21].material.color.setHex(0xFF0000);
+						modelEditor.boundaries[21].material.opacity = 0.7;
+						modelEditor.boundaries[21].visible = true;
+						modelEditor.boundaries[21].renderOrder = 1;
 					}
 		
 					// Otherwise
 					else
 		
 						// Set boundary's visibility
-						viewport.boundaries[21].visible = viewport.showBoundaries;
+						modelEditor.boundaries[21].visible = modelEditor.showBoundaries;
 				},
 			
 				// Apply cut
@@ -3440,36 +3567,36 @@ $(function() {
 						var differences = [];
 						
 						// Increase sphere detail if cut shape is a sphere
-						if(viewport.cutShape.geometry.type == "SphereGeometry")
-							viewport.cutShape.geometry = new THREE.SphereGeometry(25, 25, 25);
+						if(modelEditor.cutShape.geometry.type == "SphereGeometry")
+							modelEditor.cutShape.geometry = new THREE.SphereGeometry(25, 25, 25);
 				
 						// Update cut shape's geometry
-						viewport.cutShape.geometry.applyMatrix(viewport.cutShape.matrix);
-						viewport.cutShape.position.set(0, 0, 0);
-						viewport.cutShape.rotation.set(0, 0, 0);
-						viewport.cutShape.scale.set(1, 1, 1);
+						modelEditor.cutShape.geometry.applyMatrix(modelEditor.cutShape.matrix);
+						modelEditor.cutShape.position.set(0, 0, 0);
+						modelEditor.cutShape.rotation.set(0, 0, 0);
+						modelEditor.cutShape.scale.set(1, 1, 1);
 			
 						// Go through all models
-						for(var i = 1; i < viewport.models.length; i++) {
+						for(var i = 1; i < modelEditor.models.length; i++) {
 				
 							// Update model's geometry
-							viewport.models[i].mesh.geometry.applyMatrix(viewport.models[i].mesh.matrix);
-							viewport.models[i].mesh.position.set(0, 0, 0);
-							viewport.models[i].mesh.rotation.set(0, 0, 0);
-							viewport.models[i].mesh.scale.set(1, 1, 1);
+							modelEditor.models[i].mesh.geometry.applyMatrix(modelEditor.models[i].mesh.matrix);
+							modelEditor.models[i].mesh.position.set(0, 0, 0);
+							modelEditor.models[i].mesh.rotation.set(0, 0, 0);
+							modelEditor.models[i].mesh.scale.set(1, 1, 1);
 				
 							// Create difference and intersection meshes
-							var cutShapeBsp = new ThreeBSP(viewport.cutShape);
-							var modelBsp = new ThreeBSP(viewport.models[i].mesh);
-							var meshDifference = modelBsp.subtract(cutShapeBsp).toMesh(new THREE.MeshLambertMaterial(filamentMaterials[viewportFilamentColor]));
-							var meshIntersection = modelBsp.intersect(cutShapeBsp).toMesh(new THREE.MeshLambertMaterial(filamentMaterials[viewportFilamentColor]));
+							var cutShapeBsp = new ThreeBSP(modelEditor.cutShape);
+							var modelBsp = new ThreeBSP(modelEditor.models[i].mesh);
+							var meshDifference = modelBsp.subtract(cutShapeBsp).toMesh(new THREE.MeshLambertMaterial(filamentMaterials[modelEditorFilamentColor]));
+							var meshIntersection = modelBsp.intersect(cutShapeBsp).toMesh(new THREE.MeshLambertMaterial(filamentMaterials[modelEditorFilamentColor]));
 				
 							// Delete model
-							viewport.scene[0].remove(viewport.models[i].mesh);
-							if(viewport.models[i].adhesion !== null)
-								viewport.scene[0].remove(viewport.models[i].adhesion.mesh);
-							var type = viewport.models[i].type;
-							viewport.models.splice(i--, 1);
+							modelEditor.scene[0].remove(modelEditor.models[i].mesh);
+							if(modelEditor.models[i].adhesion !== null)
+								modelEditor.scene[0].remove(modelEditor.models[i].adhesion.mesh);
+							var type = modelEditor.models[i].type;
+							modelEditor.models.splice(i--, 1);
 				
 							// Check if difference mesh exists
 							if(meshDifference.geometry.vertices.length) {
@@ -3519,66 +3646,66 @@ $(function() {
 						}
 				
 						// Remove cut shape
-						viewport.scene[0].remove(viewport.cutShape);
-						viewport.scene[0].remove(viewport.cutShapeOutline);
-						viewport.cutShape = null;
-						viewport.cutShapeOutline = null;
-						viewport.transformControls.detach();
-						viewport.transformControls.setAllowedTranslation("XZ");
+						modelEditor.scene[0].remove(modelEditor.cutShape);
+						modelEditor.scene[0].remove(modelEditor.cutShapeOutline);
+						modelEditor.cutShape = null;
+						modelEditor.cutShapeOutline = null;
+						modelEditor.transformControls.detach();
+						modelEditor.transformControls.setAllowedTranslation("XZ");
 				
 						// Go through all intersections
 						for(var i = 0; i < intersections.length; i++) {
 				
 							// Add intersection mesh to scene
-							viewport.scene[0].add(intersections[i].mesh);
+							modelEditor.scene[0].add(intersections[i].mesh);
 				
 							// Add intersection mesh to list
-							viewport.models.push({
+							modelEditor.models.push({
 								mesh: intersections[i].mesh,
 								type: intersections[i].type,
 								glow: null,
-								adhesion: viewport.createPlatformAdhesion(intersections[i].mesh)
+								adhesion: modelEditor.createPlatformAdhesion(intersections[i].mesh)
 							});
 				
 							// Select intersection mesh
-							viewport.selectModel(intersections[i].mesh);
+							modelEditor.selectModel(intersections[i].mesh);
 						}
 				
 						// Go through all differences
 						for(var i = 0; i < differences.length; i++) {
 				
 							// Add difference mesh to scene
-							viewport.scene[0].add(differences[i].mesh);
+							modelEditor.scene[0].add(differences[i].mesh);
 				
 							// Add difference mesh to list
-							viewport.models.push({
+							modelEditor.models.push({
 								mesh: differences[i].mesh,
 								type: differences[i].type,
 								glow: null,
-								adhesion: viewport.createPlatformAdhesion(differences[i].mesh)
+								adhesion: modelEditor.createPlatformAdhesion(differences[i].mesh)
 							});
 				
 							// Select difference mesh
-							viewport.selectModel(differences[i].mesh);
+							modelEditor.selectModel(differences[i].mesh);
 						}
 			
 						// Fix model's Y
-						viewport.fixModelY();
+						modelEditor.fixModelY();
 				
 						// Remove selection
-						viewport.removeSelection();
+						modelEditor.removeSelection();
 				
 						// Go through all intersections
 						for(var i = 0; i < intersections.length; i++)
 				
 							// Select intersection mesh
-							viewport.selectModel(intersections[i].mesh);
+							modelEditor.selectModel(intersections[i].mesh);
 				
 						// Upate measurements
-						viewport.updateModelChanges();
+						modelEditor.updateModelChanges();
 	
 						// Render
-						viewport.render();
+						modelEditor.render();
 						
 						// Hide cover
 						$("#slicing_configuration_dialog .modal-cover").removeClass("show");
@@ -3598,18 +3725,18 @@ $(function() {
 					$("#slicing_configuration_dialog .modal-extra div.cutShape button." + shape).addClass("disabled").siblings("button").removeClass("disabled");
 				
 					// Check if cut shape is a sphere
-					if(shape == "cube" && viewport.cutShape.geometry.type == "SphereGeometry") {
+					if(shape == "cube" && modelEditor.cutShape.geometry.type == "SphereGeometry") {
 					
 						// Change cut shape to a cube
-						viewport.cutShape.geometry = new THREE.CubeGeometry(50, 50, 50);
+						modelEditor.cutShape.geometry = new THREE.CubeGeometry(50, 50, 50);
 						changed = true;
 					}
 				
 					// Otherwise check if cut chape is a cube
-					else if(shape == "sphere" && viewport.cutShape.geometry.type == "BoxGeometry") {
+					else if(shape == "sphere" && modelEditor.cutShape.geometry.type == "BoxGeometry") {
 					
 						// Change cut shape to a sphere
-						viewport.cutShape.geometry = new THREE.SphereGeometry(25, 10, 10);
+						modelEditor.cutShape.geometry = new THREE.SphereGeometry(25, 10, 10);
 						changed = true;
 					}
 					
@@ -3617,10 +3744,10 @@ $(function() {
 					if(changed) {
 					
 						// Update cut shape outline
-						viewport.cutShapeOutline.geometry = viewport.lineGeometry(viewport.cutShape.geometry);
+						modelEditor.cutShapeOutline.geometry = modelEditor.lineGeometry(modelEditor.cutShape.geometry);
 
 						// Render
-						viewport.render();
+						modelEditor.render();
 					}
 				},
 			
@@ -3633,7 +3760,7 @@ $(function() {
 					setTimeout(function() {
 
 						// Initialize variables
-						var meshUnion = viewport.transformControls.object;
+						var meshUnion = modelEditor.transformControls.object;
 				
 						// Update currently selected model's geometry
 						meshUnion.geometry.applyMatrix(meshUnion.matrix);
@@ -3642,30 +3769,30 @@ $(function() {
 						meshUnion.scale.set(1, 1, 1);
 			
 						// Go through all models
-						for(var i = 1; i < viewport.models.length; i++)
+						for(var i = 1; i < modelEditor.models.length; i++)
 	
 							// Check if model is selected and it's not the newest selected model
-							if(viewport.models[i].glow && viewport.models[i].mesh != viewport.transformControls.object) {
+							if(modelEditor.models[i].glow && modelEditor.models[i].mesh != modelEditor.transformControls.object) {
 					
 								// Update model's geometry
-								viewport.models[i].mesh.geometry.applyMatrix(viewport.models[i].mesh.matrix);
-								viewport.models[i].mesh.position.set(0, 0, 0);
-								viewport.models[i].mesh.rotation.set(0, 0, 0);
-								viewport.models[i].mesh.scale.set(1, 1, 1);
+								modelEditor.models[i].mesh.geometry.applyMatrix(modelEditor.models[i].mesh.matrix);
+								modelEditor.models[i].mesh.position.set(0, 0, 0);
+								modelEditor.models[i].mesh.rotation.set(0, 0, 0);
+								modelEditor.models[i].mesh.scale.set(1, 1, 1);
 					
 								// Create union mesh
 								var unionBsp = new ThreeBSP(meshUnion);
-								var modelBsp = new ThreeBSP(viewport.models[i].mesh);
-								meshUnion = unionBsp.union(modelBsp).toMesh(new THREE.MeshLambertMaterial(filamentMaterials[viewportFilamentColor]));
+								var modelBsp = new ThreeBSP(modelEditor.models[i].mesh);
+								meshUnion = unionBsp.union(modelBsp).toMesh(new THREE.MeshLambertMaterial(filamentMaterials[modelEditorFilamentColor]));
 				
 								// Delete model
-								viewport.scene[0].remove(viewport.models[i].mesh);
-								viewport.scene[1].remove(viewport.models[i].glow);
-								if(viewport.models[i].adhesion !== null) {
-									viewport.scene[0].remove(viewport.models[i].adhesion.mesh);
-									viewport.scene[1].remove(viewport.models[i].adhesion.glow);
+								modelEditor.scene[0].remove(modelEditor.models[i].mesh);
+								modelEditor.scene[1].remove(modelEditor.models[i].glow);
+								if(modelEditor.models[i].adhesion !== null) {
+									modelEditor.scene[0].remove(modelEditor.models[i].adhesion.mesh);
+									modelEditor.scene[1].remove(modelEditor.models[i].adhesion.glow);
 								}
-								viewport.models.splice(i--, 1);
+								modelEditor.models.splice(i--, 1);
 				
 								// Center union mesh's geometry
 								meshUnion.updateMatrixWorld();
@@ -3681,41 +3808,41 @@ $(function() {
 							}
 				
 						// Go through all models
-						for(var i = 1; i < viewport.models.length; i++)
+						for(var i = 1; i < modelEditor.models.length; i++)
 				
 							// Check if currently selected model
-							if(viewport.models[i].mesh == viewport.transformControls.object) {
+							if(modelEditor.models[i].mesh == modelEditor.transformControls.object) {
 					
 								// Delete model
-								viewport.scene[0].remove(viewport.models[i].mesh);
-								viewport.scene[1].remove(viewport.models[i].glow);
-								if(viewport.models[i].adhesion !== null) {
-									viewport.scene[0].remove(viewport.models[i].adhesion.mesh);
-									viewport.scene[1].remove(viewport.models[i].adhesion.glow);
+								modelEditor.scene[0].remove(modelEditor.models[i].mesh);
+								modelEditor.scene[1].remove(modelEditor.models[i].glow);
+								if(modelEditor.models[i].adhesion !== null) {
+									modelEditor.scene[0].remove(modelEditor.models[i].adhesion.mesh);
+									modelEditor.scene[1].remove(modelEditor.models[i].adhesion.glow);
 								}
-								var type = viewport.models[i].type;
-								viewport.models.splice(i--, 1);
+								var type = modelEditor.models[i].type;
+								modelEditor.models.splice(i--, 1);
 						
 								// Break
 								break;
 							}
 				
 						// Add union mesh to scene
-						viewport.scene[0].add(meshUnion);
+						modelEditor.scene[0].add(meshUnion);
 			
 						// Add union mesh to list
-						viewport.models.push({
+						modelEditor.models.push({
 							mesh: meshUnion,
 							type: type,
 							glow: null,
-							adhesion: viewport.createPlatformAdhesion(meshUnion)
+							adhesion: modelEditor.createPlatformAdhesion(meshUnion)
 						});
 			
 						// Select union mesh
-						viewport.selectModel(meshUnion);
+						modelEditor.selectModel(meshUnion);
 				
 						// Fix model's Y
-						viewport.fixModelY();
+						modelEditor.fixModelY();
 					
 						// Hide cover
 						$("#slicing_configuration_dialog .modal-cover").removeClass("show");
@@ -3787,14 +3914,14 @@ $(function() {
 				render: function() {
 
 					// Update controls
-					viewport.transformControls.update();
-					viewport.orbitControls.update();
+					modelEditor.transformControls.update();
+					modelEditor.orbitControls.update();
 			
 					// Check if a model is currently selected
-					if(viewport.transformControls.object) {
+					if(modelEditor.transformControls.object) {
 			
 						// Get camera distance to model
-						var distance = viewport.camera.position.distanceTo(viewport.transformControls.object.position);
+						var distance = modelEditor.camera.position.distanceTo(modelEditor.transformControls.object.position);
 						if(distance < 200)
 							distance = 200;
 						else if(distance > 500)
@@ -3806,7 +3933,7 @@ $(function() {
 						// Set z index order for measurement values
 						var order = [];
 						for(var j = 0; j < 3; j++)
-							order[j] = viewport.camera.position.distanceTo(viewport.measurements[j][1]);
+							order[j] = modelEditor.camera.position.distanceTo(modelEditor.measurements[j][1]);
 	
 						for(var j = 0; j < 3; j++) {
 							var lowest = order.indexOf(Math.max.apply(Math, order));
@@ -3816,7 +3943,7 @@ $(function() {
 	
 						// Position measurement values
 						for(var j = 0; j < 3; j++) {
-							var position = viewport.get2dPosition(viewport.measurements[j][1]);
+							var position = modelEditor.get2dPosition(modelEditor.measurements[j][1]);
 							$("#slicing_configuration_dialog .modal-extra div.measurements > p").eq(j).css({
 								"top": position.y - 3 + "px",
 								"left": position.x - $("#slicing_configuration_dialog .modal-extra div.measurements > p").eq(j).width() / 2 + "px"
@@ -3824,25 +3951,25 @@ $(function() {
 						}
 		
 						// Go through all models
-						for(var i = 1; i < viewport.models.length; i++)
+						for(var i = 1; i < modelEditor.models.length; i++)
 		
 							// Check if model is selected
-							if(viewport.models[i].glow !== null)
+							if(modelEditor.models[i].glow !== null)
 					
 								// Update glow's view vector
-								viewport.models[i].glow.material.uniforms.viewVector.value = new THREE.Vector3().subVectors(viewport.camera.position, viewport.models[i].glow.position);
+								modelEditor.models[i].glow.material.uniforms.viewVector.value = new THREE.Vector3().subVectors(modelEditor.camera.position, modelEditor.models[i].glow.position);
 					}
 
 					// Render scene
-					viewport.renderer.clear();
-					viewport.renderer.render(viewport.scene[0], viewport.camera);
-					viewport.renderer.clearDepth();
-					viewport.renderer.render(viewport.scene[1], viewport.camera);
+					modelEditor.renderer.clear();
+					modelEditor.renderer.render(modelEditor.scene[0], modelEditor.camera);
+					modelEditor.renderer.clearDepth();
+					modelEditor.renderer.render(modelEditor.scene[1], modelEditor.camera);
 				}
 			};
 
-			// Create viewport
-			viewport.init();
+			// Create model editor
+			modelEditor.init();
 		}
 	
 		// Convert to STL
@@ -3960,6 +4087,23 @@ $(function() {
 		// Remove software update message if using OctoPrint's master branch
 		if(typeof BRANCH !== "undefined" && htmlDecode(BRANCH) == "HEAD -> master")
 			$("#settings_plugin_softwareupdate div.alert:nth-of-type(2)").remove();
+		
+		// Create model viewer tab
+		$("#control_link").after('\
+			<li id="model_link">\
+				<a href="#model" data-toggle="tab">Model Viewer</a>\
+			</li>\
+		');
+		
+		$("#tabs + div.tab-content").append('\
+			<div id="model" class="tab-pane">\
+				<div>\
+				</div>\
+			</div>\
+		');
+		
+		// Create model viewer
+		createModelViewer();
 		
 		// Add mid-print filament change settings
 		$("#gcode div.progress").after('\
@@ -5009,13 +5153,13 @@ $(function() {
 				setTimeout(function() {
 
 					// Download model
-					saveFile(viewport.exportScene(), modelName);
+					saveFile(modelEditor.exportScene(), modelName);
 
 					// Wait until model is loaded
 					function isSceneExported() {
 
 						// Check if scene is exported
-						if(viewport.sceneExported) {
+						if(modelEditor.sceneExported) {
 
 							// Hide cover
 							$("#slicing_configuration_dialog .modal-cover").removeClass("show");
@@ -5227,9 +5371,9 @@ $(function() {
 						// Set text back to next
 						$("#slicing_configuration_dialog > div.modal-footer > .btn-primary").text("Next");
 						
-						// Destroy viewport
-						if(viewport)
-							viewport.destroy();
+						// Destroy modelEditor
+						if(modelEditor)
+							modelEditor.destroy();
 		
 						// Restore slicer dialog
 						$("#slicing_configuration_dialog").off("drop dragenter dragleave").removeClass("profile model").css("height", '');
@@ -7365,14 +7509,14 @@ $(function() {
 												// Check if model has loaded
 												if(this.readyState == 4 && this.status == 200) {
 							
-													// Load model from blob
-													loadModel(URL.createObjectURL(this.response));
+													// Create model editor and load model from blob
+													createModelEditor(URL.createObjectURL(this.response));
 			
 													// Wait until model is loaded
 													function isModelLoaded() {
 
 														// Check if model is loaded
-														if(viewport.modelLoaded) {
+														if(modelEditor.modelLoaded) {
 														
 															// Display model
 															$("#slicing_configuration_dialog").removeClass("in");
@@ -7428,9 +7572,9 @@ $(function() {
 																		<button class="merge" title="Merge"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/merge.png"></button>\
 																	</div>\
 																	<div class="display">\
-																		<button class="axes' + (viewport.showAxes ? " disabled" : '') + '" title="Axes"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/axes.png"></button>\
-																		<button class="boundaries' + (viewport.showBoundaries ? " disabled" : '') + '" title="Boundaries"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/boundaries.png"></button>\
-																		<button class="measurements' + (viewport.showMeasurements ? " disabled" : '') + '" title="Measurements"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/measurements.png"></button>\
+																		<button class="axes' + (modelEditor.showAxes ? " disabled" : '') + '" title="Axes"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/axes.png"></button>\
+																		<button class="boundaries' + (modelEditor.showBoundaries ? " disabled" : '') + '" title="Boundaries"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/boundaries.png"></button>\
+																		<button class="measurements' + (modelEditor.showMeasurements ? " disabled" : '') + '" title="Measurements"><img src="' + PLUGIN_BASEURL + 'm33fio/static/img/measurements.png"></button>\
 																	</div>\
 																	<div class="values translate">\
 																		<div>\
@@ -7454,9 +7598,9 @@ $(function() {
 																	</div>\
 																');
 
-																$("#slicing_configuration_dialog .modal-extra div.printer button[data-color=\"" + viewportPrinterColor + "\"]").addClass("disabled");
-																$("#slicing_configuration_dialog .modal-extra div.filament button[data-color=\"" + viewportFilamentColor + "\"]").addClass("disabled");
-																$("#slicing_configuration_dialog .modal-extra").append(viewport.renderer.domElement);
+																$("#slicing_configuration_dialog .modal-extra div.printer button[data-color=\"" + modelEditorPrinterColor + "\"]").addClass("disabled");
+																$("#slicing_configuration_dialog .modal-extra div.filament button[data-color=\"" + modelEditorFilamentColor + "\"]").addClass("disabled");
+																$("#slicing_configuration_dialog .modal-extra").append(modelEditor.renderer.domElement);
 																
 																if(self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter())
 																	$("#slicing_configuration_dialog .modal-extra .micro3d").addClass("notUsingAMicro3DPrinter");
@@ -7488,13 +7632,13 @@ $(function() {
 																		setTimeout(function() {
 
 																			// Import model
-																			viewport.importModel(url, type);
+																			modelEditor.importModel(url, type);
 
 																			// Wait until model is loaded
 																			function isModelLoaded() {
 
 																				// Check if model is loaded
-																				if(viewport.modelLoaded) {
+																				if(modelEditor.modelLoaded) {
 
 																					// Hide cover
 																					$("#slicing_configuration_dialog .modal-cover").removeClass("show");
@@ -7518,7 +7662,7 @@ $(function() {
 																$("#slicing_configuration_dialog .modal-extra input[type=\"file\"]").change(function() {
 																	
 																	// Check if not cutting models
-																	if(viewport.cutShape === null)
+																	if(modelEditor.cutShape === null)
 																	
 																		// Import model from file
 																		importModelFromFile(this.files[0]);
@@ -7545,21 +7689,21 @@ $(function() {
 																$("#slicing_configuration_dialog .modal-extra button.translate").click(function(event) {
 
 																	// Set selection mode to translate
-																	viewport.setMode("translate");
+																	modelEditor.setMode("translate");
 																});
 
 																// Rotate button click event
 																$("#slicing_configuration_dialog .modal-extra button.rotate").click(function() {
 
 																	// Set selection mode to rotate
-																	viewport.setMode("rotate");
+																	modelEditor.setMode("rotate");
 																});
 
 																// Scale button click event
 																$("#slicing_configuration_dialog .modal-extra button.scale").click(function() {
 
 																	// Set selection mode to scale
-																	viewport.setMode("scale");
+																	modelEditor.setMode("scale");
 																});
 																
 																// Lock/unlock scale mousedown
@@ -7569,15 +7713,15 @@ $(function() {
 																	event.stopImmediatePropagation();
 																	
 																	// Check if locking
-																	if($(this).text() == '🔓') {
+																	if($(this).text() == '\uF13E') {
 																	
 																		// Update image and title
-																		$(this).text('🔒').attr("title", "Unlock");
+																		$(this).text('\uF023').attr("title", "Lock");
 																		
 																		// Update scale lock
 																		for(var i = 0; i < 3; i++)
 																			if($(this).is($("#slicing_configuration_dialog .modal-extra div.values p span:not(.axis)").eq(i))) {
-																				viewport.scaleLock[i] = true;
+																				modelEditor.scaleLock[i] = true;
 																				break;
 																			}
 																	}
@@ -7586,12 +7730,12 @@ $(function() {
 																	else {
 																	
 																		// Update image and title
-																		$(this).text('🔓').attr("title", "Lock");
+																		$(this).text('\uF13E').attr("title", "Unlock");
 																		
 																		// Update scale lock
 																		for(var i = 0; i < 3; i++)
 																			if($(this).is($("#slicing_configuration_dialog .modal-extra div.values p span:not(.axis)").eq(i))) {
-																				viewport.scaleLock[i] = false;
+																				modelEditor.scaleLock[i] = false;
 																				break;
 																			}
 																	}
@@ -7601,23 +7745,23 @@ $(function() {
 																$("#slicing_configuration_dialog .modal-extra button.snap").click(function() {
 
 																	// Check if snap controls are currently enabled
-																	if(viewport.transformControls.translationSnap)
+																	if(modelEditor.transformControls.translationSnap)
 
 																		// Disable grid and rotation snap
-																		viewport.disableSnap();
+																		modelEditor.disableSnap();
 
 																	// Otherwise
 																	else
 
 																		// Enable grid and rotation snap
-																		viewport.enableSnap();
+																		modelEditor.enableSnap();
 																});
 
 																// Delete button click event
 																$("#slicing_configuration_dialog .modal-extra button.delete").click(function() {
 
 																	// Delete model
-																	viewport.deleteModel();
+																	modelEditor.deleteModel();
 																});
 
 																// Clone button click event
@@ -7629,13 +7773,13 @@ $(function() {
 																	setTimeout(function() {
 
 																		// Clone model
-																		viewport.cloneModel();
+																		modelEditor.cloneModel();
 
 																		// Wait until model is loaded
 																		function isModelLoaded() {
 
 																			// Check if model is loaded
-																			if(viewport.modelLoaded) {
+																			if(modelEditor.modelLoaded) {
 
 																				// Hide cover
 																				$("#slicing_configuration_dialog .modal-cover").removeClass("show");
@@ -7658,94 +7802,94 @@ $(function() {
 																$("#slicing_configuration_dialog .modal-extra button.reset").click(function() {
 
 																	// Reset model
-																	viewport.resetModel();
+																	modelEditor.resetModel();
 																});
 																
 																// Axes button click event
 																$("#slicing_configuration_dialog .modal-extra button.axes").click(function() {
 
 																	// Set show axes
-																	viewport.showAxes = !viewport.showAxes;
+																	modelEditor.showAxes = !modelEditor.showAxes;
 																	
-																	// Save viewport show axes
-																	localStorage.viewportShowAxes = viewport.showAxes;
+																	// Save model editor show axes
+																	localStorage.modelEditorShowAxes = modelEditor.showAxes;
 
 																	// Go through all axes
-																	for(var i = 0; i < viewport.axes.length; i++)
+																	for(var i = 0; i < modelEditor.axes.length; i++)
 																	
 																		// Toggle visibility
-																		viewport.axes[i].visible = viewport.showAxes;
+																		modelEditor.axes[i].visible = modelEditor.showAxes;
 
 																	// Select button
-																	if(viewport.showAxes)
+																	if(modelEditor.showAxes)
 																		$(this).addClass("disabled");
 																	else
 																		$(this).removeClass("disabled");
 
 																	// Render
-																	viewport.render();
+																	modelEditor.render();
 																});
 
 																// Boundaries button click event
 																$("#slicing_configuration_dialog .modal-extra button.boundaries").click(function() {
 
 																	// Set show boundaries
-																	viewport.showBoundaries = !viewport.showBoundaries;
+																	modelEditor.showBoundaries = !modelEditor.showBoundaries;
 																	
-																	// Save viewport show boundaries
-																	localStorage.viewportShowBoundaries = viewport.showBoundaries;
+																	// Save model editor show boundaries
+																	localStorage.modelEditorShowBoundaries = modelEditor.showBoundaries;
 
 																	// Go through all boundaries
-																	for(var i = 0; i < viewport.boundaries.length; i++)
+																	for(var i = 0; i < modelEditor.boundaries.length; i++)
 
 																		// Check if boundary isn't set
-																		if(viewport.boundaries[i].material.color.getHex() != 0xFF0000)
+																		if(modelEditor.boundaries[i].material.color.getHex() != 0xFF0000)
 
 																			// Toggle visibility
-																			viewport.boundaries[i].visible = viewport.showBoundaries;
+																			modelEditor.boundaries[i].visible = modelEditor.showBoundaries;
 
 																	// Select button
-																	if(viewport.showBoundaries)
+																	if(modelEditor.showBoundaries)
 																		$(this).addClass("disabled");
 																	else
 																		$(this).removeClass("disabled");
 
 																	// Render
-																	viewport.render();
+																	modelEditor.render();
 																});
 
 																// Measurements button click event
 																$("#slicing_configuration_dialog .modal-extra button.measurements").click(function() {
 
 																	// Set show measurements
-																	viewport.showMeasurements = !viewport.showMeasurements;
+																	modelEditor.showMeasurements = !modelEditor.showMeasurements;
 																	
-																	// Save viewport show measurements
-																	localStorage.viewportShowMeasurements = viewport.showMeasurements;
+																	// Save model editor show measurements
+																	localStorage.modelEditorShowMeasurements = modelEditor.showMeasurements;
 
 																	// Check if a model is currently selected
-																	if(viewport.transformControls.object) {
+																	if(modelEditor.transformControls.object) {
 
 																		// Go through all boundaries
-																		for(var i = 0; i < viewport.measurements.length; i++)
+																		for(var i = 0; i < modelEditor.measurements.length; i++)
 
 																			// Toggle visibility
-																			viewport.measurements[i][0].visible = viewport.showMeasurements;
+																			modelEditor.measurements[i][0].visible = modelEditor.showMeasurements;
 
-																		if(viewport.showMeasurements)
+																		if(modelEditor.showMeasurements)
 																			$("div.measurements > p").addClass("show");
 																		else
 																			$("div.measurements > p").removeClass("show");
 
 																		// Update model changes
-																		viewport.updateModelChanges();
+																		modelEditor.updateModelChanges();
 
 																		// Render
-																		viewport.render();
+																		modelEditor.render();
 																	}
 
 																	// Select button
-																	if(viewport.showMeasurements)
+																	if(modelEditor.showMeasurements)
 																		$(this).addClass("disabled");
 																	else
 																		$(this).removeClass("disabled");
@@ -7755,7 +7899,7 @@ $(function() {
 																$("#slicing_configuration_dialog .modal-extra button.cut").click(function() {
 
 																	// Check if not cutting models
-																	if(viewport.cutShape === null) {
+																	if(modelEditor.cutShape === null) {
 
 																		// Select button
 																		$(this).addClass("disabled");
@@ -7773,18 +7917,18 @@ $(function() {
 																			var cutShapeGeometry = new THREE.SphereGeometry(25, 10, 10);
 													
 																		// Create cut shape
-																		viewport.cutShape = new THREE.Mesh(cutShapeGeometry, new THREE.MeshBasicMaterial({
+																		modelEditor.cutShape = new THREE.Mesh(cutShapeGeometry, new THREE.MeshBasicMaterial({
 																			color: 0xCCCCCC,
 																			transparent: true,
 																			opacity: 0.1,
 																			side: THREE.DoubleSide,
 																			depthWrite: false
 																		}));
-																		viewport.cutShape.position.set(0, (bedHighMaxZ - bedLowMinZ) / 2 + externalBedHeight, 0);
-																		viewport.cutShape.rotation.set(0, 0, 0);
+																		modelEditor.cutShape.position.set(0, (bedHighMaxZ - bedLowMinZ) / 2 + externalBedHeight, 0);
+																		modelEditor.cutShape.rotation.set(0, 0, 0);
 													
 																		// Create cut shape outline
-																		viewport.cutShapeOutline = new THREE.LineSegments(viewport.lineGeometry(cutShapeGeometry), new THREE.LineDashedMaterial({
+																		modelEditor.cutShapeOutline = new THREE.LineSegments(modelEditor.lineGeometry(cutShapeGeometry), new THREE.LineDashedMaterial({
 																			color: 0xFFAA00,
 																			dashSize: 3,
 																			gapSize: 1,
@@ -7792,26 +7936,26 @@ $(function() {
 																		}));
 													
 																		// Add cut shape and outline to scene
-																		viewport.scene[0].add(viewport.cutShape);
-																		viewport.scene[0].add(viewport.cutShapeOutline);
+																		modelEditor.scene[0].add(modelEditor.cutShape);
+																		modelEditor.scene[0].add(modelEditor.cutShapeOutline);
 
 																		// Select cut shape
-																		viewport.removeSelection();
-																		viewport.transformControls.setAllowedTranslation("XYZ");
-																		viewport.transformControls.attach(viewport.cutShape);
+																		modelEditor.removeSelection();
+																		modelEditor.transformControls.setAllowedTranslation("XYZ");
+																		modelEditor.transformControls.attach(modelEditor.cutShape);
 
 																		// Update model changes
-																		viewport.updateModelChanges();
+																		modelEditor.updateModelChanges();
 
 																		// Render
-																		viewport.render();
+																		modelEditor.render();
 																	}
 
 																	// Otherwise
 																	else
 												
 																		// Apply cut
-																		viewport.applyCut();
+																		modelEditor.applyCut();
 																});
 											
 																// Cut shape click event
@@ -7821,67 +7965,67 @@ $(function() {
 																	if($(this).hasClass("cube"))
 			
 																		// Change cut shape to a sube
-																		viewport.setCutShape("cube");
+																		modelEditor.setCutShape("cube");
 												
 																	// Otherwise check if button is sphere
 																	else if($(this).hasClass("sphere"))
 			
 																		// Change cut shape to a sphere
-																		viewport.setCutShape("sphere");
+																		modelEditor.setCutShape("sphere");
 																});
 
 																// Merge button click event
 																$("#slicing_configuration_dialog .modal-extra button.merge").click(function() {
 
 																	// Apply merge
-																	viewport.applyMerge();
+																	modelEditor.applyMerge();
 																});
 
 																// Printer color button click event
 																$("#slicing_configuration_dialog .modal-extra div.printer button").click(function() {
 																
-																	// Set viewport printer color
-																	viewportPrinterColor = $(this).data("color");
+																	// Set model editor printer color
+																	modelEditorPrinterColor = $(this).data("color");
 																	
-																	// Save viewport printer color
-																	localStorage.viewportPrinterColor = viewportPrinterColor;
+																	// Save model editor printer color
+																	localStorage.modelEditorPrinterColor = modelEditorPrinterColor;
 
 																	// Set printer color
-																	viewport.models[0].mesh.material = printerMaterials[viewportPrinterColor];
+																	modelEditor.models[0].mesh.material = printerMaterials[modelEditorPrinterColor];
 																	$(this).addClass("disabled").siblings(".disabled").removeClass("disabled");
 
 																	// Render
-																	viewport.render();
+																	modelEditor.render();
 																});
 
 																// Filament color button click event
 																$("#slicing_configuration_dialog .modal-extra div.filament button").click(function() {
 															
-																	// Set viewport filament color
-																	viewportFilamentColor = $(this).data("color");
+																	// Set model editor filament color
+																	modelEditorFilamentColor = $(this).data("color");
 																	
-																	// Save viewport filament color
-																	localStorage.viewportFilamentColor = viewportFilamentColor;
+																	// Save model editor filament color
+																	localStorage.modelEditorFilamentColor = modelEditorFilamentColor;
 
 																	// Go through all models
-																	for(var i = 1; i < viewport.models.length; i++)
+																	for(var i = 1; i < modelEditor.models.length; i++)
 
 																		// Check if model isn't currently selected
-																		if(viewport.models[i].glow === null) {
+																		if(modelEditor.models[i].glow === null) {
 
 																			// Set model's color
-																			viewport.models[i].mesh.material = filamentMaterials[viewportFilamentColor];
+																			modelEditor.models[i].mesh.material = filamentMaterials[modelEditorFilamentColor];
 																			
 																			// Set adhesion's color
-																			if(viewport.models[i].adhesion !== null)
-																				viewport.models[i].adhesion.mesh.material = filamentMaterials[viewportFilamentColor];
+																			if(modelEditor.models[i].adhesion !== null)
+																				modelEditor.models[i].adhesion.mesh.material = filamentMaterials[modelEditorFilamentColor];
 																		}
 
 																	// Select button
 																	$(this).addClass("disabled").siblings(".disabled").removeClass("disabled");
 
 																	// Render
-																	viewport.render();
+																	modelEditor.render();
 																});
 
 																// Value change event
@@ -7903,14 +8047,14 @@ $(function() {
 																			$(this).val(0);
 
 																		// Apply changes
-																		viewport.applyChanges($(this).attr("name"), $(this).val());
+																		modelEditor.applyChanges($(this).attr("name"), $(this).val());
 																	}
 
 																	// Otherwise
 																	else
 
 																		// Update model changes
-																		viewport.updateModelChanges();
+																		modelEditor.updateModelChanges();
 																});
 
 																// Value change event
@@ -7926,7 +8070,7 @@ $(function() {
 																			for(var i = 0; i < 3; i++)
 																			
 																				// Check if not current input and is locked
-																				if(!$(this).is($("#slicing_configuration_dialog .modal-extra div.values input").eq(i)) && viewport.scaleLock[i])
+																				if(!$(this).is($("#slicing_configuration_dialog .modal-extra div.values input").eq(i)) && modelEditor.scaleLock[i])
 																				
 																					// Match input value
 																					$("#slicing_configuration_dialog .modal-extra div.values input").eq(i).val($(this).val());
@@ -7939,7 +8083,7 @@ $(function() {
 																		}
 																		
 																		// Apply changes
-																		viewport.applyChanges($(this).attr("name"), $(this).val());
+																		modelEditor.applyChanges($(this).attr("name"), $(this).val());
 																	}
 																});
 																
@@ -7975,7 +8119,7 @@ $(function() {
 																	dragLeaveCounter++;
 																	
 																	// Check if not cutting models
-																	if(viewport.cutShape === null)
+																	if(modelEditor.cutShape === null)
 																
 																		// Show drag and drop cover if cover isn't showing
 																		if(!$("#slicing_configuration_dialog .modal-cover").hasClass("show"))
@@ -7997,7 +8141,7 @@ $(function() {
 																});
 
 																// Update model changes
-																viewport.updateModelChanges();
+																modelEditor.updateModelChanges();
 
 																// Set slicer menu
 																slicerMenu = "Modify Model";
@@ -8005,8 +8149,8 @@ $(function() {
 																// Set button
 																button.text("Slice").removeClass("disabled");
 
-																// Resize viewport and window
-																viewport.resizeEvent();
+																// Resize model editor and window
+																modelEditor.resizeEvent();
 																$(window).resize();
 															}, 200);
 														}
@@ -8053,7 +8197,7 @@ $(function() {
 					else if(slicerMenu == "Modify Model") {
 					
 						// Check if WebGL isn't supported, model editor is being skipped, or scene isn't empty
-						if(!Detector.webgl || skipModelEditor || viewport.models.length > 1) {
+						if(!Detector.webgl || skipModelEditor || modelEditor.models.length > 1) {
 					
 							// Apply changes
 							function applyChanges() {
@@ -8070,7 +8214,7 @@ $(function() {
 									if(Detector.webgl && !skipModelEditor) {
 								
 										// Export scene as an STL
-										var scene = viewport.exportScene();
+										var scene = modelEditor.exportScene();
 								
 										// Append parameters
 										parameter.push({
@@ -12400,11 +12544,11 @@ $(function() {
 						break;
 				}
 				
-				// Set viewport printer color
-				viewportPrinterColor = printerColor;
+				// Set model editor printer color
+				modelEditorPrinterColor = printerColor;
 				
-				// Save viewport printer color
-				localStorage.viewportPrinterColor = viewportPrinterColor;
+				// Save model editor printer color
+				localStorage.modelEditorPrinterColor = modelEditorPrinterColor;
 			
 				// Update connected printer details
 				$("#navbar_plugin_m33fio > a").text((data.serialNumber.match(/^[0-9a-z]+$/i) ? data.serialNumber.slice(0, 2) + '-' + data.serialNumber.slice(2, 4) + '-' + data.serialNumber.slice(4, 6) + '-' + data.serialNumber.slice(6, 8) + '-' + data.serialNumber.slice(8, 10) + '-' + data.serialNumber.slice(10, 13) + '-' + data.serialNumber.slice(13, 16) : "Printer") + " at " + data.serialPort);
@@ -13798,6 +13942,91 @@ $(function() {
 					// Set files
 					self.files = payload[viewModel];
 					
+					// Unload viewed model if changed
+					function unloadViewedModelIfChanged(entry) {
+				
+						// Check if entry is a folder
+						if(entry && entry.hasOwnProperty("children"))
+					
+							// Go through each entry in the folder
+							for(var child in entry.children)
+						
+								// Check if current child is the currently viewed model
+								unloadViewedModelIfChanged(entry.children[child]);
+					
+						// Otherwise check if entry is the currently viewed model and its upload date was changed
+						else if(entry && entry.refs && entry.date && entry.refs.hasOwnProperty("download") && entry["refs"]["download"] === modelViewer.modelUrl && entry.date !== modelViewer.modelUploadDate)
+						
+							// Unload model from viewer
+							modelViewer.unloadModel();
+					}
+					
+					// Replace list helper update items
+					var originalUpdateItems = self.files.listHelper._updateItems;
+					self.files.listHelper._updateItems = function() {
+					
+						// Update items
+						originalUpdateItems();
+						
+						// Go through all uploaded entries
+						for(var entry in self.files.listHelper.allItems)
+					
+							// Unload model if changed
+							unloadViewedModelIfChanged(self.files.listHelper.allItems[entry]);
+						
+						// Add view buttons to models
+						addViewButtonsToModels();
+					}
+					
+					// Unload viewed model if deleted
+					function unloadViewedModelIfDeleted(entry) {
+				
+						// Check if entry is a folder
+						if(entry && entry.hasOwnProperty("children"))
+					
+							// Go through each entry in the folder
+							for(var child in entry.children)
+						
+								// Check if current child is the currently viewed model
+								unloadViewedModelIfDeleted(entry.children[child]);
+					
+						// Otherwise check if entry is the currently viewed model
+						else if(entry && entry.refs && entry.refs.hasOwnProperty("download") && entry["refs"]["download"] === modelViewer.modelUrl)
+						
+							// Unload model from viewer
+							modelViewer.unloadModel();
+					}
+					
+					// Check if files view model supports removing files and folders
+					if(typeof self.files._removeEntry === "function") {
+					
+						// Replace remove entry function
+						var originalRemoveEntry = self.files._removeEntry;
+						self.files._removeEntry = function(entry, event) {
+					
+							// Remove entry
+							originalRemoveEntry(entry, event);
+						
+							// Unload viewed model if deleted
+							unloadViewedModelIfDeleted(entry);
+						}
+					}
+					
+					// Otherwise
+					else {
+					
+						// Replace remove file function
+						var originalRemoveFile = self.files.removeFile;
+						self.files.removeFile = function(file) {
+					
+							// Remove file
+							originalRemoveFile(file);
+						
+							// Unload viewed model if deleted
+							unloadViewedModelIfDeleted(file);
+						}
+					}
+					
 					// Replace load file function
 					var originalLoadFile = self.files.loadFile;
 					self.files.loadFile = function(file, printAfterLoad) {
@@ -13914,6 +14143,9 @@ $(function() {
 		
 			// Update webcam
 			updateWebcam();
+			
+			// Add view buttons to models
+			addViewButtonsToModels();
 		
 			// Resize window
 			setTimeout(function() {

@@ -1322,6 +1322,7 @@ body > div.page-container > div.message > div > div > span.show {
 	width: 15px;
 	cursor: pointer;
 	text-align: center;
+	font-family: FontAwesome;
 }
 
 #slicing_configuration_dialog.model .modal-extra > div button {
@@ -1458,6 +1459,14 @@ body > div.page-container > div.message > div > div > span.show {
 
 #temperature-graph.micro3dImage {
 	background-image: url("../img/graph-background.png");
+}
+
+#model > div {
+	height: 400px;
+}
+
+.icon-view:before {
+	content: "\F06E";
 }
 
 .noTransition {
