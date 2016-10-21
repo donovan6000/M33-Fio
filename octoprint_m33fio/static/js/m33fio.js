@@ -1052,7 +1052,7 @@ $(function() {
 			$("#files div.gcode_files div.entry .action-buttons").each(function() {
 				
 				// Check if file is a model
-				if(!$(this).children().children("i.icon-print").length)
+				if($(this).children().children("i.icon-magic").length)
 				
 					// Add view button
 					$(this).children("a.btn-mini").after('\
@@ -1111,6 +1111,8 @@ $(function() {
 				// Data members
 				modelUrl: null,
 				modelUploadDate: null,
+				allowUnloadingModel: true,
+				
 				
 				// Initialize
 				init: function() {
@@ -1133,8 +1135,8 @@ $(function() {
 				
 				unloadModel: function() {
 				
-					// Check if a model is loaded
-					if(this.modelUrl !== null) {
+					// Check if a model is loaded and unloading is allowed
+					if(this.modelUrl !== null && this.allowUnloadingModel) {
 				
 						// Clear model URL
 						this.modelUrl = null;
@@ -8281,6 +8283,9 @@ $(function() {
 													form.append("file", scene, modelPath.substr(1) + modelName);
 												else
 													form.append("file", scene, modelPath + modelName);
+												
+												// Prevent unloading model from model viewer
+												modelViewer.allowUnloadingModel = false;
 				
 												// Send request
 												$.ajax({
@@ -14379,6 +14384,9 @@ $(function() {
 		
 		// On slicing started event
 		self.onEventSlicingStarted = function(payload) {
+		
+			// Allow unloading model from model viewer
+			modelViewer.allowUnloadingModel = true;
 		
 			// Show message
 			showMessage("Slicing Status", "Slicing …");
