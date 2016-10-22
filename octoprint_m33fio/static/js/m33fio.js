@@ -1086,7 +1086,7 @@ $(function() {
 				
 					// Add view button
 					$(this).children("a.btn-mini").after('\
-						<div class="btn btn-mini' + ($(this).children("a.btn-mini").attr("href") === modelViewer.modelUrl ? " disabled" : "") + '" title="View">\
+						<div class="btn btn-mini viewModel' + ($(this).children("a.btn-mini").attr("href") === modelViewer.modelUrl ? " disabled" : "") + '" title="View">\
 							<i class="icon-view"></i>\
 						</div>\
 					');
@@ -1101,11 +1101,14 @@ $(function() {
 			// View button click event
 			$("#files div.gcode_files div.entry .action-buttons div.btn-mini[title=\"View\"]").click(function() {
 			
-				// Check if button is not disabled
-				if(!$(this).hasClass("disabled")) {
+				// Initialize variables
+				var button = $(this);
+			
+				// Check if button is not disabled and a model isn't currently being loaded
+				if(!button.hasClass("disabled") && modelViewer.modelLoaded) {
 					
 					// Get model URL
-					var modelUrl = $(this).parent().children("a.btn-mini").attr("href");
+					var modelUrl = button.parent().children("a.btn-mini").attr("href");
 					
 					// Go through all uploaded entries
 					for(var entry in self.files.listHelper.allItems) {
@@ -1114,15 +1117,34 @@ $(function() {
 						var uploadDate = getModelUploadDate(self.files.listHelper.allItems[entry], modelUrl);
 						if(typeof uploadDate !== "undefined") {
 						
-							// Disable self
+							// Enable other view buttons
 							$("#files div.gcode_files div.entry .action-buttons div.btn-mini[title=\"View\"]").removeClass("disabled");
-							$(this).addClass("disabled");
-						
+							
+							// Set icon to spinning animation
+							button.addClass("disabled").children("i").removeClass("icon-view").addClass("icon-spinner icon-spin");
+							
 							// Load model into model viewer
 							modelViewer.loadModel(modelUrl, uploadDate);
 							
 							// Go to model viewer tab
 							$("#model_link > a").tab("show");
+							
+							// Wait until model is loaded
+							function isModelLoaded() {
+
+								// Check if model is loaded
+								if(modelViewer.modelLoaded)
+								
+									// Restore view icon
+									button.children("i").removeClass("icon-spinner icon-spin").addClass("icon-view");
+
+								// Otherwise
+								else
+
+									// Check if model is loaded again
+									setTimeout(isModelLoaded, 100);
+							}
+							isModelLoaded();
 					
 							// Break
 							break;
@@ -1141,16 +1163,12 @@ $(function() {
 				// Data members
 				modelUrl: null,
 				modelUploadDate: null,
-				scene: [],
+				scene: null,
 				camera: null,
 				renderer: null,
 				orbitControls: null,
 				model: null,
-				modelLoaded: false,
-				measurements: [],
-				showMeasurements: typeof localStorage.modelViewerShowMeasurements !== "undefined" && localStorage.modelViewerShowMeasurements == "true",
-				axes: [],
-				showAxes: typeof localStorage.modelViewerShowAxes === "undefined" || localStorage.modelViewerShowAxes == "true",
+				modelLoaded: true,
 				
 				// Initialize
 				init: function() {
@@ -1165,139 +1183,44 @@ $(function() {
 					else {
 					
 						// Create scene
-						for(var i = 0; i < 2; i++)
-							this.scene[i] = new THREE.Scene();
-
+						this.scene = new THREE.Scene();
+						
 						// Create camera
 						var SCREEN_WIDTH = $("#model > div > div").width(), SCREEN_HEIGHT = $("#model > div > div").height();
 						var VIEW_ANGLE = 45, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 0.1, FAR = 20000;
 						this.camera = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
-						this.scene[0].add(this.camera);
-						this.camera.position.set(0, 50, -380);
-						this.camera.lookAt(new THREE.Vector3(0, 0, 0));
-
+						this.scene.add(this.camera);
+						this.camera.position.set(0, 70, 200);
+						
 						// Create renderer
 						this.renderer = new THREE.WebGLRenderer({
 							antialias: true
 						});
 						this.renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
-						this.renderer.autoClear = false;
+						this.renderer.setClearColor(0xFCFCFC, 1);
 
 						// Create controls
 						this.orbitControls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
-						this.orbitControls.target.set(0, 57, 0);
-						this.orbitControls.minDistance = 200 * 1.43;
-						this.orbitControls.maxDistance = 200 * 5.35;
-						this.orbitControls.minPolarAngle = 0;
-						this.orbitControls.maxPolarAngle = THREE.Math.degToRad(100);
+						this.orbitControls.target.set(0, 0, 0);
 						this.orbitControls.enablePan = false;
+						this.orbitControls.autoRotate = true;
+						this.orbitControls.autoRotateSpeed = 1.5;
 
 						// Create lights
-						this.scene[0].add(new THREE.AmbientLight(0x444444));
+						this.scene.add(new THREE.AmbientLight(0x444444));
 						var dirLight = new THREE.DirectionalLight(0xFFFFFF);
 						dirLight.position.set(200, 200, 1000).normalize();
 						this.camera.add(dirLight);
 						this.camera.add(dirLight.target);
-		
-						// Create sky box
-						var skyBoxGeometry = new THREE.CubeGeometry(10000, 10000, 10000);
-						var skyBoxMaterial = new THREE.MeshBasicMaterial({
-							color: 0xFCFCFC,
-							side: THREE.BackSide
-						});
-						var skyBox = new THREE.Mesh(skyBoxGeometry, skyBoxMaterial);
-						this.scene[0].add(skyBox);
 					
-						// Create print bed
-						var mesh = new THREE.Mesh(new THREE.CubeGeometry(200, 200, 0), new THREE.MeshBasicMaterial({
-							color: 0x000000,
-							side: THREE.DoubleSide
-						}));
-						mesh.position.set(0, -0.25, 0);
-						mesh.rotation.set(Math.PI / 2, 0, 0);
-						mesh.renderOrder = 4;
+						// Create grid
+						var grid = new THREE.GridHelper(100, 10);
+						grid.setColors(0xAFAFAF, 0xAFAFAF);
 				
-						// Add print bed to scene
-						this.scene[0].add(mesh);
-					
-						// Create axis material
-						var axisMaterial = new THREE.LineBasicMaterial({
-							side: THREE.FrontSide,
-							linewidth: 2
-						});
-				
-						// Create axis geometry
-						var axisGeometry = new THREE.Geometry();
-						axisGeometry.vertices.push(new THREE.Vector3(200 / 2 - 0.05, 0.05, -200 / 2 + 0.05));
-						axisGeometry.vertices.push(new THREE.Vector3(200 / 2 - 0.05, 0.05, -200 / 2 + 0.05));
-				
-						// Create X axis
-						this.axes[0] = new THREE.Line(axisGeometry.clone(), axisMaterial.clone());
-						this.axes[0].geometry.vertices[1].x -= 20;
-						this.axes[0].position.set(0, -0.25, 0);
-						this.axes[0].material.color.setHex(0xFF0000);
-					
-						// Create Y axis
-						this.axes[1] = new THREE.Line(axisGeometry.clone(), axisMaterial.clone());
-						this.axes[1].geometry.vertices[1].y += 20;
-						this.axes[1].position.set(0, -0.25, 0);
-						this.axes[1].material.color.setHex(0x00FF00);
-					
-						// Create Z axis
-						this.axes[2] = new THREE.Line(axisGeometry.clone(), axisMaterial.clone());
-						this.axes[2].geometry.vertices[1].z += 20;
-						this.axes[2].position.set(0, -0.25, 0);
-						this.axes[2].material.color.setHex(0x0000FF);
-					
-						// Go through all axes
-						for(var i = 0; i < this.axes.length; i++) {
-				
-							// Add axis to scene
-							this.axes[i].visible = this.showAxes;
-							this.scene[1].add(this.axes[i]);
-						}
-			
-						// Create measurement material
-						var measurementMaterial = new THREE.LineBasicMaterial({
-							color: 0xFF00FF,
-							side: THREE.FrontSide,
-							linewidth: 2
-						});
-		
-						// Create measurement geometry
-						var measurementGeometry = new THREE.Geometry();
-						measurementGeometry.vertices.push(new THREE.Vector3(0, 0, 0));
-						measurementGeometry.vertices.push(new THREE.Vector3(0, 0, 0));
-		
-						// Create measurements
-						for(var i = 0; i < 3; i++)
-							this.measurements[i] = [];
-		
-						// Width measurement
-						this.measurements[0][0] = new THREE.Line(measurementGeometry.clone(), measurementMaterial);
-						this.measurements[0][1] = new THREE.Vector3();
-		
-						// Depth measurement
-						this.measurements[1][0] = new THREE.Line(measurementGeometry.clone(), measurementMaterial);
-						this.measurements[1][1] = new THREE.Vector3();
-		
-						// Height measurement
-						this.measurements[2][0] = new THREE.Line(measurementGeometry.clone(), measurementMaterial);
-						this.measurements[2][1] = new THREE.Vector3();
-		
-						// Go through all measurements
-						for(var i = 0; i < this.measurements.length; i++) {
-		
-							// Add measurements to scene
-							this.measurements[i][0].visible = false;
-							this.scene[1].add(this.measurements[i][0]);
-						}
-		
-						// Render
-						this.render();
+						// Add grid to scene
+						this.scene.add(grid);
 		
 						// Enable events
-						this.orbitControls.addEventListener("change", this.render);
 						$(window).on("resize.modelViewer", this.resizeEvent);
 						
 						// Append model viewer to model viewer tab
@@ -1305,6 +1228,9 @@ $(function() {
 						
 						// Resize window
 						$(window).resize();
+						
+						// Start animating model viewer
+						this.animate();
 					}
 				},
 				
@@ -1312,10 +1238,14 @@ $(function() {
 				loadModel: function(file, date) {
 				
 					// Check if a model is already loaded
-					if(modelViewer.modelUrl !== null)
+					if(modelViewer.modelUrl !== null) {
 					
-						// Unload model
-						modelViewer.unloadModel();
+						// Remove model from scene
+						modelViewer.scene.remove(modelViewer.model);
+						
+						// Clear model
+						modelViewer.model = null;
+					}
 				
 					// Set model URL
 					modelViewer.modelUrl = file;
@@ -1330,7 +1260,7 @@ $(function() {
 					setTimeout(function() {
 					
 						// Set file type
-						var extension = modelViewer.modelUrl.lastIndexOf('.');
+						var extension = typeof modelViewer.modelUrl !== "undefined" && modelViewer.modelUrl !== null ? modelViewer.modelUrl.lastIndexOf('.') : -1;
 						var type = extension != -1 ? modelViewer.modelUrl.substr(extension + 1).toLowerCase() : "";
 	
 						// Set loader
@@ -1349,7 +1279,18 @@ $(function() {
 						else if(type == "3mf")
 							var loader = new THREE.ThreeMFLoader();
 						else {
+							
+							// Clear model URL
+							modelViewer.modelUrl = null;
+							modelViewer.modelUploadDate = null;
+							
+							// Set model loaded
 							modelViewer.modelLoaded = true;
+							
+							// Hide message
+							$("#model .cover").removeClass("show");
+							
+							// Return
 							return;
 						}
 
@@ -1360,41 +1301,38 @@ $(function() {
 							geometry.center();
 
 							// Create model's mesh
-							var mesh = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({
-								color: 0xFE9800,
+							modelViewer.model = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({
+								color: 0x2C9BE0,
 								side: THREE.DoubleSide
 							}));
 
 							// Set model's orientation
 							if(type == "stl")
-								mesh.rotation.set(3 * Math.PI / 2, 0, Math.PI);
+								modelViewer.model.rotation.set(3 * Math.PI / 2, 0, Math.PI);
 							else if(type == "obj")
-								mesh.rotation.set(0, 0, 0);
+								modelViewer.model.rotation.set(0, 0, 0);
 							else if(type == "m3d")
-								mesh.rotation.set(-Math.PI / 2, 0, -Math.PI / 2);
+								modelViewer.model.rotation.set(-Math.PI / 2, 0, -Math.PI / 2);
 							else if(type == "amf")
-								mesh.rotation.set(0, 0, 0);
+								modelViewer.model.rotation.set(0, 0, 0);
 							else if(type == "wrl")
-								mesh.rotation.set(0, 0, 0);
+								modelViewer.model.rotation.set(0, 0, 0);
 							else if(type == "dae")
-								mesh.rotation.set(0, 0, 0);
+								modelViewer.model.rotation.set(0, 0, 0);
 							else if(type == "3mf")
-								mesh.rotation.set(-Math.PI / 2, 0, Math.PI);
-							mesh.updateMatrix();
-							mesh.geometry.applyMatrix(mesh.matrix);
-							mesh.position.set(0, 0, 0);
-							mesh.rotation.set(0, 0, 0);
-							mesh.scale.set(1, 1, 1);
-							mesh.renderOrder = 0;
+								modelViewer.model.rotation.set(-Math.PI / 2, 0, Math.PI);
 
 							// Add model to scene
-							modelViewer.scene[0].add(mesh);
+							modelViewer.scene.add(modelViewer.model);
 						
-							// Set model
-							modelViewer.model = mesh;
-						
-							// Render
-							modelViewer.render();
+							// Get model's boundary box
+							var boundaryBox = new THREE.Box3().setFromObject(modelViewer.model);
+
+							// Set model's lowest Y value to be on the grid
+							modelViewer.model.position.y = -boundaryBox.min.y;
+					
+							// Set camera to focus on model
+							modelViewer.orbitControls.target.set(0, modelViewer.model.position.y, 0);
 					
 							// Set model loaded
 							modelViewer.modelLoaded = true;
@@ -1411,27 +1349,18 @@ $(function() {
 					// Check if a model is loaded
 					if(modelViewer.modelUrl !== null) {
 					
-						// Show message
-						$("#model .cover > p").text("Unloading model…").parent().addClass("show");
-						
-						setTimeout(function() {
-				
-							// Clear model URL
-							modelViewer.modelUrl = null;
-							modelViewer.modelUploadDate = null;
-						
-							// Remove model from scene
-							modelViewer.scene[0].remove(modelViewer.model);
+						// Clear model URL
+						modelViewer.modelUrl = null;
+						modelViewer.modelUploadDate = null;
 					
-							// Clear model
-							modelViewer.model = null;
+						// Remove model from scene
+						modelViewer.scene.remove(modelViewer.model);
+				
+						// Clear model
+						modelViewer.model = null;
 						
-							// Render
-							modelViewer.render();
-							
-							// Hide message
-							$("#model .cover").removeClass("show");
-						}, 600);
+						// Reset camera focus
+						modelViewer.orbitControls.target.set(0, 0, 0);
 					}
 				},
 				
@@ -1439,87 +1368,22 @@ $(function() {
 				resizeEvent: function() {
 
 					// Update camera
-					modelViewer.camera.aspect = $("#model > div > div").width() / ($("#model > div > div").height());
+					modelViewer.camera.aspect = $("#model > div > div").width() / $("#model > div > div").height();
 					modelViewer.camera.updateProjectionMatrix();
 					modelViewer.renderer.setSize($("#model > div > div").width(), $("#model > div > div").height());
-		
-					// Render
-					modelViewer.render();
 				},
 				
-				// Destroy
-				destroy: function() {
-
-					// Disable events
-					$(window).off("resize.modelViewer");
-
-					// Clear model viewer
-					modelViewer = null;
-				},
+				// Animate
+				animate: function() {
 				
-				// Get 2D position
-				get2dPosition: function(vector) {
-	
-					// Initialize variables
-					var clonedVector = vector.clone();
-					var position = new THREE.Vector2();
-		
-					// Normalized device coordinate
-					clonedVector.project(modelViewer.camera);
-
-					// Get 2D position
-					position.x = Math.round((clonedVector.x + 1) * modelViewer.renderer.domElement.width / 2);
-					position.y = Math.round((-clonedVector.y + 1) * modelViewer.renderer.domElement.height / 2);
-		
-					// Return position
-					return position;
-				},
-				
-				// Render
-				render: function() {
-
 					// Update controls
 					modelViewer.orbitControls.update();
-			
-					// Check if a model is loaded
-					if(modelViewer.model !== null) {
-			
-						// Get camera distance to model
-						var distance = modelViewer.camera.position.distanceTo(modelViewer.model.position);
-						if(distance < 200)
-							distance = 200;
-						else if(distance > 500)
-							distance = 500;
-
-						// Set measurement size
-						$("#model div.measurements > p").css("font-size", 8 + ((500 / distance) - 1) / (2.5 - 1) * (13 - 8) + "px");
-	
-						// Set z index order for measurement values
-						var order = [];
-						for(var j = 0; j < 3; j++)
-							order[j] = modelViewer.camera.position.distanceTo(modelViewer.measurements[j][1]);
-	
-						for(var j = 0; j < 3; j++) {
-							var lowest = order.indexOf(Math.max.apply(Math, order));
-							$("#model div.measurements > p").eq(lowest).css("z-index", j);
-							order[lowest] = Number.NEGATIVE_INFINITY;
-						}
-	
-						// Position measurement values
-						for(var j = 0; j < 3; j++) {
-							var position = modelViewer.get2dPosition(modelViewer.measurements[j][1]);
-							$("#model div.measurements > p").eq(j).css({
-								"top": position.y - 3 + "px",
-								"left": position.x - $("#model div.measurements > p").eq(j).width() / 2 + "px"
-							});
-						}
-					}
 
 					// Render scene
-					modelViewer.renderer.clear();
-					modelViewer.renderer.render(modelViewer.scene[0], modelViewer.camera);
-					modelViewer.renderer.clearDepth();
-					modelViewer.renderer.render(modelViewer.scene[1], modelViewer.camera);
+					modelViewer.renderer.render(modelViewer.scene, modelViewer.camera);
+				
+					// Animate when repainting window
+					requestAnimationFrame(modelViewer.animate);
 				}
 			};
 			
@@ -1540,7 +1404,7 @@ $(function() {
 				orbitControls: null,
 				transformControls: null,
 				models: [],
-				modelLoaded: false,
+				modelLoaded: true,
 				sceneExported: false,
 				boundaries: [],
 				showBoundaries: typeof localStorage.modelEditorShowBoundaries !== "undefined" && localStorage.modelEditorShowBoundaries == "true",
@@ -4480,11 +4344,6 @@ $(function() {
 						<div class="cover">\
 							<img src="' + PLUGIN_BASEURL + 'm33fio/static/img/loading.gif">\
 							<p></p>\
-						</div>\
-						<div class="measurements">\
-							<p class="width"></p>\
-							<p class="depth"></p>\
-							<p class="height"></p>\
 						</div>\
 					</div>\
 				</div>\

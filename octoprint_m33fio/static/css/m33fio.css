@@ -1524,8 +1524,9 @@ body > div.page-container > div.message > div > div > span.show {
 }
 
 #model > div {
-	height: 400px;
+	height: 500px;
 	padding-bottom: 8px;
+	padding-top: 6px;
 }
 
 #model > div > div {
@@ -1578,27 +1579,8 @@ body > div.page-container > div.message > div > div > span.show {
 	display: none;
 }
 
-#model div.measurements {
-	left: auto;
-	right: auto;
-	top: auto;
-	bottom: auto;
-	z-index: 0;
-}
-
-#model div.measurements > p {
-	margin: 0;
-	padding: 0;
-	position: absolute;
-	z-index: 0;
-	top: 0;
-	left: 0;
-	pointer-events: none;
-	visibility: hidden;
-	font-family: "Helvetica";
-	color: white;
-	text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
-	white-space: nowrap;
+#files div.gcode_files div.entry .action-buttons div.btn-mini.viewModel {
+	width: 11px;
 }
 
 .icon-view:before {
