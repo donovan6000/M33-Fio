@@ -9,7 +9,7 @@ import subprocess
 plugin_identifier = "m33fio"
 plugin_package = "octoprint_%s" % plugin_identifier
 plugin_name = "OctoPrint-M33Fio"
-plugin_version = "1.9.2016102108"
+plugin_version = "1.9.2016102200"
 plugin_description = "Makes OctoPrint fully compatible with the Micro 3D printer"
 plugin_author = "donovan6000"
 plugin_author_email = "donovan6000@exploitkings.com"
@@ -100,10 +100,11 @@ def findPip() :
 	
 	return pip_command
 
-# Uninstall M3D Fio
+# Uninstall plugins that break M33 Fio
 pipCommand = findPip()
 if pipCommand is not None :
 	subprocess.call([pipCommand, "uninstall", "OctoPrint-M3DFio", "-y"])
+	subprocess.call([pipCommand, "uninstall", "OctoPrint-Slicer", "-y"])
 
 # Install package
 setuptools.setup(**params())

@@ -32,6 +32,8 @@ $(function() {
 		var currentFirmwareType = null;
 		var printerColor = "Black"
 		var modelViewer = null;
+		var preventUpdatingFiles = false;
+		var heatbedAttached = false;
 		var self = this;
 		
 		// Set model editor printer and filament color
@@ -794,6 +796,34 @@ $(function() {
 			$(this).blur();
 		});
 		
+		// Update printer differences
+		function updatePrinterDifferences() {
+		
+			// Enable/disable Micro 3D printer specific features
+			if(self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
+				$(".micro3d").addClass("notUsingAMicro3DPrinter");
+				$("#temperature-graph").removeClass("micro3dImage");
+				$(".notMicro3DApplicable").addClass("show");
+				$("#control > div.jog-panel.extruder").find("h1:not(.heatbed)").text("Tools");
+				
+				$("#control #control-xyhome").attr("title", "Homes extruder on the X and Y axis")
+				$("#control #control-zhome").attr("title", "Homes extruder on the Z axis")
+				
+				if($("#control-distance001").hasClass("active"))
+					$("#control-distance01").click();
+				
+			}
+			else {
+				$(".micro3d").removeClass("notUsingAMicro3DPrinter");
+				$("#temperature-graph").addClass("micro3dImage");
+				$(".notMicro3DApplicable").removeClass("show");
+				$("#control > div.jog-panel.extruder").find("h1:not(.heatbed)").text(heatbedAttached ? "Tools" : "Extruder");
+				
+				$("#control #control-xyhome").attr("title", "Set extruder's X position to 54 and Y position to 50")
+				$("#control #control-zhome").attr("title", "Set extruder's Z position to 5")
+			}
+		}
+		
 		// Get slicer profile value
 		function getSlicerProfileValue(setting) {
 		
@@ -1111,39 +1141,385 @@ $(function() {
 				// Data members
 				modelUrl: null,
 				modelUploadDate: null,
-				allowUnloadingModel: true,
-				
+				scene: [],
+				camera: null,
+				renderer: null,
+				orbitControls: null,
+				model: null,
+				modelLoaded: false,
+				measurements: [],
+				showMeasurements: typeof localStorage.modelViewerShowMeasurements !== "undefined" && localStorage.modelViewerShowMeasurements == "true",
+				axes: [],
+				showAxes: typeof localStorage.modelViewerShowAxes === "undefined" || localStorage.modelViewerShowAxes == "true",
 				
 				// Initialize
 				init: function() {
+				
+					// Check if WebGL isn't supported
+					if(!Detector.webgl)
+					
+						// Show error
+						$("#model .cover > p").text("Model viewer is disabled since your web browser doesn't support WebGL").parent().addClass("show noLoading");
+					
+					// Otherwise
+					else {
+					
+						// Create scene
+						for(var i = 0; i < 2; i++)
+							this.scene[i] = new THREE.Scene();
+
+						// Create camera
+						var SCREEN_WIDTH = $("#model > div > div").width(), SCREEN_HEIGHT = $("#model > div > div").height();
+						var VIEW_ANGLE = 45, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 0.1, FAR = 20000;
+						this.camera = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
+						this.scene[0].add(this.camera);
+						this.camera.position.set(0, 50, -380);
+						this.camera.lookAt(new THREE.Vector3(0, 0, 0));
+
+						// Create renderer
+						this.renderer = new THREE.WebGLRenderer({
+							antialias: true
+						});
+						this.renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+						this.renderer.autoClear = false;
+
+						// Create controls
+						this.orbitControls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
+						this.orbitControls.target.set(0, 57, 0);
+						this.orbitControls.minDistance = 200 * 1.43;
+						this.orbitControls.maxDistance = 200 * 5.35;
+						this.orbitControls.minPolarAngle = 0;
+						this.orbitControls.maxPolarAngle = THREE.Math.degToRad(100);
+						this.orbitControls.enablePan = false;
+
+						// Create lights
+						this.scene[0].add(new THREE.AmbientLight(0x444444));
+						var dirLight = new THREE.DirectionalLight(0xFFFFFF);
+						dirLight.position.set(200, 200, 1000).normalize();
+						this.camera.add(dirLight);
+						this.camera.add(dirLight.target);
+		
+						// Create sky box
+						var skyBoxGeometry = new THREE.CubeGeometry(10000, 10000, 10000);
+						var skyBoxMaterial = new THREE.MeshBasicMaterial({
+							color: 0xFCFCFC,
+							side: THREE.BackSide
+						});
+						var skyBox = new THREE.Mesh(skyBoxGeometry, skyBoxMaterial);
+						this.scene[0].add(skyBox);
+					
+						// Create print bed
+						var mesh = new THREE.Mesh(new THREE.CubeGeometry(200, 200, 0), new THREE.MeshBasicMaterial({
+							color: 0x000000,
+							side: THREE.DoubleSide
+						}));
+						mesh.position.set(0, -0.25, 0);
+						mesh.rotation.set(Math.PI / 2, 0, 0);
+						mesh.renderOrder = 4;
+				
+						// Add print bed to scene
+						this.scene[0].add(mesh);
+					
+						// Create axis material
+						var axisMaterial = new THREE.LineBasicMaterial({
+							side: THREE.FrontSide,
+							linewidth: 2
+						});
+				
+						// Create axis geometry
+						var axisGeometry = new THREE.Geometry();
+						axisGeometry.vertices.push(new THREE.Vector3(200 / 2 - 0.05, 0.05, -200 / 2 + 0.05));
+						axisGeometry.vertices.push(new THREE.Vector3(200 / 2 - 0.05, 0.05, -200 / 2 + 0.05));
+				
+						// Create X axis
+						this.axes[0] = new THREE.Line(axisGeometry.clone(), axisMaterial.clone());
+						this.axes[0].geometry.vertices[1].x -= 20;
+						this.axes[0].position.set(0, -0.25, 0);
+						this.axes[0].material.color.setHex(0xFF0000);
+					
+						// Create Y axis
+						this.axes[1] = new THREE.Line(axisGeometry.clone(), axisMaterial.clone());
+						this.axes[1].geometry.vertices[1].y += 20;
+						this.axes[1].position.set(0, -0.25, 0);
+						this.axes[1].material.color.setHex(0x00FF00);
+					
+						// Create Z axis
+						this.axes[2] = new THREE.Line(axisGeometry.clone(), axisMaterial.clone());
+						this.axes[2].geometry.vertices[1].z += 20;
+						this.axes[2].position.set(0, -0.25, 0);
+						this.axes[2].material.color.setHex(0x0000FF);
+					
+						// Go through all axes
+						for(var i = 0; i < this.axes.length; i++) {
+				
+							// Add axis to scene
+							this.axes[i].visible = this.showAxes;
+							this.scene[1].add(this.axes[i]);
+						}
+			
+						// Create measurement material
+						var measurementMaterial = new THREE.LineBasicMaterial({
+							color: 0xFF00FF,
+							side: THREE.FrontSide,
+							linewidth: 2
+						});
+		
+						// Create measurement geometry
+						var measurementGeometry = new THREE.Geometry();
+						measurementGeometry.vertices.push(new THREE.Vector3(0, 0, 0));
+						measurementGeometry.vertices.push(new THREE.Vector3(0, 0, 0));
+		
+						// Create measurements
+						for(var i = 0; i < 3; i++)
+							this.measurements[i] = [];
+		
+						// Width measurement
+						this.measurements[0][0] = new THREE.Line(measurementGeometry.clone(), measurementMaterial);
+						this.measurements[0][1] = new THREE.Vector3();
+		
+						// Depth measurement
+						this.measurements[1][0] = new THREE.Line(measurementGeometry.clone(), measurementMaterial);
+						this.measurements[1][1] = new THREE.Vector3();
+		
+						// Height measurement
+						this.measurements[2][0] = new THREE.Line(measurementGeometry.clone(), measurementMaterial);
+						this.measurements[2][1] = new THREE.Vector3();
+		
+						// Go through all measurements
+						for(var i = 0; i < this.measurements.length; i++) {
+		
+							// Add measurements to scene
+							this.measurements[i][0].visible = false;
+							this.scene[1].add(this.measurements[i][0]);
+						}
+		
+						// Render
+						this.render();
+		
+						// Enable events
+						this.orbitControls.addEventListener("change", this.render);
+						$(window).on("resize.modelViewer", this.resizeEvent);
+						
+						// Append model viewer to model viewer tab
+						$("#model > div > div").append(this.renderer.domElement);
+						
+						// Resize window
+						$(window).resize();
+					}
 				},
 				
+				// Load model
 				loadModel: function(file, date) {
 				
 					// Check if a model is already loaded
-					if(this.modelUrl !== null)
+					if(modelViewer.modelUrl !== null)
 					
 						// Unload model
-						this.unloadModel();
+						modelViewer.unloadModel();
 				
 					// Set model URL
-					this.modelUrl = file;
-					this.modelUploadDate = date;
+					modelViewer.modelUrl = file;
+					modelViewer.modelUploadDate = date;
 					
-					console.log("Loaded: " + this.modelUrl);
+					// Show message
+					$("#model .cover > p").text("Loading model…").parent().addClass("show");
+					
+					// Clear model loaded
+					modelViewer.modelLoaded = false;
+					
+					setTimeout(function() {
+					
+						// Set file type
+						var extension = modelViewer.modelUrl.lastIndexOf('.');
+						var type = extension != -1 ? modelViewer.modelUrl.substr(extension + 1).toLowerCase() : "";
+	
+						// Set loader
+						if(type == "stl")
+							var loader = new THREE.STLLoader();
+						else if(type == "obj")
+							var loader = new THREE.OBJLoader();
+						else if(type == "m3d")
+							var loader = new THREE.M3DLoader();
+						else if(type == "amf")
+							var loader = new THREE.AMFLoader();
+						else if(type == "wrl")
+							var loader = new THREE.VRMLLoader();
+						else if(type == "dae")
+							var loader = new THREE.ColladaLoader();
+						else if(type == "3mf")
+							var loader = new THREE.ThreeMFLoader();
+						else {
+							modelViewer.modelLoaded = true;
+							return;
+						}
+
+						// Load model
+						loader.load(modelViewer.modelUrl, function(geometry) {
+
+							// Center model
+							geometry.center();
+
+							// Create model's mesh
+							var mesh = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({
+								color: 0xFE9800,
+								side: THREE.DoubleSide
+							}));
+
+							// Set model's orientation
+							if(type == "stl")
+								mesh.rotation.set(3 * Math.PI / 2, 0, Math.PI);
+							else if(type == "obj")
+								mesh.rotation.set(0, 0, 0);
+							else if(type == "m3d")
+								mesh.rotation.set(-Math.PI / 2, 0, -Math.PI / 2);
+							else if(type == "amf")
+								mesh.rotation.set(0, 0, 0);
+							else if(type == "wrl")
+								mesh.rotation.set(0, 0, 0);
+							else if(type == "dae")
+								mesh.rotation.set(0, 0, 0);
+							else if(type == "3mf")
+								mesh.rotation.set(-Math.PI / 2, 0, Math.PI);
+							mesh.updateMatrix();
+							mesh.geometry.applyMatrix(mesh.matrix);
+							mesh.position.set(0, 0, 0);
+							mesh.rotation.set(0, 0, 0);
+							mesh.scale.set(1, 1, 1);
+							mesh.renderOrder = 0;
+
+							// Add model to scene
+							modelViewer.scene[0].add(mesh);
+						
+							// Set model
+							modelViewer.model = mesh;
+						
+							// Render
+							modelViewer.render();
+					
+							// Set model loaded
+							modelViewer.modelLoaded = true;
+						
+							// Hide message
+							$("#model .cover").removeClass("show");
+						});
+					}, 600);
 				},
 				
+				// Unload model
 				unloadModel: function() {
 				
-					// Check if a model is loaded and unloading is allowed
-					if(this.modelUrl !== null && this.allowUnloadingModel) {
-				
-						// Clear model URL
-						this.modelUrl = null;
-						this.modelUploadDate = null;
+					// Check if a model is loaded
+					if(modelViewer.modelUrl !== null) {
 					
-						console.log("Unloaded");
+						// Show message
+						$("#model .cover > p").text("Unloading model…").parent().addClass("show");
+						
+						setTimeout(function() {
+				
+							// Clear model URL
+							modelViewer.modelUrl = null;
+							modelViewer.modelUploadDate = null;
+						
+							// Remove model from scene
+							modelViewer.scene[0].remove(modelViewer.model);
+					
+							// Clear model
+							modelViewer.model = null;
+						
+							// Render
+							modelViewer.render();
+							
+							// Hide message
+							$("#model .cover").removeClass("show");
+						}, 600);
 					}
+				},
+				
+				// Resize event
+				resizeEvent: function() {
+
+					// Update camera
+					modelViewer.camera.aspect = $("#model > div > div").width() / ($("#model > div > div").height());
+					modelViewer.camera.updateProjectionMatrix();
+					modelViewer.renderer.setSize($("#model > div > div").width(), $("#model > div > div").height());
+		
+					// Render
+					modelViewer.render();
+				},
+				
+				// Destroy
+				destroy: function() {
+
+					// Disable events
+					$(window).off("resize.modelViewer");
+
+					// Clear model viewer
+					modelViewer = null;
+				},
+				
+				// Get 2D position
+				get2dPosition: function(vector) {
+	
+					// Initialize variables
+					var clonedVector = vector.clone();
+					var position = new THREE.Vector2();
+		
+					// Normalized device coordinate
+					clonedVector.project(modelViewer.camera);
+
+					// Get 2D position
+					position.x = Math.round((clonedVector.x + 1) * modelViewer.renderer.domElement.width / 2);
+					position.y = Math.round((-clonedVector.y + 1) * modelViewer.renderer.domElement.height / 2);
+		
+					// Return position
+					return position;
+				},
+				
+				// Render
+				render: function() {
+
+					// Update controls
+					modelViewer.orbitControls.update();
+			
+					// Check if a model is loaded
+					if(modelViewer.model !== null) {
+			
+						// Get camera distance to model
+						var distance = modelViewer.camera.position.distanceTo(modelViewer.model.position);
+						if(distance < 200)
+							distance = 200;
+						else if(distance > 500)
+							distance = 500;
+
+						// Set measurement size
+						$("#model div.measurements > p").css("font-size", 8 + ((500 / distance) - 1) / (2.5 - 1) * (13 - 8) + "px");
+	
+						// Set z index order for measurement values
+						var order = [];
+						for(var j = 0; j < 3; j++)
+							order[j] = modelViewer.camera.position.distanceTo(modelViewer.measurements[j][1]);
+	
+						for(var j = 0; j < 3; j++) {
+							var lowest = order.indexOf(Math.max.apply(Math, order));
+							$("#model div.measurements > p").eq(lowest).css("z-index", j);
+							order[lowest] = Number.NEGATIVE_INFINITY;
+						}
+	
+						// Position measurement values
+						for(var j = 0; j < 3; j++) {
+							var position = modelViewer.get2dPosition(modelViewer.measurements[j][1]);
+							$("#model div.measurements > p").eq(j).css({
+								"top": position.y - 3 + "px",
+								"left": position.x - $("#model div.measurements > p").eq(j).width() / 2 + "px"
+							});
+						}
+					}
+
+					// Render scene
+					modelViewer.renderer.clear();
+					modelViewer.renderer.render(modelViewer.scene[0], modelViewer.camera);
+					modelViewer.renderer.clearDepth();
+					modelViewer.renderer.render(modelViewer.scene[1], modelViewer.camera);
 				}
 			};
 			
@@ -4100,6 +4476,17 @@ $(function() {
 		$("#tabs + div.tab-content").append('\
 			<div id="model" class="tab-pane">\
 				<div>\
+					<div>\
+						<div class="cover">\
+							<img src="' + PLUGIN_BASEURL + 'm33fio/static/img/loading.gif">\
+							<p></p>\
+						</div>\
+						<div class="measurements">\
+							<p class="width"></p>\
+							<p class="depth"></p>\
+							<p class="height"></p>\
+						</div>\
+					</div>\
 				</div>\
 			</div>\
 		');
@@ -4120,18 +4507,13 @@ $(function() {
 		
 		// Add 0.01 movement control
 		$("#control > div.jog-panel").eq(0).addClass("controls").find("div.distance > div").prepend('\
-			<button type="button" id="control-distance001" class="btn distance" data-distance="0.01" data-bind="enable: loginState.isUser()">0.01</button>\
+			<button type="button" id="control-distance001" class="btn distance micro3d" data-distance="0.01" data-bind="enable: loginState.isUser()">0.01</button>\
 		');
-		$("#control-distance001").attr("title", "Sets extruder's position adjustment to 0.01mm");
-		$("#control-distance01").attr("title", "Sets extruder's position adjustment to 0.1mm");
-		$("#control-distance1").attr("title", "Sets extruder's position adjustment to 1mm");
-		$("#control-distance10").attr("title", "Sets extruder's position adjustment to 10mm");
-		$("#control-distance100").attr("title", "Sets extruder's position adjustment to 100mm");
 		$("#control > div.jog-panel.controls").find("div.distance > div > button:nth-of-type(3)").click();
 	
 		// Change tool section text
 		$("#control > div.jog-panel").eq(1).addClass("extruder").find("h1").text("Extruder").next("div").prepend('\
-			<h1 class="heatbed">Extruder</h1>\
+			<h1 class="heatbed micro3d">Extruder</h1>\
 		');
 
 		// Create motor on control
@@ -4301,7 +4683,7 @@ $(function() {
 	
 		// Add temperature controls
 		$("#control > div.jog-panel.extruder").find("div > button:nth-of-type(3)").after('\
-			<div style="width: 114px;" class="slider slider-horizontal">\
+			<div style="width: 114px;" class="slider slider-horizontal micro3d">\
 				<div class="slider-track">\
 					<div style="left: 0%; width: 0%;" class="slider-selection"></div>\
 					<div style="left: 0%;" class="slider-handle round"></div>\
@@ -4313,14 +4695,14 @@ $(function() {
 				</div>\
 				<input style="width: 100px;" data-bind="slider: {min: 100, max: 265, step: 1, value: flowRate, tooltip: \'hide\'}" type="number">\
 			</div>\
-			<button class="btn btn-block control-box" data-bind="enable: isOperational() && loginState.isUser()">Temperature:<span data-bind="text: flowRate() + 50 + \'°C\'"></span></button>\
-			<button class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() {\
+			<button class="btn btn-block control-box micro3d" data-bind="enable: isOperational() && loginState.isUser()">Temperature:<span data-bind="text: flowRate() + 50 + \'°C\'"></span></button>\
+			<button class="btn btn-block control-box micro3d" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() {\
 				$root.sendCustomCommand({\
 					type: \'command\',\
 					command: \'M104 S0\'\
 				})\
 			}" title="Turns off extruder\'s heater">Heater off</button>\
-			<div class="heatbed">\
+			<div class="heatbed micro3d">\
 				<h1 class="heatbed">Heatbed</h1>\
 				<div style="width: 114px;" class="slider slider-horizontal">\
 					<div class="slider-track">\
@@ -8151,8 +8533,7 @@ $(function() {
 																// Set button
 																button.text("Slice").removeClass("disabled");
 
-																// Resize model editor and window
-																modelEditor.resizeEvent();
+																// Resize window
 																$(window).resize();
 															}, 200);
 														}
@@ -8284,8 +8665,8 @@ $(function() {
 												else
 													form.append("file", scene, modelPath + modelName);
 												
-												// Prevent unloading model from model viewer
-												modelViewer.allowUnloadingModel = false;
+												// Prevent updating files
+												preventUpdatingFiles = true;
 				
 												// Send request
 												$.ajax({
@@ -8586,151 +8967,175 @@ $(function() {
 		// Override X increment control
 		$("#control #control-xinc").attr("title", "Increases extruder's X position by the specified amount").click(function(event) {
 	
-			// Stop default behavior
-			event.stopImmediatePropagation();
+			// Check if using a Micro 3D printer
+			if(!self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
+			
+				// Stop default behavior
+				event.stopImmediatePropagation();
 		
-			// Set commands
-			var commands = [
-				"G91",
-				"G0 X" + $("#control #jog_distance > button.active").text() + " F3000"
-			];
+				// Set commands
+				var commands = [
+					"G91",
+					"G0 X" + $("#control #jog_distance > button.active").text() + " F3000"
+				];
 		
-			// Send request
-			$.ajax({
-				url: API_BASEURL + "plugin/m33fio",
-				type: "POST",
-				dataType: "json",
-				data: JSON.stringify({
-					command: "message",
-					value: commands
-				}),
-				contentType: "application/json; charset=UTF-8"
-			});
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m33fio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({
+						command: "message",
+						value: commands
+					}),
+					contentType: "application/json; charset=UTF-8"
+				});
+			}
 		});
 	
 		// Override X decrement control
 		$("#control #control-xdec").attr("title", "Decreases extruder's X position by the specified amount").click(function(event) {
 	
-			// Stop default behavior
-			event.stopImmediatePropagation();
+			// Check if using a Micro 3D printer
+			if(!self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
+			
+				// Stop default behavior
+				event.stopImmediatePropagation();
 		
-			// Set commands
-			var commands = [
-				"G91",
-				"G0 X-" + $("#control #jog_distance > button.active").text() + " F3000"
-			];
+				// Set commands
+				var commands = [
+					"G91",
+					"G0 X-" + $("#control #jog_distance > button.active").text() + " F3000"
+				];
 		
-			// Send request
-			$.ajax({
-				url: API_BASEURL + "plugin/m33fio",
-				type: "POST",
-				dataType: "json",
-				data: JSON.stringify({
-					command: "message",
-					value: commands
-				}),
-				contentType: "application/json; charset=UTF-8"
-			});
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m33fio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({
+						command: "message",
+						value: commands
+					}),
+					contentType: "application/json; charset=UTF-8"
+				});
+			}
 		});
 	
 		// Override Y increment control
 		$("#control #control-yinc").attr("title", "Increases extruder's Y position by the specified amount").click(function(event) {
-	
-			// Stop default behavior
-			event.stopImmediatePropagation();
 		
-			// Set commands
-			var commands = [
-				"G91",
-				"G0 Y" + $("#control #jog_distance > button.active").text() + " F3000"
-			];
+			// Check if using a Micro 3D printer
+			if(!self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
+			
+				// Stop default behavior
+				event.stopImmediatePropagation();
 		
-			// Send request
-			$.ajax({
-				url: API_BASEURL + "plugin/m33fio",
-				type: "POST",
-				dataType: "json",
-				data: JSON.stringify({
-					command: "message",
-					value: commands
-				}),
-				contentType: "application/json; charset=UTF-8"
-			});
+				// Set commands
+				var commands = [
+					"G91",
+					"G0 Y" + $("#control #jog_distance > button.active").text() + " F3000"
+				];
+		
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m33fio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({
+						command: "message",
+						value: commands
+					}),
+					contentType: "application/json; charset=UTF-8"
+				});
+			}
 		});
 	
 		// Override Y decrement control
 		$("#control #control-ydec").attr("title", "Decreases extruder's Y position by the specified amount").click(function(event) {
-	
-			// Stop default behavior
-			event.stopImmediatePropagation();
+			
+			// Check if using a Micro 3D printer
+			if(!self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
+			
+				// Stop default behavior
+				event.stopImmediatePropagation();
 		
-			// Set commands
-			var commands = [
-				"G91",
-				"G0 Y-" + $("#control #jog_distance > button.active").text() + " F3000"
-			];
+				// Set commands
+				var commands = [
+					"G91",
+					"G0 Y-" + $("#control #jog_distance > button.active").text() + " F3000"
+				];
 		
-			// Send request
-			$.ajax({
-				url: API_BASEURL + "plugin/m33fio",
-				type: "POST",
-				dataType: "json",
-				data: JSON.stringify({
-					command: "message",
-					value: commands
-				}),
-				contentType: "application/json; charset=UTF-8"
-			});
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m33fio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({
+						command: "message",
+						value: commands
+					}),
+					contentType: "application/json; charset=UTF-8"
+				});
+			}
 		});
 	
 		// Override Z increment control
 		$("#control #control-zinc").attr("title", "Increases extruder's Z position by the specified amount").click(function(event) {
-	
-			// Stop default behavior
-			event.stopImmediatePropagation();
 		
-			// Set commands
-			var commands = [
-				"G91",
-				"G0 Z" + $("#control #jog_distance > button.active").text() + " F90"
-			];
+			// Check if using a Micro 3D printer
+			if(!self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
+			
+				// Stop default behavior
+				event.stopImmediatePropagation();
 		
-			// Send request
-			$.ajax({
-				url: API_BASEURL + "plugin/m33fio",
-				type: "POST",
-				dataType: "json",
-				data: JSON.stringify({
-					command: "message",
-					value: commands
-				}),
-				contentType: "application/json; charset=UTF-8"
-			});
+				// Set commands
+				var commands = [
+					"G91",
+					"G0 Z" + $("#control #jog_distance > button.active").text() + " F90"
+				];
+		
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m33fio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({
+						command: "message",
+						value: commands
+					}),
+					contentType: "application/json; charset=UTF-8"
+				});
+			}
 		});
 	
 		// Override Z decrement control
 		$("#control #control-zdec").attr("title", "Decreases extruder's Z position by the specified amount").click(function(event) {
-	
-			// Stop default behavior
-			event.stopImmediatePropagation();
 		
-			// Set commands
-			var commands = [
-				"G91",
-				"G0 Z-" + $("#control #jog_distance > button.active").text() + " F90"
-			];
+			// Check if using a Micro 3D printer
+			if(!self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
+			
+				// Stop default behavior
+				event.stopImmediatePropagation();
 		
-			// Send request
-			$.ajax({
-				url: API_BASEURL + "plugin/m33fio",
-				type: "POST",
-				dataType: "json",
-				data: JSON.stringify({
-					command: "message",
-					value: commands
-				}),
-				contentType: "application/json; charset=UTF-8"
-			});
+				// Set commands
+				var commands = [
+					"G91",
+					"G0 Z-" + $("#control #jog_distance > button.active").text() + " F90"
+				];
+		
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m33fio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({
+						command: "message",
+						value: commands
+					}),
+					contentType: "application/json; charset=UTF-8"
+				});
+			}
 		});
 	
 		// Override X Y home control
@@ -8800,77 +9205,89 @@ $(function() {
 	
 		// Override Z home control
 		$("#control #control-zhome").attr("title", "Set extruder's Z position to 5").click(function(event) {
-	
-			// Stop default behavior
-			event.stopImmediatePropagation();
+			
+			// Check if using a Micro 3D printer
+			if(!self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
+			
+				// Stop default behavior
+				event.stopImmediatePropagation();
 		
-			// Set commands
-			var commands = [
-				"G90",
-				"G0 Z5 F90"
-			];
+				// Set commands
+				var commands = [
+					"G90",
+					"G0 Z5 F90"
+				];
 		
-			// Send request
-			$.ajax({
-				url: API_BASEURL + "plugin/m33fio",
-				type: "POST",
-				dataType: "json",
-				data: JSON.stringify({
-					command: "message",
-					value: commands
-				}),
-				contentType: "application/json; charset=UTF-8"
-			});
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m33fio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({
+						command: "message",
+						value: commands
+					}),
+					contentType: "application/json; charset=UTF-8"
+				});
+			}
 		});
 	
 		// Override extrude control
 		$("#control > div.jog-panel.extruder > div > button:first-of-type").attr("title", "Extrudes the specified amount of filament").click(function(event) {
-	
-			// Stop default behavior
-			event.stopImmediatePropagation();
 		
-			// Set commands
-			var commands = [
-				"G91",
-				"G0 E" + ($("#control > div.jog-panel.extruder > div > div:nth-of-type(2) > input").val().length ? $("#control > div.jog-panel.extruder > div > div:nth-of-type(2) > input").val() : '5' ) + " F345"
-			];
+			// Check if using a Micro 3D printer
+			if(!self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
+			
+				// Stop default behavior
+				event.stopImmediatePropagation();
 		
-			// Send request
-			$.ajax({
-				url: API_BASEURL + "plugin/m33fio",
-				type: "POST",
-				dataType: "json",
-				data: JSON.stringify({
-					command: "message",
-					value: commands
-				}),
-				contentType: "application/json; charset=UTF-8"
-			});
+				// Set commands
+				var commands = [
+					"G91",
+					"G0 E" + ($("#control > div.jog-panel.extruder > div > div:nth-of-type(2) > input").val().length ? $("#control > div.jog-panel.extruder > div > div:nth-of-type(2) > input").val() : '5' ) + " F345"
+				];
+		
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m33fio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({
+						command: "message",
+						value: commands
+					}),
+					contentType: "application/json; charset=UTF-8"
+				});
+			}
 		});
 	
 		// Override retract control
 		$("#control > div.jog-panel.extruder > div > button:nth-of-type(2)").attr("title", "Retracts the specified amount of filament").click(function(event) {
-	
-			// Stop default behavior
-			event.stopImmediatePropagation();
 		
-			// Set commands
-			var commands = [
-				"G91",
-				"G0 E-" + ($("#control > div.jog-panel.extruder > div > div:nth-of-type(2) > input").val().length ? $("#control > div.jog-panel.extruder > div > div:nth-of-type(2) > input").val() : '5' ) + " F345"
-			];
+			// Check if using a Micro 3D printer
+			if(!self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
+			
+				// Stop default behavior
+				event.stopImmediatePropagation();
 		
-			// Send request
-			$.ajax({
-				url: API_BASEURL + "plugin/m33fio",
-				type: "POST",
-				dataType: "json",
-				data: JSON.stringify({
-					command: "message",
-					value: commands
-				}),
-				contentType: "application/json; charset=UTF-8"
-			});
+				// Set commands
+				var commands = [
+					"G91",
+					"G0 E-" + ($("#control > div.jog-panel.extruder > div > div:nth-of-type(2) > input").val().length ? $("#control > div.jog-panel.extruder > div > div:nth-of-type(2) > input").val() : '5' ) + " F345"
+				];
+		
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m33fio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({
+						command: "message",
+						value: commands
+					}),
+					contentType: "application/json; charset=UTF-8"
+				});
+			}
 		});
 	
 		// Set extruder temperature control
@@ -12572,6 +12989,9 @@ $(function() {
 			// Otherwise check if data is that a heatbed is detected
 			else if(data.value == "Heatbed Detected") {
 			
+				// Set that heatbed is attached
+				heatbedAttached = true;
+			
 				// Display heatbed controls
 				$("#control .heatbed, #settings_plugin_m33fio .heatbed, body > div.page-container > div.message .heatbed").css("display", "block");
 				$("#control > div.jog-panel.extruder").find("h1:not(.heatbed)").text("Tools");
@@ -12580,9 +13000,12 @@ $(function() {
 			// Otherwise check if data is that a heatbed is not detected
 			else if(data.value == "Heatbed Not Detected") {
 			
+				// Set that heatbed isn't attached
+				heatbedAttached = false;
+			
 				// Hide heatbed controls
 				$("#control .heatbed, #settings_plugin_m33fio .heatbed, body > div.page-container > div.message .heatbed").css("display", "none");
-				$("#control > div.jog-panel.extruder").find("h1:not(.heatbed)").text("Extruder");
+				$("#control > div.jog-panel.extruder").find("h1:not(.heatbed)").text(self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter() ? "Tools" : "Extruder");
 			}
 			
 			// Otherwise check if data is that camera is hostable
@@ -13935,6 +14358,13 @@ $(function() {
 			$("div.midPrintFilamentChange").addClass("notUsingAMicro3DPrinter");
 		}
 		
+		// On after tab change
+		self.onAfterTabChange = function(current, previous) {
+		
+			// Resize windows
+			$(window).resize();
+		}
+		
 		// All view models bound event
 		self.onAllBound = function(payload) {
 		
@@ -13970,17 +14400,27 @@ $(function() {
 					var originalUpdateItems = self.files.listHelper._updateItems;
 					self.files.listHelper._updateItems = function() {
 					
-						// Update items
-						originalUpdateItems();
-						
-						// Go through all uploaded entries
-						for(var entry in self.files.listHelper.allItems)
+						// Check if updating files is allowed
+						if(!preventUpdatingFiles) {
 					
-							// Unload model if changed
-							unloadViewedModelIfChanged(self.files.listHelper.allItems[entry]);
+							// Update items
+							originalUpdateItems();
 						
-						// Add view buttons to models
-						addViewButtonsToModels();
+							// Go through all uploaded entries
+							for(var entry in self.files.listHelper.allItems)
+					
+								// Unload model if changed
+								unloadViewedModelIfChanged(self.files.listHelper.allItems[entry]);
+						
+							// Add view buttons to models
+							addViewButtonsToModels();
+						}
+						
+						// Otherwise
+						else
+							
+							// Allow updating files
+							preventUpdatingFiles = false;
 					}
 					
 					// Unload viewed model if deleted
@@ -14146,6 +14586,19 @@ $(function() {
 		// On startup complete
 		self.onStartupComplete = function() {
 		
+			// Add titles to buttons that weren't loaded before
+			$("#control div.jog-panel.controls > div > button:first-of-type").attr("title", "Sets feed rate to the specified amount");
+			$("#control div.jog-panel.extruder > div > button:nth-of-type(3)").attr("title", "Sets flow rate to the specified amount");
+			$("#control-distance001").attr("title", "Sets extruder's position adjustment to 0.01mm");
+			$("#control-distance01").attr("title", "Sets extruder's position adjustment to 0.1mm");
+			$("#control-distance1").attr("title", "Sets extruder's position adjustment to 1mm");
+			$("#control-distance10").attr("title", "Sets extruder's position adjustment to 10mm");
+			$("#control-distance100").attr("title", "Sets extruder's position adjustment to 100mm");
+			$("#control div.jog-panel.extruder > div > div:first-of-type").attr("title", "Sets tool to specified value");
+		
+			// Make controls not Micro 3D applicable
+			$("#control div.jog-panel.extruder > div > div:first-of-type, #control div.jog-panel.extruder > div > div:nth-of-type(3), #control div.jog-panel.extruder > div > button:nth-of-type(3), #control div.jog-panel.controls > div > div:nth-of-type(4), #control div.jog-panel.controls > div > button:first-of-type, #control > div.jog-panel.controls div.distance > div").addClass("notMicro3DApplicable");
+			
 			// Update webcam
 			updateWebcam();
 			
@@ -14157,15 +14610,8 @@ $(function() {
 				$(window).resize();
 			}, 0);
 			
-			// Enable/disable Micro 3D printer specific features
-			if(self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
-				$(".micro3d").addClass("notUsingAMicro3DPrinter");
-				$("#temperature-graph").removeClass("micro3dImage");
-			}
-			else {
-				$(".micro3d").removeClass("notUsingAMicro3DPrinter");
-				$("#temperature-graph").addClass("micro3dImage");
-			}
+			// Update printer differences
+			updatePrinterDifferences();
 		
 			// On server disconnect event
 			self.onServerDisconnect = function() {
@@ -14263,14 +14709,11 @@ $(function() {
 				// Update mid-print filament change layer input
 				$("#gcode div.midPrintFilamentChange input").val(self.settings.settings.plugins.m33fio.MidPrintFilamentChangeLayers());
 				
-				// Enable/disable Micro 3D printer specific features
-				if(self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
-					$(".micro3d").addClass("notUsingAMicro3DPrinter");
-					$("#temperature-graph").removeClass("micro3dImage");
-				}
-				else {
-					$(".micro3d").removeClass("notUsingAMicro3DPrinter");
-					$("#temperature-graph").addClass("micro3dImage");
+				// Update printer differences
+				updatePrinterDifferences();
+				
+				// Check if using a Micro 3D printer
+				if(!self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
 					
 					// Set bed dimensions
 					bedLowMaxX = 106.0;
@@ -14384,9 +14827,6 @@ $(function() {
 		
 		// On slicing started event
 		self.onEventSlicingStarted = function(payload) {
-		
-			// Allow unloading model from model viewer
-			modelViewer.allowUnloadingModel = true;
 		
 			// Show message
 			showMessage("Slicing Status", "Slicing …");
