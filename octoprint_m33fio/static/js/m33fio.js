@@ -4,6 +4,9 @@ $(function() {
 	// Create view model
 	function M33FioViewModel(parameters) {
 	
+		// Set self
+		var self = this;
+	
 		// Initialize variables
 		var eepromDisplayType = "hexadecimal";
 		var slicerOpen = false;
@@ -17,7 +20,7 @@ $(function() {
 		var printerProfileName;
 		var afterSlicingAction;
 		var gCodeFileName;
-		var modelCenter = [0, 0];
+		self.modelCenter = [null, null];
 		var currentX = null, currentY = null, currentZ = null, currentE = null;
 		var modelEditor = null;
 		var convertedModel = null;
@@ -34,7 +37,6 @@ $(function() {
 		var modelViewer = null;
 		var preventUpdatingFiles = false;
 		var heatbedAttached = false;
-		var self = this;
 		
 		// Set model editor printer and filament color
 		var modelEditorPrinterColor;
@@ -60,6 +62,12 @@ $(function() {
 		self.control = parameters[7];
 		self.connection = parameters[8];
 		self.files = null;
+		
+		// Modify slicing view model's slice function to use position parameter
+		globalSlicingViewModel = self.slicing;
+		globalM33FioViewModel = self;
+		var newSliceFunction = self.slicing.slice.toString().replace("slicer: self.slicer()", "slicer: self.slicer(), position: {x: m33fio.modelCenter[0], y: m33fio.modelCenter[1]}");
+		self.slicing.slice = new Function("var self = globalSlicingViewModel; var m33fio = globalM33FioViewModel;" + newSliceFunction.substring(newSliceFunction.indexOf("{") + 1, newSliceFunction.lastIndexOf("}")));
 		
 		// Bed dimensions
 		var bedLowMaxX = 106.0;
@@ -1169,6 +1177,7 @@ $(function() {
 				orbitControls: null,
 				model: null,
 				modelLoaded: true,
+				grid: null,
 				
 				// Initialize
 				init: function() {
@@ -1212,13 +1221,6 @@ $(function() {
 						dirLight.position.set(200, 200, 1000).normalize();
 						this.camera.add(dirLight);
 						this.camera.add(dirLight.target);
-					
-						// Create grid
-						var grid = new THREE.GridHelper(100, 10);
-						grid.setColors(0xAFAFAF, 0xAFAFAF);
-				
-						// Add grid to scene
-						this.scene.add(grid);
 		
 						// Enable events
 						$(window).on("resize.modelViewer", this.resizeEvent);
@@ -1232,6 +1234,150 @@ $(function() {
 						// Start animating model viewer
 						this.animate();
 					}
+				},
+				
+				// Update grid
+				updateGrid: function() {
+				
+					// Check if grid already exists
+					if(modelViewer.grid !== null) {
+					
+						// Remove grid from scene
+						modelViewer.scene.remove(modelViewer.grid);
+						modelViewer.grid = null;
+					}
+					
+					// Set grid parameters
+					var parameters = {
+						width: self.printerProfile.currentProfileData().volume.width(),
+						depth: self.printerProfile.currentProfileData().volume.formFactor() == "circular" ? self.printerProfile.currentProfileData().volume.width() : self.printerProfile.currentProfileData().volume.depth(),
+						spacing: 10,
+						color: 0xAFAFAF
+					};
+
+					// Create grid geometry
+					var gridGeometry = new THREE.Geometry();
+					
+					// Calculate width line offset
+					var numberOfLines = Math.ceil(parameters.width / parameters.spacing);
+					if(numberOfLines % 2 == 0)
+						numberOfLines++;
+					var offset = self.printerProfile.currentProfileData().volume.origin() == "center" ? -parameters.width / 2 + parameters.spacing * parseInt(numberOfLines / 2) : 0;
+					
+					// Go through all width lines	
+					for(var i = 0; i < numberOfLines; i++) {
+					
+						// Check if line location is valid
+						var location = -parameters.width / 2 + parameters.spacing * i - offset;
+						if(location > -parameters.width / 2 && location < parameters.width / 2) {
+						
+							// Set line radius
+							var radius = self.printerProfile.currentProfileData().volume.formFactor() == "circular" ? Math.sqrt(Math.pow(parameters.width / 2, 2) - Math.pow(location, 2)) : -parameters.depth / 2;
+							
+							// Add line to grid geometry
+							gridGeometry.vertices.push(new THREE.Vector3(-radius, 0, location));
+							gridGeometry.vertices.push(new THREE.Vector3(radius, 0, location));
+						}
+					}
+					
+					// Calculate depth line offset
+					numberOfLines = Math.ceil(parameters.depth / parameters.spacing);
+					if(numberOfLines % 2 == 0)
+						numberOfLines++;
+					offset = self.printerProfile.currentProfileData().volume.origin() == "center" ? -parameters.depth / 2 + parameters.spacing * parseInt(numberOfLines / 2) : 0;
+					
+					// Go through all depth lines	
+					for(var i = 0; i < numberOfLines; i++) {
+					
+						// Check if line location is valid
+						var location = -parameters.depth / 2 + parameters.spacing * i - offset;
+						if(location > -parameters.depth / 2 && location < parameters.depth / 2) {
+						
+							// Set line radius
+							var radius = self.printerProfile.currentProfileData().volume.formFactor() == "circular" ? Math.sqrt(Math.pow(parameters.width / 2, 2) - Math.pow(location, 2)) : -parameters.width / 2;
+						
+							// Add line to grid geometry
+							gridGeometry.vertices.push(new THREE.Vector3(location, 0, -radius));
+							gridGeometry.vertices.push(new THREE.Vector3(location, 0, radius));
+						}
+					}
+					
+					// Create lines
+					var lines = new THREE.LineSegments(gridGeometry, new THREE.LineBasicMaterial({
+						color: parameters.color
+					}));
+					
+					// Check if using a circular bed
+					if(self.printerProfile.currentProfileData().volume.formFactor() == "circular") {
+					
+						// Create outline geometry
+						var outlineGeometry = new THREE.CircleGeometry(parameters.width / 2, 200);
+						outlineGeometry.vertices.shift();
+						
+						// Create outline
+						var outline = new THREE.Line(outlineGeometry, new THREE.LineBasicMaterial({
+							color: parameters.color,
+							linewidth: 2
+						}));
+						
+						outline.rotation.set(-Math.PI / 2, 0, 0);
+					}
+					
+					// Otherwise
+					else {
+					
+						// Create outline geometry
+						var outlineGeometry = new THREE.Geometry();
+					
+						// Add width outline
+						for(var i = -parameters.width / 2; i <= parameters.width / 2; i += parameters.width) {
+							outlineGeometry.vertices.push(new THREE.Vector3(-parameters.depth / 2, 0, i));
+							outlineGeometry.vertices.push(new THREE.Vector3(parameters.depth / 2, 0, i));
+						}
+					
+						// Add depth outline
+						for(var i = -parameters.depth / 2; i <= parameters.depth / 2; i += parameters.depth) {
+							outlineGeometry.vertices.push(new THREE.Vector3(i, 0, -parameters.width / 2));
+							outlineGeometry.vertices.push(new THREE.Vector3(i, 0, parameters.width / 2));
+						}
+						
+						// Create outline
+						var outline = new THREE.LineSegments(outlineGeometry, new THREE.LineBasicMaterial({
+							color: parameters.color,
+							linewidth: 2
+						}));
+					}
+					
+					// Add lines and outline to grid
+					modelViewer.grid = new THREE.Object3D();
+					modelViewer.grid.add(lines);
+					modelViewer.grid.add(outline);
+					
+					// Check if bed's origin is center
+					if(self.printerProfile.currentProfileData().volume.origin() == "center") {
+					
+						// Create center geometry
+						var centerGeometry = new THREE.Geometry();
+						centerGeometry.vertices.push(new THREE.Vector3(-parameters.depth / 2, 0, 0));
+						centerGeometry.vertices.push(new THREE.Vector3(parameters.depth / 2, 0, 0));
+						centerGeometry.vertices.push(new THREE.Vector3(0, 0, -parameters.width / 2));
+						centerGeometry.vertices.push(new THREE.Vector3(0, 0, parameters.width / 2));
+					
+						// Create center
+						var center = new THREE.LineSegments(centerGeometry, new THREE.LineBasicMaterial({
+							color: parameters.color,
+							linewidth: 2
+						}));
+						
+						// Add center to grid
+						modelViewer.grid.add(center);
+					}
+					
+					// Position grid
+					modelViewer.grid.rotation.set(0, -Math.PI / 2, 0);
+				
+					// Add grid to scene
+					modelViewer.scene.add(modelViewer.grid);
 				},
 				
 				// Load model
@@ -1421,6 +1567,8 @@ $(function() {
 				axes: [],
 				showAxes: typeof localStorage.modelEditorShowAxes === "undefined" || localStorage.modelEditorShowAxes == "true",
 				allowTab: true,
+				bedShape: null,
+				bedOrigin: null,
 				
 				// Initialize
 				init: function() {
@@ -1455,6 +1603,10 @@ $(function() {
 						printBedWidth = 121;
 						printBedDepth = 119 - bedLowMinY;
 						
+						// Set bed shape and origin
+						this.bedShape = "rectangular";
+						this.bedOrigin = "lowerleft";
+						
 						// Set external bed height
 						externalBedHeight = parseFloat(self.settings.settings.plugins.m33fio.ExternalBedHeight());
 				
@@ -1480,6 +1632,8 @@ $(function() {
 						var width = '';
 						var height = '';
 						var depth = '';
+						var shape = '';
+						var origin = '';
 					
 						// Check if using Cura
 						if(slicerName == "cura") {
@@ -1488,6 +1642,18 @@ $(function() {
 							width = getSlicerProfileValue("machine_width");
 							depth = getSlicerProfileValue("machine_depth");
 							height = getSlicerProfileValue("machine_height");
+							
+							// Set shape and origin
+							shape = getSlicerProfileValue("machine_shape");
+							var machineCenterIsZero = getSlicerProfileValue("machine_center_is_zero");
+							if(machineCenterIsZero.length) {
+								if(machineCenterIsZero.toLowerCase() == "true")
+									origin = "center";
+								else {
+									shape = "rectangular";
+									origin = "lowerleft";
+								}
+							}
 						}
 						
 						// Otherwise check if using Slic3r
@@ -1516,6 +1682,23 @@ $(function() {
 						if(!height.length)
 							height = self.printerProfile.currentProfileData().volume.height();
 						height = parseFloat(height);
+						
+						// Set default shape and origin if not set
+						if(!shape.length)
+							shape = self.printerProfile.currentProfileData().volume.formFactor();
+						if(shape.toLowerCase() == "circular")
+							shape = "circular";
+						else
+							shape = "rectangular";
+						
+						if(!origin.length)
+							origin = self.printerProfile.currentProfileData().volume.origin();
+						if(origin.toLowerCase() == "center")
+							origin = "center";
+						else {
+							shape = "rectangular";
+							origin = "lowerleft";
+						}
 					
 						// Set bed dimensions
 						bedLowMaxX = width;
@@ -1540,6 +1723,10 @@ $(function() {
 						// Set print bed size
 						printBedWidth = width;
 						printBedDepth = depth;
+						
+						// Set bed shape and origin
+						this.bedShape = shape;
+						this.bedOrigin = origin;
 						
 						// Set external bed height
 						externalBedHeight = 0.0;
@@ -1696,13 +1883,13 @@ $(function() {
 					this.camera = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
 					this.scene[0].add(this.camera);
 					this.camera.position.set(0, 50, -380);
-					this.camera.lookAt(new THREE.Vector3(0, 0, 0));
 
 					// Create renderer
 					this.renderer = new THREE.WebGLRenderer({
 						antialias: true
 					});
 					this.renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+					this.renderer.setClearColor(0xFCFCFC, 1);
 					this.renderer.autoClear = false;
 
 					// Create controls
@@ -1727,15 +1914,6 @@ $(function() {
 					dirLight.position.set(200, 200, 1000).normalize();
 					this.camera.add(dirLight);
 					this.camera.add(dirLight.target);
-		
-					// Create sky box
-					var skyBoxGeometry = new THREE.CubeGeometry(10000, 10000, 10000);
-					var skyBoxMaterial = new THREE.MeshBasicMaterial({
-						color: 0xFCFCFC,
-						side: THREE.BackSide
-					});
-					var skyBox = new THREE.Mesh(skyBoxGeometry, skyBoxMaterial);
-					this.scene[0].add(skyBox);
 					
 					// Create print bed
 					var mesh = new THREE.Mesh(new THREE.CubeGeometry(printBedWidth, printBedDepth, bedLowMinZ), new THREE.MeshBasicMaterial({
@@ -2595,8 +2773,8 @@ $(function() {
 					modelEditor.sceneExported = false;
 
 					// Initialize variables
-					var centerX = -(extruderCenterX - (bedLowMaxX + bedLowMinX) / 2) + bedLowMinX;
-					var centerZ = extruderCenterY - (bedLowMaxY + bedLowMinY) / 2 + bedLowMinY;
+					var centerX = ((modelEditor.bedOrigin == "lowerleft" ? bedLowMaxX - bedLowMinX : 0) + (-(extruderCenterX - (bedLowMaxX + bedLowMinX) / 2) + bedLowMinX) * 2) / 2;
+					var centerZ = ((modelEditor.bedOrigin == "lowerleft" ? bedLowMaxY - bedLowMinY : 0) + (extruderCenterY - (bedLowMaxY + bedLowMinY) / 2 + bedLowMinY) * 2) / 2;
 					var mergedGeometry = new THREE.Geometry();
 				
 					// Go through all models
@@ -2648,7 +2826,7 @@ $(function() {
 					centerZ /= (modelEditor.models.length - 1);
 			
 					// Save model's center
-					modelCenter = [centerX, centerZ];
+					self.modelCenter = [centerX ? centerX : Number.MIN_VALUE, centerZ ? centerZ : Number.MIN_VALUE];
 	
 					// Create merged mesh from merged geometry
 					var mergedMesh = new THREE.Mesh(mergedGeometry);
@@ -3029,49 +3207,51 @@ $(function() {
 
 					// Get currently selected model
 					var model = modelEditor.transformControls.object;
+					if(typeof model !== "undefined") {
 			
-					// Save matrix
-					modelEditor.savedMatrix = model.matrix.clone();
+						// Save matrix
+						modelEditor.savedMatrix = model.matrix.clone();
 
-					// Check if in translate mode
-					if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("translate")) {
+						// Check if in translate mode
+						if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("translate")) {
 
-						// Set model's position
-						if(name == 'x')
-							model.position.x = -parseFloat(value);
-						else if(name == 'y')
-							model.position.y = parseFloat(value);
-						else if(name == 'z')
-							model.position.z = parseFloat(value);
-					}
+							// Set model's position
+							if(name == 'x')
+								model.position.x = -parseFloat(value);
+							else if(name == 'y')
+								model.position.y = parseFloat(value);
+							else if(name == 'z')
+								model.position.z = parseFloat(value);
+						}
 
-					// Otherwise check if in rotate mode
-					else if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("rotate")) {
+						// Otherwise check if in rotate mode
+						else if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("rotate")) {
 
-						// Set model's rotation
-						if(name == 'x')
-							model.rotation.x = THREE.Math.degToRad(parseFloat(value));
-						else if(name == 'y')
-							model.rotation.y = THREE.Math.degToRad(parseFloat(value));
-						else if(name == 'z')
-							model.rotation.z = THREE.Math.degToRad(parseFloat(value));
-					}
+							// Set model's rotation
+							if(name == 'x')
+								model.rotation.x = THREE.Math.degToRad(parseFloat(value));
+							else if(name == 'y')
+								model.rotation.y = THREE.Math.degToRad(parseFloat(value));
+							else if(name == 'z')
+								model.rotation.z = THREE.Math.degToRad(parseFloat(value));
+						}
 
-					// Otherwise check if in scale mode
-					else if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("scale")) {
+						// Otherwise check if in scale mode
+						else if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("scale")) {
 
-						// Set model's scale
-						if(name == 'x' || modelEditor.scaleLock[0])
-							model.scale.x = parseFloat(value) == 0 ? 0.000000000001 : parseFloat(value);
-						if(name == 'y' || modelEditor.scaleLock[1])
-							model.scale.y = parseFloat(value) == 0 ? 0.000000000001 : parseFloat(value);
-						if(name == 'z' || modelEditor.scaleLock[2])
-							model.scale.z = parseFloat(value == 0 ? 0.000000000001 : parseFloat(value));
+							// Set model's scale
+							if(name == 'x' || modelEditor.scaleLock[0])
+								model.scale.x = parseFloat(value) == 0 ? 0.000000000001 : parseFloat(value);
+							if(name == 'y' || modelEditor.scaleLock[1])
+								model.scale.y = parseFloat(value) == 0 ? 0.000000000001 : parseFloat(value);
+							if(name == 'z' || modelEditor.scaleLock[2])
+								model.scale.z = parseFloat(value == 0 ? 0.000000000001 : parseFloat(value));
+						}
 					}
 			
 					// Apply group transformation
 					modelEditor.applyGroupTransformation();
-			
+		
 					// Clear saved matrix
 					modelEditor.savedMatrix = null;
 
@@ -4352,6 +4532,13 @@ $(function() {
 		
 		// Create model viewer
 		createModelViewer();
+		
+		// Subscribe to printer profile changes
+		self.settings.printerProfiles.currentProfileData.subscribe(function() {
+				
+			// Update model viewer's grid
+			modelViewer.updateGrid();
+		});
 		
 		// Add mid-print filament change settings
 		$("#gcode div.progress").after('\
@@ -8470,14 +8657,6 @@ $(function() {
 										{
 											name: "Model Path",
 											value: modelPath
-										},
-										{
-											name: "Model Center X",
-											value: modelCenter[0]
-										},
-										{
-											name: "Model Center Y",
-											value: modelCenter[1]
 										});
 									}
 							
@@ -8553,6 +8732,30 @@ $(function() {
 										
 											// Otherwise
 											else {
+											
+												// Check if using a Micro 3D printer
+												if(!self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
+												
+													// Set bed dimensions
+													bedLowMaxX = 106.0;
+													bedLowMinX = -2.0;
+													bedLowMaxY = 105.0;
+													bedMediumMinY = -9.0;
+													bedLowMinY = self.settings.settings.plugins.m33fio.ExpandPrintableRegion() ? bedMediumMinY : -2.0;
+
+													// Set extruder center
+													extruderCenterX = (bedLowMaxX + bedLowMinX) / 2;
+													extruderCenterY = (bedLowMaxY + bedLowMinY + 14.0) / 2;
+												
+													// Set model center
+													self.modelCenter = [((bedLowMaxX - bedLowMinX) + (-(extruderCenterX - (bedLowMaxX + bedLowMinX) / 2) + bedLowMinX) * 2) / 2, ((bedLowMaxY - bedLowMinY) + (extruderCenterY - (bedLowMaxY + bedLowMinY) / 2 + bedLowMinY) * 2) / 2];
+												}
+												
+												// Otherwise
+												else
+												
+													// Reset model center
+													self.modelCenter = [null, null];
 										
 												// Set slicer menu to done
 												slicerMenu = "Done";
@@ -12848,23 +13051,31 @@ $(function() {
 			// Otherwise check if data is that a heatbed is detected
 			else if(data.value == "Heatbed Detected") {
 			
-				// Set that heatbed is attached
-				heatbedAttached = true;
+				// Check if heatbed isn't attached
+				if(!heatbedAttached) {
 			
-				// Display heatbed controls
-				$("#control .heatbed, #settings_plugin_m33fio .heatbed, body > div.page-container > div.message .heatbed").css("display", "block");
-				$("#control > div.jog-panel.extruder").find("h1:not(.heatbed)").text("Tools");
+					// Set that heatbed is attached
+					heatbedAttached = true;
+			
+					// Display heatbed controls
+					$("#control .heatbed, #settings_plugin_m33fio .heatbed, body > div.page-container > div.message .heatbed").css("display", "block");
+					$("#control > div.jog-panel.extruder").find("h1:not(.heatbed)").text("Tools");
+				}
 			}
 			
 			// Otherwise check if data is that a heatbed is not detected
 			else if(data.value == "Heatbed Not Detected") {
 			
-				// Set that heatbed isn't attached
-				heatbedAttached = false;
+				// Check if heatbed is attached
+				if(heatbedAttached) {
 			
-				// Hide heatbed controls
-				$("#control .heatbed, #settings_plugin_m33fio .heatbed, body > div.page-container > div.message .heatbed").css("display", "none");
-				$("#control > div.jog-panel.extruder").find("h1:not(.heatbed)").text(self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter() ? "Tools" : "Extruder");
+					// Set that heatbed isn't attached
+					heatbedAttached = false;
+			
+					// Hide heatbed controls
+					$("#control .heatbed, #settings_plugin_m33fio .heatbed, body > div.page-container > div.message .heatbed").css("display", "none");
+					$("#control > div.jog-panel.extruder").find("h1:not(.heatbed)").text(self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter() ? "Tools" : "Extruder");
+				}
 			}
 			
 			// Otherwise check if data is that camera is hostable
@@ -14463,6 +14674,9 @@ $(function() {
 			
 			// Add view buttons to models
 			addViewButtonsToModels();
+			
+			// Update model viewer's grid
+			modelViewer.updateGrid();
 		
 			// Resize window
 			setTimeout(function() {

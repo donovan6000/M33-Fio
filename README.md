@@ -6,7 +6,7 @@ OctoPrint plugin that provides the world's first platform independent software s
 ### Description
 M33 Fio is a plugin for [OctoPrint](http://octoprint.org/) that extends its capabilities to make it fully compatible with the Micro 3D printer. Both OctoPrint and M33 Fio can run on Windows, OS X, and Linux, so this solution is the first platform independent option available for this printer.
 
-The latest version of M33 Fio is V1.9 released on October 20th, 2016, and an entire changelog for it can be found [here](https://raw.githubusercontent.com/donovan6000/M33-Fio/master/Changelog).
+The latest version of M33 Fio is V1.10 released on October Xth, 2016, and an entire changelog for it can be found [here](https://raw.githubusercontent.com/donovan6000/M33-Fio/master/Changelog).
 
 ### Features
 * Platform independent
@@ -45,7 +45,6 @@ OctoPrint is a web server, and it can allow remotely connecting to it. So you ca
 * Microsoft Edge displays webcam stream as a still image
 * Can't host more than one webcam stream at a time since it always hosts on port 4999
 * Has only been tested on the latest versions of Microsoft Internet Explorer 11, Microsoft Edge, Mozilla Firefox, and Google Chrome, so it might have issues with web browsers other than those
-* Has problems performing standy commands when a print is finished or canceled with versions of OctoPrint >= 1.3.0
 
 ### Images
 Additional controls are added to OctoPrint's control panel that allow doing everything from loading filament to updating the firmware.
