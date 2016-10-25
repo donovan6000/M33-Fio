@@ -1591,6 +1591,6 @@ body > div.page-container > div.message > div > div > span.show {
 	transition: none !important;
 }
 
-.notUsingAMicro3DPrinter, .usingAMicro3DPrinter, .notUsingAHeatbed, .dontShow {
+.notUsingAMicro3DPrinter, .usingAMicro3DPrinter, .notUsingAHeatbed, .dontShow, .noPrinterModel {
 	display: none !important;
 }

@@ -4,6 +4,9 @@ V1.10 October X, 2016
 
 	* Incorporates model viewer into OctoPrint
 	* All controls go back to their default behaviour when not using a Micro 3D printer
+	* Positioning a model now works with printer profiles that have a circular form factor or a center origin
+	* Model editor displays cylindrical printing area when printer profile has a circular form factor
+	* Added grid display to model editor that matches up with the same positioning as the G-code viewer and model viewer grids
 
 V1.9 October 20, 2016
 
