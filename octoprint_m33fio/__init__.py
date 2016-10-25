@@ -4164,6 +4164,10 @@ class M33FioPlugin(
 					# Stop printing
 					self._printer.cancel_print()
 					
+					# Wait until printer is done printing
+					while self._printer.is_printing() :
+						time.sleep(0.01)
+					
 					# Empty command queue
 					self.emptyCommandQueue()
 
@@ -4227,6 +4231,10 @@ class M33FioPlugin(
 	
 					# Stop printing
 					self._printer.cancel_print()
+					
+					# Wait until printer is done printing
+					while self._printer.is_printing() :
+						time.sleep(0.01)
 					
 					# Empty command queue
 					self.emptyCommandQueue()
@@ -4451,6 +4459,10 @@ class M33FioPlugin(
 						# Pause print
 						if self._printer._comm is not None :
 							self._printer._comm.setPause(True)
+							
+							# Wait until printer is done printing
+							while self._printer.is_printing() :
+								time.sleep(0.01)
 						
 						# Empty command queue
 						self.emptyCommandQueue()
@@ -4524,6 +4536,10 @@ class M33FioPlugin(
 						# Pause print
 						if self._printer._comm is not None :
 							self._printer._comm.setPause(True)
+							
+							# Wait until printer is done printing
+							while self._printer.is_printing() :
+								time.sleep(0.01)
 						
 						# Empty command queue
 						self.emptyCommandQueue()
@@ -5510,6 +5526,10 @@ class M33FioPlugin(
 						self._printer._comm._long_running_command = True
 						self._printer._comm._gcode_G4_sent("G4 P10")
 	
+					time.sleep(0.01)
+				
+				# Wait until printer is done printing
+				while self._printer.is_printing() :
 					time.sleep(0.01)
 
 				# Empty command queue

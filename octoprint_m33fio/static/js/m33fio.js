@@ -5055,6 +5055,9 @@ $(function() {
 			<h1>Movement</h1>\
 		');
 		
+		// Hide heatbed controls
+		$("#control .heatbed, #settings_plugin_m33fio .heatbed, body > div.page-container > div.message .heatbed").css("display", "none");
+		
 		// Open and close control sections
 		if(typeof localStorage.movementControlsOpen === "undefined" || localStorage.movementControlsOpen == "true")
 			$("#control > div.jog-panel.controls").removeClass("closed");

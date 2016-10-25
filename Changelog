@@ -7,6 +7,7 @@ V1.10 October X, 2016
 	* Positioning a model now works with printer profiles that have a circular form factor or a center origin
 	* Model editor displays cylindrical printing area when printer profile has a circular form factor
 	* Added grid display to model editor that matches up with the same positioning as the G-code viewer and model viewer grids
+	* Fixed performing standby command when finishing or canceling a print with OctoPrint 1.3.x
 
 V1.9 October 20, 2016
 
