@@ -210,6 +210,72 @@ body > div.modal-scrollable.hideOverflow {
 	display: none !important;
 }
 
+#control div.jog-panel.controls > div > div:nth-of-type(4).show, #control div.jog-panel.controls > div > button:first-of-type.show {
+	display: block !important;
+	position: relative;
+	left: calc(50% + 1px);
+	transform: translateX(-50%);
+}
+
+#control div.jog-panel.controls > div > button:first-of-type {
+	margin-top: 14px;
+	margin-bottom: 10px;
+}
+
+#control div.jog-panel.controls #control-jog-feedrate > button:first-of-type {
+	margin-bottom: 10px;
+}
+
+#control > div.jog-panel.controls div.distance > div.show {
+	width: 225px;
+	display: inline-block;
+}
+
+#control div.jog-panel.controls > div div.slider > .slider-track {
+	position: relative;
+	left: -2px;
+}
+
+#control div.jog-panel.controls > div div.slider .slider-handle {
+	margin-left: -9px;
+}
+
+#control > div.jog-panel.controls div.distance > div.show > button:nth-of-type(2) {
+	margin-left: 0;
+	-webkit-border-bottom-left-radius: 4px;
+	border-bottom-left-radius: 4px;
+	-webkit-border-top-left-radius: 4px;
+	border-top-left-radius: 4px;
+	-moz-border-radius-bottomleft: 4px;
+	-moz-border-radius-topleft: 4px;
+}
+
+#control div.jog-panel.extruder > div div.slider > .slider-track {
+	position: relative;
+	left: -1px;
+}
+
+#control div.jog-panel.extruder > div > div:first-of-type.show {
+	display: block !important;
+}
+
+#control div.jog-panel.extruder > div > div:first-of-type.show ul.dropdown-menu {
+	min-width: auto;
+	width: calc(100% - 2px);
+}
+
+#control div.jog-panel.extruder > div > div:first-of-type > button {
+	width: 100%;
+}
+
+#control div.jog-panel.extruder > div > div:nth-of-type(3).show {
+	display: inline-block !important;
+}
+
+#control div.jog-panel.extruder > div > button:nth-of-type(3).show {
+	display: block !important;
+}
+
 #control div.jog-panel h1 {
 	text-align: center;
 }
@@ -443,7 +509,7 @@ body > div.modal-scrollable.hideOverflow {
 	cursor: default;
 }
 
-.show {
+.show:not(.notMicro3DApplicable) {
 	visibility: visible !important;
 	opacity: 1 !important;
 }
@@ -455,6 +521,10 @@ body > div.modal-scrollable.hideOverflow {
 #control button.current:not(:disabled) {
 	border-color: rgba(82, 168, 236, 0.8);
 	box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), inset 0 0 8px rgba(82, 168, 236, 0.6);
+}
+
+#control div.custom_section:first-of-type {
+	padding-top: 10px;
 }
 
 body > div.page-container > div.message {
@@ -847,13 +917,28 @@ body > div.page-container > div.message > div > div > span.show {
 	overflow: hidden;
 }
 
-#slicing_configuration_dialog .group > img {
-	width: 12px;
-	height: 12px;
+#slicing_configuration_dialog .group > i {
+	width: 13px;
+	height: 18px;
 	position: absolute;
 	left: 2px;
-	top: 0;
+	top: -6px;
 	cursor: pointer;
+	font-size: 23px;
+	overflow: hidden;
+}
+
+#slicing_configuration_dialog .group > i.edge {
+	top: -5px;
+}
+
+#slicing_configuration_dialog .group > i.icon-caret-up {
+	top: -7px;
+	height: 20px;
+}
+
+#slicing_configuration_dialog .group > i.icon-caret-up.edge {
+	top: -6px;
 }
 
 #slicing_configuration_dialog .group.basic {
@@ -900,7 +985,7 @@ body > div.page-container > div.message > div > div > span.show {
 #slicing_configuration_dialog .group h3 {
 	position: absolute;
 	top: -5px;
-	left: 15px;
+	left: 16px;
 	font-size: 12px;
 	font-weight: bold;
 	cursor: default;
@@ -1322,6 +1407,7 @@ body > div.page-container > div.message > div > div > span.show {
 	width: 15px;
 	cursor: pointer;
 	text-align: center;
+	font-family: FontAwesome;
 }
 
 #slicing_configuration_dialog.model .modal-extra > div button {
@@ -1397,18 +1483,21 @@ body > div.page-container > div.message > div > div > span.show {
 	cursor: default;
 }
 
-#control > div.jog-panel > img {
+#control > div.jog-panel > i {
 	width: 20px;
 	height: 20px;
 	position: absolute;
-	bottom: -14px;
+	bottom: -15px;
 	left: calc(50% - 10px);
 	cursor: pointer;
 	z-index: 1;
 	transition: bottom 0.3s ease-out;
+	font-size: 32px;
+	line-height: 17px;
+	overflow: hidden;
 }
 
-#control > div.jog-panel.closed > img {
+#control > div.jog-panel.closed > i {
 	bottom: -6px;
 }
 
@@ -1460,10 +1549,74 @@ body > div.page-container > div.message > div > div > span.show {
 	background-image: url("../img/graph-background.png");
 }
 
+#model > div {
+	height: 500px;
+	padding-bottom: 8px;
+	padding-top: 6px;
+}
+
+#model > div > div {
+	border: 1px solid rgba(0, 0, 0,0.15);
+	background-color: #f5f5f5;
+	height: 100%;
+	border-radius: 4px;
+	position: relative;
+	overflow: hidden;
+}
+
+#model .cover {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(255, 255, 255, 0.8);
+	visibility: hidden;
+	opacity: 0;
+	z-index: 1;
+	transition: visibility 0.2s linear, opacity 0.2s linear;
+	border-radius: 6px;
+}
+
+#model .cover * {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+	font-size: 17px;
+	color: #222;
+	margin: 21px 0 0 0;
+	padding: 0;
+	cursor: default;
+	white-space: nowrap;
+}
+
+#model .cover img {
+	margin-top: -21px;
+}
+
+#model .cover.noLoading * {
+	margin: 0;
+}
+
+
+#model .cover.noLoading img {
+	display: none;
+}
+
+#files div.gcode_files div.entry .action-buttons div.btn-mini.viewModel {
+	width: 11px;
+}
+
+.icon-view:before {
+	content: "\F06E";
+}
+
 .noTransition {
 	transition: none !important;
 }
 
-.notUsingAMicro3DPrinter, .usingAMicro3DPrinter, .notUsingAHeatbed, .dontShow {
+.notUsingAMicro3DPrinter, .usingAMicro3DPrinter, .notUsingAHeatbed, .dontShow, .noPrinterModel {
 	display: none !important;
 }

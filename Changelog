@@ -1,5 +1,15 @@
 Changelog:
 
+V1.10 October 25, 2016
+
+	* Incorporates model viewer into OctoPrint
+	* All controls go back to their default behaviour when not using a Micro 3D printer
+	* Positioning a model now works with printer profiles that have a circular form factor or a center origin
+	* Model editor displays cylindrical printing area when printer profile has a circular form factor
+	* Added grid display to model editor that matches up with the same positioning as the G-code viewer and model viewer grids
+	* Fixed performing standby command when finishing or canceling a print with OctoPrint 1.3.x
+	* Changed readme to show how M33 Fio isn't just for people using a Micro 3D printer
+
 V1.9 October 20, 2016
 
 	* Provides iMe V00.00.01.23 printer firmware

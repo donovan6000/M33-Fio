@@ -655,18 +655,21 @@ class M33FioPlugin(
 	
 				# Update serial ports
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Update Serial Ports"))
-	
-		# Go through all connected serial ports
-		for port in newestSerialPortsList :
 		
-			# Get device
-			device = port[2].upper()
+		# Check if using a Micro 3D printer
+		if not self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
+	
+			# Go through all connected serial ports
+			for port in newestSerialPortsList :
+		
+				# Get device
+				device = port[2].upper()
 			
-			# Check if port contains the correct VID and PID
-			if device.startswith("USB VID:PID=1A86:7523") :
+				# Check if port contains the correct VID and PID
+				if device.startswith("USB VID:PID=1A86:7523") :
 			
-				# Return serial port
-				return port[0]
+					# Return serial port
+					return port[0]
 		
 		# Return none
 		return None
@@ -4164,6 +4167,10 @@ class M33FioPlugin(
 					# Stop printing
 					self._printer.cancel_print()
 					
+					# Wait until printer is done printing
+					while self._printer.is_printing() :
+						time.sleep(0.01)
+					
 					# Empty command queue
 					self.emptyCommandQueue()
 
@@ -4227,6 +4234,10 @@ class M33FioPlugin(
 	
 					# Stop printing
 					self._printer.cancel_print()
+					
+					# Wait until printer is done printing
+					while self._printer.is_printing() :
+						time.sleep(0.01)
 					
 					# Empty command queue
 					self.emptyCommandQueue()
@@ -4451,6 +4462,10 @@ class M33FioPlugin(
 						# Pause print
 						if self._printer._comm is not None :
 							self._printer._comm.setPause(True)
+							
+							# Wait until printer is done printing
+							while self._printer.is_printing() :
+								time.sleep(0.01)
 						
 						# Empty command queue
 						self.emptyCommandQueue()
@@ -4524,6 +4539,10 @@ class M33FioPlugin(
 						# Pause print
 						if self._printer._comm is not None :
 							self._printer._comm.setPause(True)
+							
+							# Wait until printer is done printing
+							while self._printer.is_printing() :
+								time.sleep(0.01)
 						
 						# Empty command queue
 						self.emptyCommandQueue()
@@ -5510,6 +5529,10 @@ class M33FioPlugin(
 						self._printer._comm._long_running_command = True
 						self._printer._comm._gcode_G4_sent("G4 P10")
 	
+					time.sleep(0.01)
+				
+				# Wait until printer is done printing
+				while self._printer.is_printing() :
 					time.sleep(0.01)
 
 				# Empty command queue
@@ -9878,7 +9901,7 @@ class M33FioPlugin(
 				return flask.jsonify(dict(value = "Error"))
 			
 			# Set if model was modified
-			modelModified = "Model Name" in flask.request.values and "Model Location" in flask.request.values and "Model Path" in flask.request.values and "Model Center X" in flask.request.values and "Model Center Y" in flask.request.values
+			modelModified = "Model Name" in flask.request.values and "Model Location" in flask.request.values and "Model Path" in flask.request.values
 	
 			# Check if slicer profile, model name, or model path contain path traversal
 			if "../" in flask.request.values["Slicer Profile Name"] or (modelModified and ("../" in flask.request.values["Model Name"] or "../" in flask.request.values["Model Path"])) :
@@ -9949,6 +9972,13 @@ class M33FioPlugin(
 				"Printer Profile Content": copy.deepcopy(printerProfile)
 			}
 			
+			# Check if modifying model
+			if modelModified :
+			
+				# Save model locations
+				self.slicerChanges["Model Location"] = modelLocation
+				self.slicerChanges["Model Temporary"] = modelTemp
+			
 			# Check if slicer is Cura
 			if flask.request.values["Slicer Name"] == "cura" :
 			
@@ -9990,7 +10020,6 @@ class M33FioPlugin(
 				search = re.findall("machine_center_is_zero\s*?=\s*?(\S+)", flask.request.values["Slicer Profile Content"])
 				if len(search) :
 					if str(search[0]).lower() == "true" :
-						printerProfile["volume"]["formFactor"] = "circular"
 						printerProfile["volume"]["origin"] = "center"
 					else :
 						printerProfile["volume"]["formFactor"] = "rectangular"
@@ -10023,28 +10052,6 @@ class M33FioPlugin(
 				search = re.findall("nozzle_diameter\s*?=\s*?(\d+.?\d*)", flask.request.values["Slicer Profile Content"])
 				if len(search) :
 					printerProfile["extruder"]["nozzleDiameter"] = float(search[0])
-			
-			# Check if modifying model
-			if modelModified :
-			
-				# Save model locations
-				self.slicerChanges["Model Location"] = modelLocation
-				self.slicerChanges["Model Temporary"] = modelTemp
-				
-				# Adjust printer profile so that its center is equal to the model's center
-				printerProfile["volume"]["width"] += float(flask.request.values["Model Center X"]) * 2
-				printerProfile["volume"]["depth"] += float(flask.request.values["Model Center Y"]) * 2
-			
-			# Otherwise check if using a Micro 3D printer
-			elif not self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
-			
-				# Set extruder center
-				extruderCenterX = (self.bedLowMaxX + self.bedLowMinX) / 2
-				extruderCenterY = (self.bedLowMaxY + self.bedLowMinY + 14.0) / 2
-				
-				# Adjust printer profile so that its center is equal to the model's center
-				printerProfile["volume"]["width"] += (-(extruderCenterX - (self.bedLowMaxX + self.bedLowMinX) / 2) + self.bedLowMinX) * 2
-				printerProfile["volume"]["depth"] += (extruderCenterY - (self.bedLowMaxY + self.bedLowMinY) / 2 + self.bedLowMinY) * 2
 			
 			# Apply printer profile changes
 			self._printer_profile_manager.save(printerProfile, True)
