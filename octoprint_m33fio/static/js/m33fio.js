@@ -3423,7 +3423,7 @@ $(function() {
 
 								// Display scale values
 								for(var i = 0; i < 3; i++)
-									$("#slicing_configuration_dialog .modal-extra div.values p span:not(.axis)").eq(i).text(modelEditor.scaleLock[i] ? '\uF023' : '\uF13E').attr("title", modelEditor.scaleLock[i] ? "Lock" : "Unlock");
+									$("#slicing_configuration_dialog .modal-extra div.values p span:not(.axis)").eq(i).text(modelEditor.scaleLock[i] ? '\uF023' : '\uF13E').attr("title", modelEditor.scaleLock[i] ? "Unlock" : "Lock");
 								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"x\"]").val(model.scale.x.toFixed(3)).attr("min", '0');
 								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"y\"]").val(model.scale.y.toFixed(3)).attr("min", '0');
 								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"z\"]").val(model.scale.z.toFixed(3)).attr("min", '0');
@@ -4603,8 +4603,6 @@ $(function() {
 		
 		// Preload all images
 		preload(
-			PLUGIN_BASEURL + "m33fio/static/img/down-arrow.png",
-			PLUGIN_BASEURL + "m33fio/static/img/up-arrow.png",
 			PLUGIN_BASEURL + "m33fio/static/img/logo.png",
 			PLUGIN_BASEURL + "m33fio/static/img/hengLiXin.png",
 			PLUGIN_BASEURL + "m33fio/static/img/listener.png",
@@ -5047,7 +5045,7 @@ $(function() {
 		
 		// Add section control arrows
 		$("#control > div.jog-panel").append('\
-			<img>\
+			<i></i>\
 		');
 		
 		// Add header to movement controls
@@ -5095,16 +5093,16 @@ $(function() {
 			$("#control > div.jog-panel.eeprom").removeClass("closed");
 		
 		// Set section control arrow images
-		$("#control > div.jog-panel > img").each(function() {
+		$("#control > div.jog-panel > i").each(function() {
 		
 			if($(this).parent().hasClass("closed"))
-				$(this).attr("src", PLUGIN_BASEURL + "m33fio/static/img/down-arrow.png");
+				$(this).removeClass("icon-caret-up").addClass("icon-caret-down");
 			else
-				$(this).attr("src", PLUGIN_BASEURL + "m33fio/static/img/up-arrow.png");
+				$(this).removeClass("icon-caret-down").addClass("icon-caret-up");
 		});
 		
 		// Mouse move control arrow event
-		$("#control > div.jog-panel > img").mousemove(function() {
+		$("#control > div.jog-panel > i").mousemove(function() {
 
 			// Set tooltip
 			$(this).attr("title", $(this).parent().hasClass("closed") ? "Open" : "Close");
@@ -5151,7 +5149,7 @@ $(function() {
 				}, 0);
 				
 				// Change arrow image
-				$(this).attr("src", PLUGIN_BASEURL + "m33fio/static/img/up-arrow.png");
+				$(this).removeClass("icon-caret-down").addClass("icon-caret-up");
 			}
 			else {
 			
@@ -5164,7 +5162,7 @@ $(function() {
 				setTimeout(function() {
 				
 					// Change arrow image
-					$(this).attr("src", PLUGIN_BASEURL + "m33fio/static/img/down-arrow.png");
+					$(this).removeClass("icon-caret-up").addClass("icon-caret-down");
 			
 					// Transition into no height
 					location.parent().addClass("closed");
@@ -5188,7 +5186,7 @@ $(function() {
 				}, 50);
 				
 				// Change arrow image
-				$(this).attr("src", PLUGIN_BASEURL + "m33fio/static/img/down-arrow.png");
+				$(this).removeClass("icon-caret-up").addClass("icon-caret-down");
 			}
 			
 			// Update title
@@ -6124,7 +6122,7 @@ $(function() {
 														<div class="modal-extra">\
 															<div class="groups">\
 																<div class="group basic">\
-																	<img>\
+																	<i></i>\
 																	<h3>Basic Settings</h3>\
 																	<p class="quality"></p>\
 																	<div class="quality">\
@@ -6175,7 +6173,7 @@ $(function() {
 																	</div>\
 																</div>\
 																<div class="group manual">\
-																	<img>\
+																	<i></i>\
 																	<h3>Manual Settings</h3>\
 																	<div class="wrapper">\
 																		<div title="Printing temperature" class="option notMicro3d">\
@@ -6286,7 +6284,7 @@ $(function() {
 																	</div>\
 																</div>\
 																<div class="group advanced">\
-																	<img>\
+																	<i></i>\
 																	<h3>Advanced Settings</h3>\
 																	<div>\
 																		<aside></aside>\
@@ -6356,8 +6354,14 @@ $(function() {
 													$("#slicing_configuration_dialog .modal-extra textarea").val(addCommentsToText(data));
 													$("#slicing_configuration_dialog").addClass(slicerName);
 													
-													// Check if using Firefox
-													if(navigator.userAgent.toLowerCase().indexOf("firefox") != -1)
+													// Check if using Edge
+													if(navigator.userAgent.toLowerCase().indexOf("edge") != -1)
+	
+														// Fix Edge specific CSS issues
+														$("#slicing_configuration_dialog .group > i").addClass("edge");
+													
+													// Otherwise check if using Firefox
+													else if(navigator.userAgent.toLowerCase().indexOf("firefox") != -1)
 	
 														// Fix Firefox specific CSS issues
 														$("#slicing_configuration_dialog .group.advanced > span, #slicing_configuration_dialog .group.advanced textarea").addClass("firefox");
@@ -6913,19 +6917,19 @@ $(function() {
 										
 													// Open and close setting groups
 													if(typeof localStorage.basicSettingsOpen === "undefined" || localStorage.basicSettingsOpen == "true")
-														$("#slicing_configuration_dialog.profile .modal-extra div.group.basic").addClass("noTransition").removeClass("closed").children("img").attr("src", PLUGIN_BASEURL + "m33fio/static/img/up-arrow.png").attr("title", "Close");
+														$("#slicing_configuration_dialog.profile .modal-extra div.group.basic").addClass("noTransition").removeClass("closed").children("i").removeClass("icon-caret-down").addClass("icon-caret-up").attr("title", "Close");
 													else
-														$("#slicing_configuration_dialog.profile .modal-extra div.group.basic").addClass("noTransition closed").children("img").attr("src", PLUGIN_BASEURL + "m33fio/static/img/down-arrow.png").attr("title", "Open");
+														$("#slicing_configuration_dialog.profile .modal-extra div.group.basic").addClass("noTransition closed").children("i").removeClass("icon-caret-up").addClass("icon-caret-down").attr("title", "Open");
 	
 													if(typeof localStorage.manualSettingsOpen === "undefined" || localStorage.manualSettingsOpen == "false")
-														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual").addClass("noTransition closed").children("img").attr("src", PLUGIN_BASEURL + "m33fio/static/img/down-arrow.png").attr("title", "Open");
+														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual").addClass("noTransition closed").children("i").removeClass("icon-caret-up").addClass("icon-caret-down").attr("title", "Open");
 													else
-														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual").addClass("noTransition").removeClass("closed").children("img").attr("src", PLUGIN_BASEURL + "m33fio/static/img/up-arrow.png").attr("title", "Close");
+														$("#slicing_configuration_dialog.profile .modal-extra div.group.manual").addClass("noTransition").removeClass("closed").children("i").removeClass("icon-caret-down").addClass("icon-caret-up").attr("title", "Close");
 										
 													if(typeof localStorage.advancedSettingsOpen === "undefined" || localStorage.advancedSettingsOpen == "false")
-														$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced").addClass("noTransition closed").children("img").attr("src", PLUGIN_BASEURL + "m33fio/static/img/down-arrow.png").attr("title", "Open");
+														$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced").addClass("noTransition closed").children("i").removeClass("icon-caret-up").addClass("icon-caret-down").attr("title", "Open");
 													else {
-														$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced").addClass("noTransition").removeClass("closed").children("img").attr("src", PLUGIN_BASEURL + "m33fio/static/img/up-arrow.png").attr("title", "Close");
+														$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced").addClass("noTransition").removeClass("closed").children("i").removeClass("icon-caret-down").addClass("icon-caret-up").attr("title", "Close");
 														$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced > span").css("display", "block");
 													}
 													
@@ -6942,7 +6946,7 @@ $(function() {
 													function openAndCloseGroup(group, event) {
 													
 														// Disable opening and closing groups
-														$("#slicing_configuration_dialog.profile .modal-extra div.group > img").off("click");
+														$("#slicing_configuration_dialog.profile .modal-extra div.group > i").off("click");
 														
 														// Save current height and scroll
 														var currentHeight = $("#slicing_configuration_dialog.profile").css("height");
@@ -6972,7 +6976,7 @@ $(function() {
 															
 															// Open or close group
 															if(group.hasClass("closed")) {
-																group.removeClass("closed").children("img").attr("src", PLUGIN_BASEURL + "m33fio/static/img/up-arrow.png").attr("title", "Close");
+																group.removeClass("closed").children("i").removeClass("icon-caret-down").addClass("icon-caret-up").attr("title", "Close");
 						
 																 if(group.hasClass("advanced"))
 																	setTimeout(function() {
@@ -6988,7 +6992,7 @@ $(function() {
 																	localStorage.advancedSettingsOpen = "true";
 															}
 															else {
-																group.addClass("closed").children("img").attr("src", PLUGIN_BASEURL + "m33fio/static/img/down-arrow.png").attr("title", "Open");
+																group.addClass("closed").children("i").removeClass("icon-caret-up").addClass("icon-caret-down").attr("title", "Open");
 						
 																if(group.hasClass("advanced"))
 																	setTimeout(function() {
@@ -7013,7 +7017,7 @@ $(function() {
 																$("#slicing_configuration_dialog.profile").removeClass("transitionHeight");
 																
 																// Enable opening and closing groups
-																$("#slicing_configuration_dialog.profile .modal-extra div.group > img").click(function(event) {
+																$("#slicing_configuration_dialog.profile .modal-extra div.group > i").click(function(event) {
 									
 																	// Open and close group
 																	openAndCloseGroup($(this).parent(), event);
@@ -7023,7 +7027,7 @@ $(function() {
 													}
 													
 													// Expand/collapse group
-													$("#slicing_configuration_dialog.profile .modal-extra div.group > img").click(function(event) {
+													$("#slicing_configuration_dialog.profile .modal-extra div.group > i").click(function(event) {
 										
 														// Open and close group
 														openAndCloseGroup($(this).parent(), event);
@@ -8314,7 +8318,7 @@ $(function() {
 																	if($(this).text() == '\uF13E') {
 																	
 																		// Update image and title
-																		$(this).text('\uF023').attr("title", "Lock");
+																		$(this).text('\uF023').attr("title", "Unlock");
 																		
 																		// Update scale lock
 																		for(var i = 0; i < 3; i++)
@@ -8328,7 +8332,7 @@ $(function() {
 																	else {
 																	
 																		// Update image and title
-																		$(this).text('\uF13E').attr("title", "Unlock");
+																		$(this).text('\uF13E').attr("title", "Lock");
 																		
 																		// Update scale lock
 																		for(var i = 0; i < 3; i++)
@@ -14847,7 +14851,7 @@ $(function() {
 		self.onStartupComplete = function() {
 		
 			// Add titles to buttons that weren't loaded before
-			$("#control div.jog-panel.controls > div > button:first-of-type").attr("title", "Sets feed rate to the specified amount");
+			$("#control div.jog-panel.controls > div > button:first-of-type, #control div.jog-panel.controls #control-jog-feedrate > button:first-of-type").attr("title", "Sets feed rate to the specified amount");
 			$("#control div.jog-panel.extruder > div > button:nth-of-type(3)").attr("title", "Sets flow rate to the specified amount");
 			$("#control-distance001").attr("title", "Sets extruder's position adjustment to 0.01mm");
 			$("#control-distance01").attr("title", "Sets extruder's position adjustment to 0.1mm");
@@ -14857,7 +14861,7 @@ $(function() {
 			$("#control div.jog-panel.extruder > div > div:first-of-type").attr("title", "Sets tool to specified value");
 		
 			// Make controls not Micro 3D applicable
-			$("#control div.jog-panel.extruder > div > div:first-of-type, #control div.jog-panel.extruder > div > div:nth-of-type(3), #control div.jog-panel.extruder > div > button:nth-of-type(3), #control div.jog-panel.controls > div > div:nth-of-type(4), #control div.jog-panel.controls > div > button:first-of-type, #control > div.jog-panel.controls div.distance > div").addClass("notMicro3DApplicable");
+			$("#control div.jog-panel.extruder > div > div:first-of-type, #control div.jog-panel.extruder > div > div:nth-of-type(3), #control div.jog-panel.extruder > div > button:nth-of-type(3), #control div.jog-panel.controls > div > div:nth-of-type(4), #control div.jog-panel.controls > div > button:first-of-type, #control div.jog-panel.controls #control-jog-feedrate > button:first-of-type, #control > div.jog-panel.controls div.distance > div").addClass("notMicro3DApplicable");
 			
 			// Update webcam
 			updateWebcam();

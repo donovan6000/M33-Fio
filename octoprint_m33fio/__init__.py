@@ -655,18 +655,21 @@ class M33FioPlugin(
 	
 				# Update serial ports
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Update Serial Ports"))
-	
-		# Go through all connected serial ports
-		for port in newestSerialPortsList :
 		
-			# Get device
-			device = port[2].upper()
+		# Check if using a Micro 3D printer
+		if not self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
+	
+			# Go through all connected serial ports
+			for port in newestSerialPortsList :
+		
+				# Get device
+				device = port[2].upper()
 			
-			# Check if port contains the correct VID and PID
-			if device.startswith("USB VID:PID=1A86:7523") :
+				# Check if port contains the correct VID and PID
+				if device.startswith("USB VID:PID=1A86:7523") :
 			
-				# Return serial port
-				return port[0]
+					# Return serial port
+					return port[0]
 		
 		# Return none
 		return None

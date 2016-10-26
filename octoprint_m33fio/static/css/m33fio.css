@@ -222,6 +222,10 @@ body > div.modal-scrollable.hideOverflow {
 	margin-bottom: 10px;
 }
 
+#control div.jog-panel.controls #control-jog-feedrate > button:first-of-type {
+	margin-bottom: 10px;
+}
+
 #control > div.jog-panel.controls div.distance > div.show {
 	width: 225px;
 	display: inline-block;
@@ -517,6 +521,10 @@ body > div.modal-scrollable.hideOverflow {
 #control button.current:not(:disabled) {
 	border-color: rgba(82, 168, 236, 0.8);
 	box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), inset 0 0 8px rgba(82, 168, 236, 0.6);
+}
+
+#control div.custom_section:first-of-type {
+	padding-top: 10px;
 }
 
 body > div.page-container > div.message {
@@ -909,13 +917,28 @@ body > div.page-container > div.message > div > div > span.show {
 	overflow: hidden;
 }
 
-#slicing_configuration_dialog .group > img {
-	width: 12px;
-	height: 12px;
+#slicing_configuration_dialog .group > i {
+	width: 13px;
+	height: 18px;
 	position: absolute;
 	left: 2px;
-	top: 0;
+	top: -6px;
 	cursor: pointer;
+	font-size: 23px;
+	overflow: hidden;
+}
+
+#slicing_configuration_dialog .group > i.edge {
+	top: -5px;
+}
+
+#slicing_configuration_dialog .group > i.icon-caret-up {
+	top: -7px;
+	height: 20px;
+}
+
+#slicing_configuration_dialog .group > i.icon-caret-up.edge {
+	top: -6px;
 }
 
 #slicing_configuration_dialog .group.basic {
@@ -962,7 +985,7 @@ body > div.page-container > div.message > div > div > span.show {
 #slicing_configuration_dialog .group h3 {
 	position: absolute;
 	top: -5px;
-	left: 15px;
+	left: 16px;
 	font-size: 12px;
 	font-weight: bold;
 	cursor: default;
@@ -1460,18 +1483,21 @@ body > div.page-container > div.message > div > div > span.show {
 	cursor: default;
 }
 
-#control > div.jog-panel > img {
+#control > div.jog-panel > i {
 	width: 20px;
 	height: 20px;
 	position: absolute;
-	bottom: -14px;
+	bottom: -15px;
 	left: calc(50% - 10px);
 	cursor: pointer;
 	z-index: 1;
 	transition: bottom 0.3s ease-out;
+	font-size: 32px;
+	line-height: 17px;
+	overflow: hidden;
 }
 
-#control > div.jog-panel.closed > img {
+#control > div.jog-panel.closed > i {
 	bottom: -6px;
 }
 

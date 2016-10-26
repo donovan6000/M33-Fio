@@ -4,7 +4,7 @@
 ### Description
 M33 Fio is a general purpose plugin for [OctoPrint](http://octoprint.org/) that extends its capabilities to include many useful feature like the ability to use a Micro 3D printer, modify a model before printing it, host a webcam stream, and much more.
 
-The latest version of M33 Fio is V1.10 released on October Xth, 2016, and an entire changelog for it can be found [here](https://raw.githubusercontent.com/donovan6000/M33-Fio/master/Changelog).
+The latest version of M33 Fio is V1.10 released on October 25th, 2016, and an entire changelog for it can be found [here](https://raw.githubusercontent.com/donovan6000/M33-Fio/master/Changelog).
 
 ### Features
 * Adds a model viewer tab to OctoPrint's interface where any uploaded model can be viewed
@@ -38,11 +38,13 @@ By default M33 Fio is setup to make OctoPrint fully compatible with the Micro 3D
 ### Images
 The slicer profile editor lets you quickly specify the quality and fill options of a print while still giving you the ability to fine tune every available setting.
 ![alt text](https://raw.githubusercontent.com/donovan6000/M33-Fio/master/images/profile%20editor.png "Profile Editor")
-The model editor allows manipulating the model before it's sliced. It can perform all the standard operations like translating, rotating, and scaling models.
-![alt text](https://raw.githubusercontent.com/donovan6000/M33-Fio/master/images/model%20editor%20new.png "Model Editor")
-The model editor can also clone and import other models to allow printing more than one model at a time.
+The model editor allows manipulating a model before it's sliced. It can perform all the standard operations like moving, rotating, and scaling.
+![alt text](https://raw.githubusercontent.com/donovan6000/M33-Fio/master/images/model%20editor.png "Model Editor")
+When using a Micro 3D printer, the model editor will change to visualize the printer's dimensions and boundaries.
+![alt text](https://raw.githubusercontent.com/donovan6000/M33-Fio/master/images/micro%203d.png "Model Editor")
+It's easy to print more than one model at a time thanks to the model editor's cloning and importing features.
 ![alt text](https://raw.githubusercontent.com/donovan6000/M33-Fio/master/images/clone.png "Clone And Import Models")
-And the model editor can even cut and merge models to make even models that are too large printable.
+It's even possible to cut and merge models to allow printing files that couldn't normally be printed.
 ![alt text](https://raw.githubusercontent.com/donovan6000/M33-Fio/master/images/cut.png "Cut And Merge Models")
 The model viewer allows easily seeing how any uploaded model looks.
 ![alt text](https://raw.githubusercontent.com/donovan6000/M33-Fio/master/images/model%20viewer.png "Model Viewer")
