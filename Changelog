@@ -1,5 +1,9 @@
 Changelog:
 
+V1.11 October X, 2016
+
+	* Heatbed will start heating up after moving extruder into the wipe corner
+
 V1.10 October 25, 2016
 
 	* Incorporates model viewer into OctoPrint

@@ -1754,15 +1754,16 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 					// Home extruder
 					newCommands.push(Command("G28", PREPARATION, PREPARATION));
 
-				// Add heatbed command if using a heatbed
-				if(usingHeatbed)
-					newCommands.push(Command("M190 S" + to_string(heatbedTemperature), PREPARATION, PREPARATION));
-
 				// Check if one of the corners wasn't set
 				if(!cornerX || !cornerY) {
-
+				
 					// Prepare extruder the standard way
 					newCommands.push(Command("M18", PREPARATION, PREPARATION));
+				
+					// Add heatbed command if using a heatbed
+					if(usingHeatbed)
+						newCommands.push(Command("M190 S" + to_string(heatbedTemperature), PREPARATION, PREPARATION));
+
 					newCommands.push(Command("M109 S" + to_string(filamentTemperature), PREPARATION, PREPARATION));
 					if(temperatureStabalizationDelay)
 						newCommands.push(Command("G4 S" + to_string(temperatureStabalizationDelay), PREPARATION, PREPARATION));
@@ -1774,10 +1775,15 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 				
 				// Otherwise
 				else {
-
+				
 					// Prepare extruder by leaving excess at corner
 					newCommands.push(Command("G0 X" + to_string(54 + cornerX) + " Y" + to_string(50 + cornerY) + " F1800", PREPARATION, PREPARATION));
 					newCommands.push(Command("M18", PREPARATION, PREPARATION));
+					
+					// Add heatbed command if using a heatbed
+					if(usingHeatbed)
+						newCommands.push(Command("M190 S" + to_string(heatbedTemperature), PREPARATION, PREPARATION));
+
 					newCommands.push(Command("M109 S" + to_string(filamentTemperature), PREPARATION, PREPARATION));
 					if(temperatureStabalizationDelay)
 						newCommands.push(Command("G4 S" + to_string(temperatureStabalizationDelay), PREPARATION, PREPARATION));

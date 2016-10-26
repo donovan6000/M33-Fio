@@ -8880,15 +8880,16 @@ class M33FioPlugin(
 						# Home extruder
 						newCommands.append(Command("G28", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 
-					# Add heatbed command if using a heatbed
-					if self.heatbedConnected :
-						newCommands.append(Command("M190 S" + str(self._settings.get_int(["HeatbedTemperature"])), "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
-
 					# Check if one of the corners wasn't set
 					if cornerX == 0 or cornerY == 0 :
-
+					
 						# Prepare extruder the standard way
 						newCommands.append(Command("M18", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					
+						# Add heatbed command if using a heatbed
+						if self.heatbedConnected :
+							newCommands.append(Command("M190 S" + str(self._settings.get_int(["HeatbedTemperature"])), "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+
 						newCommands.append(Command("M109 S" + str(self._settings.get_int(["FilamentTemperature"])), "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 						if self.temperatureStabalizationDelay != 0 :
 							newCommands.append(Command("G4 S" + str(self.temperatureStabalizationDelay), "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
@@ -8899,10 +8900,15 @@ class M33FioPlugin(
 					
 					# Otherwise
 					else :
-
+					
 						# Prepare extruder by leaving excess at corner
 						newCommands.append(Command("G0 X%f Y%f F1800" % (54 + cornerX, 50 + cornerY), "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 						newCommands.append(Command("M18", "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+					
+						# Add heatbed command if using a heatbed
+						if self.heatbedConnected :
+							newCommands.append(Command("M190 S" + str(self._settings.get_int(["HeatbedTemperature"])), "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
+						
 						newCommands.append(Command("M109 S" + str(self._settings.get_int(["FilamentTemperature"])), "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
 						if self.temperatureStabalizationDelay != 0 :
 							newCommands.append(Command("G4 S" + str(self.temperatureStabalizationDelay), "PREPARATION", "MID-PRINT CENTER VALIDATION PREPARATION"))
