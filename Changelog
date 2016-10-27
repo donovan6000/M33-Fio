@@ -3,6 +3,7 @@ Changelog:
 V1.11 October X, 2016
 
 	* Heatbed will start heating up after moving extruder into the wipe corner
+	* Text can be translated into different languages
 
 V1.10 October 25, 2016
 

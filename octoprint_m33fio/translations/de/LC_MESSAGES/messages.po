@@ -1,0 +1,58 @@
+# German translations for OctoPrint-M33Fio.
+# Copyright (C) 2016 The OctoPrint Project
+# This file is distributed under the same license as the OctoPrint-M33Fio
+# project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2016.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: OctoPrint-M33Fio 1.10.2016102705\n"
+"Report-Msgid-Bugs-To: i18n@octoprint.org\n"
+"POT-Creation-Date: 2016-10-27 07:11-0700\n"
+"PO-Revision-Date: 2016-10-27 05:45-0700\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: de\n"
+"Language-Team: de <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.3.4\n"
+
+#: octoprint_m33fio/__init__.py:1047
+msgid "Hosting camera failed"
+msgstr ""
+
+#: octoprint_m33fio/__init__.py:1047
+msgid "Camera Host Status"
+msgstr ""
+
+#: octoprint_m33fio/static/js/m33fio.js:5385
+#: octoprint_m33fio/static/js/m33fio.js:5413
+msgid "This will restart the print job from the beginning."
+msgstr ""
+
+#: octoprint_m33fio/static/js/m33fio.js:14116
+msgid "OK"
+msgstr ""
+
+#: octoprint_m33fio/static/js/m33fio.js:15048
+msgid "Unhandled firmware error"
+msgstr ""
+
+#: octoprint_m33fio/static/js/m33fio.js:15048
+msgid "Unhandled communication error"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_navbar.jinja2:2
+msgid "New"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_navbar.jinja2:3
+msgid "Close"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:3
+msgid "General"
+msgstr ""
+

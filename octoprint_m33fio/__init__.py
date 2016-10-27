@@ -42,6 +42,7 @@ import threading
 import yaml
 import logging
 import logging.handlers
+from flask.ext.babel import gettext
 from .gcode import Gcode
 from .vector import Vector
 
@@ -1043,7 +1044,7 @@ class M33FioPlugin(
 					octoprint.settings.settings().save()
 					
 					# Send message
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Hosting camera failed", header = "Camera Host Status", confirm = True))
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Hosting camera failed"), header = gettext("Camera Host Status"), confirm = True))
 	
 	# Load shared library
 	def loadSharedLibrary(self, isUsable = False) :

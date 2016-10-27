@@ -14073,7 +14073,7 @@ $(function() {
 			
 			// Otherwise check if data is to show message
 			else if(data.value == "Show Message" && typeof data.message !== "undefined" && typeof data.header !== "undefined") {
-			
+				
 				// Check if failed to connect and callback is set
 				if(data.header == "Connection Status" && typeof failedToConnectCallback === "function") {
 			
@@ -14092,7 +14092,7 @@ $(function() {
 				else {
 				
 					// Initialize variables
-					var text = htmlEncode(data.message);
+					var text = htmlEncode(gettext(data.message));
 			
 					// Check if same text is currently being displayed
 					if($("body > div.page-container > div.message").hasClass("show") && $("body > div.page-container > div.message").find("p").eq(0).html() == text)
@@ -14113,7 +14113,7 @@ $(function() {
 					if(typeof data.confirm !== "undefined") {
 				
 						// Display message
-						showMessage(htmlEncode(data.header), text, "OK", function() {
+						showMessage(htmlEncode(gettext(data.header)), text, gettext("OK"), function() {
 					
 							// Hide message
 							hideMessage();
@@ -14124,7 +14124,7 @@ $(function() {
 					else
 				
 						// Display message
-						showMessage(htmlEncode(data.header), text);
+						showMessage(htmlEncode(gettext(data.header)), text);
 				}
 			}
 			
@@ -14849,7 +14849,7 @@ $(function() {
 		
 		// On startup complete
 		self.onStartupComplete = function() {
-		
+			
 			// Add titles to buttons that weren't loaded before
 			$("#control div.jog-panel.controls > div > button:first-of-type, #control div.jog-panel.controls #control-jog-feedrate > button:first-of-type").attr("title", "Sets feed rate to the specified amount");
 			$("#control div.jog-panel.extruder > div > button:nth-of-type(3)").attr("title", "Sets flow rate to the specified amount");
@@ -15045,7 +15045,7 @@ $(function() {
 		self.onEventError = function(payload) {
 		
 			// Check if using an Micro 3D printer and error is an unhandled firmware or communication error
-			if(!self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter() && ($("div.ui-pnotify:last-of-type h4.ui-pnotify-title").text() == "Unhandled firmware error" || $("div.ui-pnotify:last-of-type h4.ui-pnotify-title").text() == "Unhandled communication error"))
+			if(!self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter() && ($("div.ui-pnotify:last-of-type h4.ui-pnotify-title").text() == gettext("Unhandled firmware error") || $("div.ui-pnotify:last-of-type h4.ui-pnotify-title").text() == gettext("Unhandled communication error")))
 			
 				// Remove error
 				$("div.ui-pnotify:last-of-type").remove();
