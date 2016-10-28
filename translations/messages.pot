@@ -7,9 +7,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: OctoPrint-M33Fio 1.10.2016102707\n"
+"Project-Id-Version: OctoPrint-M33Fio 1.19.2016102801\n"
 "Report-Msgid-Bugs-To: i18n@octoprint.org\n"
-"POT-Creation-Date: 2016-10-27 07:11-0700\n"
+"POT-Creation-Date: 2016-10-28 01:29-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,29 +18,273 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.3.4\n"
 
-#: octoprint_m33fio/__init__.py:1047
+#: octoprint_m33fio/__init__.py:731
+msgid "Heatbed removed"
+msgstr ""
+
+#: octoprint_m33fio/__init__.py:731
+msgid "Heatbed has been disconnected"
+msgstr ""
+
+#: octoprint_m33fio/__init__.py:815
+msgid "Heatbed detected"
+msgstr ""
+
+#: octoprint_m33fio/__init__.py:815
+msgid "Heatbed has been connected"
+msgstr ""
+
+#: octoprint_m33fio/__init__.py:831
+msgid "Heatbed error"
+msgstr ""
+
+#: octoprint_m33fio/__init__.py:831
+msgid "Failed to connect to heatbed"
+msgstr ""
+
+#: octoprint_m33fio/__init__.py:1053
 msgid "Hosting camera failed"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:1047
+#: octoprint_m33fio/__init__.py:1053
 msgid "Camera Host Status"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:5385
-#: octoprint_m33fio/static/js/m33fio.js:5413
-msgid "This will restart the print job from the beginning."
+#: octoprint_m33fio/__init__.py:2525
+msgid "Preparing test border print"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:14116
+#: octoprint_m33fio/__init__.py:2525 octoprint_m33fio/__init__.py:2528
+#: octoprint_m33fio/__init__.py:5438
+msgid "Printing Status"
+msgstr ""
+
+#: octoprint_m33fio/__init__.py:2528
+msgid "Preparing backlash calibration print"
+msgstr ""
+
+#: octoprint_m33fio/__init__.py:4923
+msgid "M110 without a line number"
+msgstr ""
+
+#: octoprint_m33fio/__init__.py:4925
+msgid "Cannot cold extrude"
+msgstr ""
+
+#: octoprint_m33fio/__init__.py:4927
+msgid "Cannot calibrate in an unknown state"
+msgstr ""
+
+#: octoprint_m33fio/__init__.py:4929
+msgid "Unknown G-Code"
+msgstr ""
+
+#: octoprint_m33fio/__init__.py:4931
+msgid "Unknown M-Code"
+msgstr ""
+
+#: octoprint_m33fio/__init__.py:4933
+msgid "Unknown command"
+msgstr ""
+
+#: octoprint_m33fio/__init__.py:4935
+msgid "Heater failed"
+msgstr ""
+
+#: octoprint_m33fio/__init__.py:4937
+msgid "Move to large"
+msgstr ""
+
+#: octoprint_m33fio/__init__.py:4939
+msgid ""
+"Printer has been inactive for too long, heater and motors have been "
+"turned off"
+msgstr ""
+
+#: octoprint_m33fio/__init__.py:4941
+msgid "Target address out of range"
+msgstr ""
+
+#: octoprint_m33fio/__init__.py:4943
+msgid "Command cannot run because micro motion chip encountered an error"
+msgstr ""
+
+#: octoprint_m33fio/__init__.py:4945
+msgid "An error has occured"
+msgstr ""
+
+#: octoprint_m33fio/__init__.py:4956 octoprint_m33fio/__init__.py:6046
+#: octoprint_m33fio/__init__.py:6069 octoprint_m33fio/__init__.py:6082
+#: octoprint_m33fio/__init__.py:6100 octoprint_m33fio/__init__.py:6271
+msgid "Error Status"
+msgstr ""
+
+#: octoprint_m33fio/__init__.py:5438
+msgid "Collecting print information"
+msgstr ""
+
+#: octoprint_m33fio/__init__.py:5493
+msgid "Print failed"
+msgstr ""
+
+#: octoprint_m33fio/__init__.py:5493
+msgid ""
+"Could not print the file. The dimensions of the model go outside the "
+"bounds of the printer."
+msgstr ""
+
+#: octoprint_m33fio/__init__.py:5505 octoprint_m33fio/__init__.py:5511
+#: octoprint_m33fio/__init__.py:5517 octoprint_m33fio/__init__.py:7819
+#: octoprint_m33fio/__init__.py:7825 octoprint_m33fio/__init__.py:7831
+msgid "Print warning"
+msgstr ""
+
+#: octoprint_m33fio/__init__.py:5505 octoprint_m33fio/__init__.py:7819
+msgid ""
+"No fan speed has been detected in this file which could cause the print "
+"to fail"
+msgstr ""
+
+#: octoprint_m33fio/__init__.py:5511 octoprint_m33fio/__init__.py:7825
+msgid "This file uses mid-print filament change commands"
+msgstr ""
+
+#: octoprint_m33fio/__init__.py:5517 octoprint_m33fio/__init__.py:7831
+msgid "Object too large to center on print bed"
+msgstr ""
+
+#: octoprint_m33fio/__init__.py:5812 octoprint_m33fio/__init__.py:10210
+msgid ""
+"No Micro 3D printer detected. If your not using a Micro 3D printer then "
+"make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D "
+"printer\" setting. Otherwise try cycling the printer's power and try "
+"again."
+msgstr ""
+
+#: octoprint_m33fio/__init__.py:5812 octoprint_m33fio/__init__.py:5831
+#: octoprint_m33fio/__init__.py:5843 octoprint_m33fio/__init__.py:5866
+#: octoprint_m33fio/__init__.py:5904 octoprint_m33fio/__init__.py:5926
+#: octoprint_m33fio/__init__.py:5935 octoprint_m33fio/__init__.py:5958
+#: octoprint_m33fio/__init__.py:5967 octoprint_m33fio/__init__.py:6390
+#: octoprint_m33fio/__init__.py:6399 octoprint_m33fio/__init__.py:6440
+#: octoprint_m33fio/__init__.py:6458 octoprint_m33fio/__init__.py:6483
+#: octoprint_m33fio/__init__.py:6533 octoprint_m33fio/__init__.py:6597
+#: octoprint_m33fio/__init__.py:6616 octoprint_m33fio/__init__.py:10210
+#: octoprint_m33fio/__init__.py:10239 octoprint_m33fio/__init__.py:10254
+msgid "Connection Status"
+msgstr ""
+
+#: octoprint_m33fio/__init__.py:5831 octoprint_m33fio/__init__.py:5866
+#: octoprint_m33fio/__init__.py:5904 octoprint_m33fio/__init__.py:5926
+#: octoprint_m33fio/__init__.py:5958 octoprint_m33fio/__init__.py:5967
+#: octoprint_m33fio/__init__.py:6390 octoprint_m33fio/__init__.py:6399
+#: octoprint_m33fio/__init__.py:6440 octoprint_m33fio/__init__.py:6483
+#: octoprint_m33fio/__init__.py:6597 octoprint_m33fio/__init__.py:6616
+#: octoprint_m33fio/__init__.py:10239
+msgid ""
+"Unable to connect to the printer. If your not using a Micro 3D printer "
+"then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D "
+"printer\" setting. Otherwise try cycling the printer's power and try "
+"again."
+msgstr ""
+
+#: octoprint_m33fio/__init__.py:6046
+msgid "Setting fan failed"
+msgstr ""
+
+#: octoprint_m33fio/__init__.py:6069
+msgid "Updating fan settings failed"
+msgstr ""
+
+#: octoprint_m33fio/__init__.py:6082
+msgid "Updating extruder current failed"
+msgstr ""
+
+#: octoprint_m33fio/__init__.py:6100
+msgid "Updating version changes failed"
+msgstr ""
+
+#: octoprint_m33fio/__init__.py:6271
+msgid "Updating EEPROM values failed"
+msgstr ""
+
+#: octoprint_m33fio/__init__.py:6284 octoprint_m33fio/__init__.py:6300
+#: octoprint_m33fio/__init__.py:6309 octoprint_m33fio/__init__.py:6316
+#: octoprint_m33fio/__init__.py:6342 octoprint_m33fio/__init__.py:6344
+#: octoprint_m33fio/__init__.py:6361 octoprint_m33fio/__init__.py:6370
+#: octoprint_m33fio/__init__.py:6377
+msgid "Firmware Status"
+msgstr ""
+
+#: octoprint_m33fio/__init__.py:6300 octoprint_m33fio/__init__.py:6361
+msgid "Updating firmware"
+msgstr ""
+
+#: octoprint_m33fio/__init__.py:6309 octoprint_m33fio/__init__.py:6370
+msgid "Updating firmware failed"
+msgstr ""
+
+#: octoprint_m33fio/__init__.py:6316 octoprint_m33fio/__init__.py:6377
+msgid "Updating firmware was successful"
+msgstr ""
+
+#: octoprint_m33fio/__init__.py:7731
+msgid "Collecting Print Information …"
+msgstr ""
+
+#: octoprint_m33fio/__init__.py:7792
+msgid "Slicing failed"
+msgstr ""
+
+#: octoprint_m33fio/__init__.py:7792
+msgid ""
+"Could not slice the file. The dimensions of the model go outside the "
+"bounds of the printer."
+msgstr ""
+
+#: octoprint_m33fio/__init__.py:7798
+msgid ""
+"Could not upload the file. The dimensions of the model go outside the "
+"bounds of the printer."
+msgstr ""
+
+#: octoprint_m33fio/__init__.py:7842
+msgid "Pre-processing …"
+msgstr ""
+
+#: octoprint_m33fio/__init__.py:8612
+#, python-format
+msgid "Pre-processing … (%(percent)s%)"
+msgstr ""
+
+#: octoprint_m33fio/static/js/m33fio.js:14093
+#, python-format
+msgid "You don't have read/write access to %(port)s"
+msgstr ""
+
+#: octoprint_m33fio/static/js/m33fio.js:14136
 msgid "OK"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:15048
-msgid "Unhandled firmware error"
+#: octoprint_m33fio/static/js/m33fio.js:14158
+#, python-format
+msgid ""
+"Firmware is corrupt. Update to %(firmwareType)s firmware version "
+"%(firmwareVersion)s?"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:15048
-msgid "Unhandled communication error"
+#: octoprint_m33fio/static/js/m33fio.js:14160
+#, python-format
+msgid ""
+"Firmware is incompatible. Update to %(firmwareType)s firmware version "
+"%(firmwareVersion)s?"
+msgstr ""
+
+#: octoprint_m33fio/static/js/m33fio.js:14162
+#, python-format
+msgid ""
+"Newer firmware available. Update to %(firmwareType)s firmware version "
+"%(firmwareVersion)s?"
 msgstr ""
 
 #: octoprint_m33fio/templates/m33fio_navbar.jinja2:2
@@ -53,5 +297,570 @@ msgstr ""
 
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:3
 msgid "General"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:7
+msgid ""
+"Disables all the Micro 3D printer specific features which allows using "
+"other types of printers"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:8
+msgid "Not using a Micro 3D printer"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:14
+msgid ""
+"Uses settings obtained from the printer to overwrite existing settings "
+"when a Micro 3D printer connects"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:15
+msgid "Obtain printer settings automatically when a Micro 3D printer connects"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:21
+msgid ""
+"Pre-processes each G-code command right before being sent to the printer "
+"instead of having the entire G-code file pre-processed when being "
+"uploaded or sliced"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:22
+msgid "Pre-process on the fly"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:28
+msgid ""
+"A dialog box will appear right before printing to allow changing print "
+"settings"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:29
+msgid "Change settings before print"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:35
+msgid ""
+"Uses the shared library pre-processor instead of the Python pre-processor"
+" to pre-process G-code files and commands"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:36
+msgid "Use shared library"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:42
+msgid ""
+"Allows uploading and printing models that are larger than the printer's "
+"max dimensions"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:43
+msgid "Ignore print dimension limitations"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:43
+msgid "Dangerous"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:49
+msgid "Logs debug information to plugin_m33fio_debug.log"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:50
+msgid "Log debug information to plugin_m33fio_debug.log"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:56
+msgid ""
+"Hosts a camera's stream and snapshot at port 4999 at /stream.mjpg and "
+"/snapshot.jpg respectively"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:57
+msgid "Host Camera"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:63
+msgid "Camera Width"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:72
+msgid "Camera Height"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:81
+msgid "Camera Frames/Second"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:90
+msgid "Pre-Processor Stages"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:94
+msgid ""
+"Adds in mid-print filament change commands at the start of each specified"
+" layer. Layer numbers should be seperated by a space."
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:95
+msgid "Mid-print filament change layers"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:102
+msgid ""
+"Positions the printed object in the middle of the print bed. If possible,"
+" the centered model will be repositioned if it goes out of bounds."
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:103
+msgid "Center Model"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:109
+msgid "Removes G-code commands that are not compatible with the Micro 3D printer"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:110
+msgid "Validation"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:116
+msgid "Removes all fan commands"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:117
+msgid "Remove fan commands"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:123
+msgid "Removes all temperature commands"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:124
+msgid "Remove temperature commands"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:130
+msgid "Adds in G-code intro and outro"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:131
+msgid "Preparation"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:137
+msgid ""
+"Changes the LED's brightness to dim when a print starts and flash when a "
+"print is done"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:138
+msgid "Change LED brightness"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:144
+msgid ""
+"Performs the bed center Z0 calibration procedure before printing. Avoid "
+"leaving the printer unmonitored until after the print starts in case the "
+"resulting calibration is inaccurate."
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:145
+msgid "Calibrate before print"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:145
+msgid "Caution"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:151
+msgid ""
+"Sets a GPIO pin high at the start of the specified layer and sets it low "
+"when the print is done"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:152
+msgid "Use GPIO"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:153
+msgid "GPIO pin number"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:154
+msgid "GPIO start layer"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:160
+msgid "Adds dwell times and higher temperatures to the first few layers"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:161
+msgid "Thermal Bonding"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:167
+msgid "Smooths out the bottom layer"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:168
+msgid "Wave Bonding"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:174
+msgid "Adjusts the Z value of every G-code command to account for bed leveling"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:175
+msgid "Bed Compensation"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:175
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:182
+msgid "Always internally enabled when using iMe firmware"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:181
+msgid ""
+"Adjusts the X and Y values of G-code commands that change the current X "
+"or Y direction to account for backlash when changing directions"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:182
+msgid "Backlash Compensation"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:187
+msgid "Printer Settings"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:189
+msgid "Amount of backlash compensation required for the X motor"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:190
+msgid "Backlash X"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:198
+msgid "Amount of backlash compensation required for the Y motor"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:199
+msgid "Backlash Y"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:207
+msgid "Speed of the backlash compensation"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:208
+msgid "Backlash Speed"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:216
+msgid ""
+"The sum of this value and the back left offset is the total vertical "
+"displacement for the back left corner. A positive vertical displacement "
+"means that the back left corner is higher than the bed's center, and a "
+"negative vertical displacement means that the back left corner is lower "
+"than the bed's center."
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:217
+msgid "Back Left Orientation"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:225
+msgid ""
+"The sum of this value and the back right offset is the total vertical "
+"displacement for the back right corner. A positive vertical displacement "
+"means that the back right corner is higher than the bed's center, and a "
+"negative vertical displacement means that the back right corner is lower "
+"than the bed's center."
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:226
+msgid "Back Right Orientation"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:234
+msgid ""
+"The sum of this value and the front right offset is the total vertical "
+"displacement for the front right corner. A positive vertical displacement"
+" means that the front right corner is higher than the bed's center, and a"
+" negative vertical displacement means that the front right corner is "
+"lower than the bed's center."
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:235
+msgid "Front Right Orientation"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:243
+msgid ""
+"The sum of this value and the front left offset is the total vertical "
+"displacement for the front left corner. A positive vertical displacement "
+"means that the front left corner is higher than the bed's center, and a "
+"negative vertical displacement means that the front left corner is lower "
+"than the bed's center."
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:244
+msgid "Front Left Orientation"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:252
+msgid ""
+"The vertical displacement for the entire bed. A positive vertical "
+"displacement means that the entire bed is higher than it is, and a "
+"negative vertical displacement means that the entire bed is lower than it"
+" is."
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:253
+msgid "Bed Height Offset"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:261
+msgid ""
+"The sum of this value and the back left orientation is the total vertical"
+" displacement for the back left corner. A positive vertical displacement "
+"means that the back left corner is higher than the bed's center, and a "
+"negative vertical displacement means that the back left corner is lower "
+"than the bed's center."
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:262
+msgid "Back Left Offset"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:270
+msgid ""
+"The sum of this value and the back right orientation is the total "
+"vertical displacement for the back right corner. A positive vertical "
+"displacement means that the back right corner is higher than the bed's "
+"center, and a negative vertical displacement means that the back right "
+"corner is lower than the bed's center."
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:271
+msgid "Back Right Offset"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:279
+msgid ""
+"The sum of this value and the front right orientation is the total "
+"vertical displacement for the front right corner. A positive vertical "
+"displacement means that the front right corner is higher than the bed's "
+"center, and a negative vertical displacement means that the front right "
+"corner is lower than the bed's center."
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:280
+msgid "Front Right Offset"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:288
+msgid ""
+"The sum of this value and the front left orientation is the total "
+"vertical displacement for the front left corner. A positive vertical "
+"displacement means that the front left corner is higher than the bed's "
+"center, and a negative vertical displacement means that the front left "
+"corner is lower than the bed's center."
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:289
+msgid "Front Left Offset"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:297
+msgid "Height of an external object that's placed on the bed, such as a heatbed"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:298
+msgid "External Bed Height"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:308
+msgid "Expands printable region to include everywhere the extruder can move"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:309
+msgid "External bed expands printable region to max"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:313
+msgid "Extruder's printing temperature"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:314
+msgid "Filament Temperature"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:322
+msgid "Heatbed's printing temperature"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:323
+msgid "Heatbed Temperature"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:331
+msgid "Type of filement being printed"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:332
+msgid "Filament Type"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:335
+msgid "ABS (Recommended 275°C)"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:336
+msgid "PLA (Recommended 215°C)"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:337
+msgid "HIPS (Recommended 265°C)"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:338
+msgid "FLX (Recommended 220°C)"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:339
+msgid "TGH (Recommended 220°C)"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:340
+msgid "CAM (Recommended 215°C)"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:341
+msgid "ABS-R (Recommended 240°C)"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:342
+msgid "Other"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:347
+msgid ""
+"Changes to speed limits require restarting the printer to<br>take effect "
+"when using M3D or M3D Mod firmware"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:349
+msgid "X motor's speed limit"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:350
+msgid "Speed Limit X"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:358
+msgid "Y motor's speed limit"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:359
+msgid "Speed Limit Y"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:367
+msgid "Z motor's speed limit"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:368
+msgid "Speed Limit Z"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:376
+msgid "E motor's extrusion speed limit"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:377
+msgid "Speed Limit E+"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:385
+msgid "E motor's retraction speed limit"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:386
+msgid "Speed Limit E-"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:395
+msgid ""
+"Steps/mm, jerk sensitivity, and calibrate Z0 correction<br>settings are "
+"only used by iMe firmware"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:397
+msgid "Amount of steps/mm for the X motor"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:398
+msgid "X Motor Steps/mm"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:406
+msgid "Amount of steps/mm for the Y motor"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:407
+msgid "Y Motor Steps/mm"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:415
+msgid "Amount of steps/mm for the Z motor"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:416
+msgid "Z Motor Steps/mm"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:424
+msgid "Amount of steps/mm for the E motor"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:425
+msgid "E Motor Steps/mm"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:433
+msgid ""
+"Sensitivity of the X jerk detection when homing. Lower values mean less "
+"sensitivity and higher values mean more sensitivity."
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:434
+msgid "X Jerk Homing Sensitivity"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:442
+msgid ""
+"Sensitivity of the Y jerk detection when homing. Lower values mean less "
+"sensitivity and higher values mean more sensitivity."
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:443
+msgid "Y Jerk Homing Sensitivity"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:451
+msgid ""
+"Vertical displacement to adjust the Z0 height calibrated by the G30 and "
+"G32 commands. A negative value will make the Z0 height lower by the "
+"specified amount, and a positive value will make the Z0 height higher by "
+"the specified amount."
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:452
+msgid "Calibrate Z0 correction"
 msgstr ""
 

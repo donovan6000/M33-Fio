@@ -631,6 +631,13 @@ $(function() {
 			return $("<div>").html(value).text();
 		}
 		
+		// Get already translated text
+		function getAlreadyTranslatedText(text) {
+		
+			// Return text
+			return gettext(text);
+		}
+		
 		// Show message
 		function showMessage(header, text, secondButton, secondButtonCallback, firstButton, firstButtonCallback) {
 		
@@ -5382,7 +5389,7 @@ $(function() {
 				
 					// Show confirmation dialog
 					showConfirmationDialog({
-						message: gettext("This will restart the print job from the beginning."),
+						message: getAlreadyTranslatedText("This will restart the print job from the beginning."),
 						onproceed: function() {
 							
 							// Send request
@@ -5410,7 +5417,7 @@ $(function() {
 				else {
 				
 					// Show confirmation dialog
-					$("#confirmation_dialog .confirmation_dialog_message").text(gettext("This will restart the print job from the beginning."));
+					$("#confirmation_dialog .confirmation_dialog_message").text(getAlreadyTranslatedText("This will restart the print job from the beginning."));
 					$("#confirmation_dialog .confirmation_dialog_acknowledge").unbind("click").click(function(event) {
 				
 						// Stop default behavior
@@ -13349,13 +13356,20 @@ $(function() {
 			// Otherwise check if data is to change progress text
 			else if(data.value == "Progress bar text" && typeof data.text !== "undefined") {
 			
+				// Set text
+				var text = gettext(data.text);
+				
+				// Set percent in text if provided
+				if(typeof data.percent !== "undefined")
+					text = _.sprintf(text, {percent: data.percent});
+			
 				// Set progress bar text
 				$("#gcode_upload_progress > span").text('');
 				
 				if($("#gcode_upload_progress > div.bar > span").length)
-					$("#gcode_upload_progress > div.bar > span").text(data.text);
+					$("#gcode_upload_progress > div.bar > span").text(text);
 				else
-					$("#gcode_upload_progress > div.bar").text(data.text);
+					$("#gcode_upload_progress > div.bar").text(text);
 			}
 			
 			// Otherwise check if data is pre-processing file
@@ -13392,7 +13406,7 @@ $(function() {
 				// Set error message text
 				setTimeout(function() {
 					var lastMessage = $("div.ui-pnotify:last-of-type > div > div.ui-pnotify-text");
-					lastMessage.children("p").text(data.text);
+					lastMessage.children("p").text(gettext(data.text));
 					lastMessage.children("div.pnotify_additional_info").remove();
 				}, 100);
 			
@@ -13401,8 +13415,8 @@ $(function() {
 			
 				// Display error message
 				new PNotify({
-					title: htmlEncode(data.title),
-					text: "<p>" + htmlEncode(data.text) + "</p>",
+					title: htmlEncode(gettext(data.title)),
+					text: "<p>" + htmlEncode(gettext(data.text)) + "</p>",
 					type: data.type,
 					hide: false
 				});
@@ -14072,7 +14086,16 @@ $(function() {
 			}
 			
 			// Otherwise check if data is to show message
-			else if(data.value == "Show Message" && typeof data.message !== "undefined" && typeof data.header !== "undefined") {
+			else if((data.value == "Show Message" && typeof data.message !== "undefined" && typeof data.header !== "undefined") || (data.value == "Show Port Access Denied Message" && typeof data.port !== "undefined" && typeof data.header !== "undefined")) {
+				
+				// Set text
+				if(data.value == "Show Port Access Denied Message")
+					var text = _.sprintf(gettext("You don't have read/write access to %(port)s"), {port: data.port});
+				else
+					var text = gettext(data.message);
+				
+				// Encode text
+				text = htmlEncode(text);
 				
 				// Check if failed to connect and callback is set
 				if(data.header == "Connection Status" && typeof failedToConnectCallback === "function") {
@@ -14090,9 +14113,6 @@ $(function() {
 				
 				// Otherwise
 				else {
-				
-					// Initialize variables
-					var text = htmlEncode(gettext(data.message));
 			
 					// Check if same text is currently being displayed
 					if($("body > div.page-container > div.message").hasClass("show") && $("body > div.page-container > div.message").find("p").eq(0).html() == text)
@@ -14128,14 +14148,27 @@ $(function() {
 				}
 			}
 			
+			
 			// Otherwise check if data is to show a question
-			else if(data.value == "Show Question" && typeof data.message !== "undefined" && typeof data.header !== "undefined") {
+			else if((data.value == "Show Question" && typeof data.message !== "undefined" && typeof data.header !== "undefined") || (data.value == "Show Firmware Update Question" && typeof data.reason !== "undefined" && typeof data.firmwareType !== "undefined" && typeof data.firmwareVersion !== "undefined" && typeof data.header !== "undefined")) {
 
+				// Set text
+				if(data.value == "Show Firmware Update Question") {
+					if(data.reason == "Corrupt")
+						var text = _.sprintf(gettext("Firmware is corrupt. Update to %(firmwareType)s firmware version %(firmwareVersion)s?"), {firmwareType: data.firmwareType, firmwareVersion: data.firmwareVersion});
+					else if(data.reason == "Incompatible")
+						var text = _.sprintf(gettext("Firmware is incompatible. Update to %(firmwareType)s firmware version %(firmwareVersion)s?"), {firmwareType: data.firmwareType, firmwareVersion: data.firmwareVersion});
+					else if(data.reason == "Outdated")
+						var text = _.sprintf(gettext("Newer firmware available. Update to %(firmwareType)s firmware version %(firmwareVersion)s?"), {firmwareType: data.firmwareType, firmwareVersion: data.firmwareVersion});
+				}
+				else
+					var text = gettext(data.message);
+				
 				// Check if a response is requested
 				if(typeof data.response !== "undefined") {
 				
 					// Display message
-					showMessage(htmlEncode(data.header), htmlEncode(data.message), "Yes", function() {
+					showMessage(htmlEncode(gettext(data.header)), htmlEncode(text), "Yes", function() {
 		
 						// Hide message
 						hideMessage();
@@ -14174,7 +14207,7 @@ $(function() {
 				else if(typeof data.confirm !== "undefined") {
 				
 					// Display message
-					showMessage(htmlEncode(data.header), htmlEncode(data.message), "OK", function() {
+					showMessage(htmlEncode(gettext(data.header)), htmlEncode(text), "OK", function() {
 					
 						// Hide message
 						hideMessage();
@@ -14186,7 +14219,7 @@ $(function() {
 							dataType: "json",
 							data: JSON.stringify({
 								command: "message",
-								value: $(this).text()
+								value: "OK"
 							}),
 							contentType: "application/json; charset=UTF-8"
 						});
@@ -15045,7 +15078,7 @@ $(function() {
 		self.onEventError = function(payload) {
 		
 			// Check if using an Micro 3D printer and error is an unhandled firmware or communication error
-			if(!self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter() && ($("div.ui-pnotify:last-of-type h4.ui-pnotify-title").text() == gettext("Unhandled firmware error") || $("div.ui-pnotify:last-of-type h4.ui-pnotify-title").text() == gettext("Unhandled communication error")))
+			if(!self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter() && ($("div.ui-pnotify:last-of-type h4.ui-pnotify-title").text() == getAlreadyTranslatedText("Unhandled firmware error") || $("div.ui-pnotify:last-of-type h4.ui-pnotify-title").text() == getAlreadyTranslatedText("Unhandled communication error")))
 			
 				// Remove error
 				$("div.ui-pnotify:last-of-type").remove();

@@ -42,7 +42,7 @@ import threading
 import yaml
 import logging
 import logging.handlers
-from flask.ext.babel import gettext
+import urllib
 from .gcode import Gcode
 from .vector import Vector
 
@@ -94,6 +94,12 @@ class Command(object) :
 		self.line = line
 		self.origin = origin
 		self.skip = skip
+
+# Get text
+def gettext(text) :
+
+	# Return text
+	return text
 
 # Plugin class
 class M33FioPlugin(
@@ -722,7 +728,7 @@ class M33FioPlugin(
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Heatbed Not Detected"))
 										
 				# Create message
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "notice", title = "Heatbed removed", text = "Heatbed has been disconnected"))
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "notice", title = gettext("Heatbed removed"), text = gettext("Heatbed has been disconnected")))
 			
 			# Otherwise check if a heatbed has been connected
 			elif not self.heatbedConnected and heatbedPort is not None :
@@ -733,7 +739,7 @@ class M33FioPlugin(
 					self.heatbedConnection = serial.Serial(heatbedPort, 115200, timeout = 5)
 					
 					# check if using OS X or Linux and the user lacks read/write access to the heatbed
-					if (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(heatbedPort, os.R_OK | os.W_OK) :
+					if (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(str(heatbedPort), os.R_OK | os.W_OK) :
 					
 						# Set error
 						error = True
@@ -806,7 +812,7 @@ class M33FioPlugin(
 							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Heatbed Detected"))
 													
 							# Create message
-							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "success", title = "Heatbed detected", text = "Heatbed has been connected"))
+							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "success", title = gettext("Heatbed detected"), text = gettext("Heatbed has been connected")))
 				
 				# Check if an error has occured
 				if error :
@@ -822,7 +828,7 @@ class M33FioPlugin(
 					if previousHeatbedPort != heatbedPort :
 				
 						# Create message
-						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "error", title = "Heatbed error", text = "Failed to connect to heatbed"))
+						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "error", title = gettext("Heatbed error"), text = gettext("Failed to connect to heatbed")))
 			
 			# Set previous heatbed port
 			previousHeatbedPort = heatbedPort
@@ -2199,7 +2205,7 @@ class M33FioPlugin(
 						error = True
 					
 					# Otherwise check if using OS X or Linux and the user lacks read/write access to the printer
-					elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(currentPort, os.R_OK | os.W_OK) :
+					elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
 					
 						# Set error
 						error = True
@@ -2308,7 +2314,7 @@ class M33FioPlugin(
 						error = True
 					
 					# Otherwise check if using OS X or Linux and the user lacks read/write access to the printer
-					elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(currentPort, os.R_OK | os.W_OK) :
+					elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
 					
 						# Set error
 						error = True
@@ -2421,7 +2427,7 @@ class M33FioPlugin(
 						error = True
 					
 					# Otherwise check if using OS X or Linux and the user lacks read/write access to the printer
-					elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(currentPort, os.R_OK | os.W_OK) :
+					elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
 					
 						# Set error
 						error = True
@@ -2516,10 +2522,10 @@ class M33FioPlugin(
 					# Set printing type and display message
 					if data["value"] == "Print Test Border" :
 						self.printingTestBorder = True
-						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Preparing test border print", header = "Printing Status"))
+						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Preparing test border print"), header = gettext("Printing Status")))
 					else :
 						self.printingBacklashCalibration = True
-						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Preparing backlash calibration print", header = "Printing Status"))
+						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Preparing backlash calibration print"), header = gettext("Printing Status")))
 					
 					# Check if shared library was loaded
 					if self.loadSharedLibrary() :
@@ -2646,7 +2652,7 @@ class M33FioPlugin(
 						error = True
 					
 					# Otherwise check if using OS X or Linux and the user lacks read/write access to the printer
-					elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(currentPort, os.R_OK | os.W_OK) :
+					elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
 					
 						# Set error
 						error = True
@@ -2749,7 +2755,7 @@ class M33FioPlugin(
 							error = True
 						
 						# Otherwise check if using OS X or Linux and the user lacks read/write access to the printer
-						elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(currentPort, os.R_OK | os.W_OK) :
+						elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
 					
 							# Set error
 							error = True
@@ -2908,7 +2914,7 @@ class M33FioPlugin(
 					shutil.copyfile(fileLocation, fileDestination)
 				
 				# Return location
-				return flask.jsonify(dict(value = "OK", path = "m33fio/download/" + destinationName))
+				return flask.jsonify(dict(value = "OK", path = "m33fio/download/" + urllib.quote(destinationName)))
 			
 			# Otherwise check if parameter is to get printer settings
 			elif data["value"] == "Get Printer Settings" :
@@ -2959,7 +2965,7 @@ class M33FioPlugin(
 				output.close()
 				
 				# Return location
-				return flask.jsonify(dict(value = "OK", path = "m33fio/download/" + destinationName))
+				return flask.jsonify(dict(value = "OK", path = "m33fio/download/" + urllib.quote(destinationName)))
 			
 			# Otherwise check if parameter is to set printer settings
 			elif data["value"].startswith("Set Printer Settings:") :
@@ -3151,7 +3157,7 @@ class M33FioPlugin(
 						error = True
 					
 					# Otherwise check if using OS X or Linux and the user lacks read/write access to the printer
-					elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(currentPort, os.R_OK | os.W_OK) :
+					elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
 					
 						# Set error
 						error = True
@@ -3488,7 +3494,7 @@ class M33FioPlugin(
 						error = True
 					
 					# Otherwise check if using OS X or Linux and the user lacks read/write access to the printer
-					elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(currentPort, os.R_OK | os.W_OK) :
+					elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
 					
 						# Set error
 						error = True
@@ -4914,31 +4920,31 @@ class M33FioPlugin(
 
 			# Set error response
 			if response[6 : 10] == "1000" :
-				response = "ok M110 without a line number\n"
+				response = "ok " + gettext("M110 without a line number") + "\n"
 			elif response[6 : 10] == "1001" :
-				response = "ok Cannot cold extrude\n"
+				response = "ok " + gettext("Cannot cold extrude") + "\n"
 			elif response[6 : 10] == "1002" :
-				response = "ok Cannot calibrate in an unknown state\n"
+				response = "ok " + gettext("Cannot calibrate in an unknown state") + "\n"
 			elif response[6 : 10] == "1003" :
-				response = "ok Unknown G-Code\n"
+				response = "ok " + gettext("Unknown G-Code") + "\n"
 			elif response[6 : 10] == "1004" :
-				response = "ok Unknown M-Code\n"
+				response = "ok " + gettext("Unknown M-Code") + "\n"
 			elif response[6 : 10] == "1005" :
-				response = "ok Unknown command\n"
+				response = "ok " + gettext("Unknown command") + "\n"
 			elif response[6 : 10] == "1006" :
-				response = "ok Heater failed\n"
+				response = "ok " + gettext("Heater failed") + "\n"
 			elif response[6 : 10] == "1007" :
-				response = "ok Move to large\n"
+				response = "ok " + gettext("Move to large") + "\n"
 			elif response[6 : 10] == "1008" :
-				response = "ok Printer has been inactive for too long, heater and motors have been turned off\n"
+				response = "ok " + gettext("Printer has been inactive for too long, heater and motors have been turned off") + "\n"
 			elif response[6 : 10] == "1009" :
-				response = "ok Target address out of range\n"
+				response = "ok " + gettext("Target address out of range") + "\n"
 			elif response[6 : 10] == "1010" :
-				response = "ok Command cannot run because micro motion chip encountered an error\n"
+				response = "ok " + gettext("Command cannot run because micro motion chip encountered an error") + "\n"
 			elif response[6 : 10].isdigit() :
-				response = "ok An error has occured\n"
+				response = "ok " + gettext("An error has occured") + "\n"
 			else :
-				response = "ok " + response[6 :].strip()
+				response = "ok " + gettext(response[6 :].strip()) + "\n"
 			
 			# Check if waiting for a command to be processed
 			if self.lastLineNumberSent is not None and self.lastLineNumberSent % 0x10000 in self.sentCommands :
@@ -4947,7 +4953,7 @@ class M33FioPlugin(
 				self.sentCommands.pop(self.lastLineNumberSent)
 			
 			# Send message
-			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = response[3 :].strip(), header = "Error Status", confirm = True))
+			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = response[3 :].strip(), header = gettext("Error Status"), confirm = True))
 		
 		# Log received data
 		self._m33fio_logger.debug("Processed Response: " + response)
@@ -5429,7 +5435,7 @@ class M33FioPlugin(
 					self.printingBacklashCalibration = True
 		
 				# Display message
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Collecting print information", header = "Printing Status"))
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Collecting print information"), header = gettext("Printing Status")))
 	
 				# Check if shared library was loaded
 				if self.loadSharedLibrary() :
@@ -5484,7 +5490,7 @@ class M33FioPlugin(
 					if not printIsValid :
 
 						# Create message
-						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "error", title = "Print failed", text = "Could not print the file. The dimensions of the model go outside the bounds of the printer."))
+						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "error", title = gettext("Print failed"), text = gettext("Could not print the file. The dimensions of the model go outside the bounds of the printer.")))
 						
 						# Stop printing
 						self._printer.cancel_print()
@@ -5496,19 +5502,19 @@ class M33FioPlugin(
 						if self.detectedFanSpeed == 0 :
 			
 							# Create message
-							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "notice", title = "Print warning", text = "No fan speed has been detected in this file which could cause the print to fail"))
+							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "notice", title = gettext("Print warning"), text = gettext("No fan speed has been detected in this file which could cause the print to fail")))
 				
 						# Check if detected mid-print filament change
 						if self.detectedMidPrintFilamentChange :
 		
 							# Create message
-							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "notice", title = "Print warning", text = "This file uses mid-print filament change commands"))
+							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "notice", title = gettext("Print warning"), text = gettext("This file uses mid-print filament change commands")))
 				
 						# Check if objected couldn't be centered
 						if self._settings.get_boolean(["UseCenterModelPreprocessor"]) and not self.objectSuccessfullyCentered :
 		
 							# Create message
-							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "notice", title = "Print warning", text = "Object too large to center on print bed"))
+							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "notice", title = gettext("Print warning"), text = gettext("Object too large to center on print bed")))
 				
 				# Set ready to print
 				self.readyToPrint = True
@@ -5803,7 +5809,7 @@ class M33FioPlugin(
 			if currentPort is None :
 				
 				# Send message
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "No Micro 3D printer detected. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("No Micro 3D printer detected. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
 			
 			# Otherwise
 			else :
@@ -5822,19 +5828,19 @@ class M33FioPlugin(
 					error = True
 					
 					# Send message
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
 				
 				# Check if no errors occured
 				if not error :
 				
 					# Otherwise check if using OS X or Linux and the user lacks read/write access to the printer
-					if (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(currentPort, os.R_OK | os.W_OK) :
+					if (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
 					
 						# Set error
 						error = True
 						
 						# Send message
-						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "You don't have read/write access to " + str(port), header = "Connection Status", confirm = True))
+						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Port Access Denied Message", port = currentPort, header = gettext("Connection Status"), confirm = True))
 					
 					# Check if no errors occured
 					if not error :
@@ -5857,7 +5863,7 @@ class M33FioPlugin(
 							error = True
 					
 							# Send message
-							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
+							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
 			
 						# Check if no errors occured
 						if not error :
@@ -5895,7 +5901,7 @@ class M33FioPlugin(
 									error = True
 							
 									# Send message
-									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
+									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
 					
 								# Otherwise
 								else :
@@ -5917,16 +5923,16 @@ class M33FioPlugin(
 										error = True
 								
 										# Send message
-										self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
+										self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
 								
 									# Otherwise check if using OS X or Linux and the user lacks read/write access to the printer
-									elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(currentPort, os.R_OK | os.W_OK) :
+									elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
 	
 										# Set error
 										error = True
 								
 										# Send message
-										self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "You don't have read/write access to " + str(port), header = "Connection Status", confirm = True))
+										self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Port Access Denied Message", port = currentPort, header = gettext("Connection Status"), confirm = True))
 			
 							# Check if an error hasn't occured
 							if not error :
@@ -5949,7 +5955,7 @@ class M33FioPlugin(
 										error = True
 										
 										# Send message
-										self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
+										self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
 			
 								# Check if an error occured
 								except :
@@ -5958,7 +5964,7 @@ class M33FioPlugin(
 									error = True
 					
 									# Send message
-									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
+									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
 								
 								# Check if an error hasn't occured
 								if not error :
@@ -6037,7 +6043,7 @@ class M33FioPlugin(
 											if error :
 					
 												# Display error
-												self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Setting fan failed", header = "Error Status", confirm = True))
+												self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Setting fan failed"), header = gettext("Error Status"), confirm = True))
 				
 										# Otherwise
 										else :
@@ -6060,7 +6066,7 @@ class M33FioPlugin(
 												error = True
 					
 												# Display error
-												self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Updating fan settings failed", header = "Error Status", confirm = True))
+												self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Updating fan settings failed"), header = gettext("Error Status"), confirm = True))
 				
 										# Check if printer uses 500mA extruder current
 										shortSerialNumber = serialNumber[0 : 13]
@@ -6073,7 +6079,7 @@ class M33FioPlugin(
 												error = True
 					
 												# Display error
-												self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Updating extruder current failed", header = "Error Status", confirm = True))
+												self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Updating extruder current failed"), header = gettext("Error Status"), confirm = True))
 				
 										# Check if using M3D or M3D Mod firmware and it's from before new bed orientation and adjustable backlash speed
 										if not error and ((firmwareType == "M3D" and firmwareVersion < 2015080402) or (firmwareType == "M3D Mod" and firmwareVersion < 2115080402)) :
@@ -6091,7 +6097,7 @@ class M33FioPlugin(
 											if error :
 					
 												# Display error
-												self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Updating version changes failed", header = "Error Status", confirm = True))
+												self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Updating version changes failed"), header = gettext("Error Status"), confirm = True))
 							
 										# Check if an error hasn't occured
 										if not error :
@@ -6262,7 +6268,7 @@ class M33FioPlugin(
 											if error :
 					
 												# Display error
-												self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Updating EEPROM values failed", header = "Error Status", confirm = True))
+												self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Updating EEPROM values failed"), header = gettext("Error Status"), confirm = True))
 								
 										# Check if firmware is corrupt
 										if not error and eepromCrc != chipCrc :
@@ -6275,7 +6281,7 @@ class M33FioPlugin(
 				
 											# Display message
 											self.messageResponse = None
-											self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Question", message = "Firmware is corrupt. Update to " + currentFirmwareType + " firmware version " + self.providedFirmwares[self.getNewestFirmwareName(currentFirmwareType)]["Release"] + '?', header = "Firmware Status", response = True))
+											self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Firmware Update Question", reason = "Corrupt", firmwareType = currentFirmwareType, firmwareVersion = self.providedFirmwares[self.getNewestFirmwareName(currentFirmwareType)]["Release"], header = gettext("Firmware Status"), response = True))
 					
 											# Wait until response is obtained
 											while self.messageResponse is None :
@@ -6291,7 +6297,7 @@ class M33FioPlugin(
 											else :
 					
 												# Send message
-												self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Updating firmware", header = "Firmware Status"))
+												self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Updating firmware"), header = gettext("Firmware Status")))
 					
 												# Check if updating firmware failed
 												if not self.updateToProvidedFirmware(connection, self.getNewestFirmwareName(currentFirmwareType)) :
@@ -6300,14 +6306,14 @@ class M33FioPlugin(
 													error = True
 										
 													# Send message
-													self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Updating firmware failed", header = "Firmware Status", confirm = True))
+													self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Updating firmware failed"), header = gettext("Firmware Status"), confirm = True))
 						
 												# Otherwise
 												else :
 					
 													# Send message
 													self.messageResponse = None
-													self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Question", message = "Updating firmware was successful", header = "Firmware Status", confirm = True))
+													self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Question", message = gettext("Updating firmware was successful"), header = gettext("Firmware Status"), confirm = True))
 					
 													# Wait until response is obtained
 													while self.messageResponse is None :
@@ -6333,9 +6339,9 @@ class M33FioPlugin(
 												# Display message
 												self.messageResponse = None
 												if incompatible :
-													self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Question", message = "Firmware is incompatible. Update to " + firmwareType + " firmware version " + self.providedFirmwares[self.getNewestFirmwareName(firmwareType)]["Release"] + '?', header = "Firmware Status", response = True))
+													self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Firmware Update Question", reason = "Incompatible", firmwareType = firmwareType, firmwareVersion = self.providedFirmwares[self.getNewestFirmwareName(firmwareType)]["Release"], header = gettext("Firmware Status"), response = True))
 												else :
-													self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Question", message = "Newer firmware available. Update to " + firmwareType + " firmware version " + self.providedFirmwares[self.getNewestFirmwareName(firmwareType)]["Release"] + '?', header = "Firmware Status", response = True))
+													self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Firmware Update Question", reason = "Outdated", firmwareType = firmwareType, firmwareVersion = self.providedFirmwares[self.getNewestFirmwareName(firmwareType)]["Release"], header = gettext("Firmware Status"), response = True))
 					
 												# Wait until response is obtained
 												while self.messageResponse is None :
@@ -6352,7 +6358,7 @@ class M33FioPlugin(
 												else :
 					
 													# Send message
-													self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Updating firmware", header = "Firmware Status"))
+													self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Updating firmware"), header = gettext("Firmware Status")))
 							
 													# Check if updating firmware failed
 													if not self.updateToProvidedFirmware(connection, self.getNewestFirmwareName(firmwareType)) :
@@ -6361,14 +6367,14 @@ class M33FioPlugin(
 														error = True
 										
 														# Send message
-														self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Updating firmware failed", header = "Firmware Status", confirm = True))
+														self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Updating firmware failed"), header = gettext("Firmware Status"), confirm = True))
 						
 													# Otherwise
 													else :
 					
 														# Send message
 														self.messageResponse = None
-														self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Question", message = "Updating firmware was successful", header = "Firmware Status", confirm = True))
+														self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Question", message = gettext("Updating firmware was successful"), header = gettext("Firmware Status"), confirm = True))
 					
 														# Wait until response is obtained
 														while self.messageResponse is None :
@@ -6381,7 +6387,7 @@ class M33FioPlugin(
 											error = True
 						
 											# Send message
-											self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
+											self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
 			
 									# Otherwise
 									else :
@@ -6390,7 +6396,7 @@ class M33FioPlugin(
 										error = True
 						
 										# Send message
-										self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
+										self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
 			
 				# Check if connected to the printer
 				if connection is not None :
@@ -6431,13 +6437,13 @@ class M33FioPlugin(
 						self.eeprom = None
 						
 						# Send message
-						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
+						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
 					
 					# Check if an error hasn't occured
 					if not error :
 					
 						# Check if using OS X or Linux and the user lacks read/write access to the printer
-						if (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(currentPort, os.R_OK | os.W_OK) :
+						if (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
 						
 							# Set error
 							error = True
@@ -6449,7 +6455,7 @@ class M33FioPlugin(
 							connection.close()
 							
 							# Send message
-							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "You don't have read/write access to " + str(port), header = "Connection Status", confirm = True))
+							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Port Access Denied Message", port = currentPort, header = gettext("Connection Status"), confirm = True))
 						
 						# Check if an error hasn't occured
 						if not error :
@@ -6474,7 +6480,7 @@ class M33FioPlugin(
 								self.eeprom = None
 
 								# Send message
-								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
+								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
 				
 							# Otherwise
 							else :
@@ -6508,7 +6514,7 @@ class M33FioPlugin(
 								else :
 								
 									# Check if using OS X or Linux and the user lacks read/write access to the printer
-									if (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(currentPort, os.R_OK | os.W_OK) :
+									if (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
 									
 										# Clear EEPROM
 										self.eeprom = None
@@ -6524,7 +6530,7 @@ class M33FioPlugin(
 										self._printer.disconnect()
 					
 										# Send message
-										self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "You don't have read/write access to " + str(port), header = "Connection Status", confirm = True))
+										self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Port Access Denied Message", port = currentPort, header = gettext("Connection Status"), confirm = True))
 								
 									# Otherwise
 									else :
@@ -6588,7 +6594,7 @@ class M33FioPlugin(
 												self._printer.disconnect()
 								
 												# Send message
-												self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
+												self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
 					
 										# Otherwise
 										else :
@@ -6607,7 +6613,7 @@ class M33FioPlugin(
 											self._printer.disconnect()
 							
 											# Send message
-											self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
+											self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
 			
 			# Clear reconnecting to printer
 			self.reconnectingToPrinter = False
@@ -7722,7 +7728,7 @@ class M33FioPlugin(
 			self.resetPreprocessorSettings()
 		
 			# Set progress bar percent and text
-			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Collecting Print Information …"))
+			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = gettext("Collecting Print Information …")))
 			
 			# Check if not processing a slice
 			if not self.processingSlice :
@@ -7783,13 +7789,13 @@ class M33FioPlugin(
 					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar percent", percent = "0"))
 				
 					# Create message
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "error", title = "Slicing failed", text = "Could not slice the file. The dimensions of the model go outside the bounds of the printer."))
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "error", title = gettext("Slicing failed"), text = gettext("Could not slice the file. The dimensions of the model go outside the bounds of the printer.")))
 			
 				# Otherwise
 				else :
 		
 					# Set error message
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Change last message", text = "Could not upload the file. The dimensions of the model go outside the bounds of the printer."))
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Change last message", text = gettext("Could not upload the file. The dimensions of the model go outside the bounds of the printer.")))
 				
 				# Restore files
 				self.restoreFiles()
@@ -7810,19 +7816,19 @@ class M33FioPlugin(
 				if self.detectedFanSpeed == 0 :
 			
 					# Create message
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "notice", title = "Print warning", text = "No fan speed has been detected in this file which could cause the print to fail"))
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "notice", title = gettext("Print warning"), text = gettext("No fan speed has been detected in this file which could cause the print to fail")))
 				
 				# Check if detected mid-print filament change
 				if self.detectedMidPrintFilamentChange :
 		
 					# Create message
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "notice", title = "Print warning", text = "This file uses mid-print filament change commands"))
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "notice", title = gettext("Print warning"), text = gettext("This file uses mid-print filament change commands")))
 				
 				# Check if objected couldn't be centered
 				if self._settings.get_boolean(["UseCenterModelPreprocessor"]) and not self.objectSuccessfullyCentered :
 			
 					# Create message
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "notice", title = "Print warning", text = "Object too large to center on print bed"))
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "notice", title = gettext("Print warning"), text = gettext("Object too large to center on print bed")))
 			
 			# Move the input file to a temporary file
 			fd, temp = tempfile.mkstemp()
@@ -7833,7 +7839,7 @@ class M33FioPlugin(
 			if self.sharedLibrary :
 			
 				# Set progress bar text
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Pre-processing …"))
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = gettext("Pre-processing …")))
 			
 				# Pre-process file
 				self.sharedLibrary.preprocess(ctypes.c_char_p(temp), ctypes.c_char_p(input), ctypes.c_bool(False))
@@ -8603,7 +8609,7 @@ class M33FioPlugin(
 				if not self.printingTestBorder and not self.printingBacklashCalibration :
 				
 					# Set progress bar text
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = "Pre-processing … (" + str(input.tell() * 100 / os.fstat(input.fileno()).st_size) + "%)"))
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = gettext("Pre-processing … (%(percent)s%)"), percent = input.tell() * 100 / os.fstat(input.fileno()).st_size))
 			
 			# Otherwise check if no more commands
 			elif len(commands) == 0 :
@@ -10201,7 +10207,7 @@ class M33FioPlugin(
 					pass
 				
 				# Send message
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "No Micro 3D printer detected. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("No Micro 3D printer detected. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
 				
 				# Enable printer connect button
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Allow Connecting"))
@@ -10230,7 +10236,7 @@ class M33FioPlugin(
 		if connection is None :
 		
 			# Send message
-			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again.", header = "Connection Status", confirm = True))
+			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
 			
 			# Enable printer connect button
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Allow Connecting"))
@@ -10245,7 +10251,7 @@ class M33FioPlugin(
 			connection = None
 		
 			# Send message
-			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = "You don't have read/write access to " + str(port), header = "Connection Status", confirm = True))
+			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Port Access Denied Message", port = port, header = gettext("Connection Status"), confirm = True))
 			
 			# Enable printer connect button
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Allow Connecting"))
