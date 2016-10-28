@@ -8609,7 +8609,7 @@ class M33FioPlugin(
 				if not self.printingTestBorder and not self.printingBacklashCalibration :
 				
 					# Set progress bar text
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = gettext("Pre-processing … (%(percent)s%)"), percent = input.tell() * 100 / os.fstat(input.fileno()).st_size))
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = gettext("Pre-processing … (%(percent)s%%)"), percent = input.tell() * 100 / os.fstat(input.fileno()).st_size))
 			
 			# Otherwise check if no more commands
 			elif len(commands) == 0 :

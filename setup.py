@@ -14,7 +14,7 @@ plugin_package = "octoprint_m33fio"
 plugin_name = "OctoPrint-M33Fio"
 
 # The plugin's version. Can be overwritten within OctoPrint's internal data via __plugin_version__ in the plugin module
-plugin_version = "1.19.2016102801"
+plugin_version = "1.10.2016102801"
 
 # The plugin's description. Can be overwritten within OctoPrint's internal data via __plugin_description__ in the plugin
 # module
