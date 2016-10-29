@@ -11872,6 +11872,65 @@ $(function() {
 				});
 			}
 			
+			// Continue external bed calibration
+			function continueExternalBedCalibration() {
+			
+				// Show message
+				showMessage("Calibration Status", "Does the external bed extend the printable region to its max?", "Yes", function() {
+
+					// Hide message
+					hideMessage();
+
+					// Show message
+					showMessage("Calibration Status", "Setting expand printable region");
+	
+					// Send request
+					$.ajax({
+						url: API_BASEURL + "plugin/m33fio",
+						type: "POST",
+						dataType: "json",
+						data: JSON.stringify({
+							command: "message",
+							value: "Set Expand Printable Region: True"
+						}),
+						contentType: "application/json; charset=UTF-8",
+
+						// On success
+						success: function() {
+	
+							// Continue calibration
+							continueCalibration();
+						}
+					});
+				}, "No", function() {
+
+					// Hide message
+					hideMessage();
+
+					// Show message
+					showMessage("Calibration Status", "Clearing expand printable region");
+	
+					// Send request
+					$.ajax({
+						url: API_BASEURL + "plugin/m33fio",
+						type: "POST",
+						dataType: "json",
+						data: JSON.stringify({
+							command: "message",
+							value: "Set Expand Printable Region: False"
+						}),
+						contentType: "application/json; charset=UTF-8",
+
+						// On success
+						success: function() {
+	
+							// Continue calibration
+							continueCalibration();
+						}
+					});
+				});
+			}
+			
 			// Show message
 			showMessage("Calibration Status", "This process can take a while to complete and will require your input during some steps. Proceed?", "Yes", function() {
 			
@@ -11885,66 +11944,96 @@ $(function() {
 					hideMessage();
 					
 					// Show message
-					showMessage("Calibration Status", "Remove the external bed and make sure that the bed that came with the printer is attached", "OK", function() {
+					showMessage("Calibration Status", "Your external bed is currently set to be " + self.settings.settings.plugins.m33fio.ExternalBedHeight() + "mm taller than the bed that came with the printer. Is this correct?", "Yes", function() {
 					
 						// Hide message
 						hideMessage();
 						
+						// Continue external bed calibration
+						continueExternalBedCalibration();
+					}, "No", function() {
+					
 						// Show message
-						showMessage("Calibration Status", "Calibrating bed center Z0");
+						showMessage("Calibration Status", "Remove the external bed and make sure that the bed that came with the printer is attached", "OK", function() {
+					
+							// Hide message
+							hideMessage();
 						
-						// Set commands
-						var commands = [
-							"M618 S" + eepromOffsets["bedHeightOffset"]["offset"] + " T" + eepromOffsets["bedHeightOffset"]["bytes"] + " P" + floatToBinary(0),
-							"M619 S" + eepromOffsets["bedHeightOffset"]["offset"] + " T" + eepromOffsets["bedHeightOffset"]["bytes"],
-							"M65536;wait"
-						];
-	
-						// Set waiting callback
-						waitingCallback = function() {
-		
+							// Show message
+							showMessage("Calibration Status", "Calibrating bed center Z0");
+						
 							// Set commands
-							commands = [
-								"G91",
-								"G0 Z3 F90",
-								"G90",
-								"M109 S150",
-								"M104 S0",
-								"M107",
-								"G30",
+							var commands = [
+								"M618 S" + eepromOffsets["bedHeightOffset"]["offset"] + " T" + eepromOffsets["bedHeightOffset"]["bytes"] + " P" + floatToBinary(0),
+								"M619 S" + eepromOffsets["bedHeightOffset"]["offset"] + " T" + eepromOffsets["bedHeightOffset"]["bytes"],
 								"M65536;wait"
 							];
-				
+	
 							// Set waiting callback
 							waitingCallback = function() {
-							
+		
 								// Set commands
 								commands = [
-									"M117",
+									"G91",
+									"G0 Z3 F90",
+									"G90",
+									"M109 S150",
+									"M104 S0",
+									"M107",
+									"G30",
 									"M65536;wait"
 								];
 				
 								// Set waiting callback
 								waitingCallback = function() {
+							
+									// Set commands
+									commands = [
+										"M117",
+										"M65536;wait"
+									];
+				
+									// Set waiting callback
+									waitingCallback = function() {
 						
-									// Show message
-									showMessage("Calibration Status", "Now raise the print head so that you can attach the external bed, and then lower the print head until it barely touches the external bed. One way to get to that point is to place a single sheet of paper on the bed under the print head, and lower the print head until the paper can no longer be moved.", "Done", function() {
-
-										// Hide message
-										hideMessage();
-			
 										// Show message
-										showMessage("Calibration Status", "Saving Z as external bed height");
-	
-										// Set commands
-										commands = [
-											"M114",
-											"G4"
-										];
+										showMessage("Calibration Status", "Now raise the print head so that you can attach the external bed, and then lower the print head until it barely touches the external bed. One way to get to that point is to place a single sheet of paper on the bed under the print head, and lower the print head until the paper can no longer be moved.", "Done", function() {
+
+											// Hide message
+											hideMessage();
 			
-										// Set location callback
-										locationCallback = function() {
+											// Show message
+											showMessage("Calibration Status", "Saving Z as external bed height");
+	
+											// Set commands
+											commands = [
+												"M114",
+												"G4"
+											];
+			
+											// Set location callback
+											locationCallback = function() {
 		
+												// Send request
+												$.ajax({
+													url: API_BASEURL + "plugin/m33fio",
+													type: "POST",
+													dataType: "json",
+													data: JSON.stringify({
+														command: "message",
+														value: "Set External Bed Height: " + currentZ
+													}),
+													contentType: "application/json; charset=UTF-8",
+					
+													// On success
+													success: function() {
+					
+														// Continue external bed calibration
+														continueExternalBedCalibration();
+													}
+												});
+											}
+			
 											// Send request
 											$.ajax({
 												url: API_BASEURL + "plugin/m33fio",
@@ -11952,82 +12041,23 @@ $(function() {
 												dataType: "json",
 												data: JSON.stringify({
 													command: "message",
-													value: "Set External Bed Height: " + currentZ
+													value: commands
 												}),
-												contentType: "application/json; charset=UTF-8",
-					
-												// On success
-												success: function() {
-					
-													// Show message
-													showMessage("Calibration Status", "Does the external bed extend the printable region to its max?", "Yes", function() {
-										
-														// Hide message
-														hideMessage();
-			
-														// Show message
-														showMessage("Calibration Status", "Setting expand printable region");
-											
-														// Send request
-														$.ajax({
-															url: API_BASEURL + "plugin/m33fio",
-															type: "POST",
-															dataType: "json",
-															data: JSON.stringify({
-																command: "message",
-																value: "Set Expand Printable Region: True"
-															}),
-															contentType: "application/json; charset=UTF-8",
-					
-															// On success
-															success: function() {
-											
-																// Continue calibration
-																continueCalibration();
-															}
-														});
-													}, "No", function() {
-					
-														// Hide message
-														hideMessage();
-			
-														// Show message
-														showMessage("Calibration Status", "Clearing expand printable region");
-											
-														// Send request
-														$.ajax({
-															url: API_BASEURL + "plugin/m33fio",
-															type: "POST",
-															dataType: "json",
-															data: JSON.stringify({
-																command: "message",
-																value: "Set Expand Printable Region: False"
-															}),
-															contentType: "application/json; charset=UTF-8",
-					
-															// On success
-															success: function() {
-											
-																// Continue calibration
-																continueCalibration();
-															}
-														});
-													});
-												}
+												contentType: "application/json; charset=UTF-8"
 											});
-										}
-			
-										// Send request
-										$.ajax({
-											url: API_BASEURL + "plugin/m33fio",
-											type: "POST",
-											dataType: "json",
-											data: JSON.stringify({
-												command: "message",
-												value: commands
-											}),
-											contentType: "application/json; charset=UTF-8"
 										});
+									}
+						
+									// Send request
+									$.ajax({
+										url: API_BASEURL + "plugin/m33fio",
+										type: "POST",
+										dataType: "json",
+										data: JSON.stringify({
+											command: "message",
+											value: commands
+										}),
+										contentType: "application/json; charset=UTF-8"
 									});
 								}
 						
@@ -12055,18 +12085,6 @@ $(function() {
 								}),
 								contentType: "application/json; charset=UTF-8"
 							});
-						}
-						
-						// Send request
-						$.ajax({
-							url: API_BASEURL + "plugin/m33fio",
-							type: "POST",
-							dataType: "json",
-							data: JSON.stringify({
-								command: "message",
-								value: commands
-							}),
-							contentType: "application/json; charset=UTF-8"
 						});
 					});
 				}, "No", function() {
