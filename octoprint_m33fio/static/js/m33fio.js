@@ -11953,6 +11953,9 @@ $(function() {
 						continueExternalBedCalibration();
 					}, "No", function() {
 					
+						// Hide message
+						hideMessage();
+					
 						// Show message
 						showMessage("Calibration Status", "Remove the external bed and make sure that the bed that came with the printer is attached", "OK", function() {
 					

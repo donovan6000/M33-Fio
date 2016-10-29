@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OctoPrint-M33Fio 1.10.2016102817\n"
 "Report-Msgid-Bugs-To: i18n@octoprint.org\n"
-"POT-Creation-Date: 2016-10-28 17:22-0700\n"
+"POT-Creation-Date: 2016-10-28 17:26-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -257,30 +257,30 @@ msgstr ""
 msgid "Pre-processing … (%(percent)s%%)"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:14111
+#: octoprint_m33fio/static/js/m33fio.js:14114
 #, python-format
 msgid "You don't have read/write access to %(port)s"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:14154
+#: octoprint_m33fio/static/js/m33fio.js:14157
 msgid "OK"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:14176
+#: octoprint_m33fio/static/js/m33fio.js:14179
 #, python-format
 msgid ""
 "Firmware is corrupt. Update to %(firmwareType)s firmware version "
 "%(firmwareVersion)s?"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:14178
+#: octoprint_m33fio/static/js/m33fio.js:14181
 #, python-format
 msgid ""
 "Firmware is incompatible. Update to %(firmwareType)s firmware version "
 "%(firmwareVersion)s?"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:14180
+#: octoprint_m33fio/static/js/m33fio.js:14183
 #, python-format
 msgid ""
 "Newer firmware available. Update to %(firmwareType)s firmware version "
