@@ -2769,6 +2769,9 @@ $(function() {
 			
 							// Set remove selection interval
 							modelEditor.removeSelectionTimeout = setTimeout(function() {
+							
+								// Disable event
+								$(document).off("mousemove.modelEditor");
 				
 								// Remove selection
 								modelEditor.removeSelection();
@@ -2776,8 +2779,9 @@ $(function() {
 								// Render
 								modelEditor.render();
 							}, 125);
-				
-							$(document).on("mousemove.modelEditor", modelEditor.stopRemoveSelectionTimeout);
+							
+							// Enable event
+							$(document).off("mousemove.modelEditor").on("mousemove.modelEditor", modelEditor.stopRemoveSelectionTimeout);
 						}
 			
 						// Render
@@ -2787,6 +2791,9 @@ $(function() {
 		
 				// Stop remove selection timeout
 				stopRemoveSelectionTimeout: function() {
+				
+					// Disable event
+					$(document).off("mousemove.modelEditor");
 	
 					// Clear remove selection timeout
 					clearTimeout(modelEditor.removeSelectionTimeout);
@@ -5217,7 +5224,7 @@ $(function() {
 			}
 			
 			// Update title
-			$(this).mousemove();
+			$(this).mouseenter();
 		});
 		
 		// Control button click event
@@ -7114,8 +7121,8 @@ $(function() {
 															localStorage.advancedSettingsOpen = "false";
 													}
 			
-													// Update cursor and title
-													group.mousemove();
+													// Update title
+													group.children("i").mouseenter();
 													
 													// Set dialogs's height
 													$("#slicing_configuration_dialog.profile").addClass("transitionHeight")[0].style.setProperty("height", newHeight + "px", "important");
@@ -8413,41 +8420,6 @@ $(function() {
 																// Set selection mode to scale
 																modelEditor.setMode("scale");
 															});
-															
-															// Lock/unlock scale mousedown
-															$(document).on("mousedown", "#slicing_configuration_dialog.model .modal-extra > div.values.scale > div > p > span:not(.axis)", function(event) {
-																
-																// Stop default behavior
-																event.stopImmediatePropagation();
-																
-																// Check if locking
-																if($(this).text() == '\uF13E') {
-																
-																	// Update image and title
-																	$(this).text('\uF023').attr("title", htmlDecode(gettext("Unlock")));
-																	
-																	// Update scale lock
-																	for(var i = 0; i < 3; i++)
-																		if($(this).is($("#slicing_configuration_dialog .modal-extra div.values p span:not(.axis)").eq(i))) {
-																			modelEditor.scaleLock[i] = true;
-																			break;
-																		}
-																}
-																
-																// Otherwise assume unlocking
-																else {
-																
-																	// Update image and title
-																	$(this).text('\uF13E').attr("title", htmlDecode(gettext("Lock")));
-																	
-																	// Update scale lock
-																	for(var i = 0; i < 3; i++)
-																		if($(this).is($("#slicing_configuration_dialog .modal-extra div.values p span:not(.axis)").eq(i))) {
-																			modelEditor.scaleLock[i] = false;
-																			break;
-																		}
-																}
-															});
 
 															// Snap button click event
 															$("#slicing_configuration_dialog .modal-extra button.snap").click(function() {
@@ -9225,6 +9197,41 @@ $(function() {
 		
 				// Insert tab
 				document.execCommand("insertText", false, "\t");
+			}
+		});
+		
+		// Lock/unlock scale mousedown
+		$(document).on("mousedown", "#slicing_configuration_dialog.model .modal-extra > div.values.scale > div > p > span:not(.axis)", function(event) {
+			
+			// Stop default behavior
+			event.stopImmediatePropagation();
+			
+			// Check if locking
+			if($(this).text() == '\uF13E') {
+			
+				// Update image and title
+				$(this).text('\uF023').attr("title", htmlDecode(gettext("Unlock")));
+				
+				// Update scale lock
+				for(var i = 0; i < 3; i++)
+					if($(this).is($("#slicing_configuration_dialog .modal-extra div.values p span:not(.axis)").eq(i))) {
+						modelEditor.scaleLock[i] = true;
+						break;
+					}
+			}
+			
+			// Otherwise assume unlocking
+			else {
+			
+				// Update image and title
+				$(this).text('\uF13E').attr("title", htmlDecode(gettext("Lock")));
+				
+				// Update scale lock
+				for(var i = 0; i < 3; i++)
+					if($(this).is($("#slicing_configuration_dialog .modal-extra div.values p span:not(.axis)").eq(i))) {
+						modelEditor.scaleLock[i] = false;
+						break;
+					}
 			}
 		});
 		
