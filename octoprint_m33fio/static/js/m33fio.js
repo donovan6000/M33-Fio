@@ -12263,7 +12263,7 @@ $(function() {
 					hideMessage();
 					
 					// Show message
-					showMessage(gettext("Calibration Status"), _.sprintf(gettext("Your external bed is currently set to be %(externalBedHeight)0.2fmm taller than the bed that came with the printer. If you wish to recalibrate the external bed height, please remove the external bed now, attached the bed that came with the printer, and click \"Next\". Click \"Cancel\" to change the setting manually. Or click \"Skip\" to leave the setting as it is."), {externalBedHeight: self.settings.settings.plugins.m33fio.ExternalBedHeight()}), gettext("Next"), function() {
+					showMessage(gettext("Calibration Status"), _.sprintf(gettext("Your external bed is currently set to be %(externalBedHeight)0.2fmm taller than the bed that came with the printer. If you wish to recalibrate the external bed height, please remove the external bed, attached the bed that came with the printer, and click \"Next\". Click \"Cancel\" to change the setting manually. Or click \"Skip\" to leave the setting as it is."), {externalBedHeight: self.settings.settings.plugins.m33fio.ExternalBedHeight()}), gettext("Next"), function() {
 		
 						// Hide message
 						hideMessage();
@@ -15638,7 +15638,7 @@ $(function() {
 		else if(navigator.platform.indexOf("Mac") != -1)
 		
 			// Fix OS X specific CSS issues
-			$("#settings_plugin_m33fio label.checkbox > span, #control div.jog-panel.eeprom input, #control div.jog-panel.eeprom input[type=\"radio\"], #settings_plugin_m33fio select.short").addClass("osx");	
+			$("#settings_plugin_m33fio label.checkbox > span, #control div.jog-panel.eeprom input, #control div.jog-panel.eeprom input[type=\"radio\"], #settings_plugin_m33fio select.short").addClass("osx");
 	}
 
 	// Register plugin
