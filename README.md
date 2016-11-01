@@ -33,8 +33,6 @@ By default M33 Fio is setup to make OctoPrint fully compatible with the Micro 3D
 * Microsoft Internet Explorer 11 doesn't insert a tab character when typing the tab key in the advanced section of the slicer profile editor since it doesn't support using the document.execCommand function with the "insertText" parameter
 * Microsoft Edge displays webcam stream as a still image
 * Can't host more than one webcam stream at a time since it always hosts on port 4999
-* Has only been tested on the latest versions of Microsoft Internet Explorer 11, Microsoft Edge, Mozilla Firefox, and Google Chrome, so it might have issues with web browsers other than those
-* M33 Fio has only been tested on OctoPrint installations running on Windows, OS X, and Linux, so it might have issues running on operating systems other than those
 
 ### Translating
 If your interested in translating M33 Fio into a different language, you just need to create a [gettext PO file](https://en.wikipedia.org/wiki/Gettext) for your target language, translate all the text in that file, and bundle that file into M33 Fio. Creating an up-to-date PO file for a specific language can be done with the following commands. A list of language codes can be found [here](http://www.lingoes.net/en/translator/langcode.htm).

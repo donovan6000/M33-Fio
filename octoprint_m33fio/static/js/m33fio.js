@@ -656,14 +656,16 @@ $(function() {
 		}
 		
 		// Show message
-		function showMessage(header, text, secondButton, secondButtonCallback, firstButton, firstButtonCallback) {
+		function showMessage(header, text, thirdButton, thirdButtonCallback, secondButton, secondButtonCallback, firstButton, firstButtonCallback) {
 		
 			// Append message to list
 			messages.push({
 				header: header,
 				text: text,
+				thirdButton: thirdButton,
 				secondButton: secondButton,
 				firstButton: firstButton,
+				thirdButtonCallback: thirdButtonCallback,
 				secondButtonCallback: secondButtonCallback,
 				firstButtonCallback: firstButtonCallback
 			});
@@ -701,7 +703,7 @@ $(function() {
 			var message = $("body > div.page-container > div.message");
 			
 			// Check if the current displayed message doesn't need confirmation
-			if(message.hasClass("show") && !message.find("button.confirm").eq(1).hasClass("show")) {
+			if(message.hasClass("show") && !message.find("button.confirm").eq(2).hasClass("show")) {
 			
 				// Check if skipping a message
 				if(skippedMessages) {
@@ -741,7 +743,7 @@ $(function() {
 				}
 				
 				// Check if a message can be displayed
-				if(messages.length && self.loginState.loggedIn() && ((message.hasClass("show") && !message.find("button.confirm").eq(1).hasClass("show")) || message.css("z-index") != "9999")) {
+				if(messages.length && self.loginState.loggedIn() && ((message.hasClass("show") && !message.find("button.confirm").eq(2).hasClass("show")) || message.css("z-index") != "9999")) {
 				
 					// Get current message
 					var currentMessage = messages.shift();
@@ -765,9 +767,15 @@ $(function() {
 						buttons.eq(1).removeClass("show");
 					else
 						buttons.eq(1).html(currentMessage.secondButton).addClass("show");
+					
+					// Set third button if specified
+					if(typeof currentMessage.thirdButton === "undefined")
+						buttons.eq(2).removeClass("show");
+					else
+						buttons.eq(2).html(currentMessage.thirdButton).addClass("show");
 
 					// Hide button area and show loading if no buttons are specified
-					if(typeof currentMessage.secondButton === "undefined" && typeof currentMessage.firstButton === "undefined") {
+					if(typeof currentMessage.thirdButton === "undefined" && typeof currentMessage.secondButton === "undefined" && typeof currentMessage.firstButton === "undefined") {
 						$("body > div.page-container > div.message > div > div").addClass("loading");
 						$("body > div.page-container > div.message > div > div > div").removeClass("show");
 						$("body > div.page-container > div.message > div > img").addClass("show");
@@ -784,10 +792,10 @@ $(function() {
 						// Show calibration menu or print settings if applicable
 						$("body > div.page-container > div.message > div > div > div.calibrate, body > div.page-container > div.message > div > div > div.printSettings, body > div.page-container > div.message > div > div > div.filamentSettings").removeClass("show");
 						
-						if(currentMessage.secondButton == gettext("Done") && currentMessage.header != gettext("Fan Status"))
+						if(currentMessage.thirdButton == gettext("Done") && !message.find("p").eq(0).find(".customInput").length)
 							$("body > div.page-container > div.message > div > div > div.calibrate").addClass("show");
 						
-						else if(currentMessage.secondButton == gettext("Print")) {
+						else if(currentMessage.thirdButton == gettext("Print")) {
 							$("body > div.page-container > div.message > div > div > div.printSettings input").eq(0).val(self.settings.settings.plugins.m33fio.FilamentTemperature());
 							$("body > div.page-container > div.message > div > div > div.printSettings input").eq(1).val(self.settings.settings.plugins.m33fio.HeatbedTemperature());
 							$("body > div.page-container > div.message > div > div > div.printSettings select").val(self.settings.settings.plugins.m33fio.FilamentType());
@@ -796,10 +804,10 @@ $(function() {
 							message.find("p").eq(0).removeClass("show")
 						}
 						
-						else if(currentMessage.secondButton == gettext("Unload") || currentMessage.secondButton == gettext("Load") || currentMessage.secondButton == gettext("Set")) {
+						else if(currentMessage.thirdButton == gettext("Unload") || currentMessage.thirdButton == gettext("Load") || currentMessage.thirdButton == gettext("Set")) {
 							$("body > div.page-container > div.message > div > div > div.filamentSettings input").eq(0).val(self.settings.settings.plugins.m33fio.FilamentTemperature());
-							$("body > div.page-container > div.message > div > div > div.filamentSettings label").html(currentMessage.secondButton == gettext("Unload") ? gettext("Unload Temperature") : currentMessage.secondButton == gettext("Load") ? gettext("Load Temperature") : gettext("New Print"));
-							$("body > div.page-container > div.message > div > div > div.filamentSettings p").html(gettext("Recommended") + "<ul>" + (currentMessage.secondButton == gettext("Unload") ? "<li>" + _.sprintf(gettext("%(temperature)d°C for ABS"), {temperature: 285}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for PLA"), {temperature: 225}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for HIPS"), {temperature: 275}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for FLX"), {temperature: 230}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for TGH"), {temperature: 230}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for CAM"), {temperature: 225}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for ABS-R"), {temperature: 250}) + "</li>" : "<li>" + _.sprintf(gettext("%(temperature)d°C for ABS"), {temperature: 275}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for PLA"), {temperature: 215}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for HIPS"), {temperature: 265}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for FLX"), {temperature: 220}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for TGH"), {temperature: 220}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for CAM"), {temperature: 215}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for ABS-R"), {temperature: 240}) + "</li>") + "</ul>");
+							$("body > div.page-container > div.message > div > div > div.filamentSettings label").html(currentMessage.thirdButton == gettext("Unload") ? gettext("Unload Temperature") : currentMessage.thirdButton == gettext("Load") ? gettext("Load Temperature") : gettext("New Temperature"));
+							$("body > div.page-container > div.message > div > div > div.filamentSettings p").html(gettext("Recommended") + "<ul>" + (currentMessage.thirdButton == gettext("Unload") ? "<li>" + _.sprintf(gettext("%(temperature)d°C for ABS"), {temperature: 285}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for PLA"), {temperature: 225}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for HIPS"), {temperature: 275}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for FLX"), {temperature: 230}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for TGH"), {temperature: 230}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for CAM"), {temperature: 225}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for ABS-R"), {temperature: 250}) + "</li>" : "<li>" + _.sprintf(gettext("%(temperature)d°C for ABS"), {temperature: 275}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for PLA"), {temperature: 215}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for HIPS"), {temperature: 265}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for FLX"), {temperature: 220}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for TGH"), {temperature: 220}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for CAM"), {temperature: 215}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for ABS-R"), {temperature: 240}) + "</li>") + "</ul>");
 							$("body > div.page-container > div.message > div > div > div.filamentSettings").addClass("show");
 							message.find("p").eq(0).removeClass("show")
 						}
@@ -810,10 +818,16 @@ $(function() {
 						buttons.eq(0).one("click", currentMessage.firstButtonCallback);
 					else
 						buttons.eq(0).off("click");
+					
 					if(typeof currentMessage.secondButtonCallback === "function")
 						buttons.eq(1).one("click", currentMessage.secondButtonCallback);
 					else
 						buttons.eq(1).off("click");
+					
+					if(typeof currentMessage.thirdButtonCallback === "function")
+						buttons.eq(2).one("click", currentMessage.thirdButtonCallback);
+					else
+						buttons.eq(2).off("click");
 			
 					// Show message
 					message.addClass("show").css("z-index", "9999");
@@ -4994,7 +5008,7 @@ $(function() {
 								<label class="control-label">' + gettext("Filament Temperature") + '</label>\
 								<div class="controls">\
 									<div class="input-append degreesCelsius">\
-										<input type="number" step="1" min="150" max="315" class="input-block-level" data-bind="value: settings.plugins.m33fio.FilamentTemperature">\
+										<input type="number" step="1" min="150" max="315" class="input-block-level">\
 										<span class="add-on">°C</span>\
 									</div>\
 								</div>\
@@ -5003,7 +5017,7 @@ $(function() {
 								<label class="control-label">' + gettext("Heatbed Temperature") + '</label>\
 								<div class="controls">\
 									<div class="input-append degreesCelsius">\
-										<input type="number" step="1" min="0" max="110" class="input-block-level" data-bind="value: settings.plugins.m33fio.HeatbedTemperature">\
+										<input type="number" step="1" min="0" max="110" class="input-block-level">\
 										<span class="add-on">°C</span>\
 									</div>\
 								</div>\
@@ -5011,7 +5025,7 @@ $(function() {
 							<div class="control-group">\
 								<label class="control-label">' + gettext("Filament Type") + '</label>\
 								<div class="controls">\
-									<select class="input-block-level" data-bind="value: settings.plugins.m33fio.FilamentType">\
+									<select class="input-block-level">\
 										<option value="ABS">' + _.sprintf(gettext("ABS (Recommended %(temperature)d°C)"), {temperature: 275}) + '</option>\
 										<option value="PLA">' + _.sprintf(gettext("PLA (Recommended %(temperature)d°C)"), {temperature: 215}) + '</option>\
 										<option value="HIPS">' + _.sprintf(gettext("HIPS (Recommended %(temperature)d°C)"), {temperature: 265}) + '</option>\
@@ -5045,6 +5059,7 @@ $(function() {
 							<p></p>\
 						</div>\
 						<div>\
+							<button class="btn btn-block confirm"></button>\
 							<button class="btn btn-block confirm"></button>\
 							<button class="btn btn-block confirm"></button>\
 						</div>\
@@ -12248,100 +12263,66 @@ $(function() {
 					hideMessage();
 					
 					// Show message
-					showMessage(gettext("Calibration Status"), _.sprintf(gettext("Your external bed is currently set to be %(externalBedHeight)0.2fmm taller than the bed that came with the printer. Is this correct?"), {externalBedHeight: self.settings.settings.plugins.m33fio.ExternalBedHeight()}), gettext("Yes"), function() {
-					
-						// Hide message
-						hideMessage();
-						
-						// Continue external bed calibration
-						continueExternalBedCalibration();
-					}, gettext("No"), function() {
-					
+					showMessage(gettext("Calibration Status"), _.sprintf(gettext("Your external bed is currently set to be %(externalBedHeight)0.2fmm taller than the bed that came with the printer. If you wish to recalibrate the external bed height, please remove the external bed now, attached the bed that came with the printer, and click \"Next\". Click \"Cancel\" to change the setting manually. Or click \"Skip\" to leave the setting as it is."), {externalBedHeight: self.settings.settings.plugins.m33fio.ExternalBedHeight()}), gettext("Next"), function() {
+		
 						// Hide message
 						hideMessage();
 					
 						// Show message
-						showMessage(gettext("Calibration Status"), gettext("Remove the external bed and make sure that the bed that came with the printer is attached"), gettext("OK"), function() {
+						showMessage(gettext("Calibration Status"), gettext("Calibrating bed center Z0"));
 					
-							// Hide message
-							hideMessage();
-						
-							// Show message
-							showMessage(gettext("Calibration Status"), gettext("Calibrating bed center Z0"));
-						
+						// Set commands
+						var commands = [
+							"M618 S" + eepromOffsets["bedHeightOffset"]["offset"] + " T" + eepromOffsets["bedHeightOffset"]["bytes"] + " P" + floatToBinary(0),
+							"M619 S" + eepromOffsets["bedHeightOffset"]["offset"] + " T" + eepromOffsets["bedHeightOffset"]["bytes"],
+							"M65536;wait"
+						];
+
+						// Set waiting callback
+						waitingCallback = function() {
+	
 							// Set commands
-							var commands = [
-								"M618 S" + eepromOffsets["bedHeightOffset"]["offset"] + " T" + eepromOffsets["bedHeightOffset"]["bytes"] + " P" + floatToBinary(0),
-								"M619 S" + eepromOffsets["bedHeightOffset"]["offset"] + " T" + eepromOffsets["bedHeightOffset"]["bytes"],
+							commands = [
+								"G91",
+								"G0 Z3 F90",
+								"G90",
+								"M109 S150",
+								"M104 S0",
+								"M107",
+								"G30",
 								"M65536;wait"
 							];
-	
+			
 							// Set waiting callback
 							waitingCallback = function() {
-		
+						
 								// Set commands
 								commands = [
-									"G91",
-									"G0 Z3 F90",
-									"G90",
-									"M109 S150",
-									"M104 S0",
-									"M107",
-									"G30",
+									"M117",
 									"M65536;wait"
 								];
-				
+			
 								// Set waiting callback
 								waitingCallback = function() {
-							
-									// Set commands
-									commands = [
-										"M117",
-										"M65536;wait"
-									];
-				
-									// Set waiting callback
-									waitingCallback = function() {
-						
-										// Show message
-										showMessage(gettext("Calibration Status"), gettext("Now raise the print head so that you can attach the external bed, and then lower the print head until it barely touches the external bed. One way to get to that point is to place a single sheet of paper on the bed under the print head, and lower the print head until the paper can no longer be moved."), gettext("Done"), function() {
+					
+									// Show message
+									showMessage(gettext("Calibration Status"), gettext("Now raise the print head so that you can attach the external bed, and then lower the print head until it barely touches the external bed. One way to get to that point is to place a single sheet of paper on the bed under the print head, and lower the print head until the paper can no longer be moved."), gettext("Done"), function() {
 
-											// Hide message
-											hideMessage();
-			
-											// Show message
-											showMessage(gettext("Calibration Status"), gettext("Saving Z as external bed height"));
-	
-											// Set commands
-											commands = [
-												"M114",
-												"G4"
-											];
-			
-											// Set location callback
-											locationCallback = function() {
+										// Hide message
+										hideMessage();
 		
-												// Send request
-												$.ajax({
-													url: API_BASEURL + "plugin/m33fio",
-													type: "POST",
-													dataType: "json",
-													data: JSON.stringify({
-														command: "message",
-														value: "Set External Bed Height: " + currentZ
-													}),
-													contentType: "application/json; charset=UTF-8",
-													traditional: true,
-													processData: true
-					
-												// Done
-												}).done(function() {
-					
-													// Continue external bed calibration
-													continueExternalBedCalibration();
-												});
-											}
-			
+										// Show message
+										showMessage(gettext("Calibration Status"), gettext("Saving Z as external bed height"));
+
+										// Set commands
+										commands = [
+											"M114",
+											"G4"
+										];
+		
+										// Set location callback
+										locationCallback = function() {
+	
 											// Send request
 											$.ajax({
 												url: API_BASEURL + "plugin/m33fio",
@@ -12349,30 +12330,36 @@ $(function() {
 												dataType: "json",
 												data: JSON.stringify({
 													command: "message",
-													value: commands
+													value: "Set External Bed Height: " + currentZ
 												}),
 												contentType: "application/json; charset=UTF-8",
 												traditional: true,
 												processData: true
+				
+											// Done
+											}).done(function() {
+				
+												// Continue external bed calibration
+												continueExternalBedCalibration();
 											});
+										}
+		
+										// Send request
+										$.ajax({
+											url: API_BASEURL + "plugin/m33fio",
+											type: "POST",
+											dataType: "json",
+											data: JSON.stringify({
+												command: "message",
+												value: commands
+											}),
+											contentType: "application/json; charset=UTF-8",
+											traditional: true,
+											processData: true
 										});
-									}
-						
-									// Send request
-									$.ajax({
-										url: API_BASEURL + "plugin/m33fio",
-										type: "POST",
-										dataType: "json",
-										data: JSON.stringify({
-											command: "message",
-											value: commands
-										}),
-										contentType: "application/json; charset=UTF-8",
-										traditional: true,
-										processData: true
 									});
 								}
-						
+					
 								// Send request
 								$.ajax({
 									url: API_BASEURL + "plugin/m33fio",
@@ -12387,7 +12374,7 @@ $(function() {
 									processData: true
 								});
 							}
-						
+					
 							// Send request
 							$.ajax({
 								url: API_BASEURL + "plugin/m33fio",
@@ -12401,7 +12388,70 @@ $(function() {
 								traditional: true,
 								processData: true
 							});
+						}
+					
+						// Send request
+						$.ajax({
+							url: API_BASEURL + "plugin/m33fio",
+							type: "POST",
+							dataType: "json",
+							data: JSON.stringify({
+								command: "message",
+								value: commands
+							}),
+							contentType: "application/json; charset=UTF-8",
+							traditional: true,
+							processData: true
 						});
+					}, gettext("Cancel"), function() {
+		
+						// Hide message
+						hideMessage();
+						
+						// Show message
+						showMessage(gettext("Calibration Status"), gettext("Enter the new external bed height") + '\
+							<div class="input-append customInput">\
+								<input type="number" step="0.000001" min="0" max="50" class="input-block-level externalBedHeight" value="' + self.settings.settings.plugins.m33fio.ExternalBedHeight() + '">\
+								<span class="add-on">mm</span>\
+							</div>\
+						', gettext("Done"), function() {
+
+							// Set external bed height
+							var externalBedHeight = $("body > div.page-container > div.message .customInput input").val();
+							
+							// Hide message
+							hideMessage();
+
+							// Show message
+							showMessage(gettext("Calibration Status"), gettext("Saving value as external bed height"));
+							
+							// Send request
+							$.ajax({
+								url: API_BASEURL + "plugin/m33fio",
+								type: "POST",
+								dataType: "json",
+								data: JSON.stringify({
+									command: "message",
+									value: "Set External Bed Height: " + externalBedHeight
+								}),
+								contentType: "application/json; charset=UTF-8",
+								traditional: true,
+								processData: true
+
+							// Done
+							}).done(function() {
+
+								// Continue external bed calibration
+								continueExternalBedCalibration();
+							});
+						});
+					}, gettext("Skip"), function() {
+		
+						// Hide message
+						hideMessage();
+						
+						// Continue external bed calibration
+						continueExternalBedCalibration();
 					});
 				}, gettext("No"), function() {
 			
@@ -12840,12 +12890,17 @@ $(function() {
 				
 						// Set connect callback
 						connectCallback = function() {
-					
+						
 							// Show message
-							showMessage(gettext("Fan Status"), gettext("Increase this value until the fan starts spinning") + "<span class=\"fan\"><input type=\"number\" step=\"1\" min=\"0\" max=\"255\" value=\"0\"></span>", gettext("Done"), function() {
-		
+							showMessage(gettext("Fan Status"), gettext("Increase this value until the fan starts spinning") + '\
+								<div class="input-append ratio255 customInput">\
+									<input type="number" step="1" min="0" max="255" class="input-block-level fanOffset" value="0">\
+									<span class="add-on">/ 255</span>\
+								</div>\
+							', gettext("Done"), function() {
+
 								// Set fan offset
-								var fanOffset = $("body > div.page-container > div.message > div > div > p span.fan > input").val();
+								var fanOffset = $("body > div.page-container > div.message .customInput input").val();
 								
 								// Hide message
 								hideMessage();
@@ -12927,7 +12982,7 @@ $(function() {
 		});
 		
 		// Custom fan calibration change event
-		$(document).on("change", "body > div.page-container > div.message > div > div > p span.fan > input", function() {
+		$(document).on("change", "body > div.page-container > div.message .customInput input.fanOffset", function() {
 		
 			// Set commands
 			var commands = [
@@ -15342,7 +15397,7 @@ $(function() {
 				var message = $("body > div.page-container > div.message");
 		
 				// Check if a progress message is being shown
-				if(message.hasClass("show") && !message.find("button.confirm").eq(1).hasClass("show")) {
+				if(message.hasClass("show") && !message.find("button.confirm").eq(2).hasClass("show")) {
 		
 					// Show message
 					showMessage(gettext("Server Status"), gettext("You've been disconnected from the server which has most likely caused the printer's current operation to fail. It's recommended that you refresh this page to prevent further problems. Refresh now?"), gettext("Yes"), function() {
@@ -15583,7 +15638,7 @@ $(function() {
 		else if(navigator.platform.indexOf("Mac") != -1)
 		
 			// Fix OS X specific CSS issues
-			$("#settings_plugin_m33fio label.checkbox > span, #control div.jog-panel.eeprom input, #control div.jog-panel.eeprom input[type=\"radio\"], #settings_plugin_m33fio select.short").addClass("osx");
+			$("#settings_plugin_m33fio label.checkbox > span, #control div.jog-panel.eeprom input, #control div.jog-panel.eeprom input[type=\"radio\"], #settings_plugin_m33fio select.short").addClass("osx");	
 	}
 
 	// Register plugin

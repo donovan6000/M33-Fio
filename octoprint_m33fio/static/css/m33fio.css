@@ -624,16 +624,6 @@ body > div.page-container > div.message > div > div > p span.backlash > button {
 	margin: 2px;
 }
 
-body > div.page-container > div.message > div > div > p span.fan {
-	display: block;
-	text-align: center;
-}
-
-body > div.page-container > div.message > div > div > p span.fan > input {
-	width: 50px;
-	margin: 5px 0 0 0;
-}
-
 body > div.page-container > div.message > div > div > p:not(.show) {
 	height: 0px;
 	visibility: hidden;
@@ -796,6 +786,15 @@ body > div.page-container > div.message > div > div > span {
 
 body > div.page-container > div.message > div > div > span.show {
 	display: inline-block;
+}
+
+body > div.page-container > div.message .customInput {
+	text-align: center;
+	margin: 10px 0 0 0;
+}
+
+body > div.page-container > div.message .customInput input {
+	width: 100px;
 }
 
 #slicing_configuration_dialog.cura .slic3r-only {
