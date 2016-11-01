@@ -1,9 +1,11 @@
 Changelog:
 
-V1.11 October X, 2016
+V1.11 November X, 2016
 
 	* Heatbed will start heating up after moving extruder into the wipe corner
 	* Text can be translated into different languages
+	* Allows manually entering external bed height when performing a complete bed calibration if the user doesn't want to or can't remove their external bed
+	* JavaScript is now compatible with jQuery >= 3.0 just in case OctoPrint ever upgrades to it
 
 V1.10 October 25, 2016
 

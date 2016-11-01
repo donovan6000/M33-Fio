@@ -26,10 +26,10 @@ find ./ -name '*~' -print0 | xargs -0 rm
 find ./ -name '*.pyc' -print0 | xargs -0 rm
 
 # Update bundled translations
-python setup.py babel_refresh
-pybabel compile -d translations
-python setup.py babel_bundle --locale=
-find "octoprint_m33fio/translations" -maxdepth 1 -type f -delete
+#python setup.py babel_refresh
+#pybabel compile -d translations
+#python setup.py babel_bundle --locale=
+#find "octoprint_m33fio/translations" -maxdepth 1 -type f -delete
 
 # Push changes
 git add .

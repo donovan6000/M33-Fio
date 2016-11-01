@@ -5809,7 +5809,7 @@ class M33FioPlugin(
 			if currentPort is None :
 				
 				# Send message
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("No Micro 3D printer detected. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("No Micro 3D printer detected. If your not using a Micro 3D printer then make sure to enable the Settings &gt; M33 Fio &gt; \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
 			
 			# Otherwise
 			else :
@@ -5828,7 +5828,7 @@ class M33FioPlugin(
 					error = True
 					
 					# Send message
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings &gt; M33 Fio &gt; \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
 				
 				# Check if no errors occured
 				if not error :
@@ -5863,7 +5863,7 @@ class M33FioPlugin(
 							error = True
 					
 							# Send message
-							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
+							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings &gt; M33 Fio &gt; \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
 			
 						# Check if no errors occured
 						if not error :
@@ -5901,7 +5901,7 @@ class M33FioPlugin(
 									error = True
 							
 									# Send message
-									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
+									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings &gt; M33 Fio &gt; \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
 					
 								# Otherwise
 								else :
@@ -5923,7 +5923,7 @@ class M33FioPlugin(
 										error = True
 								
 										# Send message
-										self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
+										self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings &gt; M33 Fio &gt; \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
 								
 									# Otherwise check if using OS X or Linux and the user lacks read/write access to the printer
 									elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
@@ -5955,7 +5955,7 @@ class M33FioPlugin(
 										error = True
 										
 										# Send message
-										self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
+										self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings &gt; M33 Fio &gt; \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
 			
 								# Check if an error occured
 								except :
@@ -5964,7 +5964,7 @@ class M33FioPlugin(
 									error = True
 					
 									# Send message
-									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
+									self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings &gt; M33 Fio &gt; \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
 								
 								# Check if an error hasn't occured
 								if not error :
@@ -6387,7 +6387,7 @@ class M33FioPlugin(
 											error = True
 						
 											# Send message
-											self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
+											self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings &gt; M33 Fio &gt; \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
 			
 									# Otherwise
 									else :
@@ -6396,7 +6396,7 @@ class M33FioPlugin(
 										error = True
 						
 										# Send message
-										self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
+										self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings &gt; M33 Fio &gt; \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
 			
 				# Check if connected to the printer
 				if connection is not None :
@@ -6437,7 +6437,7 @@ class M33FioPlugin(
 						self.eeprom = None
 						
 						# Send message
-						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
+						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings &gt; M33 Fio &gt; \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
 					
 					# Check if an error hasn't occured
 					if not error :
@@ -6480,7 +6480,7 @@ class M33FioPlugin(
 								self.eeprom = None
 
 								# Send message
-								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
+								self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings &gt; M33 Fio &gt; \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
 				
 							# Otherwise
 							else :
@@ -6594,7 +6594,7 @@ class M33FioPlugin(
 												self._printer.disconnect()
 								
 												# Send message
-												self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
+												self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings &gt; M33 Fio &gt; \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
 					
 										# Otherwise
 										else :
@@ -6613,7 +6613,7 @@ class M33FioPlugin(
 											self._printer.disconnect()
 							
 											# Send message
-											self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
+											self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings &gt; M33 Fio &gt; \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
 			
 			# Clear reconnecting to printer
 			self.reconnectingToPrinter = False
@@ -8609,7 +8609,7 @@ class M33FioPlugin(
 				if not self.printingTestBorder and not self.printingBacklashCalibration :
 				
 					# Set progress bar text
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = gettext("Pre-processing … (%(percent)s%%)"), percent = input.tell() * 100 / os.fstat(input.fileno()).st_size))
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = gettext("Pre-processing … (%(percent)d%%)"), percent = input.tell() * 100 / os.fstat(input.fileno()).st_size))
 			
 			# Otherwise check if no more commands
 			elif len(commands) == 0 :
@@ -10207,7 +10207,7 @@ class M33FioPlugin(
 					pass
 				
 				# Send message
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("No Micro 3D printer detected. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("No Micro 3D printer detected. If your not using a Micro 3D printer then make sure to enable the Settings &gt; M33 Fio &gt; \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
 				
 				# Enable printer connect button
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Allow Connecting"))
@@ -10236,7 +10236,7 @@ class M33FioPlugin(
 		if connection is None :
 		
 			# Send message
-			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings > M33 Fio > \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
+			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings &gt; M33 Fio &gt; \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
 			
 			# Enable printer connect button
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Allow Connecting"))

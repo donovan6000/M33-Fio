@@ -1,3 +1,11 @@
+div.navbar-inner div.container {
+	position: relative;
+}
+
+div.navbar-inner ul.nav.pull-right {
+	position: static;
+}
+
 body > div.modal-scrollable.hideOverflow {
 	overflow: hidden !important;
 }
