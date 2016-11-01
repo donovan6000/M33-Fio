@@ -43,6 +43,7 @@ python setup.py babel_refresh
 python setup.py babel_new --locale=<language code>
 ```
 That will generate a PO file at `translations/<language code>/LC_MESSAGES/messages.po`. Once that PO file is fully translated into your target language it can be compiled and bundled into the plugin by running the following commands.
+```
 python setup.py babel_compile
 python setup.py babel_bundle --locale=<language code>
 ```
