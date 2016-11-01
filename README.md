@@ -48,7 +48,7 @@ python setup.py babel_compile
 python setup.py babel_bundle --locale=<language code>
 ```
 Stick to the following guidelines when translating text.
-* All text is HTML, so make sure you convert `&`, `<`, and `>` to `&amp;amp;`, `&amp;lt;`, and `&amp;gt;` respectively when they are used as character literals. Do not encode any other characters as HTML entities, and you shouldn't have to use any other HTML entities since the text uses UTF-8 encoding.
+* All text is HTML, so make sure you convert `&`, `<`, and `>` to `&amp;`, `&lt;`, and `&gt;` respectively when they are used as character literals. Do not encode any other characters as HTML entities, and you shouldn't have to use any other HTML entities since the text uses UTF-8 encoding.
 * Keep whitespace, like newlines and tabs, formatted the same as they are in the source
 * Keep HTML tags, like <b>…</b>, the same as they are in the source
 * Keep placeholders, like %(…)d and %(…)s intact, but make sure to move them where they belong to in your target language
