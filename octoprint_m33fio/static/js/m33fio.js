@@ -1352,6 +1352,7 @@ $(function() {
 				model: null,
 				modelLoaded: true,
 				grid: null,
+				cameraFocus: new THREE.Vector3(0, 0, 0),
 				
 				// Initialize
 				init: function() {
@@ -1384,7 +1385,7 @@ $(function() {
 
 						// Create controls
 						this.orbitControls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
-						this.orbitControls.target.set(0, 0, 0);
+						this.orbitControls.target.copy(this.cameraFocus);
 						this.orbitControls.enablePan = false;
 						this.orbitControls.autoRotate = true;
 						this.orbitControls.autoRotateSpeed = 1.5;
@@ -1478,6 +1479,9 @@ $(function() {
 							modelViewer.modelUrl = null;
 							modelViewer.modelUploadDate = null;
 							
+							// Reset camera focus
+							modelViewer.cameraFocus.set(0, 0, 0);
+							
 							// Set model loaded
 							modelViewer.modelLoaded = true;
 							
@@ -1526,8 +1530,8 @@ $(function() {
 							modelViewer.model.position.y = -boundaryBox.min.y;
 					
 							// Set camera to focus on model
-							modelViewer.orbitControls.target.set(0, modelViewer.model.position.y, 0);
-					
+							modelViewer.cameraFocus.copy(modelViewer.model.position);
+						
 							// Set model loaded
 							modelViewer.modelLoaded = true;
 						
@@ -1554,7 +1558,7 @@ $(function() {
 						modelViewer.model = null;
 						
 						// Reset camera focus
-						modelViewer.orbitControls.target.set(0, 0, 0);
+						modelViewer.cameraFocus.set(0, 0, 0);
 					}
 				},
 				
@@ -1570,6 +1574,18 @@ $(function() {
 				// Animate
 				animate: function() {
 				
+					// Go through each vector component
+					for(var i = 0; i < 3; i++) {
+					
+						// Ease out camera focus change
+						var speed = Math.sqrt(Math.pow(modelViewer.orbitControls.target.getComponent(i) - modelViewer.cameraFocus.getComponent(i), 2)) / 25;
+					
+						if(modelViewer.orbitControls.target.getComponent(i) < modelViewer.cameraFocus.getComponent(i))
+							modelViewer.orbitControls.target.setComponent(i, Math.min(modelViewer.cameraFocus.getComponent(i), modelViewer.orbitControls.target.getComponent(i) + speed));
+						else if(modelViewer.orbitControls.target.getComponent(i) > modelViewer.cameraFocus.getComponent(i))
+							modelViewer.orbitControls.target.setComponent(i, Math.max(modelViewer.cameraFocus.getComponent(i), modelViewer.orbitControls.target.getComponent(i) - speed));
+					}
+					
 					// Update controls
 					modelViewer.orbitControls.update();
 
