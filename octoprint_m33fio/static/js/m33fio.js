@@ -2153,8 +2153,8 @@ $(function() {
 		
 					// Create measurement geometry
 					var measurementGeometry = new THREE.Geometry();
-					measurementGeometry.vertices.push(new THREE.Vector3(0, 0, 0));
-					measurementGeometry.vertices.push(new THREE.Vector3(0, 0, 0));
+					measurementGeometry.vertices.push(new THREE.Vector3());
+					measurementGeometry.vertices.push(new THREE.Vector3());
 		
 					// Create measurement
 					for(var i = 0; i < 3; i++)
@@ -2516,7 +2516,7 @@ $(function() {
 					if(modelEditor.platformAdhesion != "None") {
 					
 						// Create adhesion mesh
-						var adhesionMesh = new THREE.Mesh(mesh.geometry.clone(), filamentMaterials[modelEditorFilamentColor]);
+						var adhesionMesh = new THREE.Mesh(mesh.geometry, filamentMaterials[modelEditorFilamentColor]);
 						
 						// Add adhesion to scene
 						modelEditor.scene[0].add(adhesionMesh);
