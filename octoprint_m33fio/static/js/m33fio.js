@@ -1352,7 +1352,7 @@ $(function() {
 				model: null,
 				modelLoaded: true,
 				grid: null,
-				cameraFocus: new THREE.Vector3(0, 0, 0),
+				cameraFocus: new THREE.Vector3(),
 				
 				// Initialize
 				init: function() {
@@ -1369,10 +1369,16 @@ $(function() {
 						// Create scene
 						this.scene = new THREE.Scene();
 						
+						// Set camera settings
+						var viewAngle = 45;
+						var displayWidth = $("#model > div > div").width();
+						var displayHeight = $("#model > div > div").height();
+						var aspectRatio = displayWidth / displayHeight;
+						var near = 0.1;
+						var far = 20000;
+						
 						// Create camera
-						var SCREEN_WIDTH = $("#model > div > div").width(), SCREEN_HEIGHT = $("#model > div > div").height();
-						var VIEW_ANGLE = 45, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 0.1, FAR = 20000;
-						this.camera = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
+						this.camera = new THREE.PerspectiveCamera(viewAngle, aspectRatio, near, far);
 						this.scene.add(this.camera);
 						this.camera.position.set(0, 70, -200);
 						
@@ -1380,7 +1386,7 @@ $(function() {
 						this.renderer = new THREE.WebGLRenderer({
 							antialias: true
 						});
-						this.renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+						this.renderer.setSize(displayWidth, displayHeight);
 						this.renderer.setClearColor(0xFCFCFC, 1);
 
 						// Create controls
@@ -1564,11 +1570,16 @@ $(function() {
 				
 				// Resize event
 				resizeEvent: function() {
+				
+					// Set camera settings
+					var displayWidth = $("#model > div > div").width();
+					var displayHeight = $("#model > div > div").height();
+					var aspectRatio = displayWidth / displayHeight;
 
 					// Update camera
-					modelViewer.camera.aspect = $("#model > div > div").width() / $("#model > div > div").height();
+					modelViewer.camera.aspect = aspectRatio;
 					modelViewer.camera.updateProjectionMatrix();
-					modelViewer.renderer.setSize($("#model > div > div").width(), $("#model > div > div").height());
+					modelViewer.renderer.setSize(displayWidth, displayHeight);
 				},
 				
 				// Animate
@@ -1614,19 +1625,18 @@ $(function() {
 				orbitControls: null,
 				transformControls: null,
 				models: [],
-				modelLoaded: true,
-				sceneExported: false,
+				modelLoaded: false,
+				sceneExported: true,
 				boundaries: [],
 				showBoundaries: typeof localStorage.modelEditorShowBoundaries !== "undefined" && localStorage.modelEditorShowBoundaries == "true",
 				measurements: [],
 				showMeasurements: typeof localStorage.modelEditorShowMeasurements !== "undefined" && localStorage.modelEditorShowMeasurements == "true",
-				removeSelectionTimeout: null,
 				savedMatrix: null,
 				cutShape: null,
 				cutShapeOutline: null,
 				platformAdhesion: null,
 				adhesionSize: null,
-				scaleLock: [],
+				scaleLock: [false, false, false],
 				printerModel: null,
 				axes: [],
 				showAxes: typeof localStorage.modelEditorShowAxes === "undefined" || localStorage.modelEditorShowAxes == "true",
@@ -1635,6 +1645,7 @@ $(function() {
 				bedOrigin: null,
 				grid: null,
 				showGrid: typeof localStorage.modelEditorShowGrid !== "undefined" && localStorage.modelEditorShowGrid == "true",
+				cameraFocus: new THREE.Vector3(),
 				
 				// Initialize
 				init: function() {
@@ -1938,19 +1949,21 @@ $(function() {
 						this.platformAdhesion = "None";
 						this.adhesionSize = 0;
 					}
-					
-					// Set scale lock
-					for(var i = 0; i < 3; i++)
-						this.scaleLock[i] = false;
 
 					// Create scene
 					for(var i = 0; i < 2; i++)
 						this.scene[i] = new THREE.Scene();
-
+					
+					// Set camera settings
+					var viewAngle = 45;
+					var displayWidth = $("#slicing_configuration_dialog").width();
+					var displayHeight = $("#slicing_configuration_dialog").height() - 123;
+					var aspectRatio = displayWidth / displayHeight;
+					var near = 0.1;
+					var far = 20000;
+					
 					// Create camera
-					var SCREEN_WIDTH = $("#slicing_configuration_dialog").width(), SCREEN_HEIGHT = $("#slicing_configuration_dialog").height() - 123;
-					var VIEW_ANGLE = 45, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 0.1, FAR = 20000;
-					this.camera = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
+					this.camera = new THREE.PerspectiveCamera(viewAngle, aspectRatio, near, far);
 					this.scene[0].add(this.camera);
 					this.camera.position.set(0, 200, -280);
 
@@ -1958,18 +1971,16 @@ $(function() {
 					this.renderer = new THREE.WebGLRenderer({
 						antialias: true
 					});
-					this.renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+					this.renderer.setSize(displayWidth, displayHeight);
 					this.renderer.setClearColor(0xFCFCFC, 1);
 					this.renderer.autoClear = false;
-
+					
 					// Create controls
 					this.orbitControls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
-					this.orbitControls.target.set(0, bedHighMaxZ / 2 + externalBedHeight, 0);
-					this.orbitControls.minDistance = (bedHighMaxZ - bedLowMinZ) * 1.43;
-					this.orbitControls.maxDistance = (bedHighMaxZ - bedLowMinZ) * 5.35;
-					this.orbitControls.minPolarAngle = 0;
-					this.orbitControls.maxPolarAngle = THREE.Math.degToRad(100);
+					this.orbitControls.target.copy(this.cameraFocus);
 					this.orbitControls.enablePan = false;
+					this.orbitControls.enableDamping = true;
+					this.orbitControls.dampingFactor = 0.70;
 	
 					this.transformControls = new THREE.TransformControls(this.camera, this.renderer.domElement);
 					this.transformControls.space = "world";
@@ -2063,6 +2074,7 @@ $(function() {
 				
 						// Add axis to scene
 						this.axes[i].visible = this.showAxes;
+						this.axes[i].frustumCulled = false;
 						this.scene[1].add(this.axes[i]);
 					}
 					
@@ -2110,9 +2122,6 @@ $(function() {
 						
 								// Add logo to scene
 								modelEditor.scene[0].add(mesh);
-			
-								// Render
-								modelEditor.render();
 				
 								// Import model
 								modelEditor.importModel(file, "stl");
@@ -2147,28 +2156,17 @@ $(function() {
 					measurementGeometry.vertices.push(new THREE.Vector3(0, 0, 0));
 					measurementGeometry.vertices.push(new THREE.Vector3(0, 0, 0));
 		
-					// Create measurements
+					// Create measurement
 					for(var i = 0; i < 3; i++)
-						this.measurements[i] = [];
-		
-					// Width measurement
-					this.measurements[0][0] = new THREE.Line(measurementGeometry.clone(), measurementMaterial);
-					this.measurements[0][1] = new THREE.Vector3();
-		
-					// Depth measurement
-					this.measurements[1][0] = new THREE.Line(measurementGeometry.clone(), measurementMaterial);
-					this.measurements[1][1] = new THREE.Vector3();
-		
-					// Height measurement
-					this.measurements[2][0] = new THREE.Line(measurementGeometry.clone(), measurementMaterial);
-					this.measurements[2][1] = new THREE.Vector3();
-		
+						this.measurements[i] = new THREE.Line(measurementGeometry.clone(), measurementMaterial);
+					
 					// Go through all measurements
 					for(var i = 0; i < this.measurements.length; i++) {
 		
 						// Add measurements to scene
-						this.measurements[i][0].visible = false;
-						this.scene[1].add(this.measurements[i][0]);
+						this.measurements[i].visible = this.showMeasurements;
+						this.measurements[i].frustumCulled = false;
+						this.scene[1].add(this.measurements[i]);
 					}
 					
 					// Create boundary material
@@ -2370,21 +2368,30 @@ $(function() {
 						if(i)
 							this.scene[0].add(this.boundaries[i]);
 					}
-		
-					// Render
-					modelEditor.render();
-		
+					
 					// Enable events
 					this.transformControls.addEventListener("mouseDown", this.startTransform);
 					this.transformControls.addEventListener("mouseUp", this.endTransform);
 					this.transformControls.addEventListener("mouseUp", this.fixModelY);
 					this.transformControls.addEventListener("change", this.updateModelChanges);
-					this.transformControls.addEventListener("change", this.render);
-					this.orbitControls.addEventListener("change", this.render);
+					this.orbitControls.addEventListener("change", this.updateMeasurementPosition);
+					this.orbitControls.addEventListener("change", this.updateGlowPerspective);
+					this.orbitControls.addEventListener("end", function() {
+					
+						// Update measurement position and glow perspective after orbit controls change fully ends
+						setTimeout(function() {
+							modelEditor.updateMeasurementPosition();
+							modelEditor.updateGlowPerspective();
+						}, 50);
+					});
+					
 					$(document).on("mousedown.modelEditor", this.mouseDownEvent);
 					$(window).on("resize.modelEditor", this.resizeEvent);
 					$(window).on("keydown.modelEditor", this.keyDownEvent);
 					$(window).on("keyup.modelEditor", this.keyUpEvent);
+		
+					// Start animating model editor
+					this.animate();
 				},
 	
 				// Start transform
@@ -2412,6 +2419,9 @@ $(function() {
 
 				// Import model
 				importModel: function(file, type) {
+				
+					// Set immediate camera focus if first model is being loaded
+					var immediateCameraFocus = !modelEditor.modelLoaded;
 
 					// Clear model loaded
 					modelEditor.modelLoaded = false;
@@ -2481,9 +2491,18 @@ $(function() {
 						// Select model
 						modelEditor.removeSelection();
 						modelEditor.selectModel(mesh);
+						
+						// Update platform adhesion
+						modelEditor.updatePlatformAdhesion();
 
 						// Fix model's Y
 						modelEditor.fixModelY();
+						
+						// Immediately have the camera focus on first model loaded
+						if(immediateCameraFocus) {
+							modelEditor.cameraFocus.copy(modelEditor.transformControls.object.position);
+							modelEditor.orbitControls.target.copy(modelEditor.cameraFocus);
+						}
 			
 						// Set model loaded
 						modelEditor.modelLoaded = true;
@@ -2498,16 +2517,43 @@ $(function() {
 					
 						// Create adhesion mesh
 						var adhesionMesh = new THREE.Mesh(mesh.geometry.clone(), filamentMaterials[modelEditorFilamentColor]);
-
+						
 						// Add adhesion to scene
 						modelEditor.scene[0].add(adhesionMesh);
 						
 						// Return adhesion mesh
-						return {mesh: adhesionMesh, glow: null, geometry: adhesionMesh.geometry.clone()};
+						return {
+							mesh: adhesionMesh,
+							glow: null,
+							geometry: adhesionMesh.geometry
+						};
 					}
 					
 					// Return null
 					return null;
+				},
+				
+				// Update platform adhesion
+				updatePlatformAdhesion: function() {
+				
+					// Go through all models
+					for(var i = 1; i < modelEditor.models.length; i++)
+	
+						// Check if model is selected and adhesion exists
+						if(modelEditor.models[i].glow !== null && modelEditor.models[i].adhesion !== null) {
+					
+							// Restore original geometry
+							modelEditor.models[i].adhesion.mesh.geometry = modelEditor.models[i].adhesion.geometry.clone();
+				
+							// Update adhesion's orientation
+							modelEditor.models[i].adhesion.mesh.position.set(0, 0, 0);
+							modelEditor.models[i].adhesion.mesh.rotation.copy(modelEditor.models[i].mesh.rotation);
+							modelEditor.models[i].adhesion.mesh.scale.copy(modelEditor.models[i].mesh.scale);
+					
+							// Apply transformation to adhesion's geometry
+							modelEditor.models[i].adhesion.mesh.updateMatrix();
+							modelEditor.models[i].adhesion.mesh.geometry.applyMatrix(modelEditor.models[i].adhesion.mesh.matrix);
+						}
 				},
 
 				// Key down event
@@ -2531,26 +2577,33 @@ $(function() {
 									// Check if not cutting models
 									if(modelEditor.cutShape === null) {
 							
-										// Get currently selected model
+										// Get currently focused model
 										var current = modelEditor.transformControls.object;
 							
 										// Go through all models
 										for(var i = 1; i < modelEditor.models.length; i++)
 							
-											// Check if not currently selected model
+											// Check if model isn't focused on
 											if(modelEditor.models[i].mesh !== current)
 							
-												// Select first model
+												// Select model
 												modelEditor.selectModel(modelEditor.models[i].mesh);
 							
-										// Select currently selected model
+										// Select the previously focused model
 										if(current)
 											modelEditor.selectModel(current);
-							
-										// Render
-										modelEditor.render();
 									}
 								}
+							break;
+							
+							// Check if F is pressed
+							case "F".charCodeAt(0) :
+							
+								// Prevent default action
+								event.preventDefault();
+							
+								// Reset camera focus
+								modelEditor.cameraFocus.set(0, 0, 0);
 							break;
 	
 							// Check if tab was pressed
@@ -2568,13 +2621,13 @@ $(function() {
 									// Check if not cutting models
 									if(modelEditor.cutShape === null) {
 	
-										// Check if an object is selected
+										// Check if a model is being focused on
 										if(modelEditor.transformControls.object) {
 		
 											// Go through all models
 											for(var i = 1; i < modelEditor.models.length; i++)
 			
-												// Check if model is currently selected
+												// Check if model is currently being focused on
 												if(modelEditor.models[i].mesh == modelEditor.transformControls.object) {
 								
 													// Check if shift isn't pressed
@@ -2583,17 +2636,8 @@ $(function() {
 														// Remove selection
 														modelEditor.removeSelection();
 								
-													// Check if model isn't the last one
-													if(i != modelEditor.models.length - 1)
-									
-														// Select next model
-														modelEditor.selectModel(modelEditor.models[i + 1].mesh);
-									
-													// Otherwise
-													else
-									
-														// Select first model
-														modelEditor.selectModel(modelEditor.models[1].mesh);
+													// Select next model
+													modelEditor.selectModel(modelEditor.models[i != modelEditor.models.length - 1 ? i + 1 : 1].mesh);
 					
 													// Break
 													break;
@@ -2605,9 +2649,6 @@ $(function() {
 			
 											// Select first model
 											modelEditor.selectModel(modelEditor.models[1].mesh);
-									
-										// Render
-										modelEditor.render();
 									}
 								
 									// Otherwise
@@ -2631,18 +2672,17 @@ $(function() {
 							// Check if delete was pressed
 							case "\x2E".charCodeAt(0) :
 		
-								// Check if an object is selected
+								// Check if a model is being focused on
 								if(modelEditor.transformControls.object)
 			
 									// Delete model
 									modelEditor.deleteModel();
 							break;
-			
 		
 							// Check if shift was pressed
 							case "\x10".charCodeAt(0) :
 		
-								// Enable grid and rotation snap
+								// Enable snap
 								modelEditor.enableSnap();
 							break;
 
@@ -2696,7 +2736,7 @@ $(function() {
 						// Check if shift was released
 						case "\x10".charCodeAt(0) :
 		
-							// Disable grid and rotation snap
+							// Disable snap
 							modelEditor.disableSnap();
 						break;
 					}
@@ -2705,24 +2745,23 @@ $(function() {
 				// Mouse down event
 				mouseDownEvent: function(event) {
 
-					// Check if not in cutting models, clicking inside the model editor, and not clicking on a button or input
+					// Check if not cutting models, is clicking inside the model editor, and is not clicking on a button or input
 					if(modelEditor.cutShape === null && $(event.target).closest(".modal-extra").length && !$(event.target).is("button, img, input")) {
 
-						// Initialize variables
-						var raycaster = new THREE.Raycaster();
+						// Set mouse coordinates
 						var mouse = new THREE.Vector2();
 						var offset = $(modelEditor.renderer.domElement).offset();
-	
-						// Set mouse coordinates
 						mouse.x = ((event.clientX - offset.left) / modelEditor.renderer.domElement.clientWidth) * 2 - 1;
-						mouse.y = - ((event.clientY - offset.top) / modelEditor.renderer.domElement.clientHeight) * 2 + 1;
+						mouse.y = -((event.clientY - offset.top) / modelEditor.renderer.domElement.clientHeight) * 2 + 1;
 	
 						// Set ray caster's perspective
+						var raycaster = new THREE.Raycaster();
 						raycaster.setFromCamera(mouse, modelEditor.camera);
 	
-						// Get models' meshes
-						var modelMeshes = []
+						// Get models' meshes and adhesions' meshes
+						var modelMeshes = [];
 						for(var i = 0; i < modelEditor.models.length; i++) {
+						
 							if(modelEditor.models[i].mesh !== null)
 								modelMeshes.push(modelEditor.models[i].mesh);
 							if(modelEditor.models[i].adhesion !== null)
@@ -2739,36 +2778,56 @@ $(function() {
 							if(event.ctrlKey) {
 					
 								// Go through all models
-								for(var i = 0; i < modelEditor.models.length; i++)
+								for(var i = 1; i < modelEditor.models.length; i++)
 						
-									// Check if model was selected
+									// Check if model was clicked
 									if(modelEditor.models[i].mesh == intersects[0].object || (modelEditor.models[i].adhesion !== null && modelEditor.models[i].adhesion.mesh == intersects[0].object)) {
+									
+										// Check if model is selected
+										if(modelEditor.models[i].glow !== null) {
 							
-										// Set model's color
-										modelEditor.models[i].mesh.material = filamentMaterials[modelEditorFilamentColor];
-										
-										// Set adhesion's color
-										if(modelEditor.models[i].adhesion !== null) {
-											modelEditor.models[i].adhesion.mesh.material = filamentMaterials[modelEditorFilamentColor];
-											modelEditor.scene[1].remove(modelEditor.models[i].adhesion.glow);
-											modelEditor.models[i].adhesion.glow = null;
-										}
+											// Set model's color
+											modelEditor.models[i].mesh.material = filamentMaterials[modelEditorFilamentColor];
 		
-										// Remove glow
-										modelEditor.scene[1].remove(modelEditor.models[i].glow);
-										modelEditor.models[i].glow = null;
+											// Remove model's glow
+											modelEditor.scene[1].remove(modelEditor.models[i].glow);
+											modelEditor.models[i].glow = null;
+											
+											// Check if adhesion exists
+											if(modelEditor.models[i].adhesion !== null) {
+											
+												// Set adhesion's color
+												modelEditor.models[i].adhesion.mesh.material = filamentMaterials[modelEditorFilamentColor];
+												
+												// Remove adhesion's glow
+												modelEditor.scene[1].remove(modelEditor.models[i].adhesion.glow);
+												modelEditor.models[i].adhesion.glow = null;
+											}
 			
-										// Remove selection and select new model
-										if(modelEditor.models[i].mesh == modelEditor.transformControls.object) {
-											modelEditor.transformControls.detach();
-											for(var j = 0; j < modelEditor.models.length; j++)
-												if(modelEditor.models[j].glow && j != i)
-													modelEditor.selectModel(modelEditor.models[j].mesh)
+											// Check if model is currently focused
+											if(modelEditor.models[i].mesh === modelEditor.transformControls.object) {
+											
+												// Remove focus
+												modelEditor.transformControls.detach();
+												
+												// Go through all other models
+												for(var j = modelEditor.models.length - 1; j >= 1; j--)
+												
+													// Check if model is selected
+													if(modelEditor.models[j].glow !== null) {
+													
+														// Select model
+														modelEditor.selectModel(modelEditor.models[j].mesh);
+														
+														// Break
+														break;
+													}
+											}
+								
+											// Update model changes
+											modelEditor.updateModelChanges();
 										}
-								
-										// Update model changes
-										modelEditor.updateModelChanges();
-								
+										
 										// Break;
 										break;
 									}
@@ -2784,13 +2843,17 @@ $(function() {
 									modelEditor.removeSelection();
 								
 								// Go through all models
-								for(var i = 0; i < modelEditor.models.length; i++)
+								for(var i = 1; i < modelEditor.models.length; i++)
 						
-									// Check if model was selected
-									if(modelEditor.models[i].mesh == intersects[0].object || (modelEditor.models[i].adhesion !== null && modelEditor.models[i].adhesion.mesh == intersects[0].object))
+									// Check if model was clicked
+									if(modelEditor.models[i].mesh == intersects[0].object || (modelEditor.models[i].adhesion !== null && modelEditor.models[i].adhesion.mesh == intersects[0].object)) {
 				
-										// Select object
+										// Select model
 										modelEditor.selectModel(modelEditor.models[i].mesh);
+										
+										// Break
+										break;
+									}
 							}
 						}
 	
@@ -2798,35 +2861,26 @@ $(function() {
 						else {
 			
 							// Set remove selection interval
-							modelEditor.removeSelectionTimeout = setTimeout(function() {
+							var removeSelectionTimeout = setTimeout(function() {
 							
 								// Disable event
 								$(document).off("mousemove.modelEditor");
 				
 								// Remove selection
 								modelEditor.removeSelection();
-					
-								// Render
-								modelEditor.render();
 							}, 125);
 							
 							// Enable event
-							$(document).off("mousemove.modelEditor").on("mousemove.modelEditor", modelEditor.stopRemoveSelectionTimeout);
-						}
-			
-						// Render
-						modelEditor.render();
-					}
-				},
-		
-				// Stop remove selection timeout
-				stopRemoveSelectionTimeout: function() {
-				
-					// Disable event
-					$(document).off("mousemove.modelEditor");
+							$(document).off("mousemove.modelEditor").on("mousemove.modelEditor", function() {
+							
+								// Disable event
+								$(document).off("mousemove.modelEditor");
 	
-					// Clear remove selection timeout
-					clearTimeout(modelEditor.removeSelectionTimeout);
+								// Clear remove selection timeout
+								clearTimeout(removeSelectionTimeout);
+							});
+						}
+					}
 				},
 	
 				// Enable snap
@@ -2878,21 +2932,26 @@ $(function() {
 							modelEditor.transformControls.space = "local";
 						break;
 					}
-		
-					// Render
-					modelEditor.render();
 				},
 
 				// Resize event
 				resizeEvent: function() {
+				
+					// Set camera settings
+					var displayWidth = $("#slicing_configuration_dialog").width();
+					var displayHeight = $("#slicing_configuration_dialog").height() - 123;
+					var aspectRatio = displayWidth / displayHeight;
 
 					// Update camera
-					modelEditor.camera.aspect = $("#slicing_configuration_dialog").width() / ($("#slicing_configuration_dialog").height() - 123);
+					modelEditor.camera.aspect = aspectRatio;
 					modelEditor.camera.updateProjectionMatrix();
-					modelEditor.renderer.setSize($("#slicing_configuration_dialog").width(), $("#slicing_configuration_dialog").height() - 123);
-		
-					// Render
-					modelEditor.render();
+					modelEditor.renderer.setSize(displayWidth, displayHeight);
+					
+					// Update measurement position
+					modelEditor.updateMeasurementPosition();
+					
+					// Update glow perspective
+					modelEditor.updateGlowPerspective();
 				},
 
 				// Export scene
@@ -2994,28 +3053,26 @@ $(function() {
 							// Get model's boundary box
 							var boundaryBox = new THREE.Box3().setFromObject(modelEditor.models[i].mesh);
 							boundaryBox.min.sub(modelEditor.models[i].mesh.position);
-							boundaryBox.max.sub(modelEditor.models[i].mesh.position);
 
 							// Set model's lowest Y value to be on the bed
-							modelEditor.models[i].mesh.position.y -= modelEditor.models[i].mesh.position.y + boundaryBox.min.y - bedLowMinZ;
+							modelEditor.models[i].mesh.position.y = -boundaryBox.min.y + bedLowMinZ;
 						}
-				
-					// Check if cutting models
-					if(modelEditor.cutShape !== null) {
-
-						// Select cut shape
-						modelEditor.removeSelection();
-						modelEditor.transformControls.attach(modelEditor.cutShape);
-					}
 					
 					// Upate measurements
 					modelEditor.updateModelChanges();
-			
-					// Update boundaries
-					modelEditor.updateBoundaries();
-			
-					// Render
-					modelEditor.render();
+					
+					// Update camera focus
+					modelEditor.updateCameraFocus();
+				},
+				
+				// Update camera focus
+				updateCameraFocus: function() {
+				
+					// Check if a model is selected
+					if(modelEditor.transformControls.object)
+					
+						// Set camera to focus on model
+						modelEditor.cameraFocus.copy(modelEditor.transformControls.object.position);
 				},
 	
 				// Clone model
@@ -3024,7 +3081,7 @@ $(function() {
 					// Clear model loaded
 					modelEditor.modelLoaded = false;
 			
-					// Initialize clones models
+					// Initialize cloned models
 					var clonedModels = [];
 			
 					// Go through all models
@@ -3034,7 +3091,7 @@ $(function() {
 						if(modelEditor.models[i].glow !== null) {
 
 							// Clone model
-							var clonedModel = new THREE.Mesh(modelEditor.models[i].mesh.geometry.clone(), modelEditor.models[i].mesh.material.clone());
+							var clonedModel = new THREE.Mesh(modelEditor.models[i].mesh.geometry.clone(), modelEditor.models[i].mesh.material);
 		
 							// Copy original orientation
 							clonedModel.applyMatrix(modelEditor.models[i].mesh.matrix);
@@ -3050,10 +3107,16 @@ $(function() {
 								adhesion: modelEditor.createPlatformAdhesion(clonedModel)
 							});
 					
-							// Append cloned model to list
+							// Check if model is focused
 							if(modelEditor.models[i].mesh == modelEditor.transformControls.object)
+							
+								// Append cloned model to the beginning of list
 								clonedModels.unshift(clonedModel);
+							
+							// Otherwise
 							else
+							
+								// Append cloned model to the end of list
 								clonedModels.push(clonedModel);
 						}
 			
@@ -3062,6 +3125,9 @@ $(function() {
 			
 						// Select model
 						modelEditor.selectModel(clonedModels[i]);
+					
+					// Update platform adhesion
+					modelEditor.updatePlatformAdhesion();
 
 					// Fix model's Y
 					modelEditor.fixModelY();
@@ -3069,9 +3135,7 @@ $(function() {
 					// Remove current selection
 					modelEditor.removeSelection();
 				
-					// Render
-					modelEditor.render();
-				
+					// Delay selecting models to visually show that selection has changed
 					setTimeout(function() {
 				
 						// Go through all cloned models
@@ -3079,9 +3143,6 @@ $(function() {
 			
 							// Select model
 							modelEditor.selectModel(clonedModels[i]);
-			
-						// Render
-						modelEditor.render();
 			
 						// Set model loaded
 						modelEditor.modelLoaded = true;
@@ -3115,6 +3176,9 @@ $(function() {
 								modelEditor.models[i].mesh.scale.set(1, 1, 1);
 							}
 					
+					// Update platform adhesion
+					modelEditor.updatePlatformAdhesion();
+					
 					// Fix model's Y
 					modelEditor.fixModelY();
 				},
@@ -3139,6 +3203,9 @@ $(function() {
 						
 						// Hide cut shape options
 						$("#slicing_configuration_dialog .modal-extra div.cutShape").removeClass("show");
+						
+						// Reset allowed translation
+						modelEditor.transformControls.setAllowedTranslation("XZ");
 					}
 				
 					// Otherwise
@@ -3160,48 +3227,45 @@ $(function() {
 								modelEditor.models.splice(i--, 1);
 							}
 	
-					// Remove selection
-					modelEditor.transformControls.setAllowedTranslation("XZ");
+					// Remove focus
 					modelEditor.transformControls.detach();
 	
 					// Update model changes
 					modelEditor.updateModelChanges();
-			
-					// Update boundaries
-					modelEditor.updateBoundaries();
-			
-					// Render
-					modelEditor.render();
 				},
 	
 				// Remove selection
 				removeSelection: function() {
 		
-					// Check if an object is selected
+					// Check if a model is focused
 					if(modelEditor.transformControls.object) {
 	
 						// Go through all models
 						for(var i = 1; i < modelEditor.models.length; i++)
 		
-							// Check if glow exists
+							// Check if model is selected
 							if(modelEditor.models[i].glow !== null) {
 	
 								// Set model's color
 								modelEditor.models[i].mesh.material = filamentMaterials[modelEditorFilamentColor];
+
+								// Remove model's glow
+								modelEditor.scene[1].remove(modelEditor.models[i].glow);
+								modelEditor.models[i].glow = null;
 								
-								// Set adhesion's color
+								// Check if adhesion exists
 								if(modelEditor.models[i].adhesion !== null) {
+								
+									// Set adhesion's color
 									modelEditor.models[i].adhesion.mesh.material = filamentMaterials[modelEditorFilamentColor];
+									
+									// Remove adhesion's glow
 									modelEditor.scene[1].remove(modelEditor.models[i].adhesion.glow);
 									modelEditor.models[i].adhesion.glow = null;
 								}
-		
-								// Remove glow
-								modelEditor.scene[1].remove(modelEditor.models[i].glow);
-								modelEditor.models[i].glow = null;
 							}
 			
-						// Remove selection
+						// Remove focus
 						modelEditor.transformControls.detach();
 		
 						// Update model changes
@@ -3270,7 +3334,7 @@ $(function() {
 						// Check if model is being selected
 						if(modelEditor.models[i].mesh == model) {
 				
-							// Select model
+							// Focus on model
 							modelEditor.transformControls.attach(model);
 							
 							// Set select material
@@ -3279,44 +3343,45 @@ $(function() {
 								side: THREE.DoubleSide
 							});
 		
-							// Set model's color
+							// Set model's material
 							model.material = selectMaterial;
 							
-							// Set adhesion's color
+							// Remove model's existing glow
+							if(modelEditor.models[i].glow !== null)
+								modelEditor.scene[1].remove(modelEditor.models[i].glow);
+							
+							// Check if adhesion exists
 							if(modelEditor.models[i].adhesion !== null) {
+							
+								// Set adhesion's material
 								modelEditor.models[i].adhesion.mesh.material = selectMaterial;
+								
+								// Remove adhesion's existing glow
 								if(modelEditor.models[i].adhesion.glow !== null)
 									modelEditor.scene[1].remove(modelEditor.models[i].adhesion.glow);
 							}
 					
-							// Remove existing glow
-							if(modelEditor.models[i].glow !== null)
-								modelEditor.scene[1].remove(modelEditor.models[i].glow);
-					
-							// Create glow
+							// Create model's glow
 							model.updateMatrix();
 							modelEditor.models[i].glow = new THREE.Mesh(model.geometry, glowMaterial.clone());
 						 	modelEditor.models[i].glow.applyMatrix(model.matrix);
 						 	modelEditor.models[i].glow.renderOrder = 1;
 							
-							// Add glow to scene
+							// Add model's glow to scene
 							modelEditor.scene[1].add(modelEditor.models[i].glow);
 							
 							// Check if adhesion exists
 							if(modelEditor.models[i].adhesion !== null) {
 							
-								// Create adhesion glow
+								// Create adhesion's glow
 								modelEditor.models[i].adhesion.mesh.updateMatrix();
 								modelEditor.models[i].adhesion.glow = new THREE.Mesh(modelEditor.models[i].adhesion.mesh.geometry, outlineMaterial.clone());
 							 	modelEditor.models[i].adhesion.glow.applyMatrix(modelEditor.models[i].adhesion.mesh.matrix);
 								modelEditor.models[i].adhesion.glow.renderOrder = 0;
 								
-								// Add glow to scene
+								// Add adhesion's glow to scene
 								modelEditor.scene[1].add(modelEditor.models[i].adhesion.glow);
 							}
-		
-							// Update model changes
-							modelEditor.updateModelChanges();
 						}
 				
 						// Otherwise check if model is selected
@@ -3325,18 +3390,26 @@ $(function() {
 							// Set model's glow color
 							modelEditor.models[i].glow.material.uniforms.color.value.setHex(0xFFFFB3);
 							
-							// Set adhesion's glow color
+							// Check if adhesion exists
 							if(modelEditor.models[i].adhesion !== null)
+							
+								// Set adhesion's glow color
 								modelEditor.models[i].adhesion.glow.material.uniforms.color.value.setHex(0xFFFFB3);
 						}
+					
+					// Update model changes
+					modelEditor.updateModelChanges();
+					
+					// Update camera focus
+					modelEditor.updateCameraFocus();
 				},
 		
 				// Apply changes
 				applyChanges: function(name, value) {
 
-					// Get currently selected model
+					// Check if a model has focus
 					var model = modelEditor.transformControls.object;
-					if(typeof model !== "undefined") {
+					if(model) {
 			
 						// Save matrix
 						modelEditor.savedMatrix = model.matrix.clone();
@@ -3394,37 +3467,34 @@ $(function() {
 					// Get currently selected model
 					var model = modelEditor.transformControls.object;
 				
-					// Check if a showing measurements, a model is currently selected, and not cutting models
+					// Check if a showing measurements, a model has focus, and not cutting models
 					if(modelEditor.showMeasurements && model && modelEditor.cutShape === null) {
 		
 						// Get model's boundary box
 						var boundaryBox = new THREE.Box3().setFromObject(model);
 			
 						// Set width measurement
-						modelEditor.measurements[0][0].geometry.vertices[0].set(boundaryBox.max.x + 1, boundaryBox.min.y - 1, boundaryBox.min.z - 1);
-						modelEditor.measurements[0][0].geometry.vertices[1].set(boundaryBox.min.x - 1, boundaryBox.min.y - 1, boundaryBox.min.z - 1);
-						modelEditor.measurements[0][1].set(boundaryBox.max.x + (boundaryBox.min.x - boundaryBox.max.x) / 2, boundaryBox.min.y, boundaryBox.min.z);
+						modelEditor.measurements[0].geometry.vertices[0].set(boundaryBox.max.x + 1, boundaryBox.min.y - 1, boundaryBox.min.z - 1);
+						modelEditor.measurements[0].geometry.vertices[1].set(boundaryBox.min.x - 1, boundaryBox.min.y - 1, boundaryBox.min.z - 1);
 						var value = boundaryBox.max.x - boundaryBox.min.x;
 						$("#slicing_configuration_dialog .modal-extra div.measurements > p.width").text(value.toFixed(3) + "mm / " + (value / 25.4).toFixed(3) + "in");
 		
 						// Set depth measurement
-						modelEditor.measurements[1][0].geometry.vertices[0].set(boundaryBox.min.x - 1, boundaryBox.min.y - 1, boundaryBox.min.z - 1);
-						modelEditor.measurements[1][0].geometry.vertices[1].set(boundaryBox.min.x - 1, boundaryBox.min.y - 1, boundaryBox.max.z + 1);
-						modelEditor.measurements[1][1].set(boundaryBox.min.x, boundaryBox.min.y, boundaryBox.min.z + (boundaryBox.max.z - boundaryBox.min.z) / 2);
+						modelEditor.measurements[1].geometry.vertices[0].set(boundaryBox.min.x - 1, boundaryBox.min.y - 1, boundaryBox.min.z - 1);
+						modelEditor.measurements[1].geometry.vertices[1].set(boundaryBox.min.x - 1, boundaryBox.min.y - 1, boundaryBox.max.z + 1);
 						value = boundaryBox.max.z - boundaryBox.min.z;
 						$("#slicing_configuration_dialog .modal-extra div.measurements > p.depth").text(value.toFixed(3) + "mm / " + (value / 25.4).toFixed(3) + "in");
 			
 						// Set height measurement
-						modelEditor.measurements[2][0].geometry.vertices[0].set(boundaryBox.min.x - 1, boundaryBox.min.y - 1, boundaryBox.max.z + 1);
-						modelEditor.measurements[2][0].geometry.vertices[1].set(boundaryBox.min.x - 1, boundaryBox.max.y + 1, boundaryBox.max.z + 1);
-						modelEditor.measurements[2][1].set(boundaryBox.min.x, boundaryBox.min.y + (boundaryBox.max.y - boundaryBox.min.y) / 2, boundaryBox.max.z);
+						modelEditor.measurements[2].geometry.vertices[0].set(boundaryBox.min.x - 1, boundaryBox.min.y - 1, boundaryBox.max.z + 1);
+						modelEditor.measurements[2].geometry.vertices[1].set(boundaryBox.min.x - 1, boundaryBox.max.y + 1, boundaryBox.max.z + 1);
 						value = boundaryBox.max.y - boundaryBox.min.y;
 						$("#slicing_configuration_dialog .modal-extra div.measurements > p.height").text(value.toFixed(3) + "mm / " + (value / 25.4).toFixed(3) + "in");
 			
 						// Show measurements
 						for(var i = 0; i < modelEditor.measurements.length; i++) {
-							modelEditor.measurements[i][0].geometry.verticesNeedUpdate = true;
-							modelEditor.measurements[i][0].visible = modelEditor.showMeasurements;
+							modelEditor.measurements[i].geometry.verticesNeedUpdate = true;
+							modelEditor.measurements[i].visible = true;
 						}
 			
 						$("#slicing_configuration_dialog .modal-extra div.measurements > p").addClass("show");
@@ -3435,7 +3505,7 @@ $(function() {
 		
 						// Hide measurements
 						for(var i = 0; i < modelEditor.measurements.length; i++)
-							modelEditor.measurements[i][0].visible = false;
+							modelEditor.measurements[i].visible = false;
 			
 						$("#slicing_configuration_dialog .modal-extra div.measurements > p").removeClass("show");
 					}
@@ -3498,7 +3568,7 @@ $(function() {
 						var numberOfModelsSelected = 0;
 						for(var i = 1; i < modelEditor.models.length; i++)
 		
-							// Check if glow exists
+							// Check if model is selected
 							if(modelEditor.models[i].glow !== null) {
 						
 								// Increment number of models selected
@@ -3511,18 +3581,6 @@ $(function() {
 								
 								// Check if adhesion exists
 								if(modelEditor.models[i].adhesion !== null) {
-								
-									// Restore original geometry
-									modelEditor.models[i].adhesion.mesh.geometry = modelEditor.models[i].adhesion.geometry.clone();
-								
-									// Update adhesion's orientation
-									modelEditor.models[i].adhesion.mesh.rotation.copy(modelEditor.models[i].mesh.rotation);
-									modelEditor.models[i].adhesion.mesh.scale.copy(modelEditor.models[i].mesh.scale);
-									
-									// Apply transformation to adhesion's geometry
-									modelEditor.models[i].adhesion.mesh.updateMatrix();
-									modelEditor.models[i].adhesion.mesh.geometry.applyMatrix(modelEditor.models[i].adhesion.mesh.matrix);
-									modelEditor.models[i].adhesion.mesh.geometry.center();
 									
 									// Set adhesion's orientation
 									modelEditor.models[i].adhesion.mesh.position.set(modelEditor.models[i].mesh.position.x, bedLowMinZ, modelEditor.models[i].mesh.position.z);
@@ -3538,7 +3596,7 @@ $(function() {
 								}
 							}
 					
-						// Enable or disable merge button
+						// Enable or disable merge button based on the number os models selected
 						if(numberOfModelsSelected >= 2)
 							$("#slicing_configuration_dialog .modal-extra button.merge").removeClass("disabled");
 						else
@@ -3584,6 +3642,15 @@ $(function() {
 					
 						// Enable cut button
 						$("#slicing_configuration_dialog .modal-extra button.cut").removeClass("off");
+					
+					// Update boundaries
+					modelEditor.updateBoundaries();
+					
+					// Update measurement position
+					modelEditor.updateMeasurementPosition();
+					
+					// Update glow perspective
+					modelEditor.updateGlowPerspective();
 				},
 		
 				// Apply group transformation
@@ -3644,8 +3711,8 @@ $(function() {
 						// Go through all models
 						for(var i = 1; i < modelEditor.models.length; i++)
 
-							// Check if model is selected
-							if(modelEditor.models[i].glow && modelEditor.models[i].mesh != modelEditor.transformControls.object)
+							// Check if model is selected, but not focused
+							if(modelEditor.models[i].glow !== null && modelEditor.models[i].mesh != modelEditor.transformControls.object)
 					
 								// Check current mode
 								switch(modelEditor.transformControls.getMode()) {
@@ -3682,20 +3749,22 @@ $(function() {
 				
 						// Save new matrix
 						modelEditor.savedMatrix = newMatrix.clone();
+						
+						// Update platform adhesion if model was physically changed
+						if(modelEditor.transformControls.getMode() == "rotate" || modelEditor.transformControls.getMode() == "scale")
+							modelEditor.updatePlatformAdhesion();
 					}
 				},
 	
 				// Get 2D position
 				get2dPosition: function(vector) {
 	
-					// Initialize variables
-					var clonedVector = vector.clone();
-					var position = new THREE.Vector2();
-		
 					// Normalized device coordinate
+					var clonedVector = vector.clone();
 					clonedVector.project(modelEditor.camera);
 
 					// Get 2D position
+					var position = new THREE.Vector2();
 					position.x = Math.round((clonedVector.x + 1) * modelEditor.renderer.domElement.width / 2);
 					position.y = Math.round((-clonedVector.y + 1) * modelEditor.renderer.domElement.height / 2);
 		
@@ -3772,12 +3841,6 @@ $(function() {
 							modelEditor.boundaries[1].renderOrder = 1;
 						}
 		
-						// Otherwise
-						else
-		
-							// Set boundary's visibility
-							modelEditor.boundaries[1].visible = modelEditor.showBoundaries;
-		
 						// Check if models goes out of bounds on low back
 						if((modelEditor.platformAdhesion != "None" && (maximums[0].z + modelEditor.adhesionSize > bedLowMaxY - extruderCenterY || maximums[1].z + modelEditor.adhesionSize > bedLowMaxY - extruderCenterY || maximums[2].z + modelEditor.adhesionSize > bedLowMaxY - extruderCenterY)) || (modelEditor.platformAdhesion == "None" && maximums[0].z > bedLowMaxY - extruderCenterY)) {
 		
@@ -3787,12 +3850,6 @@ $(function() {
 							modelEditor.boundaries[2].visible = true;
 							modelEditor.boundaries[2].renderOrder = 1;
 						}
-		
-						// Otherwise
-						else
-		
-							// Set boundary's visibility
-							modelEditor.boundaries[2].visible = modelEditor.showBoundaries;
 		
 						// Check if models goes out of bounds on low right
 						if((modelEditor.platformAdhesion != "None" && (maximums[0].x + modelEditor.adhesionSize > bedLowMaxX - extruderCenterX || maximums[1].x + modelEditor.adhesionSize > bedLowMaxX - extruderCenterX || maximums[2].x + modelEditor.adhesionSize > bedLowMaxX - extruderCenterX)) || (modelEditor.platformAdhesion == "None" && maximums[0].x > bedLowMaxX - extruderCenterX)) {
@@ -3804,12 +3861,6 @@ $(function() {
 							modelEditor.boundaries[3].renderOrder = 1;
 						}
 		
-						// Otherwise
-						else
-		
-							// Set boundary's visibility
-							modelEditor.boundaries[3].visible = modelEditor.showBoundaries;
-		
 						// Check if models goes out of bounds on low left
 						if((modelEditor.platformAdhesion != "None" && (minimums[0].x - modelEditor.adhesionSize < bedLowMinX - extruderCenterX || minimums[1].x - modelEditor.adhesionSize < bedLowMinX - extruderCenterX || minimums[2].x - modelEditor.adhesionSize < bedLowMinX - extruderCenterX)) || (modelEditor.platformAdhesion == "None" && minimums[0].x < bedLowMinX - extruderCenterX)) {
 		
@@ -3819,12 +3870,6 @@ $(function() {
 							modelEditor.boundaries[4].visible = true;
 							modelEditor.boundaries[4].renderOrder = 1;
 						}
-		
-						// Otherwise
-						else
-		
-							// Set boundary's visibility
-							modelEditor.boundaries[4].visible = modelEditor.showBoundaries;
 		
 						// Check if models goes out of bounds on medium front
 						if(minimums[1].z < bedMediumMinY - extruderCenterY) {
@@ -3836,12 +3881,6 @@ $(function() {
 							modelEditor.boundaries[5].renderOrder = 1;
 						}
 		
-						// Otherwise
-						else
-		
-							// Set boundary's visibility
-							modelEditor.boundaries[5].visible = modelEditor.showBoundaries;
-		
 						// Check if models goes out of bounds on medium back
 						if(maximums[1].z > bedMediumMaxY - extruderCenterY) {
 		
@@ -3851,12 +3890,6 @@ $(function() {
 							modelEditor.boundaries[6].visible = true;
 							modelEditor.boundaries[6].renderOrder = 1;
 						}
-		
-						// Otherwise
-						else
-		
-							// Set boundary's visibility
-							modelEditor.boundaries[6].visible = modelEditor.showBoundaries;
 		
 						// Check if models goes out of bounds on medium right
 						if(maximums[1].x > bedMediumMaxX - extruderCenterX) {
@@ -3868,12 +3901,6 @@ $(function() {
 							modelEditor.boundaries[7].renderOrder = 1;
 						}
 		
-						// Otherwise
-						else
-		
-							// Set boundary's visibility
-							modelEditor.boundaries[7].visible = modelEditor.showBoundaries;
-		
 						// Check if models goes out of bounds on medium left
 						if(minimums[1].x < bedMediumMinX - extruderCenterX) {
 		
@@ -3883,12 +3910,6 @@ $(function() {
 							modelEditor.boundaries[8].visible = true;
 							modelEditor.boundaries[8].renderOrder = 1;
 						}
-		
-						// Otherwise
-						else
-		
-							// Set boundary's visibility
-							modelEditor.boundaries[8].visible = modelEditor.showBoundaries;
 		
 						// Check if models goes out of bounds on high front
 						if(minimums[2].z < bedHighMinY - extruderCenterY) {
@@ -3900,12 +3921,6 @@ $(function() {
 							modelEditor.boundaries[9].renderOrder = 1;
 						}
 		
-						// Otherwise
-						else
-		
-							// Set boundary's visibility
-							modelEditor.boundaries[9].visible = modelEditor.showBoundaries;
-		
 						// Check if models goes out of bounds on high back
 						if(maximums[2].z > bedHighMaxY - extruderCenterY) {
 		
@@ -3915,12 +3930,6 @@ $(function() {
 							modelEditor.boundaries[10].visible = true;
 							modelEditor.boundaries[10].renderOrder = 1;
 						}
-		
-						// Otherwise
-						else
-		
-							// Set boundary's visibility
-							modelEditor.boundaries[10].visible = modelEditor.showBoundaries;
 		
 						// Check if models goes out of bounds on high right
 						if(maximums[2].x > bedHighMaxX - extruderCenterX) {
@@ -3932,12 +3941,6 @@ $(function() {
 							modelEditor.boundaries[11].renderOrder = 1;
 						}
 		
-						// Otherwise
-						else
-		
-							// Set boundary's visibility
-							modelEditor.boundaries[11].visible = modelEditor.showBoundaries;
-		
 						// Check if models goes out of bounds on high left
 						if(minimums[2].x < bedHighMinX - extruderCenterX) {
 		
@@ -3947,12 +3950,6 @@ $(function() {
 							modelEditor.boundaries[12].visible = true;
 							modelEditor.boundaries[12].renderOrder = 1;
 						}
-		
-						// Otherwise
-						else
-		
-							// Set boundary's visibility
-							modelEditor.boundaries[12].visible = modelEditor.showBoundaries;
 		
 						// Check if models goes out of bounds on high top
 						if(maximums[2].y > bedHighMaxZ) {
@@ -3964,12 +3961,6 @@ $(function() {
 							modelEditor.boundaries[13].renderOrder = 1;
 						}
 		
-						// Otherwise
-						else
-		
-							// Set boundary's visibility
-							modelEditor.boundaries[13].visible = modelEditor.showBoundaries;
-		
 						// Check if models goes out of bounds on connector between low and medium front
 						if((bedMediumMinY < bedLowMinY && modelEditor.boundaries[1].material.color.getHex() == 0xFF0000) || modelEditor.boundaries[5].material.color.getHex() == 0xFF0000) {
 		
@@ -3979,12 +3970,6 @@ $(function() {
 							modelEditor.boundaries[14].visible = true;
 							modelEditor.boundaries[14].renderOrder = 1;
 						}
-		
-						// Otherwise
-						else
-		
-							// Set boundary's visibility
-							modelEditor.boundaries[14].visible = modelEditor.showBoundaries;
 		
 						// Check if models goes out of bounds on connector between low and medium back
 						if((bedMediumMaxY > bedLowMaxY && modelEditor.boundaries[2].material.color.getHex() == 0xFF0000) || modelEditor.boundaries[6].material.color.getHex() == 0xFF0000) {
@@ -3996,12 +3981,6 @@ $(function() {
 							modelEditor.boundaries[15].renderOrder = 1;
 						}
 		
-						// Otherwise
-						else
-		
-							// Set boundary's visibility
-							modelEditor.boundaries[15].visible = modelEditor.showBoundaries;
-		
 						// Check if models goes out of bounds on connector between low and medium right
 						if((bedMediumMaxX > bedLowMaxX && modelEditor.boundaries[3].material.color.getHex() == 0xFF0000) || modelEditor.boundaries[7].material.color.getHex() == 0xFF0000) {
 		
@@ -4011,12 +3990,6 @@ $(function() {
 							modelEditor.boundaries[16].visible = true;
 							modelEditor.boundaries[16].renderOrder = 1;
 						}
-		
-						// Otherwise
-						else
-		
-							// Set boundary's visibility
-							modelEditor.boundaries[16].visible = modelEditor.showBoundaries;
 		
 						// Check if models goes out of bounds on connector between low and medium left
 						if((bedMediumMinX < bedLowMinX && modelEditor.boundaries[4].material.color.getHex() == 0xFF0000) || modelEditor.boundaries[8].material.color.getHex() == 0xFF0000) {
@@ -4028,12 +4001,6 @@ $(function() {
 							modelEditor.boundaries[17].renderOrder = 1;
 						}
 		
-						// Otherwise
-						else
-		
-							// Set boundary's visibility
-							modelEditor.boundaries[17].visible = modelEditor.showBoundaries;
-		
 						// Check if models goes out of bounds on connector between medium and high front
 						if((bedHighMinY < bedMediumMinY && modelEditor.boundaries[5].material.color.getHex() == 0xFF0000) || modelEditor.boundaries[9].material.color.getHex() == 0xFF0000) {
 		
@@ -4043,12 +4010,6 @@ $(function() {
 							modelEditor.boundaries[18].visible = true;
 							modelEditor.boundaries[18].renderOrder = 1;
 						}
-		
-						// Otherwise
-						else
-		
-							// Set boundary's visibility
-							modelEditor.boundaries[18].visible = modelEditor.showBoundaries;
 		
 						// Check if models goes out of bounds on connector between medium and high back
 						if((bedHighMaxY > bedMediumMaxY && modelEditor.boundaries[6].material.color.getHex() == 0xFF0000) || modelEditor.boundaries[10].material.color.getHex() == 0xFF0000) {
@@ -4060,12 +4021,6 @@ $(function() {
 							modelEditor.boundaries[19].renderOrder = 1;
 						}
 		
-						// Otherwise
-						else
-		
-							// Set boundary's visibility
-							modelEditor.boundaries[19].visible = modelEditor.showBoundaries;
-		
 						// Check if models goes out of bounds on connector between medium and high right
 						if((bedHighMaxX > bedMediumMaxX && modelEditor.boundaries[7].material.color.getHex() == 0xFF0000) || modelEditor.boundaries[11].material.color.getHex() == 0xFF0000) {
 		
@@ -4076,12 +4031,6 @@ $(function() {
 							modelEditor.boundaries[20].renderOrder = 1;
 						}
 		
-						// Otherwise
-						else
-		
-							// Set boundary's visibility
-							modelEditor.boundaries[20].visible = modelEditor.showBoundaries;
-		
 						// Check if models goes out of bounds on connector between medium and high left
 						if((bedHighMinX < bedMediumMinX && modelEditor.boundaries[8].material.color.getHex() == 0xFF0000) || modelEditor.boundaries[12].material.color.getHex() == 0xFF0000) {
 		
@@ -4091,12 +4040,6 @@ $(function() {
 							modelEditor.boundaries[21].visible = true;
 							modelEditor.boundaries[21].renderOrder = 1;
 						}
-		
-						// Otherwise
-						else
-		
-							// Set boundary's visibility
-							modelEditor.boundaries[21].visible = modelEditor.showBoundaries;
 					}
 					
 					// Otherwise
@@ -4128,8 +4071,8 @@ $(function() {
 								highestPoint = Math.max(vector.y, highestPoint);
 							}
 						
-							// Check if using platform adhesion
-							if(modelEditor.platformAdhesion != "None") {
+							// Check if adhesion exists
+							if(modelEditor.models[i].adhesion !== null) {
 	
 								// Get current model's adhesion
 								var model = modelEditor.models[i].adhesion.mesh;
@@ -4161,12 +4104,6 @@ $(function() {
 							modelEditor.boundaries[1].visible = true;
 							modelEditor.boundaries[1].renderOrder = 1;
 						}
-		
-						// Otherwise
-						else
-		
-							// Set boundary's visibility
-							modelEditor.boundaries[1].visible = modelEditor.showBoundaries;
 						
 						// Check if models goes out of bounds on top
 						if(highestPoint > bedHighMaxZ) {
@@ -4177,12 +4114,6 @@ $(function() {
 							modelEditor.boundaries[2].visible = true;
 							modelEditor.boundaries[2].renderOrder = 1;
 						}
-		
-						// Otherwise
-						else
-		
-							// Set boundary's visibility
-							modelEditor.boundaries[2].visible = modelEditor.showBoundaries;
 					}
 				},
 			
@@ -4232,7 +4163,7 @@ $(function() {
 							var meshDifference = modelBsp.subtract(cutShapeBsp).toMesh(new THREE.MeshLambertMaterial(filamentMaterials[modelEditorFilamentColor]));
 							var meshIntersection = modelBsp.intersect(cutShapeBsp).toMesh(new THREE.MeshLambertMaterial(filamentMaterials[modelEditorFilamentColor]));
 				
-							// Delete model
+							// Delete model and adhesion
 							modelEditor.scene[0].remove(modelEditor.models[i].mesh);
 							if(modelEditor.models[i].adhesion !== null)
 								modelEditor.scene[0].remove(modelEditor.models[i].adhesion.mesh);
@@ -4291,8 +4222,15 @@ $(function() {
 						modelEditor.scene[0].remove(modelEditor.cutShapeOutline);
 						modelEditor.cutShape = null;
 						modelEditor.cutShapeOutline = null;
+						
+						// Remove focus
 						modelEditor.transformControls.detach();
+						
+						// Reset allowed translation
 						modelEditor.transformControls.setAllowedTranslation("XZ");
+						
+						// Save camera focus
+						var savedCameraFocus = modelEditor.cameraFocus.clone();
 				
 						// Go through all intersections
 						for(var i = 0; i < intersections.length; i++) {
@@ -4329,6 +4267,9 @@ $(function() {
 							// Select difference mesh
 							modelEditor.selectModel(differences[i].mesh);
 						}
+						
+						// Update platform adhesion
+						modelEditor.updatePlatformAdhesion();
 			
 						// Fix model's Y
 						modelEditor.fixModelY();
@@ -4341,12 +4282,15 @@ $(function() {
 				
 							// Select intersection mesh
 							modelEditor.selectModel(intersections[i].mesh);
+						
+						// Check if no models have focus
+						if(!intersections.length)
+						
+							// Restore previous camera focus
+							modelEditor.cameraFocus.copy(savedCameraFocus);
 				
 						// Upate measurements
 						modelEditor.updateModelChanges();
-	
-						// Render
-						modelEditor.render();
 						
 						// Hide cover
 						$("#slicing_configuration_dialog .modal-cover").removeClass("show");
@@ -4382,14 +4326,10 @@ $(function() {
 					}
 					
 					// Check if cut shape changed
-					if(changed) {
+					if(changed)
 					
 						// Update cut shape outline
 						modelEditor.cutShapeOutline.geometry = modelEditor.lineGeometry(modelEditor.cutShape.geometry);
-
-						// Render
-						modelEditor.render();
-					}
 				},
 			
 				// Apply merge
@@ -4412,8 +4352,8 @@ $(function() {
 						// Go through all models
 						for(var i = 1; i < modelEditor.models.length; i++)
 	
-							// Check if model is selected and it's not the newest selected model
-							if(modelEditor.models[i].glow && modelEditor.models[i].mesh != modelEditor.transformControls.object) {
+							// Check if model is selected, but not focused on
+							if(modelEditor.models[i].glow !== null && modelEditor.models[i].mesh != modelEditor.transformControls.object) {
 					
 								// Update model's geometry
 								modelEditor.models[i].mesh.geometry.applyMatrix(modelEditor.models[i].mesh.matrix);
@@ -4426,7 +4366,7 @@ $(function() {
 								var modelBsp = new ThreeBSP(modelEditor.models[i].mesh);
 								meshUnion = unionBsp.union(modelBsp).toMesh(new THREE.MeshLambertMaterial(filamentMaterials[modelEditorFilamentColor]));
 				
-								// Delete model
+								// Delete model and adhesion
 								modelEditor.scene[0].remove(modelEditor.models[i].mesh);
 								modelEditor.scene[1].remove(modelEditor.models[i].glow);
 								if(modelEditor.models[i].adhesion !== null) {
@@ -4451,10 +4391,10 @@ $(function() {
 						// Go through all models
 						for(var i = 1; i < modelEditor.models.length; i++)
 				
-							// Check if currently selected model
+							// Check if is focused on
 							if(modelEditor.models[i].mesh == modelEditor.transformControls.object) {
 					
-								// Delete model
+								// Delete model and adhesion
 								modelEditor.scene[0].remove(modelEditor.models[i].mesh);
 								modelEditor.scene[1].remove(modelEditor.models[i].glow);
 								if(modelEditor.models[i].adhesion !== null) {
@@ -4481,6 +4421,9 @@ $(function() {
 			
 						// Select union mesh
 						modelEditor.selectModel(meshUnion);
+						
+						// Update platform adhesion
+						modelEditor.updatePlatformAdhesion();
 				
 						// Fix model's Y
 						modelEditor.fixModelY();
@@ -4521,10 +4464,10 @@ $(function() {
 						// Otherwise
 						else {
 					
-							// Go through all quad's vertecies
+							// Go through all quad's vertices
 							for(var j = 0; j < 4; j++)
 					
-								// Go through all line geometry's vertecies
+								// Go through all line geometry's vertices
 								for(var k = 0; k < lineGeometry.vertices.length - 1; k += 2) {
 							
 									// Check if line exists
@@ -4550,47 +4493,65 @@ $(function() {
 					// Return line geometry
 					return lineGeometry;
 				},
-
-				// Render
-				render: function() {
-
-					// Update controls
-					modelEditor.transformControls.update();
-					modelEditor.orbitControls.update();
-			
-					// Check if a model is currently selected
-					if(modelEditor.transformControls.object) {
+				
+				// Update measurement position
+				updateMeasurementPosition: function() {
+				
+					// Check if a model has focus and measurements are shown
+					if(modelEditor.transformControls.object && modelEditor.showMeasurements) {
 			
 						// Get camera distance to model
 						var distance = modelEditor.camera.position.distanceTo(modelEditor.transformControls.object.position);
-						if(distance < 200)
-							distance = 200;
-						else if(distance > 500)
-							distance = 500;
-
-						// Set measurement size
-						$("#slicing_configuration_dialog .modal-extra div.measurements > p").css("font-size", 8 + ((500 / distance) - 1) / (2.5 - 1) * (13 - 8) + "px");
+						
+						// Set font limitations
+						var fontSizeMin = 0;
+						var fontSizeMax = 13;
+						var distanceMin = 200;
+						var distanceMax = 2000;
+						
+						// Set measurement font size
+						$("#slicing_configuration_dialog .modal-extra div.measurements > p").css("font-size", fontSizeMin + (distanceMax / Math.max(Math.min(distance, distanceMax), distanceMin) - 1) / (distanceMax / distanceMin - 1) * (fontSizeMax - fontSizeMin) + "px");
 	
-						// Set z index order for measurement values
+						// Go through all measurements
+						var midPoints = [];
 						var order = [];
-						for(var j = 0; j < 3; j++)
-							order[j] = modelEditor.camera.position.distanceTo(modelEditor.measurements[j][1]);
-	
-						for(var j = 0; j < 3; j++) {
-							var lowest = order.indexOf(Math.max.apply(Math, order));
-							$("#slicing_configuration_dialog .modal-extra div.measurements > p").eq(lowest).css("z-index", j);
-							order[lowest] = Number.NEGATIVE_INFINITY;
+						for(var i = 0; i < modelEditor.measurements.length; i++) {
+						
+							// Get the middle of measurement's text location
+							midPoints[i] = new THREE.Vector3();
+							midPoints[i].x = (modelEditor.measurements[i].geometry.vertices[0].x + modelEditor.measurements[i].geometry.vertices[1].x) / 2;
+							midPoints[i].y = (modelEditor.measurements[i].geometry.vertices[0].y + modelEditor.measurements[i].geometry.vertices[1].y) / 2;
+							midPoints[i].z = (modelEditor.measurements[i].geometry.vertices[0].z + modelEditor.measurements[i].geometry.vertices[1].z) / 2;
+							
+							// Get camera's distance to measurements
+							order[i] = modelEditor.camera.position.distanceTo(midPoints[i]);
 						}
-	
-						// Position measurement values
-						for(var j = 0; j < 3; j++) {
-							var position = modelEditor.get2dPosition(modelEditor.measurements[j][1]);
-							$("#slicing_configuration_dialog .modal-extra div.measurements > p").eq(j).css({
-								"top": position.y - 3 + "px",
-								"left": position.x - $("#slicing_configuration_dialog .modal-extra div.measurements > p").eq(j).width() / 2 + "px"
+						
+						// Go through all measurements
+						for(var i = 0; i < modelEditor.measurements.length; i++) {
+						
+							// Set z index order for measurement values
+							var lowest = order.indexOf(Math.max.apply(null, order));
+							$("#slicing_configuration_dialog .modal-extra div.measurements > p").eq(lowest).css("z-index", i);
+							order[lowest] = Number.NEGATIVE_INFINITY;
+							
+							// Position measurement values
+							var position = modelEditor.get2dPosition(midPoints[i]);
+							var measurement = $("#slicing_configuration_dialog .modal-extra div.measurements > p").eq(i);
+							measurement.css({
+								"top": position.y - measurement.height() / 2 + "px",
+								"left": position.x - measurement.width() / 2 + "px"
 							});
 						}
-		
+					}
+				},
+				
+				// Update glow perspective
+				updateGlowPerspective: function() {
+					
+					// Check if a model has focus
+					if(modelEditor.transformControls.object)
+					
 						// Go through all models
 						for(var i = 1; i < modelEditor.models.length; i++)
 		
@@ -4599,13 +4560,39 @@ $(function() {
 					
 								// Update glow's view vector
 								modelEditor.models[i].glow.material.uniforms.viewVector.value = new THREE.Vector3().subVectors(modelEditor.camera.position, modelEditor.models[i].glow.position);
-					}
+				},
 
-					// Render scene
-					modelEditor.renderer.clear();
-					modelEditor.renderer.render(modelEditor.scene[0], modelEditor.camera);
-					modelEditor.renderer.clearDepth();
-					modelEditor.renderer.render(modelEditor.scene[1], modelEditor.camera);
+				// Animate
+				animate: function() {
+				
+					// Check if model editor still exists
+					if(modelEditor) {
+				
+						// Go through each vector component
+						for(var i = 0; i < 3; i++) {
+					
+							// Ease out camera focus change
+							var speed = Math.sqrt(Math.pow(modelEditor.orbitControls.target.getComponent(i) - modelEditor.cameraFocus.getComponent(i), 2)) / 15;
+					
+							if(modelEditor.orbitControls.target.getComponent(i) < modelEditor.cameraFocus.getComponent(i))
+								modelEditor.orbitControls.target.setComponent(i, Math.min(modelEditor.cameraFocus.getComponent(i), modelEditor.orbitControls.target.getComponent(i) + speed));
+							else if(modelEditor.orbitControls.target.getComponent(i) > modelEditor.cameraFocus.getComponent(i))
+								modelEditor.orbitControls.target.setComponent(i, Math.max(modelEditor.cameraFocus.getComponent(i), modelEditor.orbitControls.target.getComponent(i) - speed));
+						}
+
+						// Update controls
+						modelEditor.transformControls.update();
+						modelEditor.orbitControls.update();
+
+						// Render scene
+						modelEditor.renderer.clear();
+						modelEditor.renderer.render(modelEditor.scene[0], modelEditor.camera);
+						modelEditor.renderer.clearDepth();
+						modelEditor.renderer.render(modelEditor.scene[1], modelEditor.camera);
+					
+						// Animate when repainting window
+						requestAnimationFrame(modelEditor.animate);
+					}
 				}
 			};
 
@@ -8456,7 +8443,7 @@ $(function() {
 															$("#slicing_configuration_dialog .modal-extra button.snap").click(function() {
 
 																// Check if snap controls are currently enabled
-																if(modelEditor.transformControls.translationSnap)
+																if(modelEditor.transformControls.translationSnap != null)
 
 																	// Disable grid and rotation snap
 																	modelEditor.disableSnap();
@@ -8536,9 +8523,6 @@ $(function() {
 																	$(this).addClass("disabled");
 																else
 																	$(this).removeClass("disabled");
-
-																// Render
-																modelEditor.render();
 															});
 
 															// Boundaries button click event
@@ -8564,9 +8548,6 @@ $(function() {
 																	$(this).addClass("disabled");
 																else
 																	$(this).removeClass("disabled");
-
-																// Render
-																modelEditor.render();
 															});
 
 															// Measurements button click event
@@ -8578,14 +8559,14 @@ $(function() {
 																// Save model editor show measurements
 																localStorage.modelEditorShowMeasurements = modelEditor.showMeasurements;
 
-																// Check if a model is currently selected
+																// Check if a model has focus
 																if(modelEditor.transformControls.object) {
 
 																	// Go through all measurements
 																	for(var i = 0; i < modelEditor.measurements.length; i++)
 
 																		// Toggle visibility
-																		modelEditor.measurements[i][0].visible = modelEditor.showMeasurements;
+																		modelEditor.measurements[i].visible = modelEditor.showMeasurements;
 
 																	if(modelEditor.showMeasurements)
 																		$("div.measurements > p").addClass("show");
@@ -8594,9 +8575,6 @@ $(function() {
 
 																	// Update model changes
 																	modelEditor.updateModelChanges();
-
-																	// Render
-																	modelEditor.render();
 																}
 
 																// Select button
@@ -8623,9 +8601,6 @@ $(function() {
 																	$(this).addClass("disabled");
 																else
 																	$(this).removeClass("disabled");
-																
-																// Render
-																modelEditor.render();
 															});
 
 															// Cut button click event
@@ -8672,16 +8647,20 @@ $(function() {
 																	modelEditor.scene[0].add(modelEditor.cutShape);
 																	modelEditor.scene[0].add(modelEditor.cutShapeOutline);
 
-																	// Select cut shape
+																	// Remove selection
 																	modelEditor.removeSelection();
+																	
+																	// Set allowed translation
 																	modelEditor.transformControls.setAllowedTranslation("XYZ");
+																	
+																	// Focus on cut shape
 																	modelEditor.transformControls.attach(modelEditor.cutShape);
 
 																	// Update model changes
 																	modelEditor.updateModelChanges();
-
-																	// Render
-																	modelEditor.render();
+																	
+																	// Update camera focus
+																	modelEditor.updateCameraFocus();
 																}
 
 																// Otherwise
@@ -8726,9 +8705,6 @@ $(function() {
 																// Set printer color
 																modelEditor.models[0].mesh.material = printerMaterials[modelEditorPrinterColor];
 																$(this).addClass("disabled").siblings(".disabled").removeClass("disabled");
-
-																// Render
-																modelEditor.render();
 															});
 
 															// Filament color button click event
@@ -8756,9 +8732,6 @@ $(function() {
 
 																// Select button
 																$(this).addClass("disabled").siblings(".disabled").removeClass("disabled");
-
-																// Render
-																modelEditor.render();
 															});
 
 															// Value change event
@@ -8785,9 +8758,9 @@ $(function() {
 
 																// Otherwise
 																else
-
-																	// Update model changes
-																	modelEditor.updateModelChanges();
+																
+																	// Fix model's Y
+																	modelEditor.fixModelY();
 															});
 
 															// Value change event
@@ -8873,7 +8846,7 @@ $(function() {
 																	$("#slicing_configuration_dialog .modal-drag-and-drop").removeClass("show");
 															});
 
-															// Update model changes
+															// Update model changes to display current menu and measurements
 															modelEditor.updateModelChanges();
 
 															// Set slicer menu

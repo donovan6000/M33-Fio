@@ -6,6 +6,7 @@ V1.11 November X, 2016
 	* Text can be translated into different languages
 	* Allows manually entering external bed height when performing a complete bed calibration if the user doesn't want to or can't remove their external bed
 	* JavaScript is now compatible with jQuery >= 3.0 just in case OctoPrint ever upgrades to it
+	* Model editor camera will focus on the currently selected model
 
 V1.10 October 25, 2016
 
