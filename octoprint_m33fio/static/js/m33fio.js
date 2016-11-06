@@ -5507,115 +5507,123 @@ $(function() {
 				continueWithPrint = false;
 		});
 		
-		// Set temperature target or offset button event
-		$(document).on("click", "#temp button[type=\"submit\"]", function(event) {
+		// Set temperature or offset
+		function setTemperatureOrOffset(event) {
 		
 			// Check if using a Micro 3D printer
 			if(!self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
-		
-				// Get temperature
-				var temperature = 0;
 			
-				$(this).closest("tr").find("input").each(function() {
-			
-					if(!isNaN(parseInt($(this).val())))
-						temperature += parseInt($(this).val());
-					else if(!isNaN(parseInt($(this).attr("placeholder"))))
-						temperature += parseInt($(this).attr("placeholder"));
-				});
-			
-				// Check if setting extruder temperature
-				if($(this).closest("tr").children("th").html() == getAlreadyTranslatedText("Hotend"))
+				// Set current tool
+				if($(event.target).closest("tr").children("th").html() == getAlreadyTranslatedText("Hotend"))
+					var currentTool = "Hotend";
+				else if($(event.target).closest("tr").children("th").html() == getAlreadyTranslatedText("Bed"))
+					var currentTool = "Bed";
 				
-					// Set commands
-					var commands = [
-						"M104 S" + temperature + '*'
-					];
+				// Check if tool is set
+				if(typeof currentTool !== "undefined") {
+				
+					// Get temperature
+					var temperature = 0;
+					
+					// Check if setting temperature to a preset
+					if($(event.target).is("a")) {
+					
+						// Check if not turning off
+						if($(event.target).html() != getAlreadyTranslatedText("Off"))
 			
-				// Otherwise check if setting heatbed temperature
-				else if($(this).closest("tr").children("th").html() == getAlreadyTranslatedText("Bed"))
+							// Set temperature
+							temperature = parseInt($(event.target).html().match(/\((\d+)°.*?\)/)[1]);
+					}
+					
+					// Otherwise
+					else {
+				
+						// Add input value to temperature
+						var input = $(event.target).closest("div.input-append").find("input");
+					
+						if(!isNaN(parseInt(input.val())))
+							temperature += parseInt(input.val());
+						else if(!isNaN(parseInt(input.attr("placeholder"))))
+							temperature += parseInt(input.attr("placeholder"));
+					
+						// Find current tool
+						for(var tool in self.temperature.tools())
+							if(self.temperature.tools()[tool].name() == currentTool) {
+						
+								// Check if setting offset
+								if(input.is($(event.target).closest("tr").find("input").eq(1)))
+							
+									// Add tool's target to temperature
+									temperature += self.temperature.tools()[tool].target();
+							
+								// Break
+								break;
+							}
+					}
 			
-					// Set commands
-					var commands = [
-						"M140 S" + temperature + '*'
-					];
+					// Check if setting extruder temperature
+					if(currentTool == "Hotend")
+				
+						// Set commands
+						var commands = [
+							"M65538;no line numbers",
+							"M104 S" + temperature + '*',
+							"M105*"
+						];
 			
-				// Otherwise
-				else
+					// Otherwise check if setting heatbed temperature
+					else if(currentTool == "Bed")
 			
-					// Return
-					return;
-			
-				// Stop default behavior
-				event.stopImmediatePropagation();
+						// Set commands
+						var commands = [
+							"M65538;no line numbers",
+							"M140 S" + temperature + '*',
+							"M105*"
+						];
+					
+					// Send request
+					$.ajax({
+						url: API_BASEURL + "plugin/m33fio",
+						type: "POST",
+						dataType: "json",
+						data: JSON.stringify({
+							command: "message",
+							value: commands
+						}),
+						contentType: "application/json; charset=UTF-8",
+						traditional: true,
+						processData: true
+					});
+				}
+			}
+		}
 		
-				// Send request
-				$.ajax({
-					url: API_BASEURL + "plugin/m33fio",
-					type: "POST",
-					dataType: "json",
-					data: JSON.stringify({
-						command: "message",
-						value: commands
-					}),
-					contentType: "application/json; charset=UTF-8",
-					traditional: true,
-					processData: true
-				});
+		// Set temperature target or offset input keyup event
+		$(document).on("keyup", "#temp div.input-append > input", function(event) {
+		
+			// Check if key is enter
+			if(event.which === "\r".charCodeAt(0)) {
+			
+				// Set temperature or offset
+				setTemperatureOrOffset(event);
+				
+				// Blur input
+				$(this).blur();
 			}
 		});
 		
+		// Set temperature target or offset button click event
+		$(document).on("click", "#temp button[type=\"submit\"]", function(event) {
+		
+			// Set temperature or offset
+			setTemperatureOrOffset(event);
+		});
+		
 		// Set temperature target to preset button event
-		$(document).on("click", "#temp ul.dropdown-menu a", function() {
+		$(document).on("click", "#temp ul.dropdown-menu a", function(event) {
 		
-			// Check if using a Micro 3D printer
-			if(!self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
-		
-				// Get temperature
-				var temperature = 0;
-			
-				// Check if not turning off
-				if($(this).html() != getAlreadyTranslatedText("Off"))
-			
-					// Set temperature
-					temperature = $(this).html().match(/\((\d*)°.+?\)/)[1]
-				
-				// Check if setting extruder temperature
-				if($(this).closest("tr").children("th").html() == getAlreadyTranslatedText("Hotend"))
-			
-					// Set commands
-					var commands = [
-						"M104 S" + temperature + '*'
-					];
-		
-				// Otherwise check if setting heatbed temperature
-				else if($(this).closest("tr").children("th").html() == getAlreadyTranslatedText("Bed"))
-		
-					// Set commands
-					var commands = [
-						"M140 S" + temperature + '*'
-					];
-		
-				// Otherwise
-				else
-		
-					// Return
-					return;
-		
-				// Send request
-				$.ajax({
-					url: API_BASEURL + "plugin/m33fio",
-					type: "POST",
-					dataType: "json",
-					data: JSON.stringify({
-						command: "message",
-						value: commands
-					}),
-					contentType: "application/json; charset=UTF-8",
-					traditional: true,
-					processData: true
-				});
-			}
+			// Set temperature or offset
+			setTemperatureOrOffset(event);
 		});
 		
 		// Pause print button click event
