@@ -1,3 +1,11 @@
+div.navbar-inner div.container {
+	position: relative;
+}
+
+div.navbar-inner ul.nav.pull-right {
+	position: static;
+}
+
 body > div.modal-scrollable.hideOverflow {
 	overflow: hidden !important;
 }
@@ -20,34 +28,43 @@ body > div.modal-scrollable.hideOverflow {
 }
 
 #gcode div.midPrintFilamentChange label {
-	display: inline;
+	display: inline-flex;
+	width: calc(100% - 170px);
+	margin-bottom: 0;
+}
+
+#gcode div.midPrintFilamentChange button {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 #gcode div.midPrintFilamentChange label input {
 	display: inline;
 	width: calc(100% - 197px);
 	position: relative;
-	top: 4px;
+	top: -5px;
 	margin-left: 5px;
 	margin-right: 5px;
+	flex-grow: 1;
 }
 
 #gcode div.midPrintFilamentChange button:first-of-type {
 	display: inline;
-	width: 140px;
+	width: 165px;
 	position: relative;
 	top: -1px;
 }
 
 #gcode div.midPrintFilamentChange button:nth-of-type(2) {
 	float: left;
-	width: 30%;
+	width: 35%;
 	margin-left: 70px;
 }
 
 #gcode div.midPrintFilamentChange button:nth-of-type(3) {
 	float: right;
-	width: 30%;
+	width: 35%;
 	margin-right: 70px;
 }
 
@@ -257,11 +274,23 @@ body > div.modal-scrollable.hideOverflow {
 
 #control div.jog-panel.extruder > div > div:first-of-type.show {
 	display: block !important;
+	width: 157px;
+}
+
+#control div.jog-panel.extruder > div > div:first-of-type.show > button {
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 #control div.jog-panel.extruder > div > div:first-of-type.show ul.dropdown-menu {
 	min-width: auto;
 	width: calc(100% - 2px);
+}
+
+#control div.jog-panel.extruder > div > div:first-of-type.show ul.dropdown-menu a {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 #control div.jog-panel.extruder > div > div:first-of-type > button {
@@ -315,9 +344,7 @@ body > div.modal-scrollable.hideOverflow {
 }
 
 #control div.jog-panel.extruder > div div.slider {
-	width: 125px !important;
-	position: relative;
-	right: 1px;
+	width: 141px !important;
 }
 
 #control div.jog-panel.extruder > div div.slider .slider-handle {
@@ -325,19 +352,12 @@ body > div.modal-scrollable.hideOverflow {
 }
 
 #control div.jog-panel.extruder > div > div > input {
-	width: 94px !important;
+	width: 109px !important;
 }
 
-#control div.jog-panel.general button {
-	width: 110px !important;
-}
 
 #control div.jog-panel.filament {
 	clear: left;
-}
-
-#control div.jog-panel.filament button {
-	width: 125px;
 }
 
 #control div.jog-panel.calibration button {
@@ -404,10 +424,6 @@ body > div.modal-scrollable.hideOverflow {
 	top: 0px;
 }
 
-#control div.jog-panel.advanced button {
-	width: 175px;
-}
-
 #control div.jog-panel.advanced button > img {
 	width: 23px;
 	height: 23px;
@@ -440,7 +456,6 @@ body > div.modal-scrollable.hideOverflow {
 }
 
 #control div.jog-panel.eeprom button {
-	width: 150px;
 	margin: 3px 5px 10px 5px;
 	display: inline-block;
 }
@@ -609,16 +624,6 @@ body > div.page-container > div.message > div > div > p span.backlash > button {
 	margin: 2px;
 }
 
-body > div.page-container > div.message > div > div > p span.fan {
-	display: block;
-	text-align: center;
-}
-
-body > div.page-container > div.message > div > div > p span.fan > input {
-	width: 50px;
-	margin: 5px 0 0 0;
-}
-
 body > div.page-container > div.message > div > div > p:not(.show) {
 	height: 0px;
 	visibility: hidden;
@@ -781,6 +786,15 @@ body > div.page-container > div.message > div > div > span {
 
 body > div.page-container > div.message > div > div > span.show {
 	display: inline-block;
+}
+
+body > div.page-container > div.message .customInput {
+	text-align: center;
+	margin: 10px 0 0 0;
+}
+
+body > div.page-container > div.message .customInput input {
+	width: 100px;
 }
 
 #slicing_configuration_dialog.cura .slic3r-only {
@@ -1539,6 +1553,40 @@ body > div.page-container > div.message > div > div > span.show {
 
 #control {
 	padding-bottom: 10px;
+}
+
+#control button.btn.btn-block {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+#control div.jog-panel.controls button.btn.btn-block {
+	width: 169px;
+}
+
+#control div.jog-panel.extruder button.btn.btn-block {
+	width: 157px;
+}
+
+#control div.jog-panel.general button.btn.btn-block {
+	width: 140px;
+}
+
+#control div.jog-panel.filament button.btn.btn-block {
+	width: 125px;
+}
+
+#control div.jog-panel.advanced button.btn.btn-block {
+	width: 175px;
+}
+
+#control div.jog-panel.advanced button.btn.btn-block.firmware {
+	white-space: normal;
+}
+
+#control div.jog-panel.eeprom button.btn.btn-block{
+	width: 150px;
 }
 
 #temperature-graph {

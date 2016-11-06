@@ -1,72 +1,98 @@
 # coding=utf-8
-import setuptools
+
+########################################################################################################################
+### Do not forget to adjust the following variables to your own plugin.
+
+# The plugin's identifier, has to be unique
+plugin_identifier = "m33fio"
+
+# The plugin's python package, should be "octoprint_<plugin identifier>", has to be unique
+plugin_package = "octoprint_m33fio"
+
+# The plugin's human readable name. Can be overwritten within OctoPrint's internal data via __plugin_name__ in the
+# plugin module
+plugin_name = "OctoPrint-M33Fio"
+
+# The plugin's version. Can be overwritten within OctoPrint's internal data via __plugin_version__ in the plugin module
+plugin_version = "1.11"
+
+# The plugin's description. Can be overwritten within OctoPrint's internal data via __plugin_description__ in the plugin
+# module
+plugin_description = """Allows viewing uploaded models, using a Micro 3D printer, modifying a slicer profile and model before slicing, uploading OBJs and other 3D file formats, hosting a webcam stream, and much more"""
+
+# The plugin's author. Can be overwritten within OctoPrint's internal data via __plugin_author__ in the plugin module
+plugin_author = "donovan6000"
+
+# The plugin's author's mail address.
+plugin_author_email = "donovan6000@exploitkings.com"
+
+# The plugin's homepage URL. Can be overwritten within OctoPrint's internal data via __plugin_url__ in the plugin module
+plugin_url = "https://github.com/donovan6000/M33-Fio"
+
+# The plugin's license. Can be overwritten within OctoPrint's internal data via __plugin_license__ in the plugin module
+plugin_license = "GPLv3"
+
+# Any additional requirements besides OctoPrint should be listed here
+plugin_requires = []
+
+### --------------------------------------------------------------------------------------------------------------------
+### More advanced options that you usually shouldn't have to touch follow after this point
+### --------------------------------------------------------------------------------------------------------------------
+
+# Additional package data to install for this plugin. The subfolders "templates", "static" and "translations" will
+# already be installed automatically if they exist.
+plugin_additional_data = []
+
+# Any additional python packages you need to install with your plugin that are not contained in <plugin_package>.*
+plugin_additional_packages = []
+
+# Any python packages within <plugin_package>.* you do NOT want to install with your plugin
+plugin_ignored_packages = []
+
+# Additional parameters for the call to setuptools.setup. If your plugin wants to register additional entry points,
+# define dependency links or other things like that, this is the place to go. Will be merged recursively with the
+# default setup parameters as provided by octoprint_setuptools.create_plugin_setup_parameters using
+# octoprint.util.dict_merge.
+#
+# Example:
+#     plugin_requires = ["someDependency==dev"]
+#     additional_setup_parameters = {"dependency_links": ["https://github.com/someUser/someRepo/archive/master.zip#egg=someDependency-dev"]}
+additional_setup_parameters = {}
+
+########################################################################################################################
+
+from setuptools import setup
 import os
 import sys
 import subprocess
 
-########################################################################################################################
+try:
+	import octoprint_setuptools
+except:
+	print("Could not import OctoPrint's setuptools, are you sure you are running that under "
+	      "the same python installation that OctoPrint is installed under?")
+	import sys
+	sys.exit(-1)
 
-plugin_identifier = "m33fio"
-plugin_package = "octoprint_%s" % plugin_identifier
-plugin_name = "OctoPrint-M33Fio"
-plugin_version = "1.10"
-plugin_description = "Makes OctoPrint fully compatible with the Micro 3D printer"
-plugin_author = "donovan6000"
-plugin_author_email = "donovan6000@exploitkings.com"
-plugin_url = "https://github.com/donovan6000/M33-Fio"
-plugin_license = "GPLv3"
-plugin_additional_data = []
+setup_parameters = octoprint_setuptools.create_plugin_setup_parameters(
+	identifier=plugin_identifier,
+	package=plugin_package,
+	name=plugin_name,
+	version=plugin_version,
+	description=plugin_description,
+	author=plugin_author,
+	mail=plugin_author_email,
+	url=plugin_url,
+	license=plugin_license,
+	requires=plugin_requires,
+	additional_packages=plugin_additional_packages,
+	ignored_packages=plugin_ignored_packages,
+	additional_data=plugin_additional_data
+)
 
-########################################################################################################################
-
-def package_data_dirs(source, sub_folders):
-	import os
-	dirs = []
-
-	for d in sub_folders:
-		folder = os.path.join(source, d)
-		if not os.path.exists(folder):
-			continue
-
-		for dirname, _, files in os.walk(folder):
-			dirname = os.path.relpath(dirname, source)
-			for f in files:
-				dirs.append(os.path.join(dirname, f))
-
-	return dirs
-
-def params():
-
-	# Our metadata, as defined above
-	name = plugin_name
-	version = plugin_version
-	description = plugin_description
-	author = plugin_author
-	author_email = plugin_author_email
-	url = plugin_url
-	license = plugin_license
-
-	# we only have our plugin package to install
-	packages = [plugin_package]
-
-	# we might have additional data files in sub folders that need to be installed too
-	package_data = {plugin_package: package_data_dirs(plugin_package, ['static', 'templates', 'translations'] + plugin_additional_data)}
-	include_package_data = True
-
-	# If you have any package data that needs to be accessible on the file system, such as templates or static assets
-	# this plugin is not zip_safe.
-	zip_safe = False
-
-	# Read the requirements from our requirements.txt file
-	install_requires = open("requirements.txt").read().split("\n")
-	
-	# Hook the plugin into the "octoprint.plugin" entry point, mapping the plugin_identifier to the plugin_package.
-	# That way OctoPrint will be able to find the plugin and load it.
-	entry_points = {
-		"octoprint.plugin": ["%s = %s" % (plugin_identifier, plugin_package)]
-	}
-
-	return locals()
+if len(additional_setup_parameters):
+	from octoprint.util import dict_merge
+	setup_parameters = dict_merge(setup_parameters, additional_setup_parameters)
 
 def findPip() :
 
@@ -100,11 +126,10 @@ def findPip() :
 	
 	return pip_command
 
-# Uninstall plugins that break M33 Fio
+# Uninstall plugins that break M33 Fio if installing M33 Fio
 pipCommand = findPip()
-if pipCommand is not None :
+if pipCommand is not None and "install" in sys.argv :
 	subprocess.call([pipCommand, "uninstall", "OctoPrint-M3DFio", "-y"])
 	subprocess.call([pipCommand, "uninstall", "OctoPrint-Slicer", "-y"])
 
-# Install package
-setuptools.setup(**params())
+setup(**setup_parameters)

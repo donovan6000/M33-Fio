@@ -4,7 +4,7 @@
 ### Description
 M33 Fio is a general purpose plugin for [OctoPrint](http://octoprint.org/) that extends its capabilities to include many useful feature like the ability to use a Micro 3D printer, modify a model before printing it, host a webcam stream, and much more.
 
-The latest version of M33 Fio is V1.10 released on October 25th, 2016, and an entire changelog for it can be found [here](https://raw.githubusercontent.com/donovan6000/M33-Fio/master/Changelog).
+The latest version of M33 Fio is V1.11 released on November 6th, 2016, and an entire changelog for it can be found [here](https://raw.githubusercontent.com/donovan6000/M33-Fio/master/Changelog).
 
 ### Features
 * Adds a model viewer tab to OctoPrint's interface where any uploaded model can be viewed
@@ -30,10 +30,27 @@ By default M33 Fio is setup to make OctoPrint fully compatible with the Micro 3D
 * Everything works in all versions of OctoPrint >= 1.2.0 except the Micro 3D printer connection routine which only works with versions of OctoPrint >= 1.2.5
 * Microsoft Internet Explorer 11 doesn't display webcam stream since it doesn't natively support MJPEG videos
 * Microsoft Internet Explorer 11 doesn't resize slicer profile editor correctly
+* Microsoft Internet Explorer 11 doesn't insert a tab character when typing the tab key in the advanced section of the slicer profile editor since it doesn't support using the document.execCommand function with the "insertText" parameter
 * Microsoft Edge displays webcam stream as a still image
 * Can't host more than one webcam stream at a time since it always hosts on port 4999
-* Has only been tested on the latest versions of Microsoft Internet Explorer 11, Microsoft Edge, Mozilla Firefox, and Google Chrome, so it might have issues with web browsers other than those
-* M33 Fio has only been tested on OctoPrint installations running on Windows, OS X, and Linux, so it might have issues running on operating systems other than those
+
+### Translating
+If your interested in translating M33 Fio into a different language, you just need to create a [gettext PO file](https://en.wikipedia.org/wiki/Gettext) for your target language, translate all the text in that file, and bundle that file into M33 Fio. Creating an up-to-date PO file for a specific language can be done with the following commands. A list of language codes can be found [here](http://www.lingoes.net/en/translator/langcode.htm).
+```
+python setup.py babel_refresh
+python setup.py babel_new --locale=<language code>
+```
+That will generate a PO file at `translations/<language code>/LC_MESSAGES/messages.po`. Once that PO file is fully translated into your target language it can be compiled and bundled into the plugin by running the following commands.
+```
+python setup.py babel_compile
+python setup.py babel_bundle --locale=<language code>
+```
+Stick to the following guidelines when translating text.
+* All text is HTML, so make sure you convert `&`, `<`, and `>` to `&amp;`, `&lt;`, and `&gt;` respectively when they are used as character literals. Do not encode any other characters as HTML entities, and you shouldn't have to use any other HTML entities since the text uses UTF-8 encoding.
+* Keep whitespace, like newlines and tabs, formatted the same as they are in the source
+* Keep HTML tags, like `<b>…</b>`, the same as they are in the source
+* Keep placeholders, like `%(…)d` and `%(…)s` intact, but make sure to move them where they belong to in your target language
+* OctoPrint uses the informal version of languages, so try to follow that trend
 
 ### Images
 The slicer profile editor lets you quickly specify the quality and fill options of a print while still giving you the ability to fine tune every available setting.
