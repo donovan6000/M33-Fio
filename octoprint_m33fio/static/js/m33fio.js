@@ -3749,11 +3749,11 @@ $(function() {
 				
 						// Save new matrix
 						modelEditor.savedMatrix = newMatrix.clone();
-						
-						// Update platform adhesion if model was physically changed
-						if(modelEditor.transformControls.getMode() == "rotate" || modelEditor.transformControls.getMode() == "scale")
-							modelEditor.updatePlatformAdhesion();
 					}
+					
+					// Update platform adhesion if model was physically changed
+					if(modelEditor.transformControls.getMode() == "rotate" || modelEditor.transformControls.getMode() == "scale")
+						modelEditor.updatePlatformAdhesion();
 				},
 	
 				// Get 2D position
