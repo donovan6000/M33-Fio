@@ -2516,7 +2516,7 @@ $(function() {
 					if(modelEditor.platformAdhesion != "None") {
 					
 						// Create adhesion mesh
-						var adhesionMesh = new THREE.Mesh(mesh.geometry, filamentMaterials[modelEditorFilamentColor]);
+						var adhesionMesh = new THREE.Mesh(mesh.geometry.clone(), filamentMaterials[modelEditorFilamentColor]);
 						
 						// Add adhesion to scene
 						modelEditor.scene[0].add(adhesionMesh);
@@ -2542,8 +2542,12 @@ $(function() {
 						// Check if model is selected and adhesion exists
 						if(modelEditor.models[i].glow !== null && modelEditor.models[i].adhesion !== null) {
 					
-							// Restore original geometry
-							modelEditor.models[i].adhesion.mesh.geometry = modelEditor.models[i].adhesion.geometry.clone();
+							// Restore original vertex positions
+							for(var j = 0; j < modelEditor.models[i].adhesion.mesh.geometry.vertices.length; j++)
+								modelEditor.models[i].adhesion.mesh.geometry.vertices[j].copy(modelEditor.models[i].mesh.geometry.vertices[j]);
+							
+							// Computer face normals
+							modelEditor.models[i].adhesion.mesh.geometry.computeFaceNormals();
 				
 							// Update adhesion's orientation
 							modelEditor.models[i].adhesion.mesh.position.set(0, 0, 0);
