@@ -1615,7 +1615,7 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			command.skip = CENTER;
 			
 			// Check if command contains valid G-code
-			if(!gcode.isEmpty()) 
+			if(!gcode.isEmpty())
 			
 				// Check if command is G0 or G1
 				if(gcode.hasValue('G') && (gcode.getValue('G') == "0" or gcode.getValue('G') == "1")) {
@@ -1995,7 +1995,7 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 								deltaRatioE = 0;
 							}
 
-							// Check if delta E is greater than zero 
+							// Check if delta E is greater than zero
 							if(deltaE > 0) {
 
 								//Check if at a sharp corner

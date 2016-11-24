@@ -35,7 +35,7 @@ else
 		do
 			:
 		done
-		installer -pkg python.pkg -target /
+		installer -allowUntrusted -pkg python.pkg -target /
 		rm python.pkg
 		
 		# Update pip
@@ -206,7 +206,7 @@ else
 		do
 			:
 		done
-		installer -pkg CH34x_Install.pkg -target /
+		installer -allowUntrusted -pkg CH34x_Install.pkg -target /
 		rm CH34x_Install.pkg
 		
 		# Add OctoPrint to startup programs

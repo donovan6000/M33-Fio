@@ -104,7 +104,7 @@ THREE.STLLoader.prototype.parseBinary = function ( data ) {
 	var geometry, reader, triangles, offset, normal;
 	geometry = new THREE.Geometry();
 	reader = new DataView( data, 80 );
-	triangles = reader.getUint32( 0, true ); 
+	triangles = reader.getUint32( 0, true );
 
 	offset = 4;
 	for ( var i = 0; i < triangles; i++ ) {

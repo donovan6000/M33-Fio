@@ -546,13 +546,13 @@ class M33FioPlugin(
 			for line in open("/proc/cpuinfo") :
 	
 				# Check if line contains hardware information
-				if line.startswith("Hardware") and ':' in line :
+				if line.startswith("Hardware") and ":" in line :
 		
 					# Return CPU hardware
-					return line[line.index(':') + 2 : -1]
+					return line[line.index(":") + 2 : -1]
 	
 		# Return empty string
-		return ''
+		return ""
 	
 	# Save ports
 	def savePorts(self, currentPort) :
@@ -599,7 +599,7 @@ class M33FioPlugin(
 					# Check if port contains the correct VID and PID
 					if device.startswith("USB VID:PID=03EB:2404") or device.startswith("USB VID:PID=3EB:2404") :
 					
-						# Check if first time connecting 
+						# Check if first time connecting
 						if searchForCurrent and self.currentSerialPort is None :
 						
 							# Check if printer is initialized
@@ -748,7 +748,7 @@ class M33FioPlugin(
 					else :
 					
 						# Set connection timeout
-						if int(serial.VERSION.split('.', 1)[0]) < 3 :
+						if int(serial.VERSION.split(".", 1)[0]) < 3 :
 							self.heatbedConnection.writeTimeout = 1
 						else :
 							self.heatbedConnection.write_timeout = 1
@@ -763,7 +763,7 @@ class M33FioPlugin(
 					
 						# Wait for heatbed to initialize
 						try :
-							if self.heatbedConnection.read() == '\x1B' :
+							if self.heatbedConnection.read() == "\x1B" :
 								self.heatbedConnection.timeout = 1
 								break
 						except :
@@ -775,7 +775,7 @@ class M33FioPlugin(
 				
 						# Put heatbed into temperature mode
 						try :
-							if int(serial.VERSION.split('.', 1)[0]) < 3 :
+							if int(serial.VERSION.split(".", 1)[0]) < 3 :
 								self.heatbedConnection.flushInput()
 								self.heatbedConnection.flushOutput()
 							else :
@@ -786,7 +786,7 @@ class M33FioPlugin(
 							
 							time.sleep(0.5)
 							
-							if int(serial.VERSION.split('.', 1)[0]) < 3 :
+							if int(serial.VERSION.split(".", 1)[0]) < 3 :
 								self.heatbedConnection.flushInput()
 								self.heatbedConnection.flushOutput()
 							else :
@@ -963,7 +963,7 @@ class M33FioPlugin(
 		self.savePrinterProfile()
 		
 		# Find provided firmwares
-		for file in os.listdir(self._basefolder.replace('\\', '/') + "/static/files/") :
+		for file in os.listdir(self._basefolder.replace("\\", "/") + "/static/files/") :
 			if file.endswith(".hex") :
 			
 				# Get version number
@@ -977,10 +977,10 @@ class M33FioPlugin(
 					if type == "M3D Mod" :
 						release = str(int(release) - 100000000)
 				else :
-					release = version[2 : 4] + '.' + version[4 : 6] + '.' + version[6 : 8] + '.' + version[8 : 10]
+					release = version[2 : 4] + "." + version[4 : 6] + "." + version[6 : 8] + "." + version[8 : 10]
 				
 				# Append provided firmware to list
-				self.providedFirmwares[file[0 : file.find('.')]] = {
+				self.providedFirmwares[file[0 : file.find(".")]] = {
 					"Type": type,
 					"Version": version,
 					"Release": release,
@@ -1031,7 +1031,7 @@ class M33FioPlugin(
 				if self.isPortOpen(4999) :
 			
 					# Start webcam server
-					self.webcamProcess = subprocess.Popen([sys.executable.replace('\\', '/'), self._basefolder.replace('\\', '/') + "/webcam_server.py", str(cameraPort), "4999", str(self._settings.get_int(["CameraFramesPerSecond"])), str(self._settings.get_int(["CameraWidth"])), str(self._settings.get_int(["CameraHeight"]))])
+					self.webcamProcess = subprocess.Popen([sys.executable.replace("\\", "/"), self._basefolder.replace("\\", "/") + "/webcam_server.py", str(cameraPort), "4999", str(self._settings.get_int(["CameraFramesPerSecond"])), str(self._settings.get_int(["CameraWidth"])), str(self._settings.get_int(["CameraHeight"]))])
 				
 				# otherwise
 				else :
@@ -1068,19 +1068,19 @@ class M33FioPlugin(
 				if platform.uname()[4].startswith("armv6l") and self.getCpuHardware() == "BCM2708" :
 	
 					# Set shared library
-					self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace('\\', '/') + "/static/libraries/preprocessor_arm1176jzf-s.so")
+					self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace("\\", "/") + "/static/libraries/preprocessor_arm1176jzf-s.so")
 	
 				# Otherwise check if running on a Raspberry Pi 2 or Raspberry Pi 3
 				elif platform.uname()[4].startswith("armv7l") and self.getCpuHardware() == "BCM2709" :
 	
 					# Set shared library
-					self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace('\\', '/') + "/static/libraries/preprocessor_arm_cortex-a7.so")
+					self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace("\\", "/") + "/static/libraries/preprocessor_arm_cortex-a7.so")
 	
 				# Otherwise check if running on an ARM7 device
 				elif platform.uname()[4].startswith("armv7") :
 	
 					# Set shared library
-					self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace('\\', '/') + "/static/libraries/preprocessor_arm7.so")
+					self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace("\\", "/") + "/static/libraries/preprocessor_arm7.so")
 	
 				# Otherwise check if using an i386 or x86-64 device
 				elif platform.uname()[4].endswith("86") or platform.uname()[4].endswith("64") :
@@ -1089,13 +1089,13 @@ class M33FioPlugin(
 					if platform.architecture()[0].startswith("32") :
 		
 						# Set shared library
-						self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace('\\', '/') + "/static/libraries/preprocessor_i386.so")
+						self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace("\\", "/") + "/static/libraries/preprocessor_i386.so")
 	
 					# Otherwise check if Python is running as 64-bit
 					elif platform.architecture()[0].startswith("64") :
 		
 						# Set shared library
-						self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace('\\', '/') + "/static/libraries/preprocessor_x86-64.so")
+						self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace("\\", "/") + "/static/libraries/preprocessor_x86-64.so")
 
 			# Otherwise check if running on Windows and using an i386 or x86-64 device
 			elif platform.uname()[0].startswith("Windows") and (platform.uname()[4].endswith("86") or platform.uname()[4].endswith("64")) :
@@ -1104,13 +1104,13 @@ class M33FioPlugin(
 				if platform.architecture()[0].startswith("32") :
 	
 					# Set shared library
-					self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace('\\', '/') + "/static/libraries/preprocessor_i386.dll")
+					self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace("\\", "/") + "/static/libraries/preprocessor_i386.dll")
 
 				# Otherwise check if Python is running as 64-bit
 				elif platform.architecture()[0].startswith("64") :
 	
 					# Set shared library
-					self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace('\\', '/') + "/static/libraries/preprocessor_x86-64.dll")
+					self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace("\\", "/") + "/static/libraries/preprocessor_x86-64.dll")
 
 			# Otherwise check if running on OS X and using an i386 or x86-64 device
 			elif platform.uname()[0].startswith("Darwin") and (platform.uname()[4].endswith("86") or platform.uname()[4].endswith("64")) :
@@ -1119,13 +1119,13 @@ class M33FioPlugin(
 				if platform.architecture()[0].startswith("32") :
 	
 					# Set shared library
-					self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace('\\', '/') + "/static/libraries/preprocessor_i386.dylib")
+					self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace("\\", "/") + "/static/libraries/preprocessor_i386.dylib")
 
 				# Otherwise check if Python is running as 64-bit
 				elif platform.architecture()[0].startswith("64") :
 	
 					# Set shared library
-					self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace('\\', '/') + "/static/libraries/preprocessor_x86-64.dylib")
+					self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace("\\", "/") + "/static/libraries/preprocessor_x86-64.dylib")
 
 			# Check if shared library was set
 			if self.sharedLibrary :
@@ -1153,7 +1153,7 @@ class M33FioPlugin(
 				
 				# Return true
 				return True
-		 
+		
 		# Return false
 		return False
 	
@@ -1222,7 +1222,7 @@ class M33FioPlugin(
 		self.sharedLibrary.setHeatbedTemperature(ctypes.c_ushort(self._settings.get_int(["HeatbedTemperature"])))
 		self.sharedLibrary.setExternalBedHeight(ctypes.c_double(self._settings.get_float(["ExternalBedHeight"])))
 		self.sharedLibrary.setExpandPrintableRegion(ctypes.c_bool(self._settings.get_boolean(["ExpandPrintableRegion"])))
-		self.sharedLibrary.setMidPrintFilamentChangeLayers(ctypes.c_char_p(' '.join(re.findall("\\d+", str(self._settings.get(["MidPrintFilamentChangeLayers"]))))))
+		self.sharedLibrary.setMidPrintFilamentChangeLayers(ctypes.c_char_p(" ".join(re.findall("\\d+", str(self._settings.get(["MidPrintFilamentChangeLayers"]))))))
 		self.sharedLibrary.setChangeLedBrightness(ctypes.c_bool(self._settings.get_boolean(["ChangeLedBrightness"])))
 		if self.currentFirmwareType is None :
 			self.sharedLibrary.setFirmwareType(ctypes.c_char_p(""))
@@ -1270,7 +1270,7 @@ class M33FioPlugin(
 			# Get firmware release
 			firmwareRelease = format(firmwareVersion, "010")
 			if firmwareType != "M3D" and firmwareType != "M3D Mod" :
-				firmwareRelease = firmwareRelease[2 : 4] + '.' + firmwareRelease[4 : 6] + '.' + firmwareRelease[6 : 8] + '.' + firmwareRelease[8 : 10]
+				firmwareRelease = firmwareRelease[2 : 4] + "." + firmwareRelease[4 : 6] + "." + firmwareRelease[6 : 8] + "." + firmwareRelease[8 : 10]
 			elif firmwareType == "M3D Mod" :
 				firmwareRelease= str(int(firmwareRelease) - 100000000)
 			
@@ -1291,7 +1291,7 @@ class M33FioPlugin(
 		self.curaProfileCleanUp(input, curaProfile)
 		
 		# Import profile manager
-		profileManager = imp.load_source("Profile", self._slicing_manager.get_slicer("cura")._basefolder.replace('\\', '/') + "/profile.py")
+		profileManager = imp.load_source("Profile", self._slicing_manager.get_slicer("cura")._basefolder.replace("\\", "/") + "/profile.py")
 		
 		# Create profile
 		profile = octoprint.slicing.SlicingProfile("cura", name, profileManager.Profile.from_cura_ini(curaProfile), displayName, description)
@@ -1311,7 +1311,7 @@ class M33FioPlugin(
 		self.slic3rProfileCleanUp(input, slic3rProfile)
 		
 		# Import profile manager
-		profileManager = imp.load_source("Profile", self._slicing_manager.get_slicer("slic3r")._basefolder.replace('\\', '/') + "/profile.py")
+		profileManager = imp.load_source("Profile", self._slicing_manager.get_slicer("slic3r")._basefolder.replace("\\", "/") + "/profile.py")
 		
 		# Create profile
 		profile = octoprint.slicing.SlicingProfile("slic3r", name, profileManager.Profile.from_slic3r_ini(slic3rProfile)[0], displayName, description)
@@ -1344,8 +1344,8 @@ class M33FioPlugin(
 				pass
 			
 			# Remove comments from input
-			if ';' in line and ".gcode" not in line and line[0] != '\t' :
-				output.write(line[0 : line.index(';')] + '\n')
+			if ";" in line and ".gcode" not in line and line[0] != "\t" :
+				output.write(line[0 : line.index(";")] + "\n")
 			else :
 				output.write(line)
 		
@@ -1362,8 +1362,8 @@ class M33FioPlugin(
 		for line in open(input) :
 		
 			# Remove comments from input
-			if ';' in line and "_gcode" not in line and line[0] != '\t' :
-				output.write(line[0 : line.index(';')] + '\n')
+			if ";" in line and "_gcode" not in line and line[0] != "\t" :
+				output.write(line[0 : line.index(";")] + "\n")
 			else :
 				output.write(line)
 		
@@ -1403,21 +1403,21 @@ class M33FioPlugin(
 		settings["nozzle_size"] = printerProfile["extruder"]["nozzleDiameter"]
 		
 		# Set alterations
-		alterations["start.gcode"] = ['']
-		alterations["end.gcode"] = ['']
-		alterations["support_start.gcode"] = ['']
-		alterations["support_end.gcode"] = ['']
-		alterations["cool_start.gcode"] = ['']
-		alterations["cool_end.gcode"] = ['']
-		alterations["replace.csv"] = ['']
-		alterations["preswitchextruder.gcode"] = ['']
-		alterations["postswitchextruder.gcode"] = ['']
+		alterations["start.gcode"] = [""]
+		alterations["end.gcode"] = [""]
+		alterations["support_start.gcode"] = [""]
+		alterations["support_end.gcode"] = [""]
+		alterations["cool_start.gcode"] = [""]
+		alterations["cool_end.gcode"] = [""]
+		alterations["replace.csv"] = [""]
+		alterations["preswitchextruder.gcode"] = [""]
+		alterations["postswitchextruder.gcode"] = [""]
 	
 		# Create output
 		output = open(output, "wb")
 		
 		# Import profile manager
-		profileManager = imp.load_source("Profile", self._slicing_manager.get_slicer("cura")._basefolder.replace('\\', '/') + "/profile.py")
+		profileManager = imp.load_source("Profile", self._slicing_manager.get_slicer("cura")._basefolder.replace("\\", "/") + "/profile.py")
 		
 		# Create profile
 		profile = profileManager.Profile(self._slicing_manager.get_slicer("cura")._load_profile(input), printerProfile, None, None)
@@ -1489,7 +1489,7 @@ class M33FioPlugin(
 		for key in machine.keys() :
 		
 			# Write setting to output
-			output.write(str(key) + " = " + str(machine[key]) + '\n')
+			output.write(str(key) + " = " + str(machine[key]) + "\n")
 		
 		# Write profile
 		output.write("\n[profile]\n")
@@ -1514,16 +1514,16 @@ class M33FioPlugin(
 					
 						# Write setting part to output
 						if index == 0 :
-							output.write(str(key) + " = " + settingValue + '\n')
+							output.write(str(key) + " = " + settingValue + "\n")
 						else :
-							output.write(str(key) + str(index + 1) + " = " + settingValue + '\n')
+							output.write(str(key) + str(index + 1) + " = " + settingValue + "\n")
 						index += 1
 			
 			# Otherwise
 			else :
 			
 				# Write setting to output
-				output.write(str(key) + " = " + str(settings[key]) + '\n')
+				output.write(str(key) + " = " + str(settings[key]) + "\n")
 		
 		# Write alterations
 		output.write("\n[alterations]\n")
@@ -1537,9 +1537,9 @@ class M33FioPlugin(
 			
 				# Write alteration part to output
 				if index == 0 :
-					output.write(str(key) + " = " + str(alterations[key][index]).replace("\n\n", '\n').replace('\n', "\n\t").rstrip() + '\n')
+					output.write(str(key) + " = " + str(alterations[key][index]).replace("\n\n", "\n").replace("\n", "\n\t").rstrip() + "\n")
 				else :
-					output.write(str(key)[0 : str(key).find('.')] + str(index + 1) + str(key)[str(key).find('.') : ] + " = " + str(alterations[key][index]).replace("\n\n", '\n').replace('\n', "\n\t").rstrip() + '\n')
+					output.write(str(key)[0 : str(key).find(".")] + str(index + 1) + str(key)[str(key).find(".") : ] + " = " + str(alterations[key][index]).replace("\n\n", "\n").replace("\n", "\n\t").rstrip() + "\n")
 				index += 1
 	
 	# Covert Profile to Slic3r
@@ -1549,7 +1549,7 @@ class M33FioPlugin(
 		printerProfile = self._printer_profile_manager.get(printerProfile)
 		
 		# Import profile manager
-		profileManager = imp.load_source("Profile", self._slicing_manager.get_slicer("slic3r")._basefolder.replace('\\', '/') + "/profile.py")
+		profileManager = imp.load_source("Profile", self._slicing_manager.get_slicer("slic3r")._basefolder.replace("\\", "/") + "/profile.py")
 		
 		# Create profile
 		profile = profileManager.Profile(self._slicing_manager.get_slicer("slic3r")._load_profile(input), printerProfile, None, None)
@@ -1559,7 +1559,7 @@ class M33FioPlugin(
 		
 			# Fix incorrect settings
 			if (str(key).endswith("_gcode") or str(key).endswith("_processing") or str(key).endswith("_process")) and str(profile._profile[0][key]) == "None" :
-				profile._profile[0][key] = ''
+				profile._profile[0][key] = ""
 			
 			# slic3r post_processing option not found workaround
 			elif str(key) == "post_processing":
@@ -1585,7 +1585,7 @@ class M33FioPlugin(
 		self.restoreFiles()
 		
 		# Remove config file
-		configFile = self._settings.global_get_basefolder("base").replace('\\', '/') + "/config.yaml" + str(self.getListenPort(psutil.Process(os.getpid())))
+		configFile = self._settings.global_get_basefolder("base").replace("\\", "/") + "/config.yaml" + str(self.getListenPort(psutil.Process(os.getpid())))
 		if os.path.isfile(configFile) :
 			os.remove(configFile)
 		
@@ -1604,7 +1604,7 @@ class M33FioPlugin(
 	def removeTemporaryFiles(self) :
 	
 		# Delete all temporary files
-		path = self.get_plugin_data_folder().replace('\\', '/') + '/'
+		path = self.get_plugin_data_folder().replace("\\", "/") + "/"
 		for file in os.listdir(path) :
 			os.remove(path + file)
 	
@@ -1889,7 +1889,7 @@ class M33FioPlugin(
 			CameraWidth = 640,
 			CameraHeight = 480,
 			CameraFramesPerSecond = 20,
-			MidPrintFilamentChangeLayers = '',
+			MidPrintFilamentChangeLayers = "",
 			ChangeLedBrightness = True,
 			UseDebugLogging = False,
 			SlicerNeverRemind = False,
@@ -2494,20 +2494,20 @@ class M33FioPlugin(
 			
 				# Set file location and destination
 				if data["value"] == "Print Test Border" :
-					location = self._basefolder.replace('\\', '/') + "/static/files/test border.gcode"
-					destination = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "test border.gcode").replace('\\', '/')
+					location = self._basefolder.replace("\\", "/") + "/static/files/test border.gcode"
+					destination = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "test border.gcode").replace("\\", "/")
 				elif data["value"] == "Print Backlash Calibration X 0.0-0.99" :
-					location = self._basefolder.replace('\\', '/') + "/static/files/QuickBacklash_X_0.0-0.99.gcode"
-					destination = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "QuickBacklash_X_0.0-0.99.gcode").replace('\\', '/')
+					location = self._basefolder.replace("\\", "/") + "/static/files/QuickBacklash_X_0.0-0.99.gcode"
+					destination = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "QuickBacklash_X_0.0-0.99.gcode").replace("\\", "/")
 				elif data["value"] == "Print Backlash Calibration X 0.70-1.69" :
-					location = self._basefolder.replace('\\', '/') + "/static/files/QuickBacklash_X_0.70-1.69.gcode"
-					destination = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "QuickBacklash_X_0.70-1.69.gcode").replace('\\', '/')
+					location = self._basefolder.replace("\\", "/") + "/static/files/QuickBacklash_X_0.70-1.69.gcode"
+					destination = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "QuickBacklash_X_0.70-1.69.gcode").replace("\\", "/")
 				elif data["value"] == "Print Backlash Calibration Y 0.0-0.99" :
-					location = self._basefolder.replace('\\', '/') + "/static/files/QuickBacklash_Y_0.0-0.99.gcode"
-					destination = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "QuickBacklash_Y_0.0-0.99.gcode").replace('\\', '/')
+					location = self._basefolder.replace("\\", "/") + "/static/files/QuickBacklash_Y_0.0-0.99.gcode"
+					destination = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "QuickBacklash_Y_0.0-0.99.gcode").replace("\\", "/")
 				elif data["value"] == "Print Backlash Calibration Y 0.70-1.69" :
-					location = self._basefolder.replace('\\', '/') + "/static/files/QuickBacklash_Y_0.70-1.69.gcode"
-					destination = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "QuickBacklash_Y_0.70-1.69.gcode").replace('\\', '/')
+					location = self._basefolder.replace("\\", "/") + "/static/files/QuickBacklash_Y_0.70-1.69.gcode"
+					destination = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "QuickBacklash_Y_0.70-1.69.gcode").replace("\\", "/")
 				
 				# Remove destination file if it already exists
 				if os.path.isfile(destination) :
@@ -2587,7 +2587,7 @@ class M33FioPlugin(
 				
 				# Set correct file location for Windows
 				if platform.uname()[0].startswith("Windows") :
-					destination = destination.replace('/', '\\')
+					destination = destination.replace("/", "\\")
 				
 				# Empty command queue
 				self.emptyCommandQueue()
@@ -2899,7 +2899,7 @@ class M33FioPlugin(
 				
 				# Set file's destination
 				destinationName = "slicer_profile.ini"
-				fileDestination = self.get_plugin_data_folder().replace('\\', '/') + '/' + destinationName
+				fileDestination = self.get_plugin_data_folder().replace("\\", "/") + "/" + destinationName
 				
 				# Remove file in destination if it already exists
 				if os.path.isfile(fileDestination) :
@@ -2914,7 +2914,7 @@ class M33FioPlugin(
 					shutil.copyfile(fileLocation, fileDestination)
 				
 				# Return location
-				return flask.jsonify(dict(value = "OK", path = "m33fio/download/" + urllib.quote(destinationName)))
+				return flask.jsonify(dict(value = "OK", path = "m33fio/download/" + urllib.quote(destinationName.encode("utf-8"))))
 			
 			# Otherwise check if parameter is to get printer settings
 			elif data["value"] == "Get Printer Settings" :
@@ -2953,7 +2953,7 @@ class M33FioPlugin(
 				
 				# Set file's destination
 				destinationName = "printer_settings.yaml"
-				fileDestination = self.get_plugin_data_folder().replace('\\', '/') + '/' + destinationName
+				fileDestination = self.get_plugin_data_folder().replace("\\", "/") + "/" + destinationName
 				
 				# Remove file in destination if it already exists
 				if os.path.isfile(fileDestination) :
@@ -2965,7 +2965,7 @@ class M33FioPlugin(
 				output.close()
 				
 				# Return location
-				return flask.jsonify(dict(value = "OK", path = "m33fio/download/" + urllib.quote(destinationName)))
+				return flask.jsonify(dict(value = "OK", path = "m33fio/download/" + urllib.quote(destinationName.encode("utf-8"))))
 			
 			# Otherwise check if parameter is to set printer settings
 			elif data["value"].startswith("Set Printer Settings:") :
@@ -3269,11 +3269,11 @@ class M33FioPlugin(
 					port += 1
 			
 				# Create config file
-				configFile = self._settings.global_get_basefolder("base").replace('\\', '/') + "/config.yaml" + str(port)
-				shutil.copyfile(self._settings.global_get_basefolder("base").replace('\\', '/') + "/config.yaml", configFile)
+				configFile = self._settings.global_get_basefolder("base").replace("\\", "/") + "/config.yaml" + str(port)
+				shutil.copyfile(self._settings.global_get_basefolder("base").replace("\\", "/") + "/config.yaml", configFile)
 				
 				# Create instance
-				octoprintProcess = subprocess.Popen([sys.executable.replace('\\', '/'), "-c", "import octoprint;octoprint.main()", "--port", str(port), "--config", self._settings.global_get_basefolder("base").replace('\\', '/') + "/config.yaml" + str(port)])
+				octoprintProcess = subprocess.Popen([sys.executable.replace("\\", "/"), "-c", "import octoprint;octoprint.main()", "--port", str(port), "--config", self._settings.global_get_basefolder("base").replace("\\", "/") + "/config.yaml" + str(port)])
 				
 				# Wait until new instance is ready
 				while self.isPortOpen(port) :
@@ -3385,7 +3385,7 @@ class M33FioPlugin(
 			
 			# Otherwise check if parameter is to get print information
 			elif data["value"] == "Print Information" and hasattr(self, "maxXExtruderLow") and hasattr(self, "maxXExtruderMedium") and hasattr(self, "maxXExtruderHigh") and hasattr(self, "maxYExtruderLow") and hasattr(self, "maxYExtruderMedium") and hasattr(self, "maxYExtruderHigh") and hasattr(self, "maxZExtruder") and hasattr(self, "minXExtruderLow") and hasattr(self, "minXExtruderMedium") and hasattr(self, "minXExtruderHigh") and hasattr(self, "minYExtruderLow") and hasattr(self, "minYExtruderMedium") and hasattr(self, "minYExtruderHigh") and hasattr(self, "minZExtruder") :
-			 
+			
 			 	# Return print information
 				return flask.jsonify(dict(value = "OK", maxXLow = self.maxXExtruderLow, maxXMedium = self.maxXExtruderMedium, maxXHigh = self.maxXExtruderHigh, maxYLow = self.maxYExtruderLow, maxYMedium = self.maxYExtruderMedium, maxYHigh = self.maxYExtruderHigh, maxZ = self.maxZExtruder, minXLow = self.minXExtruderLow, minXMedium = self.minXExtruderMedium, minXHigh = self.minXExtruderHigh, minYLow = self.minYExtruderLow, minYMedium = self.minYExtruderMedium, minYHigh = self.minYExtruderHigh, minZ = self.minZExtruder))
 			
@@ -3444,7 +3444,7 @@ class M33FioPlugin(
 		
 			# Initialize variables
 			error = False
-			encryptedRom = ''
+			encryptedRom = ""
 			
 			# Check if firmware version is valid
 			firmwareVersion = re.search("(^| )\\d{10}(?=\\.|$)", data["name"])
@@ -3570,7 +3570,7 @@ class M33FioPlugin(
 	def writeToEeprom(self, connection, address, data) :
 	
 		# Send write to EEPROM request
-		connection.write('U')
+		connection.write("U")
 		connection.write(chr((address >> 8) & 0xFF))
 		connection.write(chr(address & 0xFF))
 		connection.write(chr((len(data) >> 8) & 0xFF))
@@ -3581,13 +3581,13 @@ class M33FioPlugin(
 			connection.write(character)
 		
 		# Return if write was successful
-		return connection.read() == '\r'
+		return connection.read() == "\r"
 	
 	# Get EEPROM
 	def getEeprom(self, connection, send = False) :
 	
 		# Request EEPROM
-		connection.write('S')
+		connection.write("S")
 
 		# Get response
 		try :
@@ -3603,7 +3603,7 @@ class M33FioPlugin(
 			return False
 	
 		# Check if EEPROM wasn't read successfully
-		if len(self.eeprom) != 0x301 or self.eeprom[-1] != '\r' :
+		if len(self.eeprom) != 0x301 or self.eeprom[-1] != "\r" :
 		
 			# Don't save response
 			self.eeprom = None
@@ -3633,7 +3633,7 @@ class M33FioPlugin(
 	def updateToProvidedFirmware(self, connection, firmwareName) :
 	
 		# Return if firmware was updated successfully
-		encryptedRom = open(self._basefolder.replace('\\', '/') + "/static/files/" + self.providedFirmwares[firmwareName]["File"], "rb")
+		encryptedRom = open(self._basefolder.replace("\\", "/") + "/static/files/" + self.providedFirmwares[firmwareName]["File"], "rb")
 		return self.updateFirmware(connection, encryptedRom.read(), int(self.providedFirmwares[firmwareName]["Version"]))
 	
 	# Update firmware
@@ -3641,12 +3641,12 @@ class M33FioPlugin(
 	
 		# Initialize variables
 		error = False
-		temp = ''
-		decryptedRom = ''
+		temp = ""
+		decryptedRom = ""
 		newChipCrc = 0
 		
 		# Check if rom isn't encrypted
-		if encryptedRom[0] == '\x0C' or encryptedRom[0] == '\xFD' :
+		if encryptedRom[0] == "\x0C" or encryptedRom[0] == "\xFD" :
 	
 			# Go through the ROM
 			index = 0
@@ -3672,18 +3672,18 @@ class M33FioPlugin(
 		if len(encryptedRom) <= self.chipTotalMemory :
 		
 			# Request that chip be erased
-			connection.write('E')
+			connection.write("E")
 		
 			# Check if chip was erased successfully
-			if connection.read() == '\r' :
+			if connection.read() == "\r" :
 		
 				# Send address zero
-				connection.write('A')
-				connection.write('\x00')
-				connection.write('\x00')
+				connection.write("A")
+				connection.write("\x00")
+				connection.write("\x00")
 
 				# Check if address was acknowledged
-				if connection.read() == '\r' :
+				if connection.read() == "\r" :
 		
 					# Set pages to write
 					pagesToWrite = len(encryptedRom) / 2 / self.chipPageSize
@@ -3695,7 +3695,7 @@ class M33FioPlugin(
 					while index < pagesToWrite :
 
 						# Send write to page request
-						connection.write('B')
+						connection.write("B")
 						connection.write(chr((self.chipPageSize * 2 >> 8) & 0xFF))
 						connection.write(chr((self.chipPageSize * 2) & 0xFF))
 
@@ -3723,7 +3723,7 @@ class M33FioPlugin(
 							pageAddress += 1
 
 						# Check if chip failed to be flashed
-						if connection.read() != '\r' :
+						if connection.read() != "\r" :
 				
 							# Set error
 							error = True
@@ -3736,16 +3736,16 @@ class M33FioPlugin(
 					if not error :
 			
 						# Send address zero
-						connection.write('A')
-						connection.write('\x00')
-						connection.write('\x00')
+						connection.write("A")
+						connection.write("\x00")
+						connection.write("\x00")
 
 						# Check if address was acknowledged
-						if connection.read() == '\r' :
+						if connection.read() == "\r" :
 						
 							# Request new CRC from chip
-							connection.write('C')
-							connection.write('A')
+							connection.write("C")
+							connection.write("A")
 
 							# Get response
 							response = connection.read(4)
@@ -3768,7 +3768,7 @@ class M33FioPlugin(
 									if index % 2 == 0 and index == len(encryptedRom) - 1 :
 
 										# Put padding
-										decryptedRom += '\xFF'
+										decryptedRom += "\xFF"
 
 									# Otherwise
 									else :
@@ -3783,7 +3783,7 @@ class M33FioPlugin(
 								else :
 
 									# Put padding
-									decryptedRom += '\xFF'
+									decryptedRom += "\xFF"
 
 								# Increment index
 								index += 1
@@ -4061,7 +4061,7 @@ class M33FioPlugin(
 			else :
 		
 				# Send command with line number to printer
-				command = 'N' + str(lineNumber) + ' ' + command
+				command = "N" + str(lineNumber) + " " + command
 				self.sendCommands(command + self.calculateChecksum(command))
 		
 				# Increment line number
@@ -4073,12 +4073,12 @@ class M33FioPlugin(
 		# Calculate checksum
 		checksum = 0
 		for character in command :
-			if character == '*' :
+			if character == "*" :
 				return str(checksum)
 			checksum ^= ord(character)
 		
 		# Return checksum
-		return '*' + str(checksum)
+		return "*" + str(checksum)
 	
 	# Empty command queue
 	def emptyCommandQueue(self) :
@@ -4301,7 +4301,7 @@ class M33FioPlugin(
 					if self.sharedLibrary :
 				
 						# Pre-process command
-						commands = self.sharedLibrary.preprocess(ctypes.c_char_p(data), ctypes.c_char_p(None), ctypes.c_bool(False)).split(',')
+						commands = self.sharedLibrary.preprocess(ctypes.c_char_p(data), ctypes.c_char_p(None), ctypes.c_bool(False)).split(",")
 				
 					# Otherwise
 					else :
@@ -4310,10 +4310,10 @@ class M33FioPlugin(
 						commands = self.preprocess(data)
 				
 					# Check if pre-processed commands were returned
-					if len(commands) and commands != [''] :
+					if len(commands) and commands != [""] :
 				
 						# Set data to first pre-processed command
-						data = 'N' + str(lineNumber) + ' ' + commands[0] + '\n'
+						data = "N" + str(lineNumber) + " " + commands[0] + "\n"
 			
 						# Send the remaining pre-processed commands to the printer
 						self.sendCommands(commands[1 :])
@@ -4322,7 +4322,7 @@ class M33FioPlugin(
 					else :
 				
 						# Set command to nothing
-						data = 'N' + str(lineNumber) + " G4\n"
+						data = "N" + str(lineNumber) + " G4\n"
 			
 			# Check if command contains valid G-code
 			gcode = Gcode()
@@ -4332,38 +4332,38 @@ class M33FioPlugin(
 				if self.heatbedConnected :
 				
 					# Check if command is to set heatbed temperature
-					if gcode.getValue('M') == "140" :
+					if gcode.getValue("M") == "140" :
 					
 						# Send heatbed the specified temperature
 						try :
-							if gcode.hasValue('S') :
-								temperature = gcode.getValue('S')
+							if gcode.hasValue("S") :
+								temperature = gcode.getValue("S")
 							else :
 								temperature = "0"
 							
-							self.heatbedConnection.write("s " + temperature + '\r')
+							self.heatbedConnection.write("s " + temperature + "\r")
 							self.showHeatbedTemperature = temperature != "0"
 						
 						except :
 							pass
 						
 						# Set command to nothing
-						gcode.removeParameter('M')
-						gcode.removeParameter('S')
-						gcode.setValue('G', '4')
+						gcode.removeParameter("M")
+						gcode.removeParameter("S")
+						gcode.setValue("G", "4")
 					
 					# Otherwise check if command is to set heatbed temperature and wait
-					elif gcode.getValue('M') == "190" :
+					elif gcode.getValue("M") == "190" :
 					
 						# Send heatbed the specified temperature
 						error = False
 						try :
-							if gcode.hasValue('S') :
-								temperature = gcode.getValue('S')
+							if gcode.hasValue("S") :
+								temperature = gcode.getValue("S")
 							else :
 								temperature = "0"
 							
-							self.heatbedConnection.write("w " + temperature + '\r')
+							self.heatbedConnection.write("w " + temperature + "\r")
 							self.showHeatbedTemperature = temperature != "0"
 						
 						except :
@@ -4384,7 +4384,7 @@ class M33FioPlugin(
 							while readingTemperature and self._printer._comm is not None :
 							
 								# Read heatbed temperature
-								heatbedTemperature = ''
+								heatbedTemperature = ""
 								while len(heatbedTemperature) == 0 :
 								
 									# Read heatbed temperature until it stops
@@ -4421,37 +4421,37 @@ class M33FioPlugin(
 							self.settingHeatbedTemperature = False
 						
 						# Set command to nothing
-						gcode.removeParameter('M')
-						gcode.removeParameter('S')
-						gcode.setValue('G', '4')
+						gcode.removeParameter("M")
+						gcode.removeParameter("S")
+						gcode.setValue("G", "4")
 			
 				# Check if using a GPIO pin
 				if self._settings.get_boolean(["UseGpio"]) :
 			
 					# Check if command is to set GPIO pin high
-					if gcode.getValue('M') == "106" and gcode.getValue('T') == '1' :
+					if gcode.getValue("M") == "106" and gcode.getValue("T") == "1" :
 				
 						# Set GPIO pin high
 						self.setGpioPinHigh()
 						
 						# Set command to nothing
-						gcode.removeParameter('M')
-						gcode.removeParameter('T')
-						gcode.setValue('G', '4')
+						gcode.removeParameter("M")
+						gcode.removeParameter("T")
+						gcode.setValue("G", "4")
 					
 					# Check if command is to set GPIO pin low
-					elif gcode.getValue('M') == "107" and gcode.getValue('T') == '1' :
+					elif gcode.getValue("M") == "107" and gcode.getValue("T") == "1" :
 					
 						# Set GPIO pin low
 						self.setGpioPinLow()
 						
 						# Set command to nothing
-						gcode.removeParameter('M')
-						gcode.removeParameter('T')
-						gcode.setValue('G', '4')
+						gcode.removeParameter("M")
+						gcode.removeParameter("T")
+						gcode.setValue("G", "4")
 				
 				# Check if pause command
-				if gcode.getValue('M') == "25" :
+				if gcode.getValue("M") == "25" :
 				
 					# Check if printing
 					if self._printer.is_printing() :
@@ -4488,11 +4488,11 @@ class M33FioPlugin(
 						self.numberWrapCounter = 0
 					
 					# Set command to nothing
-					gcode.removeParameter('M')
-					gcode.setValue('G', '4')
+					gcode.removeParameter("M")
+					gcode.setValue("G", "4")
 				
 				# Check if resume command
-				elif gcode.getValue('M') == "24" :
+				elif gcode.getValue("M") == "24" :
 				
 					# Check if paused
 					if self._printer.is_paused() :
@@ -4521,11 +4521,11 @@ class M33FioPlugin(
 							self._printer._comm._long_running_command = True
 					
 					# Set command to nothing
-					gcode.removeParameter('M')
-					gcode.setValue('G', '4')
+					gcode.removeParameter("M")
+					gcode.setValue("G", "4")
 				
 				# Otherwise check if change filament mid-print command
-				elif gcode.getValue('M') == "600" :
+				elif gcode.getValue("M") == "600" :
 				
 					# Check if printing
 					if self._printer.is_printing() :
@@ -4587,41 +4587,41 @@ class M33FioPlugin(
 					else :
 					
 						# Set command to nothing
-						gcode.removeParameter('M')
-						gcode.setValue('G', '4')
+						gcode.removeParameter("M")
+						gcode.setValue("G", "4")
 				
 				# Otherwise check if request ends waiting for commands sent
-				elif gcode.getValue('M') == "65536" :
+				elif gcode.getValue("M") == "65536" :
 				
 					# Set end waiting after send
 					endWaitingAfterSend = True
 					
 					# Set command to nothing
-					gcode.removeParameter('M')
-					gcode.setValue('G', '4')
+					gcode.removeParameter("M")
+					gcode.setValue("G", "4")
 					
 				# Otherwise check if hide message command
-				elif gcode.getValue('M') == "65539" :
+				elif gcode.getValue("M") == "65539" :
 		
 					# Set hide message after send
 					hideMessageAfterSend = True
 					
 					# Set command to nothing
-					gcode.removeParameter('M')
-					gcode.setValue('G', '4')
+					gcode.removeParameter("M")
+					gcode.setValue("G", "4")
 				
 				# Otherwise check if show mid-print filament change command
-				elif gcode.getValue('M') == "65540" :
+				elif gcode.getValue("M") == "65540" :
 		
 					# Set show mid-print filament change after send
 					showMidPrintFilamentChangeAfterSend = True
 					
 					# Set command to nothing
-					gcode.removeParameter('M')
-					gcode.setValue('G', '4')
+					gcode.removeParameter("M")
+					gcode.setValue("G", "4")
 				
 				# Otherwise check if print is done
-				elif gcode.getValue('M') == "65541" :
+				elif gcode.getValue("M") == "65541" :
 				
 					# Wait until all sent commands have been processed
 					while len(self.sentCommands) :
@@ -4675,7 +4675,7 @@ class M33FioPlugin(
 				self._m33fio_logger.debug("Processed Sent: " + gcode.getAscii())
 				
 				# Check if command has a line number
-				if gcode.hasValue('N') :
+				if gcode.hasValue("N") :
 					
 					# Limit the amount of commands that can simultaneous be sent to the printer
 					while len(self.sentCommands) :
@@ -4687,13 +4687,13 @@ class M33FioPlugin(
 						time.sleep(0.01)
 					
 					# Get line number
-					lineNumber = int(gcode.getValue('N'))
+					lineNumber = int(gcode.getValue("N"))
 					
 					# Set last line number sent
 					self.lastLineNumberSent = lineNumber
 		
 					# Check if command contains a starting line number
-					if lineNumber == 0 and gcode.getValue('M') == "110" :
+					if lineNumber == 0 and gcode.getValue("M") == "110" :
 				
 						# Set reset line number command sent
 						self.resetLineNumberCommandSent = True
@@ -4705,7 +4705,7 @@ class M33FioPlugin(
 					self.sentCommands[lineNumber % 0x10000] = data
 			
 			# Check if command doesn't have a line number
-			if not gcode.hasValue('N') :
+			if not gcode.hasValue("N") :
 			
 				# Set last command sent
 				self.lastCommandSent = data
@@ -4749,7 +4749,7 @@ class M33FioPlugin(
 		response = self.originalRead()
 		
 		# Reset consecutive timeouts
-		if self._printer._comm is not None and hasattr(self._printer._comm, "_consecutive_timeouts") and response is not None and response.strip() is not '' :
+		if self._printer._comm is not None and hasattr(self._printer._comm, "_consecutive_timeouts") and response is not None and response.strip() is not "" :
 			self._printer._comm._consecutive_timeouts = 0
 		
 		# Log received data
@@ -4759,7 +4759,7 @@ class M33FioPlugin(
 		if self.settingHeatbedTemperature :
 	
 			# Clear response
-			response = ''
+			response = ""
 		
 		# Check if response is wait
 		if response.startswith("wait") :
@@ -4783,7 +4783,7 @@ class M33FioPlugin(
 				else :
 		
 					# Clear response
-					response = ''
+					response = ""
 			
 				# Send message
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Duplicate Wait"))
@@ -4792,7 +4792,7 @@ class M33FioPlugin(
 			if self.lastLineNumberSent is not None and self.lastLineNumberSent % 0x10000 in self.sentCommands :
 			
 				# Set response to resending command
-				response = "rs " + str(self.lastLineNumberSent) + '\n'
+				response = "rs " + str(self.lastLineNumberSent) + "\n"
 		
 		# Otherwise
 		else :
@@ -4805,7 +4805,7 @@ class M33FioPlugin(
 		
 			# Isolate temperature
 			if response.startswith("T:") :
-				response = response.split(' ', 2)[0] + '\n'
+				response = response.split(" ", 2)[0] + "\n"
 			
 			# Check if using a heatbed
 			if self.heatbedConnected :
@@ -4819,7 +4819,7 @@ class M33FioPlugin(
 				else :
 					
 					# Read heatbed temperature
-					heatbedTemperature = ''
+					heatbedTemperature = ""
 					while len(heatbedTemperature) == 0 :
 					
 						try :
@@ -4830,7 +4830,7 @@ class M33FioPlugin(
 							heatbedTemperature = "0"
 				
 				# Append heatbed temperature to to response
-				response = response.strip() + " B:" + heatbedTemperature + '\n'
+				response = response.strip() + " B:" + heatbedTemperature + "\n"
 		
 		# Check if response was a processed or skipped value
 		if (response.startswith("ok ") and response[3].isdigit()) or response.startswith("skip ") :
@@ -4854,20 +4854,20 @@ class M33FioPlugin(
 					self.numberWrapCounter = 0
 				
 				# Check if response contains extra information
-				responseSections = response.split(' ', 3)
+				responseSections = response.split(" ", 3)
 				if len(responseSections) == 3 :
 				
 					# Set extra information
-					extraInformation = ' ' + responseSections[2].strip()
+					extraInformation = " " + responseSections[2].strip()
 				
 				# Otherwise
 				else :
 				
 					# Clear extra information
-					extraInformation = ''
+					extraInformation = ""
 				
 				# Set response to contain adjusted line number
-				response = "ok " + str(lineNumber + self.numberWrapCounter * 0x10000) + extraInformation + '\n'
+				response = "ok " + str(lineNumber + self.numberWrapCounter * 0x10000) + extraInformation + "\n"
 	
 				# Increment number wrap counter if applicable
 				if lineNumber == 0xFFFF :
@@ -4880,7 +4880,7 @@ class M33FioPlugin(
 			else :
 			
 				# Clear response
-				response = ''
+				response = ""
 		
 		# Otherwise check if response was a resend value
 		elif response.startswith("rs") :
@@ -4913,7 +4913,7 @@ class M33FioPlugin(
 				self.originalWrite(self.lastCommandSent)
 			
 			# Clear response
-			response = ''
+			response = ""
 		
 		# Otherwise check if response was an error code
 		elif response.startswith("Error:") :
@@ -5160,8 +5160,8 @@ class M33FioPlugin(
 		if "cura" in self._slicing_manager.configured_slicers :
 
 			# Set Cura profile location and destination
-			profileLocation = self._basefolder.replace('\\', '/') + "/static/profiles/Cura/"
-			profileDestination = self._slicing_manager.get_slicer_profile_path("cura").replace('\\', '/') + '/'
+			profileLocation = self._basefolder.replace("\\", "/") + "/static/profiles/Cura/"
+			profileDestination = self._slicing_manager.get_slicer_profile_path("cura").replace("\\", "/") + "/"
 			
 			# Remove deprecated profiles
 			for profile in glob.glob(profileDestination + "m3d_*.profile") :
@@ -5171,7 +5171,7 @@ class M33FioPlugin(
 			for profile in os.listdir(profileLocation) :
 	
 				# Set profile version, identifier, and name
-				profileIdentifier = profile[0 : profile.find('.')]
+				profileIdentifier = profile[0 : profile.find(".")]
 				profileName = self._slicing_manager.get_profile_path("cura", profileIdentifier)[len(profileDestination) :].lower()
 				
 				# Check if not using a Micro 3D printer
@@ -5191,8 +5191,8 @@ class M33FioPlugin(
 		if "slic3r" in self._slicing_manager.configured_slicers :
 
 			# Set Slic3r profile location and destination
-			profileLocation = self._basefolder.replace('\\', '/') + "/static/profiles/Slic3r/"
-			profileDestination = self._slicing_manager.get_slicer_profile_path("slic3r").replace('\\', '/') + '/'
+			profileLocation = self._basefolder.replace("\\", "/") + "/static/profiles/Slic3r/"
+			profileDestination = self._slicing_manager.get_slicer_profile_path("slic3r").replace("\\", "/") + "/"
 			
 			# Remove deprecated profiles
 			for profile in glob.glob(profileDestination + "m3d_*.profile") :
@@ -5202,7 +5202,7 @@ class M33FioPlugin(
 			for profile in os.listdir(profileLocation) :
 	
 				# Set profile version, identifier, and name
-				profileIdentifier = profile[0 : profile.find('.')]
+				profileIdentifier = profile[0 : profile.find(".")]
 				profileName = self._slicing_manager.get_profile_path("slic3r", profileIdentifier)[len(profileDestination) :].lower()
 				
 				# Check if not using a Micro 3D printer
@@ -5423,13 +5423,13 @@ class M33FioPlugin(
 				self.resetPreprocessorSettings()
 			
 				# Check if printing test border
-				if payload["filename"] == os.path.basename(self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "test border.gcode").replace('\\', '/')) :
+				if payload["filename"] == os.path.basename(self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "test border.gcode").replace("\\", "/")) :
 	
 					# Set printing test border
 					self.printingTestBorder = True
 	
 				# Otherwise check if printing backlash calibration
-				elif payload["filename"] == os.path.basename(self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "QuickBacklash_X_0.0-0.99.gcode").replace('\\', '/')) or payload["filename"] == os.path.basename(self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "QuickBacklash_X_0.70-1.69.gcode").replace('\\', '/')) or payload["filename"] == os.path.basename(self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "QuickBacklash_Y_0.0-0.99.gcode").replace('\\', '/')) or payload["filename"] == os.path.basename(self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "QuickBacklash_Y_0.70-1.69.gcode").replace('\\', '/')) :
+				elif payload["filename"] == os.path.basename(self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "QuickBacklash_X_0.0-0.99.gcode").replace("\\", "/")) or payload["filename"] == os.path.basename(self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "QuickBacklash_X_0.70-1.69.gcode").replace("\\", "/")) or payload["filename"] == os.path.basename(self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "QuickBacklash_Y_0.0-0.99.gcode").replace("\\", "/")) or payload["filename"] == os.path.basename(self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "QuickBacklash_Y_0.70-1.69.gcode").replace("\\", "/")) :
 				
 					# Set printing backlash calibration
 					self.printingBacklashCalibration = True
@@ -5597,7 +5597,7 @@ class M33FioPlugin(
 	
 		# Try to open port
 		try :
-			socketConnection.bind(('', port))
+			socketConnection.bind(("", port))
 	
 		# Return false if an error occured
 		except :
@@ -5659,7 +5659,7 @@ class M33FioPlugin(
 	def floatToInt(self, value) :
 	
 		# Return int representation of float value
-		packed = struct.pack('f', value)
+		packed = struct.pack("f", value)
 		return ord(packed[0]) | (ord(packed[1]) << 8) | (ord(packed[2]) << 16) | (ord(packed[3]) << 24)
 	
 	# Int to float
@@ -5668,7 +5668,7 @@ class M33FioPlugin(
 		# Return float representation of int value
 		data = [int(ord(chr(value & 0xFF))), int(ord(chr((value >> 8) & 0xFF))), int(ord(chr((value >> 16) & 0xFF))), int(ord(chr((value >> 24) & 0xFF)))]
 		bytes = struct.pack("4B", *data)
-		return round(struct.unpack('f', bytes)[0], 6)
+		return round(struct.unpack("f", bytes)[0], 6)
 	
 	# EEPROM set int
 	def eepromSetInt(self, connection, eepromName, value, length = 0) :
@@ -5754,7 +5754,7 @@ class M33FioPlugin(
 		# Set error
 		error = False
 		
-		# Get EEROM value in single-precision floating-point format 
+		# Get EEROM value in single-precision floating-point format
 		floatValue = self.eepromGetFloat(eepromName)
 
 		# Check if EEPROM value is invalid
@@ -5851,7 +5851,7 @@ class M33FioPlugin(
 							connection.write("M110")
 							bootloaderVersion = connection.read()
 				
-							if int(serial.VERSION.split('.', 1)[0]) < 3 :
+							if int(serial.VERSION.split(".", 1)[0]) < 3 :
 								bootloaderVersion += connection.read(connection.inWaiting())
 							else :
 								bootloaderVersion += connection.read(connection.in_waiting)
@@ -5869,7 +5869,7 @@ class M33FioPlugin(
 						if not error :
 			
 							# Check if not in bootloader mode
-							if not bootloaderVersion.startswith('B') :
+							if not bootloaderVersion.startswith("B") :
 			
 								# Save ports
 								self.savePorts(currentPort)
@@ -5943,13 +5943,13 @@ class M33FioPlugin(
 									connection.write("M110")
 									bootloaderVersion = connection.read()
 				
-									if int(serial.VERSION.split('.', 1)[0]) < 3 :
+									if int(serial.VERSION.split(".", 1)[0]) < 3 :
 										bootloaderVersion += connection.read(connection.inWaiting())
 									else :
 										bootloaderVersion += connection.read(connection.in_waiting)
 									
 									# Check if not in bootloader mode
-									if not bootloaderVersion.startswith('B') :
+									if not bootloaderVersion.startswith("B") :
 									
 										# Set error
 										error = True
@@ -5976,8 +5976,8 @@ class M33FioPlugin(
 										eepromCrc = self.eepromGetInt("firmwareCrc")
 				
 										# Request firmware CRC from chip
-										connection.write('C')
-										connection.write('A')
+										connection.write("C")
+										connection.write("A")
 
 										# Get response
 										response = connection.read(4)
@@ -6537,7 +6537,7 @@ class M33FioPlugin(
 									
 										# Remove serial timeout
 										self._printer.get_transport().timeout = None
-										if int(serial.VERSION.split('.', 1)[0]) < 3 :
+										if int(serial.VERSION.split(".", 1)[0]) < 3 :
 											self._printer.get_transport().writeTimeout = None
 										else :
 											self._printer.get_transport().write_timeout = None
@@ -6699,7 +6699,7 @@ class M33FioPlugin(
 			if "XV:" in data :
 			
 				# Set invalid bed plane
-				self.invalidBedPlane = data[data.find("XV:") + 3] == '0'
+				self.invalidBedPlane = data[data.find("XV:") + 3] == "0"
 			
 			# Otherwise
 			else :
@@ -6714,7 +6714,7 @@ class M33FioPlugin(
 				if "YV:" in data :
 			
 					# Set invalid bed plane
-					self.invalidBedPlane = data[data.find("YV:") + 3] == '0'
+					self.invalidBedPlane = data[data.find("YV:") + 3] == "0"
 			
 				# Otherwise
 				else :
@@ -6723,7 +6723,7 @@ class M33FioPlugin(
 					self.invalidBedPlane = False
 		
 			# Set invalid bed center
-			self.invalidBedCenter = data[data.find("ZV:") + 3] == '0'
+			self.invalidBedCenter = data[data.find("ZV:") + 3] == "0"
 		
 		# Otherwise check if data contains current Z
 		elif "Z:" in data :
@@ -6731,39 +6731,39 @@ class M33FioPlugin(
 			# Set location X
 			if "X:" in data :
 				start = data.find("X:") + 2
-				if data[start :].find(' ') == -1 :
+				if data[start :].find(" ") == -1 :
 					locationX = data[start :]
 				else :
-					locationX = data[start : data[start :].find(' ') + start]
+					locationX = data[start : data[start :].find(" ") + start]
 			else :
 				locationX = None
 			
 			# Set location Y
 			if "Y:" in data :
 				start = data.find("Y:") + 2
-				if data[start :].find(' ') == -1 :
+				if data[start :].find(" ") == -1 :
 					locationY = data[start :]
 				else :
-					locationY = data[start : data[start :].find(' ') + start]
+					locationY = data[start : data[start :].find(" ") + start]
 			else :
 				locationY = None
 				
 			# Set location E
 			if "E:" in data :
 				start = data.find("E:") + 2
-				if data[start :].find(' ') == -1 :
+				if data[start :].find(" ") == -1 :
 					locationE = data[start :]
 				else :
-					locationE = data[start : data[start :].find(' ') + start]
+					locationE = data[start : data[start :].find(" ") + start]
 			else :
 				locationE = None
 			
 			# Set location Z
 			start = data.find("Z:") + 2
-			if data[start :].find(' ') == -1 :
+			if data[start :].find(" ") == -1 :
 				locationZ = data[start :]
 			else :
-				locationZ = data[start : data[start :].find(' ') + start]
+				locationZ = data[start : data[start :].find(" ") + start]
 			
 			# Check if performing finish print movement
 			if self.performFinishPrintMovement :
@@ -6778,7 +6778,7 @@ class M33FioPlugin(
 					if self.sharedLibrary :
 				
 						# Pre-process command
-						commands = self.sharedLibrary.preprocess(ctypes.c_char_p("G4"), ctypes.c_char_p(None), ctypes.c_bool(True)).split(',')
+						commands = self.sharedLibrary.preprocess(ctypes.c_char_p("G4"), ctypes.c_char_p(None), ctypes.c_bool(True)).split(",")
 				
 					# Otherwise
 					else :
@@ -7005,7 +7005,7 @@ class M33FioPlugin(
 		elif "DT:" in data :
 		
 			# Check if data is for backlash X
-			if "PT:" + str(self.eepromOffsets["backlashX"]["offset"]) + ' ' in data :
+			if "PT:" + str(self.eepromOffsets["backlashX"]["offset"]) + " " in data :
 			
 				# Convert data to float
 				value = self.intToFloat(int(data[data.find("DT:") + 3 :]))
@@ -7020,7 +7020,7 @@ class M33FioPlugin(
 					self._settings.set_float(["BacklashX"], self.printerBacklashX)
 			
 			# Otherwise check if data is for backlash Y
-			elif "PT:" + str(self.eepromOffsets["backlashY"]["offset"]) + ' ' in data :
+			elif "PT:" + str(self.eepromOffsets["backlashY"]["offset"]) + " " in data :
 			
 				# Convert data to float
 				value = self.intToFloat(int(data[data.find("DT:") + 3 :]))
@@ -7035,7 +7035,7 @@ class M33FioPlugin(
 					self._settings.set_float(["BacklashY"], self.printerBacklashY)
 			
 			# Otherwise check if data is for back right orientation
-			elif "PT:" + str(self.eepromOffsets["bedOrientationBackRight"]["offset"]) + ' ' in data :
+			elif "PT:" + str(self.eepromOffsets["bedOrientationBackRight"]["offset"]) + " " in data :
 			
 				# Convert data to float
 				value = self.intToFloat(int(data[data.find("DT:") + 3 :]))
@@ -7050,7 +7050,7 @@ class M33FioPlugin(
 					self._settings.set_float(["BackRightOrientation"], self.printerBackRightOrientation)
 			
 			# Otherwise check if data is for back left orientation
-			elif "PT:" + str(self.eepromOffsets["bedOrientationBackLeft"]["offset"]) + ' ' in data :
+			elif "PT:" + str(self.eepromOffsets["bedOrientationBackLeft"]["offset"]) + " " in data :
 			
 				# Convert data to float
 				value = self.intToFloat(int(data[data.find("DT:") + 3 :]))
@@ -7065,7 +7065,7 @@ class M33FioPlugin(
 					self._settings.set_float(["BackLeftOrientation"], self.printerBackLeftOrientation)
 			
 			# Otherwise check if data is for front left orientation
-			elif "PT:" + str(self.eepromOffsets["bedOrientationFrontLeft"]["offset"]) + ' ' in data :
+			elif "PT:" + str(self.eepromOffsets["bedOrientationFrontLeft"]["offset"]) + " " in data :
 			
 				# Convert data to float
 				value = self.intToFloat(int(data[data.find("DT:") + 3 :]))
@@ -7080,7 +7080,7 @@ class M33FioPlugin(
 					self._settings.set_float(["FrontLeftOrientation"], self.printerFrontLeftOrientation)
 			
 			# Otherwise check if data is for front right orientation
-			elif "PT:" + str(self.eepromOffsets["bedOrientationFrontRight"]["offset"]) + ' ' in data :
+			elif "PT:" + str(self.eepromOffsets["bedOrientationFrontRight"]["offset"]) + " " in data :
 			
 				# Convert data to float
 				value = self.intToFloat(int(data[data.find("DT:") + 3 :]))
@@ -7098,7 +7098,7 @@ class M33FioPlugin(
 					self.invalidBedOrientation = self.printerBackRightOrientation == 0 and self.printerBackLeftOrientation == 0 and self.printerFrontLeftOrientation == 0 and self.printerFrontRightOrientation == 0
 				
 			# Otherwise check if data is for filament type and location
-			elif "PT:" + str(self.eepromOffsets["filamentTypeAndLocation"]["offset"]) + ' ' in data :
+			elif "PT:" + str(self.eepromOffsets["filamentTypeAndLocation"]["offset"]) + " " in data :
 			
 				# Convert data to value
 				value = int(data[data.find("DT:") + 3 :])
@@ -7125,7 +7125,7 @@ class M33FioPlugin(
 					self._settings.set(["FilamentType"], self.printerFilamentType)
 			
 			# Otherwise check if data is for filament temperature
-			elif "PT:" + str(self.eepromOffsets["filamentTemperature"]["offset"]) + ' ' in data :
+			elif "PT:" + str(self.eepromOffsets["filamentTemperature"]["offset"]) + " " in data :
 			
 				# Convert data to value
 				self.printerFilamentTemperature = int(data[data.find("DT:") + 3 :]) + 100
@@ -7135,7 +7135,7 @@ class M33FioPlugin(
 					self._settings.set_int(["FilamentTemperature"], self.printerFilamentTemperature)
 			
 			# Otherwise check if data is for back left offset
-			elif "PT:" + str(self.eepromOffsets["bedOffsetBackLeft"]["offset"]) + ' ' in data :
+			elif "PT:" + str(self.eepromOffsets["bedOffsetBackLeft"]["offset"]) + " " in data :
 			
 				# Convert data to float
 				value = self.intToFloat(int(data[data.find("DT:") + 3 :]))
@@ -7150,7 +7150,7 @@ class M33FioPlugin(
 					self._settings.set_float(["BackLeftOffset"], self.printerBackLeftOffset)
 			
 			# Otherwise check if data is for back right offset
-			elif "PT:" + str(self.eepromOffsets["bedOffsetBackRight"]["offset"]) + ' ' in data :
+			elif "PT:" + str(self.eepromOffsets["bedOffsetBackRight"]["offset"]) + " " in data :
 			
 				# Convert data to float
 				value = self.intToFloat(int(data[data.find("DT:") + 3 :]))
@@ -7165,7 +7165,7 @@ class M33FioPlugin(
 					self._settings.set_float(["BackRightOffset"], self.printerBackRightOffset)
 			
 			# Otherwise check if data is for front right offset
-			elif "PT:" + str(self.eepromOffsets["bedOffsetFrontRight"]["offset"]) + ' ' in data :
+			elif "PT:" + str(self.eepromOffsets["bedOffsetFrontRight"]["offset"]) + " " in data :
 			
 				# Convert data to float
 				value = self.intToFloat(int(data[data.find("DT:") + 3 :]))
@@ -7180,7 +7180,7 @@ class M33FioPlugin(
 					self._settings.set_float(["FrontRightOffset"], self.printerFrontRightOffset)
 			
 			# Otherwise check if data is for front left offset
-			elif "PT:" + str(self.eepromOffsets["bedOffsetFrontLeft"]["offset"]) + ' ' in data :
+			elif "PT:" + str(self.eepromOffsets["bedOffsetFrontLeft"]["offset"]) + " " in data :
 			
 				# Convert data to float
 				value = self.intToFloat(int(data[data.find("DT:") + 3 :]))
@@ -7195,7 +7195,7 @@ class M33FioPlugin(
 					self._settings.set_float(["FrontLeftOffset"], self.printerFrontLeftOffset)
 			
 			# Otherwise check if data is for bed height offset
-			elif "PT:" + str(self.eepromOffsets["bedHeightOffset"]["offset"]) + ' ' in data :
+			elif "PT:" + str(self.eepromOffsets["bedHeightOffset"]["offset"]) + " " in data :
 			
 				# Convert data to float
 				value = self.intToFloat(int(data[data.find("DT:") + 3 :]))
@@ -7210,7 +7210,7 @@ class M33FioPlugin(
 					self._settings.set_float(["BedHeightOffset"], self.printerBedHeightOffset)
 			
 			# Otherwise check if data is for backlash speed
-			elif "PT:" + str(self.eepromOffsets["backlashSpeed"]["offset"]) + ' ' in data :
+			elif "PT:" + str(self.eepromOffsets["backlashSpeed"]["offset"]) + " " in data :
 			
 				# Convert data to float
 				value = self.intToFloat(int(data[data.find("DT:") + 3 :]))
@@ -7225,7 +7225,7 @@ class M33FioPlugin(
 					self._settings.set_float(["BacklashSpeed"], self.printerBacklashSpeed)
 			
 			# Otherwise check if data is for speed limit X
-			elif "PT:" + str(self.eepromOffsets["speedLimitX"]["offset"]) + ' ' in data :
+			elif "PT:" + str(self.eepromOffsets["speedLimitX"]["offset"]) + " " in data :
 			
 				# Convert data to float
 				value = self.intToFloat(int(data[data.find("DT:") + 3 :]))
@@ -7240,7 +7240,7 @@ class M33FioPlugin(
 					self._settings.set_float(["SpeedLimitX"], self.printerSpeedLimitX)
 			
 			# Otherwise check if data is for speed limit Y
-			elif "PT:" + str(self.eepromOffsets["speedLimitY"]["offset"]) + ' ' in data :
+			elif "PT:" + str(self.eepromOffsets["speedLimitY"]["offset"]) + " " in data :
 			
 				# Convert data to float
 				value = self.intToFloat(int(data[data.find("DT:") + 3 :]))
@@ -7255,7 +7255,7 @@ class M33FioPlugin(
 					self._settings.set_float(["SpeedLimitY"], self.printerSpeedLimitY)
 			
 			# Otherwise check if data is for speed limit Z
-			elif "PT:" + str(self.eepromOffsets["speedLimitZ"]["offset"]) + ' ' in data :
+			elif "PT:" + str(self.eepromOffsets["speedLimitZ"]["offset"]) + " " in data :
 			
 				# Convert data to float
 				value = self.intToFloat(int(data[data.find("DT:") + 3 :]))
@@ -7270,7 +7270,7 @@ class M33FioPlugin(
 					self._settings.set_float(["SpeedLimitZ"], self.printerSpeedLimitZ)
 			
 			# Otherwise check if data is for speed limit E positive
-			elif "PT:" + str(self.eepromOffsets["speedLimitEPositive"]["offset"]) + ' ' in data :
+			elif "PT:" + str(self.eepromOffsets["speedLimitEPositive"]["offset"]) + " " in data :
 			
 				# Convert data to float
 				value = self.intToFloat(int(data[data.find("DT:") + 3 :]))
@@ -7285,7 +7285,7 @@ class M33FioPlugin(
 					self._settings.set_float(["SpeedLimitEPositive"], self.printerSpeedLimitEPositive)
 			
 			# Otherwise check if data is for speed limit E negative
-			elif "PT:" + str(self.eepromOffsets["speedLimitENegative"]["offset"]) + ' ' in data :
+			elif "PT:" + str(self.eepromOffsets["speedLimitENegative"]["offset"]) + " " in data :
 			
 				# Convert data to float
 				value = self.intToFloat(int(data[data.find("DT:") + 3 :]))
@@ -7300,7 +7300,7 @@ class M33FioPlugin(
 					self._settings.set_float(["SpeedLimitENegative"], self.printerSpeedLimitENegative)
 			
 			# Otherwise check if data is for X motor steps/mm
-			elif "PT:" + str(self.eepromOffsets["xMotorStepsPerMm"]["offset"]) + ' ' in data :
+			elif "PT:" + str(self.eepromOffsets["xMotorStepsPerMm"]["offset"]) + " " in data :
 			
 				# Convert data to float
 				value = self.intToFloat(int(data[data.find("DT:") + 3 :]))
@@ -7315,7 +7315,7 @@ class M33FioPlugin(
 					self._settings.set_float(["XMotorStepsPerMm"], self.printerXMotorStepsPerMm)
 			
 			# Otherwise check if data is for Y motor steps/mm
-			elif "PT:" + str(self.eepromOffsets["yMotorStepsPerMm"]["offset"]) + ' ' in data :
+			elif "PT:" + str(self.eepromOffsets["yMotorStepsPerMm"]["offset"]) + " " in data :
 			
 				# Convert data to float
 				value = self.intToFloat(int(data[data.find("DT:") + 3 :]))
@@ -7330,7 +7330,7 @@ class M33FioPlugin(
 					self._settings.set_float(["YMotorStepsPerMm"], self.printerYMotorStepsPerMm)
 			
 			# Otherwise check if data is for Z motor steps/mm
-			elif "PT:" + str(self.eepromOffsets["zMotorStepsPerMm"]["offset"]) + ' ' in data :
+			elif "PT:" + str(self.eepromOffsets["zMotorStepsPerMm"]["offset"]) + " " in data :
 			
 				# Convert data to float
 				value = self.intToFloat(int(data[data.find("DT:") + 3 :]))
@@ -7345,7 +7345,7 @@ class M33FioPlugin(
 					self._settings.set_float(["ZMotorStepsPerMm"], self.printerZMotorStepsPerMm)
 			
 			# Otherwise check if data is for E motor steps/mm
-			elif "PT:" + str(self.eepromOffsets["eMotorStepsPerMm"]["offset"]) + ' ' in data :
+			elif "PT:" + str(self.eepromOffsets["eMotorStepsPerMm"]["offset"]) + " " in data :
 			
 				# Convert data to float
 				value = self.intToFloat(int(data[data.find("DT:") + 3 :]))
@@ -7360,7 +7360,7 @@ class M33FioPlugin(
 					self._settings.set_float(["EMotorStepsPerMm"], self.printerEMotorStepsPerMm)
 			
 			# Otherwise check if data is for X jerk sensitivity
-			elif "PT:" + str(self.eepromOffsets["xJerkSensitivity"]["offset"]) + ' ' in data :
+			elif "PT:" + str(self.eepromOffsets["xJerkSensitivity"]["offset"]) + " " in data :
 			
 				# Convert data to value
 				self.printerXJerkSensitivity = int(data[data.find("DT:") + 3 :])
@@ -7370,7 +7370,7 @@ class M33FioPlugin(
 					self._settings.set_int(["XJerkSensitivity"], self.printerXJerkSensitivity)
 			
 			# Otherwise check if data is for Y jerk sensitivity
-			elif "PT:" + str(self.eepromOffsets["yJerkSensitivity"]["offset"]) + ' ' in data :
+			elif "PT:" + str(self.eepromOffsets["yJerkSensitivity"]["offset"]) + " " in data :
 			
 				# Convert data to value
 				self.printerYJerkSensitivity = int(data[data.find("DT:") + 3 :])
@@ -7380,7 +7380,7 @@ class M33FioPlugin(
 					self._settings.set_int(["YJerkSensitivity"], self.printerYJerkSensitivity)
 			
 			# Otherwise check if data is for calibrate Z0 correction
-			elif "PT:" + str(self.eepromOffsets["calibrateZ0Correction"]["offset"]) + ' ' in data :
+			elif "PT:" + str(self.eepromOffsets["calibrateZ0Correction"]["offset"]) + " " in data :
 			
 				# Convert data to float
 				value = self.intToFloat(int(data[data.find("DT:") + 3 :]))
@@ -7395,10 +7395,10 @@ class M33FioPlugin(
 					self._settings.set_float(["CalibrateZ0Correction"], self.printerCalibrateZ0Correction)
 			
 			# Otherwise check if data is for bed orientation version
-			elif "PT:" + str(self.eepromOffsets["bedOrientationVersion"]["offset"]) + ' ' in data :
+			elif "PT:" + str(self.eepromOffsets["bedOrientationVersion"]["offset"]) + " " in data :
 			
 				# Set invalid bed orientation
-				self.invalidBedOrientation = data[data.find("DT:") + 3 :] == '0' or self.invalidBedOrientation
+				self.invalidBedOrientation = data[data.find("DT:") + 3 :] == "0" or self.invalidBedOrientation
 				
 				# Check if not automatically collecting settings from printer
 				if not self._settings.get_boolean(["AutomaticallyObtainSettings"]) :
@@ -7914,33 +7914,33 @@ class M33FioPlugin(
 			if gcode.parseLine(line) :
 			
 				# Check if command is the first fan command
-				if self.detectedFanSpeed is None and gcode.hasValue('M') and gcode.getValue('M') == "106" :
+				if self.detectedFanSpeed is None and gcode.hasValue("M") and gcode.getValue("M") == "106" :
 				
 					# Get fan speed
-					if gcode.hasValue('S') :
-						self.detectedFanSpeed = max(int(gcode.getValue('S')), 255)
-					elif gcode.hasValue('P') :
-						self.detectedFanSpeed = max(int(gcode.getValue('P')), 255)
+					if gcode.hasValue("S") :
+						self.detectedFanSpeed = max(int(gcode.getValue("S")), 255)
+					elif gcode.hasValue("P") :
+						self.detectedFanSpeed = max(int(gcode.getValue("P")), 255)
 					else :
 						self.detectedFanSpeed = 0
 				
 				# Otherwise check if command is a mid-print filament change
-				elif not self.detectedMidPrintFilamentChange and gcode.hasValue('M') and gcode.getValue('M') == "600" :
+				elif not self.detectedMidPrintFilamentChange and gcode.hasValue("M") and gcode.getValue("M") == "600" :
 				
 					# Set mid-print filament change
 					self.detectedMidPrintFilamentChange = True
 			
 				# Otherwise check if command is a G command
-				elif gcode.hasValue('G') :
+				elif gcode.hasValue("G") :
 		
 					# Check if command is G0 or G1
-					if gcode.getValue('G') == "0" or gcode.getValue('G') == "1" :
+					if gcode.getValue("G") == "0" or gcode.getValue("G") == "1" :
 		
 						# Check if command has an X value
-						if gcode.hasValue('X') :
+						if gcode.hasValue("X") :
 			
 							# Get X value of the command
-							commandX = float(gcode.getValue('X'))
+							commandX = float(gcode.getValue("X"))
 			
 							# Set local X
 							if relativeMode :
@@ -7951,10 +7951,10 @@ class M33FioPlugin(
 								localX = commandX
 			
 						# Check if command has an Y value
-						if gcode.hasValue('Y') :
+						if gcode.hasValue("Y") :
 			
 							# Get Y value of the command
-							commandY = float(gcode.getValue('Y'))
+							commandY = float(gcode.getValue("Y"))
 			
 							# Set local Y
 							if relativeMode :
@@ -7965,10 +7965,10 @@ class M33FioPlugin(
 								localY = commandY
 		
 						# Check if command has an Z value
-						if gcode.hasValue('Z') :
+						if gcode.hasValue("Z") :
 			
 							# Get Z value of the command
-							commandZ = float(gcode.getValue('Z'))
+							commandZ = float(gcode.getValue("Z"))
 			
 							# Set local Z
 							if relativeMode :
@@ -8034,48 +8034,48 @@ class M33FioPlugin(
 							self.maxZExtruder = max(self.maxZExtruder, localZ)
 				
 					# Otherwise check if command is G28
-					elif gcode.getValue('G') == "28" :
+					elif gcode.getValue("G") == "28" :
 
 						# Set X and Y to home
 						localX = 54
 						localY = 50
 		
 					# Otherwise check if command is G90
-					elif gcode.getValue('G') == "90" :
+					elif gcode.getValue("G") == "90" :
 		
 						# Clear relative mode
 						relativeMode = False
 		
 					# Otherwise check if command is G91
-					elif gcode.getValue('G') == "91" :
+					elif gcode.getValue("G") == "91" :
 		
 						# Set relative mode
 						relativeMode = True
 					
 					# Otherwise check if command is G92
-					elif gcode.getValue('G') == "92" :
+					elif gcode.getValue("G") == "92" :
 
 						# Check if command doesn't have an X, Y, Z, and E value
-						if not gcode.hasValue('X') and not gcode.hasValue('Y') and not gcode.hasValue('Z') and not gcode.hasValue('E') :
+						if not gcode.hasValue("X") and not gcode.hasValue("Y") and not gcode.hasValue("Z") and not gcode.hasValue("E") :
 
 							# Set command values to zero
-							gcode.setValue('X', "0")
-							gcode.setValue('Y', "0")
-							gcode.setValue('Z', "0")
-							gcode.setValue('E', "0")
+							gcode.setValue("X", "0")
+							gcode.setValue("Y", "0")
+							gcode.setValue("Z", "0")
+							gcode.setValue("E", "0")
 
 						# Check if not using M3D or M3D Mod firmware
 						if self.currentFirmwareType != "M3D" and self.currentFirmwareType != "M3D Mod" :
 
 							# Set local values
-							if gcode.hasValue('X') :
-								localX = float(gcode.getValue('X'))
+							if gcode.hasValue("X") :
+								localX = float(gcode.getValue("X"))
 
-							if gcode.hasValue('Y') :
-								localY = float(gcode.getValue('Y'))
+							if gcode.hasValue("Y") :
+								localY = float(gcode.getValue("Y"))
 
-							if gcode.hasValue('Z') :
-								localZ = float(gcode.getValue('Z'))
+							if gcode.hasValue("Z") :
+								localZ = float(gcode.getValue("Z"))
 	
 		# Check if applying pre-processors, center model pre-processor is set, and not printing a test border or backlash calibration
 		if applyPreprocessors and self._settings.get_boolean(["UseCenterModelPreprocessor"]) and not self.printingTestBorder and not self.printingBacklashCalibration :
@@ -8261,24 +8261,24 @@ class M33FioPlugin(
 	def getDistance(self, firstPoint, secondPoint) :
 
 		# Get first point coordinates
-		if firstPoint.hasValue('X') :
-			firstX = float(firstPoint.getValue('X'))
+		if firstPoint.hasValue("X") :
+			firstX = float(firstPoint.getValue("X"))
 		else :
 			firstX = 0
 		
-		if firstPoint.hasValue('Y') :
-			firstY = float(firstPoint.getValue('Y'))
+		if firstPoint.hasValue("Y") :
+			firstY = float(firstPoint.getValue("Y"))
 		else :
 			firstY = 0
 		
 		# Get second point coordinates
-		if secondPoint.hasValue('X') :
-			secondX = float(secondPoint.getValue('X'))
+		if secondPoint.hasValue("X") :
+			secondX = float(secondPoint.getValue("X"))
 		else :
 			secondX = 0
 		
-		if secondPoint.hasValue('Y') :
-			secondY = float(secondPoint.getValue('Y'))
+		if secondPoint.hasValue("Y") :
+			secondY = float(secondPoint.getValue("Y"))
 		else :
 			secondY = 0
 		
@@ -8300,9 +8300,9 @@ class M33FioPlugin(
 			milliseconds = int((time - seconds) * 1000)
 		
 			# Set G-code to dwell G-code
-			gcode.setValue('G', '4')
-			gcode.setValue('S', str(seconds))
-			gcode.setValue('P', str(milliseconds))
+			gcode.setValue("G", "4")
+			gcode.setValue("S", str(seconds))
+			gcode.setValue("P", str(milliseconds))
 	
 		# Return G-code
 		return gcode
@@ -8318,8 +8318,8 @@ class M33FioPlugin(
 		if distance > 5 :
 	
 			# Set G-code to a delay command based on time
-			gcode.setValue('G', '4')
-			gcode.setValue('P', "%u" % distance)
+			gcode.setValue("G", "4")
+			gcode.setValue("P", "%u" % distance)
 	
 		# Return G-code
 		return gcode
@@ -8328,24 +8328,24 @@ class M33FioPlugin(
 	def isSharpCornerForThermalBonding(self, point, refrence, angle) :
 
 		# Get point coordinates
-		if point.hasValue('X') :
-			currentX = float(point.getValue('X'))
+		if point.hasValue("X") :
+			currentX = float(point.getValue("X"))
 		else :
 			currentX = 0
 		
-		if point.hasValue('Y') :
-			currentY = float(point.getValue('Y'))
+		if point.hasValue("Y") :
+			currentY = float(point.getValue("Y"))
 		else :
 			currentY = 0
 		
 		# Get refrence coordinates
-		if refrence.hasValue('X') :
-			previousX = float(refrence.getValue('X'))
+		if refrence.hasValue("X") :
+			previousX = float(refrence.getValue("X"))
 		else :
 			previousX = 0
 		
-		if refrence.hasValue('Y') :
-			previousY = float(refrence.getValue('Y'))
+		if refrence.hasValue("Y") :
+			previousY = float(refrence.getValue("Y"))
 		else :
 			previousY = 0
 		
@@ -8376,24 +8376,24 @@ class M33FioPlugin(
 	def isSharpCornerForWaveBonding(self, point, refrence) :
 
 		# Get point coordinates
-		if point.hasValue('X') :
-			currentX = float(point.getValue('X'))
+		if point.hasValue("X") :
+			currentX = float(point.getValue("X"))
 		else :
 			currentX = 0
 		
-		if point.hasValue('Y') :
-			currentY = float(point.getValue('Y'))
+		if point.hasValue("Y") :
+			currentY = float(point.getValue("Y"))
 		else :
 			currentY = 0
 		
 		# Get refrence coordinates
-		if refrence.hasValue('X') :
-			previousX = float(refrence.getValue('X'))
+		if refrence.hasValue("X") :
+			previousX = float(refrence.getValue("X"))
 		else :
 			previousX = 0
 		
-		if refrence.hasValue('Y') :
-			previousY = float(refrence.getValue('Y'))
+		if refrence.hasValue("Y") :
+			previousY = float(refrence.getValue("Y"))
 		else :
 			previousY = 0
 		
@@ -8638,34 +8638,34 @@ class M33FioPlugin(
 			if not gcode.isEmpty() :
 			
 				# Remove line number
-				gcode.removeParameter('N')
+				gcode.removeParameter("N")
 				
 				# Check if command is from the input file, hasn't been processed yet, and it contains a G value
-				if command.origin == "INPUT" and command.skip == "NONE" and gcode.hasValue('G') :
+				if command.origin == "INPUT" and command.skip == "NONE" and gcode.hasValue("G") :
 				
 					# Set new E
 					newE = self.currentE
 					
 					# Check if command is G0 or G1
-					if gcode.getValue('G') == "0" or gcode.getValue('G') == "1" :
+					if gcode.getValue("G") == "0" or gcode.getValue("G") == "1" :
 					
 						# Check if command changes Z
-						if gcode.hasValue('Z') :
+						if gcode.hasValue("Z") :
 			
 							# Set current Z
 							if self.layerDetectionRelativeMode :
-								self.currentZ += float(gcode.getValue('Z'))
+								self.currentZ += float(gcode.getValue("Z"))
 							else :
-								self.currentZ = float(gcode.getValue('Z'))
+								self.currentZ = float(gcode.getValue("Z"))
 						
 						# Check if command contains an E value
-						if gcode.hasValue('E') :
+						if gcode.hasValue("E") :
 				
 							# Set new E
 							if self.layerDetectionRelativeMode :
-								newE += float(gcode.getValue('E'))
+								newE += float(gcode.getValue("E"))
 							else :
-								newE = float(gcode.getValue('E'))
+								newE = float(gcode.getValue("E"))
 						
 						# Check if first time layer extrudes filament
 						if newE > self.currentE and self.currentZ not in self.printedLayers :
@@ -8677,40 +8677,40 @@ class M33FioPlugin(
 							self.onNewPrintedLayer = True
 			
 					# Otherwise check if command is G90
-					elif gcode.getValue('G') == "90" :
+					elif gcode.getValue("G") == "90" :
 				
 						# Clear relative mode
 						self.layerDetectionRelativeMode = False
 				
 					# Otherwise check if command is G91
-					elif gcode.getValue('G') == "91" :
+					elif gcode.getValue("G") == "91" :
 				
 						# Set relative mode
 						self.layerDetectionRelativeMode = True
 				
 					# Otherwise check if command is G92
-					elif gcode.getValue('G') == "92" :
+					elif gcode.getValue("G") == "92" :
 					
 						# Check if command doesn't have an X, Y, Z, and E value
-						if not gcode.hasValue('X') and not gcode.hasValue('Y') and not gcode.hasValue('Z') and not gcode.hasValue('E') :
+						if not gcode.hasValue("X") and not gcode.hasValue("Y") and not gcode.hasValue("Z") and not gcode.hasValue("E") :
 
 							# Set command values to zero
-							gcode.setValue('X', "0")
-							gcode.setValue('Y', "0")
-							gcode.setValue('Z', "0")
-							gcode.setValue('E', "0")
+							gcode.setValue("X", "0")
+							gcode.setValue("Y", "0")
+							gcode.setValue("Z", "0")
+							gcode.setValue("E", "0")
 						
 						# Check if a Z value is provided
-						if gcode.hasValue('Z') :
+						if gcode.hasValue("Z") :
 						
 							# Set current Z
-							self.currentZ = float(gcode.getValue('Z'))
+							self.currentZ = float(gcode.getValue("Z"))
 			
 						# Check if an E value is provided
-						if gcode.hasValue('E') :
+						if gcode.hasValue("E") :
 						
 							# Set new E to value
-							newE = float(gcode.getValue('E'))
+							newE = float(gcode.getValue("E"))
 					
 					# Set current E
 					self.currentE = newE
@@ -8759,19 +8759,19 @@ class M33FioPlugin(
 				if not gcode.isEmpty() :
 
 					# Check if command is G0 or G1
-					if gcode.hasValue('G') and (gcode.getValue('G') == "0" or gcode.getValue('G') == "1") :
+					if gcode.hasValue("G") and (gcode.getValue("G") == "0" or gcode.getValue("G") == "1") :
 
 						# Check if line contains an X value
-						if gcode.hasValue('X') :
+						if gcode.hasValue("X") :
 
 							# Adjust X value
-							gcode.setValue('X', "%f" % (float(gcode.getValue('X')) + self.displacementX))
+							gcode.setValue("X", "%f" % (float(gcode.getValue("X")) + self.displacementX))
 
 						# Check if line contains a Y value
-						if gcode.hasValue('Y') :
+						if gcode.hasValue("Y") :
 
 							# Adjust Y value
-							gcode.setValue('Y', "%f" % (float(gcode.getValue('Y')) + self.displacementY))
+							gcode.setValue("Y", "%f" % (float(gcode.getValue("Y")) + self.displacementY))
 
 			# Check if printing test border or backlash calibration or using validation pre-processor
 			if (self.printingTestBorder or self.printingBacklashCalibration or self._settings.get_boolean(["UseValidationPreprocessor"])) and "VALIDATION" not in command.skip :
@@ -8783,35 +8783,35 @@ class M33FioPlugin(
 				if not gcode.isEmpty() :
 
 					# Check if extruder absolute mode, extruder relative mode, stop idle hold, request coordinates, or using M3D or M3D Mod firmware and request temperature command
-					if gcode.hasValue('M') and (gcode.getValue('M') == "82" or gcode.getValue('M') == "83" or gcode.getValue('M') == "84" or gcode.getValue('M') == "117" or ((self.currentFirmwareType == "M3D" or self.currentFirmwareType == "M3D Mod") and gcode.getValue('M') == "105")) :
+					if gcode.hasValue("M") and (gcode.getValue("M") == "82" or gcode.getValue("M") == "83" or gcode.getValue("M") == "84" or gcode.getValue("M") == "117" or ((self.currentFirmwareType == "M3D" or self.currentFirmwareType == "M3D Mod") and gcode.getValue("M") == "105")) :
 
 						# Get next line
 						continue
 
 					# Check if unit to millimeters or home command
-					if gcode.hasValue('G') and (gcode.getValue('G') == "21" or gcode.getValue('G') == "28") :
+					if gcode.hasValue("G") and (gcode.getValue("G") == "21" or gcode.getValue("G") == "28") :
 
 						# Get next line
 						continue
 
 					# Check if command contains tool selection
-					if gcode.hasParameter('T') :
+					if gcode.hasParameter("T") :
 
 						# Remove tool selection
-						gcode.removeParameter('T')
+						gcode.removeParameter("T")
 
 						# Get next line if empty
 						if gcode.isEmpty() :
 							continue
 					
 					# Check if command is a fan command and set to remove fan commands
-					if self._settings.get_boolean(["RemoveFanCommands"]) and gcode.hasValue('M') and (gcode.getValue('M') == "106" or gcode.getValue('M') == "107") :
+					if self._settings.get_boolean(["RemoveFanCommands"]) and gcode.hasValue("M") and (gcode.getValue("M") == "106" or gcode.getValue("M") == "107") :
 
 						# Get next line
 						continue
 					
 					# Check if command is a temperature command and set to remove temperature commands
-					if self._settings.get_boolean(["RemoveTemperatureCommands"]) and gcode.hasValue('M') and (gcode.getValue('M') == "104" or gcode.getValue('M') == "109" or gcode.getValue('M') == "140" or gcode.getValue('M') == "190") :
+					if self._settings.get_boolean(["RemoveTemperatureCommands"]) and gcode.hasValue("M") and (gcode.getValue("M") == "104" or gcode.getValue("M") == "109" or gcode.getValue("M") == "140" or gcode.getValue("M") == "190") :
 
 						# Get next line
 						continue
@@ -9080,35 +9080,35 @@ class M33FioPlugin(
 					if not gcode.isEmpty() :
 				
 						# Check if command is a G command
-						if gcode.hasValue('G') :
+						if gcode.hasValue("G") :
 
 							# Check if command is G0 or G1 and it's in absolute mode
-							if (gcode.getValue('G') == "0" or gcode.getValue('G') == "1") and not self.waveBondingRelativeMode :
+							if (gcode.getValue("G") == "0" or gcode.getValue("G") == "1") and not self.waveBondingRelativeMode :
 
 								# Check if line contains an X or Y value
-								if gcode.hasValue('X') or gcode.hasValue('Y') :
+								if gcode.hasValue("X") or gcode.hasValue("Y") :
 
 									# Set changes plane
 									self.waveBondingChangesPlane = True
 
 								# Set delta values
-								if gcode.hasValue('X') :
-									deltaX = float(gcode.getValue('X')) - self.waveBondingPositionRelativeX
+								if gcode.hasValue("X") :
+									deltaX = float(gcode.getValue("X")) - self.waveBondingPositionRelativeX
 								else :
 									deltaX = 0
 
-								if gcode.hasValue('Y') :
-									deltaY = float(gcode.getValue('Y')) - self.waveBondingPositionRelativeY
+								if gcode.hasValue("Y") :
+									deltaY = float(gcode.getValue("Y")) - self.waveBondingPositionRelativeY
 								else :
 									deltaY = 0
 
-								if gcode.hasValue('Z') :
-									deltaZ = float(gcode.getValue('Z')) - self.waveBondingPositionRelativeZ
+								if gcode.hasValue("Z") :
+									deltaZ = float(gcode.getValue("Z")) - self.waveBondingPositionRelativeZ
 								else :
 									deltaZ = 0
 	
-								if gcode.hasValue('E') :
-									deltaE = float(gcode.getValue('E')) - self.waveBondingPositionRelativeE
+								if gcode.hasValue("E") :
+									deltaE = float(gcode.getValue("E")) - self.waveBondingPositionRelativeE
 								else :
 									deltaE = 0
 
@@ -9145,7 +9145,7 @@ class M33FioPlugin(
 									deltaRatioZ = 0
 									deltaRatioE = 0
 
-								# Check if delta E is greater than zero 
+								# Check if delta E is greater than zero
 								if deltaE > 0 :
 
 									# Check if at a sharp corner
@@ -9188,34 +9188,34 @@ class M33FioPlugin(
 	
 											# Set extra G-code G value
 											self.waveBondingExtraGcode.clear()
-											self.waveBondingExtraGcode.setValue('G', gcode.getValue('G'))
+											self.waveBondingExtraGcode.setValue("G", gcode.getValue("G"))
 		
 											# Set extra G-code X value
-											if gcode.hasValue('X') :
-												self.waveBondingExtraGcode.setValue('X', "%f" % (self.waveBondingPositionRelativeX - deltaX + tempRelativeX - relativeDifferenceX))
+											if gcode.hasValue("X") :
+												self.waveBondingExtraGcode.setValue("X", "%f" % (self.waveBondingPositionRelativeX - deltaX + tempRelativeX - relativeDifferenceX))
 		
 											# Set extra G-cdoe Y value
-											if gcode.hasValue('Y') :
-												self.waveBondingExtraGcode.setValue('Y', "%f" % (self.waveBondingPositionRelativeY - deltaY + tempRelativeY - relativeDifferenceY))
+											if gcode.hasValue("Y") :
+												self.waveBondingExtraGcode.setValue("Y", "%f" % (self.waveBondingPositionRelativeY - deltaY + tempRelativeY - relativeDifferenceY))
 		
 											# Set extra G-code F value if first element
-											if gcode.hasValue('F') and index == 1 :
-												self.waveBondingExtraGcode.setValue('F', gcode.getValue('F'))
+											if gcode.hasValue("F") and index == 1 :
+												self.waveBondingExtraGcode.setValue("F", gcode.getValue("F"))
 		
 											# Check if plane changed
 											if self.waveBondingChangesPlane :
 		
 												# Set extra G-code Z value
-												self.waveBondingExtraGcode.setValue('Z', "%f" % (self.waveBondingPositionRelativeZ - deltaZ + tempRelativeZ - relativeDifferenceZ + self.getCurrentAdjustmentZ()))
+												self.waveBondingExtraGcode.setValue("Z", "%f" % (self.waveBondingPositionRelativeZ - deltaZ + tempRelativeZ - relativeDifferenceZ + self.getCurrentAdjustmentZ()))
 		
 											# Otherwise check if command has a Z value and changes in Z are noticable
-											elif gcode.hasValue('Z') and deltaZ != sys.float_info.epsilon :
+											elif gcode.hasValue("Z") and deltaZ != sys.float_info.epsilon :
 		
 												# Set extra G-code Z value
-												self.waveBondingExtraGcode.setValue('Z', "%f" % (self.waveBondingPositionRelativeZ - deltaZ + tempRelativeZ - relativeDifferenceZ))
+												self.waveBondingExtraGcode.setValue("Z", "%f" % (self.waveBondingPositionRelativeZ - deltaZ + tempRelativeZ - relativeDifferenceZ))
 			
 											# Set extra G-code E value
-											self.waveBondingExtraGcode.setValue('E', "%f" % (self.waveBondingPositionRelativeE - deltaE + tempRelativeE - relativeDifferenceE))
+											self.waveBondingExtraGcode.setValue("E", "%f" % (self.waveBondingPositionRelativeE - deltaE + tempRelativeE - relativeDifferenceE))
 								
 											# Add extra G-code to output
 											newCommands.append(Command(self.waveBondingExtraGcode.getAscii(), "WAVE", "MID-PRINT CENTER VALIDATION PREPARATION WAVE"))
@@ -9224,16 +9224,16 @@ class M33FioPlugin(
 										elif self.waveBondingChangesPlane :
 	
 											# Check if command has a Z value
-											if gcode.hasValue('Z') :
+											if gcode.hasValue("Z") :
 		
 												# Add to command's Z value
-												gcode.setValue('Z', "%f" % (float(gcode.getValue('Z')) + self.getCurrentAdjustmentZ()))
+												gcode.setValue("Z", "%f" % (float(gcode.getValue("Z")) + self.getCurrentAdjustmentZ()))
 		
 											# Otherwise
 											else :
 		
 												# Set command's Z value
-												gcode.setValue('Z', "%f" % (relativeDifferenceZ + deltaZ + self.getCurrentAdjustmentZ()))
+												gcode.setValue("Z", "%f" % (relativeDifferenceZ + deltaZ + self.getCurrentAdjustmentZ()))
 		
 										# Increment index
 										index += 1
@@ -9246,52 +9246,52 @@ class M33FioPlugin(
 									self.waveBondingRefrenceGcode = copy.deepcopy(gcode)
 						
 							# Otherwise check if command is G28
-							elif gcode.getValue('G') == "28" :
+							elif gcode.getValue("G") == "28" :
 
 								# Set X and Y to home
 								self.waveBondingPositionRelativeX = 54
 								self.waveBondingPositionRelativeY = 50
 
 							# Otherwise check if command is G90
-							elif gcode.getValue('G') == "90" :
+							elif gcode.getValue("G") == "90" :
 
 								# Clear relative mode
 								self.waveBondingRelativeMode = False
 
 							# Otherwise check if command is G91
-							elif gcode.getValue('G') == "91" :
+							elif gcode.getValue("G") == "91" :
 
 								# Set relative mode
 								self.waveBondingRelativeMode = True
 
 							# Otherwise check if command is G92
-							elif gcode.getValue('G') == "92" :
+							elif gcode.getValue("G") == "92" :
 
 								# Check if command doesn't have an X, Y, Z, and E value
-								if not gcode.hasValue('X') and not gcode.hasValue('Y') and not gcode.hasValue('Z') and not gcode.hasValue('E') :
+								if not gcode.hasValue("X") and not gcode.hasValue("Y") and not gcode.hasValue("Z") and not gcode.hasValue("E") :
 
 									# Set command values to zero
-									gcode.setValue('X', "0")
-									gcode.setValue('Y', "0")
-									gcode.setValue('Z', "0")
-									gcode.setValue('E', "0")
+									gcode.setValue("X", "0")
+									gcode.setValue("Y", "0")
+									gcode.setValue("Z", "0")
+									gcode.setValue("E", "0")
 
 								# Check if not using M3D or M3D Mod firmware
 								if self.currentFirmwareType != "M3D" and self.currentFirmwareType != "M3D Mod" :
 
 									# Set relative positions
-									if gcode.hasValue('X') :
-										self.waveBondingPositionRelativeX = float(gcode.getValue('X'))
+									if gcode.hasValue("X") :
+										self.waveBondingPositionRelativeX = float(gcode.getValue("X"))
 	
-									if gcode.hasValue('Y') :
-										self.waveBondingPositionRelativeY = float(gcode.getValue('Y'))
+									if gcode.hasValue("Y") :
+										self.waveBondingPositionRelativeY = float(gcode.getValue("Y"))
 	
-									if gcode.hasValue('Z') :
-										self.waveBondingPositionRelativeZ = float(gcode.getValue('Z'))
+									if gcode.hasValue("Z") :
+										self.waveBondingPositionRelativeZ = float(gcode.getValue("Z"))
 								
 								# Set relative positions
-								if gcode.hasValue('E') :
-									self.waveBondingPositionRelativeE = float(gcode.getValue('E'))
+								if gcode.hasValue("E") :
+									self.waveBondingPositionRelativeE = float(gcode.getValue("E"))
 				
 				# Check if new commands exist
 				if len(newCommands) :
@@ -9346,10 +9346,10 @@ class M33FioPlugin(
 					if not gcode.isEmpty() :
 					
 						# Check if printing test border or wave bonding isn't being used, and command is a G command
-						if (self.printingTestBorder or not self._settings.get_boolean(["UseWaveBondingPreprocessor"])) and gcode.hasValue('G') :
+						if (self.printingTestBorder or not self._settings.get_boolean(["UseWaveBondingPreprocessor"])) and gcode.hasValue("G") :
 
 							# Check if command is G0 or G1 and it's in absolute
-							if (gcode.getValue('G') == "0" or gcode.getValue('G') == "1") and not self.thermalBondingRelativeMode :
+							if (gcode.getValue("G") == "0" or gcode.getValue("G") == "1") and not self.thermalBondingRelativeMode :
 							
 								# Check if tack points can be created
 								if self.tackPointAngle != 0 and self.tackPointTime >= 0.001 :
@@ -9375,13 +9375,13 @@ class M33FioPlugin(
 										self.thermalBondingRefrenceGcode = copy.deepcopy(gcode)
 
 							# Otherwise check if command is G90
-							elif gcode.getValue('G') == "90" :
+							elif gcode.getValue("G") == "90" :
 
 								# Clear relative mode
 								self.thermalBondingRelativeMode = False
 
 							# Otherwise check if command is G91
-							elif gcode.getValue('G') == "91" :
+							elif gcode.getValue("G") == "91" :
 
 								# Set relative mode
 								self.thermalBondingRelativeMode = True
@@ -9415,41 +9415,41 @@ class M33FioPlugin(
 				if not gcode.isEmpty() :
 
 					# Check if command is a G command
-					if gcode.hasValue('G') :
+					if gcode.hasValue("G") :
 
 						# Check if command is G0 or G1 and it's in absolute mode
-						if (gcode.getValue('G') == "0" or gcode.getValue('G') == "1") and not self.bedCompensationRelativeMode :
+						if (gcode.getValue("G") == "0" or gcode.getValue("G") == "1") and not self.bedCompensationRelativeMode :
 
 							# Check if command has an X or Y value
-							if gcode.hasValue('X') or gcode.hasValue('Y') :
+							if gcode.hasValue("X") or gcode.hasValue("Y") :
 
 								# Set changes plane
 								self.bedCompensationChangesPlane = True
 
 							# Check if command contains a Z value
-							if gcode.hasValue('Z') :
+							if gcode.hasValue("Z") :
 
 								# Add to command's Z value
-								gcode.setValue('Z', "%f" % (float(gcode.getValue('Z')) + self._settings.get_float(["BedHeightOffset"])))
+								gcode.setValue("Z", "%f" % (float(gcode.getValue("Z")) + self._settings.get_float(["BedHeightOffset"])))
 	
 							# Set delta values
-							if gcode.hasValue('X') :
-								deltaX = float(gcode.getValue('X')) - self.bedCompensationPositionRelativeX
+							if gcode.hasValue("X") :
+								deltaX = float(gcode.getValue("X")) - self.bedCompensationPositionRelativeX
 							else :
 								deltaX = 0
 	
-							if gcode.hasValue('Y') :
-								deltaY = float(gcode.getValue('Y')) - self.bedCompensationPositionRelativeY
+							if gcode.hasValue("Y") :
+								deltaY = float(gcode.getValue("Y")) - self.bedCompensationPositionRelativeY
 							else :
 								deltaY = 0
 	
-							if gcode.hasValue('Z') :
-								deltaZ = float(gcode.getValue('Z')) - self.bedCompensationPositionRelativeZ
+							if gcode.hasValue("Z") :
+								deltaZ = float(gcode.getValue("Z")) - self.bedCompensationPositionRelativeZ
 							else :
 								deltaZ = 0
 		
-							if gcode.hasValue('E') :
-								deltaE = float(gcode.getValue('E')) - self.bedCompensationPositionRelativeE
+							if gcode.hasValue("E") :
+								deltaE = float(gcode.getValue("E")) - self.bedCompensationPositionRelativeE
 							else :
 								deltaE = 0
 	
@@ -9527,40 +9527,40 @@ class M33FioPlugin(
 	
 										# Set extra G-code
 										self.bedCompensationExtraGcode.clear()
-										self.bedCompensationExtraGcode.setValue('G', gcode.getValue('G'))
+										self.bedCompensationExtraGcode.setValue("G", gcode.getValue("G"))
 		
 										# Check if command has an X value
-										if gcode.hasValue('X') :
+										if gcode.hasValue("X") :
 		
 											# Set extra G-code X value
-											self.bedCompensationExtraGcode.setValue('X', "%f" % (self.bedCompensationPositionRelativeX - deltaX + tempRelativeX - relativeDifferenceX))
+											self.bedCompensationExtraGcode.setValue("X", "%f" % (self.bedCompensationPositionRelativeX - deltaX + tempRelativeX - relativeDifferenceX))
 			
 										# Check if command has a Y value
-										if gcode.hasValue('Y') :
+										if gcode.hasValue("Y") :
 		
 											# Set extra G-code Y value
-											self.bedCompensationExtraGcode.setValue('Y', "%f" % (self.bedCompensationPositionRelativeY - deltaY + tempRelativeY - relativeDifferenceY))
+											self.bedCompensationExtraGcode.setValue("Y", "%f" % (self.bedCompensationPositionRelativeY - deltaY + tempRelativeY - relativeDifferenceY))
 		
 										# Check if command has F value and in first element
-										if gcode.hasValue('F') and index == 1 :
+										if gcode.hasValue("F") and index == 1 :
 		
 											# Set extra G-code F value
-											self.bedCompensationExtraGcode.setValue('F', gcode.getValue('F'))
+											self.bedCompensationExtraGcode.setValue("F", gcode.getValue("F"))
 		
 										# Check if the plane changed
 										if self.bedCompensationChangesPlane :
 		
 											# Set extra G-code Z value
-											self.bedCompensationExtraGcode.setValue('Z', "%f" % (self.bedCompensationPositionRelativeZ - deltaZ + tempRelativeZ - relativeDifferenceZ + heightAdjustment))
+											self.bedCompensationExtraGcode.setValue("Z", "%f" % (self.bedCompensationPositionRelativeZ - deltaZ + tempRelativeZ - relativeDifferenceZ + heightAdjustment))
 		
 										# Otherwise check if command has a Z value and the change in Z in noticable
-										elif gcode.hasValue('Z') and deltaZ != sys.float_info.epsilon :
+										elif gcode.hasValue("Z") and deltaZ != sys.float_info.epsilon :
 		
 											# Set extra G-code Z value
-											self.bedCompensationExtraGcode.setValue('Z', "%f" % (self.bedCompensationPositionRelativeZ - deltaZ + tempRelativeZ - relativeDifferenceZ))
+											self.bedCompensationExtraGcode.setValue("Z", "%f" % (self.bedCompensationPositionRelativeZ - deltaZ + tempRelativeZ - relativeDifferenceZ))
 		
 										# Set extra G-gode E value
-										self.bedCompensationExtraGcode.setValue('E', "%f" % (self.bedCompensationPositionRelativeE - deltaE + tempRelativeE - relativeDifferenceE))
+										self.bedCompensationExtraGcode.setValue("E", "%f" % (self.bedCompensationPositionRelativeE - deltaE + tempRelativeE - relativeDifferenceE))
 								
 										# Add extra G-code to output
 										newCommands.append(Command(self.bedCompensationExtraGcode.getAscii(), "BED", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL BED"))
@@ -9569,16 +9569,16 @@ class M33FioPlugin(
 									elif self.bedCompensationChangesPlane :
 		
 										# Check if command has a Z value
-										if gcode.hasValue('Z') :
+										if gcode.hasValue("Z") :
 		
 											# Add value to command Z value
-											gcode.setValue('Z', "%f" % (float(gcode.getValue('Z')) + heightAdjustment))
+											gcode.setValue("Z", "%f" % (float(gcode.getValue("Z")) + heightAdjustment))
 		
 										# Otherwise
 										else :
 		
 											# Set command Z value
-											gcode.setValue('Z', "%f" % (relativeDifferenceZ + deltaZ + heightAdjustment))
+											gcode.setValue("Z", "%f" % (relativeDifferenceZ + deltaZ + heightAdjustment))
 			
 									# Increment index
 									index += 1
@@ -9590,64 +9590,64 @@ class M33FioPlugin(
 								heightAdjustment = self.getHeightAdjustmentRequired(self.bedCompensationPositionAbsoluteX, self.bedCompensationPositionAbsoluteY)
 
 								# Check if command has a Z value
-								if gcode.hasValue('Z') :
+								if gcode.hasValue("Z") :
 
 									# Add value to command Z
-									gcode.setValue('Z', "%f" % (float(gcode.getValue('Z')) + heightAdjustment))
+									gcode.setValue("Z", "%f" % (float(gcode.getValue("Z")) + heightAdjustment))
 
 								# Otherwise
 								else :
 
 									# Set command Z
-									gcode.setValue('Z', "%f" % (self.bedCompensationPositionRelativeZ + heightAdjustment))
+									gcode.setValue("Z", "%f" % (self.bedCompensationPositionRelativeZ + heightAdjustment))
 
 						# Otherwise check if command is G28
-						elif gcode.getValue('G') == "28" :
+						elif gcode.getValue("G") == "28" :
 
 							# Set X and Y to home
 							self.bedCompensationPositionRelativeX = self.bedCompensationPositionAbsoluteX = 54
 							self.bedCompensationPositionRelativeY = self.bedCompensationPositionAbsoluteY = 50
 
 						# Otherwise check if command is G90
-						elif gcode.getValue('G') == "90" :
+						elif gcode.getValue("G") == "90" :
 
 							# Clear relative mode
 							self.bedCompensationRelativeMode = False
 
 						# Otherwise check if command is G91
-						elif gcode.getValue('G') == "91" :
+						elif gcode.getValue("G") == "91" :
 
 							# Set relative mode
 							self.bedCompensationRelativeMode = True
 
 						# Otherwise check if command is G92
-						elif gcode.getValue('G') == "92" :
+						elif gcode.getValue("G") == "92" :
 
 							# Check if command doesn't have an X, Y, Z, and E value
-							if not gcode.hasValue('X') and not gcode.hasValue('Y') and not gcode.hasValue('Z') and not gcode.hasValue('E') :
+							if not gcode.hasValue("X") and not gcode.hasValue("Y") and not gcode.hasValue("Z") and not gcode.hasValue("E") :
 
 								# Set command values to zero
-								gcode.setValue('X', "0")
-								gcode.setValue('Y', "0")
-								gcode.setValue('Z', "0")
-								gcode.setValue('E', "0")
+								gcode.setValue("X", "0")
+								gcode.setValue("Y", "0")
+								gcode.setValue("Z", "0")
+								gcode.setValue("E", "0")
 
 							# Check if not using M3D or M3D Mod firmware
 							if self.currentFirmwareType != "M3D" and self.currentFirmwareType != "M3D Mod" :
 
 								# Set relative and absolute positions
-								if gcode.hasValue('X') :
-									self.bedCompensationPositionRelativeX = self.bedCompensationPositionAbsoluteX = float(gcode.getValue('X'))
+								if gcode.hasValue("X") :
+									self.bedCompensationPositionRelativeX = self.bedCompensationPositionAbsoluteX = float(gcode.getValue("X"))
 		
-								if gcode.hasValue('Y') :
-									self.bedCompensationPositionRelativeY = self.bedCompensationPositionAbsoluteY = float(gcode.getValue('Y'))
+								if gcode.hasValue("Y") :
+									self.bedCompensationPositionRelativeY = self.bedCompensationPositionAbsoluteY = float(gcode.getValue("Y"))
 		
-								if gcode.hasValue('Z') :
-									self.bedCompensationPositionRelativeZ = float(gcode.getValue('Z'))
+								if gcode.hasValue("Z") :
+									self.bedCompensationPositionRelativeZ = float(gcode.getValue("Z"))
 							
 							# Set relative and absolute positions
-							if gcode.hasValue('E') :
-								self.bedCompensationPositionRelativeE = float(gcode.getValue('E'))
+							if gcode.hasValue("E") :
+								self.bedCompensationPositionRelativeE = float(gcode.getValue("E"))
 				
 				# Check if new commands exist
 				if len(newCommands) :
@@ -9678,35 +9678,35 @@ class M33FioPlugin(
 				if not gcode.isEmpty() :
 
 					# Check if command is a G command
-					if gcode.hasValue('G') :
+					if gcode.hasValue("G") :
 
 						# Check if command is G0 or G1 and it's in absolute mode
-						if (gcode.getValue('G') == "0" or gcode.getValue('G') == "1") and not self.backlashCompensationRelativeMode :
+						if (gcode.getValue("G") == "0" or gcode.getValue("G") == "1") and not self.backlashCompensationRelativeMode :
 	
 							# Check if command has an F value
-							if gcode.hasValue('F') :
+							if gcode.hasValue("F") :
 
 								# Set value F
-								self.valueF = gcode.getValue('F')
+								self.valueF = gcode.getValue("F")
 	
 							# Set delta values
-							if gcode.hasValue('X') :
-								deltaX = float(gcode.getValue('X')) - self.backlashPositionRelativeX
+							if gcode.hasValue("X") :
+								deltaX = float(gcode.getValue("X")) - self.backlashPositionRelativeX
 							else :
 								deltaX = 0
 		
-							if gcode.hasValue('Y') :
-								deltaY = float(gcode.getValue('Y')) - self.backlashPositionRelativeY
+							if gcode.hasValue("Y") :
+								deltaY = float(gcode.getValue("Y")) - self.backlashPositionRelativeY
 							else :
 								deltaY = 0
 		
-							if gcode.hasValue('Z') :
-								deltaZ = float(gcode.getValue('Z')) - self.backlashPositionRelativeZ
+							if gcode.hasValue("Z") :
+								deltaZ = float(gcode.getValue("Z")) - self.backlashPositionRelativeZ
 							else :
 								deltaZ = 0
 			
-							if gcode.hasValue('E') :
-								deltaE = float(gcode.getValue('E')) - self.backlashPositionRelativeE
+							if gcode.hasValue("E") :
+								deltaE = float(gcode.getValue("E")) - self.backlashPositionRelativeE
 							else :
 								deltaE = 0
 	
@@ -9730,7 +9730,7 @@ class M33FioPlugin(
 	
 								# Set extra G-code G value
 								self.backlashCompensationExtraGcode.clear()
-								self.backlashCompensationExtraGcode.setValue('G', gcode.getValue('G'))
+								self.backlashCompensationExtraGcode.setValue("G", gcode.getValue("G"))
 		
 								# Check if X direction has changed
 								if directionX != self.previousDirectionX and self.previousDirectionX != "Neither" :
@@ -9751,29 +9751,29 @@ class M33FioPlugin(
 										self.compensationY -= self._settings.get_float(["BacklashY"])
 			
 								# Set extra G-code X and Y values
-								self.backlashCompensationExtraGcode.setValue('X', "%f" % (self.backlashPositionRelativeX + self.compensationX))
-								self.backlashCompensationExtraGcode.setValue('Y', "%f" % (self.backlashPositionRelativeY + self.compensationY))
+								self.backlashCompensationExtraGcode.setValue("X", "%f" % (self.backlashPositionRelativeX + self.compensationX))
+								self.backlashCompensationExtraGcode.setValue("Y", "%f" % (self.backlashPositionRelativeY + self.compensationY))
 			
 								# Set extra G-code F value
-								self.backlashCompensationExtraGcode.setValue('F', "%f" % (self._settings.get_float(["BacklashSpeed"])))
+								self.backlashCompensationExtraGcode.setValue("F", "%f" % (self._settings.get_float(["BacklashSpeed"])))
 						
 								# Add extra G-code to output
 								newCommands.append(Command(self.backlashCompensationExtraGcode.getAscii(), "BACKLASH", "MID-PRINT CENTER VALIDATION PREPARATION WAVE THERMAL BED BACKLASH"))
 						
 								# Set command's F value
-								gcode.setValue('F', self.valueF)
+								gcode.setValue("F", self.valueF)
 		
 							# Check if command has an X value
-							if gcode.hasValue('X') :
+							if gcode.hasValue("X") :
 		
 								# Add to command's X value
-								gcode.setValue('X', "%f" % (float(gcode.getValue('X')) + self.compensationX))
+								gcode.setValue("X", "%f" % (float(gcode.getValue("X")) + self.compensationX))
 		
 							# Check if command has a Y value
-							if gcode.hasValue('Y') :
+							if gcode.hasValue("Y") :
 
 								# Add to command's Y value
-								gcode.setValue('Y', "%f" % (float(gcode.getValue('Y')) + self.compensationY))
+								gcode.setValue("Y", "%f" % (float(gcode.getValue("Y")) + self.compensationY))
 
 							# Set relative values
 							self.backlashPositionRelativeX += deltaX
@@ -9786,7 +9786,7 @@ class M33FioPlugin(
 							self.previousDirectionY = directionY
 	
 						# Otherwise check if command is G28
-						elif gcode.getValue('G') == "28" :
+						elif gcode.getValue("G") == "28" :
 	
 							# Set relative values
 							self.backlashPositionRelativeX = 54
@@ -9799,45 +9799,45 @@ class M33FioPlugin(
 							self.compensationY = 0
 	
 						# Otherwise check if command is G90
-						elif gcode.getValue('G') == "90" :
+						elif gcode.getValue("G") == "90" :
 	
 							# Clear relative mode
 							self.backlashCompensationRelativeMode = False
 	
 						# Otherwise check if command is G91
-						elif gcode.getValue('G') == "91" :
+						elif gcode.getValue("G") == "91" :
 	
 							# Set relative mode
 							self.backlashCompensationRelativeMode = True
 	
 						# Otherwise check if command is G92
-						elif gcode.getValue('G') == "92" :
+						elif gcode.getValue("G") == "92" :
 	
 							# Check if command doesn't have an X, Y, Z, and E value
-							if not gcode.hasValue('X') and not gcode.hasValue('Y') and not gcode.hasValue('Z') and not gcode.hasValue('E') :
+							if not gcode.hasValue("X") and not gcode.hasValue("Y") and not gcode.hasValue("Z") and not gcode.hasValue("E") :
 
 								# Set command values to zero
-								gcode.setValue('X', "0")
-								gcode.setValue('Y', "0")
-								gcode.setValue('Z', "0")
-								gcode.setValue('E', "0")
+								gcode.setValue("X", "0")
+								gcode.setValue("Y", "0")
+								gcode.setValue("Z", "0")
+								gcode.setValue("E", "0")
 
 							# Check if not using M3D or M3D Mod firmware
 							if self.currentFirmwareType != "M3D" and self.currentFirmwareType != "M3D Mod" :
 
 								# Set relative positions
-								if gcode.hasValue('X') :
-									self.backlashPositionRelativeX = float(gcode.getValue('X'))
+								if gcode.hasValue("X") :
+									self.backlashPositionRelativeX = float(gcode.getValue("X"))
 			
-								if gcode.hasValue('Y') :
-									self.backlashPositionRelativeY = float(gcode.getValue('Y'))
+								if gcode.hasValue("Y") :
+									self.backlashPositionRelativeY = float(gcode.getValue("Y"))
 			
-								if gcode.hasValue('Z') :
-									self.backlashPositionRelativeZ = float(gcode.getValue('Z'))
+								if gcode.hasValue("Z") :
+									self.backlashPositionRelativeZ = float(gcode.getValue("Z"))
 							
 							# Set relative positions
-							if gcode.hasValue('E') :
-								self.backlashPositionRelativeE = float(gcode.getValue('E'))
+							if gcode.hasValue("E") :
+								self.backlashPositionRelativeE = float(gcode.getValue("E"))
 				
 				# Check if new commands exist
 				if len(newCommands) :
@@ -9859,31 +9859,31 @@ class M33FioPlugin(
 			if not gcode.isEmpty() :
 			
 				# Check if command is a G0 or G1 command
-				if gcode.hasValue('G') and (gcode.getValue('G') == "0" or gcode.getValue('G') == "1") :
+				if gcode.hasValue("G") and (gcode.getValue("G") == "0" or gcode.getValue("G") == "1") :
 				
 					# Check if command contains an F value
-					if gcode.hasValue('F') :
+					if gcode.hasValue("F") :
 					
 						# Set current F
-						self.currentF = gcode.getValue('F')
+						self.currentF = gcode.getValue("F")
 					
 					# Otherwise check if current F is set
 					elif self.currentF is not None :
 					
 						# Set command's F value to current F
-						gcode.setValue('F', self.currentF)
+						gcode.setValue("F", self.currentF)
 				
 				# Check if outputting to a file
 				if output is not None :
 				
 					# Send ascii representation of the command to output
-					output.write(gcode.getAscii() + '\n')
+					output.write(gcode.getAscii() + "\n")
 				
 				# Otherwise
 				else :
 				
 					# Append ascii representation of the command to list
-					value += [gcode.getAscii() + '*']
+					value += [gcode.getAscii() + "*"]
 			
 			# Clear on new printed layer
 			self.onNewPrintedLayer = False
@@ -9935,9 +9935,9 @@ class M33FioPlugin(
 			if modelModified :
 			
 				if flask.request.values["Model Location"] == "local" :
-					modelLocation = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, flask.request.values["Model Path"] + flask.request.values["Model Name"]).replace('\\', '/')
+					modelLocation = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, flask.request.values["Model Path"] + flask.request.values["Model Name"]).replace("\\", "/")
 				elif flask.request.values["Model Location"] == "sdcard" :
-					modelLocation = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.SDCARD, flask.request.values["Model Path"] + flask.request.values["Model Name"]).replace('\\', '/')
+					modelLocation = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.SDCARD, flask.request.values["Model Path"] + flask.request.values["Model Name"]).replace("\\", "/")
 		
 			# Check if slicer profile, model, or printer profile doesn't exist
 			if not os.path.isfile(profileLocation) or (modelModified and not os.path.isfile(modelLocation)) or not self._printer_profile_manager.exists(flask.request.values["Printer Profile Name"]) :
@@ -9966,9 +9966,9 @@ class M33FioPlugin(
 			output.close()
 			
 			if flask.request.values["Slicer Name"] == "cura" :
-				self.convertCuraToProfile(temp, profileLocation, '', '', '')
+				self.convertCuraToProfile(temp, profileLocation, "", "", "")
 			elif flask.request.values["Slicer Name"] == "slic3r" :
-				self.convertSlic3rToProfile(temp, profileLocation, '', '', '')
+				self.convertSlic3rToProfile(temp, profileLocation, "", "", "")
 			else :
 				shutil.copyfile(temp, profileLocation)
 			
@@ -10042,7 +10042,7 @@ class M33FioPlugin(
 				vectors = [Vector(0, 0)] * printerProfile["extruder"]["count"]
 			
 				for offset in search :
-					if offset[0] == 'x' :
+					if offset[0] == "x" :
 						vectors[int(offset[1]) - 1].x = float(offset[2])
 					else :
 						vectors[int(offset[1]) - 1].y = float(offset[2])
@@ -10079,7 +10079,7 @@ class M33FioPlugin(
 			if flask.request.values["Slicer Name"] == "cura" :
 			
 				# Import profile manager
-				profileManager = imp.load_source("Profile", self._slicing_manager.get_slicer("cura")._basefolder.replace('\\', '/') + "/profile.py")
+				profileManager = imp.load_source("Profile", self._slicing_manager.get_slicer("cura")._basefolder.replace("\\", "/") + "/profile.py")
 					
 				# Save profile to temporary file
 				fd, temp = tempfile.mkstemp()
@@ -10117,7 +10117,7 @@ class M33FioPlugin(
 			elif flask.request.values["Slicer Name"] == "slic3r" :
 			
 				# Import profile manager
-				profileManager = imp.load_source("Profile", self._slicing_manager.get_slicer("slic3r")._basefolder.replace('\\', '/') + "/profile.py")
+				profileManager = imp.load_source("Profile", self._slicing_manager.get_slicer("slic3r")._basefolder.replace("\\", "/") + "/profile.py")
 					
 				# Save profile to temporary file
 				fd, temp = tempfile.mkstemp()
@@ -10162,13 +10162,13 @@ class M33FioPlugin(
 	def download(self, file) :
 	
 		# Check if file contains path traversal or file doesn't exist
-		if "../" in file or not os.path.isfile(self.get_plugin_data_folder().replace('\\', '/') + '/' + file) :
+		if "../" in file or not os.path.isfile(self.get_plugin_data_folder().replace("\\", "/") + "/" + file) :
 		
 			# Return file not found
 			return flask.make_response(404)
 	
 		# Return file
-		return flask.send_from_directory(self.get_plugin_data_folder().replace('\\', '/'), file)
+		return flask.send_from_directory(self.get_plugin_data_folder().replace("\\", "/"), file)
 	
 	# Auto connect
 	def autoConnect(self, comm_instance, port, baudrate, read_timeout, *args, **kwargs) :
@@ -10439,7 +10439,7 @@ class M33FioPlugin(
 				# Try using WiringPi to access the port
 				try :
 					subprocess.call(["gpio", "-g", "mode", str(gpioPin), "out"])
-					subprocess.call(["gpio", "-g", "write", str(gpioPin), '1'])
+					subprocess.call(["gpio", "-g", "write", str(gpioPin), "1"])
 				
 				# Check if WiringPi isn't installed
 				except OSError as exception :
@@ -10464,7 +10464,7 @@ class M33FioPlugin(
 				# Try using WiringPi to access the port
 				try:
 					subprocess.call(["gpio", "-g", "mode", str(gpioPin), "out"])
-					subprocess.call(["gpio", "-g", "write", str(gpioPin), '0'])
+					subprocess.call(["gpio", "-g", "write", str(gpioPin), "0"])
 				
 				# Check if WiringPi isn't installed
 				except OSError as exception :

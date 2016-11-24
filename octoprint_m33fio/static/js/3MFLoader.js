@@ -267,7 +267,7 @@ THREE.ThreeMFLoader.prototype = {
 				}
 
 				if ( pid ) {
-				  
+				
 					triangleProperty[ 'pid' ] = pid;
 
 				}
@@ -540,7 +540,7 @@ THREE.ThreeMFLoader.prototype = {
 			var modelsKeys = Object.keys( modelsData );
 
 			for ( var i = 0; i < modelsKeys.length; i++ ) {
-			  
+			
 				var modelsKey = modelsKeys[ i ];
 				var modelData = modelsData[ modelsKey ];
 				var modelXml = modelData[ 'xml' ];

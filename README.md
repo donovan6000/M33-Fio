@@ -29,7 +29,7 @@ By default M33 Fio is setup to make OctoPrint fully compatible with the Micro 3D
 ### Known Issues
 * Everything works in all versions of OctoPrint >= 1.2.0 except the Micro 3D printer connection routine which only works with versions of OctoPrint >= 1.2.5
 * Microsoft Internet Explorer 11 doesn't display webcam stream since it doesn't natively support MJPEG videos
-* Microsoft Internet Explorer 11 doesn't resize slicer profile editor correctly
+* Microsoft Internet Explorer 11 doesn't resize the slicer profile editor correctly
 * Microsoft Internet Explorer 11 doesn't insert a tab character when typing the tab key in the advanced section of the slicer profile editor since it doesn't support using the document.execCommand function with the "insertText" parameter
 * Microsoft Edge displays webcam stream as a still image
 * Can't host more than one webcam stream at a time since it always hosts on port 4999
