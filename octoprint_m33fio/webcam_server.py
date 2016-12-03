@@ -19,10 +19,10 @@ if platform.uname()[0].startswith("Windows") or platform.uname()[0].startswith("
 	from PIL import Image
 	import pygame.camera
 
-# Otherwise check if using OS X
+# Otherwise check if using macOS
 elif platform.uname()[0].startswith("Darwin") :
 
-	# Import OS X frameworks
+	# Import macOS frameworks
 	from io import BytesIO
 	from AppKit import *
 	from PyObjCTools import AppHelper

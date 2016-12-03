@@ -1,4 +1,4 @@
-# Target platform options: LINUX32, LINUX64, WINDOWS32, WINDOWS64, PI, PI2, ARM7, OSX32, OSX64
+# Target platform options: LINUX32, LINUX64, WINDOWS32, WINDOWS64, PI, PI2, ARM7, MACOS32, MACOS64
 LIBRARY_NAME = preprocessor
 TARGET_PLATFORM = LINUX64
 VER = .1
@@ -45,14 +45,14 @@ ifeq ($(TARGET_PLATFORM), ARM7)
 	CFLAGS = -fPIC -mcpu=generic-armv7-a -mfpu=vfp -mfloat-abi=hard -static-libgcc -O3 -Wl,-soname,$(PROG)$(VER) -static-libstdc++
 endif
 
-ifeq ($(TARGET_PLATFORM), OSX32)
+ifeq ($(TARGET_PLATFORM), MACOS32)
 	PROG = $(LIBRARY_NAME)_i386.dylib
 	CC = clang++
 	CFLAGS = -fPIC -m32 -stdlib=libc++ -O3 -Wl,-install_name,$(PROG)$(VER)
 
 endif
 
-ifeq ($(TARGET_PLATFORM), OSX64)
+ifeq ($(TARGET_PLATFORM), MACOS64)
 	PROG = $(LIBRARY_NAME)_x86-64.dylib
 	CC = clang++
 	CFLAGS = -fPIC -m64 -stdlib=libc++ -O3 -Wl,-install_name,$(PROG)$(VER)

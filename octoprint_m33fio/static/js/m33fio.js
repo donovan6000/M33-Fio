@@ -6539,11 +6539,11 @@ $(function() {
 												// Fix Windows specific CSS issues
 												$("#slicing_configuration_dialog .group h3").addClass("windows");
 
-											// Otherwise check if using OS X
+											// Otherwise check if using macOS
 											else if(window.navigator.platform.indexOf("Mac") != -1)
 
-												// Fix OS X specific CSS issues
-												$("#slicing_configuration_dialog .group h3").addClass("osx");
+												// Fix macOS specific CSS issues
+												$("#slicing_configuration_dialog .group h3").addClass("macOs");
 											
 											// Update settings from profile
 											function updateSettingsFromProfile() {
@@ -15667,11 +15667,11 @@ $(function() {
 			// Fix Windows specific CSS issues
 			$("#settings_plugin_m33fio select.short").addClass("windows");
 		
-		// Otherwise check if using OS X
+		// Otherwise check if using macOS
 		else if(window.navigator.platform.indexOf("Mac") != -1)
 		
-			// Fix OS X specific CSS issues
-			$("#settings_plugin_m33fio label.checkbox > span, #control div.jog-panel.eeprom input, #control div.jog-panel.eeprom input[type=\"radio\"], #settings_plugin_m33fio select.short").addClass("osx");
+			// Fix macOS specific CSS issues
+			$("#settings_plugin_m33fio label.checkbox > span, #control div.jog-panel.eeprom input, #control div.jog-panel.eeprom input[type=\"radio\"], #settings_plugin_m33fio select.short").addClass("macOs");
 	}
 
 	// Register plugin

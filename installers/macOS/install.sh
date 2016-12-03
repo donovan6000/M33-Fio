@@ -219,6 +219,7 @@ else
 			:
 		done
 		sudo -u $SUDO_USER ditto -x -k --sequesterRsrc --rsrc shortcut.zip '/Users/'"$SUDO_USER"'/Desktop'
+		rm shortcut.zip
 		
 		# Start OctoPrint
 		rm -rf '/Users/'"$SUDO_USER"'/.python-eggs'

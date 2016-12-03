@@ -68,10 +68,10 @@ if platform.uname()[0].startswith("Windows") or platform.uname()[0].startswith("
 		except :
 			pass
 
-# Otherwise check if using OS X
+# Otherwise check if using macOS
 elif platform.uname()[0].startswith("Darwin") :
 
-	# Import OS X frameworks
+	# Import macOS frameworks
 	try :
 		import CoreFoundation
 		import objc
@@ -738,7 +738,7 @@ class M33FioPlugin(
 				try :
 					self.heatbedConnection = serial.Serial(heatbedPort, 115200, timeout = 5)
 					
-					# check if using OS X or Linux and the user lacks read/write access to the heatbed
+					# check if using macOS or Linux and the user lacks read/write access to the heatbed
 					if (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(str(heatbedPort), os.R_OK | os.W_OK) :
 					
 						# Set error
@@ -1113,7 +1113,7 @@ class M33FioPlugin(
 					# Set shared library
 					self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace("\\", "/") + "/static/libraries/preprocessor_x86-64.dll")
 
-			# Otherwise check if running on OS X and using an i386 or x86-64 device
+			# Otherwise check if running on macOS and using an i386 or x86-64 device
 			elif platform.uname()[0].startswith("Darwin") and (platform.uname()[4].endswith("86") or platform.uname()[4].endswith("64")) :
 
 				# Check if Python is running as 32-bit
@@ -1164,7 +1164,7 @@ class M33FioPlugin(
 		# Check if shared library is loaded
 		if self.sharedLibrary :
 		
-			# Check if running on Linux or OS X
+			# Check if running on Linux or macOS
 			if platform.uname()[0].startswith("Linux") or platform.uname()[0].startswith("Darwin") :
 		
 				# Close shared library
@@ -2205,7 +2205,7 @@ class M33FioPlugin(
 						# Set error
 						error = True
 					
-					# Otherwise check if using OS X or Linux and the user lacks read/write access to the printer
+					# Otherwise check if using macOS or Linux and the user lacks read/write access to the printer
 					elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
 					
 						# Set error
@@ -2314,7 +2314,7 @@ class M33FioPlugin(
 						# Set error
 						error = True
 					
-					# Otherwise check if using OS X or Linux and the user lacks read/write access to the printer
+					# Otherwise check if using macOS or Linux and the user lacks read/write access to the printer
 					elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
 					
 						# Set error
@@ -2427,7 +2427,7 @@ class M33FioPlugin(
 						# Set error
 						error = True
 					
-					# Otherwise check if using OS X or Linux and the user lacks read/write access to the printer
+					# Otherwise check if using macOS or Linux and the user lacks read/write access to the printer
 					elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
 					
 						# Set error
@@ -2652,7 +2652,7 @@ class M33FioPlugin(
 						# Set error
 						error = True
 					
-					# Otherwise check if using OS X or Linux and the user lacks read/write access to the printer
+					# Otherwise check if using macOS or Linux and the user lacks read/write access to the printer
 					elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
 					
 						# Set error
@@ -2755,7 +2755,7 @@ class M33FioPlugin(
 							# Set error
 							error = True
 						
-						# Otherwise check if using OS X or Linux and the user lacks read/write access to the printer
+						# Otherwise check if using macOS or Linux and the user lacks read/write access to the printer
 						elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
 					
 							# Set error
@@ -3157,7 +3157,7 @@ class M33FioPlugin(
 						# Set error
 						error = True
 					
-					# Otherwise check if using OS X or Linux and the user lacks read/write access to the printer
+					# Otherwise check if using macOS or Linux and the user lacks read/write access to the printer
 					elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
 					
 						# Set error
@@ -3494,7 +3494,7 @@ class M33FioPlugin(
 						# Set error
 						error = True
 					
-					# Otherwise check if using OS X or Linux and the user lacks read/write access to the printer
+					# Otherwise check if using macOS or Linux and the user lacks read/write access to the printer
 					elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
 					
 						# Set error
@@ -5834,7 +5834,7 @@ class M33FioPlugin(
 				# Check if no errors occured
 				if not error :
 				
-					# Otherwise check if using OS X or Linux and the user lacks read/write access to the printer
+					# Otherwise check if using macOS or Linux and the user lacks read/write access to the printer
 					if (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
 					
 						# Set error
@@ -5926,7 +5926,7 @@ class M33FioPlugin(
 										# Send message
 										self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings &gt; M33 Fio &gt; \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
 								
-									# Otherwise check if using OS X or Linux and the user lacks read/write access to the printer
+									# Otherwise check if using macOS or Linux and the user lacks read/write access to the printer
 									elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
 	
 										# Set error
@@ -6443,7 +6443,7 @@ class M33FioPlugin(
 					# Check if an error hasn't occured
 					if not error :
 					
-						# Check if using OS X or Linux and the user lacks read/write access to the printer
+						# Check if using macOS or Linux and the user lacks read/write access to the printer
 						if (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
 						
 							# Set error
@@ -6514,7 +6514,7 @@ class M33FioPlugin(
 								# Otherwise
 								else :
 								
-									# Check if using OS X or Linux and the user lacks read/write access to the printer
+									# Check if using macOS or Linux and the user lacks read/write access to the printer
 									if (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
 									
 										# Clear EEPROM
@@ -10242,7 +10242,7 @@ class M33FioPlugin(
 			# Enable printer connect button
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Allow Connecting"))
 		
-		# Otherwise check if using OS X or Linux and the user lacks read/write access to the printer
+		# Otherwise check if using macOS or Linux and the user lacks read/write access to the printer
 		elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(str(port), os.R_OK | os.W_OK) :
 		
 			# Close connection
@@ -10274,7 +10274,7 @@ class M33FioPlugin(
 			# Return true
 			return True
 		
-		# Otherwise check if using OS X and ObjC are usable
+		# Otherwise check if using macOS and ObjC is usable
 		elif platform.uname()[0].startswith("Darwin") and "objc" in sys.modules :
 		
 			# Created by jbenden
@@ -10407,7 +10407,7 @@ class M33FioPlugin(
 			ES_CONTINUOUS = 0x80000000
 			ctypes.windll.kernel32.SetThreadExecutionState(ctypes.c_int(ES_CONTINUOUS))
 		
-		# Otherwise check if using OS X and ObjC are usable
+		# Otherwise check if using macOS and ObjC is usable
 		elif platform.uname()[0].startswith("Darwin") and "objc" in sys.modules :
 		
 			# Check if sleep framework exists

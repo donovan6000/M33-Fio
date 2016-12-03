@@ -157,7 +157,7 @@ body > div.modal-scrollable.hideOverflow {
 	top: 9px !important;
 }
 
-#settings_plugin_m33fio label.checkbox > span.osx {
+#settings_plugin_m33fio label.checkbox > span.macOs {
 	top: 0 !important;
 }
 
@@ -254,7 +254,7 @@ body > div.modal-scrollable.hideOverflow {
 	top: 14px;
 }
 
-#settings_plugin_m33fio select.short.osx {
+#settings_plugin_m33fio select.short.macOs {
 	top: 5px;
 }
 
@@ -600,7 +600,7 @@ body > div.modal-scrollable.hideOverflow {
 	text-align: center;
 }
 
-#control div.jog-panel.eeprom input.osx {
+#control div.jog-panel.eeprom input.macOs {
 	padding: 0 2px 2px 2px;
 }
 
@@ -621,7 +621,7 @@ body > div.modal-scrollable.hideOverflow {
 	height: 19px;
 }
 
-#control div.jog-panel.eeprom input[type="radio"].osx {
+#control div.jog-panel.eeprom input[type="radio"].macOs {
 	top: 0;
 }
 
@@ -1225,7 +1225,7 @@ body > div.page-container > div.message .customInput input {
 	text-align: left;
 }
 
-#slicing_configuration_dialog .group h3.windows, #slicing_configuration_dialog .group h3.osx {
+#slicing_configuration_dialog .group h3.windows, #slicing_configuration_dialog .group h3.macOs {
 	top: -4px;
 }
 
