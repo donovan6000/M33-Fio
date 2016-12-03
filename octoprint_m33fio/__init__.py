@@ -850,7 +850,8 @@ class M33FioPlugin(
 				depth = self.bedLowMaxY - self.bedLowMinY,
 				height = self.bedHighMaxZ - self.bedLowMinZ,
 				formFactor = "rectangular",
-				origin = "lowerleft"
+				origin = "lowerleft",
+				custom_box = False
 			),
 			heatedBed = False,
 			extruder = dict(
@@ -4926,9 +4927,9 @@ class M33FioPlugin(
 			elif response[6 : 10] == "1002" :
 				response = "ok " + gettext("Cannot calibrate in an unknown state") + "\n"
 			elif response[6 : 10] == "1003" :
-				response = "ok " + gettext("Unknown G-Code") + "\n"
+				response = "ok " + gettext("Unknown G‐Code") + "\n"
 			elif response[6 : 10] == "1004" :
-				response = "ok " + gettext("Unknown M-Code") + "\n"
+				response = "ok " + gettext("Unknown M‐Code") + "\n"
 			elif response[6 : 10] == "1005" :
 				response = "ok " + gettext("Unknown command") + "\n"
 			elif response[6 : 10] == "1006" :
@@ -5508,7 +5509,7 @@ class M33FioPlugin(
 						if self.detectedMidPrintFilamentChange :
 		
 							# Create message
-							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "notice", title = gettext("Print warning"), text = gettext("This file uses mid-print filament change commands")))
+							self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "notice", title = gettext("Print warning"), text = gettext("This file uses mid‐print filament change commands")))
 				
 						# Check if objected couldn't be centered
 						if self._settings.get_boolean(["UseCenterModelPreprocessor"]) and not self.objectSuccessfullyCentered :
@@ -7822,7 +7823,7 @@ class M33FioPlugin(
 				if self.detectedMidPrintFilamentChange :
 		
 					# Create message
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "notice", title = gettext("Print warning"), text = gettext("This file uses mid-print filament change commands")))
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Create message", type = "notice", title = gettext("Print warning"), text = gettext("This file uses mid‐print filament change commands")))
 				
 				# Check if objected couldn't be centered
 				if self._settings.get_boolean(["UseCenterModelPreprocessor"]) and not self.objectSuccessfullyCentered :
@@ -7839,7 +7840,7 @@ class M33FioPlugin(
 			if self.sharedLibrary :
 			
 				# Set progress bar text
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = gettext("Pre-processing …")))
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = gettext("Pre‐processing …")))
 			
 				# Pre-process file
 				self.sharedLibrary.preprocess(ctypes.c_char_p(temp), ctypes.c_char_p(input), ctypes.c_bool(False))
@@ -8609,7 +8610,7 @@ class M33FioPlugin(
 				if not self.printingTestBorder and not self.printingBacklashCalibration :
 				
 					# Set progress bar text
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = gettext("Pre-processing … (%(percent)d%%)"), percent = input.tell() * 100 / os.fstat(input.fileno()).st_size))
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = gettext("Pre‐processing … (%(percent)d%%)"), percent = input.tell() * 100 / os.fstat(input.fileno()).st_size))
 			
 			# Otherwise check if no more commands
 			elif len(commands) == 0 :

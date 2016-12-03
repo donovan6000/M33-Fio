@@ -1194,7 +1194,7 @@ body > div.page-container > div.message .customInput input {
 	background-color: transparent;
 }
 
-#slicing_configuration_dialog .group.advanced h3::after {
+#slicing_configuration_dialog .group.advanced h3:after, #slicing_configuration_dialog .group.advanced h3::after {
 	content: "";
 	background-color: #f5f5f5;
 	width: 100%;
@@ -2127,7 +2127,7 @@ body > div.page-container > div.message .customInput input {
 	width: 11px;
 }
 
-.icon-view::before {
+.icon-view:before, .icon-view::before {
 	content: "\F06E";
 }
 

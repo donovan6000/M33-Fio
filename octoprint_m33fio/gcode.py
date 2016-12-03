@@ -75,7 +75,7 @@ class Gcode(object) :
 			return True
 		
 		# Parse line for parameters
-		for match in re.compile("[" + self.order.replace(" ", "") + "][-+]?\d*(\.\d+)?").finditer(line) :
+		for match in re.compile("[" + self.order.replace(" ", "") + "][-+]?\\d*(\\.\\d+)?").finditer(line) :
 			
 			# Set data type
 			self.dataType |= (1 << self.order.find(match.group()[0]))

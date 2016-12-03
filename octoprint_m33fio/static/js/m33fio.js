@@ -362,7 +362,7 @@ $(function() {
 				color: "rgb(255, 200, 255)"
 			},
 			backlashExpansionYRNegative: {
-				name: gettext("Backlash Expansion YR-"),
+				name: gettext("Backlash Expansion YR−"),
 				offset: 0x3A,
 				bytes: 4,
 				color: "rgb(255, 255, 200)"
@@ -446,13 +446,13 @@ $(function() {
 				color: "rgb(160, 160, 240)"
 			},
 			speedLimitEPositive: {
-				name: gettext("Speed Limit E Positive"),
+				name: gettext("Speed Limit E+"),
 				offset: 0x72,
 				bytes: 4,
 				color: "rgb(240, 240, 160)"
 			},
 			speedLimitENegative: {
-				name: gettext("Speed Limit E Negative"),
+				name: gettext("Speed Limit E−"),
 				offset: 0x76,
 				bytes: 4,
 				color: "rgb(240, 160, 240)"
@@ -814,7 +814,7 @@ $(function() {
 						else if(currentMessage.thirdButton === gettext("Unload") || currentMessage.thirdButton === gettext("Load") || currentMessage.thirdButton === gettext("Set")) {
 							$("body > div.page-container > div.message > div > div > div.filamentSettings input").eq(0).val(self.settings.settings.plugins.m33fio.FilamentTemperature());
 							$("body > div.page-container > div.message > div > div > div.filamentSettings label").html(currentMessage.thirdButton === gettext("Unload") ? gettext("Unload Temperature") : currentMessage.thirdButton === gettext("Load") ? gettext("Load Temperature") : gettext("New Temperature"));
-							$("body > div.page-container > div.message > div > div > div.filamentSettings p").html(gettext("Recommended") + "<ul>" + (currentMessage.thirdButton === gettext("Unload") ? "<li>" + _.sprintf(gettext("%(temperature)d°C for ABS"), {temperature: 285}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for PLA"), {temperature: 225}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for HIPS"), {temperature: 275}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for FLX"), {temperature: 230}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for TGH"), {temperature: 230}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for CAM"), {temperature: 225}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for ABS-R"), {temperature: 250}) + "</li>" : "<li>" + _.sprintf(gettext("%(temperature)d°C for ABS"), {temperature: 275}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for PLA"), {temperature: 215}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for HIPS"), {temperature: 265}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for FLX"), {temperature: 220}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for TGH"), {temperature: 220}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for CAM"), {temperature: 215}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for ABS-R"), {temperature: 240}) + "</li>") + "</ul>");
+							$("body > div.page-container > div.message > div > div > div.filamentSettings p").html(gettext("Recommended") + "<ul>" + (currentMessage.thirdButton === gettext("Unload") ? "<li>" + _.sprintf(gettext("%(temperature)d°C for %(type)s"), {temperature: 285, type: "ABS"}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for %(type)s"), {temperature: 225, type: "PLA"}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for %(type)s"), {temperature: 275, type: "HIPS"}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for %(type)s"), {temperature: 230, type: "FLX"}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for %(type)s"), {temperature: 230, type: "TGH"}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for %(type)s"), {temperature: 225, type: "CAM"}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for %(type)s"), {temperature: 250, type: "ABS‐R"}) + "</li>" : "<li>" + _.sprintf(gettext("%(temperature)d°C for %(type)s"), {temperature: 275, type: "ABS"}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for %(type)s"), {temperature: 215, type: "PLA"}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for %(type)s"), {temperature: 265, type: "HIPS"}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for %(type)s"), {temperature: 220, type: "FLX"}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for %(type)s"), {temperature: 220, type: "TGH"}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for %(type)s"), {temperature: 215, type: "CAM"}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for %(type)s"), {temperature: 240, type: "ABS‐R"}) + "</li>") + "</ul>");
 							$("body > div.page-container > div.message > div > div > div.filamentSettings").addClass("show");
 							message.find("p").eq(0).removeClass("show")
 						}
@@ -1008,8 +1008,8 @@ $(function() {
 				$(".notMicro3DApplicable").removeClass("show");
 				$("#control > div.jog-panel.extruder").find("h1:not(.heatbed)").html(heatbedAttached ? gettext("Tools") : gettext("Extruder"));
 				
-				$("#control #control-xyhome").attr("title", htmlDecode(gettext("Set extruder's X position to 54 and Y position to 50")));
-				$("#control #control-zhome").attr("title", htmlDecode(gettext("Set extruder's Z position to 5")));
+				$("#control #control-xyhome").attr("title", htmlDecode(_.sprintf(gettext("Set extruder's X position to %(x)d and Y position to %(y)d"), {x: 54, y: 50})));
+				$("#control #control-zhome").attr("title", htmlDecode(_.sprintf(gettext("Set extruder's Z position to %(z)d"), {z: 5})));
 			}
 		}
 		
@@ -4761,8 +4761,8 @@ $(function() {
 		// Add mid-print filament change settings
 		$("#gcode div.progress").after("\
 			<div class=\"midPrintFilamentChange notUsingAMicro3DPrinter micro3d\">\
-				<h1>" + gettext("Mid-print filament change") + "</h1>\
-				<label title=\"" + encodeQuotes(gettext("Mid-print filament change commands will be added at the start of each specified layer. Layer numbers should be seperated by a space.")) + "\">" + gettext("Layers") + "<input type=\"text\" pattern=\"[\\d\\s]*\" class=\"input-block-level\"></label>\
+				<h1>" + gettext("Mid‐print filament change") + "</h1>\
+				<label title=\"" + encodeQuotes(gettext("Mid‐print filament change commands will be added at the start of each specified layer. Layer numbers should be seperated by a space.")) + "\">" + gettext("Layers") + "<input type=\"text\" pattern=\"[\\d\\s]*\" class=\"input-block-level\"></label>\
 				<button class=\"btn btn-block control-box\" data-bind=\"enable: loginState.isUser() && enableReload\">" + gettext("Add current layer") + "</button>\
 				<button class=\"btn btn-block control-box\" data-bind=\"enable: loginState.isUser()\">" + gettext("Clear all layers") + "</button>\
 				<button class=\"btn btn-block control-box\" data-bind=\"enable: loginState.isUser()\">" + gettext("Save") + "</button>\
@@ -4784,8 +4784,8 @@ $(function() {
 		$("#control > div.jog-panel").eq(2).addClass("general").find("div").prepend("\
 			<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() {\
 				$root.sendCustomCommand({\
-					type: \"command\",\
-					command: \"M17\"\
+					type: 'command',\
+					command: 'M17'\
 				})\
 			}\" title=\"" + encodeQuotes(gettext("Turns on printer's motors")) + "\">" + gettext("Motors on") + "</button>\
 		");
@@ -4804,32 +4804,32 @@ $(function() {
 			<button class=\"btn btn-block control-box micro3d\" data-bind=\"enable: isOperational() && loginState.isUser()\">" + gettext("LED on") + "</button>\
 			<button class=\"btn btn-block control-box micro3d\" data-bind=\"enable: isOperational() && loginState.isUser(), click: function() {\
 				$root.sendCustomCommand({\
-					type: \"command\",\
-					command: \"M420 T0*\"\
+					type: 'command',\
+					command: 'M420 T0*'\
 				})\
 			}\" title=\"" + encodeQuotes(gettext("Turns off front LED")) + "\">" + gettext("LED off") + "</button>\
 			<button class=\"btn btn-block control-box gpio micro3d\" data-bind=\"enable: isOperational() && loginState.isUser(), click: function() {\
 				$root.sendCustomCommand({\
-					type: \"command\",\
-					command: \"M106 T1*\"\
+					type: 'command',\
+					command: 'M106 T1*'\
 				})\
 			}\" title=\"" + encodeQuotes(gettext("Sets GPIO pin high")) + "\">" + gettext("GPIO high") + "</button>\
 			<button class=\"btn btn-block control-box gpio micro3d\" data-bind=\"enable: isOperational() && loginState.isUser(), click: function() {\
 				$root.sendCustomCommand({\
-					type: \"command\",\
-					command: \"M107 T1*\"\
+					type: 'command',\
+					command: 'M107 T1*'\
 				})\
 			}\" title=\"" + encodeQuotes(gettext("Sets GPIO pin low")) + "\">" + gettext("GPIO low") + "</button>\
 			<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() {\
 				$root.sendCustomCommand({\
-					type: \"command\",\
-					command: \"G90\"\
+					type: 'command',\
+					command: 'G90'\
 				})\
 			}\" title=\"" + encodeQuotes(gettext("Sets extruder to use absolute positioning")) + "\">" + gettext("Absolute mode") + "</button>\
 			<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() {\
 				$root.sendCustomCommand({\
-					type: \"command\",\
-					command: \"G91\"\
+					type: 'command',\
+					command: 'G91'\
 				})\
 			}\" title=\"" + encodeQuotes(gettext("Sets extruder to use relative positioning")) + "\">" + gettext("Relative mode") + "</button>\
 			<button class=\"btn btn-block control-box micro3d\" data-bind=\"enable: loginState.isUser()\">" + gettext("Print settings") + "</button>\
@@ -4843,7 +4843,7 @@ $(function() {
 				<div>\
 					<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">" + gettext("Unload") + "</button>\
 					<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">" + gettext("Load") + "</button>\
-					<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && isPrinting() && loginState.isUser()\">" + gettext("Mid-print change") + "</button>\
+					<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && isPrinting() && loginState.isUser()\">" + gettext("Mid‐print change") + "</button>\
 				</div>\
 			</div>\
 		");
@@ -4869,7 +4869,7 @@ $(function() {
 					<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">" + gettext("Save Z as back left Z0") + "</button>\
 					<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">" + gettext("Save Z as bed center Z0") + "</button>\
 					<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">" + gettext("Save Z as external bed height") + "</button>\
-					<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">" + gettext("Print 0.4mm test border") + "</button>\
+					<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">" + _.sprintf(gettext("Print %(thickness)smm test border"), {thickness: "0.4"}) + "</button>\
 					<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">" + gettext("Print backlash calibration") + "</button>\
 					<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">" + gettext("Run complete bed calibration") + "</button>\
 					<button class=\"btn btn-block control-box\" data-bind=\"enable: loginState.isUser() && !isPrinting()\">" + gettext("Save printer settings to file") + "</button>\
@@ -4884,13 +4884,13 @@ $(function() {
 			<div class=\"jog-panel advanced micro3d\" data-bind=\"visible: loginState.isUser\">\
 				<h1>" + gettext("Advanced") + "</h1>\
 				<div>\
-					<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/hengLiXin.png\">" + gettext("HengLiXin fan") + "</button>\
-					<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/listener.png\">" + gettext("Listener fan") + "</button>\
-					<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/shenzhew.png\">" + gettext("Shenzhew fan") + "</button>\
-					<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/xinyujie.png\">" + gettext("Xinyujie fan") + "</button>\
-					<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/custom.png\">" + gettext("Custom fan") + "</button>\
-					<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">" + gettext("500mA extruder current") + "</button>\
-					<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">" + gettext("660mA extruder current") + "</button>\
+					<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/hengLiXin.png\">" + _.sprintf(gettext("%(type)s fan"), {type: "HengLiXin"}) + "</button>\
+					<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/listener.png\">" + _.sprintf(gettext("%(type)s fan"), {type: "Listener"}) + "</button>\
+					<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/shenzhew.png\">" + _.sprintf(gettext("%(type)s fan"), {type: "Shenzhew"}) + "</button>\
+					<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/xinyujie.png\">" + _.sprintf(gettext("%(type)s fan"), {type: "Xinyujie"}) + "</button>\
+					<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/custom.png\">" + _.sprintf(gettext("%(type)s fan"), {type: "Custom"}) + "</button>\
+					<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">" + _.sprintf(gettext("%(current)dmA extruder current"), {current: 500}) + "</button>\
+					<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">" + _.sprintf(gettext("%(current)dmA extruder current"), {current: 660}) + "</button>\
 					<button class=\"btn btn-block control-box placeHolder\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"></button>\
 					<button class=\"btn btn-block control-box placeHolder\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"></button>\
 					<button class=\"btn btn-block control-box placeHolder\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"></button>\
@@ -4962,14 +4962,14 @@ $(function() {
 					max: 265,\
 					step: 1,\
 					value: flowRate,\
-					tooltip: \"hide\"\
+					tooltip: 'hide'\
 				}\" type=\"number\">\
 			</div>\
 			<button class=\"btn btn-block control-box micro3d\" data-bind=\"enable: isOperational() && loginState.isUser()\">" + gettext("Temperature") + ":<span data-bind=\"text: flowRate() + 50 + '°C'\"></span></button>\
 			<button class=\"btn btn-block control-box micro3d\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() {\
 				$root.sendCustomCommand({\
-					type: \"command\",\
-					command: \"M104 S0\"\
+					type: 'command',\
+					command: 'M104 S0'\
 				})\
 			}\" title=\"" + encodeQuotes(gettext("Turns off extruder's heater")) + "\">" + gettext("Heater off") + "</button>\
 			<div class=\"heatbed micro3d\">\
@@ -4989,14 +4989,14 @@ $(function() {
 						max: 170,\
 						step: 1,\
 						value: feedRate,\
-						tooltip: \"hide\"\
+						tooltip: 'hide'\
 					}\" type=\"number\">\
 				</div>\
 				<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && loginState.isUser()\">" + gettext("Temperature") + ":<span data-bind=\"text: feedRate() -60 + '°C'\"></span></button>\
 				<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() {\
 					$root.sendCustomCommand({\
-						type: \"command\",\
-						command: \"M140 S0\"\
+						type: 'command',\
+						command: 'M140 S0'\
 					})\
 				}\" title=\"" + encodeQuotes(gettext("Turns off heatbed's heater")) + "\">" + gettext("Heater off") + "</button>\
 			<div>\
@@ -5016,10 +5016,10 @@ $(function() {
 								<button class=\"btn btn-block control-box arrow down\" title=\"" + encodeQuotes(gettext("Applies extruder's position adjustment in the negative direction")) + "\"><i class=\"icon-arrow-down\"></i></button>\
 							</div>\
 							<div class=\"distance\">\
-								<button type=\"button\" class=\"btn distance\" title=\"" + encodeQuotes(gettext("Sets extruder's position adjustment to 0.01mm")) + "\" data-distance=\"0.01\">0.01</button>\
-								<button type=\"button\" class=\"btn distance\" title=\"" + encodeQuotes(gettext("Sets extruder's position adjustment to 0.1mm")) + "\" data-distance=\"0.1\">0.1</button>\
-								<button type=\"button\" class=\"btn distance active\" title=\"" + encodeQuotes(gettext("Sets extruder's position adjustment to 1mm")) + "\" data-distance=\"1\">1</button>\
-								<button type=\"button\" class=\"btn distance\" title=\"" + encodeQuotes(gettext("Sets extruder's position adjustment to 10mm")) + "\" data-distance=\"10\">10</button>\
+								<button type=\"button\" class=\"btn distance\" title=\"" + encodeQuotes(_.sprintf(gettext("Sets extruder's position adjustment to %(distance)smm"), {distance: "0.01"})) + "\" data-distance=\"0.01\">0.01</button>\
+								<button type=\"button\" class=\"btn distance\" title=\"" + encodeQuotes(_.sprintf(gettext("Sets extruder's position adjustment to %(distance)smm"), {distance: "0.1"})) + "\" data-distance=\"0.1\">0.1</button>\
+								<button type=\"button\" class=\"btn distance active\" title=\"" + encodeQuotes(_.sprintf(gettext("Sets extruder's position adjustment to %(distance)smm"), {distance: "1"})) + "\" data-distance=\"1\">1</button>\
+								<button type=\"button\" class=\"btn distance\" title=\"" + encodeQuotes(_.sprintf(gettext("Sets extruder's position adjustment to %(distance)smm"), {distance: "10"})) + "\" data-distance=\"10\">10</button>\
 							</div>\
 						</div>\
 						<div class=\"printSettings\">\
@@ -5046,13 +5046,13 @@ $(function() {
 								<label class=\"control-label\">" + gettext("Filament Type") + "</label>\
 								<div class=\"controls\">\
 									<select class=\"input-block-level\">\
-										<option value=\"ABS\">" + _.sprintf(gettext("ABS (Recommended %(temperature)d°C)"), {temperature: 275}) + "</option>\
-										<option value=\"PLA\">" + _.sprintf(gettext("PLA (Recommended %(temperature)d°C)"), {temperature: 215}) + "</option>\
-										<option value=\"HIPS\">" + _.sprintf(gettext("HIPS (Recommended %(temperature)d°C)"), {temperature: 265}) + "</option>\
-										<option value=\"FLX\">" + _.sprintf(gettext("FLX (Recommended %(temperature)d°C)"), {temperature: 220}) + "</option>\
-										<option value=\"TGH\">" + _.sprintf(gettext("TGH (Recommended %(temperature)d°C)"), {temperature: 220}) + "</option>\
-										<option value=\"CAM\">" + _.sprintf(gettext("CAM (Recommended %(temperature)d°C)"), {temperature: 215}) + "</option>\
-										<option value=\"ABS-R\">" + _.sprintf(gettext("ABS-R (Recommended %(temperature)d°C)"), {temperature: 240}) + "</option>\
+										<option value=\"ABS\">" + _.sprintf(gettext("%(type)s (Recommended %(temperature)d°C)"), {type: "ABS", temperature: 275}) + "</option>\
+										<option value=\"PLA\">" + _.sprintf(gettext("%(type)s (Recommended %(temperature)d°C)"), {type: "PLA", temperature: 215}) + "</option>\
+										<option value=\"HIPS\">" + _.sprintf(gettext("%(type)s (Recommended %(temperature)d°C)"), {type: "HIPS", temperature: 265}) + "</option>\
+										<option value=\"FLX\">" + _.sprintf(gettext("%(type)s (Recommended %(temperature)d°C)"), {type: "FLX", temperature: 220}) + "</option>\
+										<option value=\"TGH\">" + _.sprintf(gettext("%(type)s (Recommended %(temperature)d°C)"), {type: "TGH", temperature: 220}) + "</option>\
+										<option value=\"CAM\">" + _.sprintf(gettext("%(type)s (Recommended %(temperature)d°C)"), {type: "CAM", temperature: 215}) + "</option>\
+										<option value=\"ABS-R\">" + _.sprintf(gettext("%(type)s (Recommended %(temperature)d°C)"), {type: "ABS‐R", temperature: 240}) + "</option>\
 										<option value=\"OTHER\">" + gettext("Other") + "</option>\
 									</select>\
 								</div>\
@@ -5270,7 +5270,7 @@ $(function() {
 		});
 		
 		// Add mid-print filament change layer event
-		$("#gcode div.midPrintFilamentChange button").eq(0).attr("title", htmlDecode(gettext("Appends current layer to mid-print filament change layers"))).click(function() {
+		$("#gcode div.midPrintFilamentChange button").eq(0).attr("title", htmlDecode(gettext("Appends current layer to mid‐print filament change layers"))).click(function() {
 		
 			// Blue self
 			$(this).blur();
@@ -5290,7 +5290,7 @@ $(function() {
 		});
 		
 		// Clear all mid-print filament change layers event
-		$("#gcode div.midPrintFilamentChange button").eq(1).attr("title", htmlDecode(gettext("Clears all mid-print filament change layers"))).click(function() {
+		$("#gcode div.midPrintFilamentChange button").eq(1).attr("title", htmlDecode(gettext("Clears all mid‐print filament change layers"))).click(function() {
 		
 			// Blue self
 			$(this).blur();
@@ -5300,7 +5300,7 @@ $(function() {
 		});
 		
 		// Save mid-print filament change layer event
-		$("#gcode div.midPrintFilamentChange button").eq(2).attr("title", htmlDecode(gettext("Saves current mid-print filament change layers"))).click(function() {
+		$("#gcode div.midPrintFilamentChange button").eq(2).attr("title", htmlDecode(gettext("Saves current mid‐print filament change layers"))).click(function() {
 		
 			// Blue self
 			$(this).blur();
@@ -5331,16 +5331,6 @@ $(function() {
 			
 					// Update settings
 					self.settings.requestData();
-				
-				// Fail
-				}).fail(function() {
-				
-					// Show message
-					showMessage(gettext("Saving Status"), gettext("Failed"), gettext("OK"), function() {
-
-						// Hide message
-						hideMessage();
-					});
 				});
 			}, 500);
 		});
@@ -5412,16 +5402,6 @@ $(function() {
 									// Continue with print
 									continueWithPrint = true;
 									button.click();
-								
-								// Fail
-								}).fail(function() {
-				
-									// Show message
-									showMessage(gettext("Printing Status"), gettext("Failed"), gettext("OK"), function() {
-
-										// Hide message
-										hideMessage();
-									});
 								});
 							}
 					
@@ -5430,16 +5410,6 @@ $(function() {
 								self.settings.requestData(printFile);
 							else
 								self.settings.requestData().done(printFile);
-						
-						// Fail
-						}).fail(function() {
-				
-							// Show message
-							showMessage(gettext("Printing Status"), gettext("Failed"), gettext("OK"), function() {
-
-								// Hide message
-								hideMessage();
-							});
 						});
 					}, gettext("Cancel"), function() {
 			
@@ -5470,16 +5440,6 @@ $(function() {
 						// Continue with print
 						continueWithPrint = true;
 						button.click();
-					
-					// Fail
-					}).fail(function() {
-			
-						// Show message
-						showMessage(gettext("Printing Status"), gettext("Failed"), gettext("OK"), function() {
-
-							// Hide message
-							hideMessage();
-						});
 					});
 				}
 			}
@@ -5516,16 +5476,6 @@ $(function() {
 							
 								// Restart print
 								OctoPrint.job.restart();
-							
-							// Fail
-							}).fail(function() {
-				
-								// Show message
-								showMessage(gettext("Restarting Status"), gettext("Failed"), gettext("OK"), function() {
-
-									// Hide message
-									hideMessage();
-								});
 							});
 						}
 					});
@@ -5561,16 +5511,6 @@ $(function() {
 		
 							// Restart print
 							self.printerState._jobCommand("restart");
-						
-						// Fail
-						}).fail(function() {
-			
-							// Show message
-							showMessage(gettext("Restarting Status"), gettext("Failed"), gettext("OK"), function() {
-
-								// Hide message
-								hideMessage();
-							});
 						});
 					});
 					$("#confirmation_dialog").modal("show");
@@ -5750,16 +5690,6 @@ $(function() {
 								setTimeout(waitUntilPaused, 100);
 						}
 						waitUntilPaused();
-					
-					// Fail
-					}).fail(function() {
-		
-						// Show message
-						showMessage(gettext("Printing Status"), gettext("Failed"), gettext("OK"), function() {
-
-							// Hide message
-							hideMessage();
-						});
 					});
 				}
 			
@@ -5801,16 +5731,6 @@ $(function() {
 								setTimeout(waitUntilResumed, 100);
 						}
 						waitUntilResumed();
-					
-					// Fail
-					}).fail(function() {
-		
-						// Show message
-						showMessage(gettext("Printing Status"), gettext("Failed"), gettext("OK"), function() {
-
-							// Hide message
-							hideMessage();
-						});
 					});
 				}
 			}
@@ -5868,16 +5788,6 @@ $(function() {
 								contentType: "application/json; charset=UTF-8",
 								traditional: true,
 								processData: true
-							
-							// Fail
-							}).fail(function() {
-		
-								// Show message
-								showMessage(gettext("Printing Status"), gettext("Failed"), gettext("OK"), function() {
-
-									// Hide message
-									hideMessage();
-								});
 							});
 						}
 					});
@@ -5910,16 +5820,6 @@ $(function() {
 							contentType: "application/json; charset=UTF-8",
 							traditional: true,
 							processData: true
-						
-						// Fail
-						}).fail(function() {
-		
-							// Show message
-							showMessage(gettext("Printing Status"), gettext("Failed"), gettext("OK"), function() {
-
-								// Hide message
-								hideMessage();
-							});
 						});
 					});
 					$("#confirmation_dialog").modal("show");
@@ -6151,16 +6051,6 @@ $(function() {
 								else
 									self.files.requestData(path, location);
 								self.slicing.show(location, path);
-							
-							// Fail
-							}).fail(function() {
-		
-								// Show message
-								showMessage(gettext("Conversion Status"), gettext("Failed"), gettext("OK"), function() {
-
-									// Hide message
-									hideMessage();
-								});
 							});
 						}
 					
@@ -8302,16 +8192,6 @@ $(function() {
 											// Resize window
 											$(window).resize();
 										}, 200);
-									
-									// Fail
-									}).fail(function() {
-		
-										// Show message
-										showMessage(gettext("Slicer Status"), gettext("Failed"), gettext("OK"), function() {
-
-											// Hide message
-											hideMessage();
-										});
 									});
 								}, 600);
 							}
@@ -8330,19 +8210,6 @@ $(function() {
 								});
 							
 							}
-						
-						// Fail
-						}).fail(function() {
-	
-							// Show message
-							showMessage(gettext("Slicer Status"), gettext("Failed"), gettext("OK"), function() {
-								
-								// Enable button
-								button.removeClass("disabled");
-								
-								// Hide message
-								hideMessage();
-							});
 						});
 					}
 					
@@ -9736,7 +9603,7 @@ $(function() {
 		});
 	
 		// Override X Y home control
-		$("#control #control-xyhome").attr("title", htmlDecode(gettext("Set extruder's X position to 54 and Y position to 50"))).click(function(event) {
+		$("#control #control-xyhome").attr("title", htmlDecode(_.sprintf(gettext("Set extruder's X position to %(x)d and Y position to %(y)d"), {x: 54, y: 50}))).click(function(event) {
 		
 			// Check if using a Micro 3D printer
 			if(!self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
@@ -9805,7 +9672,7 @@ $(function() {
 		});
 	
 		// Override Z home control
-		$("#control #control-zhome").attr("title", htmlDecode(gettext("Set extruder's Z position to 5"))).click(function(event) {
+		$("#control #control-zhome").attr("title", htmlDecode(_.sprintf(gettext("Set extruder's Z position to %(z)d"), {z: 5}))).click(function(event) {
 			
 			// Check if using a Micro 3D printer
 			if(!self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
@@ -10222,16 +10089,6 @@ $(function() {
 										contentType: "application/json; charset=UTF-8",
 										traditional: true,
 										processData: true
-									
-									// Fail
-									}).fail(function() {
-
-										// Show message
-										showMessage(gettext("Filament Status"), gettext("Failed"), gettext("OK"), function() {
-						
-											// Hide message
-											hideMessage();
-										});
 									});
 								}, gettext("No"), function() {
 					
@@ -10255,16 +10112,6 @@ $(function() {
 								contentType: "application/json; charset=UTF-8",
 								traditional: true,
 								processData: true
-							
-							// Fail
-							}).fail(function() {
-
-								// Show message
-								showMessage(gettext("Filament Status"), gettext("Failed"), gettext("OK"), function() {
-						
-									// Hide message
-									hideMessage();
-								});
 							});
 						}
 			
@@ -10280,16 +10127,6 @@ $(function() {
 							contentType: "application/json; charset=UTF-8",
 							traditional: true,
 							processData: true
-						
-						// Fail
-						}).fail(function() {
-
-							// Show message
-							showMessage(gettext("Filament Status"), gettext("Failed"), gettext("OK"), function() {
-						
-								// Hide message
-								hideMessage();
-							});
 						});
 					}
 					unloadFilament();
@@ -10307,16 +10144,6 @@ $(function() {
 					contentType: "application/json; charset=UTF-8",
 					traditional: true,
 					processData: true
-				
-				// Fail
-				}).fail(function() {
-
-					// Show message
-					showMessage(gettext("Filament Status"), gettext("Failed"), gettext("OK"), function() {
-						
-						// Hide message
-						hideMessage();
-					});
 				});
 			}, gettext("Cancel"), function() {
 			
@@ -10422,16 +10249,6 @@ $(function() {
 										contentType: "application/json; charset=UTF-8",
 										traditional: true,
 										processData: true
-									
-									// Fail
-									}).fail(function() {
-
-										// Show message
-										showMessage(gettext("Filament Status"), gettext("Failed"), gettext("OK"), function() {
-						
-											// Hide message
-											hideMessage();
-										});
 									});
 								}, gettext("No"), function() {
 				
@@ -10455,16 +10272,6 @@ $(function() {
 								contentType: "application/json; charset=UTF-8",
 								traditional: true,
 								processData: true
-							
-							// Fail
-							}).fail(function() {
-
-								// Show message
-								showMessage(gettext("Filament Status"), gettext("Failed"), gettext("OK"), function() {
-						
-									// Hide message
-									hideMessage();
-								});
 							});
 						}
 		
@@ -10480,16 +10287,6 @@ $(function() {
 							contentType: "application/json; charset=UTF-8",
 							traditional: true,
 							processData: true
-						
-						// Fail
-						}).fail(function() {
-
-							// Show message
-							showMessage(gettext("Filament Status"), gettext("Failed"), gettext("OK"), function() {
-						
-								// Hide message
-								hideMessage();
-							});
 						});
 					}
 					loadFilament();
@@ -10507,16 +10304,6 @@ $(function() {
 					contentType: "application/json; charset=UTF-8",
 					traditional: true,
 					processData: true
-				
-				// Fail
-				}).fail(function() {
-
-					// Show message
-					showMessage(gettext("Filament Status"), gettext("Failed"), gettext("OK"), function() {
-						
-						// Hide message
-						hideMessage();
-					});
 				});
 			}, gettext("Cancel"), function() {
 			
@@ -10529,7 +10316,7 @@ $(function() {
 		$("#control > div.jog-panel.filament").find("div > button:nth-of-type(3)").attr("title", htmlDecode(gettext("Changes filament during a print"))).click(function() {
 		
 			// Show message
-			showMessage(gettext("Filament Status"), gettext("Starting mid-print filament change"));
+			showMessage(gettext("Filament Status"), gettext("Starting mid‐print filament change"));
 			
 			// Set commands
 			var commands = [
@@ -10548,16 +10335,6 @@ $(function() {
 				contentType: "application/json; charset=UTF-8",
 				traditional: true,
 				processData: true
-			
-			// Fail
-			}).fail(function() {
-
-				// Show message
-				showMessage(gettext("Filament Status"), gettext("Failed"), gettext("OK"), function() {
-					
-					// Hide message
-					hideMessage();
-				});
 			});
 		});
 		
@@ -10640,16 +10417,6 @@ $(function() {
 							contentType: "application/json; charset=UTF-8",
 							traditional: true,
 							processData: true
-						
-						// Fail
-						}).fail(function() {
-
-							// Show message
-							showMessage(gettext("Calibration Status"), gettext("Failed"), gettext("OK"), function() {
-						
-								// Hide message
-								hideMessage();
-							});
 						});
 					}
 		
@@ -10665,16 +10432,6 @@ $(function() {
 						contentType: "application/json; charset=UTF-8",
 						traditional: true,
 						processData: true
-					
-					// Fail
-					}).fail(function() {
-
-						// Show message
-						showMessage(gettext("Calibration Status"), gettext("Failed"), gettext("OK"), function() {
-					
-							// Hide message
-							hideMessage();
-						});
 					});
 				}
 		
@@ -10690,16 +10447,6 @@ $(function() {
 					contentType: "application/json; charset=UTF-8",
 					traditional: true,
 					processData: true
-				
-				// Fail
-				}).fail(function() {
-
-					// Show message
-					showMessage(gettext("Calibration Status"), gettext("Failed"), gettext("OK"), function() {
-				
-						// Hide message
-						hideMessage();
-					});
 				});
 			}, gettext("No"), function() {
 			
@@ -10805,16 +10552,6 @@ $(function() {
 								contentType: "application/json; charset=UTF-8",
 								traditional: true,
 								processData: true
-							
-							// Fail
-							}).fail(function() {
-
-								// Show message
-								showMessage(gettext("Calibration Status"), gettext("Failed"), gettext("OK"), function() {
-					
-									// Hide message
-									hideMessage();
-								});
 							});
 						}
 		
@@ -10830,16 +10567,6 @@ $(function() {
 							contentType: "application/json; charset=UTF-8",
 							traditional: true,
 							processData: true
-						
-						// Fail
-						}).fail(function() {
-
-							// Show message
-							showMessage(gettext("Calibration Status"), gettext("Failed"), gettext("OK"), function() {
-						
-								// Hide message
-								hideMessage();
-							});
 						});
 					}
 		
@@ -10855,16 +10582,6 @@ $(function() {
 						contentType: "application/json; charset=UTF-8",
 						traditional: true,
 						processData: true
-					
-					// Fail
-					}).fail(function() {
-
-						// Show message
-						showMessage(gettext("Calibration Status"), gettext("Failed"), gettext("OK"), function() {
-					
-							// Hide message
-							hideMessage();
-						});
 					});
 				}
 		
@@ -10880,16 +10597,6 @@ $(function() {
 					contentType: "application/json; charset=UTF-8",
 					traditional: true,
 					processData: true
-				
-				// Fail
-				}).fail(function() {
-
-					// Show message
-					showMessage(gettext("Calibration Status"), gettext("Failed"), gettext("OK"), function() {
-				
-						// Hide message
-						hideMessage();
-					});
 				});
 			}, gettext("No"), function() {
 			
@@ -11674,7 +11381,7 @@ $(function() {
 		});
 		
 		// Set print test border control
-		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(17)").attr("title", htmlDecode(gettext("Prints 0.4mm test border"))).click(function() {
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(17)").attr("title", htmlDecode(_.sprintf(gettext("Prints %(thickness)smm test border"), {thickness: "0.4"}))).click(function() {
 		
 			// Show message
 			showMessage(gettext("Calibration Status"), gettext("It's recommended to print this test border after completely calibrating the bed to ensure that the calibration is accurate. The test border should print as a solid, even extruded border") + "<img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/test-border-good.png\">" + gettext("The \"Back Left Offset\", \"Back Right Offset\", \"Front Right Offset\", and \"Front Left Offset\" values can be adjusted to correct any issues with it. If the test border contains squiggly ripples, then it is too high.") + "<img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/test-border-high.png\">" + gettext("If the test border contains missing gaps, then it is too low.") + "<img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/test-border-low.png\">" + gettext("It's also recommended to print a model with a raft after this is done to see if the \"Bed Height Offset\" value needs to be adjusted. If the raft does not securely stick to the bed, then it is too high. If the model isn't easily removed from the raft, then it is too low.<br><br>All the referenced values can be found by clicking the \"Print settings\" button in the \"General\" section of OctoPrint's Control tab. Proceed?"), gettext("Yes"), function() {
@@ -11774,7 +11481,7 @@ $(function() {
 		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(18)").attr("title", htmlDecode(gettext("Prints a specified backlash calibration"))).click(function() {
 		
 			// Show message
-			showMessage(gettext("Calibration Status"), gettext("It's recommended to print the backlash calibration prints after the print bed has been accurately calibrated. Make sure to set the \"Backlash X\" and \"Backlash Y\" values to 0 before printing a backlash calibration print which will print the model without any backlash compensation applied to it. The X backlash calibration prints and Y backlash calibration prints each assist in determining the X and Y backlash respecitvley.<br><br>The backlash values can be detemined by finding the sample with the highest possible value that doesn't curve.") + "<img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/backlash.png\">" + gettext("If none of the samples curve when using the 0.0‑0.99 prints then use the 0.70‑1.69 prints. For more information check out <a target=\"_blank\" rel=\"nofollow\" href=\"http://www.thingiverse.com/thing:1435828\">Muele's quick backlash calibration method</a>.<br><br>All the referenced values can be found by clicking the \"Print settings\" button in the \"General\" section of OctoPrint's Control tab.<br><br>Choose a backlash calibration print to continue.") + "<span class=\"backlash\"><button class=\"btn btn-block\">X 0.0‑0.99</button><button class=\"btn btn-block\">X 0.70‑1.69</button><button class=\"btn btn-block\">Y 0.0‑0.99</button><button class=\"btn btn-block\">Y 0.70‑1.69</button></span>", gettext("Cancel"), function() {
+			showMessage(_.sprintf(gettext("Calibration Status"), gettext("It's recommended to print the backlash calibration prints after the print bed has been accurately calibrated. Make sure to set the \"Backlash X\" and \"Backlash Y\" values to 0 before printing a backlash calibration print which will print the model without any backlash compensation applied to it. The X backlash calibration prints and Y backlash calibration prints each assist in determining the X and Y backlash respecitvley.<br><br>The backlash values can be detemined by finding the sample with the highest possible value that doesn't curve.") + "<img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/backlash.png\">" + gettext("If none of the samples curve when using the %(lowRange)s prints then use the %(highRange)s prints. For more information check out <a target=\"_blank\" rel=\"nofollow\" href=\"http://www.thingiverse.com/thing:1435828\">Muele's quick backlash calibration method</a>.<br><br>All the referenced values can be found by clicking the \"Print settings\" button in the \"General\" section of OctoPrint's Control tab.<br><br>Choose a backlash calibration print to continue."), {lowRange: "0.0‒0.99", highRange: "0.70‒1.69"}) + "<span class=\"backlash\"><button class=\"btn btn-block\">X 0.0‒0.99</button><button class=\"btn btn-block\">X 0.70‒1.69</button><button class=\"btn btn-block\">Y 0.0‒0.99</button><button class=\"btn btn-block\">Y 0.70‒1.69</button></span>", gettext("Cancel"), function() {
 			
 				// Hide message
 				hideMessage();
@@ -12950,7 +12657,7 @@ $(function() {
 		});
 		
 		// Set HengLiXin fan control
-		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(1)").attr("title", htmlDecode(gettext("Sets fan to HengLiXin fan"))).click(function() {
+		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(1)").attr("title", htmlDecode(_.sprintf(gettext("Sets fan to %(type)s fan"), {type: "HengLiXin"}))).click(function() {
 			
 			// Show message
 			showMessage(gettext("Fan Status"), gettext("This will overwrite the existing fan settings. Proceed?"), gettext("Yes"), function() {
@@ -12959,7 +12666,7 @@ $(function() {
 				hideMessage();
 				
 				// Show message
-				showMessage(gettext("Fan Status"), gettext("Setting fan to HengLiXin"));
+				showMessage(gettext("Fan Status"), _.sprintf(gettext("Setting fan to %(type)s"), {type: "HengLiXin"}));
 		
 				// Send request
 				$.ajax({
@@ -13006,7 +12713,7 @@ $(function() {
 		});
 	
 		// Set Listener fan control
-		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(2)").attr("title", htmlDecode(gettext("Sets fan to Listener fan"))).click(function() {
+		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(2)").attr("title", htmlDecode(_.sprintf(gettext("Sets fan to %(type)s fan"), {type: "Listener"}))).click(function() {
 			
 			// Show message
 			showMessage(gettext("Fan Status"), gettext("This will overwrite the existing fan settings. Proceed?"), gettext("Yes"), function() {
@@ -13015,7 +12722,7 @@ $(function() {
 				hideMessage();
 				
 				// Show message
-				showMessage(gettext("Fan Status"), gettext("Setting fan to Listener"));
+				showMessage(gettext("Fan Status"), _.sprintf(gettext("Setting fan to %(type)s"), {type: "Listener"}));
 		
 				// Send request
 				$.ajax({
@@ -13062,7 +12769,7 @@ $(function() {
 		});
 	
 		// Set Shenzhew fan control
-		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(3)").attr("title", htmlDecode(gettext("Sets fan to Shenzhew fan"))).click(function() {
+		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(3)").attr("title", htmlDecode(_.sprintf(gettext("Sets fan to %(type)s fan"), {type: "Shenzhew"}))).click(function() {
 			
 			// Show message
 			showMessage(gettext("Fan Status"), gettext("This will overwrite the existing fan settings. Proceed?"), gettext("Yes"), function() {
@@ -13071,7 +12778,7 @@ $(function() {
 				hideMessage();
 				
 				// Show message
-				showMessage(gettext("Fan Status"), gettext("Setting fan to Shenzhew"));
+				showMessage(gettext("Fan Status"), _.sprintf(gettext("Setting fan to %(type)s"), {type: "Shenzhew"}));
 		
 				// Send request
 				$.ajax({
@@ -13118,7 +12825,7 @@ $(function() {
 		});
 		
 		// Set Xinyujie fan control
-		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(4)").attr("title", htmlDecode(gettext("Sets fan to Xinyujie fan"))).click(function() {
+		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(4)").attr("title", htmlDecode(_.sprintf(gettext("Sets fan to %(type)s fan"), {type: "Xinyujie"}))).click(function() {
 			
 			// Show message
 			showMessage(gettext("Fan Status"), gettext("This will overwrite the existing fan settings. Proceed?"), gettext("Yes"), function() {
@@ -13127,7 +12834,7 @@ $(function() {
 				hideMessage();
 				
 				// Show message
-				showMessage(gettext("Fan Status"), gettext("Setting fan to Xinyujie"));
+				showMessage(gettext("Fan Status"), _.sprintf(gettext("Setting fan to %(type)s"), {type: "Xinyujie"}));
 		
 				// Send request
 				$.ajax({
@@ -13183,7 +12890,7 @@ $(function() {
 				hideMessage();
 				
 				// Show message
-				showMessage(gettext("Fan Status"), gettext("Setting fan to custom"));
+				showMessage(gettext("Fan Status"), _.sprintf(gettext("Setting fan to %(type)s"), {type: "custom"}));
 		
 				// Send request
 				$.ajax({
@@ -13331,7 +13038,7 @@ $(function() {
 		});
 	
 		// Set 500mA extruder current control
-		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(6)").attr("title", htmlDecode(gettext("Sets extruder's current to 500mA"))).click(function() {
+		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(6)").attr("title", htmlDecode(_.sprintf(gettext("Sets extruder's current to %(current)dmA"), {current: 500}))).click(function() {
 			
 			// Show message
 			showMessage(gettext("Extruder Current Status"), gettext("This will overwrite the existing extruder current settings. Proceed?"), gettext("Yes"), function() {
@@ -13340,7 +13047,7 @@ $(function() {
 				hideMessage();
 				
 				// Show message
-				showMessage(gettext("Extruder Current Status"), gettext("Setting extruder current to 500mA"));
+				showMessage(gettext("Extruder Current Status"), _.sprintf(gettext("Setting extruder current to %(current)dmA"), {current: 500}));
 		
 				// Send request
 				$.ajax({
@@ -13387,7 +13094,7 @@ $(function() {
 		});
 	
 		// Set 660mA extruder current control
-		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(7)").attr("title", htmlDecode(gettext("Sets extruder's current to 660mA"))).click(function() {
+		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(7)").attr("title", htmlDecode(_.sprintf(gettext("Sets extruder's current to %(current)dmA"), {current: 660}))).click(function() {
 			
 			// Show message
 			showMessage(gettext("Extruder Current Status"), gettext("This will overwrite the existing extruder current settings. Proceed?"), gettext("Yes"), function() {
@@ -13396,7 +13103,7 @@ $(function() {
 				hideMessage();
 				
 				// Show message
-				showMessage(gettext("Extruder Current Status"), gettext("Setting extruder current to 660mA"));
+				showMessage(gettext("Extruder Current Status"), _.sprintf(gettext("Setting extruder current to %(current)dmA"), {current: 660}));
 		
 				// Send request
 				$.ajax({
@@ -13704,7 +13411,7 @@ $(function() {
 						$("#navbar_plugin_m33fio > select > option").each(function() {
 					
 							// Check if another OctoPrint instance exists
-							if($(this).attr("value") !== "new" && $(this).attr("value") !== "close" && $(this).attr("value") != window.location.port) {
+							if($(this).attr("value") !== "new" && $(this).attr("value") !== "close" && $(this).attr("value") !== window.location.port) {
 						
 								// Set found port
 								foundPort = true;
@@ -13751,7 +13458,7 @@ $(function() {
 					$("#navbar_plugin_m33fio > select > option").each(function() {
 				
 						// Check if another OctoPrint instance exists
-						if($(this).attr("value") !== "new" && $(this).attr("value") !== "close" && $(this).attr("value") != window.location.port) {
+						if($(this).attr("value") !== "new" && $(this).attr("value") !== "close" && $(this).attr("value") !== window.location.port) {
 						
 							// Set found port
 							foundPort = true;
@@ -14142,14 +13849,14 @@ $(function() {
 					$("#gcode_upload_progress > div.bar").html(text);
 				
 				// Update message header
-				$("body > div.page-container > div.message").find("h4").html(gettext("Pre-processing Status"));
+				$("body > div.page-container > div.message").find("h4").html(gettext("Pre‐processing Status"));
 			}
 			
 			// Otherwise check if data is pre-processing file
 			else if(data.value === "Pre-processing file") {
 			
 				// Show message
-				showMessage(gettext("Pre-processing Status"), gettext("Collecting Print Information …"));
+				showMessage(gettext("Pre‐processing Status"), gettext("Collecting Print Information …"));
 			
 				// Update pre-processing status
 				function updatePreprocessingStatus() {
@@ -14216,11 +13923,11 @@ $(function() {
 					if(!data.cura && !data.slic3r)
 						var text = gettext("It's recommended that you install a slicer on this server to allow slicing from within OctoPrint");
 					else if(data.cura && data.slic3r)
-						var text = gettext("It's recommended that you install the latest <a href=\"https://ultimaker.com/en/products/cura-software/list\" target=\"_blank\" rel=\"nofollow\">Cura 15.04</a> release or the latest <a href=\"http://slic3r.org/download\" target=\"_blank\" rel=\"nofollow\">Slic3r</a> release on this server to allow slicing from within OctoPrint");
+						var text = _.sprintf(gettext("It's recommended that you install the latest <a href=\"https://ultimaker.com/en/products/cura-software/list\" target=\"_blank\" rel=\"nofollow\">Cura %(curaVersion)s</a> release or the latest <a href=\"http://slic3r.org/download\" target=\"_blank\" rel=\"nofollow\">Slic3r %(slic3rVersion)s</a> release on this server to allow slicing from within OctoPrint"), {curaVersion: "15.04", slic3rVersion: "1.2.9"});
 					else if(data.cura)
-						var text = gettext("It's recommended that you install the latest <a href=\"https://ultimaker.com/en/products/cura-software/list\" target=\"_blank\" rel=\"nofollow\">Cura 15.04</a> release on this server to allow slicing from within OctoPrint");
+						var text = _.sprintf(gettext("It's recommended that you install the latest <a href=\"https://ultimaker.com/en/products/cura-software/list\" target=\"_blank\" rel=\"nofollow\">Cura %(curaVersion)s</a> release on this server to allow slicing from within OctoPrint"), {curaVersion: "15.04"});
 					else if(data.slic3r)
-						var text = gettext("It's recommended that you install the latest <a href=\"http://slic3r.org/download\" target=\"_blank\" rel=\"nofollow\">Slic3r</a> release on this server to allow slicing from within OctoPrint");
+						var text = _.sprintf(gettext("It's recommended that you install the latest <a href=\"http://slic3r.org/download\" target=\"_blank\" rel=\"nofollow\">Slic3r %(slic3rVersion)s</a> release on this server to allow slicing from within OctoPrint"), {slic3rVersion: "1.2.9"});
 					
 					// Check if same text is currently being displayed
 					if($("body > div.page-container > div.message").hasClass("show") && $("body > div.page-container > div.message").find("p").eq(0).html() === text)
@@ -14445,7 +14152,7 @@ $(function() {
 						var firmwareType = firmwareName.substr(0, firmwareName.search(/ \d{10}$/));
 						
 						// Show message
-						showMessage(gettext("Firmware Status"), firmwareType === "M3D Mod" ? gettext("M3D Mod is a modified version of M3D firmware that increases the max temperature from 285°C to 315°C. Proceed?") : gettext("This will update the printer's current firmware. Proceed?"), gettext("Yes"), function() {
+						showMessage(gettext("Firmware Status"), firmwareType === "M3D Mod" ? _.sprintf(gettext("M3D Mod is a modified version of M3D firmware that increases the max temperature from %(oldTemperature)d°C to %(newTemperature)d°C. Proceed?"), {oldTemperature: 285, newTemperature: 315}) : gettext("This will update the printer's current firmware. Proceed?"), gettext("Yes"), function() {
 		
 							// Hide message
 							hideMessage();
@@ -15075,7 +14782,7 @@ $(function() {
 			else if(data.value === "Starting Mid-Print Filament Change")
 			
 				// Show message
-				showMessage(gettext("Filament Status"), gettext("Starting mid-print filament change"));
+				showMessage(gettext("Filament Status"), gettext("Starting mid‐print filament change"));
 			
 			// Otherwise check if data is failed to change filament mid-print
 			else if(data.value === "Failed Mid-Print Filament Change")
@@ -15091,7 +14798,7 @@ $(function() {
 			else if(data.value === "Show Mid-Print Filament Change") {
 			
 				// Set text
-				var text = gettext("Mid-print filament change");
+				var text = gettext("Mid‐print filament change");
 				
 				// Check if same text is currently being displayed
 				if($("body > div.page-container > div.message").hasClass("show") && $("body > div.page-container > div.message").find("p").eq(0).html() === text)
@@ -15418,7 +15125,7 @@ $(function() {
 			$("#navbar_plugin_m33fio > select > option").last().prop("disabled", false).prev().prop("disabled", false);
 			
 			// Disable closing initial OctoPrint instance
-			if(window.location.port == 5000)
+			if(window.location.port === "5000")
 				$("#navbar_plugin_m33fio > select > option").last().prop("disabled", true)
 			
 			// Show mid-print filament change settings if using a Micro 3D printer
@@ -15685,11 +15392,11 @@ $(function() {
 			// Add titles to buttons that weren't loaded before
 			$("#control div.jog-panel.controls > div > button:first-of-type, #control div.jog-panel.controls #control-jog-feedrate > button:first-of-type").attr("title", htmlDecode(gettext("Sets feed rate to the specified amount")));
 			$("#control div.jog-panel.extruder > div > button:nth-of-type(3)").attr("title", htmlDecode(gettext("Sets flow rate to the specified amount")));
-			$("#control-distance001").attr("title", htmlDecode(gettext("Sets extruder's position adjustment to 0.01mm")));
-			$("#control-distance01").attr("title", htmlDecode(gettext("Sets extruder's position adjustment to 0.1mm")));
-			$("#control-distance1").attr("title", htmlDecode(gettext("Sets extruder's position adjustment to 1mm")));
-			$("#control-distance10").attr("title", htmlDecode(gettext("Sets extruder's position adjustment to 10mm")));
-			$("#control-distance100").attr("title", htmlDecode(gettext("Sets extruder's position adjustment to 100mm")));
+			$("#control-distance001").attr("title", htmlDecode(_.sprintf(gettext("Sets extruder's position adjustment to %(distance)smm"), {distance: "0.01"})));
+			$("#control-distance01").attr("title", htmlDecode(_.sprintf(gettext("Sets extruder's position adjustment to %(distance)smm"), {distance: "0.1"})));
+			$("#control-distance1").attr("title", htmlDecode(_.sprintf(gettext("Sets extruder's position adjustment to %(distance)smm"), {distance: "1"})));
+			$("#control-distance10").attr("title", htmlDecode(_.sprintf(gettext("Sets extruder's position adjustment to %(distance)smm"), {distance: "10"})));
+			$("#control-distance100").attr("title", htmlDecode(_.sprintf(gettext("Sets extruder's position adjustment to %(distance)smm"), {distance: "100"})));
 			$("#control div.jog-panel.extruder > div > div:first-of-type").attr("title", htmlDecode(gettext("Sets tool to specified value")));
 		
 			// Make controls not Micro 3D applicable
