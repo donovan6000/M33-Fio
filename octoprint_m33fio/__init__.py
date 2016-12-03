@@ -1338,7 +1338,7 @@ class M33FioPlugin(
 				if tuple(map(int, (octoprint.__version__.split(".", 2)[: 2]))) < tuple(map(int, ("1.3".split(".")))) :
 		
 					# Fix G-code lines
-					match = re.findall("^(.+)(\d+)\.gcode", line)
+					match = re.findall("^(.+)(\\d+)\\.gcode", line)
 					if len(match) :
 						line = match[0][0] + ".gcode" + match[0][1] + line[len(match[0][0]) + len(match[0][1]) + 6 :]
 			except :
@@ -4292,7 +4292,7 @@ class M33FioPlugin(
 			if self._printer.is_printing() and self._settings.get_boolean(["PreprocessOnTheFly"]) and not data.startswith("N0 M110") and "**" not in data :
 			
 				# Check if command contains a line number
-				lineNumberLocation = re.findall("^N(\d+)", data)
+				lineNumberLocation = re.findall("^N(\\d+)", data)
 				if len(lineNumberLocation) :
 			
 					# Get line number
@@ -9997,41 +9997,41 @@ class M33FioPlugin(
 			if flask.request.values["Slicer Name"] == "cura" :
 			
 				# Change printer profile
-				search = re.findall("extruder_amount\s*?=\s*?(\d+)", flask.request.values["Slicer Profile Content"])
+				search = re.findall("extruder_amount\\s*?=\\s*?(\\d+)", flask.request.values["Slicer Profile Content"])
 				if len(search) :
 					printerProfile["extruder"]["count"] = int(search[0])
 			
-				search = re.findall("has_heated_bed\s*?=\s*?(\S+)", flask.request.values["Slicer Profile Content"])
+				search = re.findall("has_heated_bed\\s*?=\\s*?(\\S+)", flask.request.values["Slicer Profile Content"])
 				if len(search) :
 					if str(search[0]).lower() == "true" :
 						printerProfile["heatedBed"] = True
 					else :
 						printerProfile["heatedBed"] = False
 			
-				search = re.findall("machine_width\s*?=\s*?(\d+.?\d*)", flask.request.values["Slicer Profile Content"])
+				search = re.findall("machine_width\\s*?=\\s*?(\\d+.?\\d*)", flask.request.values["Slicer Profile Content"])
 				if len(search) :
 					printerProfile["volume"]["width"] = float(search[0])
 			
-				search = re.findall("machine_height\s*?=\s*?(\d+.?\d*)", flask.request.values["Slicer Profile Content"])
+				search = re.findall("machine_height\\s*?=\\s*?(\\d+.?\\d*)", flask.request.values["Slicer Profile Content"])
 				if len(search) :
 					printerProfile["volume"]["height"] = float(search[0])
 			
-				search = re.findall("machine_depth\s*?=\s*?(\d+.?\d*)", flask.request.values["Slicer Profile Content"])
+				search = re.findall("machine_depth\\s*?=\\s*?(\\d+.?\\d*)", flask.request.values["Slicer Profile Content"])
 				if len(search) :
 					printerProfile["volume"]["depth"] = float(search[0])
 			
-				search = re.findall("machine_shape\s*?=\s*?(\S+)", flask.request.values["Slicer Profile Content"])
+				search = re.findall("machine_shape\\s*?=\\s*?(\\S+)", flask.request.values["Slicer Profile Content"])
 				if len(search) :
 					if str(search[0]).lower() == "circular" :
 						printerProfile["volume"]["formFactor"] = "circular"
 					else :
 						printerProfile["volume"]["formFactor"] = "rectangular"
 			
-				search = re.findall("nozzle_size\s*?=\s*?(\d+.?\d*)", flask.request.values["Slicer Profile Content"])
+				search = re.findall("nozzle_size\\s*?=\\s*?(\\d+.?\\d*)", flask.request.values["Slicer Profile Content"])
 				if len(search) :
 					printerProfile["extruder"]["nozzleDiameter"] = float(search[0])
 			
-				search = re.findall("machine_center_is_zero\s*?=\s*?(\S+)", flask.request.values["Slicer Profile Content"])
+				search = re.findall("machine_center_is_zero\\s*?=\\s*?(\\S+)", flask.request.values["Slicer Profile Content"])
 				if len(search) :
 					if str(search[0]).lower() == "true" :
 						printerProfile["volume"]["origin"] = "center"
@@ -10039,7 +10039,7 @@ class M33FioPlugin(
 						printerProfile["volume"]["formFactor"] = "rectangular"
 						printerProfile["volume"]["origin"] = "lowerleft"
 			
-				search = re.findall("extruder_offset_(x|y)(\d)\s*?=\s*?(-?\d+.?\d*)", flask.request.values["Slicer Profile Content"])
+				search = re.findall("extruder_offset_(x|y)(\\d)\\s*?=\\s*?(-?\\d+.?\\d*)", flask.request.values["Slicer Profile Content"])
 				vectors = [Vector(0, 0)] * printerProfile["extruder"]["count"]
 			
 				for offset in search :
@@ -10058,12 +10058,12 @@ class M33FioPlugin(
 			elif flask.request.values["Slicer Name"] == "slic3r" :
 			
 				# Change printer profile
-				search = re.findall("bed_size\s*?=\s*?(\d+.?\d*)\s*?,\s*?(\d+.?\d*)", flask.request.values["Slicer Profile Content"])
+				search = re.findall("bed_size\\s*?=\\s*?(\\d+.?\\d*)\\s*?,\\s*?(\\d+.?\\d*)", flask.request.values["Slicer Profile Content"])
 				if len(search) :
 					printerProfile["volume"]["width"] = float(search[0][0])
 					printerProfile["volume"]["depth"] = float(search[0][1])
 				
-				search = re.findall("nozzle_diameter\s*?=\s*?(\d+.?\d*)", flask.request.values["Slicer Profile Content"])
+				search = re.findall("nozzle_diameter\\s*?=\\s*?(\\d+.?\\d*)", flask.request.values["Slicer Profile Content"])
 				if len(search) :
 					printerProfile["extruder"]["nozzleDiameter"] = float(search[0])
 			

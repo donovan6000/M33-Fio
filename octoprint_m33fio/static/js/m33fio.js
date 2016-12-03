@@ -1017,7 +1017,7 @@ $(function() {
 		function getSlicerProfileValue(setting) {
 		
 			// Get first match
-			var expression = new RegExp("(?:^|\n)" + escapeRegExp(setting) + "\\s*?=(.*)\n?");
+			var expression = new RegExp("(?:^|\\n)" + escapeRegExp(setting) + "\\s*?=(.*)\\n?");
 			var matches = expression.exec($("#slicing_configuration_dialog .modal-extra textarea").length ? $("#slicing_configuration_dialog .modal-extra textarea").val() : slicerProfileContent);
 			
 			// Return setting's value if it exists
@@ -7057,7 +7057,7 @@ $(function() {
 												for(var setting in settings) {
 									
 													// Remove setting
-													var expression = new RegExp("(^|\n)" + escapeRegExp(setting) + "(?: |=|\n|$).*?(?:\n|$)", "g");
+													var expression = new RegExp("(^|\\n)" + escapeRegExp(setting) + "(?: |=|\\n|$).*?(?:\\n|$)", "g");
 													profile = profile.replace(expression, "$1");
 										
 													// Check if setting exists
