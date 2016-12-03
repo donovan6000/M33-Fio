@@ -12,7 +12,7 @@ import math
 print "\nCura Engine parameters to Cura profile converter"
 print "Usage: python ./EngineToProfile.py input.cfg output.ini\n"
 print "M3D's Windows software generates new Cura Engine parameters whenever it prints a model, and it stores them in C:\\Users\\%Username%\\AppData\\Local\\M3D\\M3DSoftware\\Working\\default.cfg"
-print "I haven't been able to run M3D's OS X or Linux software, so I don't know where they store the Cura Engine parameters\n"
+print "I haven't been able to run M3D's macOS or Linux software, so I don't know where they store the Cura Engine parameters\n"
 
 # Check if no input file is specified
 if len(sys.argv) < 2 :

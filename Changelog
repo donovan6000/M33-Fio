@@ -1,5 +1,13 @@
 Changelog:
 
+V1.12 December 3rd, 2016
+
+	* Made model editor's raft display more efficient
+	* Added more tolerance to raft's size in model editor when using Cura to make the boundary checking more accurate
+	* Added vendor prefixes to CSS 3.0 properties to improve compatibility with outdated browsers
+	* Fixed macOS installer when Xcode is installed
+	* Fixed compatibility with OctoPrint >= V1.3.0rc2
+
 V1.11 November 6, 2016
 
 	* Heatbed will start heating up after moving extruder into the wipe corner

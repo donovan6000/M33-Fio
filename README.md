@@ -4,7 +4,7 @@
 ### Description
 M33 Fio is a general purpose plugin for [OctoPrint](http://octoprint.org/) that extends its capabilities to include many useful feature like the ability to use a Micro 3D printer, modify a model before printing it, host a webcam stream, and much more.
 
-The latest version of M33 Fio is V1.11 released on November 6th, 2016, and an entire changelog for it can be found [here](https://raw.githubusercontent.com/donovan6000/M33-Fio/master/Changelog).
+The latest version of M33 Fio is V1.12 released on December 3rd, 2016, and an entire changelog for it can be found [here](https://raw.githubusercontent.com/donovan6000/M33-Fio/master/Changelog).
 
 ### Features
 * Adds a model viewer tab to OctoPrint's interface where any uploaded model can be viewed
@@ -19,7 +19,7 @@ The latest version of M33 Fio is V1.11 released on November 6th, 2016, and an en
 * Includes a model editor that allows modifying a model before slicing and can perform operations like moving, rotating, scaling, cutting, merging, clonging, and importing other models into the scene
 
 ### Installation
-There's installers available for [Windows](https://raw.githubusercontent.com/donovan6000/M33-Fio/master/installers/Windows/install.zip), [OS X](https://raw.githubusercontent.com/donovan6000/M33-Fio/master/installers/OS%20X/install.zip), and [Linux](https://raw.githubusercontent.com/donovan6000/M33-Fio/master/installers/Linux/install.zip) that install OctoPrint, M33 Fio, and device drivers for the Micro 3D printer and [Micro 3D compatible heatbed](https://www.kickstarter.com/projects/1668748285/the-micro-m3d-compatible-heated-print-bed). These installers all add OctoPrint as a startup program and create a shortcut on the desktop that allows accessing OctoPrint's user interface.
+There's installers available for [Windows](https://raw.githubusercontent.com/donovan6000/M33-Fio/master/installers/Windows/install.zip), [macOS](https://raw.githubusercontent.com/donovan6000/M33-Fio/master/installers/macOS/install.zip), and [Linux](https://raw.githubusercontent.com/donovan6000/M33-Fio/master/installers/Linux/install.zip) that install OctoPrint, M33 Fio, and device drivers for the Micro 3D printer and [Micro 3D compatible heatbed](https://www.kickstarter.com/projects/1668748285/the-micro-m3d-compatible-heated-print-bed). These installers all add OctoPrint as a startup program and create a shortcut on the desktop that allows accessing OctoPrint's user interface.
 
 If you already have OctoPrint installed, M33 Fio can be installed directly from OctoPrint's builtin plugin manager by searching for it in the plugin repository.
 
@@ -29,7 +29,7 @@ By default M33 Fio is setup to make OctoPrint fully compatible with the Micro 3D
 ### Known Issues
 * Everything works in all versions of OctoPrint >= 1.2.0 except the Micro 3D printer connection routine which only works with versions of OctoPrint >= 1.2.5
 * Microsoft Internet Explorer 11 doesn't display webcam stream since it doesn't natively support MJPEG videos
-* Microsoft Internet Explorer 11 doesn't resize slicer profile editor correctly
+* Microsoft Internet Explorer 11 doesn't resize the slicer profile editor correctly
 * Microsoft Internet Explorer 11 doesn't insert a tab character when typing the tab key in the advanced section of the slicer profile editor since it doesn't support using the document.execCommand function with the "insertText" parameter
 * Microsoft Edge displays webcam stream as a still image
 * Can't host more than one webcam stream at a time since it always hosts on port 4999

@@ -18,8 +18,8 @@
 	</div>
 	<div class="control-group micro3d">
 		<div class="controls">
-			<label class="checkbox" title="{{_("Pre-processes each G-code command right before being sent to the printer instead of having the entire G-code file pre-processed when being uploaded or sliced" | replace("\"", "&quot;"))}}">
-				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.PreprocessOnTheFly"><span>{{_("Pre-process on the fly")}}</span>
+			<label class="checkbox" title="{{_("Pre‐processes each G-code command right before being sent to the printer instead of having the entire G-code file pre‐processed when being uploaded or sliced" | replace("\"", "&quot;"))}}">
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.PreprocessOnTheFly"><span>{{_("Pre‐process on the fly")}}</span>
 			</label>
 		</div>
 	</div>
@@ -32,7 +32,7 @@
 	</div>
 	<div class="control-group sharedLibrary micro3d">
 		<div class="controls">
-			<label class="checkbox" title="{{_("Uses the shared library pre-processor instead of the Python pre-processor to pre-process G-code files and commands" | replace("\"", "&quot;"))}}">
+			<label class="checkbox" title="{{_("Uses the shared library pre‐processor instead of the Python pre‐processor to pre‐process G-code files and commands" | replace("\"", "&quot;"))}}">
 				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.UseSharedLibrary"><span>{{_("Use shared library")}}</span>
 			</label>
 		</div>
@@ -87,12 +87,12 @@
 		</div>
 	</div>
 	<div class="control-group title micro3d">
-		<h4>{{_("Pre-Processor Stages")}}</h4>
+		<h4>{{_("Pre‐Processor Stages")}}</h4>
 	</div>
 	<div class="control-group micro3d">
 		<div class="controls">
-			<label class="noCheckbox noWrap" title="{{_("Adds in mid-print filament change commands at the start of each specified layer. Layer numbers should be seperated by a space." | replace("\"", "&quot;"))}}">
-				<span class="noCheckbox">{{_("Mid-print filament change layers")}}</span>
+			<label class="noCheckbox noWrap" title="{{_("Adds in mid‐print filament change commands at the start of each specified layer. Layer numbers should be seperated by a space." | replace("\"", "&quot;"))}}">
+				<span class="noCheckbox">{{_("Mid‐print filament change layers")}}</span>
 				<input type="text" pattern="[\d\s]*" class="input-block-level short" data-bind="value: settings.plugins.m33fio.MidPrintFilamentChangeLayers">
 			</label>
 		</div>
@@ -332,15 +332,15 @@
 		<label class="control-label">{{_("Filament Type")}}</label>
 		<div class="controls">
 			<select class="input-block-level" data-bind="value: settings.plugins.m33fio.FilamentType">
-				<option value="ABS">{{_("ABS (Recommended %(temperature)d°C)", temperature = 275)}}</option>
-				<option value="PLA">{{_("PLA (Recommended %(temperature)d°C)", temperature = 215)}}</option>
-				<option value="HIPS">{{_("HIPS (Recommended %(temperature)d°C)", temperature = 265)}}</option>
-				<option value="FLX">{{_("FLX (Recommended %(temperature)d°C)", temperature = 220)}}</option>
-				<option value="TGH">{{_("TGH (Recommended %(temperature)d°C)", temperature = 220)}}</option>
-				<option value="CAM">{{_("CAM (Recommended %(temperature)d°C)", temperature = 215)}}</option>
-				<option value="ABS-R">{{_("ABS-R (Recommended %(temperature)d°C)", temperature = 240)}}</option>
+				<option value="ABS">{{_("%(type)s (Recommended %(temperature)d°C)", type = "ABS", temperature = 275)}}</option>
+				<option value="PLA">{{_("%(type)s (Recommended %(temperature)d°C)", type = "PLA", temperature = 215)}}</option>
+				<option value="HIPS">{{_("%(type)s (Recommended %(temperature)d°C)", type = "HIPS", temperature = 265)}}</option>
+				<option value="FLX">{{_("%(type)s (Recommended %(temperature)d°C)", type = "FLX", temperature = 220)}}</option>
+				<option value="TGH">{{_("%(type)s (Recommended %(temperature)d°C)", type = "TGH", temperature = 220)}}</option>
+				<option value="CAM">{{_("%(type)s (Recommended %(temperature)d°C)", type = "CAM", temperature = 215)}}</option>
+				<option value="ABS-R">{{_("%(type)s (Recommended %(temperature)d°C)", type = "ABS‐R", temperature = 240)}}</option>
 				<option value="OTHER">{{_("Other")}}</option>
-			</select> 
+			</select>
 		</div>
 	</div>
 	<div class="control-group empty micro3d">
@@ -383,7 +383,7 @@
 		</div>
 	</div>
 	<div class="control-group micro3d" title="{{_("E motor's retraction speed limit" | replace("\"", "&quot;"))}}">
-		<label class="control-label">{{_("Speed Limit E-")}}</label>
+		<label class="control-label">{{_("Speed Limit E−")}}</label>
 		<div class="controls">
 			<div class="input-append mmPerMinute">
 				<input type="number" step="1" min="60" max="720" class="input-block-level" data-bind="value: settings.plugins.m33fio.SpeedLimitENegative">

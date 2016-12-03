@@ -35,7 +35,7 @@ else
 		do
 			:
 		done
-		installer -pkg python.pkg -target /
+		installer -allowUntrusted -pkg python.pkg -target /
 		rm python.pkg
 		
 		# Update pip
@@ -73,11 +73,7 @@ else
 		# Patch installer to fix compiling issues
 		sudo -u $SUDO_USER sed -i '' -e 's/def get_sdk_level():/def get_sdk_level():\
     return None/g' setup.py
-		sudo -u $SUDO_USER sed -i '' -e 's/\(self\.sdk_root = subprocess.*\)/try:\
-                    \1/g' setup.py
-		sudo -u $SUDO_USER sed -i '' -e 's/\(universal_newlines=True.*\)/\1\
-                except subprocess.CalledProcessError as e:\
-                    self.sdk_root = \'"'"'\/\'"'"'/g' setup.py
+		sudo -u $SUDO_USER sed -i '' -e 's/if os\.path\.exists('\''\/usr\/bin\/xcodebuild'\''):/if False and os\.path\.exists('\''\/usr\/bin\/xcodebuild'\''):/g' setup.py
 		
 		while ! sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/python setup.py install --user
 		do
@@ -206,7 +202,7 @@ else
 		do
 			:
 		done
-		installer -pkg CH34x_Install.pkg -target /
+		installer -allowUntrusted -pkg CH34x_Install.pkg -target /
 		rm CH34x_Install.pkg
 		
 		# Add OctoPrint to startup programs
@@ -223,6 +219,7 @@ else
 			:
 		done
 		sudo -u $SUDO_USER ditto -x -k --sequesterRsrc --rsrc shortcut.zip '/Users/'"$SUDO_USER"'/Desktop'
+		rm shortcut.zip
 		
 		# Start OctoPrint
 		rm -rf '/Users/'"$SUDO_USER"'/.python-eggs'

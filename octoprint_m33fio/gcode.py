@@ -40,7 +40,7 @@ class Gcode(object) :
 		self.hostCommand = ""
 		
 		# Check if line contains a checksum
-		characterOffset = line.find('*')
+		characterOffset = line.find("*")
 		if characterOffset != -1 :
 		
 			# Remove checksum
@@ -53,7 +53,7 @@ class Gcode(object) :
 		self.originalCommand = line
 		
 		# Check if line contains a comment
-		characterOffset = line.find(';')
+		characterOffset = line.find(";")
 		if characterOffset != -1 :
 	
 			# Remove comment
@@ -66,7 +66,7 @@ class Gcode(object) :
 			return False
 		
 		# Check if line is a host command
-		if line[0] == '@' :
+		if line[0] == "@" :
 			
 			# Set host command
 			self.hostCommand = line
@@ -75,7 +75,7 @@ class Gcode(object) :
 			return True
 		
 		# Parse line for parameters
-		for match in re.compile("[" + self.order.replace(' ', '') + "][-+]?\d*(\.\d+)?").finditer(line) :
+		for match in re.compile("[" + self.order.replace(" ", "") + "][-+]?\\d*(\\.\\d+)?").finditer(line) :
 			
 			# Set data type
 			self.dataType |= (1 << self.order.find(match.group()[0]))
@@ -84,7 +84,7 @@ class Gcode(object) :
 			self.parameterValue[self.order.find(match.group()[0])] = match.group()[1 :]
 			
 			# Check if match is an M value
-			if match.group()[0] == 'M' :
+			if match.group()[0] == "M" :
 			
 				# Check if M value contains a string
 				value = match.group()[1 :]
@@ -166,7 +166,7 @@ class Gcode(object) :
 		if self.parameterValue[3] != "" :
 		
 			# Set 4 byte float parameter value
-			tempNumber = struct.pack('f', float(self.parameterValue[3]))
+			tempNumber = struct.pack("f", float(self.parameterValue[3]))
 			request += tempNumber[0]
 			request += tempNumber[1]
 			request += tempNumber[2]
@@ -176,7 +176,7 @@ class Gcode(object) :
 		if self.parameterValue[4] != "" :
 		
 			# Set 4 byte float parameter value
-			tempNumber = struct.pack('f', float(self.parameterValue[4]))
+			tempNumber = struct.pack("f", float(self.parameterValue[4]))
 			request += tempNumber[0]
 			request += tempNumber[1]
 			request += tempNumber[2]
@@ -186,7 +186,7 @@ class Gcode(object) :
 		if self.parameterValue[5] != "" :
 		
 			# Set 4 byte float parameter value
-			tempNumber = struct.pack('f', float(self.parameterValue[5]))
+			tempNumber = struct.pack("f", float(self.parameterValue[5]))
 			request += tempNumber[0]
 			request += tempNumber[1]
 			request += tempNumber[2]
@@ -196,7 +196,7 @@ class Gcode(object) :
 		if self.parameterValue[6] != "" :
 		
 			# Set 4 byte float parameter value
-			tempNumber = struct.pack('f', float(self.parameterValue[6]))
+			tempNumber = struct.pack("f", float(self.parameterValue[6]))
 			request += tempNumber[0]
 			request += tempNumber[1]
 			request += tempNumber[2]
@@ -206,7 +206,7 @@ class Gcode(object) :
 		if self.parameterValue[8] != "" :
 		
 			# Set 4 byte float parameter value
-			tempNumber = struct.pack('f', float(self.parameterValue[8]))
+			tempNumber = struct.pack("f", float(self.parameterValue[8]))
 			request += tempNumber[0]
 			request += tempNumber[1]
 			request += tempNumber[2]
@@ -243,7 +243,7 @@ class Gcode(object) :
 		if self.parameterValue[16] != "" :
 		
 			# Set 4 byte float parameter value
-			tempNumber = struct.pack('f', float(self.parameterValue[16]))
+			tempNumber = struct.pack("f", float(self.parameterValue[16]))
 			request += tempNumber[0]
 			request += tempNumber[1]
 			request += tempNumber[2]
@@ -253,7 +253,7 @@ class Gcode(object) :
 		if self.parameterValue[17] != "" :
 		
 			# Set 4 byte float parameter value
-			tempNumber = struct.pack('f', float(self.parameterValue[17]))
+			tempNumber = struct.pack("f", float(self.parameterValue[17]))
 			request += tempNumber[0]
 			request += tempNumber[1]
 			request += tempNumber[2]
@@ -263,7 +263,7 @@ class Gcode(object) :
 		if self.parameterValue[18] != "" :
 		
 			# Set 4 byte float parameter value
-			tempNumber = struct.pack('f', float(self.parameterValue[18]))
+			tempNumber = struct.pack("f", float(self.parameterValue[18]))
 			request += tempNumber[0]
 			request += tempNumber[1]
 			request += tempNumber[2]
@@ -273,7 +273,7 @@ class Gcode(object) :
 		if self.parameterValue[19] != "" :
 		
 			# Set 4 byte float parameter value
-			tempNumber = struct.pack('f', float(self.parameterValue[19]))
+			tempNumber = struct.pack("f", float(self.parameterValue[19]))
 			request += tempNumber[0]
 			request += tempNumber[1]
 			request += tempNumber[2]
@@ -319,13 +319,13 @@ class Gcode(object) :
 			if bool(self.dataType & (1 << i)) and bool(0xF0F7F & (1 << i)) :
 			
 				# Append parameter identifier and value
-				request += self.order[i] + self.parameterValue[i] + ' '
+				request += self.order[i] + self.parameterValue[i] + " "
 				
 				# Check if M command contains a string
 				if i == 1 and bool(self.dataType & (1 << 15)) :
 		
 					# Append string to request
-					request += self.parameterValue[15] + ' '
+					request += self.parameterValue[15] + " "
 		
 		# Remove last space from request
 		if request != "" :
@@ -344,7 +344,7 @@ class Gcode(object) :
 	def hasParameter(self, parameter) :
 	
 		# Check if parameter isn't a space
-		if parameter != ' ' :
+		if parameter != " " :
 		
 			# Check if parameter is valid
 			parameterOffset = self.order.find(parameter)
@@ -360,7 +360,7 @@ class Gcode(object) :
 	def removeParameter(self, parameter) :
 	
 		# Check if parameter isn't a space
-		if parameter != ' ' :
+		if parameter != " " :
 		
 			# Check if parameter is valid
 			parameterOffset = self.order.find(parameter)
@@ -382,7 +382,7 @@ class Gcode(object) :
 	def hasValue(self, parameter) :
 	
 		# Check if parameter isn't a space
-		if parameter != ' ' :
+		if parameter != " " :
 		
 			# Check if parameter is valid
 			parameterOffset = self.order.find(parameter)
@@ -398,7 +398,7 @@ class Gcode(object) :
 	def getValue(self, parameter) :
 	
 		# Check if parameter isn't a space
-		if parameter != ' ' :
+		if parameter != " " :
 		
 			# Check if parameter is valid
 			parameterOffset = self.order.find(parameter)
@@ -414,7 +414,7 @@ class Gcode(object) :
 	def setValue(self, parameter, value) :
 	
 		# Check if parameter isn't a space
-		if parameter != ' ' :
+		if parameter != " " :
 		
 			# Check if parameter is valid
 			parameterOffset = self.order.find(parameter)

@@ -19,10 +19,10 @@ if platform.uname()[0].startswith("Windows") or platform.uname()[0].startswith("
 	from PIL import Image
 	import pygame.camera
 
-# Otherwise check if using OS X
+# Otherwise check if using macOS
 elif platform.uname()[0].startswith("Darwin") :
 
-	# Import OS X frameworks
+	# Import macOS frameworks
 	from io import BytesIO
 	from AppKit import *
 	from PyObjCTools import AppHelper
@@ -114,7 +114,7 @@ else :
 				time.sleep(0.1)
 			
 			# Check if requesting snapshot
-			if self.path.split('?')[0] == "/snapshot.jpg" :
+			if self.path.split("?")[0] == "/snapshot.jpg" :
 			
 				# Send current frame header
 				self.send_response(200)
@@ -126,7 +126,7 @@ else :
 				self.wfile.write(currentFrame)
 			
 			# Otherwise check if requesting stream
-			elif self.path.split('?')[0] == "/stream.mjpg" :
+			elif self.path.split("?")[0] == "/stream.mjpg" :
 			
 				# Send header
 				self.send_response(200)
@@ -166,7 +166,7 @@ else :
 
 	# Start server
 	try :
-		server = ThreadedHTTPServer(('', httpPort), requestHandler)
+		server = ThreadedHTTPServer(("", httpPort), requestHandler)
 	except :
 	
 		# Exit
@@ -183,9 +183,9 @@ else :
 		ipAddress = socket.gethostbyname(socket.gethostname())
 	
 	# Display hosting information
-	print "Using webcam device " + str(cameraPort) + " with a resolution of " + str(cameraWidth) + 'x' + str(cameraHeight) + " running at " + str(int(1.0 / cameraFrameDelay)) + " frames/second"
-	print "Hosting webcam still image at http://" + ipAddress + ':' + str(httpPort) + "/snapshot.jpg"
-	print "Hosting webcam video stream at http://" + ipAddress + ':' + str(httpPort) + "/stream.mjpg"
+	print "Using webcam device " + str(cameraPort) + " with a resolution of " + str(cameraWidth) + "x" + str(cameraHeight) + " running at " + str(int(1.0 / cameraFrameDelay)) + " frames/second"
+	print "Hosting webcam still image at http://" + ipAddress + ":" + str(httpPort) + "/snapshot.jpg"
+	print "Hosting webcam video stream at http://" + ipAddress + ":" + str(httpPort) + "/stream.mjpg"
 
 	# Check if pygame camera is usable
 	if "pygame.camera" in sys.modules :
