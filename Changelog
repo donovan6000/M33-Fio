@@ -1,5 +1,9 @@
 Changelog:
 
+V1.13 December 3rd, 2016
+
+	* Fixed Safari related JavaScript issue
+
 V1.12 December 3rd, 2016
 
 	* Made model editor's raft display more efficient

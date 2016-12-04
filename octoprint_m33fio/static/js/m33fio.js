@@ -1427,19 +1427,23 @@ $(function() {
 				// Update grid
 				updateGrid: function() {
 				
-					// Check if grid already exists
-					if(modelViewer.grid !== null) {
-					
-						// Remove grid from scene
-						modelViewer.scene.remove(modelViewer.grid);
-						modelViewer.grid = null;
-					}
-					
-					// Create grid
-					modelViewer.grid = createGrid(self.printerProfile.currentProfileData().volume.width(), self.printerProfile.currentProfileData().volume.depth(), self.printerProfile.currentProfileData().volume.formFactor(), self.printerProfile.currentProfileData().volume.origin());
+					// Check if model viewer was created
+					if(modelViewer.scene !== null) {
 				
-					// Add grid to scene
-					modelViewer.scene.add(modelViewer.grid);
+						// Check if grid already exists
+						if(modelViewer.grid !== null) {
+					
+							// Remove grid from scene
+							modelViewer.scene.remove(modelViewer.grid);
+							modelViewer.grid = null;
+						}
+					
+						// Create grid
+						modelViewer.grid = createGrid(self.printerProfile.currentProfileData().volume.width(), self.printerProfile.currentProfileData().volume.depth(), self.printerProfile.currentProfileData().volume.formFactor(), self.printerProfile.currentProfileData().volume.origin());
+				
+						// Add grid to scene
+						modelViewer.scene.add(modelViewer.grid);
+					}
 				},
 				
 				// Load model
