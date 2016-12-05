@@ -45,7 +45,7 @@ else
 		done
 		
 		# Install command line tools
-		while ! curl -f -O 'https://raw.githubusercontent.com/donovan6000/M33-Fio/master/installers/OS%20X/command%20line%20tools%20installer.bash'
+		while ! curl -f -O 'https://raw.githubusercontent.com/donovan6000/M33-Fio/master/installers/macOS/command%20line%20tools%20installer.bash'
 		do
 			:
 		done
@@ -198,7 +198,7 @@ else
 		rm master.zip
 		
 		# Install heatbed drivers
-		while ! curl -f -O 'https://raw.githubusercontent.com/donovan6000/M33-Fio/master/installers/OS%20X/CH34x_Install.pkg'
+		while ! curl -f -O 'https://raw.githubusercontent.com/donovan6000/M33-Fio/master/installers/macOS/CH34x_Install.pkg'
 		do
 			:
 		done
@@ -206,7 +206,7 @@ else
 		rm CH34x_Install.pkg
 		
 		# Add OctoPrint to startup programs
-		while ! curl -f -O 'https://raw.githubusercontent.com/donovan6000/M33-Fio/master/installers/OS%20X/com.octoprint.app.plist'
+		while ! curl -f -O 'https://raw.githubusercontent.com/donovan6000/M33-Fio/master/installers/macOS/com.octoprint.app.plist'
 		do
 			:
 		done
@@ -214,7 +214,7 @@ else
 		mv com.octoprint.app.plist '/Library/LaunchAgents'
 		
 		# Create URL link on desktop
-		while ! curl -f -O 'https://raw.githubusercontent.com/donovan6000/M33-Fio/master/installers/OS%20X/shortcut.zip'
+		while ! curl -f -O 'https://raw.githubusercontent.com/donovan6000/M33-Fio/master/installers/macOS/shortcut.zip'
 		do
 			:
 		done
