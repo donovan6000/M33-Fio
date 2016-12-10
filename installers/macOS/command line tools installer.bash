@@ -23,6 +23,9 @@ if [[ "$osx_vers" -ge 9 ]]; then
 
 	softwareupdate -i "$cmd_line_tools"
 	if [ 0 -ne $? ]; then
+		if [[ -f "$cmd_line_tools_temp_file" ]]; then
+			rm "$cmd_line_tools_temp_file"
+		fi
 		exit 1
 	fi
 
