@@ -3273,14 +3273,14 @@ class M33FioPlugin(
 				configFile = self._settings.global_get_basefolder("base").replace("\\", "/") + "/config.yaml" + str(port)
 				shutil.copyfile(self._settings.global_get_basefolder("base").replace("\\", "/") + "/config.yaml", configFile)
 				
-				useLegacyCommand = True;
+				useLegacyCommand = True
 				try :
 				
 					# Check if using OctoPrint >= 1.3.x
 					if tuple(map(int, (octoprint.__version__.split(".", 2)[: 2]))) >= tuple(map(int, ("1.3".split(".")))) :
 					
 						# Create instance
-						octoprintProcess = subprocess.Popen([sys.executable.replace("\\", "/"), "-c", "import octoprint;octoprint.main()", "serve", "--port", str(port), "--config", self._settings.global_get_basefolder("base").replace("\\", "/") + "/config.yaml" + str(port)])
+						octoprintProcess = subprocess.Popen([sys.executable.replace("\\", "/"), "-c", "import sys;import os;sys.stdout = open(os.devnull, 'w');import octoprint;octoprint.main();", "serve", "--port", str(port), "--config", self._settings.global_get_basefolder("base").replace("\\", "/") + "/config.yaml" + str(port)])
 						
 						# Clear use legacy command
 						useLegacyCommand = False
@@ -3291,7 +3291,7 @@ class M33FioPlugin(
 				if useLegacyCommand :
 					
 					# Create instance
-					octoprintProcess = subprocess.Popen([sys.executable.replace("\\", "/"), "-c", "import octoprint;octoprint.main()", "--port", str(port), "--config", self._settings.global_get_basefolder("base").replace("\\", "/") + "/config.yaml" + str(port)])
+					octoprintProcess = subprocess.Popen([sys.executable.replace("\\", "/"), "-c", "import octoprint;octoprint.main();", "--port", str(port), "--config", self._settings.global_get_basefolder("base").replace("\\", "/") + "/config.yaml" + str(port)])
 				
 				# Wait until new instance is ready
 				while self.isPortOpen(port) :
