@@ -36,6 +36,7 @@ $(function() {
 		var modelViewer = null;
 		var preventUpdatingFiles = false;
 		var heatbedAttached = false;
+		var enableMessages = true;
 		
 		// Set model editor printer and filament color
 		var modelEditorPrinterColor;
@@ -664,18 +665,21 @@ $(function() {
 		
 		// Show message
 		function showMessage(header, text, thirdButton, thirdButtonCallback, secondButton, secondButtonCallback, firstButton, firstButtonCallback) {
-		
-			// Append message to list
-			messages.push({
-				header: header,
-				text: text,
-				thirdButton: thirdButton,
-				secondButton: secondButton,
-				firstButton: firstButton,
-				thirdButtonCallback: thirdButtonCallback,
-				secondButtonCallback: secondButtonCallback,
-				firstButtonCallback: firstButtonCallback
-			});
+			
+			// Check if messages are enabled
+			if(enableMessages)
+			
+				// Append message to list
+				messages.push({
+					header: header,
+					text: text,
+					thirdButton: thirdButton,
+					secondButton: secondButton,
+					firstButton: firstButton,
+					thirdButtonCallback: thirdButtonCallback,
+					secondButtonCallback: secondButtonCallback,
+					firstButtonCallback: firstButtonCallback
+				});
 		}
 
 		// Hide message
@@ -15460,6 +15464,13 @@ $(function() {
 					});
 				}
 			}
+		}
+		
+		// On Wizard details
+		self.onWizardDetails = function() {
+		
+			// Disable messages
+			enableMessages = false;
 		}
 		
 		// On settings shown
