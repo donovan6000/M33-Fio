@@ -60,6 +60,12 @@ if [[ "$osx_vers" -eq 7 ]] || [[ "$osx_vers" -eq 8 ]]; then
 		# command to accomodate for now-expired certificates used
 		# to sign the downloaded command line tools.
 		installer -allowUntrusted -pkg "$(find $TMPMOUNT -name '*.mpkg')" -target /
+		if [ 0 -ne $? ]; then
+			hdiutil detach "$TMPMOUNT"
+			rm -rf "$TMPMOUNT"
+			rm "$TOOLS"
+			exit 1
+		fi
 		hdiutil detach "$TMPMOUNT"
 		rm -rf "$TMPMOUNT"
 		rm "$TOOLS"

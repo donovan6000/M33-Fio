@@ -1045,7 +1045,7 @@ class M33FioPlugin(
 					
 					# Clear webcam stream and snapshot
 					octoprint.settings.settings().set(["webcam", "stream"], "None", True)
-					octoprint.settings.settings().set(["webcam", "snapshot"], None, True)
+					octoprint.settings.settings().set(["webcam", "snapshot"], "None", True)
 					
 					# Save settings
 					octoprint.settings.settings().save()
@@ -1987,8 +1987,8 @@ class M33FioPlugin(
 			else :
 			
 				# Clear camera URLs
-				octoprint.settings.settings().set(["webcam", "stream"], None, True)
-				octoprint.settings.settings().set(["webcam", "snapshot"], None, True)
+				octoprint.settings.settings().set(["webcam", "stream"], "None", True)
+				octoprint.settings.settings().set(["webcam", "snapshot"], "None", True)
 			
 			# Save settings
 			octoprint.settings.settings().save()

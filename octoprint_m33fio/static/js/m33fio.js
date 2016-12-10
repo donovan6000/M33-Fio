@@ -5279,7 +5279,7 @@ $(function() {
 			// Blue self
 			$(this).blur();
 			
-			// Initialzie variables
+			// Initialize variables
 			var currentLayer = (self.gcode.currentLayer + 1).toString();
 			var currentValue = $("#gcode div.midPrintFilamentChange input").val();
 			var index = (" " + currentValue + " ").indexOf(" " + currentLayer + " ");
@@ -13224,7 +13224,7 @@ $(function() {
 				// Hide message
 				hideMessage();
 				
-				// Initialzie EEPROM
+				// Initialize EEPROM
 				var eeprom = "";
 			
 				// Go through all EEPROM inputs
