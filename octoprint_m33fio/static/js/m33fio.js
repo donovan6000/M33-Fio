@@ -9114,10 +9114,6 @@ $(function() {
 
 											// Slice file
 											function sliceFile() {
-						
-												// Save software settings
-												if(self.settings.requestData.toString().split("\n")[0].indexOf("callback") == -1)
-													self.settings.saveData();
 							
 												// Send request
 												$.ajax({
@@ -11474,7 +11470,7 @@ $(function() {
 		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(18)").attr("title", htmlDecode(gettext("Prints a specified backlash calibration"))).click(function() {
 		
 			// Show message
-			showMessage(_.sprintf(gettext("Calibration Status"), gettext("It's recommended to print the backlash calibration prints after the print bed has been accurately calibrated. Make sure to set the \"Backlash X\" and \"Backlash Y\" values to 0 before printing a backlash calibration print which will print the model without any backlash compensation applied to it. The X backlash calibration prints and Y backlash calibration prints each assist in determining the X and Y backlash respecitvley.<br><br>The backlash values can be detemined by finding the sample with the highest possible value that doesn't curve.") + "<img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/backlash.png\">" + gettext("If none of the samples curve when using the %(lowRange)s prints then use the %(highRange)s prints. For more information check out <a target=\"_blank\" rel=\"nofollow\" href=\"http://www.thingiverse.com/thing:1435828\">Muele's quick backlash calibration method</a>.<br><br>All the referenced values can be found by clicking the \"Print settings\" button in the \"General\" section of OctoPrint's Control tab.<br><br>Choose a backlash calibration print to continue."), {lowRange: "0.0‒0.99", highRange: "0.70‒1.69"}) + "<span class=\"backlash\"><button class=\"btn btn-block\">X 0.0‒0.99</button><button class=\"btn btn-block\">X 0.70‒1.69</button><button class=\"btn btn-block\">Y 0.0‒0.99</button><button class=\"btn btn-block\">Y 0.70‒1.69</button></span>", gettext("Cancel"), function() {
+			showMessage(gettext("Calibration Status"), gettext("It's recommended to print the backlash calibration prints after the print bed has been accurately calibrated. Make sure to set the \"Backlash X\" and \"Backlash Y\" values to 0 before printing a backlash calibration print which will print the model without any backlash compensation applied to it. The X backlash calibration prints and Y backlash calibration prints each assist in determining the X and Y backlash respecitvley.<br><br>The backlash values can be detemined by finding the sample with the highest possible value that doesn't curve.") + "<img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/backlash.png\">" + _.sprintf(gettext("If none of the samples curve when using the %(lowRange)s prints then use the %(highRange)s prints. For more information check out <a target=\"_blank\" rel=\"nofollow\" href=\"http://www.thingiverse.com/thing:1435828\">Muele's quick backlash calibration method</a>.<br><br>All the referenced values can be found by clicking the \"Print settings\" button in the \"General\" section of OctoPrint's Control tab.<br><br>Choose a backlash calibration print to continue."), {lowRange: "0.0‒0.99", highRange: "0.70‒1.69"}) + "<span class=\"backlash\"><button class=\"btn btn-block\">X 0.0‒0.99</button><button class=\"btn btn-block\">X 0.70‒1.69</button><button class=\"btn btn-block\">Y 0.0‒0.99</button><button class=\"btn btn-block\">Y 0.70‒1.69</button></span>", gettext("Cancel"), function() {
 			
 				// Hide message
 				hideMessage();

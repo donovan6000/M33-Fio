@@ -4019,38 +4019,31 @@ class M33FioPlugin(
 		
 			# Append all currently queued commands to list
 			while not self._printer._comm._send_queue.empty() :
-				command = self._printer._comm._send_queue.get()
-				commands += [(command[0], command[2])]
+				command = list(self._printer._comm._send_queue.get())
+				command.pop(1)
+				commands += [tuple(command)]
 			
 			# Check if deprecated queue name is valid
 			if hasattr(self._printer._comm, "_commandQueue") :
 			
 				# Append all currently queued commands to list
 				while not self._printer._comm._commandQueue.empty() :
-					command = self._printer._comm._commandQueue.get()
-					commands += [(command[0], command[1])]
+					commands += [self._printer._comm._commandQueue.get()]
 			
 				# Insert list into queue
 				for command in commands :
-					if isinstance(command, tuple) :
-						self._printer._comm._commandQueue.put(command)
-					else :
-						self._printer._comm._commandQueue.put((command, None))
+					self._printer._comm._commandQueue.put(command)
 			
 			# Otherwise
 			else :
 			
 				# Append all currently queued commands to list
 				while not self._printer._comm._command_queue.empty() :
-					command = self._printer._comm._command_queue.get()
-					commands += [(command[0], command[1])]
+					commands += [self._printer._comm._command_queue.get()]
 			
 				# Insert list into queue
 				for command in commands :
-					if isinstance(command, tuple) :
-						self._printer._comm._command_queue.put(command)
-					else :
-						self._printer._comm._command_queue.put((command, None))
+					self._printer._comm._command_queue.put(command)
 		
 		# Otherwise
 		else :
@@ -4172,7 +4165,7 @@ class M33FioPlugin(
 				self.numberWrapCounter = 0
 		
 		# Check if request is invalid
-		if (not self._printer.is_printing() and (data.startswith("N0 M110 N0") or data.startswith("M110"))) or data == "M21\n" or data == "M84\n" :
+		if (not self._printer.is_printing() and (data.startswith("N0 M110 N0") or data.startswith("M110"))) or data == "M21\n" or data == "M84\n" or data == "M400\n" :
 		
 			# Send fake acknowledgment
 			self._printer.fake_ack()

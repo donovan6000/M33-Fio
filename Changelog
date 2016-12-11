@@ -1,8 +1,10 @@
 Changelog:
 
-V1.15 December X, 2016
+V1.15 December 11, 2016
 
 	* Installers work with OctoPrint >= V1.3.0
+	* Fixed compatibility with OctoPrint >= V1.3.0
+	* Fixed backlash calibration instructions
 
 V1.14 December 5, 2016
 
