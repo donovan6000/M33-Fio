@@ -1,14 +1,20 @@
 Changelog:
 
-V1.14 December 5th, 2016
+V1.15 December 11, 2016
+
+	* Installers work with OctoPrint >= V1.3.0
+	* Fixed compatibility with OctoPrint >= V1.3.0
+	* Fixed backlash calibration instructions
+
+V1.14 December 5, 2016
 
 	* Fixed macOS installer
 
-V1.13 December 3rd, 2016
+V1.13 December 3, 2016
 
 	* Fixed Safari related JavaScript issue
 
-V1.12 December 3rd, 2016
+V1.12 December 3, 2016
 
 	* Made model editor's raft display more efficient
 	* Added more tolerance to raft's size in model editor when using Cura to make the boundary checking more accurate

@@ -25,18 +25,34 @@ else
 		sudo -u $SUDO_USER launchctl unload /Library/LaunchAgents/com.octoprint.app.plist
 
 		# Install Python
-		while ! curl -f -o index.html https://www.python.org/downloads/mac-osx/
+		while ! curl -f -o index.html 'https://www.python.org/downloads/mac-osx/'
 		do
 			:
 		done
 		version="$(perl -nle'print $1 if m/Latest Python 2 Release - Python ([0-9\.]*)/' index.html)"
 		rm index.html
-		while ! curl -f -o python.pkg https://www.python.org/ftp/python/${version}/python-${version}-macosx10.6.pkg
+		while ! curl -f -o python.pkg 'https://www.python.org/ftp/python/'"${version}"'/python-'"${version}"'-macosx10.6.pkg'
 		do
 			:
 		done
-		installer -allowUntrusted -pkg python.pkg -target /
+		while ! installer -allowUntrusted -pkg python.pkg -target /
+		do
+			:
+		done
 		rm python.pkg
+		
+		# Install pip
+		while ! curl -f -O 'https://bootstrap.pypa.io/get-pip.py'
+		do
+			:
+		done
+		sudo su <<COMMAND
+while ! /Library/Frameworks/Python.framework/Versions/2.7/bin/python get-pip.py
+do
+	:
+done
+COMMAND
+		rm get-pip.py
 		
 		# Update pip
 		while ! sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/pip install pip --user --upgrade
@@ -56,13 +72,14 @@ else
 		rm 'command%20line%20tools%20installer.bash'
 
 		# Install PyObjC core
-		while ! curl -f -o index.html https://pypi.python.org/pypi/pyobjc-core
+		while ! curl -f -o index.html 'https://pypi.python.org/pypi/pyobjc-core'
 		do
 			:
 		done
 		version="$(perl -nle'print $1 if m/pyobjc-core-([0-9\.]*)\.tar\.gz/' index.html | head -1)"
+		url="$(perl -nle'print $1 if m/<a class=\"button green\".*?href=\"(.*)\">Download/' index.html | head -1)"
 		rm index.html
-		while ! curl -f -o pyobjc-core.tar.gz https://pypi.python.org/packages/source/p/pyobjc-core/pyobjc-core-${version}.tar.gz
+		while ! curl -f -o pyobjc-core.tar.gz ''"${url}"''
 		do
 			:
 		done
@@ -83,13 +100,14 @@ else
 		rm -rf pyobjc-core-${version}
 
 		# Install PyObjC Cocoa framework
-		while ! curl -f -o index.html https://pypi.python.org/pypi/pyobjc-framework-Cocoa
+		while ! curl -f -o index.html 'https://pypi.python.org/pypi/pyobjc-framework-Cocoa'
 		do
 			:
 		done
 		version="$(perl -nle'print $1 if m/pyobjc-framework-Cocoa-([0-9\.]*)\.tar\.gz/' index.html | head -1)"
+		url="$(perl -nle'print $1 if m/<a class=\"button green\".*?href=\"(.*)\">Download/' index.html | head -1)"
 		rm index.html
-		while ! curl -f -o pyobjc-framework-Cocoa.tar.gz https://pypi.python.org/packages/source/p/pyobjc-framework-Cocoa/pyobjc-framework-Cocoa-${version}.tar.gz
+		while ! curl -f -o pyobjc-framework-Cocoa.tar.gz ''"${url}"''
 		do
 			:
 		done
@@ -100,6 +118,7 @@ else
 		# Patch installer to fix compiling issues
 		sudo -u $SUDO_USER sed -i '' -e 's/def get_sdk_level():/def get_sdk_level():\
     return None/g' pyobjc_setup.py
+		sudo -u $SUDO_USER sed -i '' -e 's/xcodebuild -version -sdk macosx Path/echo "\/"/g' pyobjc_setup.py
 		
 		while ! sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/python setup.py install --user
 		do
@@ -109,13 +128,14 @@ else
 		rm -rf pyobjc-framework-Cocoa-${version}
 		
 		# Install PyObjC Quartz framework
-		while ! curl -f -o index.html https://pypi.python.org/pypi/pyobjc-framework-Quartz
+		while ! curl -f -o index.html 'https://pypi.python.org/pypi/pyobjc-framework-Quartz'
 		do
 			:
 		done
 		version="$(perl -nle'print $1 if m/pyobjc-framework-Quartz-([0-9\.]*)\.tar\.gz/' index.html | head -1)"
+		url="$(perl -nle'print $1 if m/<a class=\"button green\".*?href=\"(.*)\">Download/' index.html | head -1)"
 		rm index.html
-		while ! curl -f -o pyobjc-framework-Quartz.tar.gz https://pypi.python.org/packages/source/p/pyobjc-framework-Quartz/pyobjc-framework-Quartz-${version}.tar.gz
+		while ! curl -f -o pyobjc-framework-Quartz.tar.gz ''"${url}"''
 		do
 			:
 		done
@@ -126,6 +146,7 @@ else
 		# Patch installer to fix compiling issues
 		sudo -u $SUDO_USER sed -i '' -e 's/def get_sdk_level():/def get_sdk_level():\
     return None/g' pyobjc_setup.py
+    		sudo -u $SUDO_USER sed -i '' -e 's/xcodebuild -version -sdk macosx Path/echo "\/"/g' pyobjc_setup.py
 		
 		while ! sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/python setup.py install --user
 		do
@@ -135,13 +156,14 @@ else
 		rm -rf pyobjc-framework-Quartz-${version}
 		
 		# Install PyObjC QTKit framework
-		while ! curl -f -o index.html https://pypi.python.org/pypi/pyobjc-framework-QTKit
+		while ! curl -f -o index.html 'https://pypi.python.org/pypi/pyobjc-framework-QTKit'
 		do
 			:
 		done
 		version="$(perl -nle'print $1 if m/pyobjc-framework-QTKit-([0-9\.]*)\.tar\.gz/' index.html | head -1)"
+		url="$(perl -nle'print $1 if m/<a class=\"button green\".*?href=\"(.*)\">Download/' index.html | head -1)"
 		rm index.html
-		while ! curl -f -o pyobjc-framework-QTKit.tar.gz https://pypi.python.org/packages/source/p/pyobjc-framework-QTKit/pyobjc-framework-QTKit-${version}.tar.gz
+		while ! curl -f -o pyobjc-framework-QTKit.tar.gz ''"${url}"''
 		do
 			:
 		done
@@ -152,6 +174,7 @@ else
 		# Patch installer to fix compiling issues
 		sudo -u $SUDO_USER sed -i '' -e 's/def get_sdk_level():/def get_sdk_level():\
     return None/g' pyobjc_setup.py
+    		sudo -u $SUDO_USER sed -i '' -e 's/xcodebuild -version -sdk macosx Path/echo "\/"/g' pyobjc_setup.py
 		
 		while ! sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/python setup.py install --user
 		do
@@ -161,7 +184,7 @@ else
 		rm -rf pyobjc-framework-QTKit-${version}
 		
 		# Install OctoPrint
-		while ! curl -f -LOk https://github.com/foosel/OctoPrint/archive/master.zip
+		while ! curl -f -LOk 'https://github.com/foosel/OctoPrint/archive/master.zip'
 		do
 			:
 		done
@@ -187,7 +210,7 @@ else
 		do
 			:
 		done
-		while ! curl -f -LOk https://github.com/donovan6000/M33-Fio/archive/master.zip
+		while ! curl -f -LOk 'https://github.com/donovan6000/M33-Fio/archive/master.zip'
 		do
 			:
 		done
@@ -202,7 +225,10 @@ else
 		do
 			:
 		done
-		installer -allowUntrusted -pkg CH34x_Install.pkg -target /
+		while ! installer -allowUntrusted -pkg CH34x_Install.pkg -target /
+		do
+			:
+		done
 		rm CH34x_Install.pkg
 		
 		# Add OctoPrint to startup programs
