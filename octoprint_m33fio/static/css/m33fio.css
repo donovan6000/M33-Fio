@@ -2116,6 +2116,10 @@ body > div.page-container > div.message .customInput input {
 
 #model .cover.noLoading * {
 	margin: 0;
+	width: 60%;
+	white-space: normal;
+	text-align: center;
+	line-height: 24px;
 }
 
 
