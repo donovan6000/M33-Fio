@@ -4557,7 +4557,7 @@ $(function() {
 						
 							// Set z index order for measurement values
 							var lowest = order.indexOf(Math.max.apply(null, order));
-							$("#slicing_configuration_dialog .modal-extra div.measurements > p").eq(lowest).css("z-index", toString(i));
+							$("#slicing_configuration_dialog .modal-extra div.measurements > p").eq(lowest).css("z-index", i.toString());
 							order[lowest] = Number.NEGATIVE_INFINITY;
 							
 							// Position measurement values
