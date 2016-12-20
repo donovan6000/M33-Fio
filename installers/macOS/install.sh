@@ -29,7 +29,7 @@ else
 		do
 			:
 		done
-		version="$(perl -nle'print $1 if m/Latest Python 2 Release - Python ([0-9\.]*)/' index.html)"
+		version="$(perl -nle'print $1 if m/Latest Python 2 Release \- Python ([0-9\.]+)/' index.html)"
 		rm index.html
 		while ! curl -f -o python.pkg 'https://www.python.org/ftp/python/'"${version}"'/python-'"${version}"'-macosx10.6.pkg'
 		do
@@ -76,8 +76,8 @@ COMMAND
 		do
 			:
 		done
-		version="$(perl -nle'print $1 if m/pyobjc-core-([0-9\.]*)\.tar\.gz/' index.html | head -1)"
-		url="$(perl -nle'print $1 if m/<a class=\"button green\".*?href=\"(.*)\">Download/' index.html | head -1)"
+		version="$(perl -nle'print $1 if m/pyobjc\-core\-([0-9\.]+)\.tar\.gz/' index.html | head -1)"
+		url="$(perl -nle'print $1 if m/\<a href\=\"(.+)\"\>pyobjc\-core\-/' index.html | head -1)"
 		rm index.html
 		while ! curl -f -o pyobjc-core.tar.gz ''"${url}"''
 		do
@@ -88,9 +88,9 @@ COMMAND
 		cd pyobjc-core-${version}
 
 		# Patch installer to fix compiling issues
-		sudo -u $SUDO_USER sed -i '' -e 's/def get_sdk_level():/def get_sdk_level():\
+		sudo -u $SUDO_USER sed -i '' -e 's/def get_sdk_level()\:/def get_sdk_level()\:\
     return None/g' setup.py
-		sudo -u $SUDO_USER sed -i '' -e 's/if os\.path\.exists('\''\/usr\/bin\/xcodebuild'\''):/if False and os\.path\.exists('\''\/usr\/bin\/xcodebuild'\''):/g' setup.py
+		sudo -u $SUDO_USER sed -i '' -e 's/if os\.path\.exists('\''\/usr\/bin\/xcodebuild'\'')\:/if False and os\.path\.exists('\''\/usr\/bin\/xcodebuild'\'')\:/g' setup.py
 		
 		while ! sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/python setup.py install --user
 		do
@@ -104,8 +104,8 @@ COMMAND
 		do
 			:
 		done
-		version="$(perl -nle'print $1 if m/pyobjc-framework-Cocoa-([0-9\.]*)\.tar\.gz/' index.html | head -1)"
-		url="$(perl -nle'print $1 if m/<a class=\"button green\".*?href=\"(.*)\">Download/' index.html | head -1)"
+		version="$(perl -nle'print $1 if m/pyobjc\-framework\-Cocoa\-([0-9\.]+)\.tar\.gz/' index.html | head -1)"
+		url="$(perl -nle'print $1 if m/\<a href\=\"(.+)\"\>pyobjc\-framework\-Cocoa\-/' index.html | head -1)"
 		rm index.html
 		while ! curl -f -o pyobjc-framework-Cocoa.tar.gz ''"${url}"''
 		do
@@ -116,9 +116,9 @@ COMMAND
 		cd pyobjc-framework-Cocoa-${version}
 		
 		# Patch installer to fix compiling issues
-		sudo -u $SUDO_USER sed -i '' -e 's/def get_sdk_level():/def get_sdk_level():\
+		sudo -u $SUDO_USER sed -i '' -e 's/def get_sdk_level()\:/def get_sdk_level()\:\
     return None/g' pyobjc_setup.py
-		sudo -u $SUDO_USER sed -i '' -e 's/xcodebuild -version -sdk macosx Path/echo "\/"/g' pyobjc_setup.py
+		sudo -u $SUDO_USER sed -i '' -e 's/xcodebuild \-version \-sdk macosx Path/echo "\/"/g' pyobjc_setup.py
 		
 		while ! sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/python setup.py install --user
 		do
@@ -132,8 +132,8 @@ COMMAND
 		do
 			:
 		done
-		version="$(perl -nle'print $1 if m/pyobjc-framework-Quartz-([0-9\.]*)\.tar\.gz/' index.html | head -1)"
-		url="$(perl -nle'print $1 if m/<a class=\"button green\".*?href=\"(.*)\">Download/' index.html | head -1)"
+		version="$(perl -nle'print $1 if m/pyobjc\-framework\-Quartz\-([0-9\.]+)\.tar\.gz/' index.html | head -1)"
+		url="$(perl -nle'print $1 if m/\<a href\=\"(.+)\"\>pyobjc\-framework\-Quartz\-/' index.html | head -1)"
 		rm index.html
 		while ! curl -f -o pyobjc-framework-Quartz.tar.gz ''"${url}"''
 		do
@@ -144,9 +144,9 @@ COMMAND
 		cd pyobjc-framework-Quartz-${version}
 		
 		# Patch installer to fix compiling issues
-		sudo -u $SUDO_USER sed -i '' -e 's/def get_sdk_level():/def get_sdk_level():\
+		sudo -u $SUDO_USER sed -i '' -e 's/def get_sdk_level()\:/def get_sdk_level()\:\
     return None/g' pyobjc_setup.py
-    		sudo -u $SUDO_USER sed -i '' -e 's/xcodebuild -version -sdk macosx Path/echo "\/"/g' pyobjc_setup.py
+    		sudo -u $SUDO_USER sed -i '' -e 's/xcodebuild \-version \-sdk macosx Path/echo "\/"/g' pyobjc_setup.py
 		
 		while ! sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/python setup.py install --user
 		do
@@ -160,8 +160,8 @@ COMMAND
 		do
 			:
 		done
-		version="$(perl -nle'print $1 if m/pyobjc-framework-QTKit-([0-9\.]*)\.tar\.gz/' index.html | head -1)"
-		url="$(perl -nle'print $1 if m/<a class=\"button green\".*?href=\"(.*)\">Download/' index.html | head -1)"
+		version="$(perl -nle'print $1 if m/pyobjc\-framework\-QTKit\-([0-9\.]+)\.tar\.gz/' index.html | head -1)"
+		url="$(perl -nle'print $1 if m/\<a href\=\"(.+)\"\>pyobjc\-framework\-QTKit\-/' index.html | head -1)"
 		rm index.html
 		while ! curl -f -o pyobjc-framework-QTKit.tar.gz ''"${url}"''
 		do
@@ -172,9 +172,9 @@ COMMAND
 		cd pyobjc-framework-QTKit-${version}
 		
 		# Patch installer to fix compiling issues
-		sudo -u $SUDO_USER sed -i '' -e 's/def get_sdk_level():/def get_sdk_level():\
+		sudo -u $SUDO_USER sed -i '' -e 's/def get_sdk_level()\:/def get_sdk_level()\:\
     return None/g' pyobjc_setup.py
-    		sudo -u $SUDO_USER sed -i '' -e 's/xcodebuild -version -sdk macosx Path/echo "\/"/g' pyobjc_setup.py
+    		sudo -u $SUDO_USER sed -i '' -e 's/xcodebuild \-version \-sdk macosx Path/echo "\/"/g' pyobjc_setup.py
 		
 		while ! sudo -u $SUDO_USER /Library/Frameworks/Python.framework/Versions/2.7/bin/python setup.py install --user
 		do
