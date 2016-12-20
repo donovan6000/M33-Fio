@@ -3404,7 +3404,7 @@ class M33FioPlugin(
 			# Otherwise check if parameter is to get print information
 			elif data["value"] == "Print Information" and hasattr(self, "maxXExtruderLow") and hasattr(self, "maxXExtruderMedium") and hasattr(self, "maxXExtruderHigh") and hasattr(self, "maxYExtruderLow") and hasattr(self, "maxYExtruderMedium") and hasattr(self, "maxYExtruderHigh") and hasattr(self, "maxZExtruder") and hasattr(self, "minXExtruderLow") and hasattr(self, "minXExtruderMedium") and hasattr(self, "minXExtruderHigh") and hasattr(self, "minYExtruderLow") and hasattr(self, "minYExtruderMedium") and hasattr(self, "minYExtruderHigh") and hasattr(self, "minZExtruder") :
 			
-			 	# Return print information
+				# Return print information
 				return flask.jsonify(dict(value = "OK", maxXLow = self.maxXExtruderLow, maxXMedium = self.maxXExtruderMedium, maxXHigh = self.maxXExtruderHigh, maxYLow = self.maxYExtruderLow, maxYMedium = self.maxYExtruderMedium, maxYHigh = self.maxYExtruderHigh, maxZ = self.maxZExtruder, minXLow = self.minXExtruderLow, minXMedium = self.minXExtruderMedium, minXHigh = self.minXExtruderHigh, minYLow = self.minYExtruderLow, minYMedium = self.minYExtruderMedium, minYHigh = self.minYExtruderHigh, minZ = self.minZExtruder))
 			
 			# Otherwise check if parameter is starting print
