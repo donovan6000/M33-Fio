@@ -3389,8 +3389,8 @@ $(function() {
 							// Create model's glow
 							model.updateMatrix();
 							modelEditor.models[i].glow = new THREE.Mesh(model.geometry, glowMaterial.clone());
-						 	modelEditor.models[i].glow.applyMatrix(model.matrix);
-						 	modelEditor.models[i].glow.renderOrder = 1;
+							modelEditor.models[i].glow.applyMatrix(model.matrix);
+							modelEditor.models[i].glow.renderOrder = 1;
 							
 							// Add model's glow to scene
 							modelEditor.scene[1].add(modelEditor.models[i].glow);
@@ -3401,7 +3401,7 @@ $(function() {
 								// Create adhesion's glow
 								modelEditor.models[i].adhesion.mesh.updateMatrix();
 								modelEditor.models[i].adhesion.glow = new THREE.Mesh(modelEditor.models[i].adhesion.mesh.geometry, outlineMaterial.clone());
-							 	modelEditor.models[i].adhesion.glow.applyMatrix(modelEditor.models[i].adhesion.mesh.matrix);
+								modelEditor.models[i].adhesion.glow.applyMatrix(modelEditor.models[i].adhesion.mesh.matrix);
 								modelEditor.models[i].adhesion.glow.renderOrder = 0;
 								
 								// Add adhesion's glow to scene
@@ -4557,7 +4557,7 @@ $(function() {
 						
 							// Set z index order for measurement values
 							var lowest = order.indexOf(Math.max.apply(null, order));
-							$("#slicing_configuration_dialog .modal-extra div.measurements > p").eq(lowest).css("z-index", toString(i));
+							$("#slicing_configuration_dialog .modal-extra div.measurements > p").eq(lowest).css("z-index", i.toString());
 							order[lowest] = Number.NEGATIVE_INFINITY;
 							
 							// Position measurement values
@@ -5773,14 +5773,49 @@ $(function() {
 				// Stop default behavior
 				event.stopImmediatePropagation();
 				
-				// Check if using new dialog system
-				if(typeof OctoPrint !== "undefined" && typeof OctoPrint.job !== "undefined" && typeof OctoPrint.job.cancel === "function")
+				// Check if confirming cancellation
+				if(typeof self.settings.settings.feature.printCancelConfirmation !== "function" || self.settings.settings.feature.printCancelConfirmation()) {
 				
-					// Show confirmation dialog
-					showConfirmationDialog({
-						message: getAlreadyTranslatedText("This will cancel your print."),
-						onproceed: function() {
+					// Check if using new dialog system
+					if(typeof OctoPrint !== "undefined" && typeof OctoPrint.job !== "undefined" && typeof OctoPrint.job.cancel === "function")
+				
+						// Show confirmation dialog
+						showConfirmationDialog({
+							message: getAlreadyTranslatedText("This will cancel your print."),
+							onproceed: function() {
 							
+								// Show message
+								showMessage(gettext("Printing Status"), gettext("Canceling print"));
+	
+								// Send request
+								$.ajax({
+									url: API_BASEURL + "plugin/m33fio",
+									type: "POST",
+									dataType: "json",
+									data: JSON.stringify({
+										command: "message",
+										value: "Cancel Print"
+									}),
+									contentType: "application/json; charset=UTF-8",
+									traditional: true,
+									processData: true
+								});
+							}
+						});
+				
+					// Otherwise
+					else {
+				
+						// Show confirmation dialog
+						$("#confirmation_dialog .confirmation_dialog_message").html(getAlreadyTranslatedText("This will cancel your print."));
+						$("#confirmation_dialog .confirmation_dialog_acknowledge").unbind("click").click(function(event) {
+				
+							// Stop default behavior
+							event.preventDefault();
+					
+							// Hide dialog
+							$("#confirmation_dialog").modal("hide");
+					
 							// Show message
 							showMessage(gettext("Printing Status"), gettext("Canceling print"));
 	
@@ -5797,40 +5832,30 @@ $(function() {
 								traditional: true,
 								processData: true
 							});
-						}
-					});
+						});
+						$("#confirmation_dialog").modal("show");
+					}
+				}
 				
 				// Otherwise
 				else {
 				
-					// Show confirmation dialog
-					$("#confirmation_dialog .confirmation_dialog_message").html(getAlreadyTranslatedText("This will cancel your print."));
-					$("#confirmation_dialog .confirmation_dialog_acknowledge").unbind("click").click(function(event) {
-				
-						// Stop default behavior
-						event.preventDefault();
-					
-						// Hide dialog
-						$("#confirmation_dialog").modal("hide");
-					
-						// Show message
-						showMessage(gettext("Printing Status"), gettext("Canceling print"));
-	
-						// Send request
-						$.ajax({
-							url: API_BASEURL + "plugin/m33fio",
-							type: "POST",
-							dataType: "json",
-							data: JSON.stringify({
-								command: "message",
-								value: "Cancel Print"
-							}),
-							contentType: "application/json; charset=UTF-8",
-							traditional: true,
-							processData: true
-						});
-					});
-					$("#confirmation_dialog").modal("show");
+					// Show message
+					showMessage(gettext("Printing Status"), gettext("Canceling print"));
+
+					// Send request
+					$.ajax({
+						url: API_BASEURL + "plugin/m33fio",
+						type: "POST",
+						dataType: "json",
+						data: JSON.stringify({
+							command: "message",
+							value: "Cancel Print"
+						}),
+						contentType: "application/json; charset=UTF-8",
+						traditional: true,
+						processData: true
+					});			
 				}
 			}
 		});
@@ -7153,7 +7178,7 @@ $(function() {
 													if(group.hasClass("closed")) {
 														group.removeClass("closed").children("i").removeClass("icon-caret-down").addClass("icon-caret-up").attr("title", htmlDecode(gettext("Close")));
 				
-														 if(group.hasClass("advanced"))
+														if(group.hasClass("advanced"))
 															setTimeout(function() {
 																$("#slicing_configuration_dialog.profile .modal-extra div.group.advanced > span").css("display", "block");
 															}, 100);
@@ -15467,6 +15492,16 @@ $(function() {
 		
 			// Disable messages
 			enableMessages = false;
+			
+			// Reset message system
+			messages = [];
+			skippedMessages = 0;
+	
+			// Check if a message is shown
+			if($("body > div.page-container > div.message").hasClass("show"))
+		
+				// Hide message
+				hideMessage();
 		}
 		
 		// On settings shown

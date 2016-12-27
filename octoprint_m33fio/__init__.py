@@ -3404,7 +3404,7 @@ class M33FioPlugin(
 			# Otherwise check if parameter is to get print information
 			elif data["value"] == "Print Information" and hasattr(self, "maxXExtruderLow") and hasattr(self, "maxXExtruderMedium") and hasattr(self, "maxXExtruderHigh") and hasattr(self, "maxYExtruderLow") and hasattr(self, "maxYExtruderMedium") and hasattr(self, "maxYExtruderHigh") and hasattr(self, "maxZExtruder") and hasattr(self, "minXExtruderLow") and hasattr(self, "minXExtruderMedium") and hasattr(self, "minXExtruderHigh") and hasattr(self, "minYExtruderLow") and hasattr(self, "minYExtruderMedium") and hasattr(self, "minYExtruderHigh") and hasattr(self, "minZExtruder") :
 			
-			 	# Return print information
+				# Return print information
 				return flask.jsonify(dict(value = "OK", maxXLow = self.maxXExtruderLow, maxXMedium = self.maxXExtruderMedium, maxXHigh = self.maxXExtruderHigh, maxYLow = self.maxYExtruderLow, maxYMedium = self.maxYExtruderMedium, maxYHigh = self.maxYExtruderHigh, maxZ = self.maxZExtruder, minXLow = self.minXExtruderLow, minXMedium = self.minXExtruderMedium, minXHigh = self.minXExtruderHigh, minYLow = self.minYExtruderLow, minYMedium = self.minYExtruderMedium, minYHigh = self.minYExtruderHigh, minZ = self.minZExtruder))
 			
 			# Otherwise check if parameter is starting print
@@ -4019,7 +4019,10 @@ class M33FioPlugin(
 		
 			# Append all currently queued commands to list
 			while not self._printer._comm._send_queue.empty() :
-				command = list(self._printer._comm._send_queue.get())
+				try :
+					command = list(self._printer._comm._send_queue.get(block = False))
+				except queue.Empty :
+					break
 				command.pop(1)
 				commands += [tuple(command)]
 			
@@ -4028,22 +4031,34 @@ class M33FioPlugin(
 			
 				# Append all currently queued commands to list
 				while not self._printer._comm._commandQueue.empty() :
-					commands += [self._printer._comm._commandQueue.get()]
+					try :
+						commands += [self._printer._comm._commandQueue.get(block = False)]
+					except queue.Empty :
+						break
 			
 				# Insert list into queue
 				for command in commands :
-					self._printer._comm._commandQueue.put(command)
+					try :
+						self._printer._comm._commandQueue.put(command)
+					except :
+						pass
 			
 			# Otherwise
 			else :
 			
 				# Append all currently queued commands to list
 				while not self._printer._comm._command_queue.empty() :
-					commands += [self._printer._comm._command_queue.get()]
+					try :
+						commands += [self._printer._comm._command_queue.get(block = False)]
+					except queue.Empty :
+						break
 			
 				# Insert list into queue
 				for command in commands :
-					self._printer._comm._command_queue.put(command)
+					try :
+						self._printer._comm._command_queue.put(command)
+					except :
+						pass
 		
 		# Otherwise
 		else :
@@ -4099,21 +4114,30 @@ class M33FioPlugin(
 		
 			# Empty command queues
 			while not self._printer._comm._send_queue.empty() :
-				self._printer._comm._send_queue.get()
+				try :
+					self._printer._comm._send_queue.get(block = False)
+				except queue.Empty :
+					break
 			
 			# Check if deprecated queue name is valid
 			if hasattr(self._printer._comm, "_commandQueue") :
 			
 				# Empty command queues
 				while not self._printer._comm._commandQueue.empty() :
-					self._printer._comm._commandQueue.get()
+					try :
+						self._printer._comm._commandQueue.get(block = False)
+					except queue.Empty :
+						break
 			
 			# Otherwise
 			else :
 			
 				# Empty command queues
 				while not self._printer._comm._command_queue.empty() :
-					self._printer._comm._command_queue.get()
+					try :
+						self._printer._comm._command_queue.get(block = False)
+					except queue.Empty :
+						break
 	
 	# Process write
 	def processWrite(self, data) :

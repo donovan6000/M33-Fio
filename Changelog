@@ -1,5 +1,10 @@
 Changelog:
 
+V1.16 December 27, 2016
+
+	* Disables print cancellation dialog if corresponding setting is enabled in OctoPrint >= V1.3.1
+	* Fixed macOS installer
+
 V1.15 December 11, 2016
 
 	* Installers work with OctoPrint >= V1.3.0
