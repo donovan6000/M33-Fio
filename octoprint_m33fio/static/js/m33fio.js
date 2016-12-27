@@ -15492,6 +15492,16 @@ $(function() {
 		
 			// Disable messages
 			enableMessages = false;
+			
+			// Reset message system
+			messages = [];
+			skippedMessages = 0;
+	
+			// Check if a message is shown
+			if($("body > div.page-container > div.message").hasClass("show"))
+		
+				// Hide message
+				hideMessage();
 		}
 		
 		// On settings shown
