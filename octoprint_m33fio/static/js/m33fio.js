@@ -2985,20 +2985,22 @@ $(function() {
 					// Clear scene exported
 					modelEditor.sceneExported = false;
 
-					// Initialize variables
-					var centerX = ((modelEditor.bedOrigin === "lowerleft" ? bedLowMaxX - bedLowMinX : 0) + (-(extruderCenterX - (bedLowMaxX + bedLowMinX) / 2) + bedLowMinX) * 2) / 2;
-					var centerZ = ((modelEditor.bedOrigin === "lowerleft" ? bedLowMaxY - bedLowMinY : 0) + (extruderCenterY - (bedLowMaxY + bedLowMinY) / 2 + bedLowMinY) * 2) / 2;
+					// Initialize merged geometry
 					var mergedGeometry = new THREE.Geometry();
+					
+					// Create maximums and minimums for  the scene
+					var maximums = new THREE.Vector2(Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY);
+					var minimums = new THREE.Vector2(Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY);
 				
 					// Go through all models
 					for(var i = 1; i < modelEditor.models.length; i++) {
 	
 						// Get current model
 						var model = modelEditor.models[i];
-
-						// Sum model's center together
-						centerX -= model.mesh.position.x;
-						centerZ += model.mesh.position.z;
+						
+						// Update max and min coordinates for the scene
+						maximums.max(new THREE.Vector2(-model.mesh.position.x, model.mesh.position.z));
+						minimums.min(new THREE.Vector2(-model.mesh.position.x, model.mesh.position.z));
 
 						// Save model's current matrix and geometry
 						model.mesh.updateMatrix();
@@ -3034,9 +3036,13 @@ $(function() {
 						model.mesh.applyMatrix(matrix);
 					}
 		
-					// Get average center for models
-					centerX /= (modelEditor.models.length - 1);
-					centerZ /= (modelEditor.models.length - 1);
+					// Set center to average center for models
+					var centerX = (maximums.x + minimums.x) / 2;
+					var centerZ = (maximums.y + minimums.y) / 2;
+					
+					// Offset center based on bed dimensions
+					centerX += ((modelEditor.bedOrigin === "lowerleft" ? bedLowMaxX - bedLowMinX : 0) + (-(extruderCenterX - (bedLowMaxX + bedLowMinX) / 2) + bedLowMinX) * 2) / 2;
+					centerZ += ((modelEditor.bedOrigin === "lowerleft" ? bedLowMaxY - bedLowMinY : 0) + (extruderCenterY - (bedLowMaxY + bedLowMinY) / 2 + bedLowMinY) * 2) / 2;
 			
 					// Save model's center
 					self.modelCenter = [centerX ? centerX : Number.MIN_VALUE, centerZ ? centerZ : Number.MIN_VALUE];

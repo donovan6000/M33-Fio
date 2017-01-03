@@ -1,10 +1,10 @@
 # M33 Fio
-© 2015-2016 Exploit Kings. All rights reserved.
+© 2015-2017 Exploit Kings. All rights reserved.
 
 ### Description
 M33 Fio is a general purpose plugin for [OctoPrint](http://octoprint.org/) that extends its capabilities to include many useful feature like the ability to use a Micro 3D printer, modify a model before printing it, host a webcam stream, and much more.
 
-The latest version of M33 Fio is V1.16 released on December 27th, 2016, and an entire changelog for it can be found [here](https://raw.githubusercontent.com/donovan6000/M33-Fio/master/Changelog).
+The latest version of M33 Fio is V1.17 released on January Xth, 2017, and an entire changelog for it can be found [here](https://raw.githubusercontent.com/donovan6000/M33-Fio/master/Changelog).
 
 ### Features
 * Adds a model viewer tab to OctoPrint's interface where any uploaded model can be viewed
