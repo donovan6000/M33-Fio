@@ -1,5 +1,10 @@
 Changelog:
 
+V1.17 January 9, 2017
+
+	* Fixed issue where positioning would be messed up when slicing multiple models
+	* Fixed Windows installer
+
 V1.16 December 27, 2016
 
 	* Disables print cancellation dialog if corresponding setting is enabled in OctoPrint >= V1.3.1
