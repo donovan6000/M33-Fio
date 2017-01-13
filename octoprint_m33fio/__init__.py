@@ -5030,23 +5030,28 @@ class M33FioPlugin(
 	
 				# Set Pip locations
 				pipLocations = []
-				if platform.uname()[0].startswith("Windows") :
+				
+				try :
+					if platform.uname()[0].startswith("Windows") :
 	
-					pipLocations = [
-						os.environ["SYSTEMDRIVE"] + "/python/Scripts/pip.exe"
-					]
+						pipLocations = [
+							os.environ["SYSTEMDRIVE"] + "/python/Scripts/pip.exe"
+						]
 	
-				elif platform.uname()[0].startswith("Darwin") :
+					elif platform.uname()[0].startswith("Darwin") :
 	
-					pipLocations = [
-						"/Library/Frameworks/Python.framework/Versions/2.7/bin/pip"
-					]
+						pipLocations = [
+							"/Library/Frameworks/Python.framework/Versions/2.7/bin/pip"
+						]
 	
-				elif platform.uname()[0].startswith("Linux") :
+					elif platform.uname()[0].startswith("Linux") :
 	
-					pipLocations = [
-						"/usr/bin/pip"
-					]
+						pipLocations = [
+							"/usr/bin/pip"
+						]
+				
+				except KeyError :
+					pass
 	
 				# Go through all Pip location
 				for locations in pipLocations :
@@ -5072,23 +5077,28 @@ class M33FioPlugin(
 	
 				# Set checkout folder locations
 				checkoutFolderLocations = []
-				if platform.uname()[0].startswith("Windows") :
+				
+				try :
+					if platform.uname()[0].startswith("Windows") :
 	
-					checkoutFolderLocations = [
-						os.environ["SYSTEMDRIVE"] + "/Users/" + os.environ["USERNAME"] + "/AppData/Roaming/OctoPrint/checkout"
-					]
+						checkoutFolderLocations = [
+							os.environ["SYSTEMDRIVE"] + "/Users/" + os.environ["USERNAME"] + "/AppData/Roaming/OctoPrint/checkout"
+						]
 	
-				elif platform.uname()[0].startswith("Darwin") :
+					elif platform.uname()[0].startswith("Darwin") :
 	
-					checkoutFolderLocations = [
-						"/Users/" + os.environ["USER"] + "/Library/Application Support/OctoPrint/checkout"
-					]
+						checkoutFolderLocations = [
+							"/Users/" + os.environ["USER"] + "/Library/Application Support/OctoPrint/checkout"
+						]
 	
-				elif platform.uname()[0].startswith("Linux") :
+					elif platform.uname()[0].startswith("Linux") :
 	
-					checkoutFolderLocations = [
-						"/home/" + os.environ["USER"] + "/.octoprint/checkout"
-					]
+						checkoutFolderLocations = [
+							"/home/" + os.environ["USER"] + "/.octoprint/checkout"
+						]
+				
+				except KeyError :
+					pass
 			
 				# Go through all checkout folder location
 				for locations in checkoutFolderLocations :
@@ -5111,28 +5121,33 @@ class M33FioPlugin(
 			
 					# Set Cura Engine locations
 					curaEngineLocations = []
-					if platform.uname()[0].startswith("Windows") :
+					
+					try :
+						if platform.uname()[0].startswith("Windows") :
 				
-						curaEngineLocations = [
-							os.environ["SYSTEMDRIVE"] + "/Program Files*/Cura_*/CuraEngine.exe",
-							os.environ["SYSTEMDRIVE"] + "/Program Files*/M3D*/*/Resources/CuraEngine/CuraEngine.exe"
-						]
+							curaEngineLocations = [
+								os.environ["SYSTEMDRIVE"] + "/Program Files*/Cura_*/CuraEngine.exe",
+								os.environ["SYSTEMDRIVE"] + "/Program Files*/M3D*/*/Resources/CuraEngine/CuraEngine.exe"
+							]
 				
-					elif platform.uname()[0].startswith("Darwin") :
+						elif platform.uname()[0].startswith("Darwin") :
 				
-						curaEngineLocations = [
-							"/Applications/Cura/Cura.app/Contents/Resources/CuraEngine",
-							"/Applications/M3D.app/Contents/Resources/CuraEngine/CuraEngine"
-						]
+							curaEngineLocations = [
+								"/Applications/Cura/Cura.app/Contents/Resources/CuraEngine",
+								"/Applications/M3D.app/Contents/Resources/CuraEngine/CuraEngine"
+							]
 				
-					elif platform.uname()[0].startswith("Linux") :
+						elif platform.uname()[0].startswith("Linux") :
 				
-						curaEngineLocations = [
-							"/usr/share/cura/CuraEngine",
-							"/usr/local/bin/CuraEngine",
-							"/usr/bin/CuraEngine",
-							"/usr/local/bin/cura_engine"
-						]
+							curaEngineLocations = [
+								"/usr/share/cura/CuraEngine",
+								"/usr/local/bin/CuraEngine",
+								"/usr/bin/CuraEngine",
+								"/usr/local/bin/cura_engine"
+							]
+					
+					except KeyError :
+						pass
 				
 					# Go through all Cura Engine location
 					for locations in curaEngineLocations :
@@ -5154,24 +5169,29 @@ class M33FioPlugin(
 			
 					# Set Slic3r locations
 					slic3rLocations = []
-					if platform.uname()[0].startswith("Windows") :
+					
+					try :
+						if platform.uname()[0].startswith("Windows") :
 				
-						slic3rLocations = [
-							os.environ["SYSTEMDRIVE"] + "/Program Files*/Slic3r/slic3r-console.exe"
-						]
+							slic3rLocations = [
+								os.environ["SYSTEMDRIVE"] + "/Program Files*/Slic3r/slic3r-console.exe"
+							]
 				
-					elif platform.uname()[0].startswith("Darwin") :
+						elif platform.uname()[0].startswith("Darwin") :
 				
-						slic3rLocations = [
-							"/Applications/Slic3r.app/Contents/MacOS/slic3r"
-						]
+							slic3rLocations = [
+								"/Applications/Slic3r.app/Contents/MacOS/slic3r"
+							]
 				
-					elif platform.uname()[0].startswith("Linux") :
+						elif platform.uname()[0].startswith("Linux") :
 				
-						slic3rLocations = [
-							"/usr/bin/slic3r",
-							"/opt/Slic3r/bin/slic3r"
-						]
+							slic3rLocations = [
+								"/usr/bin/slic3r",
+								"/opt/Slic3r/bin/slic3r"
+							]
+					
+					except KeyError :
+						pass
 				
 					# Go through all slic3r location
 					for locations in slic3rLocations :
