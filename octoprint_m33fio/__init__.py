@@ -15,6 +15,7 @@ import octoprint.filemanager
 import octoprint.printer
 import octoprint.settings
 import octoprint.slicing
+import octoprint.util
 import tempfile
 import os
 import time
@@ -859,7 +860,8 @@ class M33FioPlugin(
 				offsets = [
 					(0, 0)
 				],
-				nozzleDiameter = 0.35
+				nozzleDiameter = 0.35,
+				sharedNozzle = False
 			),
 			axes = dict(
 				x = dict(
@@ -884,6 +886,8 @@ class M33FioPlugin(
 		if self.heatbedConnected :
 			printerProfile["heatedBed"] = True
 		
+		baseProfile = self._printer_profile_manager.get_default()
+		printerProfile = octoprint.util.dict_merge(baseProfile, printerProfile)
 		self._printer_profile_manager.save(printerProfile, True, not self._settings.get_boolean(["NotUsingAMicro3DPrinter"]))
 		
 		# Check if using a Micro 3D printer
