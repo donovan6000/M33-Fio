@@ -162,7 +162,20 @@ else :
 
 	# Create threaded HTTP server
 	class ThreadedHTTPServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer) :
-		pass
+	
+		# On bind
+		def server_bind(self) :
+		
+			# Enable reuse address
+			if hasattr(socket, "SOL_SOCKET") and hasattr(socket, "SO_REUSEADDR") :
+				self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+			
+			# Enable reuse port
+			if hasattr(socket, "SOL_SOCKET") and hasattr(socket, "SO_REUSEPORT") :
+				self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+			
+			# Bind
+			BaseHTTPServer.HTTPServer.server_bind(self)
 
 	# Start server
 	try :
@@ -180,7 +193,10 @@ else :
 	try :
 		ipAddress = [l for l in ([ip for ip in socket.gethostbyname_ex(socket.gethostname())[2] if not ip.startswith("127.")][:1], [[(s.connect(("8.8.8.8", 53)), s.getsockname()[0], s.close()) for s in [socket.socket(socket.AF_INET, socket.SOCK_DGRAM)]][0][1]]) if l][0][0]
 	except :
-		ipAddress = socket.gethostbyname(socket.gethostname())
+		try :
+			ipAddress = socket.gethostbyname(socket.gethostname())
+		except :
+			ipAddress = socket.gethostbyname("localhost")
 	
 	# Display hosting information
 	print "Using webcam device " + str(cameraPort) + " with a resolution of " + str(cameraWidth) + "x" + str(cameraHeight) + " running at " + str(int(1.0 / cameraFrameDelay)) + " frames/second"

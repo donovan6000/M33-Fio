@@ -886,8 +886,8 @@ class M33FioPlugin(
 		if self.heatbedConnected :
 			printerProfile["heatedBed"] = True
 		
-		baseProfile = self._printer_profile_manager.get_default()
-		printerProfile = octoprint.util.dict_merge(baseProfile, printerProfile)
+		printerProfile = octoprint.util.dict_merge(self._printer_profile_manager.get_default(), printerProfile)
+		
 		self._printer_profile_manager.save(printerProfile, True, not self._settings.get_boolean(["NotUsingAMicro3DPrinter"]))
 		
 		# Check if using a Micro 3D printer
@@ -1287,8 +1287,6 @@ class M33FioPlugin(
 	
 	# Covert Cura to profile
 	def convertCuraToProfile(self, input, output, name, displayName, description) :
-	
-		# Cura Engine plugin doesn't support solidarea_speed, perimeter_before_infill, raft_airgap_all, raft_surface_thickness, raft_surface_linewidth, plugin_config, object_center_x, and object_center_y
 	
 		# Clean up input
 		fd, curaProfile = tempfile.mkstemp()
@@ -1879,7 +1877,7 @@ class M33FioPlugin(
 			YJerkSensitivity = 195,
 			CalibrateZ0Correction = 0.0,
 			ChangeSettingsBeforePrint = True,
-			NotUsingAMicro3DPrinter = False,
+			NotUsingAMicro3DPrinter = True,
 			CalibrateBeforePrint = False,
 			RemoveFanCommands = True,
 			RemoveTemperatureCommands = True,
@@ -1908,7 +1906,10 @@ class M33FioPlugin(
 		try :
 			return [l for l in ([ip for ip in socket.gethostbyname_ex(socket.gethostname())[2] if not ip.startswith("127.")][:1], [[(s.connect(("8.8.8.8", 53)), s.getsockname()[0], s.close()) for s in [socket.socket(socket.AF_INET, socket.SOCK_DGRAM)]][0][1]]) if l][0][0]
 		except :
-			return socket.gethostbyname(socket.gethostname())
+			try :
+				return socket.gethostbyname(socket.gethostname())
+			except :
+				return socket.gethostbyname("localhost")
 	
 	# On settings save
 	def on_settings_save(self, data) :
@@ -2025,6 +2026,12 @@ class M33FioPlugin(
 		else:
 			self._m33fio_logger.setLevel(logging.CRITICAL)
 		
+		# Check if using a Micro 3D printer
+		if not self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
+		
+			# Disable OctoPrint's boundary detection
+			octoprint.settings.settings().set(["feature", "modelSizeDetection"], False, True)
+		
 		# Check if not using a Micro 3D printer setting changed
 		if oldNotUsingAMicro3DPrinter != self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
 		
@@ -2034,9 +2041,6 @@ class M33FioPlugin(
 				# Disable printer callbacks
 				while self in self._printer._callbacks :
 					self._printer.unregister_callback(self)
-				
-				# Enable OctoPrint's boundary detection
-				octoprint.settings.settings().set(["feature", "modelSizeDetection"], True, True)
 			
 			# Otherwise
 			else :
@@ -2044,9 +2048,6 @@ class M33FioPlugin(
 				# Enable printer callbacks
 				if self not in self._printer._callbacks :
 					self._printer.register_callback(self)
-				
-				# Disable OctoPrint's boundary detection
-				octoprint.settings.settings().set(["feature", "modelSizeDetection"], False, True)
 			
 			# Check if not printing or paused
 			if not self._printer.is_printing() and not self._printer.is_paused() :
@@ -2501,18 +2502,12 @@ class M33FioPlugin(
 				if data["value"] == "Print Test Border" :
 					location = self._basefolder.replace("\\", "/") + "/static/files/test border.gcode"
 					destination = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "test border.gcode").replace("\\", "/")
-				elif data["value"] == "Print Backlash Calibration X 0.0-0.99" :
-					location = self._basefolder.replace("\\", "/") + "/static/files/QuickBacklash_X_0.0-0.99.gcode"
-					destination = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "QuickBacklash_X_0.0-0.99.gcode").replace("\\", "/")
-				elif data["value"] == "Print Backlash Calibration X 0.70-1.69" :
-					location = self._basefolder.replace("\\", "/") + "/static/files/QuickBacklash_X_0.70-1.69.gcode"
-					destination = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "QuickBacklash_X_0.70-1.69.gcode").replace("\\", "/")
-				elif data["value"] == "Print Backlash Calibration Y 0.0-0.99" :
-					location = self._basefolder.replace("\\", "/") + "/static/files/QuickBacklash_Y_0.0-0.99.gcode"
-					destination = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "QuickBacklash_Y_0.0-0.99.gcode").replace("\\", "/")
-				elif data["value"] == "Print Backlash Calibration Y 0.70-1.69" :
-					location = self._basefolder.replace("\\", "/") + "/static/files/QuickBacklash_Y_0.70-1.69.gcode"
-					destination = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "QuickBacklash_Y_0.70-1.69.gcode").replace("\\", "/")
+				elif data["value"] == "Print Backlash Calibration X" :
+					location = self._basefolder.replace("\\", "/") + "/static/files/QuickBacklash-v2-X.gcode"
+					destination = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "QuickBacklash-v2-X.gcode").replace("\\", "/")
+				elif data["value"] == "Print Backlash Calibration Y" :
+					location = self._basefolder.replace("\\", "/") + "/static/files/QuickBacklash-v2-Y.gcode"
+					destination = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "QuickBacklash-v2-Y.gcode").replace("\\", "/")
 				
 				# Remove destination file if it already exists
 				if os.path.isfile(destination) :
@@ -2977,7 +2972,7 @@ class M33FioPlugin(
 			
 				# Get printer settings
 				try :
-					printerSettings = yaml.load(data["value"][21 :])
+					printerSettings = yaml.load(data["value"][22 :])
 				except :
 					return flask.jsonify(dict(value = "Error"))
 				
@@ -3252,7 +3247,7 @@ class M33FioPlugin(
 				return flask.jsonify(dict(value = "Error"))
 			
 			# Otherwise check if value is to create an OctoPrint instance
-			elif data["value"] == "Create OctoPrint Instance" :
+			elif data["value"] == "Create OctoPrint Instance With Default Settings" or data["value"].startswith("Create OctoPrint Instance With Current Settings:") or data["value"].startswith("Create OctoPrint Instance With Provided Settings:") :
 			
 				# Go through all ports
 				port = 5000
@@ -3275,7 +3270,80 @@ class M33FioPlugin(
 			
 				# Create config file
 				configFile = self._settings.global_get_basefolder("base").replace("\\", "/") + "/config.yaml" + str(port)
-				shutil.copyfile(self._settings.global_get_basefolder("base").replace("\\", "/") + "/config.yaml", configFile)
+				
+				# Check if using current instance's settings
+				if data["value"].startswith("Create OctoPrint Instance With Current Settings:") :
+				
+					# Get instance port
+					instancePort = int(data["value"][49 :])
+				
+					# Set instance config file
+					instanceConfigFile = self._settings.global_get_basefolder("base").replace("\\", "/") + "/config.yaml"
+				
+					# Check if not attempting to use initial OctoPrint instance's settings
+					if instancePort != 5000 :
+				
+						# Append port number to config file
+						instanceConfigFile += str(instancePort)
+					
+					# Check if instance config file's name contains path traversal or instance config file doesn't exist
+					if "../" in instanceConfigFile or not os.path.isfile(instanceConfigFile) :
+				
+						# Return error
+						return flask.jsonify(dict(value = "Error"))
+					
+					# Copy instance config file
+					shutil.copyfile(instanceConfigFile, configFile)
+				
+				# Otherwise check if settings are provided
+				elif data["value"].startswith("Create OctoPrint Instance With Provided Settings:") :
+				
+					# Get settings
+					settings = data["value"][50 :]
+				
+					# Check if settings are valid
+					try :
+						yaml.load(settings)
+					except :
+						return flask.jsonify(dict(value = "Error"))
+				
+					# Create config file
+					output = open(configFile, "wb")
+					
+					# Write settings to config file
+					for character in settings :
+						output.write(chr(ord(character)))
+					output.close()
+				
+				# Otherwise
+				else :
+				
+					# Get initial instance's settings
+					input = open(self._settings.global_get_basefolder("base").replace("\\", "/") + "/config.yaml", "rb")
+					try :
+						settings = yaml.safe_load(input)
+					except :
+						input.close()
+						return flask.jsonify(dict(value = "Error"))
+					input.close()
+					
+					# Set allowed keys
+					allowedKeys = ["accessControl", "api", "server"]
+
+					# Get invalid keys from settings
+					invalidKeys = []
+					for key in settings :
+						if key not in allowedKeys :
+							invalidKeys += [key]
+							
+					# Remove invalid keys from settings
+					for key in invalidKeys:
+						settings.pop(key)
+					
+					# Create default config file
+					output = open(configFile, "wb")
+					yaml.safe_dump(settings, output, default_flow_style=False, indent="    ", allow_unicode=True)
+					output.close()
 				
 				useLegacyCommand = True
 				try :
@@ -3313,6 +3381,41 @@ class M33FioPlugin(
 				
 				# Send response
 				return flask.jsonify(dict(value = "OK", port = port))
+			
+			# Otherwise check if parameter is to download settings
+			elif data["value"].startswith("Get OctoPrint Instance Settings:") :
+			
+				# Get port
+				port = int(data["value"][33 :])
+				
+				# Set config file
+				configFile = self._settings.global_get_basefolder("base").replace("\\", "/") + "/config.yaml"
+				
+				# Check if not attempting to download initial OctoPrint instance's settings
+				if port != 5000 :
+				
+					# Append port number to config file
+					configFile += str(port)
+				
+				# Check if config file's name contains path traversal or config file doesn't exist
+				if "../" in configFile or not os.path.isfile(configFile) :
+				
+					# Return error
+					return flask.jsonify(dict(value = "Error"))
+				
+				# Set file's destination
+				destinationName = "config.yaml"
+				fileDestination = self.get_plugin_data_folder().replace("\\", "/") + "/" + destinationName
+				
+				# Remove file in destination if it already exists
+				if os.path.isfile(fileDestination) :
+					os.remove(fileDestination)
+				
+				# Copy config file to accessible location
+				shutil.copyfile(configFile, fileDestination)
+				
+				# Return location
+				return flask.jsonify(dict(value = "OK", path = "m33fio/download/" + urllib.quote(destinationName.encode("utf-8"))))
 			
 			# Otherwise check if parameter is print settings
 			elif data["value"].startswith("Print Settings:") :
@@ -5330,6 +5433,9 @@ class M33FioPlugin(
 				# Clear original write and read
 				self.originalWrite = None
 				self.originalRead = None
+				
+				# Clear show mid-print filament change
+				self.showMidPrintFilamentChange = False
 			
 				# Send printer status
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Micro 3D Not Connected"))
@@ -5488,7 +5594,7 @@ class M33FioPlugin(
 					self.printingTestBorder = True
 	
 				# Otherwise check if printing backlash calibration
-				elif payload["filename"] == os.path.basename(self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "QuickBacklash_X_0.0-0.99.gcode").replace("\\", "/")) or payload["filename"] == os.path.basename(self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "QuickBacklash_X_0.70-1.69.gcode").replace("\\", "/")) or payload["filename"] == os.path.basename(self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "QuickBacklash_Y_0.0-0.99.gcode").replace("\\", "/")) or payload["filename"] == os.path.basename(self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "QuickBacklash_Y_0.70-1.69.gcode").replace("\\", "/")) :
+				elif payload["filename"] == os.path.basename(self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "QuickBacklash-v2-X.gcode").replace("\\", "/")) or payload["filename"] == os.path.basename(self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "QuickBacklash-v2-Y.gcode").replace("\\", "/")) :
 				
 					# Set printing backlash calibration
 					self.printingBacklashCalibration = True

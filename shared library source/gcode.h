@@ -1,4 +1,4 @@
-// Header gaurd
+// Header guard
 #ifndef GCODE_H
 #define GCODE_H
 

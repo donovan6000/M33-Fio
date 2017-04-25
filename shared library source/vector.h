@@ -1,4 +1,4 @@
-// Header gaurd
+// Header guard
 #ifndef VECTOR_H
 #define VECTOR_H
 

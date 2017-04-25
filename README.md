@@ -4,7 +4,7 @@
 ### Description
 M33 Fio is a general purpose plugin for [OctoPrint](http://octoprint.org/) that extends its capabilities to include many useful feature like the ability to use a Micro 3D printer, modify a model before printing it, host a webcam stream, and much more.
 
-The latest version of M33 Fio is V1.18 released on January Xth, 2017, and an entire changelog for it can be found [here](https://raw.githubusercontent.com/donovan6000/M33-Fio/master/Changelog).
+The latest version of M33 Fio is V1.18 released on April Xth, 2017, and an entire changelog for it can be found [here](https://raw.githubusercontent.com/donovan6000/M33-Fio/master/Changelog).
 
 ### Features
 * Adds a model viewer tab to OctoPrint's interface where any uploaded model can be viewed
@@ -66,9 +66,9 @@ It's even possible to cut and merge models to allow printing files that couldn't
 The model viewer allows easily seeing how any uploaded model looks.
 ![alt text](https://raw.githubusercontent.com/donovan6000/M33-Fio/master/images/model%20viewer.png "Model Viewer")
 ### Troubleshooting
-Q. Can I use this plugin if I don't have a Micro 3D printer?
+Q. How can I use this plugin with a Micro 3D printer?
 
-A. Yes, you don't need a Micro 3D printer to use this plugin. Just enable the Settings > M33 Fio > 'Not using a Micro 3D printer' setting to disable all this plugin's Micro 3D specific functionality. All of M33 Fio's printer independent features are still usable when this option is enabled, so you'll be able to use the slicer profile editor, model editor, OctoPrint instance manager, expanded 3D file format support, webcam support, etc.
+A. Disable the Settings > M33 Fio > 'Not using a Micro 3D printer' setting to enable all this plugin's Micro 3D specific functionality.
 ___
 Q. I can't connect to my Micro 3D printer. I receive an error similar to, "Unexpected error while connecting to serial port: AUTO SerialException: 'could not open port 'COM13': WindowsError(5, 'Access is denied.')'" every time I try to connect."
 
