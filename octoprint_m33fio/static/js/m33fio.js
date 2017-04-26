@@ -37,6 +37,7 @@ $(function() {
 		var preventUpdatingFiles = false;
 		var heatbedAttached = false;
 		var enableMessages = true;
+		var closingInstance = false;
 		
 		// Set model editor printer and filament color
 		var modelEditorPrinterColor;
@@ -4680,6 +4681,16 @@ $(function() {
 			});
 		}
 		
+		// Get time stamp
+		function getTimeStamp() {
+		
+			// Get time
+			var time = new Date();
+			
+			// Return time stamp
+			return time.toLocaleDateString().trim().replace(/[\/_\s]/g, "-").toLowerCase();
+		}
+		
 		// Preload all images
 		preload(
 			PLUGIN_BASEURL + "m33fio/static/img/logo.png",
@@ -4717,7 +4728,8 @@ $(function() {
 			PLUGIN_BASEURL + "m33fio/static/img/test-border-good.png",
 			PLUGIN_BASEURL + "m33fio/static/img/test-border-high.png",
 			PLUGIN_BASEURL + "m33fio/static/img/test-border-low.png",
-			PLUGIN_BASEURL + "m33fio/static/img/backlash.png",
+			PLUGIN_BASEURL + "m33fio/static/img/backlash-layout.png",
+			PLUGIN_BASEURL + "m33fio/static/img/backlash-printed.png",
 			PLUGIN_BASEURL + "m33fio/static/img/graph-background.png",
 			PLUGIN_BASEURL + "m33fio/static/img/fill-density_extra-high.png",
 			PLUGIN_BASEURL + "m33fio/static/img/fill-density_full.png",
@@ -5909,6 +5921,13 @@ $(function() {
 						fileName += ".ini";
 					else if(slicerName === "slic3r")
 						fileName += ".ini";
+					
+					// Add timestamp to file name
+					var extension = fileName.lastIndexOf(".");
+					if(extension == -1)
+						fileName += " " + getTimeStamp();
+					else
+						fileName = fileName.substr(0, extension) + " " + getTimeStamp() + fileName.substr(extension);
 			
 					// Download profile
 					var blob = new Blob([text.slice(-1) === "\n" ? text.slice(0, -1) : text], {type: "text/plain"});
@@ -5929,9 +5948,19 @@ $(function() {
 				$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Saving model…"));
 				
 				setTimeout(function() {
+				
+					// Set file name
+					var fileName = modelName;
+				
+					// Add timestamp to file name
+					var extension = fileName.lastIndexOf(".");
+					if(extension == -1)
+						fileName += " " + getTimeStamp();
+					else
+						fileName = fileName.substr(0, extension) + " " + getTimeStamp() + fileName.substr(extension);
 
 					// Download model
-					saveFile(modelEditor.exportScene(), modelName);
+					saveFile(modelEditor.exportScene(), fileName);
 
 					// Wait until model is loaded
 					function isSceneExported() {
@@ -6307,9 +6336,6 @@ $(function() {
 									// Done
 									}).done(function(data) {
 								
-										// Set using provided profile
-										var usingProvidedProfile = (slicerName === "cura" || slicerName === "slic3r") && (slicerProfileName === "micro_3d_pla" || slicerProfileName === "micro_3d_abs" || slicerProfileName === "micro_3d_hips" || slicerProfileName === "micro_3d_flx" || slicerProfileName === "micro_3d_tgh" || slicerProfileName === "micro_3d_abs-r" || slicerProfileName === "micro_3d_cam");
-										
 										// Hide dialog
 										$("#slicing_configuration_dialog").removeClass("in");
 							
@@ -6598,27 +6624,27 @@ $(function() {
 													var fanFullHeight = parseFloat(getSlicerProfileValue("fan_full_height")).toFixed(3);
 													var solidLayerThickness = parseFloat(getSlicerProfileValue("solid_layer_thickness")).toFixed(3);
 													
-													if(layerHeight == 0.35 && bottomThickness == 0.3 && (fanFullHeight == parseFloat((1 - 1) * 0.35 + 0.3 + 0.001).toFixed(3) || parseFloat((2 - 1) * 0.35 + 0.3 + 0.001).toFixed(3)) && solidLayerThickness == parseFloat(8 * (0.35 - 0.0000001)).toFixed(3)) {
+													if(layerHeight == 0.35 && bottomThickness == 0.3 && (fanFullHeight == parseFloat((1 - 1) * 0.35 + 0.3 + 0.001).toFixed(3) || parseFloat((2 - 1) * 0.35 + 0.3 + 0.001).toFixed(3)) && solidLayerThickness == parseFloat((8  - 0.0000001) * 0.35).toFixed(3)) {
 														$("#slicing_configuration_dialog p.quality").html(gettext("Extra Low Quality"));
 														$("#slicing_configuration_dialog div.quality button[data-value=\"0.35\"]").addClass("disabled");
 													}
-													else if(layerHeight == 0.30 && bottomThickness == 0.3 && (fanFullHeight == parseFloat((1 - 1) * 0.30 + 0.3 + 0.001).toFixed(3) || parseFloat((2 - 1) * 0.30 + 0.3 + 0.001).toFixed(3)) && solidLayerThickness == parseFloat(8 * (0.30 - 0.0000001)).toFixed(3)) {
+													else if(layerHeight == 0.30 && bottomThickness == 0.3 && (fanFullHeight == parseFloat((1 - 1) * 0.30 + 0.3 + 0.001).toFixed(3) || parseFloat((2 - 1) * 0.30 + 0.3 + 0.001).toFixed(3)) && solidLayerThickness == parseFloat((8  - 0.0000001) * 0.30).toFixed(3)) {
 														$("#slicing_configuration_dialog p.quality").html(gettext("Low Quality"));
 														$("#slicing_configuration_dialog div.quality button[data-value=\"0.30\"]").addClass("disabled");
 													}
-													else if(layerHeight == 0.25 && bottomThickness == 0.3 && (fanFullHeight == parseFloat((1 - 1) * 0.25 + 0.3 + 0.001).toFixed(3) || parseFloat((2 - 1) * 0.25 + 0.3 + 0.001).toFixed(3)) && solidLayerThickness == parseFloat(8 * (0.25 - 0.0000001)).toFixed(3)) {
+													else if(layerHeight == 0.25 && bottomThickness == 0.3 && (fanFullHeight == parseFloat((1 - 1) * 0.25 + 0.3 + 0.001).toFixed(3) || parseFloat((2 - 1) * 0.25 + 0.3 + 0.001).toFixed(3)) && solidLayerThickness == parseFloat((8  - 0.0000001) * 0.25).toFixed(3)) {
 														$("#slicing_configuration_dialog p.quality").html(gettext("Medium Quality"));
 														$("#slicing_configuration_dialog div.quality button[data-value=\"0.25\"]").addClass("disabled");
 													}
-													else if(layerHeight == 0.20 && bottomThickness == 0.3 && (fanFullHeight == parseFloat((1 - 1) * 0.20 + 0.3 + 0.001).toFixed(3) || parseFloat((2 - 1) * 0.20 + 0.3 + 0.001).toFixed(3)) && solidLayerThickness == parseFloat(8 * (0.20 - 0.0000001)).toFixed(3)) {
+													else if(layerHeight == 0.20 && bottomThickness == 0.3 && (fanFullHeight == parseFloat((1 - 1) * 0.20 + 0.3 + 0.001).toFixed(3) || parseFloat((2 - 1) * 0.20 + 0.3 + 0.001).toFixed(3)) && solidLayerThickness == parseFloat((8  - 0.0000001) * 0.20).toFixed(3)) {
 														$("#slicing_configuration_dialog p.quality").html(gettext("High Quality"));
 														$("#slicing_configuration_dialog div.quality button[data-value=\"0.20\"]").addClass("disabled");
 													}
-													else if(layerHeight == 0.15 && bottomThickness == 0.3 && (fanFullHeight == parseFloat((1 - 1) * 0.15 + 0.3 + 0.001).toFixed(3) || parseFloat((2 - 1) * 0.15 + 0.3 + 0.001).toFixed(3)) && solidLayerThickness == parseFloat(8 * (0.15 - 0.0000001)).toFixed(3)) {
+													else if(layerHeight == 0.15 && bottomThickness == 0.3 && (fanFullHeight == parseFloat((1 - 1) * 0.15 + 0.3 + 0.001).toFixed(3) || parseFloat((2 - 1) * 0.15 + 0.3 + 0.001).toFixed(3)) && solidLayerThickness == parseFloat((8  - 0.0000001) * 0.15).toFixed(3)) {
 														$("#slicing_configuration_dialog p.quality").html(gettext("Extra High Quality"));
 														$("#slicing_configuration_dialog div.quality button[data-value=\"0.15\"]").addClass("disabled");
 													}
-													else if(layerHeight == 0.05 && bottomThickness == 0.3 && (fanFullHeight == parseFloat((1 - 1) * 0.05 + 0.3 + 0.001).toFixed(3) || parseFloat((2 - 1) * 0.05 + 0.3 + 0.001).toFixed(3)) && solidLayerThickness == parseFloat(8 * (0.05 - 0.0000001)).toFixed(3)) {
+													else if(layerHeight == 0.05 && bottomThickness == 0.3 && (fanFullHeight == parseFloat((1 - 1) * 0.05 + 0.3 + 0.001).toFixed(3) || parseFloat((2 - 1) * 0.05 + 0.3 + 0.001).toFixed(3)) && solidLayerThickness == parseFloat((8  - 0.0000001) * 0.05).toFixed(3)) {
 														$("#slicing_configuration_dialog p.quality").html(gettext("Highest Quality"));
 														$("#slicing_configuration_dialog div.quality button[data-value=\"0.05\"]").addClass("disabled");
 													}
@@ -6879,7 +6905,7 @@ $(function() {
 													$("#slicing_configuration_dialog .skirtGap").val(3);
 									
 												if(slicerName === "cura") {
-													$("#slicing_configuration_dialog .topBottomLayers").val(Math.round(parseFloat(getSlicerProfileValue("solid_layer_thickness")) / (parseFloat(getSlicerProfileValue("layer_height")) - 0.0000001)));
+													$("#slicing_configuration_dialog .topBottomLayers").val(Math.round((parseFloat(getSlicerProfileValue("solid_layer_thickness")) - 0.0000001) / parseFloat(getSlicerProfileValue("layer_height"))));
 												
 													if(getSlicerProfileValue("platform_adhesion") !== "Raft")
 														$("#slicing_configuration_dialog .raftAirgap").parent("div").parent("div").addClass("disabled");
@@ -6976,9 +7002,6 @@ $(function() {
 
 																for(var i = 0; i < length; i++)
 																	binary += String.fromCharCode(bytes[i]);
-
-																// Clear using provided profile
-																var usingProvidedProfile = false;
 															
 																// Set new profile
 																$("#slicing_configuration_dialog .modal-extra textarea").val(addCommentsToText(binary));
@@ -7366,14 +7389,6 @@ $(function() {
 															});
 														}
 											
-														if(usingProvidedProfile && (slicerProfileName === "micro_3d_abs" || slicerProfileName === "micro_3d_hips")) {
-												
-															if(slicerName === "cura")
-																changedSettings[0]["bottom_layer_speed"] = 10;
-															else if(slicerName === "slic3r")
-																changedSettings[0]["first_layer_speed"] = "50%";
-														}
-											
 														// Uncheck use brim and use skirt basic setting, disable brim line count and skirt gap manual setting, and enable raft airgap manual setting
 														$("#slicing_configuration_dialog .useBrim, #slicing_configuration_dialog .useSkirt").prop("checked", false);
 														$("#slicing_configuration_dialog .skirtGap").parent("div").parent("div").addClass("disabled");
@@ -7413,14 +7428,6 @@ $(function() {
 															// Disable raft layers manual setting
 															$("#slicing_configuration_dialog.profile .raftLayers").parent("div").parent("div").addClass("disabled");
 														}
-														
-														if(usingProvidedProfile && (slicerProfileName === "micro_3d_abs" || slicerProfileName === "micro_3d_hips")) {
-												
-															if(slicerName === "cura")
-																changedSettings[0]["bottom_layer_speed"] = 5;
-															else if(slicerName === "slic3r")
-																changedSettings[0]["first_layer_speed"] = "25%";
-														}
 													}
 												}
 									
@@ -7449,14 +7456,6 @@ $(function() {
 																skirts: 0,
 																brim_width: $("#slicing_configuration_dialog.profile .brimWidth").val()
 															});
-											
-														if(usingProvidedProfile && (slicerProfileName === "micro_3d_abs" || slicerProfileName === "micro_3d_hips")) {
-												
-															if(slicerName === "cura")
-																changedSettings[0]["bottom_layer_speed"] = 10;
-															else if(slicerName === "slic3r")
-																changedSettings[0]["first_layer_speed"] = "50%";
-														}
 											
 														// Uncheck use raft and skirt basic setting, enable brim line count manual setting, and disable raft airgap and skirt gap manual setting
 														$("#slicing_configuration_dialog .useRaft, #slicing_configuration_dialog .useSkirt").prop("checked", false);
@@ -7497,14 +7496,6 @@ $(function() {
 															// Disable brim width manual setting
 															$("#slicing_configuration_dialog .brimWidth").parent("div").parent("div").addClass("disabled");
 														}
-														
-														if(usingProvidedProfile && (slicerProfileName === "micro_3d_abs" || slicerProfileName === "micro_3d_hips")) {
-												
-															if(slicerName === "cura")
-																changedSettings[0]["bottom_layer_speed"] = 5;
-															else if(slicerName === "slic3r")
-																changedSettings[0]["first_layer_speed"] = "25%";
-														}
 													}
 												}
 										
@@ -7535,14 +7526,6 @@ $(function() {
 																skirt_distance: $("#slicing_configuration_dialog .skirtGap").val(),
 																brim_width: 0
 															});
-														}
-														
-														if(usingProvidedProfile && (slicerProfileName === "micro_3d_abs" || slicerProfileName === "micro_3d_hips")) {
-												
-															if(slicerName === "cura")
-																changedSettings[0]["bottom_layer_speed"] = 5;
-															else if(slicerName === "slic3r")
-																changedSettings[0]["first_layer_speed"] = "25%";
 														}
 											
 														// Uncheck use raft and brim basic setting, enable skirt gap manual setting, and disable raft airgap and brim line count manual setting
@@ -7580,14 +7563,6 @@ $(function() {
 															// Disable skirt count
 															$("#slicing_configuration_dialog.profile .skirts").parent("div").parent("div").addClass("disabled");
 														}
-														
-														if(usingProvidedProfile && (slicerProfileName === "micro_3d_abs" || slicerProfileName === "micro_3d_hips")) {
-												
-															if(slicerName === "cura")
-																changedSettings[0]["bottom_layer_speed"] = 5;
-															else if(slicerName === "slic3r")
-																changedSettings[0]["first_layer_speed"] = "25%";
-														}
 											
 														// Disable skirt gap manual setting
 														$("#slicing_configuration_dialog.profile .skirtGap").parent("div").parent("div").addClass("disabled");
@@ -7608,11 +7583,6 @@ $(function() {
 															changedSettings.push({
 																retract_speed: 20
 															});
-														
-														if(usingProvidedProfile && (slicerProfileName === "micro_3d_abs" || slicerProfileName === "micro_3d_hips")) {
-															if(slicerName === "slic3r")
-																changedSettings[0]["retract_speed"] = 25;
-														}
 													}
 													
 													// Otherwise
@@ -7686,7 +7656,7 @@ $(function() {
 													if(slicerName === "cura")
 														changedSettings.push({
 															layer_height: $(this).val(),
-															solid_layer_thickness: parseFloat(parseInt($("#slicing_configuration_dialog.profile .topBottomLayers").val()) * (parseFloat($(this).val()) - 0.0000001)).toFixed(3)
+															solid_layer_thickness: parseFloat((parseInt($("#slicing_configuration_dialog.profile .topBottomLayers").val()) - 0.0000001) * parseFloat($(this).val())).toFixed(3)
 														});
 													else if(slicerName === "slic3r")
 														changedSettings.push({
@@ -7771,18 +7741,6 @@ $(function() {
 															gap_fill_speed: parseFloat(speed) - 4 >= 1 ? parseFloat(parseFloat(speed) - 4).toFixed(3) : 1
 														});
 													}
-										
-													if(usingProvidedProfile && (slicerProfileName === "micro_3d_abs" || slicerProfileName === "micro_3d_hips")) {
-											
-														if(slicerName === "cura") {
-															changedSettings[0]["travel_speed"] = $(this).val();
-															changedSettings[0]["insetx_speed"] = parseFloat($(this).val()) - 3 >= 1 ? parseFloat(parseFloat($(this).val()) - 3).toFixed(3) : 1;
-														}
-														else if(slicerName === "slic3r") {
-															changedSettings[0]["travel_speed"] = $(this).val();
-															changedSettings[0]["solid_infill_speed"] = parseFloat($(this).val()) - 3 >= 1 ? parseFloat(parseFloat($(this).val()) - 3).toFixed(3) : 1;
-														}
-													}
 												}
 									
 												// Otherwise set changed settings if changing top/bottom layers (Cura only)
@@ -7792,7 +7750,7 @@ $(function() {
 													var layerHeight = getSlicerProfileValue("layer_height");
 													
 													changedSettings.push({
-														solid_layer_thickness: parseFloat(parseInt($(this).val()) * (parseFloat(layerHeight === "" ? 0.1 : layerHeight) - 0.0000001)).toFixed(3)
+														solid_layer_thickness: parseFloat((parseInt($(this).val()) - 0.0000001) * parseFloat(layerHeight === "" ? 0.1 : layerHeight)).toFixed(3)
 													});
 										
 													if(layerHeight === "")
@@ -7899,9 +7857,6 @@ $(function() {
 													// Quality
 													case "quality":
 													
-														// Initialize fan full height
-														var fan_full_height = 0;
-														
 														// Check new quality setting
 														switch(parseFloat($(this).data("value"))) {
 														
@@ -7913,7 +7868,7 @@ $(function() {
 																		layer_height: 0.35,
 																		bottom_thickness: 0.3,
 																		fan_full_height: parseFloat((1 - 1) * 0.35 + 0.3 + 0.001).toFixed(3),
-																		solid_layer_thickness: parseFloat(8 * (0.35 - 0.0000001)).toFixed(3)
+																		solid_layer_thickness: parseFloat((8 - 0.0000001) * 0.35).toFixed(3)
 																	});
 																else if(slicerName === "slic3r")
 																	changedSettings.push({
@@ -7923,7 +7878,6 @@ $(function() {
 																		bottom_solid_layers: 8
 																	});
 																
-																fan_full_height = (2 - 1) * 0.35 + 0.3 + 0.001;
 																break;
 															
 															// Low quality
@@ -7934,7 +7888,7 @@ $(function() {
 																		layer_height: 0.30,
 																		bottom_thickness: 0.3,
 																		fan_full_height: parseFloat((1 - 1) * 0.30 + 0.3 + 0.001).toFixed(3),
-																		solid_layer_thickness: parseFloat(8 * (0.30 - 0.0000001)).toFixed(3)
+																		solid_layer_thickness: parseFloat((8 - 0.0000001) * 0.30).toFixed(3)
 																	});
 																else if(slicerName === "slic3r")
 																	changedSettings.push({
@@ -7944,7 +7898,6 @@ $(function() {
 																		bottom_solid_layers: 8
 																	});
 																
-																fan_full_height = (2 - 1) * 0.30 + 0.3 + 0.001;
 																break;
 															
 															// Medium quality
@@ -7955,7 +7908,7 @@ $(function() {
 																		layer_height: 0.25,
 																		bottom_thickness: 0.3,
 																		fan_full_height: parseFloat((1 - 1) * 0.25 + 0.3 + 0.001).toFixed(3),
-																		solid_layer_thickness: parseFloat(8 * (0.25 - 0.0000001)).toFixed(3)
+																		solid_layer_thickness: parseFloat((8 - 0.0000001) * 0.25).toFixed(3)
 																	});
 																else if(slicerName === "slic3r")
 																	changedSettings.push({
@@ -7965,7 +7918,6 @@ $(function() {
 																		bottom_solid_layers: 8
 																	});
 																
-																fan_full_height = (2 - 1) * 0.25 + 0.3 + 0.001;
 																break;
 															
 															// High quality
@@ -7976,7 +7928,7 @@ $(function() {
 																		layer_height: 0.20,
 																		bottom_thickness: 0.3,
 																		fan_full_height: parseFloat((1 - 1) * 0.20 + 0.3 + 0.001).toFixed(3),
-																		solid_layer_thickness: parseFloat(8 * (0.20 - 0.0000001)).toFixed(3)
+																		solid_layer_thickness: parseFloat((8 - 0.0000001) * 0.20).toFixed(3)
 																	});
 																else if(slicerName === "slic3r")
 																	changedSettings.push({
@@ -7986,7 +7938,6 @@ $(function() {
 																		bottom_solid_layers: 8
 																	});
 																
-																fan_full_height = (2 - 1) * 0.20 + 0.3 + 0.001;
 																break;
 															
 															// Extra high quality
@@ -7997,7 +7948,7 @@ $(function() {
 																		layer_height: 0.15,
 																		bottom_thickness: 0.3,
 																		fan_full_height: parseFloat((1 - 1) * 0.15 + 0.3 + 0.001).toFixed(3),
-																		solid_layer_thickness: parseFloat(8 * (0.15 - 0.0000001)).toFixed(3)
+																		solid_layer_thickness: parseFloat((8 - 0.0000001) * 0.15).toFixed(3)
 																	});
 																else if(slicerName === "slic3r")
 																	changedSettings.push({
@@ -8007,7 +7958,6 @@ $(function() {
 																		bottom_solid_layers: 8
 																	});
 																
-																fan_full_height = (2 - 1) * 0.15 + 0.3 + 0.001;
 																break;
 															
 															// Highest quality
@@ -8018,7 +7968,7 @@ $(function() {
 																		layer_height: 0.05,
 																		bottom_thickness: 0.3,
 																		fan_full_height: parseFloat((1 - 1) * 0.05 + 0.3 + 0.001).toFixed(3),
-																		solid_layer_thickness: parseFloat(8 * (0.05 - 0.0000001)).toFixed(3)
+																		solid_layer_thickness: parseFloat((8 - 0.0000001) * 0.05).toFixed(3)
 																	});
 																else if(slicerName === "slic3r")
 																	changedSettings.push({
@@ -8028,19 +7978,13 @@ $(function() {
 																		bottom_solid_layers: 8
 																	});
 																
-																fan_full_height = (2 - 1) * 0.05 + 0.3 + 0.001;
 																break;
-														}
-														
-														if(usingProvidedProfile && (slicerProfileName === "micro_3d_abs" || slicerProfileName === "micro_3d_hips" || slicerProfileName === "micro_3d_abs-r" || slicerProfileName === "micro_3d_cam")) {
-															if(slicerName === "cura")
-																changedSettings[0]["fan_full_height"] = parseFloat(fan_full_height).toFixed(3);
 														}
 														
 														// Set layer height and top/bottom layers manual settings
 														if(slicerName === "cura") {
 															$("#slicing_configuration_dialog .layerHeight").val(parseFloat(changedSettings[0]["layer_height"]).toFixed(2));
-															$("#slicing_configuration_dialog .topBottomLayers").val(Math.round(parseFloat(changedSettings[0]["solid_layer_thickness"]) / (parseFloat(changedSettings[0]["layer_height"]) - 0.0000001)));
+															$("#slicing_configuration_dialog .topBottomLayers").val(Math.round((parseFloat(changedSettings[0]["solid_layer_thickness"]) - 0.0000001) / parseFloat(changedSettings[0]["layer_height"])));
 														}
 														else if(slicerName === "slic3r") {
 															$("#slicing_configuration_dialog .layerHeight").val(parseFloat(changedSettings[0]["layer_height"]).toFixed(2));
@@ -11501,7 +11445,7 @@ $(function() {
 		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(18)").attr("title", htmlDecode(gettext("Prints a specified backlash calibration"))).click(function() {
 		
 			// Show message
-			showMessage(gettext("Calibration Status"), gettext("It's recommended to print the backlash calibration prints after the print bed has been accurately calibrated. Make sure to set the \"Backlash X\" and \"Backlash Y\" values to 0 before printing a backlash calibration print which will print the model without any backlash compensation applied to it. The X backlash calibration prints and Y backlash calibration prints each assist in determining the X and Y backlash respecitvley.<br><br>The backlash values can be detemined by finding the sample with the highest possible value that doesn't curve.") + "<img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/backlash.png\">" + _.sprintf(gettext("If none of the samples curve when using the %(lowRange)s prints then use the %(highRange)s prints. For more information check out <a target=\"_blank\" rel=\"nofollow\" href=\"http://www.thingiverse.com/thing:1435828\">Muele's quick backlash calibration method</a>.<br><br>All the referenced values can be found by clicking the \"Print settings\" button in the \"General\" section of OctoPrint's Control tab.<br><br>Choose a backlash calibration print to continue."), {lowRange: "0.0‒0.99", highRange: "0.70‒1.69"}) + "<span class=\"backlash\"><button class=\"btn btn-block\">X 0.0‒0.99</button><button class=\"btn btn-block\">X 0.70‒1.69</button><button class=\"btn btn-block\">Y 0.0‒0.99</button><button class=\"btn btn-block\">Y 0.70‒1.69</button></span>", gettext("Cancel"), function() {
+			showMessage(gettext("Calibration Status"), gettext("It's recommended to print the backlash calibration prints after the print bed has been accurately calibrated. Make sure to set the \"Backlash X\" and \"Backlash Y\" values to 0 before printing a backlash calibration print which will print the model without any backlash compensation applied to it. The X backlash calibration and Y backlash calibration prints each assist in determining the X and Y backlash respectively.<br><br>The backlash values can be determined by finding the sample with the highest possible value that doesn't curve. Identifying the first sample that curves can be difficult, but it can be made easier by using a ruler and a flashlight to make the curves appear more prominent.") + "<img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/backlash-printed.png\">" + gettext("Once the correct sample has been located, the following chart can help determine the compensation in millimeters to fix the axis's backlash. It's recommended to print several copies and take the average compensation value to get a more accurate final value.") + "<img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/backlash-layout.png\">" + gettext("For more information check out <a target=\"_blank\" rel=\"nofollow\" href=\"http://www.thingiverse.com/thing:2040624\">Muele's quick backlash calibration method</a>.<br><br>All the referenced values can be found by clicking the \"Print settings\" button in the \"General\" section of OctoPrint's Control tab.<br><br>Choose a backlash calibration print to continue.") + "<span class=\"backlash\"><button class=\"btn btn-block\">" + gettext("X Axis Calibration") + "</button><button class=\"btn btn-block\">" + gettext("Y Axis Calibration") + "</button></span>", gettext("Cancel"), function() {
 			
 				// Hide message
 				hideMessage();
@@ -11519,19 +11463,11 @@ $(function() {
 			switch($(this).index()) {
 			
 				case 0:
-					command = "Print Backlash Calibration X 0.0-0.99";
+					command = "Print Backlash Calibration X";
 				break;
 				
 				case 1:
-					command = "Print Backlash Calibration X 0.70-1.69";
-				break;
-				
-				case 2:
-					command = "Print Backlash Calibration Y 0.0-0.99";
-				break;
-				
-				case 3:
-					command = "Print Backlash Calibration Y 0.70-1.69";
+					command = "Print Backlash Calibration Y";
 				break;
 			}
 			
@@ -12600,7 +12536,7 @@ $(function() {
 				
 						// Download profile
 						var blob = new Blob([data], {type: "text/plain"});
-						saveFile(blob, "printer settings.yaml");
+						saveFile(blob, "printer settings " + getTimeStamp() + ".yaml");
 					});
 				});
 			}, 500);
@@ -12621,9 +12557,19 @@ $(function() {
 			
 			// Clear input
 			$(this).val("");
+			
+			// Check if file is invalid
+			if(typeof file === "undefined")
+	
+				// Show message
+				showMessage(gettext("Settings Status"), gettext("Invalid file"), gettext("OK"), function() {
+
+					// Hide message
+					hideMessage();
+				});
 		
-			// Check if file is valid
-			if(typeof file !== "undefined") {
+			// Otherwise
+			else {
 			
 				// Show message
 				showMessage(gettext("Settings Status"), gettext("Restoring printer settings"));
@@ -12649,7 +12595,7 @@ $(function() {
 							dataType: "json",
 							data: JSON.stringify({
 								command: "message",
-								value: "Set Printer Settings:" + binary
+								value: "Set Printer Settings: " + binary
 							}),
 							contentType: "application/json; charset=UTF-8",
 							traditional: true,
@@ -13355,8 +13301,8 @@ $(function() {
 			// Set select
 			var select = $(this);
 		
-			// Check if creating a new instance
-			if(select.val() === "new") {
+			// Check if creating a new instance with default settings
+			if(select.val() === "createWithDefaultSettings") {
 			
 				// Show message
 				showMessage(gettext("OctoPrint Status"), gettext("Creating OctoPrint instance"));
@@ -13368,7 +13314,7 @@ $(function() {
 					dataType: "json",
 					data: JSON.stringify({
 						command: "message",
-						value: "Create OctoPrint Instance"
+						value: "Create OctoPrint Instance With Default Settings"
 					}),
 					contentType: "application/json; charset=UTF-8",
 					traditional: true,
@@ -13399,8 +13345,121 @@ $(function() {
 				});
 			}
 			
-			// Check if closing an instance
-			else if(select.val() === "close") {
+			// Otherwise check if creating a new instance with current settings
+			else if(select.val() === "createWithCurrentSettings") {
+			
+				// Show message
+				showMessage(gettext("OctoPrint Status"), gettext("Creating OctoPrint instance"));
+			
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m33fio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({
+						command: "message",
+						value: "Create OctoPrint Instance With Current Settings: " + window.location.port
+					}),
+					contentType: "application/json; charset=UTF-8",
+					traditional: true,
+					processData: true
+					
+				// Done
+				}).done(function(data) {
+					
+					// Check if an error occured
+					if(data.value === "Error") {
+					
+						// Set current port
+						select.val(window.location.port);
+					
+						// Show message
+						showMessage(gettext("OctoPrint Status"), gettext("Failed to create OctoPrint instance"), gettext("OK"), function() {
+						
+							// Hide message
+							hideMessage();
+						});
+					}
+					
+					// Otherwise
+					else
+					
+						// Go to OctoPrint instance
+						window.location.port = data.port;
+				});
+			}
+			
+			// Otherwise check if creating a new instance with provided settings
+			else if(select.val() === "createWithProvidedSettings") {
+			
+				// Set current port
+				select.val(window.location.port);
+			
+				// Open file input dialog
+				$("#navbar_plugin_m33fio > input").click();
+			}
+			
+			// Otherwise check if saving current instance's settings
+			else if(select.val() === "saveCurrentSettings") {
+			
+				// Show message
+				showMessage(gettext("OctoPrint Status"), gettext("Obtaining OctoPrint instance's settings"));
+			
+				setTimeout(function() {
+		
+					// Send request
+					$.ajax({
+						url: API_BASEURL + "plugin/m33fio",
+						type: "POST",
+						dataType: "json",
+						data: JSON.stringify({
+							command: "message",
+							value: "Get OctoPrint Instance Settings: " + window.location.port
+						}),
+						contentType: "application/json; charset=UTF-8",
+						traditional: true,
+						processData: true
+
+					// Done
+					}).done(function(data) {
+				
+						// Send request
+						$.ajax({
+							url: PLUGIN_BASEURL + data.path,
+							type: "GET",
+							dataType: "text",
+							data: null,
+							contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+							traditional: true,
+							processData: true,
+							headers: {
+								"Pragma": "no-cache",
+								"Expires": "0",
+								"Cache-Control": "no-cache, no-store, must-revalidate"
+							}
+
+						// Done
+						}).done(function(data) {
+						
+							// Set current port
+							select.val(window.location.port);
+					
+							// Hide message
+							hideMessage();
+				
+							// Download profile
+							var blob = new Blob([data], {type: "text/plain"});
+							saveFile(blob, "config " + getTimeStamp() + ".yaml");
+						});
+					});
+				}, 500);
+			}
+			
+			// Check if closing current instance
+			else if(select.val() === "closeCurrent") {
+			
+				// Set closing instance
+				closingInstance = true;
 			
 				// Show message
 				showMessage(gettext("OctoPrint Status"), gettext("Closing OctoPrint instance"));
@@ -13431,7 +13490,7 @@ $(function() {
 						$("#navbar_plugin_m33fio > select > option").each(function() {
 					
 							// Check if another OctoPrint instance exists
-							if($(this).attr("value") !== "new" && $(this).attr("value") !== "close" && $(this).attr("value") !== window.location.port) {
+							if($(this).attr("value") !== "createWithDefaultSettings" && $(this).attr("value") !== "createWithCurrentSettings" && $(this).attr("value") !== "createWithProvidedSettings" && $(this).attr("value") !== "saveCurrentSettings" && $(this).attr("value") !== "closeCurrent" && $(this).attr("value") !== window.location.port) {
 						
 								// Set found port
 								foundPort = true;
@@ -13457,6 +13516,9 @@ $(function() {
 					// Otherwise
 					else {
 					
+						// Clear closing instance
+						closingInstance = false;
+					
 						// Set current port
 						select.val(window.location.port);
 					
@@ -13478,7 +13540,7 @@ $(function() {
 					$("#navbar_plugin_m33fio > select > option").each(function() {
 				
 						// Check if another OctoPrint instance exists
-						if($(this).attr("value") !== "new" && $(this).attr("value") !== "close" && $(this).attr("value") !== window.location.port) {
+						if($(this).attr("value") !== "createWithDefaultSettings" && $(this).attr("value") !== "createWithCurrentSettings" && $(this).attr("value") !== "createWithProvidedSettings" && $(this).attr("value") !== "saveCurrentSettings" && $(this).attr("value") !== "closeCurrent" && $(this).attr("value") !== window.location.port) {
 						
 							// Set found port
 							foundPort = true;
@@ -13509,6 +13571,96 @@ $(function() {
 				window.location.port = select.val();
 		});
 		
+		// On creating a new instance with provided settings file input change
+		$("#navbar_plugin_m33fio > input").change(function() {
+		
+			// Set select
+			var select = $("#navbar_plugin_m33fio > select");
+		
+			// Set current port
+			select.val("createWithProvidedSettings");
+		
+			// Initialize variables
+			var file = this.files[0];
+
+			// Clear input
+			$(this).val("");
+			
+			// Check if file is invalid
+			if(typeof file === "undefined") {
+			
+				// Set current port
+				select.val(window.location.port);
+	
+				// Show message
+				showMessage(gettext("OctoPrint Status"), gettext("Invalid file"), gettext("OK"), function() {
+
+					// Hide message
+					hideMessage();
+				});
+			}
+			
+			// Otherwise
+			else {
+			
+				// Show message
+				showMessage(gettext("OctoPrint Status"), gettext("Creating OctoPrint instance"));
+			
+				// On file load
+				var reader = new FileReader();
+				reader.onload = function(event) {
+
+					// Convert array buffer to a binary string
+					var binary = "";
+					var bytes = new Uint8Array(event.target.result);
+					var length = bytes.byteLength;
+
+					for(var i = 0; i < length; i++)
+						binary += String.fromCharCode(bytes[i]);
+					
+					// Send request
+					$.ajax({
+						url: API_BASEURL + "plugin/m33fio",
+						type: "POST",
+						dataType: "json",
+						data: JSON.stringify({
+							command: "message",
+							value: "Create OctoPrint Instance With Provided Settings: " + binary
+						}),
+						contentType: "application/json; charset=UTF-8",
+						traditional: true,
+						processData: true
+					
+					// Done
+					}).done(function(data) {
+					
+						// Check if an error occured
+						if(data.value === "Error") {
+					
+							// Set current port
+							select.val(window.location.port);
+					
+							// Show message
+							showMessage(gettext("OctoPrint Status"), gettext("Failed to create OctoPrint instance"), gettext("OK"), function() {
+						
+								// Hide message
+								hideMessage();
+							});
+						}
+					
+						// Otherwise
+						else
+					
+							// Go to OctoPrint instance
+							window.location.port = data.port;
+					});
+				};
+				
+				// Read in file
+				reader.readAsArrayBuffer(file);
+			}
+		});
+		
 		// On update firmware with file input change
 		$("#control > div.jog-panel.advanced").find("div > input").change(function() {
 		
@@ -13518,112 +13670,108 @@ $(function() {
 			// Clear input
 			$(this).val("");
 			
-			// Check if file is valid
-			if(typeof file !== "undefined") {
-			
-				// Check if printer is still connected
-				if(!self.printerState.isErrorOrClosed()) {
-			
-					// Check if file is invalid
-					if(typeof file === "undefined") {
-			
-						// Show message
-						showMessage(gettext("Firmware Status"), gettext("Invalid file"), gettext("OK"), function() {
-
-							// Hide message
-							hideMessage();
-						});
-	
-						// Return
-						return;
-					}
-			
-					// Check if file has no name or name doesn't contain a version number
-					if(!file.name.length || file.name.search(/(^| )\d{10}(\.|$)/) == -1) {
-			
-						// Show message
-						showMessage(gettext("Firmware Status"), gettext("Invalid file name"), gettext("OK"), function() {
-
-							// Hide message
-							hideMessage();
-						});
-	
-						// Return
-						return;
-					}
-
-					// Check if the file is too big
-					if(file.size > 32768) {
-
-						// Show message
-						showMessage(gettext("Firmware Status"), gettext("Invalid file size"), gettext("OK"), function() {
+			// Check if printer is still connected
+			if(!self.printerState.isErrorOrClosed()) {
 		
-							// Hide message
-							hideMessage();
-						});
-					}
+				// Check if file is invalid
+				if(typeof file === "undefined") {
+		
+					// Show message
+					showMessage(gettext("Firmware Status"), gettext("Invalid file"), gettext("OK"), function() {
 
-					// Otherwise
-					else {
+						// Hide message
+						hideMessage();
+					});
 
-						// Show message
-						showMessage(gettext("Firmware Status"), gettext("Updating firmware"));
+					// Return
+					return;
+				}
+		
+				// Check if file has no name or name doesn't contain a version number
+				if(!file.name.length || file.name.search(/(^| )\d{10}(\.|$)/) == -1) {
+		
+					// Show message
+					showMessage(gettext("Firmware Status"), gettext("Invalid file name"), gettext("OK"), function() {
 
-						// On file load
-						var reader = new FileReader();
-						reader.onload = function(event) {
+						// Hide message
+						hideMessage();
+					});
 
-							// Convert array buffer to a binary string
-							var binary = "";
-							var bytes = new Uint8Array(event.target.result);
-							var length = bytes.byteLength;
+					// Return
+					return;
+				}
 
-							for(var i = 0; i < length; i++)
-								binary += String.fromCharCode(bytes[i]);
-			
-							// Send request
-							$.ajax({
-								url: API_BASEURL + "plugin/m33fio",
-								type: "POST",
-								dataType: "json",
-								data: JSON.stringify({
-									command: "file",
-									name: file.name,
-									content: binary
-								}),
-								contentType: "application/json; charset=UTF-8",
-								traditional: true,
-								processData: true
+				// Check if the file is too big
+				if(file.size > 32768) {
+
+					// Show message
+					showMessage(gettext("Firmware Status"), gettext("Invalid file size"), gettext("OK"), function() {
 	
-							// Done
-							}).done(function(data) {
-	
-								// Show message
-								showMessage(gettext("Firmware Status"), data.value === "OK" ? gettext("Done") : gettext("Failed"), gettext("OK"), function() {
+						// Hide message
+						hideMessage();
+					});
+				}
 
-									// Hide message
-									hideMessage();
-							
-									// Send request
-									$.ajax({
-										url: API_BASEURL + "plugin/m33fio",
-										type: "POST",
-										dataType: "json",
-										data: JSON.stringify({
-											command: "message",
-											value: "Reconnect To Printer"
-										}),
-										contentType: "application/json; charset=UTF-8",
-										traditional: true,
-										processData: true
-									});
+				// Otherwise
+				else {
+
+					// Show message
+					showMessage(gettext("Firmware Status"), gettext("Updating firmware"));
+
+					// On file load
+					var reader = new FileReader();
+					reader.onload = function(event) {
+
+						// Convert array buffer to a binary string
+						var binary = "";
+						var bytes = new Uint8Array(event.target.result);
+						var length = bytes.byteLength;
+
+						for(var i = 0; i < length; i++)
+							binary += String.fromCharCode(bytes[i]);
+		
+						// Send request
+						$.ajax({
+							url: API_BASEURL + "plugin/m33fio",
+							type: "POST",
+							dataType: "json",
+							data: JSON.stringify({
+								command: "file",
+								name: file.name,
+								content: binary
+							}),
+							contentType: "application/json; charset=UTF-8",
+							traditional: true,
+							processData: true
+
+						// Done
+						}).done(function(data) {
+
+							// Show message
+							showMessage(gettext("Firmware Status"), data.value === "OK" ? gettext("Done") : gettext("Failed"), gettext("OK"), function() {
+
+								// Hide message
+								hideMessage();
+						
+								// Send request
+								$.ajax({
+									url: API_BASEURL + "plugin/m33fio",
+									type: "POST",
+									dataType: "json",
+									data: JSON.stringify({
+										command: "message",
+										value: "Reconnect To Printer"
+									}),
+									contentType: "application/json; charset=UTF-8",
+									traditional: true,
+									processData: true
 								});
 							});
-						};
-						
-						// Read in file
-						reader.readAsArrayBuffer(file);
-					}
+						});
+					};
+					
+					// Read in file
+					reader.readAsArrayBuffer(file);
 				}
 			}
 		});
@@ -13943,11 +14091,11 @@ $(function() {
 					if(!data.cura && !data.slic3r)
 						var text = gettext("It's recommended that you install a slicer on this server to allow slicing from within OctoPrint");
 					else if(data.cura && data.slic3r)
-						var text = _.sprintf(gettext("It's recommended that you install the latest <a href=\"https://ultimaker.com/en/products/cura-software/list\" target=\"_blank\" rel=\"nofollow\">Cura %(curaVersion)s</a> release or the latest <a href=\"http://slic3r.org/download\" target=\"_blank\" rel=\"nofollow\">Slic3r %(slic3rVersion)s</a> release on this server to allow slicing from within OctoPrint"), {curaVersion: "15.04", slic3rVersion: "1.2.9"});
+						var text = _.sprintf(gettext("It's recommended that you install the latest <a href=\"https://ultimaker.com/en/products/cura-software/list\" target=\"_blank\" rel=\"nofollow\">Cura V%(curaVersion)s</a> release or the latest <a href=\"http://slic3r.org/download\" target=\"_blank\" rel=\"nofollow\">Slic3r V%(slic3rVersion)s</a> release on this server to allow slicing from within OctoPrint"), {curaVersion: "15.04", slic3rVersion: "1.2.9"});
 					else if(data.cura)
-						var text = _.sprintf(gettext("It's recommended that you install the latest <a href=\"https://ultimaker.com/en/products/cura-software/list\" target=\"_blank\" rel=\"nofollow\">Cura %(curaVersion)s</a> release on this server to allow slicing from within OctoPrint"), {curaVersion: "15.04"});
+						var text = _.sprintf(gettext("It's recommended that you install the latest <a href=\"https://ultimaker.com/en/products/cura-software/list\" target=\"_blank\" rel=\"nofollow\">Cura V%(curaVersion)s</a> release on this server to allow slicing from within OctoPrint"), {curaVersion: "15.04"});
 					else if(data.slic3r)
-						var text = _.sprintf(gettext("It's recommended that you install the latest <a href=\"http://slic3r.org/download\" target=\"_blank\" rel=\"nofollow\">Slic3r %(slic3rVersion)s</a> release on this server to allow slicing from within OctoPrint"), {slic3rVersion: "1.2.9"});
+						var text = _.sprintf(gettext("It's recommended that you install the latest <a href=\"http://slic3r.org/download\" target=\"_blank\" rel=\"nofollow\">Slic3r V%(slic3rVersion)s</a> release on this server to allow slicing from within OctoPrint"), {slic3rVersion: "1.2.9"});
 					
 					// Check if same text is currently being displayed
 					if($("body > div.page-container > div.message").hasClass("show") && $("body > div.page-container > div.message").find("p").eq(0).html() === text)
@@ -14126,7 +14274,7 @@ $(function() {
 			else if(data.value === "Process Details" && typeof data.processes !== "undefined") {
 			
 				// Reset process details
-				$("#navbar_plugin_m33fio > select > option:not([value=\"new\"]):not([value=\"close\"])").remove();
+				$("#navbar_plugin_m33fio > select > option:not([value=\"createWithDefaultSettings\"]):not([value=\"createWithCurrentSettings\"]):not([value=\"createWithProvidedSettings\"]):not([value=\"saveCurrentSettings\"]):not([value=\"closeCurrent\"])").remove();
 				$("#navbar_plugin_m33fio > select > option").removeAttr("selected");
 				
 				// Go through all processes
@@ -14136,10 +14284,10 @@ $(function() {
 					$("#navbar_plugin_m33fio > select > option").each(function() {
 				
 						// Check if at end of options or at ordered position
-						if($(this).attr("value") === "new" || parseInt($(this).attr("value")) > parseInt(data.processes[i][0])) {
+						if($(this).attr("value") === "createWithDefaultSettings" || $(this).attr("value") === "createWithCurrentSettings" || $(this).attr("value") === "createWithProvidedSettings" || $(this).attr("value") === "saveCurrentSettings" || $(this).attr("value") === "closeCurrent" || parseInt($(this).attr("value")) > parseInt(data.processes[i][0])) {
 			
 							// Insert option
-							$(this).before("<option" + (data.processes[i][1] ? " selected=\"true\"" : "") + " value = \"" + encodeQuotes(data.processes[i][0]) + "\">" + _.sprintf(gettext("Port %(processPort)d"), {processPort: data.processes[i][0]}) + "</option>");
+							$(this).before("<option" + (data.processes[i][1] ? " selected=\"true\"" : "") + " value = \"" + encodeQuotes(data.processes[i][0]) + "\">" + _.sprintf(gettext("Instance at port %(processPort)d"), {processPort: data.processes[i][0]}) + "</option>");
 							
 							// Return false
 							return false;
@@ -15142,7 +15290,7 @@ $(function() {
 		self.onUserLoggedIn = function() {
 		
 			// Enable managing OctoPrint instances
-			$("#navbar_plugin_m33fio > select > option").last().prop("disabled", false).prev().prop("disabled", false);
+			$("#navbar_plugin_m33fio > select > option").last().prop("disabled", false).prev().prop("disabled", false).prev().prop("disabled", false).prev().prop("disabled", false).prev().prop("disabled", false);
 			
 			// Disable closing initial OctoPrint instance
 			if(window.location.port === "5000")
@@ -15172,7 +15320,7 @@ $(function() {
 		self.onUserLoggedOut = function() {
 		
 			// Disable managing OctoPrint instances
-			$("#navbar_plugin_m33fio > select > option").last().prop("disabled", true).prev().prop("disabled", true);
+			$("#navbar_plugin_m33fio > select > option").last().prop("disabled", true).prev().prop("disabled", true).prev().prop("disabled", true).prev().prop("disabled", true).prev().prop("disabled", true);
 			
 			// Hide mid-print filament change settings
 			$("div.midPrintFilamentChange").addClass("notUsingAMicro3DPrinter");
@@ -15442,53 +15590,57 @@ $(function() {
 			// On server disconnect event
 			self.onServerDisconnect = function() {
 			
-				// Reset message system
-				messages = [];
-				skippedMessages = 0;
+				// Check if instance isn't closing
+				if(!closingInstance) {
+			
+					// Reset message system
+					messages = [];
+					skippedMessages = 0;
 		
-				// Get message
-				var message = $("body > div.page-container > div.message");
+					// Get message
+					var message = $("body > div.page-container > div.message");
 		
-				// Check if a progress message is being shown
-				if(message.hasClass("show") && !message.find("button.confirm").eq(2).hasClass("show")) {
+					// Check if a progress message is being shown
+					if(message.hasClass("show") && !message.find("button.confirm").eq(2).hasClass("show")) {
 		
-					// Show message
-					showMessage(gettext("Server Status"), gettext("You've been disconnected from the server which has most likely caused the printer's current operation to fail. It's recommended that you refresh this page to prevent further problems. Refresh now?"), gettext("Yes"), function() {
+						// Show message
+						showMessage(gettext("Server Status"), gettext("You've been disconnected from the server which has most likely caused the printer's current operation to fail. It's recommended that you refresh this page to prevent further problems. Refresh now?"), gettext("Yes"), function() {
 
-						// Hide message
-						hideMessage();
+							// Hide message
+							hideMessage();
 					
-						// Refresh the page
-						location.reload();
-					}, gettext("No"), function() {
+							// Refresh the page
+							location.reload();
+						}, gettext("No"), function() {
 
-						// Hide message
-						hideMessage();
-					});
-				}
+							// Hide message
+							hideMessage();
+						});
+					}
 			
-				// Otherwise
-				else {
+					// Otherwise
+					else {
 			
-					// Check if a message is shown
-					if(message.hasClass("show"))
+						// Check if a message is shown
+						if(message.hasClass("show"))
 				
-						// Hide message
-						hideMessage();
+							// Hide message
+							hideMessage();
 			
-					// Show message
-					showMessage(gettext("Server Status"), gettext("You've been disconnected from the server. It's recommended that you refresh this page to prevent further problems. Refresh now?"), gettext("Yes"), function() {
+						// Show message
+						showMessage(gettext("Server Status"), gettext("You've been disconnected from the server. It's recommended that you refresh this page to prevent further problems. Refresh now?"), gettext("Yes"), function() {
 
-						// Hide message
-						hideMessage();
+							// Hide message
+							hideMessage();
 					
-						// Refresh the page
-						location.reload();
-					}, gettext("No"), function() {
+							// Refresh the page
+							location.reload();
+						}, gettext("No"), function() {
 
-						// Hide message
-						hideMessage();
-					});
+							// Hide message
+							hideMessage();
+						});
+					}
 				}
 			}
 		}

@@ -1,5 +1,9 @@
 <select>
-	<option value="new" disabled>{{_("New")}}</option>
-	<option value="close" disabled>{{_("Close")}}</option>
+	<option value="createWithDefaultSettings" title="{{_("Create a new OctoPrint instance that will use OctoPrint's default settings" | replace("\"", "&quot;"))}}" disabled>{{_("Create instance with default settings")}}</option>
+	<option value="createWithCurrentSettings" title="{{_("Create a new OctoPrint instance that will use the current OctoPrint instance's settings" | replace("\"", "&quot;"))}}" disabled>{{_("Create instance with current settings")}}</option>
+	<option value="createWithProvidedSettings" title="{{_("Create a new OctoPrint instance that will use provided settings" | replace("\"", "&quot;"))}}" disabled>{{_("Create instance with provided settings")}}</option>
+	<option value="saveCurrentSettings" title="{{_("Download the current OctoPrint instance's settings" | replace("\"", "&quot;"))}}" disabled>{{_("Download current settings")}}</option>
+	<option value="closeCurrent" title="{{_("Close the current OctoPrint instance" | replace("\"", "&quot;"))}}" disabled>{{_("Close current instance")}}</option>
 </select>
+<input type="file" accept=".yaml">
 <a></a>

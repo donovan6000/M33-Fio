@@ -284,7 +284,7 @@ body > div.modal-scrollable.hideOverflow {
 }
 
 #navbar_plugin_m33fio > select {
-	width: 140px;
+	width: 171px;
 	position: relative;
 	right: 30px;
 	top: 5px;
@@ -297,6 +297,11 @@ body > div.modal-scrollable.hideOverflow {
 	position: relative;
 	right: 36px;
 	top: 1px;
+}
+
+#navbar_plugin_m33fio > a:hover {
+	background-color: transparent !important;
+	background-image: none !important;
 }
 
 #control div.jog-panel.extruder > div > div:first-of-type, #control div.jog-panel.extruder > div > div:nth-of-type(3), #control div.jog-panel.extruder > div > button:nth-of-type(3), #control div.jog-panel.controls > div > div:nth-of-type(4), #control div.jog-panel.controls > div > button:first-of-type {
@@ -447,7 +452,6 @@ body > div.modal-scrollable.hideOverflow {
 	width: 109px !important;
 }
 
-
 #control div.jog-panel.filament {
 	clear: left;
 }
@@ -540,7 +544,7 @@ body > div.modal-scrollable.hideOverflow {
 	left: -8px;
 }
 
-#control div.jog-panel.calibration input, #control div.jog-panel.advanced input {
+#control div.jog-panel.calibration input, #control div.jog-panel.advanced input, #navbar_plugin_m33fio input {
 	display: none;
 }
 
@@ -762,7 +766,7 @@ body > div.page-container > div.message > div > div > p span.backlash {
 
 body > div.page-container > div.message > div > div > p span.backlash > button {
 	display: inline;
-	width: 100px;
+	width: 140px;
 	margin: 2px;
 }
 
@@ -1258,13 +1262,11 @@ body > div.page-container > div.message .customInput input {
 	display: none;
 }
 
-
 #slicing_configuration_dialog .groups .settings input {
 	position: relative;
 	top: -3px;
 	right: 2px;
 }
-
 
 #slicing_configuration_dialog .groups .settings input[type="checkbox"]:focus {
 	outline: none;
@@ -2121,7 +2123,6 @@ body > div.page-container > div.message .customInput input {
 	text-align: center;
 	line-height: 24px;
 }
-
 
 #model .cover.noLoading img {
 	display: none;

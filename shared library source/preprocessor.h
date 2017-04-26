@@ -1,4 +1,4 @@
-// Header gaurd
+// Header guard
 #ifndef PREPROCESSOR_H
 #define PREPROCESSOR_H
 

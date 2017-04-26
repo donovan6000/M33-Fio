@@ -2,6 +2,9 @@
 # -*- coding: UTF-8 -*-
 
 
+# The generated profile will only differ from the original with the infillOverlap and raftInterfaceLineSpacing settings when processed by OctoPrint's Cura Engine plugin. The infillOverlap is intentionally changed from 0 to 15 by this program and the raftInterfaceLineSpacing is set to be twice as much as the raftInterfaceLinewidth by OctoPrint's Cura Engine plugin.
+
+
 # Imports
 import sys
 import os
@@ -173,8 +176,7 @@ for line in open(sys.argv[1], "rb") :
 				output.write("platform_adhesion = Raft\n")
 		
 		elif key == "raftLineSpacing" :
-			#output.write("raft_line_spacing = " + str(float(value) / 1000) + '\n')
-			output.write("raft_line_spacing = 2.0\n")
+			output.write("raft_line_spacing = " + str(float(value) / 1000) + '\n')
 		
 		elif key == "raftBaseThickness" :
 			output.write("raft_base_thickness = " + str(float(value) / 1000) + '\n')
@@ -183,16 +185,25 @@ for line in open(sys.argv[1], "rb") :
 			output.write("raft_base_linewidth = " + str(float(value) / 1000) + '\n')
 		
 		elif key == "raftInterfaceThickness" :
-			#output.write("raft_interface_thickness = " + str(float(value) / 1000) + '\n')
-			output.write("raft_interface_thickness = 0.2\n")
+			output.write("raft_interface_thickness = " + str(float(value) / 1000) + '\n')
 		
 		elif key == "raftInterfaceLinewidth" :
-			#output.write("raft_interface_linewidth = " + str(float(value) / 1000) + '\n')
-			output.write("raft_interface_linewidth = 0.5\n")
+			output.write("raft_interface_linewidth = " + str(float(value) / 1000) + '\n')
+		
+		elif key == "raftSurfaceThickness" :
+			output.write("raft_surface_thickness = " + str(float(value) / 1000) + '\n')
+		
+		elif key == "raftSurfaceLinewidth" :
+			output.write("raft_surface_linewidth = " + str(float(value) / 1000) + '\n')
+		
+		elif key == "raftAirGap" :
+
+			raftAirGapAll = int(value)
+			
+			output.write("raft_airgap_all = " + str(float(value) / 1000) + '\n')
 		
 		elif key == "raftAirGapLayer0" :
-			#output.write("raft_airgap = " + str(float(value) / 1000) + '\n')
-			output.write("raft_airgap = 0.35\n")
+			raftAirGapLayer0 = int(value)
 		
 		elif key == "raftSurfaceLayers" :
 			output.write("raft_surface_layers = " + str(int(value)) + '\n')
@@ -343,6 +354,8 @@ for line in open(sys.argv[1], "rb") :
 			print "skipping " + str(key)
 	
 # Obtain Cura settings from a combination of Cura Engine parameters
+output.write("raft_airgap = " + str(float(raftAirGapLayer0 - raftAirGapAll) / 1000) + '\n')
+
 if usingRaft :
 	output.write("bottom_layer_speed = " + str(raftBaseSpeed) + '\n')
 else :
@@ -384,7 +397,7 @@ if insetXSpeed != printSpeed :
 
 output.write("layer0_width_factor = " + str(layer0extrusionWidth * 100 / (edgeWidth * 1000)) + '\n')
 output.write("wall_thickness = " + str(extrusionWidth * lineCount / 1000.0) + '\n')
-output.write("solid_layer_thickness = " + str(round(math.floor(solidLayerCount * (layerThickness - 0.0001)) / 1000, 2)) + '\n')
+output.write("solid_layer_thickness = " + str(round(math.floor((solidLayerCount - 0.0001) * layerThickness) / 1000, 2)) + '\n')
 
 # Set bed and print temperature
 if "abs-r" in sys.argv[1].lower() :
@@ -421,9 +434,6 @@ if not usingBrim :
 	output.write("brim_line_count = 20\n")
 output.write("solidarea_speed = 0.0\n")
 output.write("perimeter_before_infill = False\n")
-output.write("raft_airgap_all = 0.0\n")
-output.write("raft_surface_thickness = 0.27\n")
-output.write("raft_surface_linewidth = 0.4\n")
 output.write("plugin_config = \n")
 output.write("object_center_x = -1\n")
 output.write("object_center_y = -1\n")
