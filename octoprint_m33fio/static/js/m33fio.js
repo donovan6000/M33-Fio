@@ -7857,9 +7857,6 @@ $(function() {
 													// Quality
 													case "quality":
 													
-														// Initialize fan full height
-														var fan_full_height = 0;
-														
 														// Check new quality setting
 														switch(parseFloat($(this).data("value"))) {
 														
@@ -7881,7 +7878,6 @@ $(function() {
 																		bottom_solid_layers: 8
 																	});
 																
-																fan_full_height = (2 - 1) * 0.35 + 0.3 + 0.001;
 																break;
 															
 															// Low quality
@@ -7902,7 +7898,6 @@ $(function() {
 																		bottom_solid_layers: 8
 																	});
 																
-																fan_full_height = (2 - 1) * 0.30 + 0.3 + 0.001;
 																break;
 															
 															// Medium quality
@@ -7923,7 +7918,6 @@ $(function() {
 																		bottom_solid_layers: 8
 																	});
 																
-																fan_full_height = (2 - 1) * 0.25 + 0.3 + 0.001;
 																break;
 															
 															// High quality
@@ -7944,7 +7938,6 @@ $(function() {
 																		bottom_solid_layers: 8
 																	});
 																
-																fan_full_height = (2 - 1) * 0.20 + 0.3 + 0.001;
 																break;
 															
 															// Extra high quality
@@ -7965,7 +7958,6 @@ $(function() {
 																		bottom_solid_layers: 8
 																	});
 																
-																fan_full_height = (2 - 1) * 0.15 + 0.3 + 0.001;
 																break;
 															
 															// Highest quality
@@ -7986,7 +7978,6 @@ $(function() {
 																		bottom_solid_layers: 8
 																	});
 																
-																fan_full_height = (2 - 1) * 0.05 + 0.3 + 0.001;
 																break;
 														}
 														

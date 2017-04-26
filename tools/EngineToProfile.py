@@ -2,6 +2,9 @@
 # -*- coding: UTF-8 -*-
 
 
+# The generated profile will only differ from the original with the infillOverlap and raftInterfaceLineSpacing settings when processed by OctoPrint's Cura Engine plugin. The infillOverlap is intentionally changed from 0 to 15 by this program and the raftInterfaceLineSpacing is set to be twice as much as the raftInterfaceLinewidth by OctoPrint's Cura Engine plugin.
+
+
 # Imports
 import sys
 import os

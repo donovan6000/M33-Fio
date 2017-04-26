@@ -1834,6 +1834,61 @@ class M33FioPlugin(
 		if self._settings.get_boolean(["SleepNeverRemind"]) is None :
 			self._settings.set_boolean(["SleepNeverRemind"], self.get_settings_defaults()["SleepNeverRemind"])
 	
+	# Set default slicer profile
+	def setDefaultSlicerProfile(self) :
+	
+		# Check if Cura is configured
+		if "cura" in self._slicing_manager.configured_slicers :
+
+			# Set Cura profile location and destination
+			profileLocation = self._basefolder.replace("\\", "/") + "/static/profiles/Cura/"
+			profileDestination = self._slicing_manager.get_slicer_profile_path("cura").replace("\\", "/") + "/"
+	
+			# Go through all Cura profiles
+			for profile in os.listdir(profileLocation) :
+
+				# Set profile identifier and name
+				profileIdentifier = profile[0 : profile.find(".")]
+				profileName = self._slicing_manager.get_profile_path("cura", profileIdentifier)[len(profileDestination) :].lower()
+				
+				# Check if profile matches new filament type
+				if profileIdentifier.split(" ", 3)[2] == str(self._settings.get(["FilamentType"])) :
+				
+					# Set profile as default
+					try :
+						self._slicing_manager.set_default_profile("cura", os.path.splitext(profileName)[0])
+					except :
+						pass
+				
+					# Break
+					break
+		
+		# Check if Slic3r is configured
+		if "slic3r" in self._slicing_manager.configured_slicers :
+
+			# Set Slic3r profile location and destination
+			profileLocation = self._basefolder.replace("\\", "/") + "/static/profiles/Slic3r/"
+			profileDestination = self._slicing_manager.get_slicer_profile_path("slic3r").replace("\\", "/") + "/"
+	
+			# Go through all Slic3r profiles
+			for profile in os.listdir(profileLocation) :
+
+				# Set profile identifier and name
+				profileIdentifier = profile[0 : profile.find(".")]
+				profileName = self._slicing_manager.get_profile_path("slic3r", profileIdentifier)[len(profileDestination) :].lower()
+				
+				# Check if profile matches new filament type
+				if profileIdentifier.split(" ", 3)[2] == str(self._settings.get(["FilamentType"])) :
+				
+					# Set profile as default
+					try :
+						self._slicing_manager.set_default_profile("slic3r", os.path.splitext(profileName)[0])
+					except :
+						pass
+				
+					# Break
+					break
+	
 	# Get default settings
 	def get_settings_defaults(self) :
 	
@@ -1929,6 +1984,9 @@ class M33FioPlugin(
 		
 		# Get old not using a Micro 3D printer
 		oldNotUsingAMicro3DPrinter = self._settings.get_boolean(["NotUsingAMicro3DPrinter"])
+		
+		# Get old filament type
+		oldFilamentType = str(self._settings.get(["FilamentType"]))
 		
 		# Save settings
 		octoprint.plugin.SettingsPlugin.on_settings_save(self, data)
@@ -2070,6 +2128,15 @@ class M33FioPlugin(
 		
 		# Set file locations
 		self.setFileLocations()
+		
+		# Check if not using a Micro 3D printer or filament type settings changed
+		if oldNotUsingAMicro3DPrinter != self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) or oldFilamentType != str(self._settings.get(["FilamentType"])) :
+		
+			# Check if using a Micro 3D printer
+			if not self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
+			
+				# Set default slicer profile
+				self.setDefaultSlicerProfile()
 	
 	# Template manager
 	def get_template_configs(self) :
@@ -5332,7 +5399,7 @@ class M33FioPlugin(
 			# Go through all Cura profiles
 			for profile in os.listdir(profileLocation) :
 	
-				# Set profile version, identifier, and name
+				# Set profile identifier and name
 				profileIdentifier = profile[0 : profile.find(".")]
 				profileName = self._slicing_manager.get_profile_path("cura", profileIdentifier)[len(profileDestination) :].lower()
 				
@@ -5363,7 +5430,7 @@ class M33FioPlugin(
 			# Go through all Slic3r profiles
 			for profile in os.listdir(profileLocation) :
 	
-				# Set profile version, identifier, and name
+				# Set profile identifier and name
 				profileIdentifier = profile[0 : profile.find(".")]
 				profileName = self._slicing_manager.get_profile_path("slic3r", profileIdentifier)[len(profileDestination) :].lower()
 				
@@ -7288,6 +7355,9 @@ class M33FioPlugin(
 				# Check if set to automatically collect printer settings
 				if self._settings.get_boolean(["AutomaticallyObtainSettings"]) :
 					self._settings.set(["FilamentType"], self.printerFilamentType)
+					
+					# Set default slicer profile
+					self.setDefaultSlicerProfile()
 			
 			# Otherwise check if data is for filament temperature
 			elif "PT:" + str(self.eepromOffsets["filamentTemperature"]["offset"]) + " " in data :
