@@ -2964,6 +2964,9 @@ class M33FioPlugin(
 					# Return error
 					return flask.jsonify(dict(value = "Error"))
 				
+				# Set default slicer
+				octoprint.settings.settings().set(["slicing", "defaultSlicer"], values["slicerName"], True)
+				
 				# Set file's destination
 				destinationName = "slicer_profile.ini"
 				fileDestination = self.get_plugin_data_folder().replace("\\", "/") + "/" + destinationName

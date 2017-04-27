@@ -1,5 +1,9 @@
 Changelog:
 
+V1.19 May X 2017
+
+	* Last slicer selected will be set as the default slicer so you dont have to keep reselecting it
+
 V1.18 April 26 2017
 
 	* Fixed problems related to OS not having certain environmental variables
