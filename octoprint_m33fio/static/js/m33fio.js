@@ -2389,6 +2389,8 @@ $(function() {
 					}
 					
 					// Enable events
+					this.transformControls.addEventListener("mouseEnter", this.mouseEnterEvent);
+					this.transformControls.addEventListener("mouseLeave", this.mouseLeaveEvent);
 					this.transformControls.addEventListener("mouseDown", this.startTransform);
 					this.transformControls.addEventListener("mouseUp", this.endTransform);
 					this.transformControls.addEventListener("mouseUp", this.fixModelY);
@@ -2415,6 +2417,9 @@ $(function() {
 	
 				// Start transform
 				startTransform: function() {
+				
+					// Set cursor to grabbing
+					$("body").addClass("grabbing");
 		
 					// Save matrix
 					modelEditor.savedMatrix = modelEditor.transformControls.object.matrix.clone();
@@ -2428,6 +2433,9 @@ $(function() {
 	
 				// End transform
 				endTransform: function() {
+				
+					// Remove grabbing cursor
+					$("body").removeClass("grabbing");
 		
 					// Clear saved matrix
 					modelEditor.savedMatrix = null;
@@ -2764,6 +2772,20 @@ $(function() {
 						break;
 					}
 				},
+				
+				// Mouse enter event
+				mouseEnterEvent: function(event) {
+				
+					// Set cursor to grab
+					$("body").addClass("grab");
+				},
+				
+				// Mouse leave event
+				mouseLeaveEvent: function(event) {
+				
+					// Remove grab cursor
+					$("body").removeClass("grab");
+				},
 
 				// Mouse down event
 				mouseDownEvent: function(event) {
@@ -2772,7 +2794,7 @@ $(function() {
 					if(event.which == 1)
 
 						// Check if not cutting models, is clicking inside the model editor, and is not clicking on a button or input
-						if(modelEditor.cutShape === null && $(event.target).closest(".modal-extra").length && !$(event.target).is("button, img, input")) {
+						if(modelEditor.cutShape === null && $(event.target).closest(".modal-extra").length && !$(event.target).closest("div.values, div.cutshape").length && !$(event.target).is("button, img, input")) {
 
 							// Set mouse coordinates
 							var mouse = new THREE.Vector2();
@@ -4152,6 +4174,9 @@ $(function() {
 				// Apply cut
 				applyCut: function() {
 				
+					// Set cursor to progress
+					$("body").addClass("progress");
+				
 					// Display cover
 					$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Applying cut…"));
 
@@ -4324,6 +4349,9 @@ $(function() {
 						// Upate measurements
 						modelEditor.updateModelChanges();
 						
+						// Remove progress cursor
+						$("body").removeClass("progress");
+						
 						// Hide cover
 						$("#slicing_configuration_dialog .modal-cover").removeClass("show");
 						setTimeout(function() {
@@ -4366,6 +4394,9 @@ $(function() {
 			
 				// Apply merge
 				applyMerge: function() {
+				
+					// Set cursor to progress
+					$("body").addClass("progress");
 				
 					// Display cover
 					$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Applying merge…"));
@@ -4459,6 +4490,9 @@ $(function() {
 				
 						// Fix model's Y
 						modelEditor.fixModelY();
+						
+						// Remove progress cursor
+						$("body").removeClass("progress");
 					
 						// Hide cover
 						$("#slicing_configuration_dialog .modal-cover").removeClass("show");
@@ -5890,6 +5924,9 @@ $(function() {
 			// Check if saving profile
 			if($("#slicing_configuration_dialog").hasClass("profile")) {
 			
+				// Set cursor to progress
+				$("body").addClass("progress");
+			
 				// Display cover
 				$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Saving profile…"));
 				
@@ -5933,6 +5970,9 @@ $(function() {
 					var blob = new Blob([text.slice(-1) === "\n" ? text.slice(0, -1) : text], {type: "text/plain"});
 					saveFile(blob, fileName);
 					
+					// Remove progress cursor
+					$("body").removeClass("progress");
+					
 					// Hide cover
 					$("#slicing_configuration_dialog .modal-cover").removeClass("show");
 					setTimeout(function() {
@@ -5943,6 +5983,9 @@ $(function() {
 			
 			// Otherwise assume saving model
 			else {
+			
+				// Set cursor to progress
+				$("body").addClass("progress");
 			
 				// Display cover
 				$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Saving model…"));
@@ -5967,6 +6010,9 @@ $(function() {
 
 						// Check if scene is exported
 						if(modelEditor.sceneExported) {
+						
+							// Remove progress cursor
+							$("body").removeClass("progress");
 
 							// Hide cover
 							$("#slicing_configuration_dialog .modal-cover").removeClass("show");
@@ -6200,6 +6246,9 @@ $(function() {
 						$("#slicing_configuration_dialog .modal-footer a.skip").css("display", "");
 						skipModelEditor = false;
 						
+						// Remove grab, grabbing, and progress cursor
+						$("body").removeClass("grab grabbing progress");
+						
 						// Save software settings
 						self.settings.saveData();
 					}, 300);
@@ -6313,6 +6362,9 @@ $(function() {
 							// Check if profile is available
 							if(data.value === "OK") {
 							
+								// Set cursor to progress
+								$("body").addClass("progress");
+							
 								// Display cover
 								$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Loading profile…"));
 					
@@ -6335,6 +6387,9 @@ $(function() {
 
 									// Done
 									}).done(function(data) {
+									
+										// Remove progress cursor
+										$("body").removeClass("progress");
 								
 										// Hide dialog
 										$("#slicing_configuration_dialog").removeClass("in");
@@ -6986,6 +7041,9 @@ $(function() {
 													// Check if file has the correct extension
 													if((slicerName !== "cura" && slicerName !== "slic3r") || (slicerName === "cura" && type === "ini") || (slicerName === "slic3r" && type === "ini")) {
 												
+														// Set cursor to progress
+														$("body").addClass("progress");
+														
 														// Display cover
 														$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Loading profile…"));
 
@@ -7011,6 +7069,9 @@ $(function() {
 															
 																// Update settings from profile
 																updateSettingsFromProfile();
+																
+																// Remove progress cursor
+																$("body").removeClass("progress");
 
 																// Hide cover
 																$("#slicing_configuration_dialog .modal-cover").removeClass("show");
@@ -8242,6 +8303,9 @@ $(function() {
 								
 								// Otherwise
 								else {
+								
+									// Set cursor to progress
+									$("body").addClass("progress");
 							
 									// Display cover
 									$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Loading model…"));
@@ -8256,6 +8320,9 @@ $(function() {
 
 											// Check if model is loaded
 											if(modelEditor.modelLoaded) {
+											
+												// Remove progress cursor
+												$("body").removeClass("progress");
 											
 												// Display model
 												$("#slicing_configuration_dialog").removeClass("in");
@@ -8318,6 +8385,7 @@ $(function() {
 														</div>\
 														<div class=\"values translate\">\
 															<div>\
+																<button class=\"close\" title=\"" + encodeQuotes(gettext("Close")) + "\"><div></div><i class=\"icon-remove-sign\"></i></button>\
 																<p><span class=\"axis x\">X</span><input type=\"number\" step=\"any\" name=\"x\"><span></span></p>\
 																<p><span class=\"axis y\">Y</span><input type=\"number\" step=\"any\" name=\"y\"><span></span></p>\
 																<p><span class=\"axis z\">Z</span><input type=\"number\" step=\"any\" name=\"z\"><span></span></p>\
@@ -8370,7 +8438,10 @@ $(function() {
 														
 														// Check if file has the correct extension
 														if(type === "stl" || type === "obj" || type === "m3d" || type === "amf" || type === "wrl" || type === "dae" || type === "3mf") {
-
+															
+															// Set cursor to progress
+															$("body").addClass("progress");
+															
 															// Display cover
 															$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Loading model…"));
 
@@ -8384,6 +8455,9 @@ $(function() {
 
 																	// Check if model is loaded
 																	if(modelEditor.modelLoaded) {
+																	
+																		// Remove progress cursor
+																		$("body").removeClass("progress");
 
 																		// Hide cover
 																		$("#slicing_configuration_dialog .modal-cover").removeClass("show");
@@ -8415,7 +8489,32 @@ $(function() {
 														// Clear value
 														$(this).val("");
 													});
-
+													
+													// Buttons and sections mouse over event
+													$("#slicing_configuration_dialog .modal-extra button, #slicing_configuration_dialog .modal-extra div.values, #slicing_configuration_dialog .modal-extra div.cutShape").mouseover(function() {
+													
+														// Check if not changing model
+														if(!$("body").hasClass("grabbing"))
+													
+															// Force transform control's mouse leave
+															modelEditor.transformControls.forceMouseLeave();
+													
+													// Buttons and sections mouse up event
+													}).mouseup(function() {
+														
+														// Remove grab cursor
+														$("body").removeClass("grab");
+														
+														setTimeout(function() {
+														
+															// Check if not changing model
+															if(!$("body").hasClass("grabbing"))
+													
+																// Force transform control's mouse leave
+																modelEditor.transformControls.forceMouseLeave();
+														}, 0);
+													});
+													
 													// Button click event
 													$("#slicing_configuration_dialog .modal-extra button").click(function() {
 
@@ -8476,7 +8575,10 @@ $(function() {
 
 													// Clone button click event
 													$("#slicing_configuration_dialog .modal-extra button.clone").click(function() {
-
+														
+														// Set cursor to progress
+														$("body").addClass("progress");
+														
 														// Display cover
 														$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Cloning model…"));
 
@@ -8490,6 +8592,9 @@ $(function() {
 
 																// Check if model is loaded
 																if(modelEditor.modelLoaded) {
+																
+																	// Remove progress cursor
+																	$("body").removeClass("progress");
 
 																	// Hide cover
 																	$("#slicing_configuration_dialog .modal-cover").removeClass("show");
@@ -8745,6 +8850,13 @@ $(function() {
 														// Select button
 														$(this).addClass("disabled").siblings(".disabled").removeClass("disabled");
 													});
+													
+													// Values close click event
+													$("#slicing_configuration_dialog.model .modal-extra > div.values > div > button.close").click(function() {
+													
+														modelEditor.removeSelection();
+														
+													});
 
 													// Value change event
 													$("#slicing_configuration_dialog .modal-extra div.values input").change(function() {
@@ -8910,6 +9022,9 @@ $(function() {
 					
 							// Apply changes
 							function applyChanges() {
+							
+								// Set cursor to progress
+								$("body").addClass("progress");
 						
 								// Display cover
 								$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Applying changes…"));
@@ -9007,6 +9122,12 @@ $(function() {
 												// Clear after slicing action if printer isn't connected
 												if(self.printerState.isErrorOrClosed())
 													self.slicing.afterSlicing("none");
+												
+												setTimeout(function() {
+												
+													// Remove progress cursor
+													$("body").removeClass("progress");
+												}, 300);
 								
 												// Slice file
 												button.removeClass("disabled").click();
@@ -9046,6 +9167,12 @@ $(function() {
 											// Clear after slicing action if printer isn't connected
 											if(self.printerState.isErrorOrClosed())
 												self.slicing.afterSlicing("none");
+											
+											setTimeout(function() {
+												
+												// Remove progress cursor
+												$("body").removeClass("progress");
+											}, 300);
 							
 											// Slice file
 											button.removeClass("disabled").click();

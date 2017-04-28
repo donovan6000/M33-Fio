@@ -649,6 +649,7 @@
 			"rotate": new THREE.TransformGizmoRotate( this.rotationDisableE ),
 			"scale": new THREE.TransformGizmoScale()
 		};
+		var _mouseHovering = false;
 
 		for ( var type in _gizmo ) {
 
@@ -660,6 +661,8 @@
 		}
 
 		var changeEvent = { type: "change" };
+		var mouseEnterEvent = { type: "mouseEnter" };
+		var mouseLeaveEvent = { type: "mouseLeave" };
 		var mouseDownEvent = { type: "mouseDown" };
 		var mouseUpEvent = { type: "mouseUp", mode: _mode };
 		var objectChangeEvent = { type: "objectChange" };
@@ -804,6 +807,18 @@
 
 		};
 		
+		this.forceMouseLeave = function ( ) {
+		
+			scope.axis = null;
+			
+			scope.update();
+		
+			_mouseHovering = false;
+			
+			scope.dispatchEvent( mouseLeaveEvent );
+
+		};
+		
 		this.setAllowedTranslation = function ( allowedTranslation ) {
 		
 			if ( allowedTranslation === "XYZ" )
@@ -882,7 +897,22 @@
 				axis = intersect.object.name;
 
 				event.preventDefault();
+				
+				if ( ! _mouseHovering ) {
+				
+					_mouseHovering = true;
+				
+					scope.dispatchEvent( mouseEnterEvent );
+				}
 
+			}
+			
+			else if ( _mouseHovering ) {
+			
+				_mouseHovering = false;
+			
+				scope.dispatchEvent( mouseLeaveEvent );
+				
 			}
 
 			if ( scope.axis !== axis ) {
