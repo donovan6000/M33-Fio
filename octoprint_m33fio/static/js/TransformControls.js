@@ -637,6 +637,7 @@
 		this.allowedTranslation = "XYZXZ";
 		this.size = 1;
 		this.axis = null;
+		this.maintainPosition = false;
 
 		var scope = this;
 
@@ -650,6 +651,7 @@
 			"scale": new THREE.TransformGizmoScale()
 		};
 		var _mouseHovering = false;
+		var _savedObjectWorldMatrix;
 
 		for ( var type in _gizmo ) {
 
@@ -743,6 +745,7 @@
 
 			this.object = object;
 			this.visible = true;
+			_savedObjectWorldMatrix = this.object.matrixWorld.clone();
 			this.update();
 
 		};
@@ -855,7 +858,7 @@
 			if ( scope.object === undefined ) return;
 
 			scope.object.updateMatrixWorld();
-			worldPosition.setFromMatrixPosition( scope.object.matrixWorld );
+			worldPosition.setFromMatrixPosition( scope.maintainPosition ? _savedObjectWorldMatrix : scope.object.matrixWorld );
 			worldRotation.setFromRotationMatrix( tempMatrix.extractRotation( scope.object.matrixWorld ) );
 
 			camera.updateMatrixWorld();
@@ -1221,6 +1224,8 @@
 				scope.dispatchEvent( mouseUpEvent )
 
 			}
+			
+			_savedObjectWorldMatrix = scope.object.matrixWorld.clone();
 
 			_dragging = false;
 			onPointerHover( event );

@@ -1662,6 +1662,7 @@ $(function() {
 				grid: null,
 				showGrid: typeof localStorage.modelEditorShowGrid !== "undefined" && localStorage.modelEditorShowGrid === "true",
 				cameraFocus: new THREE.Vector3(),
+				maintainCameraFocus: false,
 				
 				// Initialize
 				init: function() {
@@ -2393,8 +2394,7 @@ $(function() {
 					this.transformControls.addEventListener("mouseLeave", this.mouseLeaveEvent);
 					this.transformControls.addEventListener("mouseDown", this.startTransform);
 					this.transformControls.addEventListener("mouseUp", this.endTransform);
-					this.transformControls.addEventListener("mouseUp", this.fixModelY);
-					this.transformControls.addEventListener("change", this.updateModelChanges);
+					this.transformControls.addEventListener("change", this.fixModelY);
 					this.orbitControls.addEventListener("change", this.updateMeasurementPosition);
 					this.orbitControls.addEventListener("change", this.updateGlowPerspective);
 					this.orbitControls.addEventListener("end", function() {
@@ -2429,6 +2429,12 @@ $(function() {
 	
 					// Disable orbit controls
 					modelEditor.orbitControls.enabled = false;
+					
+					// Check if rotating or scaling
+					if(modelEditor.transformControls.getMode() != "translate")
+					
+						// Maintain camera focus
+						modelEditor.maintainCameraFocus = true;
 				},
 	
 				// End transform
@@ -2442,6 +2448,9 @@ $(function() {
 	
 					// Enable orbit controls
 					modelEditor.orbitControls.enabled = true;
+					
+					// Stop maintaining camera focus
+					modelEditor.maintainCameraFocus = false;
 				},
 
 				// Import model
@@ -2962,6 +2971,7 @@ $(function() {
 							// Set selection mode to translate
 							modelEditor.transformControls.setMode("translate");
 							modelEditor.transformControls.space = "world";
+							modelEditor.transformControls.maintainPosition = false;
 						break;
 			
 						// Check if rotate mode
@@ -2970,6 +2980,7 @@ $(function() {
 							// Set selection mode to rotate
 							modelEditor.transformControls.setMode("rotate");
 							modelEditor.transformControls.space = "local";
+							modelEditor.transformControls.maintainPosition = true;
 						break;
 			
 						// Check if scale mode
@@ -2978,6 +2989,7 @@ $(function() {
 							// Set selection mode to scale
 							modelEditor.transformControls.setMode("scale");
 							modelEditor.transformControls.space = "local";
+							modelEditor.transformControls.maintainPosition = true;
 						break;
 					}
 				},
@@ -3122,8 +3134,8 @@ $(function() {
 				// Update camera focus
 				updateCameraFocus: function() {
 				
-					// Check if a model is selected
-					if(modelEditor.transformControls.object)
+					// Check if not maintaining camera focus and a model is selected
+					if(!modelEditor.maintainCameraFocus && modelEditor.transformControls.object)
 					
 						// Set camera to focus on model
 						modelEditor.cameraFocus.copy(modelEditor.transformControls.object.position);
@@ -8394,6 +8406,7 @@ $(function() {
 														</div>\
 														<div class=\"cutShape\">\
 															<div>\
+																<button class=\"close\" title=\"" + encodeQuotes(gettext("Close")) + "\"><div></div><i class=\"icon-remove-sign\"></i></button>\
 																<button class=\"cube disabled\" title=\"" + encodeQuotes(gettext("Cube")) +"\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/cube.png\"></button>\
 																<button class=\"sphere\" title=\"" + encodeQuotes(gettext("Sphere")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/sphere.png\"></button>\
 																<span></span>\

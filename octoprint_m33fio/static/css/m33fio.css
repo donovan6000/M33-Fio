@@ -1740,7 +1740,7 @@ body > div.page-container > div.message .customInput input {
 	display: block;
 }
 
-#slicing_configuration_dialog.model .modal-extra > div.values > div > button.close {
+#slicing_configuration_dialog.model .modal-extra > div > div > button.close {
 	color: rgba(0, 0, 0, 0.7);
 	opacity: 1;
 	position: absolute;
@@ -1758,7 +1758,7 @@ body > div.page-container > div.message .customInput input {
 	border-radius: 45px;
 }
 
-#slicing_configuration_dialog.model .modal-extra > div.values > div > button.close > div {
+#slicing_configuration_dialog.model .modal-extra > div > div > button.close > div {
 	background-color: #f5f5f5;
 	position: absolute;
 	top: 8px;
