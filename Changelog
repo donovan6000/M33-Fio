@@ -4,6 +4,7 @@ V1.19 May X 2017
 
 	* Last slicer selected will be set as the default slicer so you dont have to keep reselecting it
 	* Model editor now updates the model's Y positions in real time when they are being rotated or scaled
+	* Profile editor and model editor can now save a copy of the profile/model that's currently being edited directly to the server
 
 V1.18 April 26 2017
 

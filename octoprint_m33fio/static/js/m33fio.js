@@ -64,6 +64,7 @@ $(function() {
 		self.connection = parameters[8];
 		self.gcode = parameters[9];
 		self.files = null;
+		self.slicers = [];
 		
 		// Modify slicing view model's slice function to use position parameter
 		globalSlicingViewModel = self.slicing;
@@ -694,8 +695,14 @@ $(function() {
 			
 				// Hide message
 				message.removeClass("show").find("button.confirm").off("click");
+				
+				// Enable model editor's transform controls
+				if(modelEditor !== null)
+					modelEditor.transformControls.enable = true;
 			
 				setTimeout(function() {
+				
+					message.find("button.confirm").prop("disabled", false);
 			
 					message.css("z-index", "");
 				}, 300);
@@ -843,6 +850,10 @@ $(function() {
 			
 					// Show message
 					message.addClass("show").css("z-index", "9999");
+					
+					// Disable model editor's transform controls
+					if(modelEditor !== null)
+						modelEditor.transformControls.enable = false;
 				}
 			}
 		}, 300);
@@ -1247,17 +1258,125 @@ $(function() {
 			}
 		}
 		
+		// Get root model path
+		function getRootModelPath() {
+		
+			// Initialize entry
+			var entry = self.files.listHelper.allItems[0];
+			
+			// Check if OctoPrint version doesn't use upload folders
+			if(entry && !entry.hasOwnProperty("parent")) {
+			
+				// Construct root model path
+				var root = {
+					children: {}
+				};
+				
+				// Go throguh all entries
+				for(var index in self.files.listHelper.allItems)
+				
+					// Add entry to root's children
+					root.children[index] = self.files.listHelper.allItems[index];
+				
+				// Return root
+				return root;
+			}
+			
+			// Loop while entry has a parent
+			while(entry && entry.hasOwnProperty("parent") && typeof entry["parent"] !== "undefined")
+			
+				// Set entry to its parent
+				entry = entry["parent"];
+			
+			// Return entry
+			return entry;
+		}
+		
+		// Get model downloads
+		function getModelDownloads(entry, path) {
+
+			// Initialize return value
+			var returnValue = {};
+			
+			// Check if entry is a folder
+			if(entry && entry.hasOwnProperty("children"))
+
+				// Go through each entry in the folder
+				for(var child in entry.children) {
+
+					// Go through all models in entry's child
+					var models = getModelDownloads(entry.children[child], path + (entry.hasOwnProperty("name") ? "/" + entry["name"] : ""));
+					for(model in models)
+					
+						// Add model to return value
+						returnValue[model] = models[model];
+				}
+
+			// Otherwise check if entry is a model
+			else if(entry && entry.hasOwnProperty("name") && entry.hasOwnProperty("type") && entry["type"] === "model" && entry.refs && entry.refs.hasOwnProperty("download")) {
+
+				// Remove extension from file name
+				var name = entry["name"];
+				var extension = name.lastIndexOf(".");
+				name = extension != -1 ? name.substr(0, extension) : name;
+				
+				// Add model to return value
+				returnValue[(path.length ? path + "/" : "") + name] = entry["refs"]["download"];
+			}
+			
+			// Return return vaue
+			return returnValue;
+		}
+		
+		// Get model locations
+		function getModelLocations(entry) {
+		
+			// Initialize return value
+			var returnValue = []
+
+			// Check if entry is a folder
+			if(entry && entry.hasOwnProperty("children"))
+
+				// Go through each entry in the folder
+				for(var child in entry.children) {
+
+					// Go through all models in entry's child
+					var entries = getModelLocations(entry.children[child]);
+					for(var index in entries)
+					
+						// Append entry to return value
+						returnValue.push(entries[index]);
+				}
+
+			// Otherwise check if entry is a model
+			else if(entry && entry.hasOwnProperty("name") && entry.hasOwnProperty("origin") && entry.hasOwnProperty("type") && entry["type"] === "model")
+
+				// Append entry to return value
+				returnValue.push({
+					origin: entry["origin"],
+					path: (typeof self.files.currentPath !== "undefined" ? "/" : "") + (entry.hasOwnProperty("path") ? entry["path"] : entry["name"])
+				});
+			
+			// Return return value
+			return returnValue;
+		}
+		
 		// Get model upload date
 		function getModelUploadDate(entry, modelUrl) {
-	
+			
 			// Check if entry is a folder
 			if(entry && entry.hasOwnProperty("children"))
 		
 				// Go through each entry in the folder
-				for(var child in entry.children)
+				for(var child in entry.children) {
 			
 					// Check if current child is the specified model
-					getModelUploadDate(entry.children[child], modelUrl);
+					var value = getModelUploadDate(entry.children[child], modelUrl);
+					if(typeof value !== "undefined")
+					
+						// Return upload date
+						return value;
+				}
 		
 			// Otherwise check if entry is the specified model
 			else if(entry && entry.date && entry.refs && entry.refs.hasOwnProperty("download") && entry["refs"]["download"] === modelUrl)
@@ -1304,45 +1423,38 @@ $(function() {
 					// Get model URL
 					var modelUrl = button.parent().children("a.btn-mini").attr("href");
 					
-					// Go through all uploaded entries
-					for(var entry in self.files.listHelper.allItems) {
+					// Check if model's upload date was found
+					var uploadDate = getModelUploadDate(getRootModelPath(), modelUrl);
+					if(typeof uploadDate !== "undefined") {
 					
-						// Check if model's upload date was found
-						var uploadDate = getModelUploadDate(self.files.listHelper.allItems[entry], modelUrl);
-						if(typeof uploadDate !== "undefined") {
+						// Enable other view buttons
+						$("#files div.gcode_files div.entry .action-buttons div.btn-mini.viewModel").removeClass("disabled");
 						
-							// Enable other view buttons
-							$("#files div.gcode_files div.entry .action-buttons div.btn-mini.viewModel").removeClass("disabled");
-							
-							// Set icon to spinning animation
-							button.addClass("disabled").children("i").removeClass("icon-view").addClass("icon-spinner icon-spin");
-							
-							// Load model into model viewer
-							modelViewer.loadModel(modelUrl, uploadDate);
-							
-							// Go to model viewer tab
-							$("#model_link > a").tab("show");
-							
-							// Wait until model is loaded
-							function isModelLoaded() {
+						// Set icon to spinning animation
+						button.addClass("disabled").children("i").removeClass("icon-view").addClass("icon-spinner icon-spin");
+						
+						// Load model into model viewer
+						modelViewer.loadModel(modelUrl, uploadDate);
+						
+						// Go to model viewer tab
+						$("#model_link > a").tab("show");
+						
+						// Wait until model is loaded
+						function isModelLoaded() {
 
-								// Check if model is loaded
-								if(modelViewer.modelLoaded)
-								
-									// Restore view icon
-									button.children("i").removeClass("icon-spinner icon-spin").addClass("icon-view");
+							// Check if model is loaded
+							if(modelViewer.modelLoaded)
+							
+								// Restore view icon
+								button.children("i").removeClass("icon-spinner icon-spin").addClass("icon-view");
 
-								// Otherwise
-								else
+							// Otherwise
+							else
 
-									// Check if model is loaded again
-									setTimeout(isModelLoaded, 100);
-							}
-							isModelLoaded();
-					
-							// Break
-							break;
-						}	
+								// Check if model is loaded again
+								setTimeout(isModelLoaded, 100);
+						}
+						isModelLoaded();
 					}
 				}
 			});
@@ -2430,11 +2542,8 @@ $(function() {
 					// Disable orbit controls
 					modelEditor.orbitControls.enabled = false;
 					
-					// Check if rotating or scaling
-					if(modelEditor.transformControls.getMode() != "translate")
-					
-						// Maintain camera focus
-						modelEditor.maintainCameraFocus = true;
+					// Maintain camera focus
+					modelEditor.maintainCameraFocus = true;
 				},
 	
 				// End transform
@@ -2451,6 +2560,9 @@ $(function() {
 					
 					// Stop maintaining camera focus
 					modelEditor.maintainCameraFocus = false;
+					
+					// Update camera focus
+					modelEditor.updateCameraFocus();
 				},
 
 				// Import model
@@ -2533,6 +2645,9 @@ $(function() {
 
 						// Fix model's Y
 						modelEditor.fixModelY();
+						
+						// Refocus on model
+						modelEditor.transformControls.attach(modelEditor.transformControls.object);
 						
 						// Immediately have the camera focus on first model loaded
 						if(immediateCameraFocus) {
@@ -2803,7 +2918,7 @@ $(function() {
 					if(event.which == 1)
 
 						// Check if not cutting models, is clicking inside the model editor, and is not clicking on a button or input
-						if(modelEditor.cutShape === null && $(event.target).closest(".modal-extra").length && !$(event.target).closest("div.values, div.cutshape").length && !$(event.target).is("button, img, input")) {
+						if(modelEditor.cutShape === null && $(event.target).closest(".modal-extra").length && !$(event.target).closest("div.import, div.values, div.cutshape").length && !$(event.target).is("button, img, input")) {
 
 							// Set mouse coordinates
 							var mouse = new THREE.Vector2();
@@ -3197,22 +3312,21 @@ $(function() {
 
 					// Fix model's Y
 					modelEditor.fixModelY();
+					
+					// Refocus on model
+					modelEditor.transformControls.attach(modelEditor.transformControls.object);
 				
 					// Remove current selection
 					modelEditor.removeSelection();
 				
-					// Delay selecting models to visually show that selection has changed
-					setTimeout(function() {
-				
-						// Go through all cloned models
-						for(var i = clonedModels.length - 1; i >= 0; i--)
-			
-							// Select model
-							modelEditor.selectModel(clonedModels[i]);
-			
-						// Set model loaded
-						modelEditor.modelLoaded = true;
-					}, 200);
+					// Go through all cloned models
+					for(var i = clonedModels.length - 1; i >= 0; i--)
+		
+						// Select model
+						modelEditor.selectModel(clonedModels[i]);
+		
+					// Set model loaded
+					modelEditor.modelLoaded = true;
 				},
 	
 				// Reset model
@@ -3225,6 +3339,9 @@ $(function() {
 						modelEditor.cutShape.position.set(0, (bedHighMaxZ - bedLowMinZ) / 2 + externalBedHeight, 0);
 						modelEditor.cutShape.rotation.set(0, 0, 0);
 						modelEditor.cutShape.scale.set(1, 1, 1);
+						
+						// Refocus on model
+						modelEditor.transformControls.attach(modelEditor.transformControls.object);
 					}
 				
 					// Otherwise
@@ -3247,6 +3364,9 @@ $(function() {
 					
 					// Fix model's Y
 					modelEditor.fixModelY();
+					
+					// Refocus on model
+					modelEditor.transformControls.attach(modelEditor.transformControls.object);
 				},
 	
 				// Delete model
@@ -3264,8 +3384,8 @@ $(function() {
 						// Deselect button
 						$("#slicing_configuration_dialog .modal-extra button.cut").removeClass("disabled");
 					
-						// Enable import and clone buttons
-						$("#slicing_configuration_dialog .modal-extra button.import, #slicing_configuration_dialog .modal-extra button.clone").prop("disabled", false);
+						// Enable import from server, import from file, and clone buttons
+						$("#slicing_configuration_dialog .modal-extra button.importFromServer, #slicing_configuration_dialog .modal-extra button.importFromFile, #slicing_configuration_dialog .modal-extra button.clone").prop("disabled", false);
 						
 						// Hide cut shape options
 						$("#slicing_configuration_dialog .modal-extra div.cutShape").removeClass("show");
@@ -3525,6 +3645,9 @@ $(function() {
 
 					// Fix model's Y
 					modelEditor.fixModelY();
+					
+					// Refocus on model
+					modelEditor.transformControls.attach(modelEditor.transformControls.object);
 				},
 	
 				// Update model changes
@@ -4190,15 +4313,15 @@ $(function() {
 					$("body").addClass("progress");
 				
 					// Display cover
-					$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Applying cut…"));
+					$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Applying Cut…"));
 
 					setTimeout(function() {
 
 						// Deselect button
 						$("#slicing_configuration_dialog .modal-extra button.cut").removeClass("disabled");
 				
-						// Enable import and clone buttons
-						$("#slicing_configuration_dialog .modal-extra button.import, #slicing_configuration_dialog .modal-extra button.clone").prop("disabled", false);
+						// Enable import from server, import from file, and clone buttons
+						$("#slicing_configuration_dialog .modal-extra button.importFromServer, #slicing_configuration_dialog .modal-extra button.importFromFile, #slicing_configuration_dialog .modal-extra button.clone").prop("disabled", false);
 						
 						// Hide cut shape options
 						$("#slicing_configuration_dialog .modal-extra div.cutShape").removeClass("show");
@@ -4342,6 +4465,9 @@ $(function() {
 			
 						// Fix model's Y
 						modelEditor.fixModelY();
+						
+						// Refocus on model
+						modelEditor.transformControls.attach(modelEditor.transformControls.object);
 				
 						// Remove selection
 						modelEditor.removeSelection();
@@ -4411,7 +4537,7 @@ $(function() {
 					$("body").addClass("progress");
 				
 					// Display cover
-					$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Applying merge…"));
+					$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Applying Merge…"));
 
 					setTimeout(function() {
 
@@ -4502,6 +4628,9 @@ $(function() {
 				
 						// Fix model's Y
 						modelEditor.fixModelY();
+						
+						// Refocus on model
+						modelEditor.transformControls.attach(modelEditor.transformControls.object);
 						
 						// Remove progress cursor
 						$("body").removeClass("progress");
@@ -4650,7 +4779,7 @@ $(function() {
 						for(var i = 0; i < 3; i++) {
 					
 							// Ease out camera focus change
-							var speed = Math.sqrt(Math.pow(modelEditor.orbitControls.target.getComponent(i) - modelEditor.cameraFocus.getComponent(i), 2)) / 15;
+							var speed = Math.sqrt(Math.pow(modelEditor.orbitControls.target.getComponent(i) - modelEditor.cameraFocus.getComponent(i), 2)) / 10;
 					
 							if(modelEditor.orbitControls.target.getComponent(i) < modelEditor.cameraFocus.getComponent(i))
 								modelEditor.orbitControls.target.setComponent(i, Math.min(modelEditor.cameraFocus.getComponent(i), modelEditor.orbitControls.target.getComponent(i) + speed));
@@ -4755,7 +4884,8 @@ $(function() {
 			PLUGIN_BASEURL + "m33fio/static/img/silver.png",
 			PLUGIN_BASEURL + "m33fio/static/img/purple.png",
 			PLUGIN_BASEURL + "m33fio/static/img/filament.png",
-			PLUGIN_BASEURL + "m33fio/static/img/import.png",
+			PLUGIN_BASEURL + "m33fio/static/img/import-from-file.png",
+			PLUGIN_BASEURL + "m33fio/static/img/import-from-server.png",
 			PLUGIN_BASEURL + "m33fio/static/img/translate.png",
 			PLUGIN_BASEURL + "m33fio/static/img/rotate.png",
 			PLUGIN_BASEURL + "m33fio/static/img/scale.png",
@@ -5175,8 +5305,8 @@ $(function() {
 			<p class=\"currentMenu\">" + gettext("Select Profile") + "</p>\
 		");
 		
-		// Add save button and warning
-		$("#slicing_configuration_dialog .modal-footer").append("<a href=\"#\" class=\"btn save\" data-dismiss=\"modal\">" + gettext("Save") + "</a><a class=\"link\"></a><p class=\"warning\"></p>");
+		// Add save local copy button, save on server button, and warning
+		$("#slicing_configuration_dialog .modal-footer").append("<a href=\"#\" class=\"btn saveLocalCopy\" data-dismiss=\"modal\">" + gettext("Save Local Copy") + "</a><a href=\"#\" class=\"btn saveOnServer\" data-dismiss=\"modal\">" + gettext("Save On Server") + "</a><a class=\"link\"></a><p class=\"warning\"></p>");
 		
 		// Add skip model editor button
 		$("#slicing_configuration_dialog > div.modal-footer > .btn-primary").before("<a href=\"#\" class=\"btn skip\" data-dismiss=\"modal\">" + gettext("Skip Model Editor") + "</a>");
@@ -5924,8 +6054,8 @@ $(function() {
 			}
 		});
 		
-		// Save button click event
-		$("#slicing_configuration_dialog .modal-footer a.save").click(function(event) {
+		// Save local copy button click event
+		$("#slicing_configuration_dialog .modal-footer a.saveLocalCopy").click(function(event) {
 		
 			// Stop default behavior
 			event.stopImmediatePropagation();
@@ -5940,7 +6070,7 @@ $(function() {
 				$("body").addClass("progress");
 			
 				// Display cover
-				$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Saving profile…"));
+				$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Saving Profile…"));
 				
 				setTimeout(function() {
 			
@@ -6000,7 +6130,7 @@ $(function() {
 				$("body").addClass("progress");
 			
 				// Display cover
-				$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Saving model…"));
+				$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Saving Model…"));
 				
 				setTimeout(function() {
 				
@@ -6041,6 +6171,295 @@ $(function() {
 					}
 					isSceneExported();
 				}, 600);
+			}
+		});
+		
+		// Save on server input event
+		$(window.document).on("input", "body > div.page-container > div.message > div > div > p > div.saveOnServer input", function() {
+		
+			// Initialize file exists
+			var fileExists = false;
+			
+			// Check if saving profile
+			if($("#slicing_configuration_dialog").hasClass("profile")) {
+			
+				// Enable/disable save button
+				$("body > div.page-container > div.message button.confirm").eq(2).prop("disabled", !this.checkValidity() || !$(this).val().length);
+		
+				// Go through all profiles
+				for(var profile in self.slicing.profiles())
+			
+					// Check if profile has the same name as the input
+					if(self.slicing.profiles()[profile].name === $(this).val()) {
+				
+						// Set file exists
+						fileExists = true;
+						break;
+					}
+			}
+			
+			// Otherwise assume saving model
+			else {
+			
+				// Get inputs
+				var inputs = $(this).parent().parent();
+				var modelOriginInput = inputs.find("input[type=\"radio\"]:checked");
+				var modelPathInput = inputs.find("input[type=\"text\"]");
+			
+				// Enable/disable save button
+				$("body > div.page-container > div.message button.confirm").eq(2).prop("disabled", !modelPathInput[0].checkValidity() || !modelPathInput.val().length);
+				
+				// Set model path
+				var modelPath = modelPathInput.val();
+				if(typeof self.files.currentPath !== "undefined" && modelPath[0] !== "/")
+					modelPath = "/" + modelPath;
+				
+				// Go through all models
+				var models = getModelLocations(getRootModelPath());
+				for(var index in models)
+				
+					// Check if model has the same origin and path and inputs
+					if(models[index].origin === modelOriginInput.val() && models[index].path === modelPath) {
+						
+						// Set file exists
+						fileExists = true;
+						break;
+					}
+			}
+			
+			// Update warning
+			if(fileExists)
+				$(this).parent().parent().siblings("span.saveOnServer.warning").addClass("show");
+			else
+				$(this).parent().parent().siblings("span.saveOnServer.warning").removeClass("show");
+		});
+		
+		// Save local on server click event
+		$("#slicing_configuration_dialog .modal-footer a.saveOnServer").click(function(event) {
+		
+			// Stop default behavior
+			event.stopImmediatePropagation();
+			
+			// Blur self
+			$(this).blur();
+			
+			// Check if saving profile
+			if($("#slicing_configuration_dialog").hasClass("profile")) {
+			
+				// Get readable slicer profile name
+				var readableSlicerProfileName;
+				for(var profile in self.slicing.profiles())
+					if(self.slicing.profiles()[profile].key == slicerProfileName) {
+						readableSlicerProfileName = self.slicing.profiles()[profile].name;
+						break;
+					}
+			
+				// Show message
+				showMessage(gettext("Saving Status"), "<div class=\"saveOnServer\">\
+										<label class=\"control-label\">" + gettext("Profile Name") + "</label>\
+										<div class=\"controls\">\
+											<input type=\"text\" pattern=\"[^\\\\/]{1,}\" class=\"input-block-level\" value=\"" + encodeQuotes(readableSlicerProfileName) + "\">\
+										</div>\
+									</div><span class=\"saveOnServer warning show\">" + gettext("A profile with that name already exists. Saving will overwrite that existing profile.") + "</span>", gettext("Save"), function() {
+			
+					// Get saved profile name
+					var savedProfileName = $("body > div.page-container > div.message > div > div > p > div.saveOnServer input").val();
+			
+					// Hide message
+					hideMessage();
+				
+					setTimeout(function() {
+		
+						// Set cursor to progress
+						$("body").addClass("progress");
+		
+						// Display cover
+						$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Saving Profile…"));
+			
+						setTimeout(function() {
+		
+							// Set parameter
+							var parameter = [
+								{
+									name: "Slicer Name",
+									value: slicerName
+								},
+								{
+									name: "Slicer Profile Name",
+									value: savedProfileName
+								},
+								{
+									name: "Slicer Profile Content",
+									value: $("#slicing_configuration_dialog .modal-extra textarea").val()
+								},
+								{
+									name: "Replace Existing",
+									value: $("body > div.page-container > div.message > div > div > p > span.saveOnServer.warning").hasClass("show") ? "true" : "false"
+								}
+							];
+
+							// Send request
+							$.ajax({
+								url: PLUGIN_BASEURL + "m33fio/upload",
+								type: "POST",
+								dataType: "json",
+								data: $.param(parameter),
+								contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+								traditional: true,
+								processData: true
+
+							// Done
+							}).done(function(data) {
+						
+								// Remove progress cursor
+								$("body").removeClass("progress");
+				
+								// Hide cover
+								$("#slicing_configuration_dialog .modal-cover").removeClass("show");
+								setTimeout(function() {
+									$("#slicing_configuration_dialog .modal-cover").css("z-index", "");
+								}, 200);
+							
+								// Update slicers
+								for(var slicer in self.slicers)
+									self.slicers[slicer].requestData();
+						
+								// Show message
+								showMessage(gettext("Saving Status"), gettext(data.value === "OK" ? "Done" : "Saving profile failed"), gettext("OK"), function() {
+						
+									// Hide message
+									hideMessage();
+								});
+							});
+						}, 600);
+					}, 100);
+				}, gettext("Cancel"), function() {
+			
+					// Hide message
+					hideMessage();
+				});
+			}
+			
+			// Otherwise assume saving model
+			else {
+			
+				// Get readable model path
+				var readableModelPath;
+				if(typeof self.files.currentPath === "undefined")
+					readableModelPath = modelPath.substr(1) + modelName;
+				else {
+					if(modelPath === "/")
+						readableModelPath = modelName;
+					else
+						readableModelPath = modelPath + modelName;
+				}
+			
+				// Show message
+				showMessage(gettext("Saving Status"), "<div class=\"saveOnServer\">\
+										<label class=\"control-label\">" + gettext("Model Location") + "</label>\
+										<div class=\"controls modelLocation\">\
+											<input type=\"radio\" name=\"modelLocation\" id=\"localModelLocation\" value=\"local\"" + (modelLocation == "local" ? " checked" : "") + "><label for=\"localModelLocation\">Local</label>\
+											<input type=\"radio\" name=\"modelLocation\" id=\"sdcardModelLocation\"" + ($("#gcode_upload_sd").prop("disabled") ? " disabled" : "") + " value=\"sdcard\"" + (modelLocation == "sdcard" ? " checked" : "") + "><label for=\"sdcardModelLocation\"" + ($("#gcode_upload_sd").prop("disabled") ? " class=\"disabled\"" : "") + ">SD Card</label>\
+										</div>\
+										<br>\
+										<label class=\"control-label\">" + gettext("Model Path") + "</label>\
+										<div class=\"controls modelPath\">\
+											<input type=\"text\" pattern=\"[^\\\\\\s" + (typeof self.files.currentPath === "undefined" ? "/" : "") + "]{1,}\\.stl\" class=\"input-block-level\" value=\"" + encodeQuotes(readableModelPath) + "\">\
+										</div>\
+									</div><span class=\"saveOnServer warning show\">" + gettext("A model with that location and path already exists. Saving will overwrite that existing model.") + "</span>", gettext("Save"), function() {
+			
+					// Get saved model origin and path
+					var savedModelOrigin = $("body > div.page-container > div.message > div > div > p > div.saveOnServer input[type=\"radio\"]:checked").val();
+					var savedModelPath = $("body > div.page-container > div.message > div > div > p > div.saveOnServer input[type=\"text\"]").val();
+			
+					// Hide message
+					hideMessage();
+				
+					setTimeout(function() {
+		
+						// Set cursor to progress
+						$("body").addClass("progress");
+		
+						// Display cover
+						$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Saving Model…"));
+			
+						setTimeout(function() {
+						
+							// Export scene as an STL
+							var scene = modelEditor.exportScene();
+						
+							// Create request
+							var form = new FormData();
+							if(typeof self.files.currentPath === "undefined")
+								form.append("file", scene, savedModelPath);
+							else {
+								if(savedModelPath[0] !== "/")
+									form.append("file", scene, "/" + savedModelPath);
+								else
+									form.append("file", scene, savedModelPath);
+							}
+
+							// Send request
+							$.ajax({
+								url: API_BASEURL + "files/" + savedModelOrigin,
+								type: "POST",
+								dataType: "json",
+								data: form,
+								contentType: false,
+								traditional: false,
+								processData: false
+
+							// Done
+							}).done(function() {
+					
+								// Remove progress cursor
+								$("body").removeClass("progress");
+				
+								// Hide cover
+								$("#slicing_configuration_dialog .modal-cover").removeClass("show");
+								setTimeout(function() {
+									$("#slicing_configuration_dialog .modal-cover").css("z-index", "");
+								}, 200);
+							
+								// Update files
+								self.files.requestData();
+						
+								// Show message
+								showMessage(gettext("Saving Status"), gettext("Done"), gettext("OK"), function() {
+						
+									// Hide message
+									hideMessage();
+								});
+							
+							// Fail
+							}).fail(function() {
+							
+								// Remove progress cursor
+								$("body").removeClass("progress");
+				
+								// Hide cover
+								$("#slicing_configuration_dialog .modal-cover").removeClass("show");
+								setTimeout(function() {
+									$("#slicing_configuration_dialog .modal-cover").css("z-index", "");
+								}, 200);
+							
+								// Update files
+								self.files.requestData();
+						
+								// Show message
+								showMessage(gettext("Saving Status"), gettext("Saving model failed"), gettext("OK"), function() {
+						
+									// Hide message
+									hideMessage();
+								});
+							});
+						}, 600);
+					}, 100);
+				}, gettext("Cancel"), function() {
+			
+					// Hide message
+					hideMessage();
+				});
 			}
 		});
 		
@@ -6378,7 +6797,7 @@ $(function() {
 								$("body").addClass("progress");
 							
 								// Display cover
-								$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Loading profile…"));
+								$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Loading Profile…"));
 					
 								setTimeout(function() {
 						
@@ -7057,7 +7476,7 @@ $(function() {
 														$("body").addClass("progress");
 														
 														// Display cover
-														$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Loading profile…"));
+														$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Loading Profile…"));
 
 														setTimeout(function() {
 												
@@ -8320,7 +8739,7 @@ $(function() {
 									$("body").addClass("progress");
 							
 									// Display cover
-									$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Loading model…"));
+									$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Loading Model…"));
 								
 									setTimeout(function() {
 									
@@ -8378,7 +8797,8 @@ $(function() {
 														</div>\
 														<div class=\"model\">\
 															<input type=\"file\" accept=\".stl, .obj, .m3d, .amf, .wrl, .dae, .3mf\">\
-															<button class=\"import\" title=\"" + encodeQuotes(gettext("Import")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/import.png\"></button>\
+															<button class=\"importFromServer\" title=\"" + encodeQuotes(gettext("Import From Server")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/import-from-server.png\"></button>\
+															<button class=\"importFromFile\" title=\"" + encodeQuotes(gettext("Import From File")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/import-from-server.png\"></button>\
 															<button class=\"translate disabled\" title=\"" + encodeQuotes(gettext("Translate")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/translate.png\"></button>\
 															<button class=\"rotate\" title=\"" + encodeQuotes(gettext("Rotate")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/rotate.png\"></button>\
 															<button class=\"scale\" title=\"" + encodeQuotes(gettext("Scale")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/scale.png\"></button>\
@@ -8394,6 +8814,16 @@ $(function() {
 															<button class=\"boundaries" + (modelEditor.showBoundaries ? " disabled" : "") + "\" title=\"" + encodeQuotes(gettext("Boundaries")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/boundaries.png\"></button>\
 															<button class=\"measurements" + (modelEditor.showMeasurements ? " disabled" : "") + "\" title=\"" + encodeQuotes(gettext("Measurements")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/measurements.png\"></button>\
 															<button class=\"grid" + (modelEditor.showGrid ? " disabled" : "") + " printerModel\" title=\"" + encodeQuotes(gettext("Grid")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/grid.png\"></button>\
+														</div>\
+														<div class=\"import show\">\
+															<div>\
+																<button class=\"close\" title=\"" + encodeQuotes(gettext("Close")) + "\"><div></div><i class=\"icon-remove-sign\"></i></button>\
+																<div>\
+																	<select class=\"input-block-level\"></select>\
+																	<button>Import</button>\
+																</div>\
+																<span></span>\
+															</div>\
 														</div>\
 														<div class=\"values translate\">\
 															<div>\
@@ -8418,6 +8848,34 @@ $(function() {
 															<p class=\"height\"></p>\
 														</div>\
 													");
+													
+													// Get all model downloads
+													var models = getModelDownloads(getRootModelPath(), "");
+													
+													// Sort models
+													var keys = [];
+													for(var key in models)
+														if(models.hasOwnProperty(key))
+															keys.push(key);
+
+													keys.sort(function(a, b) {
+			
+														if(a[0] === "/" && b[0] !== "/")
+															return 1;
+				
+														if(a[0] !== "/" && b[0] === "/")
+															return -1;
+				
+														return a.toLowerCase() - b.toLowerCase();
+													});
+													
+													// Go through all models
+													for(key in keys)
+														
+														// Add option to import from server selection
+														$("#slicing_configuration_dialog.model .modal-extra > div.import select").append("\
+															<option value=\"" + encodeQuotes(models[keys[key]]) + "\">" + htmlEncode(keys[key]) + "</option>\
+														");
 
 													$("#slicing_configuration_dialog .modal-extra div.printer button[data-color=\"" + modelEditorPrinterColor + "\"]").addClass("disabled");
 													$("#slicing_configuration_dialog .modal-extra div.filament button[data-color=\"" + modelEditorFilamentColor + "\"]").addClass("disabled");
@@ -8456,7 +8914,7 @@ $(function() {
 															$("body").addClass("progress");
 															
 															// Display cover
-															$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Loading model…"));
+															$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Loading Model…"));
 
 															setTimeout(function() {
 
@@ -8504,7 +8962,7 @@ $(function() {
 													});
 													
 													// Buttons and sections mouse over event
-													$("#slicing_configuration_dialog .modal-extra button, #slicing_configuration_dialog .modal-extra div.values, #slicing_configuration_dialog .modal-extra div.cutShape").mouseover(function() {
+													$("#slicing_configuration_dialog .modal-extra button, #slicing_configuration_dialog .modal-extra div.import, #slicing_configuration_dialog .modal-extra div.values, #slicing_configuration_dialog .modal-extra div.cutShape").mouseover(function() {
 													
 														// Check if not changing model
 														if(!$("body").hasClass("grabbing"))
@@ -8534,9 +8992,60 @@ $(function() {
 														// Blur self
 														$(this).blur();
 													});
+													
+													// Import from server button click event
+													$("#slicing_configuration_dialog .modal-extra button.importFromServer").click(function() {
 
-													// Import model button click event
-													$("#slicing_configuration_dialog .modal-extra button.import").click(function() {
+														// Show file dialog box
+														$("#slicing_configuration_dialog .modal-extra input[type=\"file\"]").click();
+													});
+													
+													// Import from server select button click event
+													$("#slicing_configuration_dialog.model .modal-extra > div.import > div > div > button").click(function() {
+													
+														// set url and type
+														var url = $(this).siblings("select").val();
+														var type = "stl";
+														
+														// Set cursor to progress
+														$("body").addClass("progress");
+														
+														// Display cover
+														$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Loading Model…"));
+
+														setTimeout(function() {
+
+															// Import model
+															modelEditor.importModel(url, type);
+
+															// Wait until model is loaded
+															function isModelLoaded() {
+
+																// Check if model is loaded
+																if(modelEditor.modelLoaded) {
+																
+																	// Remove progress cursor
+																	$("body").removeClass("progress");
+
+																	// Hide cover
+																	$("#slicing_configuration_dialog .modal-cover").removeClass("show");
+																	setTimeout(function() {
+																		$("#slicing_configuration_dialog .modal-cover").css("z-index", "");
+																	}, 200);
+																}
+
+																// Otherwise
+																else
+
+																	// Check if model is loaded again
+																	setTimeout(isModelLoaded, 100);
+															}
+															isModelLoaded();
+														}, 600);
+													});
+
+													// Import from file button click event
+													$("#slicing_configuration_dialog .modal-extra button.importFromFile").click(function() {
 
 														// Show file dialog box
 														$("#slicing_configuration_dialog .modal-extra input[type=\"file\"]").click();
@@ -8593,7 +9102,7 @@ $(function() {
 														$("body").addClass("progress");
 														
 														// Display cover
-														$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Cloning model…"));
+														$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Cloning Model…"));
 
 														setTimeout(function() {
 
@@ -8789,6 +9298,8 @@ $(function() {
 															// Update model changes
 															modelEditor.updateModelChanges();
 															
+															modelEditor.transformControls.attach(modelEditor.transformControls.object);
+															
 															// Update camera focus
 															modelEditor.updateCameraFocus();
 														}
@@ -8894,10 +9405,14 @@ $(function() {
 														}
 
 														// Otherwise
-														else
+														else {
 														
 															// Fix model's Y
 															modelEditor.fixModelY();
+															
+															// Refocus on model
+															modelEditor.transformControls.attach(modelEditor.transformControls.object);
+														}
 													});
 
 													// Value change event
@@ -9040,7 +9555,7 @@ $(function() {
 								$("body").addClass("progress");
 						
 								// Display cover
-								$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Applying changes…"));
+								$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Applying Changes…"));
 						
 								setTimeout(function() {
 								
@@ -15479,6 +15994,15 @@ $(function() {
 			// Go through all view models
 			for(var viewModel in payload)
 			
+				// Check if view model is a slicer
+				if(payload[viewModel].constructor.name !== "PrinterProfilesViewModel" && typeof payload[viewModel].removeProfile === "function")
+				
+					// Add view model to list
+					self.slicers.push(payload[viewModel]);
+			
+			// Go through all view models
+			for(var viewModel in payload)
+			
 				// Check if view model is files view model
 				if(payload[viewModel].constructor.name === "GcodeFilesViewModel" || payload[viewModel].constructor.name === "FilesViewModel") {
 					
@@ -15514,11 +16038,8 @@ $(function() {
 							// Update items
 							originalUpdateItems();
 						
-							// Go through all uploaded entries
-							for(var entry in self.files.listHelper.allItems)
-					
-								// Unload model if changed
-								unloadViewedModelIfChanged(self.files.listHelper.allItems[entry]);
+							// Unload model if changed
+							unloadViewedModelIfChanged(getRootModelPath());
 						
 							// Add view buttons to models
 							addViewButtonsToModels();
@@ -15696,7 +16217,7 @@ $(function() {
 		
 		// On startup complete
 		self.onStartupComplete = function() {
-			
+		
 			// Add titles to buttons that weren't loaded before
 			$("#control div.jog-panel.controls > div > button:first-of-type, #control div.jog-panel.controls #control-jog-feedrate > button:first-of-type").attr("title", htmlDecode(gettext("Sets feed rate to the specified amount")));
 			$("#control div.jog-panel.extruder > div > button:nth-of-type(3)").attr("title", htmlDecode(gettext("Sets flow rate to the specified amount")));
@@ -15897,6 +16418,10 @@ $(function() {
 				
 				// Update slicers
 				self.slicing.requestData();
+				
+				// Update slicers
+				for(var slicer in self.slicers)
+					self.slicers[slicer].requestData();
 				
 				// Update webcam
 				updateWebcam();

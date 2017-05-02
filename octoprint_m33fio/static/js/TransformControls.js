@@ -638,6 +638,7 @@
 		this.size = 1;
 		this.axis = null;
 		this.maintainPosition = false;
+		this.enable = true;
 
 		var scope = this;
 
@@ -855,7 +856,7 @@
 
 		this.update = function () {
 
-			if ( scope.object === undefined ) return;
+			if ( ! scope.enable || scope.object === undefined ) return;
 
 			scope.object.updateMatrixWorld();
 			worldPosition.setFromMatrixPosition( scope.maintainPosition ? _savedObjectWorldMatrix : scope.object.matrixWorld );
@@ -887,7 +888,7 @@
 
 		function onPointerHover( event ) {
 
-			if ( scope.object === undefined || _dragging === true || ( event.button !== undefined && event.button !== 0 ) ) return;
+			if ( ! scope.enable || scope.object === undefined || _dragging === true || ( event.button !== undefined && event.button !== 0 ) ) return;
 
 			var pointer = event.changedTouches ? event.changedTouches[ 0 ] : event;
 
@@ -922,7 +923,6 @@
 
 				scope.axis = axis;
 				scope.update();
-				scope.dispatchEvent( changeEvent );
 
 			}
 
@@ -930,7 +930,7 @@
 
 		function onPointerDown( event ) {
 
-			if ( scope.object === undefined || _dragging === true || ( event.button !== undefined && event.button !== 0 ) ) return;
+			if ( ! scope.enable || scope.object === undefined || _dragging === true || ( event.button !== undefined && event.button !== 0 ) ) return;
 
 			var pointer = event.changedTouches ? event.changedTouches[ 0 ] : event;
 
@@ -980,7 +980,7 @@
 
 		function onPointerMove( event ) {
 
-			if ( scope.object === undefined || scope.axis === null || _dragging === false || ( event.button !== undefined && event.button !== 0 ) ) return;
+			if ( ! scope.enable || scope.object === undefined || scope.axis === null || _dragging === false || ( event.button !== undefined && event.button !== 0 ) ) return;
 
 			var pointer = event.changedTouches ? event.changedTouches[ 0 ] : event;
 
@@ -1216,7 +1216,7 @@
 
 		function onPointerUp( event ) {
 
-			if ( event.button !== undefined && event.button !== 0 ) return;
+			if ( ! scope.enable || event.button !== undefined && event.button !== 0 ) return;
 
 			if ( _dragging && ( scope.axis !== null ) ) {
 
@@ -1225,7 +1225,9 @@
 
 			}
 			
-			_savedObjectWorldMatrix = scope.object.matrixWorld.clone();
+			if ( scope.object !== undefined )
+			
+				_savedObjectWorldMatrix = scope.object.matrixWorld.clone();
 
 			_dragging = false;
 			onPointerHover( event );
