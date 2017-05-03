@@ -1082,7 +1082,7 @@ body > div.page-container > div.message .customInput input {
 	min-width: 540px !important;
 }
 
-#slicing_configuration_dialog .modal-footer a.saveLocalCopy, #slicing_configuration_dialog .modal-footer a.saveOnServer {
+#slicing_configuration_dialog .modal-footer a.saveLocalCopy, #slicing_configuration_dialog .modal-footer a.saveOnServer, button.loadDefaultProfile {
 	float: left;
 	position: relative;
 	left: -5px;

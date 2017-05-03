@@ -1286,7 +1286,7 @@ class M33FioPlugin(
 		return None, None, None
 	
 	# Covert Cura to profile
-	def convertCuraToProfile(self, input, output, name, displayName, description) :
+	def convertCuraToProfile(self, input, output, identifier, name, description) :
 	
 		# Clean up input
 		fd, curaProfile = tempfile.mkstemp()
@@ -1297,7 +1297,7 @@ class M33FioPlugin(
 		profileManager = imp.load_source("Profile", self._slicing_manager.get_slicer("cura")._basefolder.replace("\\", "/") + "/profile.py")
 		
 		# Create profile
-		profile = octoprint.slicing.SlicingProfile("cura", name, profileManager.Profile.from_cura_ini(curaProfile), displayName, description)
+		profile = octoprint.slicing.SlicingProfile("cura", identifier, profileManager.Profile.from_cura_ini(curaProfile), name, description)
 		
 		# Remove temporary file
 		os.remove(curaProfile)
@@ -1306,7 +1306,7 @@ class M33FioPlugin(
 		self._slicing_manager.get_slicer("cura").save_slicer_profile(output, profile)
 	
 	# Covert Slic3r to profile
-	def convertSlic3rToProfile(self, input, output, name, displayName, description) :
+	def convertSlic3rToProfile(self, input, output, identifier, name, description) :
 	
 		# Clean up input
 		fd, slic3rProfile = tempfile.mkstemp()
@@ -1317,7 +1317,7 @@ class M33FioPlugin(
 		profileManager = imp.load_source("Profile", self._slicing_manager.get_slicer("slic3r")._basefolder.replace("\\", "/") + "/profile.py")
 		
 		# Create profile
-		profile = octoprint.slicing.SlicingProfile("slic3r", name, profileManager.Profile.from_slic3r_ini(slic3rProfile)[0], displayName, description)
+		profile = octoprint.slicing.SlicingProfile("slic3r", identifier, profileManager.Profile.from_slic3r_ini(slic3rProfile)[0], name, description)
 		
 		# Remove temporary file
 		os.remove(slic3rProfile)
@@ -1856,16 +1856,16 @@ class M33FioPlugin(
 			# Go through all Cura profiles
 			for profile in os.listdir(profileLocation) :
 
-				# Set profile identifier and name
-				profileIdentifier = profile[0 : profile.find(".")]
-				profileName = self._slicing_manager.get_profile_path("cura", profileIdentifier)[len(profileDestination) :].lower()
+				# Set profile name and identifier
+				profileName = profile[0 : profile.find(".")]
+				profileIdentifier = self._slicing_manager.get_profile_path("cura", profileName)[len(profileDestination) :].lower()
 				
 				# Check if profile matches new filament type
-				if profileIdentifier.split(" ", 3)[2] == str(self._settings.get(["FilamentType"])) :
+				if profileName.split(" ", 3)[2] == str(self._settings.get(["FilamentType"])) :
 				
 					# Set profile as default
 					try :
-						self._slicing_manager.set_default_profile("cura", os.path.splitext(profileName)[0])
+						self._slicing_manager.set_default_profile("cura", os.path.splitext(profileIdentifier)[0])
 					except :
 						pass
 				
@@ -1882,16 +1882,16 @@ class M33FioPlugin(
 			# Go through all Slic3r profiles
 			for profile in os.listdir(profileLocation) :
 
-				# Set profile identifier and name
-				profileIdentifier = profile[0 : profile.find(".")]
-				profileName = self._slicing_manager.get_profile_path("slic3r", profileIdentifier)[len(profileDestination) :].lower()
+				# Set profile name and identifier
+				profileName = profile[0 : profile.find(".")]
+				profileIdentifier = self._slicing_manager.get_profile_path("slic3r", profileName)[len(profileDestination) :].lower()
 				
 				# Check if profile matches new filament type
-				if profileIdentifier.split(" ", 3)[2] == str(self._settings.get(["FilamentType"])) :
+				if profileName.split(" ", 3)[2] == str(self._settings.get(["FilamentType"])) :
 				
 					# Set profile as default
 					try :
-						self._slicing_manager.set_default_profile("slic3r", os.path.splitext(profileName)[0])
+						self._slicing_manager.set_default_profile("slic3r", os.path.splitext(profileIdentifier)[0])
 					except :
 						pass
 				
@@ -2958,17 +2958,23 @@ class M33FioPlugin(
 				# Get values
 				values = json.loads(data["value"][14 :])
 				
-				# Check if slicer name or slicer profile name is invalid
-				if values["slicerName"] is None or values["slicerProfileName"] is None :
+				# Check if slicer name or slicer profile identifier is invalid
+				if values["slicerName"] is None or values["slicerProfileIdentifier"] is None :
+				
+					# Return error
+					return flask.jsonify(dict(value = "Error"))
+				
+				# Check if slicer isn't registered
+				if values["slicerName"] not in self._slicing_manager.registered_slicers :
 				
 					# Return error
 					return flask.jsonify(dict(value = "Error"))
 				
 				# Get slicer profile's location
-				fileLocation = self._slicing_manager.get_profile_path(values["slicerName"], values["slicerProfileName"])
+				fileLocation = self._slicing_manager.get_profile_path(values["slicerName"], values["slicerProfileIdentifier"])
 				
-				# Check if slicer profile's name contains path traversal, slicer profile doesn't exist, or printer profile doesn't exist
-				if "../" in values["slicerProfileName"] or not os.path.isfile(fileLocation) or not self._printer_profile_manager.exists(values["printerProfileName"]) :
+				# Check if slicer profile's Identifier contains path traversal, slicer profile doesn't exist, or printer profile doesn't exist
+				if "../" in values["slicerProfileIdentifier"] or not os.path.isfile(fileLocation) or not self._printer_profile_manager.exists(values["printerProfileName"]) :
 				
 					# Return error
 					return flask.jsonify(dict(value = "Error"))
@@ -2992,6 +2998,49 @@ class M33FioPlugin(
 				else :
 					shutil.copyfile(fileLocation, fileDestination)
 				
+				# Return location
+				return flask.jsonify(dict(value = "OK", path = "m33fio/download/" + urllib.quote(destinationName.encode("utf-8"))))
+			
+			# Otherwise check if parameter is to view a default profile
+			elif data["value"].startswith("View Default Profile:") :
+			
+				# Get slicer name
+				slicerName = data["value"][22 :]
+				
+				# Check if slicer isn't registered
+				if slicerName not in self._slicing_manager.registered_slicers :
+				
+					# Return error
+					return flask.jsonify(dict(value = "Error"))
+				
+				# Set file location
+				fd, fileLocation = tempfile.mkstemp()
+				os.close(fd)
+				self._slicing_manager.get_slicer(slicerName).save_slicer_profile(fileLocation, self._slicing_manager.get_slicer(slicerName).get_slicer_default_profile())
+	
+				# Set file's destination
+				destinationName = "default_profile"
+				if slicerName == "cura" :
+					destinationName += ".ini"
+				elif slicerName == "slic3r" :
+					destinationName += ".ini"
+				fileDestination = self.get_plugin_data_folder().replace("\\", "/") + "/" + destinationName
+		
+				# Remove file in destination if it already exists
+				if os.path.isfile(fileDestination) :
+					os.remove(fileDestination)
+		
+				# Copy file to accessible location
+				if slicerName == "cura" :
+					self.convertProfileToCura(fileLocation, fileDestination, self._printer_profile_manager.get_current_or_default()["id"])
+				elif slicerName == "slic3r" :
+					self.convertProfileToSlic3r(fileLocation, fileDestination, self._printer_profile_manager.get_current_or_default()["id"])
+				else :
+					shutil.copyfile(fileLocation, fileDestination)
+				
+				# Remove temporary file
+				os.remove(fileLocation)
+		
 				# Return location
 				return flask.jsonify(dict(value = "OK", path = "m33fio/download/" + urllib.quote(destinationName.encode("utf-8"))))
 			
@@ -5411,31 +5460,31 @@ class M33FioPlugin(
 			# Go through all Cura profiles
 			for profile in os.listdir(profileLocation) :
 	
-				# Set profile identifier and name
-				profileIdentifier = profile[0 : profile.find(".")]
-				profileName = self._slicing_manager.get_profile_path("cura", profileIdentifier)[len(profileDestination) :].lower()
+				# Set profile name and identifier
+				profileName = profile[0 : profile.find(".")]
+				profileIdentifier = self._slicing_manager.get_profile_path("cura", profileName)[len(profileDestination) :].lower()
 				
 				# Check if not using a Micro 3D printer
 				if self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
 				
 					# Remove Cura profile
-					if os.path.isfile(profileDestination + profileName) :
-						os.remove(profileDestination + profileName)
+					if os.path.isfile(profileDestination + profileIdentifier) :
+						os.remove(profileDestination + profileIdentifier)
 				
 				# Otherwise
 				else :
 				
 					# Check if profile already exists
-					if os.path.isfile(profileDestination + profileName) :
+					if os.path.isfile(profileDestination + profileIdentifier) :
 				
 						# Check if existing profile is newer than provided profile
-						if os.path.getmtime(profileDestination + profileName) > os.path.getmtime(profileLocation + profile) :
+						if os.path.getmtime(profileDestination + profileIdentifier) > os.path.getmtime(profileLocation + profile) :
 					
 							# Get next profile
 							continue
 	
 					# Import Cura profile
-					self.convertCuraToProfile(profileLocation + profile, profileDestination + profileName, profileName, profileIdentifier, "Imported by M33 Fio on " + time.strftime("%Y-%m-%d %H:%M"))
+					self.convertCuraToProfile(profileLocation + profile, profileDestination + profileIdentifier, profileIdentifier, profileName, "Imported by M33 Fio on " + time.strftime("%Y-%m-%d %H:%M"))
 		
 		# Check if Slic3r is configured
 		if "slic3r" in self._slicing_manager.configured_slicers :
@@ -5451,31 +5500,31 @@ class M33FioPlugin(
 			# Go through all Slic3r profiles
 			for profile in os.listdir(profileLocation) :
 	
-				# Set profile identifier and name
-				profileIdentifier = profile[0 : profile.find(".")]
-				profileName = self._slicing_manager.get_profile_path("slic3r", profileIdentifier)[len(profileDestination) :].lower()
+				# Set profile name and identifier
+				profileName = profile[0 : profile.find(".")]
+				profileIdentifier = self._slicing_manager.get_profile_path("slic3r", profileName)[len(profileDestination) :].lower()
 				
 				# Check if not using a Micro 3D printer
 				if self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
 				
 					# Remove Slic3r profile
-					if os.path.isfile(profileDestination + profileName) :
-						os.remove(profileDestination + profileName)
+					if os.path.isfile(profileDestination + profileIdentifier) :
+						os.remove(profileDestination + profileIdentifier)
 				
 				# Otherwise
 				else :
 				
 					# Check if profile already exists
-					if os.path.isfile(profileDestination + profileName) :
+					if os.path.isfile(profileDestination + profileIdentifier) :
 				
 						# Check if existing profile is newer than provided profile
-						if os.path.getmtime(profileDestination + profileName) > os.path.getmtime(profileLocation + profile) :
+						if os.path.getmtime(profileDestination + profileIdentifier) > os.path.getmtime(profileLocation + profile) :
 					
 							# Get next profile
 							continue
 				
 					# Import Slic3r profile
-					self.convertSlic3rToProfile(profileLocation + profile, profileDestination + profileName, profileName, profileIdentifier, "Imported by M33 Fio on " + time.strftime("%Y-%m-%d %H:%M"))
+					self.convertSlic3rToProfile(profileLocation + profile, profileDestination + profileIdentifier, profileIdentifier, profileName, "Imported by M33 Fio on " + time.strftime("%Y-%m-%d %H:%M"))
 		
 		# Check if not using a Micro 3D printer
 		if self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
@@ -10170,7 +10219,7 @@ class M33FioPlugin(
 	def upload(self) :
 		
 		# Check if uploading everything
-		if "Slicer Profile Name" in flask.request.values and "Slicer Name" in flask.request.values and "Printer Profile Name" in flask.request.values and "Slicer Profile Content" in flask.request.values and "After Slicing Action" in flask.request.values :
+		if "Slicer Profile Identifier" in flask.request.values and "Slicer Name" in flask.request.values and "Printer Profile Name" in flask.request.values and "Slicer Profile Content" in flask.request.values and "After Slicing Action" in flask.request.values :
 		
 			# Check if printing after slicing and a printer isn't connected
 			if flask.request.values["After Slicing Action"] != "none" and self._printer.is_closed_or_error() :
@@ -10181,8 +10230,8 @@ class M33FioPlugin(
 			# Set if model was modified
 			modelModified = "Model Name" in flask.request.values and "Model Location" in flask.request.values and "Model Path" in flask.request.values
 	
-			# Check if slicer profile, model name, or model path contain path traversal
-			if "../" in flask.request.values["Slicer Profile Name"] or (modelModified and ("../" in flask.request.values["Model Name"] or "../" in flask.request.values["Model Path"])) :
+			# Check if slicer profile identifier, model name, or model path contain path traversal
+			if "../" in flask.request.values["Slicer Profile Identifier"] or (modelModified and ("../" in flask.request.values["Model Name"] or "../" in flask.request.values["Model Path"])) :
 		
 				# Return error
 				return flask.jsonify(dict(value = "Error"))
@@ -10192,9 +10241,15 @@ class M33FioPlugin(
 			
 				# Return error
 				return flask.jsonify(dict(value = "Error"))
+			
+			# Check if slicer isn't configured
+			if flask.request.values["Slicer Name"] not in self._slicing_manager.configured_slicers :
+		
+				# Return error
+				return flask.jsonify(dict(value = "Error"))
 	
 			# Set profile location
-			profileLocation = self._slicing_manager.get_profile_path(flask.request.values["Slicer Name"], flask.request.values["Slicer Profile Name"])
+			profileLocation = self._slicing_manager.get_profile_path(flask.request.values["Slicer Name"], flask.request.values["Slicer Profile Identifier"])
 			
 			# Set model location
 			if modelModified :
@@ -10338,10 +10393,10 @@ class M33FioPlugin(
 			return flask.jsonify(dict(value = "OK"))
 		
 		# Otherwise check if saving profile
-		elif "Slicer Profile Name" in flask.request.values and "Slicer Profile Content" in flask.request.values and "Slicer Name" in flask.request.values and "Replace Existing" in flask.request.values :
+		elif "Slicer Profile Identifier" in flask.request.values and "Slicer Profile Name" in flask.request.values and "Slicer Profile Content" in flask.request.values and "Slicer Name" in flask.request.values and "Replace Existing" in flask.request.values :
 		
-			# Check if slicer profile contains path traversal or slicer isn't configured
-			if "../" in flask.request.values["Slicer Profile Name"] or flask.request.values["Slicer Name"] not in self._slicing_manager.configured_slicers :
+			# Check if slicer profile identifier or slicer profile name contains path traversal or slicer isn't configured
+			if "../" in flask.request.values["Slicer Profile Identifier"] or "../" in flask.request.values["Slicer Profile Name"] or flask.request.values["Slicer Name"] not in self._slicing_manager.configured_slicers :
 		
 				# Return error
 				return flask.jsonify(dict(value = "Error"))
@@ -10358,43 +10413,49 @@ class M33FioPlugin(
 			# Set profile destination
 			profileDestination = self._slicing_manager.get_slicer_profile_path(flask.request.values["Slicer Name"]).replace("\\", "/") + "/"
 			
-			# Set profile name
-			profileName = self._slicing_manager.get_profile_path(flask.request.values["Slicer Name"], flask.request.values["Slicer Profile Name"])[len(profileDestination) :].lower()
-			
 			# Check if not replacing existing profile
 			if flask.request.values["Replace Existing"] == "false" :
 			
+				# Set profile identifier
+				profileIdentifier = self._slicing_manager.get_profile_path(flask.request.values["Slicer Name"], flask.request.values["Slicer Profile Name"])[len(profileDestination) :].lower()
+			
 				# Make sure profile name is unique
-				while os.path.isfile(profileDestination + profileName) :
-					profileName = os.path.splitext(profileName)[0] + "_" + os.path.splitext(profileName)[1]
+				while os.path.isfile(profileDestination + profileIdentifier) :
+					profileIdentifier = os.path.splitext(profileIdentifier)[0] + "_" + os.path.splitext(profileIdentifier)[1]
+			
+			# Otherwise
+			else :
+			
+				# Set profile identifier
+				profileIdentifier = self._slicing_manager.get_profile_path(flask.request.values["Slicer Name"], flask.request.values["Slicer Profile Identifier"])[len(profileDestination) :].lower()
 			
 			# Import profile
 			if flask.request.values["Slicer Name"] == "cura" :
-				self.convertCuraToProfile(temp, profileDestination + profileName, profileName, flask.request.values["Slicer Profile Name"], "Imported by M33 Fio on " + time.strftime("%Y-%m-%d %H:%M"))
+				self.convertCuraToProfile(temp, profileDestination + profileIdentifier, profileIdentifier, flask.request.values["Slicer Profile Name"], "Imported by M33 Fio on " + time.strftime("%Y-%m-%d %H:%M"))
 			elif flask.request.values["Slicer Name"] == "slic3r" :
-				self.convertSlic3rToProfile(temp, profileDestination + profileName, profileName, flask.request.values["Slicer Profile Name"], "Imported by M33 Fio on " + time.strftime("%Y-%m-%d %H:%M"))
+				self.convertSlic3rToProfile(temp, profileDestination + profileIdentifier, profileIdentifier, flask.request.values["Slicer Profile Name"], "Imported by M33 Fio on " + time.strftime("%Y-%m-%d %H:%M"))
 			else :
 			
 				# Import profile manager
-				profileManager = imp.load_source("Profile", self._slicing_manager.get_slicer(flask.request.values["Slicer Profile Name"])._basefolder.replace("\\", "/") + "/profile.py")
+				profileManager = imp.load_source("Profile", self._slicing_manager.get_slicer(flask.request.values["Slicer Name"])._basefolder.replace("\\", "/") + "/profile.py")
 				
 				# Check if profile manager doesn't have a profile converter function
-				if not hasattr(profileManager.Profile, "from_" + flask.request.values["Slicer Profile Name"] + "_ini") :
+				if not hasattr(profileManager.Profile, "from_" + flask.request.values["Slicer Name"] + "_ini") :
 				
 					# Return error
 					return flask.jsonify(dict(value = "Error"))
 				
 				# Create profile
-				toProfile = getattr(profileManager.Profile, "from_" + flask.request.values["Slicer Profile Name"] + "_ini")
+				toProfile = getattr(profileManager.Profile, "from_" + flask.request.values["Slicer Name"] + "_ini")
 				try:
 					profileDict = toProfile(temp)[0]
 				except :
 					profileDict = toProfile(temp)
 				
-				profile = octoprint.slicing.SlicingProfile(flask.request.values["Slicer Profile Name"], profileName, profileDict, flask.request.values["Slicer Profile Name"], "Imported by M33 Fio on " + time.strftime("%Y-%m-%d %H:%M"))
+				profile = octoprint.slicing.SlicingProfile(flask.request.values["Slicer Name"], profileIdentifier, profileDict, flask.request.values["Slicer Profile Name"], "Imported by M33 Fio on " + time.strftime("%Y-%m-%d %H:%M"))
 		
 				# Save profile
-				self._slicing_manager.get_slicer(flask.request.values["Slicer Profile Name"]).save_slicer_profile(profileDestination + profileName, profile)
+				self._slicing_manager.get_slicer(flask.request.values["Slicer Name"]).save_slicer_profile(profileDestination + profileIdentifier, profile)
 			
 			# Remove temporary file
 			os.remove(temp)
@@ -10404,6 +10465,12 @@ class M33FioPlugin(
 			
 		# Otherwise check if verifying profile
 		elif "Slicer Profile Content" in flask.request.values and "Slicer Name" in flask.request.values :
+		
+			# Check if slicer isn't configured
+			if flask.request.values["Slicer Name"] not in self._slicing_manager.configured_slicers :
+		
+				# Return error
+				return flask.jsonify(dict(value = "Error"))
 		
 			# Check if slicer is Cura
 			if flask.request.values["Slicer Name"] == "cura" :
