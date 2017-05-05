@@ -944,6 +944,18 @@ body > div.page-container > div.message > div > div > p > div.saveOnServer {
 	padding-bottom: 8px;
 }
 
+body > div.page-container > div.message > div > div > p > div.saveOnServer.profile {
+	min-width: 340px;
+}
+
+body > div.page-container > div.message > div > div > p > div.saveOnServer.model {
+	min-width: 385px;
+}
+
+body > div.page-container > div.message > div > div > p > div.saveOnServer.gcode {
+	min-width: 395px;
+}
+
 body > div.page-container > div.message > div > div > p > div.saveOnServer label {
 	cursor: default;
 	display: inline-block;
@@ -960,31 +972,31 @@ body > div.page-container > div.message > div > div > p > div.saveOnServer input
 	margin-right: 6px;
 }
 
-body > div.page-container > div.message > div > div > p > div.saveOnServer div.modelPath input {
+body > div.page-container > div.message > div > div > p > div.saveOnServer div.modelPath input, body > div.page-container > div.message > div > div > p > div.saveOnServer div.gcodePath input {
 	width: 297px;
 }
 
-body > div.page-container > div.message > div > div > p > div.saveOnServer div.modelLocation input {
+body > div.page-container > div.message > div > div > p > div.saveOnServer div.modelOrigin input, body > div.page-container > div.message > div > div > p > div.saveOnServer div.gcodeOrigin input {
 	position: relative;
 	top: -3px;
 	outline: none !important;
 }
 
-body > div.page-container > div.message > div > div > p > div.saveOnServer div.modelLocation input:first-of-type {
+body > div.page-container > div.message > div > div > p > div.saveOnServer div.modelOrigin input:first-of-type, body > div.page-container > div.message > div > div > p > div.saveOnServer div.gcodeOrigin input:first-of-type {
 	margin-left: 3px;
 }
 
-body > div.page-container > div.message > div > div > p > div.saveOnServer div.modelLocation label {
+body > div.page-container > div.message > div > div > p > div.saveOnServer div.modelOrigin label, body > div.page-container > div.message > div > div > p > div.saveOnServer div.gcodeOrigin label {
 	margin-right: 7px;
 	cursor: pointer;
 	padding-left: 4px;
 }
 
-body > div.page-container > div.message > div > div > p > div.saveOnServer div.modelLocation input:disabled {
+body > div.page-container > div.message > div > div > p > div.saveOnServer div.modelOrigin input:disabled, body > div.page-container > div.message > div > div > p > div.saveOnServer div.gcodeOrigin input:disabled {
 	cursor: default;
 }
 
-body > div.page-container > div.message > div > div > p > div.saveOnServer div.modelLocation label.disabled {
+body > div.page-container > div.message > div > div > p > div.saveOnServer div.modelOrigin label.disabled, body > div.page-container > div.message > div > div > p > div.saveOnServer div.gcodeOrigin label.disabled {
 	cursor: default;
 	opacity: 0.5;
 }
@@ -1035,7 +1047,7 @@ body > div.page-container > div.message .customInput input {
 	display: none;
 }
 
-#slicing_configuration_dialog.profile, #slicing_configuration_dialog.model {
+#slicing_configuration_dialog.profile, #slicing_configuration_dialog.model, #slicing_configuration_dialog.gcode {
 	width: 80% !important;
 	max-width: 900px !important;
 	position: absolute; !important;
@@ -1054,11 +1066,11 @@ body > div.page-container > div.message .customInput input {
 	overflow: hidden !important;
 }
 
-#slicing_configuration_dialog.profile.in, #slicing_configuration_dialog.model.in {
+#slicing_configuration_dialog.profile.in, #slicing_configuration_dialog.model.in, #slicing_configuration_dialog.gcode.in {
 	top: 50% !important;
 }
 
-#slicing_configuration_dialog.profile {
+#slicing_configuration_dialog.profile, #slicing_configuration_dialog.gcode {
 	max-width: 850px !important;
 	min-width: 810px !important;
 	min-height: 137px !important;
@@ -1111,7 +1123,7 @@ body > div.page-container > div.message .customInput input {
 	cursor: default;
 }
 
-#slicing_configuration_dialog .modal-footer a.link, #slicing_configuration_dialog:not(.model):not(.profile) .modal-footer a.saveLocalCopy, #slicing_configuration_dialog:not(.model):not(.profile) .modal-footer a.saveOnServer, #slicing_configuration_dialog:not(.profile) .modal-footer a.skip {
+#slicing_configuration_dialog .modal-footer a.link, #slicing_configuration_dialog:not(.model):not(.profile):not(.gcode) .modal-footer a.saveLocalCopy, #slicing_configuration_dialog:not(.model):not(.profile):not(.gcode) .modal-footer a.saveOnServer, #slicing_configuration_dialog:not(.profile):not(.gcode) .modal-footer a.skip {
 	display: none;
 }
 
@@ -1127,7 +1139,7 @@ body > div.page-container > div.message .customInput input {
 	overflow: hidden;
 }
 
-#slicing_configuration_dialog.profile .modal-extra {
+#slicing_configuration_dialog.profile .modal-extra, #slicing_configuration_dialog.gcode .modal-extra {
 	overflow: auto !important;
 	overflow-x: hidden !important;
 	max-height: -ms-calc(100% - 123px);
@@ -1137,7 +1149,11 @@ body > div.page-container > div.message .customInput input {
 	max-height: calc(100% - 123px);
 }
 
-#slicing_configuration_dialog.profile .modal-extra div.advanced {
+#slicing_configuration_dialog.gcode .modal-extra {
+	overflow: hidden !important;
+}
+
+#slicing_configuration_dialog.profile .modal-extra div.advanced, #slicing_configuration_dialog.gcode .modal-extra > div {
 	width: 100%;
 	display: -ms-flex;
 	display: -moz-flex;
@@ -1145,6 +1161,11 @@ body > div.page-container > div.message .customInput input {
 	display: -o-flex;
 	display: flex;
 	height: 200px;
+}
+
+#slicing_configuration_dialog.gcode .modal-extra > div {
+	position: relative;
+	height: 400px;
 }
 
 #slicing_configuration_dialog.profile .modal-extra div.advanced.fullSpace {
@@ -1277,7 +1298,7 @@ body > div.page-container > div.message .customInput input {
 	height: 157px;
 }
 
-#slicing_configuration_dialog .group.advanced {
+#slicing_configuration_dialog .group.advanced, #slicing_configuration_dialog.gcode .modal-extra > div {
 	background-color: transparent;
 }
 
@@ -1413,7 +1434,7 @@ body > div.page-container > div.message .customInput input {
 	margin-left: 3px;
 }
 
-#slicing_configuration_dialog .group.advanced > div {
+#slicing_configuration_dialog .group.advanced > div, #slicing_configuration_dialog.gcode .modal-extra > div > div {
 	width: 100%;
 	height: 100%;
 	overflow: visible;
@@ -1425,7 +1446,11 @@ body > div.page-container > div.message .customInput input {
 	margin-top: 11px;
 }
 
-#slicing_configuration_dialog .group.advanced > span {
+#slicing_configuration_dialog.gcode .modal-extra > div > div {
+	margin-top: 0;
+}
+
+#slicing_configuration_dialog .group.advanced > span, #slicing_configuration_dialog.gcode .modal-extra > div > span {
 	width: 100%;
 	display: none;
 	height: 16px;
@@ -1436,11 +1461,23 @@ body > div.page-container > div.message .customInput input {
 	left: 0;
 }
 
-#slicing_configuration_dialog .group.advanced > span.firefox {
+#slicing_configuration_dialog.gcode .modal-extra > div > span {
+	bottom: -3px;
+}
+
+#slicing_configuration_dialog.gcode .modal-extra > div > span {
+	display: block;
+}
+
+#slicing_configuration_dialog .group.advanced > span.firefox, #slicing_configuration_dialog.gcode .modal-extra > div > span.firefox {
 	height: 11px;
 }
 
-#slicing_configuration_dialog .group.advanced aside {
+#slicing_configuration_dialog.gcode .modal-extra > div > span.firefox {
+	bottom: -1px;
+}
+
+#slicing_configuration_dialog .group.advanced aside, #slicing_configuration_dialog.gcode .modal-extra > div aside {
 	float: left;
 	font: normal 12px monospace;
 	height: 100%;
@@ -1451,9 +1488,25 @@ body > div.page-container > div.message .customInput input {
 	color: #555;
 	position: relative;
 	z-index: -1;
+	counter-reset: line;
 }
 
-#slicing_configuration_dialog .group.advanced textarea {
+#slicing_configuration_dialog.gcode .modal-extra > div aside.firefox {
+	padding: 0 5px;
+}
+
+#slicing_configuration_dialog .group.advanced aside > span:last-of-type, #slicing_configuration_dialog.gcode .modal-extra > div aside > span:last-of-type {
+	margin-bottom: 30px;
+	display: inline-block;
+}
+
+#slicing_configuration_dialog .group.advanced aside > span:before, #slicing_configuration_dialog .group.advanced aside > span::before, #slicing_configuration_dialog.gcode .modal-extra > div aside > span:before, #slicing_configuration_dialog.gcode .modal-extra > div aside > span::before {
+	counter-increment: line;
+	content: counter(line);
+	display: block;
+}
+
+#slicing_configuration_dialog .group.advanced textarea, #slicing_configuration_dialog.gcode .modal-extra > div textarea {
 	resize: none;
 	font: normal 12px monospace;
 	white-space: pre;
@@ -1490,7 +1543,11 @@ body > div.page-container > div.message .customInput input {
 	color: #333;
 }
 
-#slicing_configuration_dialog .group.advanced textarea.firefox {
+#slicing_configuration_dialog.gcode .modal-extra > div textarea {
+	padding-bottom: 0 !important;
+}
+
+#slicing_configuration_dialog .group.advanced textarea.firefox, #slicing_configuration_dialog.gcode .modal-extra > div textarea.firefox {
 	height: -ms-calc(100% - 8px) !important;
 	height: -moz-calc(100% - 8px) !important;
 	height: -webkit-calc(100% - 8px) !important;
@@ -1498,6 +1555,10 @@ body > div.page-container > div.message .customInput input {
 	height: calc(100% - 8px) !important;
 	padding: 0px 2px 0px 5px !important;
 }
+
+ #slicing_configuration_dialog.gcode .modal-extra > div textarea, #slicing_configuration_dialog.gcode .modal-extra > div textarea.firefox {
+ 	height: 100% !important;
+ }
 
 #slicing_configuration_dialog .modal-drag-and-drop {
 	position: absolute;
@@ -2322,7 +2383,7 @@ body > div.page-container > div.message .customInput input {
 	display: none;
 }
 
-#files div.gcode_files div.entry .action-buttons div.btn-mini.viewModel {
+#files div.gcode_files div.entry .action-buttons div.btn-mini.viewModel, #files div.gcode_files div.entry .action-buttons div.btn-mini.editGcode {
 	width: 11px;
 }
 

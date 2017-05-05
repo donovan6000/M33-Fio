@@ -1,3 +1,6 @@
+// Edit model
+// Editors can't change header correctly
+
 // When document is ready
 $(function() {
 
@@ -12,7 +15,7 @@ $(function() {
 		var slicerOpen = false;
 		var currentSlicerDialog = "Select Profile";
 		var modelName;
-		var modelLocation;
+		var modelOrigin;
 		var modelPath;
 		var slicerName;
 		var slicerProfileIdentifier;
@@ -20,6 +23,9 @@ $(function() {
 		var slicerProfileContent;
 		var printerProfileName;
 		var afterSlicingAction;
+		var gcodeOrigin;
+		var gcodePathAndName;
+		var gcodeName;
 		self.modelCenter = [null, null];
 		var currentX = null, currentY = null, currentZ = null, currentE = null;
 		var modelEditor = null;
@@ -698,9 +704,9 @@ $(function() {
 				// Hide message
 				message.removeClass("show").find("button.confirm").off("click");
 				
-				// Enable model editor's transform controls
+				// Enable model editor
 				if(modelEditor !== null)
-					modelEditor.transformControls.enable = true;
+					modelEditor.enable();
 			
 				setTimeout(function() {
 				
@@ -816,7 +822,7 @@ $(function() {
 						if(currentMessage.thirdButton === gettext("Done") && !message.find("p").eq(0).find(".customInput").length)
 							$("body > div.page-container > div.message > div > div > div.calibrate").addClass("show");
 						
-						else if(currentMessage.thirdButton === gettext("Print")) {
+						else if(currentMessage.thirdButton === gettext("Print") && currentMessage.text === "") {
 							$("body > div.page-container > div.message > div > div > div.printSettings input").eq(0).val(self.settings.settings.plugins.m33fio.FilamentTemperature());
 							$("body > div.page-container > div.message > div > div > div.printSettings input").eq(1).val(self.settings.settings.plugins.m33fio.HeatbedTemperature());
 							$("body > div.page-container > div.message > div > div > div.printSettings select").val(self.settings.settings.plugins.m33fio.FilamentType());
@@ -828,7 +834,7 @@ $(function() {
 						else if(currentMessage.thirdButton === gettext("Unload") || currentMessage.thirdButton === gettext("Load") || currentMessage.thirdButton === gettext("Set")) {
 							$("body > div.page-container > div.message > div > div > div.filamentSettings input").eq(0).val(self.settings.settings.plugins.m33fio.FilamentTemperature());
 							$("body > div.page-container > div.message > div > div > div.filamentSettings label").html(currentMessage.thirdButton === gettext("Unload") ? gettext("Unload Temperature") : currentMessage.thirdButton === gettext("Load") ? gettext("Load Temperature") : gettext("New Temperature"));
-							$("body > div.page-container > div.message > div > div > div.filamentSettings p").html(gettext("Recommended") + "<ul>" + (currentMessage.thirdButton === gettext("Unload") ? "<li>" + _.sprintf(gettext("%(temperature)d°C for %(type)s"), {temperature: 285, type: "ABS"}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for %(type)s"), {temperature: 225, type: "PLA"}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for %(type)s"), {temperature: 275, type: "HIPS"}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for %(type)s"), {temperature: 230, type: "FLX"}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for %(type)s"), {temperature: 230, type: "TGH"}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for %(type)s"), {temperature: 225, type: "CAM"}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for %(type)s"), {temperature: 250, type: "ABS‐R"}) + "</li>" : "<li>" + _.sprintf(gettext("%(temperature)d°C for %(type)s"), {temperature: 275, type: "ABS"}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for %(type)s"), {temperature: 215, type: "PLA"}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for %(type)s"), {temperature: 265, type: "HIPS"}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for %(type)s"), {temperature: 220, type: "FLX"}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for %(type)s"), {temperature: 220, type: "TGH"}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for %(type)s"), {temperature: 215, type: "CAM"}) + "</li><li>" + _.sprintf(gettext("%(temperature)d°C for %(type)s"), {temperature: 240, type: "ABS‐R"}) + "</li>") + "</ul>");
+							$("body > div.page-container > div.message > div > div > div.filamentSettings p").html(gettext("Recommended") + "<ul>" + (currentMessage.thirdButton === gettext("Unload") ? "<li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "285°C", type: "ABS"}) + "</li><li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "225°C", type: "PLA"}) + "</li><li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "275°C", type: "HIPS"}) + "</li><li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "230°C", type: "FLX"}) + "</li><li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "230°C", type: "TGH"}) + "</li><li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "225°C", type: "CAM"}) + "</li><li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "250°C", type: "ABS‐R"}) + "</li>" : "<li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "275°C", type: "ABS"}) + "</li><li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "215°C", type: "PLA"}) + "</li><li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "265°C", type: "HIPS"}) + "</li><li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "220°C", type: "FLX"}) + "</li><li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "220°C", type: "TGH"}) + "</li><li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "215°C", type: "CAM"}) + "</li><li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "240°C", type: "ABS‐R"}) + "</li>") + "</ul>");
 							$("body > div.page-container > div.message > div > div > div.filamentSettings").addClass("show");
 							message.find("p").eq(0).removeClass("show")
 						}
@@ -853,9 +859,9 @@ $(function() {
 					// Show message
 					message.addClass("show").css("z-index", "9999");
 					
-					// Disable model editor's transform controls
+					// Disable model editor
 					if(modelEditor !== null)
-						modelEditor.transformControls.enable = false;
+						modelEditor.disable();
 				}
 			}
 		}, 300);
@@ -936,6 +942,7 @@ $(function() {
 				// Create outline geometry
 				var outlineGeometry = new THREE.CircleGeometry(parameters.width / 2, 200);
 				outlineGeometry.vertices.shift();
+				outlineGeometry.vertices.push(outlineGeometry.vertices[0].clone());
 				
 				// Create outline
 				var outline = new THREE.Line(outlineGeometry, new THREE.LineBasicMaterial({
@@ -1003,6 +1010,62 @@ $(function() {
 			return grid;
 		}
 		
+		// Standardize geometry
+		function standardizeGeometry(geometry) {
+		
+			// Check if geometry contains a scene
+			if(geometry.hasOwnProperty("scene"))
+			
+				// Set geometry to scene
+				geometry = geometry.scene;
+		
+			// Check if geometry is buffer geometry
+			if(geometry instanceof THREE.BufferGeometry)
+		
+				// Return converted geometry
+				return new THREE.Geometry().fromBufferGeometry(geometry);
+		
+			// Otherwise check if geometry can be traversed
+			else if(typeof geometry.traverse === "function") {
+			
+				// Create merged geometry
+				var mergedGeometry = new THREE.Geometry();
+				
+				// Traverse group
+				geometry.traverse(function(object) {
+				
+					// Check if object is a mesh
+					if(object instanceof THREE.Mesh)
+					
+						// Merge mesh's geometry into merged geometry
+						if(object.geometry instanceof THREE.BufferGeometry)
+							mergedGeometry.merge(new THREE.Geometry().fromBufferGeometry(object.geometry));
+						else
+							mergedGeometry.merge(object.geometry);
+				});
+			
+				// Return merged geometry
+				return mergedGeometry;
+			}
+		}
+		
+		// Compute normals
+		function computeNormals(geometry) {
+		
+			// Go through all geometry's faces
+			for(var i = 0; i < geometry.faces.length; i++) {
+			
+				// Clear face's normal
+				geometry.faces[i].normal.set(0, 0, 0);
+				
+				// Clear vertex normals
+				geometry.faces[i].vertexNormals = [];
+			}
+		
+			// Compute face normals
+			geometry.computeFaceNormals()
+		}
+		
 		// Update printer differences
 		function updatePrinterDifferences() {
 		
@@ -1026,31 +1089,34 @@ $(function() {
 				$(".notMicro3DApplicable").removeClass("show");
 				$("#control > div.jog-panel.extruder").find("h1:not(.heatbed)").html(heatbedAttached ? gettext("Tools") : gettext("Extruder"));
 				
-				$("#control #control-xyhome").attr("title", htmlDecode(_.sprintf(gettext("Set extruder's X position to %(x)d and Y position to %(y)d"), {x: 54, y: 50})));
-				$("#control #control-zhome").attr("title", htmlDecode(_.sprintf(gettext("Set extruder's Z position to %(z)d"), {z: 5})));
+				$("#control #control-xyhome").attr("title", htmlDecode(_.sprintf(gettext("Set extruder's X position to %(x)s and Y position to %(y)s"), {x: "54mm", y: "50mm"})));
+				$("#control #control-zhome").attr("title", htmlDecode(_.sprintf(gettext("Set extruder's Z position to %(z)s"), {z: "5mm"})));
 			}
 		}
 		
 		// Show slicer profile editor
-		function showSlicerProfileEditor(data, slicer, profileIdentifier, profileName, currentDialog, header, primaryButton, secondaryButton, warning) {
+		function showSlicerProfileEditor(data, slicer, profileIdentifier, currentDialog, header, primaryButton, secondaryButton, warning) {
 		
 			// Set slicer name
 			slicerName = slicer;
 			
 			// Set slicer
 			self.slicing.slicer(slicerName);
-		
+			
 			// Set slicer profile identifier
 			slicerProfileIdentifier = profileIdentifier;
 			
+			// Set slicer profile
+			self.slicing.profile(slicerProfileIdentifier);
+			
 			// Set slicer profile name
-			slicerProfileName = profileName;
+			slicerProfileName = getSlicerProfileName(slicerProfileIdentifier);
 			
 			// Set current slicer dialog
 			currentSlicerDialog = currentDialog;
 		
 			// Show dialog
-			$("#slicing_configuration_dialog").modal("show").addClass("profile");
+			$("#slicing_configuration_dialog").modal("show").removeClass("model gcode").addClass("profile");
 			
 			// Set header text
 			$("#slicing_configuration_dialog > div.modal-header > h3").html(header);
@@ -1073,6 +1139,10 @@ $(function() {
 			// Check if warning is provided
 			if(typeof warning !== "undefined")
 				$("#slicing_configuration_dialog .modal-footer p.warning").html(warning);
+			
+			// Remove extra modal if it exists
+			if($("#slicing_configuration_dialog .modal-extra").length)
+				$("#slicing_configuration_dialog .modal-extra").remove();
 		
 			// Display profile editor
 			$("#slicing_configuration_dialog p.currentMenu").html(gettext("Modify Profile"));
@@ -1350,27 +1420,27 @@ $(function() {
 					var fanFullHeight = parseFloat(getSlicerProfileValue("fan_full_height")).toFixed(3);
 					var solidLayerThickness = parseFloat(getSlicerProfileValue("solid_layer_thickness")).toFixed(3);
 		
-					if(layerHeight == 0.35 && bottomThickness == 0.3 && (fanFullHeight == parseFloat((1 - 1) * 0.35 + 0.3 + 0.001).toFixed(3) || parseFloat((2 - 1) * 0.35 + 0.3 + 0.001).toFixed(3)) && solidLayerThickness == parseFloat((8  - 0.0000001) * 0.35).toFixed(3)) {
+					if(layerHeight == 0.35 && bottomThickness == 0.3 && (fanFullHeight == parseFloat((1 - 1) * 0.35 + 0.3 + 0.001).toFixed(3) || parseFloat((2 - 1) * 0.35 + 0.3 + 0.001).toFixed(3)) && solidLayerThickness == parseFloat((8 - 0.0000001) * 0.35).toFixed(3)) {
 						$("#slicing_configuration_dialog p.quality").html(gettext("Extra Low Quality"));
 						$("#slicing_configuration_dialog div.quality button[data-value=\"0.35\"]").addClass("disabled");
 					}
-					else if(layerHeight == 0.30 && bottomThickness == 0.3 && (fanFullHeight == parseFloat((1 - 1) * 0.30 + 0.3 + 0.001).toFixed(3) || parseFloat((2 - 1) * 0.30 + 0.3 + 0.001).toFixed(3)) && solidLayerThickness == parseFloat((8  - 0.0000001) * 0.30).toFixed(3)) {
+					else if(layerHeight == 0.30 && bottomThickness == 0.3 && (fanFullHeight == parseFloat((1 - 1) * 0.30 + 0.3 + 0.001).toFixed(3) || parseFloat((2 - 1) * 0.30 + 0.3 + 0.001).toFixed(3)) && solidLayerThickness == parseFloat((8 - 0.0000001) * 0.30).toFixed(3)) {
 						$("#slicing_configuration_dialog p.quality").html(gettext("Low Quality"));
 						$("#slicing_configuration_dialog div.quality button[data-value=\"0.30\"]").addClass("disabled");
 					}
-					else if(layerHeight == 0.25 && bottomThickness == 0.3 && (fanFullHeight == parseFloat((1 - 1) * 0.25 + 0.3 + 0.001).toFixed(3) || parseFloat((2 - 1) * 0.25 + 0.3 + 0.001).toFixed(3)) && solidLayerThickness == parseFloat((8  - 0.0000001) * 0.25).toFixed(3)) {
+					else if(layerHeight == 0.25 && bottomThickness == 0.3 && (fanFullHeight == parseFloat((1 - 1) * 0.25 + 0.3 + 0.001).toFixed(3) || parseFloat((2 - 1) * 0.25 + 0.3 + 0.001).toFixed(3)) && solidLayerThickness == parseFloat((8 - 0.0000001) * 0.25).toFixed(3)) {
 						$("#slicing_configuration_dialog p.quality").html(gettext("Medium Quality"));
 						$("#slicing_configuration_dialog div.quality button[data-value=\"0.25\"]").addClass("disabled");
 					}
-					else if(layerHeight == 0.20 && bottomThickness == 0.3 && (fanFullHeight == parseFloat((1 - 1) * 0.20 + 0.3 + 0.001).toFixed(3) || parseFloat((2 - 1) * 0.20 + 0.3 + 0.001).toFixed(3)) && solidLayerThickness == parseFloat((8  - 0.0000001) * 0.20).toFixed(3)) {
+					else if(layerHeight == 0.20 && bottomThickness == 0.3 && (fanFullHeight == parseFloat((1 - 1) * 0.20 + 0.3 + 0.001).toFixed(3) || parseFloat((2 - 1) * 0.20 + 0.3 + 0.001).toFixed(3)) && solidLayerThickness == parseFloat((8 - 0.0000001) * 0.20).toFixed(3)) {
 						$("#slicing_configuration_dialog p.quality").html(gettext("High Quality"));
 						$("#slicing_configuration_dialog div.quality button[data-value=\"0.20\"]").addClass("disabled");
 					}
-					else if(layerHeight == 0.15 && bottomThickness == 0.3 && (fanFullHeight == parseFloat((1 - 1) * 0.15 + 0.3 + 0.001).toFixed(3) || parseFloat((2 - 1) * 0.15 + 0.3 + 0.001).toFixed(3)) && solidLayerThickness == parseFloat((8  - 0.0000001) * 0.15).toFixed(3)) {
+					else if(layerHeight == 0.15 && bottomThickness == 0.3 && (fanFullHeight == parseFloat((1 - 1) * 0.15 + 0.3 + 0.001).toFixed(3) || parseFloat((2 - 1) * 0.15 + 0.3 + 0.001).toFixed(3)) && solidLayerThickness == parseFloat((8 - 0.0000001) * 0.15).toFixed(3)) {
 						$("#slicing_configuration_dialog p.quality").html(gettext("Extra High Quality"));
 						$("#slicing_configuration_dialog div.quality button[data-value=\"0.15\"]").addClass("disabled");
 					}
-					else if(layerHeight == 0.05 && bottomThickness == 0.3 && (fanFullHeight == parseFloat((1 - 1) * 0.05 + 0.3 + 0.001).toFixed(3) || parseFloat((2 - 1) * 0.05 + 0.3 + 0.001).toFixed(3)) && solidLayerThickness == parseFloat((8  - 0.0000001) * 0.05).toFixed(3)) {
+					else if(layerHeight == 0.05 && bottomThickness == 0.3 && (fanFullHeight == parseFloat((1 - 1) * 0.05 + 0.3 + 0.001).toFixed(3) || parseFloat((2 - 1) * 0.05 + 0.3 + 0.001).toFixed(3)) && solidLayerThickness == parseFloat((8 - 0.0000001) * 0.05).toFixed(3)) {
 						$("#slicing_configuration_dialog p.quality").html(gettext("Highest Quality"));
 						$("#slicing_configuration_dialog div.quality button[data-value=\"0.05\"]").addClass("disabled");
 					}
@@ -1804,19 +1874,29 @@ $(function() {
 
 					// Check if number of lines has changes
 					if(previousLineCount != numberOfLines) {
-
+					
 						// Get line number area
-						var lineNumberArea = textArea.siblings("aside");
-
-						// Clear existing line numbers
-						lineNumberArea.empty();
-
-						// Create new line numbers
-						for(var i = 1; i <= numberOfLines; i++)
-							lineNumberArea.append(i + "<br>");
-	
-						for(var i = 0; i < 3; i++)
-							lineNumberArea.append("<br>");
+						var lineNumberArea = textArea.siblings("aside")[0];
+						
+						// Check if more line number are required
+						if(previousLineCount < numberOfLines) {
+						
+							// Add line numbers
+							var documentFragment = window.document.createDocumentFragment();
+							var span = window.document.createElement("span");
+							
+							for(var lineNumbersToAdd = numberOfLines - previousLineCount; lineNumbersToAdd; lineNumbersToAdd--)
+								documentFragment.appendChild(span.cloneNode(false));
+							
+							lineNumberArea.appendChild(documentFragment);
+						}
+						
+						// Otherwise
+						else
+						
+							// Remove line numbers
+							for(var lineNumbersToRemove = previousLineCount - numberOfLines; lineNumbersToRemove; lineNumbersToRemove--)
+								lineNumberArea.removeChild(lineNumberArea.firstChild);
 
 						// Update previous line count
 						previousLineCount = numberOfLines;
@@ -2890,9 +2970,1020 @@ $(function() {
 				// Update profile settings
 				updateProfileSettings(changedSettings[0]);
 			});
+			
+			// Scroll to the beginning of the text
+			$("#slicing_configuration_dialog .modal-extra textarea").scrollTop(0);
 
 			// Resize window
 			$(window).resize();
+		}
+		
+		// Show model editor
+		function showModelEditor(currentDialog, header, primaryButton) {
+		
+			// Set current slicer dialog
+			currentSlicerDialog = currentDialog;
+		
+			// Show dialog
+			$("#slicing_configuration_dialog").modal("show").removeClass("profile gcode").addClass("model");
+			
+			// Set header text
+			$("#slicing_configuration_dialog > div.modal-header > h3").html(header);
+		
+			// Set primary button text and enable button
+			$("#slicing_configuration_dialog > div.modal-footer > .btn-primary").html(primaryButton).removeClass("disabled");
+			
+			// Hide secondary button
+			$("#slicing_configuration_dialog .modal-footer a.skip").css("display", "none");
+			
+			// Remove extra modal if it exists
+			if($("#slicing_configuration_dialog .modal-extra").length)
+				$("#slicing_configuration_dialog .modal-extra").remove();
+		
+			// Display model editor
+			$("#slicing_configuration_dialog p.currentMenu").html(gettext("Modify Model"));
+			$("#slicing_configuration_dialog .modal-body").css("display", "none").after("\
+				<div class=\"modal-extra\">\
+					<div class=\"printer\">\
+						<button class=\"micro3d\" data-color=\"Black\" title=\"" + encodeQuotes(gettext("Black")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/black.png\"></button>\
+						<button class=\"micro3d\" data-color=\"White\" title=\"" + encodeQuotes(gettext("White")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/white.png\"></button>\
+						<button class=\"micro3d\" data-color=\"Blue\" title=\"" + encodeQuotes(gettext("Blue")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/blue.png\"></button>\
+						<button class=\"micro3d\" data-color=\"Green\" title=\"" + encodeQuotes(gettext("Green")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/green.png\"></button>\
+						<button class=\"micro3d\" data-color=\"Orange\" title=\"" + encodeQuotes(gettext("Orange")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/orange.png\"></button>\
+						<button class=\"micro3d\" data-color=\"Clear\" title=\"" + encodeQuotes(gettext("Clear")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/clear.png\"></button>\
+						<button class=\"micro3d\" data-color=\"Silver\" title=\"" + encodeQuotes(gettext("Silver")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/silver.png\"></button>\
+						<button class=\"micro3d\" data-color=\"Purple\" title=\"" + encodeQuotes(gettext("Purple")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/purple.png\"></button>\
+					</div>\
+					<div class=\"filament\">\
+						<button data-color=\"White\" title=\"" + encodeQuotes(gettext("White")) + "\"><span style=\"background-color: #F4F3E9;\"></span><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/filament.png\"></button>\
+						<button data-color=\"Pink\" title=\"" + encodeQuotes(gettext("Pink")) + "\"><span style=\"background-color: #FF006B;\"></span><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/filament.png\"></button>\
+						<button data-color=\"Red\" title=\"" + encodeQuotes(gettext("Red")) + "\"><span style=\"background-color: #EE0000;\"></span><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/filament.png\"></button>\
+						<button data-color=\"Orange\" title=\"" + encodeQuotes(gettext("Orange")) + "\"><span style=\"background-color: #FE9800;\"></span><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/filament.png\"></button>\
+						<button data-color=\"Yellow\" title=\"" + encodeQuotes(gettext("Yellow")) + "\"><span style=\"background-color: #FFEA00;\"></span><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/filament.png\"></button>\
+						<button data-color=\"Green\" title=\"" + encodeQuotes(gettext("Green")) + "\"><span style=\"background-color: #009E60;\"></span><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/filament.png\"></button>\
+						<button data-color=\"Light Blue\" title=\"" + encodeQuotes(gettext("Light Blue")) + "\"><span style=\"background-color: #00EEEE;\"></span><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/filament.png\"></button>\
+						<button data-color=\"Blue\" title=\"" + encodeQuotes(gettext("Blue")) + "\"><span style=\"background-color: #236B8E;\"></span><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/filament.png\"></button>\
+						<button data-color=\"Purple\" title=\"" + encodeQuotes(gettext("Purple")) + "\"><span style=\"background-color: #9A009A;\"></span><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/filament.png\"></button>\
+						<button data-color=\"Black\" title=\"" + encodeQuotes(gettext("Black")) + "\"><span style=\"background-color: #404040;\"></span><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/filament.png\"></button>\
+					</div>\
+					<div class=\"model\">\
+						<input type=\"file\" accept=\".stl, .obj, .m3d, .amf, .wrl, .dae, .3mf\">\
+						<button class=\"importFromServer\" title=\"" + encodeQuotes(gettext("Import From Server")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/import-from-server.png\"></button>\
+						<button class=\"importFromFile\" title=\"" + encodeQuotes(gettext("Import From File")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/import-from-server.png\"></button>\
+						<button class=\"translate disabled\" title=\"" + encodeQuotes(gettext("Translate")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/translate.png\"></button>\
+						<button class=\"rotate\" title=\"" + encodeQuotes(gettext("Rotate")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/rotate.png\"></button>\
+						<button class=\"scale\" title=\"" + encodeQuotes(gettext("Scale")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/scale.png\"></button>\
+						<button class=\"snap\" title=\"" + encodeQuotes(gettext("Snap")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/snap.png\"></button>\
+						<button class=\"delete\" title=\"" + encodeQuotes(gettext("Delete")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/delete.png\"></button>\
+						<button class=\"clone\" title=\"" + encodeQuotes(gettext("Clone")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/clone.png\"></button>\
+						<button class=\"reset\" title=\"" + encodeQuotes(gettext("Reset")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/reset.png\"></button>\
+						<button class=\"cut\" title=\"" + encodeQuotes(gettext("Cut")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/cut.png\"></button>\
+						<button class=\"merge disabled\" title=\"" + encodeQuotes(gettext("Merge")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/merge.png\"></button>\
+					</div>\
+					<div class=\"display\">\
+						<button class=\"axes" + (modelEditor.showAxes ? " disabled" : "") + "\" title=\"" + encodeQuotes(gettext("Axes")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/axes.png\"></button>\
+						<button class=\"boundaries" + (modelEditor.showBoundaries ? " disabled" : "") + "\" title=\"" + encodeQuotes(gettext("Boundaries")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/boundaries.png\"></button>\
+						<button class=\"measurements" + (modelEditor.showMeasurements ? " disabled" : "") + "\" title=\"" + encodeQuotes(gettext("Measurements")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/measurements.png\"></button>\
+						<button class=\"grid" + (modelEditor.showGrid ? " disabled" : "") + " printerModel\" title=\"" + encodeQuotes(gettext("Grid")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/grid.png\"></button>\
+					</div>\
+					<div class=\"import show\">\
+						<div>\
+							<button class=\"close\" title=\"" + encodeQuotes(gettext("Close")) + "\"><div></div><i class=\"icon-remove-sign\"></i></button>\
+							<div>\
+								<select class=\"input-block-level\"></select>\
+								<button>" + gettext("Import") + "</button>\
+							</div>\
+							<span></span>\
+						</div>\
+					</div>\
+					<div class=\"values translate\">\
+						<div>\
+							<button class=\"close\" title=\"" + encodeQuotes(gettext("Close")) + "\"><div></div><i class=\"icon-remove-sign\"></i></button>\
+							<p><span class=\"axis x\">X</span><input type=\"number\" step=\"any\" name=\"x\"><span></span></p>\
+							<p><span class=\"axis y\">Y</span><input type=\"number\" step=\"any\" name=\"y\"><span></span></p>\
+							<p><span class=\"axis z\">Z</span><input type=\"number\" step=\"any\" name=\"z\"><span></span></p>\
+							<span></span>\
+						</div>\
+					</div>\
+					<div class=\"cutShape\">\
+						<div>\
+							<button class=\"close\" title=\"" + encodeQuotes(gettext("Close")) + "\"><div></div><i class=\"icon-remove-sign\"></i></button>\
+							<button class=\"cube disabled\" title=\"" + encodeQuotes(gettext("Cube")) +"\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/cube.png\"></button>\
+							<button class=\"sphere\" title=\"" + encodeQuotes(gettext("Sphere")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/sphere.png\"></button>\
+							<span></span>\
+						</div>\
+					</div>\
+					<div class=\"measurements\">\
+						<p class=\"width\"></p>\
+						<p class=\"depth\"></p>\
+						<p class=\"height\"></p>\
+					</div>\
+				</div>\
+			");
+		
+			// Get all model downloads
+			var models = getModelDownloads(getRootFilePath(), "");
+		
+			// Sort models
+			var keys = [];
+			for(var key in models)
+				if(models.hasOwnProperty(key))
+					keys.push(key);
+
+			keys.sort(function(a, b) {
+
+				if(a[0] === "/" && b[0] !== "/")
+					return 1;
+
+				if(a[0] !== "/" && b[0] === "/")
+					return -1;
+
+				return a.toLowerCase() - b.toLowerCase();
+			});
+		
+			// Go through all models
+			for(key in keys)
+			
+				// Add option to import from server selection
+				$("#slicing_configuration_dialog.model .modal-extra > div.import select").append("\
+					<option value=\"" + encodeQuotes(models[keys[key]]) + "\">" + htmlEncode(keys[key]) + "</option>\
+				");
+
+			$("#slicing_configuration_dialog .modal-extra div.printer button[data-color=\"" + modelEditorPrinterColor + "\"]").addClass("disabled");
+			$("#slicing_configuration_dialog .modal-extra div.filament button[data-color=\"" + modelEditorFilamentColor + "\"]").addClass("disabled");
+			$("#slicing_configuration_dialog .modal-extra").append(modelEditor.renderer.domElement);
+		
+			// Hide Micro 3D specific features
+			if(self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter())
+				$("#slicing_configuration_dialog .modal-extra .micro3d").addClass("notUsingAMicro3DPrinter");
+		
+			// Hide features that require having a printer model
+			if(modelEditor.printerModel === null)
+				$("#slicing_configuration_dialog .modal-extra .printerModel").addClass("noPrinterModel");
+		
+			// Image drag event
+			$("#slicing_configuration_dialog .modal-extra img").on("dragstart", function(event) {
+
+				// Prevent default
+				event.preventDefault();
+			});
+		
+			// Import model from file
+			function importModelFromFile(file) {
+		
+				// Set file type
+				var extension = typeof file !== "undefined" ? file.name.lastIndexOf(".") : -1;
+				var type = extension != -1 ? file.name.substr(extension + 1).toLowerCase() : "";
+				var url = URL.createObjectURL(file);
+			
+				// Clear value
+				$("#slicing_configuration_dialog .modal-extra input[type=\"file\"]").val("");
+			
+				// Check if file has the correct extension
+				if(type === "stl" || type === "obj" || type === "m3d" || type === "amf" || type === "wrl" || type === "dae" || type === "3mf") {
+				
+					// Set cursor to progress
+					$("body").addClass("progress");
+				
+					// Display cover
+					$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Loading Model…"));
+
+					setTimeout(function() {
+
+						// Import model
+						modelEditor.importModel(url, type);
+
+						// Wait until model is loaded
+						function isModelLoaded() {
+
+							// Check if model is loaded
+							if(modelEditor.modelLoaded) {
+						
+								// Remove progress cursor
+								$("body").removeClass("progress");
+
+								// Hide cover
+								$("#slicing_configuration_dialog .modal-cover").removeClass("show");
+								setTimeout(function() {
+									$("#slicing_configuration_dialog .modal-cover").css("z-index", "");
+								}, 200);
+							}
+
+							// Otherwise
+							else
+
+								// Check if model is loaded again
+								setTimeout(isModelLoaded, 100);
+						}
+						isModelLoaded();
+					}, 600);
+				}
+			}
+
+			// Input change event
+			$("#slicing_configuration_dialog .modal-extra input[type=\"file\"]").change(function() {
+			
+				// Check if not cutting models
+				if(modelEditor.cutShape === null)
+			
+					// Import model from file
+					importModelFromFile(this.files[0]);
+			
+				// Clear value
+				$(this).val("");
+			});
+		
+			// Buttons and sections mouse over event
+			$("#slicing_configuration_dialog .modal-extra button, #slicing_configuration_dialog .modal-extra div.import, #slicing_configuration_dialog .modal-extra div.values, #slicing_configuration_dialog .modal-extra div.cutShape").mouseover(function() {
+		
+				// Check if not changing model
+				if(!$("body").hasClass("grabbing"))
+		
+					// Force transform control's mouse leave
+					modelEditor.transformControls.forceMouseLeave();
+		
+			// Buttons and sections mouse up event
+			}).mouseup(function() {
+			
+				// Remove grab cursor
+				$("body").removeClass("grab");
+			
+				setTimeout(function() {
+			
+					// Check if not changing model
+					if(!$("body").hasClass("grabbing"))
+		
+						// Force transform control's mouse leave
+						modelEditor.transformControls.forceMouseLeave();
+				}, 0);
+			});
+		
+			// Button click event
+			$("#slicing_configuration_dialog .modal-extra button").click(function() {
+
+				// Blur self
+				$(this).blur();
+			});
+		
+			// Import from server button click event
+			$("#slicing_configuration_dialog .modal-extra button.importFromServer").click(function() {
+
+				// Show file dialog box
+				$("#slicing_configuration_dialog .modal-extra input[type=\"file\"]").click();
+			});
+		
+			// Import from server select button click event
+			$("#slicing_configuration_dialog.model .modal-extra > div.import > div > div > button").click(function() {
+		
+				// set url and type
+				var url = $(this).siblings("select").val();
+				var type = "stl";
+			
+				// Set cursor to progress
+				$("body").addClass("progress");
+			
+				// Display cover
+				$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Loading Model…"));
+
+				setTimeout(function() {
+
+					// Import model
+					modelEditor.importModel(url, type);
+
+					// Wait until model is loaded
+					function isModelLoaded() {
+
+						// Check if model is loaded
+						if(modelEditor.modelLoaded) {
+					
+							// Remove progress cursor
+							$("body").removeClass("progress");
+
+							// Hide cover
+							$("#slicing_configuration_dialog .modal-cover").removeClass("show");
+							setTimeout(function() {
+								$("#slicing_configuration_dialog .modal-cover").css("z-index", "");
+							}, 200);
+						}
+
+						// Otherwise
+						else
+
+							// Check if model is loaded again
+							setTimeout(isModelLoaded, 100);
+					}
+					isModelLoaded();
+				}, 600);
+			});
+
+			// Import from file button click event
+			$("#slicing_configuration_dialog .modal-extra button.importFromFile").click(function() {
+
+				// Show file dialog box
+				$("#slicing_configuration_dialog .modal-extra input[type=\"file\"]").click();
+			});
+
+			// Translate button click event
+			$("#slicing_configuration_dialog .modal-extra button.translate").click(function(event) {
+
+				// Set selection mode to translate
+				modelEditor.setMode("translate");
+			});
+
+			// Rotate button click event
+			$("#slicing_configuration_dialog .modal-extra button.rotate").click(function() {
+
+				// Set selection mode to rotate
+				modelEditor.setMode("rotate");
+			});
+
+			// Scale button click event
+			$("#slicing_configuration_dialog .modal-extra button.scale").click(function() {
+
+				// Set selection mode to scale
+				modelEditor.setMode("scale");
+			});
+
+			// Snap button click event
+			$("#slicing_configuration_dialog .modal-extra button.snap").click(function() {
+
+				// Check if snap controls are currently enabled
+				if(modelEditor.transformControls.translationSnap !== null)
+
+					// Disable grid and rotation snap
+					modelEditor.disableSnap();
+
+				// Otherwise
+				else
+
+					// Enable grid and rotation snap
+					modelEditor.enableSnap();
+			});
+
+			// Delete button click event
+			$("#slicing_configuration_dialog .modal-extra button.delete").click(function() {
+
+				// Delete model
+				modelEditor.deleteModel();
+			});
+
+			// Clone button click event
+			$("#slicing_configuration_dialog .modal-extra button.clone").click(function() {
+			
+				// Set cursor to progress
+				$("body").addClass("progress");
+			
+				// Display cover
+				$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Cloning Model…"));
+
+				setTimeout(function() {
+
+					// Clone model
+					modelEditor.cloneModel();
+
+					// Wait until model is loaded
+					function isModelLoaded() {
+
+						// Check if model is loaded
+						if(modelEditor.modelLoaded) {
+					
+							// Remove progress cursor
+							$("body").removeClass("progress");
+
+							// Hide cover
+							$("#slicing_configuration_dialog .modal-cover").removeClass("show");
+							setTimeout(function() {
+								$("#slicing_configuration_dialog .modal-cover").css("z-index", "");
+							}, 200);
+						}
+
+						// Otherwise
+						else
+
+							// Check if model is loaded again
+							setTimeout(isModelLoaded, 100);
+					}
+					isModelLoaded();
+				}, 600);
+			});
+
+			// Reset button click event
+			$("#slicing_configuration_dialog .modal-extra button.reset").click(function() {
+
+				// Reset model
+				modelEditor.resetModel();
+			});
+		
+			// Axes button click event
+			$("#slicing_configuration_dialog .modal-extra button.axes").click(function() {
+
+				// Set show axes
+				modelEditor.showAxes = !modelEditor.showAxes;
+			
+				// Save model editor show axes
+				localStorage.modelEditorShowAxes = modelEditor.showAxes;
+
+				// Go through all axes
+				for(var i = 0; i < modelEditor.axes.length; i++)
+			
+					// Toggle visibility
+					modelEditor.axes[i].visible = modelEditor.showAxes;
+
+				// Select button
+				if(modelEditor.showAxes)
+					$(this).addClass("disabled");
+				else
+					$(this).removeClass("disabled");
+			});
+
+			// Boundaries button click event
+			$("#slicing_configuration_dialog .modal-extra button.boundaries").click(function() {
+
+				// Set show boundaries
+				modelEditor.showBoundaries = !modelEditor.showBoundaries;
+			
+				// Save model editor show boundaries
+				localStorage.modelEditorShowBoundaries = modelEditor.showBoundaries;
+
+				// Go through all boundaries
+				for(var i = 0; i < modelEditor.boundaries.length; i++)
+
+					// Check if boundary isn't set
+					if(modelEditor.boundaries[i].material.color.getHex() != 0xFF0000)
+
+						// Toggle visibility
+						modelEditor.boundaries[i].visible = modelEditor.showBoundaries;
+
+				// Select button
+				if(modelEditor.showBoundaries)
+					$(this).addClass("disabled");
+				else
+					$(this).removeClass("disabled");
+			});
+
+			// Measurements button click event
+			$("#slicing_configuration_dialog .modal-extra button.measurements").click(function() {
+
+				// Set show measurements
+				modelEditor.showMeasurements = !modelEditor.showMeasurements;
+			
+				// Save model editor show measurements
+				localStorage.modelEditorShowMeasurements = modelEditor.showMeasurements;
+
+				// Check if a model has focus
+				if(modelEditor.transformControls.object) {
+
+					// Go through all measurements
+					for(var i = 0; i < modelEditor.measurements.length; i++)
+
+						// Toggle visibility
+						modelEditor.measurements[i].visible = modelEditor.showMeasurements;
+
+					if(modelEditor.showMeasurements)
+						$("div.measurements > p").addClass("show");
+					else
+						$("div.measurements > p").removeClass("show");
+
+					// Update model changes
+					modelEditor.updateModelChanges();
+				}
+
+				// Select button
+				if(modelEditor.showMeasurements)
+					$(this).addClass("disabled");
+				else
+					$(this).removeClass("disabled");
+			});
+		
+			// Grid button click event
+			$("#slicing_configuration_dialog .modal-extra button.grid").click(function() {
+
+				// Set show grid
+				modelEditor.showGrid = !modelEditor.showGrid;
+			
+				// Save model editor show grid
+				localStorage.modelEditorShowGrid = modelEditor.showGrid;
+
+				// Toggle visibility
+				modelEditor.grid.visible = modelEditor.showGrid;
+
+				// Select button
+				if(modelEditor.showGrid)
+					$(this).addClass("disabled");
+				else
+					$(this).removeClass("disabled");
+			});
+
+			// Cut button click event
+			$("#slicing_configuration_dialog .modal-extra button.cut").click(function() {
+
+				// Check if not cutting models
+				if(modelEditor.cutShape === null) {
+
+					// Select button
+					$(this).addClass("disabled");
+
+					// Disable import and clone buttons
+					$("#slicing_configuration_dialog .modal-extra button.import, #slicing_configuration_dialog .modal-extra button.clone").prop("disabled", true);
+
+					// Show cut shape options
+					$("#slicing_configuration_dialog .modal-extra div.cutShape").addClass("show");
+
+					// Create cut shape geometry
+					if($("#slicing_configuration_dialog .modal-extra div.cutShape > div > button.disabled").hasClass("cube"))
+						var cutShapeGeometry = new THREE.CubeGeometry(50, 50, 50);
+					else if($("#slicing_configuration_dialog .modal-extra div.cutShape > div > button.disabled").hasClass("sphere"))
+						var cutShapeGeometry = new THREE.SphereGeometry(25, 10, 10);
+
+					// Create cut shape
+					modelEditor.cutShape = new THREE.Mesh(cutShapeGeometry, new THREE.MeshBasicMaterial({
+						color: 0xCCCCCC,
+						transparent: true,
+						opacity: 0.1,
+						side: THREE.DoubleSide,
+						depthWrite: false
+					}));
+					modelEditor.cutShape.position.set(0, (bedHighMaxZ - bedLowMinZ) / 2 + externalBedHeight, 0);
+					modelEditor.cutShape.rotation.set(0, 0, 0);
+
+					// Create cut shape outline
+					modelEditor.cutShapeOutline = new THREE.LineSegments(modelEditor.lineGeometry(cutShapeGeometry), new THREE.LineDashedMaterial({
+						color: 0xFFAA00,
+						dashSize: 3,
+						gapSize: 1,
+						linewidth: 2
+					}));
+
+					// Add cut shape and outline to scene
+					modelEditor.scene[0].add(modelEditor.cutShape);
+					modelEditor.scene[0].add(modelEditor.cutShapeOutline);
+
+					// Remove selection
+					modelEditor.removeSelection();
+				
+					// Set allowed translation
+					modelEditor.transformControls.setAllowedTranslation("XYZ");
+				
+					// Focus on cut shape
+					modelEditor.transformControls.attach(modelEditor.cutShape);
+
+					// Update model changes
+					modelEditor.updateModelChanges();
+				
+					modelEditor.transformControls.attach(modelEditor.transformControls.object);
+				
+					// Update camera focus
+					modelEditor.updateCameraFocus();
+				}
+
+				// Otherwise
+				else
+
+					// Apply cut
+					modelEditor.applyCut();
+			});
+
+			// Cut shape click event
+			$("#slicing_configuration_dialog .modal-extra div.cutShape button").click(function() {
+
+				// Check if button is cube
+				if($(this).hasClass("cube"))
+
+					// Change cut shape to a sube
+					modelEditor.setCutShape("cube");
+
+				// Otherwise check if button is sphere
+				else if($(this).hasClass("sphere"))
+
+					// Change cut shape to a sphere
+					modelEditor.setCutShape("sphere");
+			});
+
+			// Merge button click event
+			$("#slicing_configuration_dialog .modal-extra button.merge").click(function() {
+
+				// Apply merge
+				modelEditor.applyMerge();
+			});
+
+			// Printer color button click event
+			$("#slicing_configuration_dialog .modal-extra div.printer button").click(function() {
+		
+				// Set model editor printer color
+				modelEditorPrinterColor = $(this).data("color");
+			
+				// Save model editor printer color
+				localStorage.modelEditorPrinterColor = modelEditorPrinterColor;
+
+				// Set printer color
+				modelEditor.models[0].mesh.material = printerMaterials[modelEditorPrinterColor];
+				$(this).addClass("disabled").siblings(".disabled").removeClass("disabled");
+			});
+
+			// Filament color button click event
+			$("#slicing_configuration_dialog .modal-extra div.filament button").click(function() {
+	
+				// Set model editor filament color
+				modelEditorFilamentColor = $(this).data("color");
+			
+				// Save model editor filament color
+				localStorage.modelEditorFilamentColor = modelEditorFilamentColor;
+
+				// Go through all models
+				for(var i = 1; i < modelEditor.models.length; i++)
+
+					// Check if model isn't currently selected
+					if(modelEditor.models[i].glow === null) {
+
+						// Set model's color
+						modelEditor.models[i].mesh.material = filamentMaterials[modelEditorFilamentColor];
+					
+						// Set adhesion's color
+						if(modelEditor.models[i].adhesion !== null)
+							modelEditor.models[i].adhesion.mesh.material = filamentMaterials[modelEditorFilamentColor];
+					}
+
+				// Select button
+				$(this).addClass("disabled").siblings(".disabled").removeClass("disabled");
+			});
+		
+			// Values close click event
+			$("#slicing_configuration_dialog.model .modal-extra > div.values > div > button.close").click(function() {
+		
+				modelEditor.removeSelection();
+			
+			});
+
+			// Value change event
+			$("#slicing_configuration_dialog .modal-extra div.values input").change(function() {
+
+				// Blur self
+				$(this).blur();
+
+				// Check if value is a number
+				if(!isNaN(parseFloat($(this).val()))) {
+
+					// Fix value
+					$(this).val(parseFloat($(this).val()).toFixed(3));
+				
+					// Check if changing scale and value is less than zero
+					if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("scale") && $(this).val() < 0)
+				
+						// Set value to zero
+						$(this).val(0);
+
+					// Apply changes
+					modelEditor.applyChanges($(this).attr("name"), $(this).val());
+				}
+
+				// Otherwise
+				else {
+			
+					// Fix model's Y
+					modelEditor.fixModelY();
+				
+					// Refocus on model
+					modelEditor.transformControls.attach(modelEditor.transformControls.object);
+				}
+			});
+
+			// Value change event
+			$("#slicing_configuration_dialog .modal-extra div.values input").keyup(function() {
+
+				// Check if value is a number
+				if(!isNaN(parseFloat($(this).val()))) {
+			
+					// Check if changing scale
+					if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("scale")) {
+				
+						// Go through all inputs
+						for(var i = 0; i < 3; i++)
+					
+							// Check if not current input and is locked
+							if(!$(this).is($("#slicing_configuration_dialog .modal-extra div.values input").eq(i)) && modelEditor.scaleLock[i])
+						
+								// Match input value
+								$("#slicing_configuration_dialog .modal-extra div.values input").eq(i).val($(this).val());
+					
+						// Check if value is less than zero
+						if($(this).val() < 0)
+					
+							// Return
+							return;	
+					}
+				
+					// Apply changes
+					modelEditor.applyChanges($(this).attr("name"), $(this).val());
+				}
+			});
+		
+			// Initialize drag leave counter
+			var dragLeaveCounter = 0;
+		
+			// Slicing configuration dialog drop event
+			$("#slicing_configuration_dialog").off("drop dragenter dragleave").on("drop", function(event) {
+		
+				// Prevent default
+				event.preventDefault();
+			
+				// Clear drag leave counter
+				dragLeaveCounter = 0;
+			
+				// Check if importing model is applicable
+				if($("#slicing_configuration_dialog .modal-drag-and-drop").hasClass("show")) {
+			
+					// Hide drag and drop cover
+					$("#slicing_configuration_dialog .modal-drag-and-drop").removeClass("show");
+		
+					// Import model from file
+					importModelFromFile(event.originalEvent.dataTransfer.files[0]);
+				}
+		
+			// Slicing configuration dialog drag enter event
+			}).on("dragenter", function(event) {
+		
+				// Prevent default
+				event.preventDefault();
+			
+				// Increment drag leave counter
+				dragLeaveCounter++;
+			
+				// Check if not cutting models
+				if(modelEditor.cutShape === null)
+		
+					// Show drag and drop cover if cover isn't showing
+					if(!$("#slicing_configuration_dialog .modal-cover").hasClass("show"))
+						$("#slicing_configuration_dialog .modal-drag-and-drop").addClass("show");
+		
+			// Slicing configuration dialog drag leave event
+			}).on("dragleave", function(event) {
+
+				// Prevent default
+				event.preventDefault();
+
+				// Decrement drag leave counter
+				if(dragLeaveCounter > 0)
+					dragLeaveCounter--;
+
+				// Hide drag and drop cover if not dragging anymore
+				if(dragLeaveCounter == 0)
+					$("#slicing_configuration_dialog .modal-drag-and-drop").removeClass("show");
+			});
+
+			// Update model changes to display current menu and measurements
+			modelEditor.updateModelChanges();
+
+			// Resize window
+			$(window).resize();
+		}
+		
+		// Show G-code editor
+		function showGcodeEditor(data, name, currentDialog, header, primaryButton, onloadCallback) {
+		
+			// Set G-code origin
+			gcodeOrigin = getGcodeOrigin(getRootFilePath(), data);
+			
+			// Set G-code path and name
+			gcodePathAndName = getGcodePathAndName(getRootFilePath(), data);
+			
+			// Sett G-code name
+			gcodeName = name;
+			
+			// Send request
+			$.ajax({
+				url: data,
+				type: "GET",
+				dataType: "text",
+				data: null,
+				contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+				traditional: true,
+				processData: true,
+				headers: {
+					"Pragma": "no-cache",
+					"Expires": "0",
+					"Cache-Control": "no-cache, no-store, must-revalidate"
+				}
+
+			// Done
+			}).done(function(data) {
+			
+				// Call onload callback
+				onloadCallback();
+			
+				// Set current slicer dialog
+				currentSlicerDialog = currentDialog;
+		
+				// Show dialog
+				$("#slicing_configuration_dialog").modal("show").removeClass("profile model").addClass("gcode");
+			
+				// Set header text
+				$("#slicing_configuration_dialog > div.modal-header > h3").html(header);
+		
+				// Set primary button text and enable button
+				$("#slicing_configuration_dialog > div.modal-footer > .btn-primary").html(primaryButton).removeClass("disabled");
+			
+				// Hide secondary button
+				$("#slicing_configuration_dialog .modal-footer a.skip").css("display", "none");
+			
+				// Remove extra modal if it exists
+				if($("#slicing_configuration_dialog .modal-extra").length)
+					$("#slicing_configuration_dialog .modal-extra").remove();
+		
+				// Display G-code editor
+				$("#slicing_configuration_dialog p.currentMenu").html(gettext("Modify G-Code"));
+				$("#slicing_configuration_dialog .modal-body").css("display", "none").after("\
+					<div class=\"modal-extra\">\
+						<div>\
+							<div>\
+								<aside></aside>\
+								<textarea spellcheck=\"false\"></textarea>\
+							</div>\
+							<span></span>\
+						</div>\
+					</div>\
+				");
+
+				$("#slicing_configuration_dialog .modal-extra textarea").val(data.slice(-1) === "\n" ? data.slice(0, -1) : data);
+
+				// Check if using Firefox
+				if(window.navigator.userAgent.toLowerCase().indexOf("firefox") != -1)
+
+					// Fix Firefox specific CSS issues
+					$("#slicing_configuration_dialog .modal-extra div > span, #slicing_configuration_dialog .modal-extra aside, #slicing_configuration_dialog .modal-extra textarea").addClass("firefox");
+
+				// Initialize drag leave counter
+				var dragLeaveCounter = 0;
+
+				// Slicing configuration dialog drop event
+				$("#slicing_configuration_dialog").on("drop", function(event) {
+
+					// Prevent default
+					event.preventDefault();
+	
+					// Clear drag leave counter
+					dragLeaveCounter = 0;
+	
+					// Check if loading G-code is applicable
+					if($("#slicing_configuration_dialog .modal-drag-and-drop").hasClass("show")) {
+	
+						// Hide drag and drop cover
+						$("#slicing_configuration_dialog .modal-drag-and-drop").removeClass("show");
+
+						// Set file type
+						var file = event.originalEvent.dataTransfer.files[0];
+						var extension = typeof file !== "undefined" ? file.name.lastIndexOf("."): -1;
+						var type = extension != -1 ? file.name.substr(extension + 1).toLowerCase() : "";
+	
+						// Check if file has the correct extension
+						if(type === "gcode" || type === "gco" || type === "g") {
+	
+							// Set cursor to progress
+							$("body").addClass("progress");
+			
+							// Display cover
+							$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Loading G-Code…"));
+
+							setTimeout(function() {
+	
+								// On file load
+								var reader = new FileReader();
+								reader.onload = function(event) {
+
+									// Convert array buffer to a binary string
+									var binary = "";
+									var bytes = new Uint8Array(event.target.result);
+									var length = bytes.byteLength;
+
+									for(var i = 0; i < length; i++)
+										binary += String.fromCharCode(bytes[i]);
+				
+									// Set new G-code
+									$("#slicing_configuration_dialog .modal-extra textarea").val(binary.slice(-1) === "\n" ? binary.slice(0, -1) : binary);
+			
+									// Update line numbers
+									updateLineNumbers();
+					
+									// Remove progress cursor
+									$("body").removeClass("progress");
+
+									// Hide cover
+									$("#slicing_configuration_dialog .modal-cover").removeClass("show");
+									setTimeout(function() {
+										$("#slicing_configuration_dialog .modal-cover").css("z-index", "");
+									}, 200);
+								}
+				
+								// Read in file
+								reader.readAsArrayBuffer(file);
+							}, 600);
+						}
+					}
+
+				// Slicing configuration dialog drag enter event
+				}).on("dragenter", function(event) {
+
+					// Prevent default
+					event.preventDefault();
+	
+					// Increment drag leave counter
+					dragLeaveCounter++;
+
+					// Show drag and drop cover if cover isn't showing
+					if(!$("#slicing_configuration_dialog .modal-cover").hasClass("show"))
+						$("#slicing_configuration_dialog .modal-drag-and-drop").addClass("show");
+
+				// Slicing configuration dialog drag leave event
+				}).on("dragleave", function(event) {
+
+					// Prevent default
+					event.preventDefault();
+	
+					// Decrement drag leave counter
+					if(dragLeaveCounter > 0)
+						dragLeaveCounter--;
+
+					// Hide drag and drop cover if not dragging anymore
+					if(dragLeaveCounter == 0)
+						$("#slicing_configuration_dialog .modal-drag-and-drop").removeClass("show");
+				});
+
+				// Update line numbers
+				var previousLineCount = 0;
+				function updateLineNumbers() {
+				
+					// Adding line numbers to G-code thats thousands of lines long is too slow, so skip it for now. Remove the following lines to enable it
+					$("#slicing_configuration_dialog .modal-extra aside").css("display", "none");
+					$("#slicing_configuration_dialog .modal-extra textarea")[0].style.setProperty("padding-left", "2px", "important");
+					return;
+
+					// Check if text area exists
+					var textArea = $("#slicing_configuration_dialog .modal-extra textarea");
+					if(textArea.length) {
+
+						// Get number of lines
+						var numberOfLines = textArea.val().match(/\n/g);
+
+						// Fix line count if no newlines were found
+						if(numberOfLines === null)
+							numberOfLines = 1;
+						else
+							numberOfLines = numberOfLines.length + 1;
+
+						// Check if number of lines has changes
+						if(previousLineCount != numberOfLines) {
+
+							// Get line number area
+							var lineNumberArea = textArea.siblings("aside")[0];
+						
+							// Check if more line number are required
+							if(previousLineCount < numberOfLines) {
+						
+								// Add line numbers
+								var documentFragment = window.document.createDocumentFragment();
+								var span = window.document.createElement("span");
+							
+								for(var lineNumbersToAdd = numberOfLines - previousLineCount; lineNumbersToAdd; lineNumbersToAdd--)
+									documentFragment.appendChild(span.cloneNode(false));
+							
+								lineNumberArea.appendChild(documentFragment);
+							}
+						
+							// Otherwise
+							else
+						
+								// Remove line numbers
+								for(var lineNumbersToRemove = previousLineCount - numberOfLines; lineNumbersToRemove; lineNumbersToRemove--)
+									lineNumberArea.removeChild(lineNumberArea.firstChild);
+
+							// Update previous line count
+							previousLineCount = numberOfLines;
+	
+							// Match line numbers scrolling
+							textArea.scroll();
+						}
+					}
+				}
+				updateLineNumbers();
+
+				// Text area scroll event
+				$("#slicing_configuration_dialog .modal-extra textarea").scroll(function() {
+
+					// Scroll line numbers to match text area
+					$(this).siblings("aside").scrollTop($(this).scrollTop());
+
+				// Text area input event
+				}).on("input", function() {
+	
+					// Update line numbers
+					updateLineNumbers();
+				});
+				
+				// Scroll to the beginning of the text
+				$("#slicing_configuration_dialog .modal-extra textarea").scrollTop(0);
+
+				// Resize window
+				$(window).resize();
+			});
 		}
 		
 		// Get slicer profile value
@@ -3124,8 +4215,8 @@ $(function() {
 			}
 		}
 		
-		// Get root model path
-		function getRootModelPath() {
+		// Get root file path
+		function getRootFilePath() {
 		
 			// Initialize entry
 			var entry = self.files.listHelper.allItems[0];
@@ -3133,7 +4224,7 @@ $(function() {
 			// Check if OctoPrint version doesn't use upload folders
 			if(entry && !entry.hasOwnProperty("parent")) {
 			
-				// Construct root model path
+				// Construct root file path
 				var root = {
 					children: {}
 				};
@@ -3249,6 +4340,87 @@ $(function() {
 			
 				// Return upload date
 				return entry.date;
+		}
+		
+		// Get G-code locations
+		function getGcodeLocations(entry) {
+		
+			// Initialize return value
+			var returnValue = []
+
+			// Check if entry is a folder
+			if(entry && entry.hasOwnProperty("children"))
+
+				// Go through each entry in the folder
+				for(var child in entry.children) {
+
+					// Go through all G-code files in entry's child
+					var entries = getGcodeLocations(entry.children[child]);
+					for(var index in entries)
+					
+						// Append entry to return value
+						returnValue.push(entries[index]);
+				}
+
+			// Otherwise check if entry is G-code
+			else if(entry && entry.hasOwnProperty("name") && entry.hasOwnProperty("origin") && entry.hasOwnProperty("type") && entry["type"] === "machinecode")
+
+				// Append entry to return value
+				returnValue.push({
+					origin: entry["origin"],
+					path: (typeof self.files.currentPath !== "undefined" ? "/" : "") + (entry.hasOwnProperty("path") ? entry["path"] : entry["name"])
+				});
+			
+			// Return return value
+			return returnValue;
+		}
+		
+		// Get G-code origin
+		function getGcodeOrigin(entry, gcodeUrl) {
+			
+			// Check if entry is a folder
+			if(entry && entry.hasOwnProperty("children"))
+		
+				// Go through each entry in the folder
+				for(var child in entry.children) {
+			
+					// Check if current child is the specified G-code file
+					var value = getGcodeOrigin(entry.children[child], gcodeUrl);
+					if(typeof value !== "undefined")
+					
+						// Return upload date
+						return value;
+				}
+		
+			// Otherwise check if entry is the specified G-code file
+			else if(entry && entry.hasOwnProperty("origin") && entry.refs && entry.refs.hasOwnProperty("download") && entry["refs"]["download"] === gcodeUrl)
+			
+				// Return origin
+				return entry["origin"];
+		}
+		
+		// Get G-code path and name
+		function getGcodePathAndName(entry, gcodeUrl) {
+			
+			// Check if entry is a folder
+			if(entry && entry.hasOwnProperty("children"))
+		
+				// Go through each entry in the folder
+				for(var child in entry.children) {
+			
+					// Check if current child is the specified G-code file
+					var value = getGcodePathAndName(entry.children[child], gcodeUrl);
+					if(typeof value !== "undefined")
+					
+						// Return upload date
+						return value;
+				}
+		
+			// Otherwise check if entry is the specified G-code file
+			else if(entry && entry.hasOwnProperty("name") && entry.refs && entry.refs.hasOwnProperty("download") && entry["refs"]["download"] === gcodeUrl)
+			
+				// Return path and name
+				return (typeof self.files.currentPath !== "undefined" ? "/" : "") + (entry.hasOwnProperty("path") ? entry["path"] : entry["name"]);
 		}
 		
 		// Get slicer profile identifier
@@ -3386,7 +4558,7 @@ $(function() {
 					var modelUrl = button.parent().children("a.btn-mini").attr("href");
 					
 					// Check if model's upload date was found
-					var uploadDate = getModelUploadDate(getRootModelPath(), modelUrl);
+					var uploadDate = getModelUploadDate(getRootFilePath(), modelUrl);
 					if(typeof uploadDate !== "undefined") {
 					
 						// Enable other view buttons
@@ -3418,6 +4590,134 @@ $(function() {
 						}
 						isModelLoaded();
 					}
+				}
+			});
+		}
+		
+		// Add edit buttons to models
+		function addEditButtonsToModels() {
+		
+			// Remove all edit buttons
+			$("#files div.gcode_files div.entry .action-buttons div.btn-mini.editModel").remove();
+			
+			// Go through all file entries
+			$("#files div.gcode_files div.entry .action-buttons").each(function() {
+				
+				// Check if file is a model
+				if($(this).children().children("i.icon-magic").length)
+				
+					// Add edit button
+					$(this).children("a.btn-mini").after("\
+						<div class=\"btn btn-mini editModel\" title=\"" + encodeQuotes(gettext("Edit")) + "\">\
+							<i class=\"icon-pencil\"></i>\
+						</div>\
+					");
+			});
+			
+			// Check if user isn't logged in or WebGL isn't supported
+			if(!self.loginState.loggedIn() || !Detector.webgl)
+			
+				// Disable edit buttons
+				$("#files div.gcode_files div.entry .action-buttons div.btn-mini.editModel").addClass("disabled");
+			
+			// Edit button click event
+			$("#files div.gcode_files div.entry .action-buttons div.btn-mini.editModel").click(function() {
+			
+				// Initialize variables
+				var button = $(this);
+			
+				// Check if button is not disabled
+				if(!button.hasClass("disabled")) {
+					
+					// Get model URL
+					var modelUrl = button.parent().children("a.btn-mini").attr("href");
+					
+					// Enable other edit buttons
+					$("#files div.gcode_files div.entry .action-buttons div.btn-mini.editModel").removeClass("disabled");
+					
+					// Set icon to spinning animation
+					button.addClass("disabled").children("i").removeClass("icon-pencil").addClass("icon-spinner icon-spin");
+					
+					setTimeout(function() {
+					
+						// Create model editor and load model
+						createModelEditor(modelUrl, "", "");
+
+						// Wait until model is loaded
+						function isModelLoaded() {
+
+							// Check if model is loaded
+							if(modelEditor.modelLoaded) {
+						
+								// Show model editor
+								showModelEditor("Edit Model", _.sprintf(gettext("Editing %(fileName)s"), {fileName: button.parent().parent().children("div").eq(0).html()}), gettext("Save"));
+			
+								// Restore edit icon and enable button
+								button.removeClass("disabled").children("i").removeClass("icon-spinner icon-spin").addClass("icon-pencil");
+							}
+
+							// Otherwise
+							else
+
+								// Check if model is loaded again
+								setTimeout(isModelLoaded, 100);
+						}
+						isModelLoaded();
+					}, 200);
+				}
+			});
+		}
+		
+		// Add edit buttons to G-code
+		function addEditButtonsToGcode() {
+		
+			// Remove all edit buttons
+			$("#files div.gcode_files div.entry .action-buttons div.btn-mini.editGcode").remove();
+			
+			// Go through all file entries
+			$("#files div.gcode_files div.entry .action-buttons").each(function() {
+				
+				// Check if file is G-code
+				if($(this).children().children("i.icon-print").length)
+				
+					// Add edit button
+					$(this).children("a.btn-mini").after("\
+						<div class=\"btn btn-mini editGcode\" title=\"" + encodeQuotes(gettext("Edit")) + "\">\
+							<i class=\"icon-pencil\"></i>\
+						</div>\
+					");
+			});
+			
+			// Check if user isn't logged in
+			if(!self.loginState.loggedIn())
+			
+				// Disable edit buttons
+				$("#files div.gcode_files div.entry .action-buttons div.btn-mini.editGcode").addClass("disabled");
+			
+			// Edit button click event
+			$("#files div.gcode_files div.entry .action-buttons div.btn-mini.editGcode").click(function() {
+			
+				// Initialize variables
+				var button = $(this);
+			
+				// Check if button is not disabled
+				if(!button.hasClass("disabled")) {
+					
+					// Enable other edit buttons
+					$("#files div.gcode_files div.entry .action-buttons div.btn-mini.editGcode").removeClass("disabled");
+						
+					// Set icon to spinning animation
+					button.addClass("disabled").children("i").removeClass("icon-pencil").addClass("icon-spinner icon-spin");
+					
+					setTimeout(function() {
+					
+						// Show G-code editor
+						showGcodeEditor(button.parent().children("a.btn-mini").attr("href"), button.parent().parent().children("div").eq(0).text(), "Edit G-code", _.sprintf(gettext("Editing %(fileName)s"), {fileName: button.parent().parent().children("div").eq(0).html()}), gettext("Save"), function() {
+							
+							// Restore edit icon and enable button
+							button.removeClass("disabled").children("i").removeClass("icon-spinner icon-spin").addClass("icon-pencil");
+						});
+					}, 200);
 				}
 			});
 		}
@@ -3543,7 +4843,7 @@ $(function() {
 					modelViewer.modelUploadDate = date;
 					
 					// Show message
-					$("#model .cover > p").html(gettext("Loading model…")).parent().addClass("show");
+					$("#model .cover > p").html(gettext("Loading Model…")).parent().addClass("show");
 					
 					// Clear model loaded
 					modelViewer.modelLoaded = false;
@@ -3590,9 +4890,16 @@ $(function() {
 
 						// Load model
 						loader.load(modelViewer.modelUrl, function(geometry) {
+						
+							// Standardize geometry
+							if(!(geometry instanceof THREE.Geometry))
+								geometry = standardizeGeometry(geometry);
 
 							// Center model
 							geometry.center();
+							
+							// Compute normals
+							computeNormals(geometry);
 
 							// Create model's mesh
 							modelViewer.model = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({
@@ -3703,7 +5010,13 @@ $(function() {
 		}
 		
 		// Create model editor
-		function createModelEditor(file) {
+		function createModelEditor(file, slicer, profileContent) {
+		
+			// Set slicer name
+			slicerName = slicer;
+			
+			// Set slicer profile content
+			slicerProfileContent = profileContent;
 
 			// Model editor
 			modelEditor = {
@@ -3737,6 +5050,7 @@ $(function() {
 				showGrid: typeof localStorage.modelEditorShowGrid !== "undefined" && localStorage.modelEditorShowGrid === "true",
 				cameraFocus: new THREE.Vector3(),
 				maintainCameraFocus: false,
+				allowInput: true,
 				
 				// Initialize
 				init: function() {
@@ -4080,6 +5394,7 @@ $(function() {
 					this.transformControls.space = "world";
 					this.transformControls.setAllowedTranslation("XZ");
 					this.transformControls.setRotationDisableE(true);
+					this.transformControls.scaleFactor = 0.5;
 					this.scene[0].add(this.transformControls);
 
 					// Create lights
@@ -4276,154 +5591,154 @@ $(function() {
 					if(this.bedShape === "rectangular") {
 		
 						// Low bottom boundary
-						this.boundaries[0] = new THREE.Mesh(new THREE.PlaneGeometry(0, 0), boundaryMaterial.clone());
+						this.boundaries[0] = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), boundaryMaterial.clone());
 						this.boundaries[0].geometry.vertices[0].set(-bedLowMinX, bedLowMinZ - 0.25, bedLowMinY);
 						this.boundaries[0].geometry.vertices[1].set(-bedLowMaxX, bedLowMinZ - 0.25, bedLowMinY);
 						this.boundaries[0].geometry.vertices[2].set(-bedLowMinX, bedLowMinZ - 0.25, bedLowMaxY);
 						this.boundaries[0].geometry.vertices[3].set(-bedLowMaxX, bedLowMinZ - 0.25, bedLowMaxY);
 		
 						// Low front boundary
-						this.boundaries[1] = new THREE.Mesh(new THREE.PlaneGeometry(0, 0), boundaryMaterial.clone());
+						this.boundaries[1] = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), boundaryMaterial.clone());
 						this.boundaries[1].geometry.vertices[0].set(-bedLowMinX, bedLowMinZ - 0.25, bedLowMinY);
 						this.boundaries[1].geometry.vertices[1].set(-bedLowMaxX, bedLowMinZ - 0.25, bedLowMinY);
 						this.boundaries[1].geometry.vertices[2].set(-bedLowMinX, bedLowMaxZ, bedLowMinY);
 						this.boundaries[1].geometry.vertices[3].set(-bedLowMaxX, bedLowMaxZ, bedLowMinY);
 		
 						// Low back boundary
-						this.boundaries[2] = new THREE.Mesh(new THREE.PlaneGeometry(0, 0), boundaryMaterial.clone());
+						this.boundaries[2] = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), boundaryMaterial.clone());
 						this.boundaries[2].geometry.vertices[0].set(-bedLowMinX, bedLowMinZ - 0.25, bedLowMaxY);
 						this.boundaries[2].geometry.vertices[1].set(-bedLowMaxX, bedLowMinZ - 0.25, bedLowMaxY);
 						this.boundaries[2].geometry.vertices[2].set(-bedLowMinX, bedLowMaxZ, bedLowMaxY);
 						this.boundaries[2].geometry.vertices[3].set(-bedLowMaxX, bedLowMaxZ, bedLowMaxY);
 		
 						// Low right boundary
-						this.boundaries[3] = new THREE.Mesh(new THREE.PlaneGeometry(0, 0), boundaryMaterial.clone());
+						this.boundaries[3] = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), boundaryMaterial.clone());
 						this.boundaries[3].geometry.vertices[0].set(-bedLowMaxX, bedLowMinZ - 0.25, bedLowMinY);
 						this.boundaries[3].geometry.vertices[1].set(-bedLowMaxX, bedLowMinZ - 0.25, bedLowMaxY);
 						this.boundaries[3].geometry.vertices[2].set(-bedLowMaxX, bedLowMaxZ, bedLowMinY);
 						this.boundaries[3].geometry.vertices[3].set(-bedLowMaxX, bedLowMaxZ, bedLowMaxY);
 		
 						// Low left boundary
-						this.boundaries[4] = new THREE.Mesh(new THREE.PlaneGeometry(0, 0), boundaryMaterial.clone());
+						this.boundaries[4] = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), boundaryMaterial.clone());
 						this.boundaries[4].geometry.vertices[0].set(-bedLowMinX, bedLowMinZ - 0.25, bedLowMinY);
 						this.boundaries[4].geometry.vertices[1].set(-bedLowMinX, bedLowMinZ - 0.25, bedLowMaxY);
 						this.boundaries[4].geometry.vertices[2].set(-bedLowMinX, bedLowMaxZ, bedLowMinY);
 						this.boundaries[4].geometry.vertices[3].set(-bedLowMinX, bedLowMaxZ, bedLowMaxY);
 		
 						// Medium front boundary
-						this.boundaries[5] = new THREE.Mesh(new THREE.PlaneGeometry(0, 0), boundaryMaterial.clone());
+						this.boundaries[5] = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), boundaryMaterial.clone());
 						this.boundaries[5].geometry.vertices[0].set(-bedMediumMinX, bedMediumMinZ, bedMediumMinY);
 						this.boundaries[5].geometry.vertices[1].set(-bedMediumMaxX, bedMediumMinZ, bedMediumMinY);
 						this.boundaries[5].geometry.vertices[2].set(-bedMediumMinX, bedMediumMaxZ, bedMediumMinY);
 						this.boundaries[5].geometry.vertices[3].set(-bedMediumMaxX, bedMediumMaxZ, bedMediumMinY);
 		
 						// Medium back boundary
-						this.boundaries[6] = new THREE.Mesh(new THREE.PlaneGeometry(0, 0), boundaryMaterial.clone());
+						this.boundaries[6] = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), boundaryMaterial.clone());
 						this.boundaries[6].geometry.vertices[0].set(-bedMediumMinX, bedMediumMinZ, bedMediumMaxY);
 						this.boundaries[6].geometry.vertices[1].set(-bedMediumMaxX, bedMediumMinZ, bedMediumMaxY);
 						this.boundaries[6].geometry.vertices[2].set(-bedMediumMinX, bedMediumMaxZ, bedMediumMaxY);
 						this.boundaries[6].geometry.vertices[3].set(-bedMediumMaxX, bedMediumMaxZ, bedMediumMaxY);
 		
 						// Medium right boundary
-						this.boundaries[7] = new THREE.Mesh(new THREE.PlaneGeometry(0, 0), boundaryMaterial.clone());
+						this.boundaries[7] = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), boundaryMaterial.clone());
 						this.boundaries[7].geometry.vertices[0].set(-bedMediumMaxX, bedMediumMinZ, bedMediumMinY);
 						this.boundaries[7].geometry.vertices[1].set(-bedMediumMaxX, bedMediumMinZ, bedMediumMaxY);
 						this.boundaries[7].geometry.vertices[2].set(-bedMediumMaxX, bedMediumMaxZ, bedMediumMinY);
 						this.boundaries[7].geometry.vertices[3].set(-bedMediumMaxX, bedMediumMaxZ, bedMediumMaxY);
 		
 						// Medium left boundary
-						this.boundaries[8] = new THREE.Mesh(new THREE.PlaneGeometry(0, 0), boundaryMaterial.clone());
+						this.boundaries[8] = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), boundaryMaterial.clone());
 						this.boundaries[8].geometry.vertices[0].set(-bedMediumMinX, bedMediumMinZ, bedMediumMinY);
 						this.boundaries[8].geometry.vertices[1].set(-bedMediumMinX, bedMediumMinZ, bedMediumMaxY);
 						this.boundaries[8].geometry.vertices[2].set(-bedMediumMinX, bedMediumMaxZ, bedMediumMinY);
 						this.boundaries[8].geometry.vertices[3].set(-bedMediumMinX, bedMediumMaxZ, bedMediumMaxY);
 		
 						// High front boundary
-						this.boundaries[9] = new THREE.Mesh(new THREE.PlaneGeometry(0, 0), boundaryMaterial.clone());
+						this.boundaries[9] = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), boundaryMaterial.clone());
 						this.boundaries[9].geometry.vertices[0].set(-bedHighMinX, bedHighMinZ, bedHighMinY);
 						this.boundaries[9].geometry.vertices[1].set(-bedHighMaxX, bedHighMinZ, bedHighMinY);
 						this.boundaries[9].geometry.vertices[2].set(-bedHighMinX, bedHighMaxZ, bedHighMinY);
 						this.boundaries[9].geometry.vertices[3].set(-bedHighMaxX, bedHighMaxZ, bedHighMinY);
 		
 						// High back boundary
-						this.boundaries[10] = new THREE.Mesh(new THREE.PlaneGeometry(0, 0), boundaryMaterial.clone());
+						this.boundaries[10] = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), boundaryMaterial.clone());
 						this.boundaries[10].geometry.vertices[0].set(-bedHighMinX, bedHighMinZ, bedHighMaxY);
 						this.boundaries[10].geometry.vertices[1].set(-bedHighMaxX, bedHighMinZ, bedHighMaxY);
 						this.boundaries[10].geometry.vertices[2].set(-bedHighMinX, bedHighMaxZ, bedHighMaxY);
 						this.boundaries[10].geometry.vertices[3].set(-bedHighMaxX, bedHighMaxZ, bedHighMaxY);
 		
 						// High right boundary
-						this.boundaries[11] = new THREE.Mesh(new THREE.PlaneGeometry(0, 0), boundaryMaterial.clone());
+						this.boundaries[11] = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), boundaryMaterial.clone());
 						this.boundaries[11].geometry.vertices[0].set(-bedHighMaxX, bedHighMinZ, bedHighMinY);
 						this.boundaries[11].geometry.vertices[1].set(-bedHighMaxX, bedHighMinZ, bedHighMaxY);
 						this.boundaries[11].geometry.vertices[2].set(-bedHighMaxX, bedHighMaxZ, bedHighMinY);
 						this.boundaries[11].geometry.vertices[3].set(-bedHighMaxX, bedHighMaxZ, bedHighMaxY);
 		
 						// High left boundary
-						this.boundaries[12] = new THREE.Mesh(new THREE.PlaneGeometry(0, 0), boundaryMaterial.clone());
+						this.boundaries[12] = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), boundaryMaterial.clone());
 						this.boundaries[12].geometry.vertices[0].set(-bedHighMinX, bedHighMinZ, bedHighMinY);
 						this.boundaries[12].geometry.vertices[1].set(-bedHighMinX, bedHighMinZ, bedHighMaxY);
 						this.boundaries[12].geometry.vertices[2].set(-bedHighMinX, bedHighMaxZ, bedHighMinY);
 						this.boundaries[12].geometry.vertices[3].set(-bedHighMinX, bedHighMaxZ, bedHighMaxY);
 		
 						// High top boundary
-						this.boundaries[13] = new THREE.Mesh(new THREE.PlaneGeometry(0, 0), boundaryMaterial.clone());
+						this.boundaries[13] = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), boundaryMaterial.clone());
 						this.boundaries[13].geometry.vertices[0].set(-bedHighMinX, bedHighMaxZ, bedHighMinY);
 						this.boundaries[13].geometry.vertices[1].set(-bedHighMaxX, bedHighMaxZ, bedHighMinY);
 						this.boundaries[13].geometry.vertices[2].set(-bedHighMinX, bedHighMaxZ, bedHighMaxY);
 						this.boundaries[13].geometry.vertices[3].set(-bedHighMaxX, bedHighMaxZ, bedHighMaxY);
 		
 						// Low front to medium front connector boundary
-						this.boundaries[14] = new THREE.Mesh(new THREE.PlaneGeometry(0, 0), boundaryMaterial.clone());
+						this.boundaries[14] = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), boundaryMaterial.clone());
 						this.boundaries[14].geometry.vertices[0].set(-bedLowMinX, bedLowMaxZ, bedLowMinY);
 						this.boundaries[14].geometry.vertices[1].set(-bedLowMaxX, bedLowMaxZ, bedLowMinY);
 						this.boundaries[14].geometry.vertices[2].set(-bedMediumMinX, bedMediumMinZ, bedMediumMinY);
 						this.boundaries[14].geometry.vertices[3].set(-bedMediumMaxX, bedMediumMinZ, bedMediumMinY);
 		
 						// Low back to medium back connector boundary
-						this.boundaries[15] = new THREE.Mesh(new THREE.PlaneGeometry(0, 0), boundaryMaterial.clone());
+						this.boundaries[15] = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), boundaryMaterial.clone());
 						this.boundaries[15].geometry.vertices[0].set(-bedLowMinX, bedLowMaxZ, bedLowMaxY);
 						this.boundaries[15].geometry.vertices[1].set(-bedLowMaxX, bedLowMaxZ, bedLowMaxY);
 						this.boundaries[15].geometry.vertices[2].set(-bedMediumMinX, bedMediumMinZ, bedMediumMaxY);
 						this.boundaries[15].geometry.vertices[3].set(-bedMediumMaxX, bedMediumMinZ, bedMediumMaxY);
 		
 						// Low right to medium right connector boundary
-						this.boundaries[16] = new THREE.Mesh(new THREE.PlaneGeometry(0, 0), boundaryMaterial.clone());
+						this.boundaries[16] = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), boundaryMaterial.clone());
 						this.boundaries[16].geometry.vertices[0].set(-bedLowMaxX, bedLowMaxZ, bedLowMinY);
 						this.boundaries[16].geometry.vertices[1].set(-bedLowMaxX, bedLowMaxZ, bedLowMaxY);
 						this.boundaries[16].geometry.vertices[2].set(-bedMediumMaxX, bedMediumMinZ, bedMediumMinY);
 						this.boundaries[16].geometry.vertices[3].set(-bedMediumMaxX, bedMediumMinZ, bedMediumMaxY);
 		
 						// Low left to medium left connector boundary
-						this.boundaries[17] = new THREE.Mesh(new THREE.PlaneGeometry(0, 0), boundaryMaterial.clone());
+						this.boundaries[17] = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), boundaryMaterial.clone());
 						this.boundaries[17].geometry.vertices[0].set(-bedLowMinX, bedLowMaxZ, bedLowMinY);
 						this.boundaries[17].geometry.vertices[1].set(-bedLowMinX, bedLowMaxZ, bedLowMaxY);
 						this.boundaries[17].geometry.vertices[2].set(-bedMediumMinX, bedMediumMinZ, bedMediumMinY);
 						this.boundaries[17].geometry.vertices[3].set(-bedMediumMinX, bedMediumMinZ, bedMediumMaxY);
 		
 						// Medium front to high front connector boundary
-						this.boundaries[18] = new THREE.Mesh(new THREE.PlaneGeometry(0, 0), boundaryMaterial.clone());
+						this.boundaries[18] = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), boundaryMaterial.clone());
 						this.boundaries[18].geometry.vertices[0].set(-bedMediumMinX, bedMediumMaxZ, bedMediumMinY);
 						this.boundaries[18].geometry.vertices[1].set(-bedMediumMaxX, bedMediumMaxZ, bedMediumMinY);
 						this.boundaries[18].geometry.vertices[2].set(-bedHighMinX, bedHighMinZ, bedHighMinY);
 						this.boundaries[18].geometry.vertices[3].set(-bedHighMaxX, bedHighMinZ, bedHighMinY);
 		
 						// Medium back to high back connector boundary
-						this.boundaries[19] = new THREE.Mesh(new THREE.PlaneGeometry(0, 0), boundaryMaterial.clone());
+						this.boundaries[19] = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), boundaryMaterial.clone());
 						this.boundaries[19].geometry.vertices[0].set(-bedMediumMinX, bedMediumMaxZ, bedMediumMaxY);
 						this.boundaries[19].geometry.vertices[1].set(-bedMediumMaxX, bedMediumMaxZ, bedMediumMaxY);
 						this.boundaries[19].geometry.vertices[2].set(-bedHighMinX, bedHighMinZ, bedHighMaxY);
 						this.boundaries[19].geometry.vertices[3].set(-bedHighMaxX, bedHighMinZ, bedHighMaxY);
 		
 						// Medium right to high right connector boundary
-						this.boundaries[20] = new THREE.Mesh(new THREE.PlaneGeometry(0, 0), boundaryMaterial.clone());
+						this.boundaries[20] = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), boundaryMaterial.clone());
 						this.boundaries[20].geometry.vertices[0].set(-bedMediumMaxX, bedMediumMaxZ, bedMediumMinY);
 						this.boundaries[20].geometry.vertices[1].set(-bedMediumMaxX, bedMediumMaxZ, bedMediumMaxY);
 						this.boundaries[20].geometry.vertices[2].set(-bedHighMaxX, bedHighMinZ, bedHighMinY);
 						this.boundaries[20].geometry.vertices[3].set(-bedHighMaxX, bedHighMinZ, bedHighMaxY);
 		
 						// Medium left to high left connector boundary
-						this.boundaries[21] = new THREE.Mesh(new THREE.PlaneGeometry(0, 0), boundaryMaterial.clone());
+						this.boundaries[21] = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), boundaryMaterial.clone());
 						this.boundaries[21].geometry.vertices[0].set(-bedMediumMinX, bedMediumMaxZ, bedMediumMinY);
 						this.boundaries[21].geometry.vertices[1].set(-bedMediumMinX, bedMediumMaxZ, bedMediumMaxY);
 						this.boundaries[21].geometry.vertices[2].set(-bedHighMinX, bedHighMinZ, bedHighMinY);
@@ -4558,9 +5873,16 @@ $(function() {
 
 					// Load model
 					loader.load(file, function(geometry) {
+					
+						// Standardize geometry
+						if(!(geometry instanceof THREE.Geometry))
+							geometry = standardizeGeometry(geometry);
 
 						// Center model
 						geometry.center();
+						
+						// Compute normals
+						computeNormals(geometry);
 
 						// Create model's mesh
 						var mesh = new THREE.Mesh(geometry, filamentMaterials[modelEditorFilamentColor]);
@@ -4659,7 +5981,7 @@ $(function() {
 							for(var j = 0; j < modelEditor.models[i].adhesion.mesh.geometry.vertices.length; j++)
 								modelEditor.models[i].adhesion.mesh.geometry.vertices[j].copy(modelEditor.models[i].mesh.geometry.vertices[j]);
 							
-							// Computer face normals
+							// Compute face normals
 							modelEditor.models[i].adhesion.mesh.geometry.computeFaceNormals();
 				
 							// Update adhesion's orientation
@@ -4675,188 +5997,200 @@ $(function() {
 
 				// Key down event
 				keyDownEvent: function(event) {
-	
+				
 					// Check if an input is not focused
 					if(!$("input:focus").length) {
-
-						// Check what key was pressed
-						switch(event.which) {
 					
-							// Check if A is pressed
-							case "A".charCodeAt(0) :
-				
-								// Check if ctrl is pressed
-								if(event.ctrlKey) {
+						// Check if space is pressed
+						if(event.which === " ".charCodeAt(0))
+					
+							// Prevent default action
+							event.preventDefault();
 						
-									// Prevent default action
-									event.preventDefault();
+						// Check if input is allowed and not transforming a model
+						if(modelEditor.allowInput && !modelEditor.transformControls.isDragging())
+
+							// Check what key was pressed
+							switch(event.which) {
+					
+								// Check if A is pressed
+								case "A".charCodeAt(0) :
+				
+									// Check if ctrl is pressed
+									if(event.ctrlKey) {
+						
+										// Prevent default action
+										event.preventDefault();
 									
-									// Check if not cutting models
-									if(modelEditor.cutShape === null) {
+										// Check if not cutting models
+										if(modelEditor.cutShape === null) {
 							
-										// Get currently focused model
-										var current = modelEditor.transformControls.object;
+											// Get currently focused model
+											var current = modelEditor.transformControls.object;
 							
-										// Go through all models
-										for(var i = 1; i < modelEditor.models.length; i++)
-							
-											// Check if model isn't focused on
-											if(modelEditor.models[i].mesh !== current)
-							
-												// Select model
-												modelEditor.selectModel(modelEditor.models[i].mesh);
-							
-										// Select the previously focused model
-										if(current)
-											modelEditor.selectModel(current);
-									}
-								}
-							break;
-							
-							// Check if F is pressed
-							case "F".charCodeAt(0) :
-							
-								// Prevent default action
-								event.preventDefault();
-							
-								// Reset camera focus
-								modelEditor.cameraFocus.set(0, 0, 0);
-							break;
-	
-							// Check if tab was pressed
-							case "\t".charCodeAt(0) :
-		
-								// Prevent default action
-								event.preventDefault();
-								
-								// Check if tab isn't already pressed
-								if(modelEditor.allowTab) {
-								
-									// Clear allow tab
-									modelEditor.allowTab = false;
-								
-									// Check if not cutting models
-									if(modelEditor.cutShape === null) {
-	
-										// Check if a model is being focused on
-										if(modelEditor.transformControls.object) {
-		
 											// Go through all models
 											for(var i = 1; i < modelEditor.models.length; i++)
-			
-												// Check if model is currently being focused on
-												if(modelEditor.models[i].mesh == modelEditor.transformControls.object) {
-								
-													// Check if shift isn't pressed
-													if(!event.shiftKey)
-									
-														// Remove selection
-														modelEditor.removeSelection();
-								
-													// Select next model
-													modelEditor.selectModel(modelEditor.models[i != modelEditor.models.length - 1 ? i + 1 : 1].mesh);
-					
-													// Break
-													break;
-												}
-										}
-				
-										// Otherwise check if a model exists
-										else if(modelEditor.models.length > 1)
-			
-											// Select first model
-											modelEditor.selectModel(modelEditor.models[1].mesh);
-									}
-								
-									// Otherwise
-									else {
-								
-										// Check if cut chape is a cube
-										if(modelEditor.cutShape.geometry.type === "BoxGeometry")
-									
-											// Change cut shape to a sphere
-											modelEditor.setCutShape("sphere");
-									
-										// Otherwise check if cut shape is a sphere
-										else if(modelEditor.cutShape.geometry.type === "SphereGeometry")
-									
-											// Change cut shape to a sube
-											modelEditor.setCutShape("cube");
-									}
-								}
-							break;
-	
-							// Check if delete was pressed
-							case "\x2E".charCodeAt(0) :
-		
-								// Check if a model is being focused on
-								if(modelEditor.transformControls.object)
-			
-									// Delete model
-									modelEditor.deleteModel();
-							break;
-		
-							// Check if shift was pressed
-							case "\x10".charCodeAt(0) :
-		
-								// Enable snap
-								modelEditor.enableSnap();
-							break;
-
-							// Check if W was pressed
-							case "W".charCodeAt(0) :
-	
-								// Set selection mode to translate
-								modelEditor.setMode("translate");
-							break;
-	
-							// Check if E was pressed
-							case "E".charCodeAt(0) :
-	
-								// Set selection mode to rotate
-								modelEditor.setMode("rotate");
-							break;
-	
-							// Check if R was pressed
-							case "R".charCodeAt(0) :
-	
-								// Set selection mode to scale
-								modelEditor.setMode("scale");
-							break;
-						
-							// Check if enter was pressed
-							case "\r".charCodeAt(0) :
-						
-								// Check if cutting models
-								if(modelEditor.cutShape !== null)
 							
-									// Apply cut
-									modelEditor.applyCut();
-							break;
-						}
+												// Check if model isn't focused on
+												if(modelEditor.models[i].mesh !== current)
+							
+													// Select model
+													modelEditor.selectModel(modelEditor.models[i].mesh);
+							
+											// Select the previously focused model
+											if(current)
+												modelEditor.selectModel(current);
+										}
+									}
+								break;
+							
+								// Check if F is pressed
+								case "F".charCodeAt(0) :
+							
+									// Prevent default action
+									event.preventDefault();
+							
+									// Reset camera focus
+									modelEditor.cameraFocus.set(0, 0, 0);
+								break;
+	
+								// Check if tab was pressed
+								case "\t".charCodeAt(0) :
+		
+									// Prevent default action
+									event.preventDefault();
+								
+									// Check if tab isn't already pressed
+									if(modelEditor.allowTab) {
+								
+										// Clear allow tab
+										modelEditor.allowTab = false;
+								
+										// Check if not cutting models
+										if(modelEditor.cutShape === null) {
+	
+											// Check if a model is being focused on
+											if(modelEditor.transformControls.object) {
+		
+												// Go through all models
+												for(var i = 1; i < modelEditor.models.length; i++)
+			
+													// Check if model is currently being focused on
+													if(modelEditor.models[i].mesh == modelEditor.transformControls.object) {
+								
+														// Check if shift isn't pressed
+														if(!event.shiftKey)
+									
+															// Remove selection
+															modelEditor.removeSelection();
+								
+														// Select next model
+														modelEditor.selectModel(modelEditor.models[i != modelEditor.models.length - 1 ? i + 1 : 1].mesh);
+					
+														// Break
+														break;
+													}
+											}
+				
+											// Otherwise check if a model exists
+											else if(modelEditor.models.length > 1)
+			
+												// Select first model
+												modelEditor.selectModel(modelEditor.models[1].mesh);
+										}
+								
+										// Otherwise
+										else {
+								
+											// Check if cut chape is a cube
+											if(modelEditor.cutShape.geometry.type === "BoxGeometry")
+									
+												// Change cut shape to a sphere
+												modelEditor.setCutShape("sphere");
+									
+											// Otherwise check if cut shape is a sphere
+											else if(modelEditor.cutShape.geometry.type === "SphereGeometry")
+									
+												// Change cut shape to a sube
+												modelEditor.setCutShape("cube");
+										}
+									}
+								break;
+	
+								// Check if delete was pressed
+								case "\x2E".charCodeAt(0) :
+		
+									// Check if a model is being focused on
+									if(modelEditor.transformControls.object)
+			
+										// Delete model
+										modelEditor.deleteModel();
+								break;
+		
+								// Check if shift was pressed
+								case "\x10".charCodeAt(0) :
+		
+									// Enable snap
+									modelEditor.enableSnap();
+								break;
+
+								// Check if W was pressed
+								case "W".charCodeAt(0) :
+	
+									// Set selection mode to translate
+									modelEditor.setMode("translate");
+								break;
+	
+								// Check if E was pressed
+								case "E".charCodeAt(0) :
+	
+									// Set selection mode to rotate
+									modelEditor.setMode("rotate");
+								break;
+	
+								// Check if R was pressed
+								case "R".charCodeAt(0) :
+	
+									// Set selection mode to scale
+									modelEditor.setMode("scale");
+								break;
+						
+								// Check if enter was pressed
+								case "\r".charCodeAt(0) :
+						
+									// Check if cutting models
+									if(modelEditor.cutShape !== null)
+							
+										// Apply cut
+										modelEditor.applyCut();
+								break;
+							}
 					}
 				},
 
 				// Key up event
 				keyUpEvent: function(event) {
+				
+					// Check if input is allowed and not transforming a model
+					if(modelEditor.allowInput && !modelEditor.transformControls.isDragging())
 
-					// Check what key was pressed
-					switch(event.which) {
+						// Check what key was pressed
+						switch(event.which) {
 					
-						// Check if tab was released
-						case "\t".charCodeAt(0) :
+							// Check if tab was released
+							case "\t".charCodeAt(0) :
 						
-							// Set allow tab
-							modelEditor.allowTab = true;
-						break;
+								// Set allow tab
+								modelEditor.allowTab = true;
+							break;
 		
-						// Check if shift was released
-						case "\x10".charCodeAt(0) :
+							// Check if shift was released
+							case "\x10".charCodeAt(0) :
 		
-							// Disable snap
-							modelEditor.disableSnap();
-						break;
-					}
+								// Disable snap
+								modelEditor.disableSnap();
+							break;
+						}
 				},
 				
 				// Mouse enter event
@@ -4876,145 +6210,148 @@ $(function() {
 				// Mouse down event
 				mouseDownEvent: function(event) {
 				
-					// Check if left click was pressed
-					if(event.which == 1)
-
-						// Check if not cutting models, is clicking inside the model editor, and is not clicking on a button or input
-						if(modelEditor.cutShape === null && $(event.target).closest(".modal-extra").length && !$(event.target).closest("div.import, div.values, div.cutshape").length && !$(event.target).is("button, img, input")) {
-
-							// Set mouse coordinates
-							var mouse = new THREE.Vector2();
-							var offset = $(modelEditor.renderer.domElement).offset();
-							mouse.x = ((event.clientX - offset.left) / modelEditor.renderer.domElement.clientWidth) * 2 - 1;
-							mouse.y = -((event.clientY - offset.top) / modelEditor.renderer.domElement.clientHeight) * 2 + 1;
-	
-							// Set ray caster's perspective
-							var raycaster = new THREE.Raycaster();
-							raycaster.setFromCamera(mouse, modelEditor.camera);
-	
-							// Get model's meshes and adhesion's meshes
-							var modelMeshes = [];
-							for(var i = 0; i < modelEditor.models.length; i++) {
-						
-								if(modelEditor.models[i].mesh !== null)
-									modelMeshes.push(modelEditor.models[i].mesh);
-								if(modelEditor.models[i].adhesion !== null)
-									modelMeshes.push(modelEditor.models[i].adhesion.mesh);
-							}
-	
-							// Get objects that intersect ray caster
-							var intersects = raycaster.intersectObjects(modelMeshes);
-	
-							// Check if an object intersects and it's not the printer
-							if(intersects.length > 0 && intersects[0].object != modelEditor.models[0].mesh) {
+					// Check if input is allowed and not transforming a model
+					if(modelEditor.allowInput && !modelEditor.transformControls.isDragging())
 				
-								// Check if ctrl is pressed
-								if(event.ctrlKey) {
-					
-									// Go through all models
-									for(var i = 1; i < modelEditor.models.length; i++)
+						// Check if left click was pressed
+						if(event.which == 1)
+
+							// Check if not cutting models, is clicking inside the model editor, and is not clicking on a button or input
+							if(modelEditor.cutShape === null && $(event.target).closest(".modal-extra").length && !$(event.target).closest("div.import, div.values, div.cutshape").length && !$(event.target).is("button, img, input")) {
+
+								// Set mouse coordinates
+								var mouse = new THREE.Vector2();
+								var offset = $(modelEditor.renderer.domElement).offset();
+								mouse.x = ((event.clientX - offset.left) / modelEditor.renderer.domElement.clientWidth) * 2 - 1;
+								mouse.y = -((event.clientY - offset.top) / modelEditor.renderer.domElement.clientHeight) * 2 + 1;
+	
+								// Set ray caster's perspective
+								var raycaster = new THREE.Raycaster();
+								raycaster.setFromCamera(mouse, modelEditor.camera);
+	
+								// Get model's meshes and adhesion's meshes
+								var modelMeshes = [];
+								for(var i = 0; i < modelEditor.models.length; i++) {
 						
-										// Check if model was clicked
-										if(modelEditor.models[i].mesh == intersects[0].object || (modelEditor.models[i].adhesion !== null && modelEditor.models[i].adhesion.mesh == intersects[0].object)) {
-									
-											// Check if model is selected
-											if(modelEditor.models[i].glow !== null) {
-							
-												// Set model's color
-												modelEditor.models[i].mesh.material = filamentMaterials[modelEditorFilamentColor];
-		
-												// Remove model's glow
-												modelEditor.scene[1].remove(modelEditor.models[i].glow);
-												modelEditor.models[i].glow = null;
-											
-												// Check if adhesion exists
-												if(modelEditor.models[i].adhesion !== null) {
-											
-													// Set adhesion's color
-													modelEditor.models[i].adhesion.mesh.material = filamentMaterials[modelEditorFilamentColor];
-												
-													// Remove adhesion's glow
-													modelEditor.scene[1].remove(modelEditor.models[i].adhesion.glow);
-													modelEditor.models[i].adhesion.glow = null;
-												}
-			
-												// Check if model is currently focused
-												if(modelEditor.models[i].mesh === modelEditor.transformControls.object) {
-											
-													// Remove focus
-													modelEditor.transformControls.detach();
-												
-													// Go through all other models
-													for(var j = modelEditor.models.length - 1; j >= 1; j--)
-												
-														// Check if model is selected
-														if(modelEditor.models[j].glow !== null) {
-													
-															// Select model
-															modelEditor.selectModel(modelEditor.models[j].mesh);
-														
-															// Break
-															break;
-														}
-												}
-								
-												// Update model changes
-												modelEditor.updateModelChanges();
-											}
-										
-											// Break;
-											break;
-										}
+									if(modelEditor.models[i].mesh !== null)
+										modelMeshes.push(modelEditor.models[i].mesh);
+									if(modelEditor.models[i].adhesion !== null)
+										modelMeshes.push(modelEditor.models[i].adhesion.mesh);
 								}
+	
+								// Get objects that intersect ray caster
+								var intersects = raycaster.intersectObjects(modelMeshes);
+	
+								// Check if an object intersects and it's not the printer
+								if(intersects.length > 0 && intersects[0].object != modelEditor.models[0].mesh) {
+				
+									// Check if ctrl is pressed
+									if(event.ctrlKey) {
 					
+										// Go through all models
+										for(var i = 1; i < modelEditor.models.length; i++)
+						
+											// Check if model was clicked
+											if(modelEditor.models[i].mesh == intersects[0].object || (modelEditor.models[i].adhesion !== null && modelEditor.models[i].adhesion.mesh == intersects[0].object)) {
+									
+												// Check if model is selected
+												if(modelEditor.models[i].glow !== null) {
+							
+													// Set model's color
+													modelEditor.models[i].mesh.material = filamentMaterials[modelEditorFilamentColor];
+		
+													// Remove model's glow
+													modelEditor.scene[1].remove(modelEditor.models[i].glow);
+													modelEditor.models[i].glow = null;
+											
+													// Check if adhesion exists
+													if(modelEditor.models[i].adhesion !== null) {
+											
+														// Set adhesion's color
+														modelEditor.models[i].adhesion.mesh.material = filamentMaterials[modelEditorFilamentColor];
+												
+														// Remove adhesion's glow
+														modelEditor.scene[1].remove(modelEditor.models[i].adhesion.glow);
+														modelEditor.models[i].adhesion.glow = null;
+													}
+			
+													// Check if model is currently focused
+													if(modelEditor.models[i].mesh === modelEditor.transformControls.object) {
+											
+														// Remove focus
+														modelEditor.transformControls.detach();
+												
+														// Go through all other models
+														for(var j = modelEditor.models.length - 1; j >= 1; j--)
+												
+															// Check if model is selected
+															if(modelEditor.models[j].glow !== null) {
+													
+																// Select model
+																modelEditor.selectModel(modelEditor.models[j].mesh);
+														
+																// Break
+																break;
+															}
+													}
+								
+													// Update model changes
+													modelEditor.updateModelChanges();
+												}
+										
+												// Break;
+												break;
+											}
+									}
+					
+									// Otherwise
+									else {
+				
+										// Check if shift isn't pressed
+										if(!event.shiftKey)
+				
+											// Remove selection
+											modelEditor.removeSelection();
+								
+										// Go through all models
+										for(var i = 1; i < modelEditor.models.length; i++)
+						
+											// Check if model was clicked
+											if(modelEditor.models[i].mesh == intersects[0].object || (modelEditor.models[i].adhesion !== null && modelEditor.models[i].adhesion.mesh == intersects[0].object)) {
+				
+												// Select model
+												modelEditor.selectModel(modelEditor.models[i].mesh);
+										
+												// Break
+												break;
+											}
+									}
+								}
+	
 								// Otherwise
 								else {
-				
-									// Check if shift isn't pressed
-									if(!event.shiftKey)
+			
+									// Set remove selection interval
+									var removeSelectionTimeout = setTimeout(function() {
+							
+										// Disable event
+										$(window.document).off("mousemove.modelEditor");
 				
 										// Remove selection
 										modelEditor.removeSelection();
-								
-									// Go through all models
-									for(var i = 1; i < modelEditor.models.length; i++)
-						
-										// Check if model was clicked
-										if(modelEditor.models[i].mesh == intersects[0].object || (modelEditor.models[i].adhesion !== null && modelEditor.models[i].adhesion.mesh == intersects[0].object)) {
-				
-											// Select model
-											modelEditor.selectModel(modelEditor.models[i].mesh);
-										
-											// Break
-											break;
-										}
+									}, 125);
+							
+									// Enable event
+									$(window.document).off("mousemove.modelEditor").on("mousemove.modelEditor", function() {
+							
+										// Disable event
+										$(window.document).off("mousemove.modelEditor");
+	
+										// Clear remove selection timeout
+										clearTimeout(removeSelectionTimeout);
+									});
 								}
 							}
-	
-							// Otherwise
-							else {
-			
-								// Set remove selection interval
-								var removeSelectionTimeout = setTimeout(function() {
-							
-									// Disable event
-									$(window.document).off("mousemove.modelEditor");
-				
-									// Remove selection
-									modelEditor.removeSelection();
-								}, 125);
-							
-								// Enable event
-								$(window.document).off("mousemove.modelEditor").on("mousemove.modelEditor", function() {
-							
-									// Disable event
-									$(window.document).off("mousemove.modelEditor");
-	
-									// Clear remove selection timeout
-									clearTimeout(removeSelectionTimeout);
-								});
-							}
-						}
 				},
 	
 				// Enable snap
@@ -5100,7 +6437,7 @@ $(function() {
 					// Initialize merged geometry
 					var mergedGeometry = new THREE.Geometry();
 					
-					// Create maximums and minimums for  the scene
+					// Create maximums and minimums for the scene
 					var maximums = new THREE.Vector2(Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY);
 					var minimums = new THREE.Vector2(Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY);
 				
@@ -5158,6 +6495,9 @@ $(function() {
 			
 					// Save model's center
 					self.modelCenter = [centerX ? centerX : Number.MIN_VALUE, centerZ ? centerZ : Number.MIN_VALUE];
+					
+					// Compute face normals
+					mergedGeometry.computeFaceNormals();
 	
 					// Create merged mesh from merged geometry
 					var mergedMesh = new THREE.Mesh(mergedGeometry);
@@ -6333,6 +7673,8 @@ $(function() {
 								positionBefore.applyMatrix4(meshDifference.matrixWorld);
 			
 								meshDifference.geometry.center();
+								
+								// Compute face normals
 								meshDifference.geometry.computeFaceNormals();
 			
 								var positionAfter = meshDifference.geometry.vertices[0].clone();
@@ -6356,6 +7698,8 @@ $(function() {
 								positionBefore.applyMatrix4(meshIntersection.matrixWorld);
 			
 								meshIntersection.geometry.center();
+								
+								// Compute face normals
 								meshIntersection.geometry.computeFaceNormals();
 			
 								var positionAfter = meshIntersection.geometry.vertices[0].clone();
@@ -6544,6 +7888,8 @@ $(function() {
 								positionBefore.applyMatrix4(meshUnion.matrixWorld);
 		
 								meshUnion.geometry.center();
+								
+								// Compute face normals
 								meshUnion.geometry.computeFaceNormals();
 		
 								var positionAfter = meshUnion.geometry.vertices[0].clone();
@@ -6730,6 +8076,26 @@ $(function() {
 								// Update glow's view vector
 								modelEditor.models[i].glow.material.uniforms.viewVector.value = new THREE.Vector3().subVectors(modelEditor.camera.position, modelEditor.models[i].glow.position);
 				},
+				
+				// Enable
+				enable: function() {
+				
+					// Set allow input
+					modelEditor.allowInput = true;
+				
+					// Enable transform controls
+					modelEditor.transformControls.enable = true;
+				},
+				
+				// Disable
+				disable: function() {
+				
+					// Set allow input
+					modelEditor.allowInput = false;
+				
+					// Disable transform controls
+					modelEditor.transformControls.enable = false;
+				},
 
 				// Animate
 				animate: function() {
@@ -6788,6 +8154,13 @@ $(function() {
 		
 			// Load model
 			return loader.load(file, function(geometry) {
+			
+				// Standardize geometry
+				if(!(geometry instanceof THREE.Geometry))
+					geometry = standardizeGeometry(geometry);
+				
+				// Compute normals
+				computeNormals(geometry);
 				
 				// Create model's mesh
 				var mesh = new THREE.Mesh(geometry);
@@ -6954,7 +8327,7 @@ $(function() {
 							}).done(function(data) {
 					
 								// Show slicer profile editor
-								showSlicerProfileEditor(data, button.data("slicer"), button.parent().parent().children("td").eq(0).find("span:not(.icon-star)").text(), button.parent().parent().children("td").eq(1).text(), "Edit Profile", _.sprintf(gettext("Editing %(fileName)s"), {fileName: button.parent().parent().children("td").eq(1).html()}), gettext("Save"));
+								showSlicerProfileEditor(data, button.data("slicer"), button.parent().parent().children("td").eq(0).find("span:not(.icon-star)").text(), "Edit Profile", _.sprintf(gettext("Editing %(fileName)s"), {fileName: button.parent().parent().children("td").eq(1).html()}), gettext("Save"));
 								
 								// Clear loading slicer profile
 								loadingSlicerProfile = false;
@@ -7212,7 +8585,7 @@ $(function() {
 					<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">" + gettext("Save Z as back left Z0") + "</button>\
 					<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">" + gettext("Save Z as bed center Z0") + "</button>\
 					<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">" + gettext("Save Z as external bed height") + "</button>\
-					<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">" + _.sprintf(gettext("Print %(thickness)smm test border"), {thickness: "0.4"}) + "</button>\
+					<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">" + _.sprintf(gettext("Print %(thickness)s test border"), {thickness: "0.4mm"}) + "</button>\
 					<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">" + gettext("Print backlash calibration") + "</button>\
 					<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">" + gettext("Run complete bed calibration") + "</button>\
 					<button class=\"btn btn-block control-box\" data-bind=\"enable: loginState.isUser() && !isPrinting()\">" + gettext("Save printer settings to file") + "</button>\
@@ -7232,8 +8605,8 @@ $(function() {
 					<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/shenzhew.png\">" + _.sprintf(gettext("%(type)s fan"), {type: "Shenzhew"}) + "</button>\
 					<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/xinyujie.png\">" + _.sprintf(gettext("%(type)s fan"), {type: "Xinyujie"}) + "</button>\
 					<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/custom.png\">" + _.sprintf(gettext("%(type)s fan"), {type: "Custom"}) + "</button>\
-					<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">" + _.sprintf(gettext("%(current)dmA extruder current"), {current: 500}) + "</button>\
-					<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">" + _.sprintf(gettext("%(current)dmA extruder current"), {current: 660}) + "</button>\
+					<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">" + _.sprintf(gettext("%(current)s extruder current"), {current: "500mA"}) + "</button>\
+					<button class=\"btn btn-block control-box\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\">" + _.sprintf(gettext("%(current)s extruder current"), {current: "660mA"}) + "</button>\
 					<button class=\"btn btn-block control-box placeHolder\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"></button>\
 					<button class=\"btn btn-block control-box placeHolder\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"></button>\
 					<button class=\"btn btn-block control-box placeHolder\" data-bind=\"enable: isOperational() && !isPrinting() && loginState.isUser()\"></button>\
@@ -7359,14 +8732,14 @@ $(function() {
 								<button class=\"btn btn-block control-box arrow down\" title=\"" + encodeQuotes(gettext("Applies extruder's position adjustment in the negative direction")) + "\"><i class=\"icon-arrow-down\"></i></button>\
 							</div>\
 							<div class=\"distance\">\
-								<button type=\"button\" class=\"btn distance\" title=\"" + encodeQuotes(_.sprintf(gettext("Sets extruder's position adjustment to %(distance)smm"), {distance: "0.01"})) + "\" data-distance=\"0.01\">0.01</button>\
-								<button type=\"button\" class=\"btn distance\" title=\"" + encodeQuotes(_.sprintf(gettext("Sets extruder's position adjustment to %(distance)smm"), {distance: "0.1"})) + "\" data-distance=\"0.1\">0.1</button>\
-								<button type=\"button\" class=\"btn distance active\" title=\"" + encodeQuotes(_.sprintf(gettext("Sets extruder's position adjustment to %(distance)smm"), {distance: "1"})) + "\" data-distance=\"1\">1</button>\
-								<button type=\"button\" class=\"btn distance\" title=\"" + encodeQuotes(_.sprintf(gettext("Sets extruder's position adjustment to %(distance)smm"), {distance: "10"})) + "\" data-distance=\"10\">10</button>\
+								<button type=\"button\" class=\"btn distance\" title=\"" + encodeQuotes(_.sprintf(gettext("Sets extruder's position adjustment to %(distance)s"), {distance: "0.01mm"})) + "\" data-distance=\"0.01\">0.01</button>\
+								<button type=\"button\" class=\"btn distance\" title=\"" + encodeQuotes(_.sprintf(gettext("Sets extruder's position adjustment to %(distance)s"), {distance: "0.1mm"})) + "\" data-distance=\"0.1\">0.1</button>\
+								<button type=\"button\" class=\"btn distance active\" title=\"" + encodeQuotes(_.sprintf(gettext("Sets extruder's position adjustment to %(distance)s"), {distance: "1mm"})) + "\" data-distance=\"1\">1</button>\
+								<button type=\"button\" class=\"btn distance\" title=\"" + encodeQuotes(_.sprintf(gettext("Sets extruder's position adjustment to %(distance)s"), {distance: "10mm"})) + "\" data-distance=\"10\">10</button>\
 							</div>\
 						</div>\
 						<div class=\"printSettings\">\
-							<h3>" + gettext("Print settings") + "</h3>\
+							<h3>" + gettext("Print Settings") + "</h3>\
 							<div class=\"control-group\">\
 								<label class=\"control-label\">" + gettext("Filament Temperature") + "</label>\
 								<div class=\"controls\">\
@@ -7389,13 +8762,13 @@ $(function() {
 								<label class=\"control-label\">" + gettext("Filament Type") + "</label>\
 								<div class=\"controls\">\
 									<select class=\"input-block-level\">\
-										<option value=\"ABS\">" + _.sprintf(gettext("%(type)s (Recommended %(temperature)d°C)"), {type: "ABS", temperature: 275}) + "</option>\
-										<option value=\"PLA\">" + _.sprintf(gettext("%(type)s (Recommended %(temperature)d°C)"), {type: "PLA", temperature: 215}) + "</option>\
-										<option value=\"HIPS\">" + _.sprintf(gettext("%(type)s (Recommended %(temperature)d°C)"), {type: "HIPS", temperature: 265}) + "</option>\
-										<option value=\"FLX\">" + _.sprintf(gettext("%(type)s (Recommended %(temperature)d°C)"), {type: "FLX", temperature: 220}) + "</option>\
-										<option value=\"TGH\">" + _.sprintf(gettext("%(type)s (Recommended %(temperature)d°C)"), {type: "TGH", temperature: 220}) + "</option>\
-										<option value=\"CAM\">" + _.sprintf(gettext("%(type)s (Recommended %(temperature)d°C)"), {type: "CAM", temperature: 215}) + "</option>\
-										<option value=\"ABS-R\">" + _.sprintf(gettext("%(type)s (Recommended %(temperature)d°C)"), {type: "ABS‐R", temperature: 240}) + "</option>\
+										<option value=\"ABS\">" + _.sprintf(gettext("%(type)s (Recommended %(temperature)s)"), {type: "ABS", temperature: "275°C"}) + "</option>\
+										<option value=\"PLA\">" + _.sprintf(gettext("%(type)s (Recommended %(temperature)s)"), {type: "PLA", temperature: "215°C"}) + "</option>\
+										<option value=\"HIPS\">" + _.sprintf(gettext("%(type)s (Recommended %(temperature)s)"), {type: "HIPS", temperature: "265°C"}) + "</option>\
+										<option value=\"FLX\">" + _.sprintf(gettext("%(type)s (Recommended %(temperature)s)"), {type: "FLX", temperature: "220°C"}) + "</option>\
+										<option value=\"TGH\">" + _.sprintf(gettext("%(type)s (Recommended %(temperature)s)"), {type: "TGH", temperature: "220°C"}) + "</option>\
+										<option value=\"CAM\">" + _.sprintf(gettext("%(type)s (Recommended %(temperature)s)"), {type: "CAM", temperature: "215°C"}) + "</option>\
+										<option value=\"ABS-R\">" + _.sprintf(gettext("%(type)s (Recommended %(temperature)s)"), {type: "ABS‐R", temperature: "240°C"}) + "</option>\
 										<option value=\"OTHER\">" + gettext("Other") + "</option>\
 									</select>\
 								</div>\
@@ -7409,7 +8782,7 @@ $(function() {
 							</div>\
 						</div>\
 						<div class=\"filamentSettings\">\
-							<h3>" + gettext("Filament settings") + "</h3>\
+							<h3>" + gettext("Filament Settings") + "</h3>\
 							<div class=\"control-group\">\
 								<label class=\"control-label\"></label>\
 								<div class=\"controls\">\
@@ -7649,7 +9022,7 @@ $(function() {
 			$(this).blur();
 		
 			// Show message
-			showMessage(gettext("Saving Status"), gettext("Saving changes"));
+			showMessage(gettext("Saving Status"), gettext("Saving changes…"));
 			
 			setTimeout(function() {
 		
@@ -7999,7 +9372,7 @@ $(function() {
 				if(!self.printerState.isPaused()) {
 			
 					// Show message
-					showMessage(gettext("Printing Status"), gettext("Pausing print"));
+					showMessage(gettext("Printing Status"), gettext("Pausing print…"));
 				
 					// Send request
 					$.ajax({
@@ -8040,7 +9413,7 @@ $(function() {
 				else {
 			
 					// Show message
-					showMessage(gettext("Printing Status"), gettext("Resuming print"));
+					showMessage(gettext("Printing Status"), gettext("Resuming print…"));
 				
 					// Send request
 					$.ajax({
@@ -8120,7 +9493,7 @@ $(function() {
 							onproceed: function() {
 							
 								// Show message
-								showMessage(gettext("Printing Status"), gettext("Canceling print"));
+								showMessage(gettext("Printing Status"), gettext("Canceling print…"));
 	
 								// Send request
 								$.ajax({
@@ -8152,7 +9525,7 @@ $(function() {
 							$("#confirmation_dialog").modal("hide");
 					
 							// Show message
-							showMessage(gettext("Printing Status"), gettext("Canceling print"));
+							showMessage(gettext("Printing Status"), gettext("Canceling print…"));
 	
 							// Send request
 							$.ajax({
@@ -8176,7 +9549,7 @@ $(function() {
 				else {
 				
 					// Show message
-					showMessage(gettext("Printing Status"), gettext("Canceling print"));
+					showMessage(gettext("Printing Status"), gettext("Canceling print…"));
 
 					// Send request
 					$.ajax({
@@ -8322,8 +9695,8 @@ $(function() {
 					});
 				}
 			
-				// Otherwise assume saving model
-				else {
+				// Otherwise check if saving model
+				else if($("#slicing_configuration_dialog").hasClass("model")) {
 			
 					// Check if scene isn't empty
 					if(modelEditor.models.length > 1) {
@@ -8391,6 +9764,65 @@ $(function() {
 							hideMessage();
 						});
 				}
+				
+				// Otherwise assume saving G-code
+				else {
+				
+					// Get G-code content
+					var gcodeContent = $("#slicing_configuration_dialog .modal-extra textarea").val();
+					
+					// Check if G-code content isn't empty
+					if(gcodeContent.length) {
+			
+						// Set cursor to progress
+						$("body").addClass("progress");
+			
+						// Display cover
+						$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Saving G-Code…"));
+				
+						setTimeout(function() {
+				
+							// Set file name
+							var fileName = gcodeName;
+				
+							// Add timestamp to file name
+							var extension = fileName.lastIndexOf(".");
+							if(extension == -1)
+								fileName += " " + getTimeStamp();
+							else
+								fileName = fileName.substr(0, extension) + " " + getTimeStamp() + fileName.substr(extension);
+							
+							// Download profile
+							var blob = new Blob([gcodeContent.slice(-1) === "\n" ? gcodeContent.slice(0, -1) : gcodeContent], {type: "text/plain"});
+							saveFile(blob, fileName);
+				
+							// Remove progress cursor
+							$("body").removeClass("progress");
+						
+							// Enable button
+							button.removeClass("disabled");
+				
+							// Hide cover
+							$("#slicing_configuration_dialog .modal-cover").removeClass("show");
+							setTimeout(function() {
+								$("#slicing_configuration_dialog .modal-cover").css("z-index", "");
+							}, 200);
+						}, 600);
+					}
+				
+					// Otherwise
+					else
+				
+						// Show message
+						showMessage(gettext("Saving Status"), gettext("G-code is invalid"), gettext("OK"), function() {
+					
+							// Enable button
+							button.removeClass("disabled");
+					
+							// Hide message
+							hideMessage();
+						});
+				}
 			}
 		});
 		
@@ -8418,8 +9850,8 @@ $(function() {
 					}
 			}
 			
-			// Otherwise assume saving model
-			else {
+			// Otherwise check if saving model
+			else if($("#slicing_configuration_dialog").hasClass("model")) {
 			
 				// Get inputs
 				var inputs = $(this).parent().parent();
@@ -8435,11 +9867,40 @@ $(function() {
 					modelPath = "/" + modelPath;
 				
 				// Go through all models
-				var models = getModelLocations(getRootModelPath());
+				var models = getModelLocations(getRootFilePath());
 				for(var index in models)
 				
 					// Check if model has the same origin and path and inputs
 					if(models[index].origin === modelOriginInput.val() && models[index].path === modelPath) {
+						
+						// Set file exists
+						fileExists = true;
+						break;
+					}
+			}
+			
+			// Otherwise assume saving G-code
+			else {
+				
+				// Get inputs
+				var inputs = $(this).parent().parent();
+				var gcodeOriginInput = inputs.find("input[type=\"radio\"]:checked");
+				var gcodePathInput = inputs.find("input[type=\"text\"]");
+			
+				// Enable/disable save button
+				$("body > div.page-container > div.message button.confirm").eq(2).prop("disabled", !gcodePathInput[0].checkValidity() || !gcodePathInput.val().length);
+				
+				// Set G-code path
+				var gcodePath = gcodePathInput.val();
+				if(typeof self.files.currentPath !== "undefined" && gcodePath[0] !== "/")
+					gcodePath = "/" + gcodePath;
+				
+				// Go through all G-code files
+				var gcodeFiles = getGcodeLocations(getRootFilePath());
+				for(var index in gcodeFiles)
+				
+					// Check if G-code file has the same origin and path and inputs
+					if(gcodeFiles[index].origin === gcodeOriginInput.val() && gcodeFiles[index].path === gcodePath) {
 						
 						// Set file exists
 						fileExists = true;
@@ -8507,10 +9968,10 @@ $(function() {
 						if(data.value === "OK") {
 			
 							// Show message
-							showMessage(gettext("Saving Status"), "<div class=\"saveOnServer\">\
+							showMessage(gettext("Saving Status"), "<div class=\"saveOnServer profile\">\
 													<label class=\"control-label\">" + gettext("Profile Name") + "</label>\
 													<div class=\"controls\">\
-														<input type=\"text\" pattern=\"[^\\\\/]{1,}\" class=\"input-block-level\" value=\"" + encodeQuotes(getSlicerProfileName(slicerProfileIdentifier)) + "\">\
+														<input type=\"text\" pattern=\"[^\\\\/]+\" class=\"input-block-level\" value=\"" + encodeQuotes(getSlicerProfileName(slicerProfileIdentifier)) + "\">\
 													</div>\
 												</div><span class=\"saveOnServer warning show\">" + gettext("A profile with that name already exists. Saving will overwrite that existing profile.") + "</span>", gettext("Save"), function() {
 			
@@ -8618,8 +10079,8 @@ $(function() {
 					});
 				}
 			
-				// Otherwise assume saving model
-				else {
+				// Otherwise check if saving profile model
+				else if($("#slicing_configuration_dialog").hasClass("model")) {
 			
 					// Check if scene isn't empty
 					if(modelEditor.models.length > 1) {
@@ -8636,16 +10097,16 @@ $(function() {
 						}
 			
 						// Show message
-						showMessage(gettext("Saving Status"), "<div class=\"saveOnServer\">\
+						showMessage(gettext("Saving Status"), "<div class=\"saveOnServer model\">\
 												<label class=\"control-label\">" + gettext("Model Location") + "</label>\
-												<div class=\"controls modelLocation\">\
-													<input type=\"radio\" name=\"modelLocation\" id=\"localModelLocation\" value=\"local\"" + (modelLocation == "local" ? " checked" : "") + "><label for=\"localModelLocation\">Local</label>\
-													<input type=\"radio\" name=\"modelLocation\" id=\"sdcardModelLocation\"" + ($("#gcode_upload_sd").prop("disabled") ? " disabled" : "") + " value=\"sdcard\"" + (modelLocation == "sdcard" ? " checked" : "") + "><label for=\"sdcardModelLocation\"" + ($("#gcode_upload_sd").prop("disabled") ? " class=\"disabled\"" : "") + ">SD Card</label>\
+												<div class=\"controls modelOrigin\">\
+													<input type=\"radio\" name=\"modelOrigin\" id=\"localModelOrigin\" value=\"local\"" + (modelOrigin == "local" ? " checked" : "") + "><label for=\"localModelOrigin\">" + gettext("Local") + "</label>\
+													<input type=\"radio\" name=\"modelOrigin\" id=\"sdcardModelOrigin\"" + ($("#gcode_upload_sd").prop("disabled") ? " disabled" : "") + " value=\"sdcard\"" + (modelOrigin == "sdcard" ? " checked" : "") + "><label for=\"sdcardModelOrigin\"" + ($("#gcode_upload_sd").prop("disabled") ? " class=\"disabled\"" : "") + ">" + gettext("SD Card") + "</label>\
 												</div>\
 												<br>\
 												<label class=\"control-label\">" + gettext("Model Path") + "</label>\
 												<div class=\"controls modelPath\">\
-													<input type=\"text\" pattern=\"[^\\\\\\s" + (typeof self.files.currentPath === "undefined" ? "/" : "") + "]{1,}\\.stl\" class=\"input-block-level\" value=\"" + encodeQuotes(readableModelPath) + "\">\
+													<input type=\"text\" pattern=\"[^\\\\\\s" + (typeof self.files.currentPath === "undefined" ? "/" : "") + "]+\\.stl\" class=\"input-block-level\" value=\"" + encodeQuotes(readableModelPath) + "\">\
 												</div>\
 											</div><span class=\"saveOnServer warning show\">" + gettext("A model with that location and path already exists. Saving will overwrite that existing model.") + "</span>", gettext("Save"), function() {
 			
@@ -8726,9 +10187,6 @@ $(function() {
 										setTimeout(function() {
 											$("#slicing_configuration_dialog .modal-cover").css("z-index", "");
 										}, 200);
-							
-										// Update files
-										self.files.requestData();
 						
 										// Show message
 										showMessage(gettext("Saving Status"), gettext("Saving model failed"), gettext("OK"), function() {
@@ -8757,6 +10215,143 @@ $(function() {
 				
 						// Show message
 						showMessage(gettext("Saving Status"), gettext("Scene is invalid"), gettext("OK"), function() {
+						
+							// Enable button
+							button.removeClass("disabled");
+					
+							// Hide message
+							hideMessage();
+						});
+				}
+				
+				// Otherwise assume saving G-code
+				else {
+				
+					// Get G-code content
+					var gcodeContent = $("#slicing_configuration_dialog .modal-extra textarea").val();
+					
+					// Check if G-code content isn't empty
+					if(gcodeContent.length) {
+			
+						// Show message
+						showMessage(gettext("Saving Status"), "<div class=\"saveOnServer gcode\">\
+												<label class=\"control-label\">" + gettext("G-Code Location") + "</label>\
+												<div class=\"controls gcodeOrigin\">\
+													<input type=\"radio\" name=\"gcodeOrigin\" id=\"localGcodeOrigin\" value=\"local\"" + (gcodeOrigin == "local" ? " checked" : "") + "><label for=\"localGcodeOrigin\">" + gettext("Local") + "</label>\
+													<input type=\"radio\" name=\"gcodeOrigin\" id=\"sdcardGcodeOrigin\"" + ($("#gcode_upload_sd").prop("disabled") ? " disabled" : "") + " value=\"sdcard\"" + (gcodeOrigin == "sdcard" ? " checked" : "") + "><label for=\"sdcardGcodeOrigin\"" + ($("#gcode_upload_sd").prop("disabled") ? " class=\"disabled\"" : "") + ">" + gettext("SD Card") + "</label>\
+												</div>\
+												<br>\
+												<label class=\"control-label\">" + gettext("G-Code Path") + "</label>\
+												<div class=\"controls gcodePath\">\
+													<input type=\"text\" pattern=\"[^\\\\\\s" + (typeof self.files.currentPath === "undefined" ? "/" : "") + "]+\\.(g|gco|gcode)\" class=\"input-block-level\" value=\"" + encodeQuotes(gcodePathAndName) + "\">\
+												</div>\
+											</div><span class=\"saveOnServer warning show\">" + gettext("A G-code file with that location and path already exists. Saving will overwrite that existing file.") + "</span>", gettext("Save"), function() {
+			
+							// Get saved G-code origin and path
+							var savedGcodeOrigin = $("body > div.page-container > div.message > div > div > p > div.saveOnServer input[type=\"radio\"]:checked").val();
+							var savedGcodePath = $("body > div.page-container > div.message > div > div > p > div.saveOnServer input[type=\"text\"]").val();
+			
+							// Hide message
+							hideMessage();
+				
+							setTimeout(function() {
+		
+								// Set cursor to progress
+								$("body").addClass("progress");
+		
+								// Display cover
+								$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Saving G-Code…"));
+			
+								setTimeout(function() {
+								
+									// Create blob from G-code content
+									var blob = new Blob([gcodeContent], {type: "text/plain"})
+						
+									// Create request
+									var form = new FormData();
+									if(typeof self.files.currentPath === "undefined")
+										form.append("file", blob, savedGcodePath);
+									else {
+										if(savedGcodePath[0] !== "/")
+											form.append("file", blob, "/" + savedGcodePath);
+										else
+											form.append("file", blob, savedGcodePath);
+									}
+
+									// Send request
+									$.ajax({
+										url: API_BASEURL + "files/" + savedGcodeOrigin,
+										type: "POST",
+										dataType: "json",
+										data: form,
+										contentType: false,
+										traditional: false,
+										processData: false
+
+									// Done
+									}).done(function() {
+					
+										// Remove progress cursor
+										$("body").removeClass("progress");
+				
+										// Hide cover
+										$("#slicing_configuration_dialog .modal-cover").removeClass("show");
+										setTimeout(function() {
+											$("#slicing_configuration_dialog .modal-cover").css("z-index", "");
+										}, 200);
+							
+										// Update files
+										self.files.requestData();
+						
+										// Show message
+										showMessage(gettext("Saving Status"), gettext("Done"), gettext("OK"), function() {
+										
+											// Enable button
+											button.removeClass("disabled");
+						
+											// Hide message
+											hideMessage();
+										});
+							
+									// Fail
+									}).fail(function() {
+							
+										// Remove progress cursor
+										$("body").removeClass("progress");
+				
+										// Hide cover
+										$("#slicing_configuration_dialog .modal-cover").removeClass("show");
+										setTimeout(function() {
+											$("#slicing_configuration_dialog .modal-cover").css("z-index", "");
+										}, 200);
+						
+										// Show message
+										showMessage(gettext("Saving Status"), gettext("Saving G-code file failed"), gettext("OK"), function() {
+										
+											// Enable button
+											button.removeClass("disabled");
+						
+											// Hide message
+											hideMessage();
+										});
+									});
+								}, 600);
+							}, 100);
+						}, gettext("Cancel"), function() {
+						
+							// Enable button
+							button.removeClass("disabled");
+			
+							// Hide message
+							hideMessage();
+						});
+					}
+				
+					// Otherwise
+					else
+				
+						// Show message
+						showMessage(gettext("Saving Status"), gettext("G-code is invalid"), gettext("OK"), function() {
 						
 							// Enable button
 							button.removeClass("disabled");
@@ -8817,7 +10412,7 @@ $(function() {
 		}).attr("accept", ".stl, .obj, .m3d, .amf, .wrl, .dae, .3mf, .gcode, .gco, .g");
 		
 		// Upload with expanded file support
-		function uploadWithExpandedFileSupport(event, file, location) {
+		function uploadWithExpandedFileSupport(event, file, origin) {
 		
 			// Set file type
 			var extension = typeof file !== "undefined" ? file.name.lastIndexOf(".") : -1;
@@ -8834,7 +10429,7 @@ $(function() {
 				var newFileName = file.name.substr(0, extension) + ".stl";
 				
 				// Display message
-				showMessage(gettext("Conversion Status"), _.sprintf(gettext("Converting %(oldFileName)s to %(newFileName)s"), {oldFileName: htmlEncode(file.name), newFileName: htmlEncode(newFileName)}));
+				showMessage(gettext("Conversion Status"), _.sprintf(gettext("Converting %(oldFileName)s to %(newFileName)s…"), {oldFileName: htmlEncode(file.name), newFileName: htmlEncode(newFileName)}));
 				
 				// Set URL
 				var url = URL.createObjectURL(file);
@@ -8870,7 +10465,7 @@ $(function() {
 					
 							// Send request
 							$.ajax({
-								url: API_BASEURL + "files/" + location,
+								url: API_BASEURL + "files/" + origin,
 								type: "POST",
 								dataType: "json",
 								data: form,
@@ -8882,7 +10477,7 @@ $(function() {
 							}).done(function(data) {
 							
 								// Update path
-								if(location === "local")
+								if(origin === "local")
 									path += data.files.local.name;
 								else
 									path += data.files.sdcard.name;
@@ -8894,13 +10489,13 @@ $(function() {
 								if(self.files.requestData.toString().split("\n")[0].indexOf("params") != -1)
 									self.files.requestData({
 										focus: {
-											location: location,
+											location: origin,
 											path: path
 										}
 									});
 								else
-									self.files.requestData(path, location);
-								self.slicing.show(location, path);
+									self.files.requestData(path, origin);
+								self.slicing.show(origin, path);
 							});
 						}
 					
@@ -8973,7 +10568,7 @@ $(function() {
 							modelEditor.destroy();
 		
 						// Restore slicer dialog
-						$("#slicing_configuration_dialog").off("drop dragenter dragleave").removeClass("profile model").css("height", "");
+						$("#slicing_configuration_dialog").off("drop dragenter dragleave").removeClass("profile model gcode").css("height", "");
 						$("#slicing_configuration_dialog p.currentMenu").html(gettext("Select Profile"));
 						$("#slicing_configuration_dialog .modal-extra").remove();
 						$("#slicing_configuration_dialog .modal-body").css("display", "");
@@ -9058,8 +10653,8 @@ $(function() {
 						printerProfileName = self.slicing.printerProfile();
 						afterSlicingAction = self.slicing.afterSlicing();
 					
-						// Set model location, path, and name
-						modelLocation = self.slicing.target;
+						// Set model origin, path, and name
+						modelOrigin = self.slicing.target;
 					
 						if(typeof self.slicing.path !== "undefined" && self.slicing.path.length)
 							modelPath = "/" + self.slicing.path + "/";
@@ -9146,13 +10741,13 @@ $(function() {
 											if(!Detector.webgl)
 											
 												// Show slicer profile editor that skips model editor
-												showSlicerProfileEditor(data, slicerName, slicerProfileIdentifier, slicerProfileName, "Modify Profile", $("#slicing_configuration_dialog > div.modal-header > h3").html(), gettext("Slice"), "", gettext("Model editor will be skipped since your web browser doesn't support WebGL"));
+												showSlicerProfileEditor(data, slicerName, slicerProfileIdentifier, "Modify Profile", $("#slicing_configuration_dialog > div.modal-header > h3").html(), gettext("Slice"), "", gettext("Model editor will be skipped since your web browser doesn't support WebGL"));
 											
 											// Otherwise
 											else
 											
 												// Show slicer profile editor
-												showSlicerProfileEditor(data, slicerName, slicerProfileIdentifier, slicerProfileName, "Modify Profile", $("#slicing_configuration_dialog > div.modal-header > h3").html(), gettext("Next"), gettext("Skip Model Editor"));
+												showSlicerProfileEditor(data, slicerName, slicerProfileIdentifier, "Modify Profile", $("#slicing_configuration_dialog > div.modal-header > h3").html(), gettext("Next"), gettext("Skip Model Editor"));
 										}, 200);
 									});
 								}, 600);
@@ -9307,8 +10902,8 @@ $(function() {
 								
 										setTimeout(function() {
 									
-											// Create model editor and load model from blob
-											createModelEditor(BASEURL + "downloads/files/" + modelLocation + modelPath + modelName);
+											// Create model editor and load model
+											createModelEditor(BASEURL + "downloads/files/" + modelOrigin + modelPath + modelName, slicerName, slicerProfileContent);
 
 											// Wait until model is loaded
 											function isModelLoaded() {
@@ -9332,747 +10927,12 @@ $(function() {
 														setTimeout(function() {
 															$("#slicing_configuration_dialog .modal-cover").css("z-index", "").removeClass("noTransition");
 														}, 200);
-												
-														// Display model editor
-														$("#slicing_configuration_dialog").removeClass("profile").addClass("model in");
-														$("#slicing_configuration_dialog p.currentMenu").html(gettext("Modify Model"));
-														$("#slicing_configuration_dialog .modal-extra").empty().append("\
-															<div class=\"printer\">\
-																<button class=\"micro3d\" data-color=\"Black\" title=\"" + encodeQuotes(gettext("Black")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/black.png\"></button>\
-																<button class=\"micro3d\" data-color=\"White\" title=\"" + encodeQuotes(gettext("White")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/white.png\"></button>\
-																<button class=\"micro3d\" data-color=\"Blue\" title=\"" + encodeQuotes(gettext("Blue")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/blue.png\"></button>\
-																<button class=\"micro3d\" data-color=\"Green\" title=\"" + encodeQuotes(gettext("Green")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/green.png\"></button>\
-																<button class=\"micro3d\" data-color=\"Orange\" title=\"" + encodeQuotes(gettext("Orange")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/orange.png\"></button>\
-																<button class=\"micro3d\" data-color=\"Clear\" title=\"" + encodeQuotes(gettext("Clear")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/clear.png\"></button>\
-																<button class=\"micro3d\" data-color=\"Silver\" title=\"" + encodeQuotes(gettext("Silver")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/silver.png\"></button>\
-																<button class=\"micro3d\" data-color=\"Purple\" title=\"" + encodeQuotes(gettext("Purple")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/purple.png\"></button>\
-															</div>\
-															<div class=\"filament\">\
-																<button data-color=\"White\" title=\"" + encodeQuotes(gettext("White")) + "\"><span style=\"background-color: #F4F3E9;\"></span><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/filament.png\"></button>\
-																<button data-color=\"Pink\" title=\"" + encodeQuotes(gettext("Pink")) + "\"><span style=\"background-color: #FF006B;\"></span><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/filament.png\"></button>\
-																<button data-color=\"Red\" title=\"" + encodeQuotes(gettext("Red")) + "\"><span style=\"background-color: #EE0000;\"></span><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/filament.png\"></button>\
-																<button data-color=\"Orange\" title=\"" + encodeQuotes(gettext("Orange")) + "\"><span style=\"background-color: #FE9800;\"></span><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/filament.png\"></button>\
-																<button data-color=\"Yellow\" title=\"" + encodeQuotes(gettext("Yellow")) + "\"><span style=\"background-color: #FFEA00;\"></span><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/filament.png\"></button>\
-																<button data-color=\"Green\" title=\"" + encodeQuotes(gettext("Green")) + "\"><span style=\"background-color: #009E60;\"></span><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/filament.png\"></button>\
-																<button data-color=\"Light Blue\" title=\"" + encodeQuotes(gettext("Light Blue")) + "\"><span style=\"background-color: #00EEEE;\"></span><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/filament.png\"></button>\
-																<button data-color=\"Blue\" title=\"" + encodeQuotes(gettext("Blue")) + "\"><span style=\"background-color: #236B8E;\"></span><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/filament.png\"></button>\
-																<button data-color=\"Purple\" title=\"" + encodeQuotes(gettext("Purple")) + "\"><span style=\"background-color: #9A009A;\"></span><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/filament.png\"></button>\
-																<button data-color=\"Black\" title=\"" + encodeQuotes(gettext("Black")) + "\"><span style=\"background-color: #404040;\"></span><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/filament.png\"></button>\
-															</div>\
-															<div class=\"model\">\
-																<input type=\"file\" accept=\".stl, .obj, .m3d, .amf, .wrl, .dae, .3mf\">\
-																<button class=\"importFromServer\" title=\"" + encodeQuotes(gettext("Import From Server")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/import-from-server.png\"></button>\
-																<button class=\"importFromFile\" title=\"" + encodeQuotes(gettext("Import From File")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/import-from-server.png\"></button>\
-																<button class=\"translate disabled\" title=\"" + encodeQuotes(gettext("Translate")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/translate.png\"></button>\
-																<button class=\"rotate\" title=\"" + encodeQuotes(gettext("Rotate")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/rotate.png\"></button>\
-																<button class=\"scale\" title=\"" + encodeQuotes(gettext("Scale")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/scale.png\"></button>\
-																<button class=\"snap\" title=\"" + encodeQuotes(gettext("Snap")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/snap.png\"></button>\
-																<button class=\"delete\" title=\"" + encodeQuotes(gettext("Delete")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/delete.png\"></button>\
-																<button class=\"clone\" title=\"" + encodeQuotes(gettext("Clone")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/clone.png\"></button>\
-																<button class=\"reset\" title=\"" + encodeQuotes(gettext("Reset")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/reset.png\"></button>\
-																<button class=\"cut\" title=\"" + encodeQuotes(gettext("Cut")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/cut.png\"></button>\
-																<button class=\"merge disabled\" title=\"" + encodeQuotes(gettext("Merge")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/merge.png\"></button>\
-															</div>\
-															<div class=\"display\">\
-																<button class=\"axes" + (modelEditor.showAxes ? " disabled" : "") + "\" title=\"" + encodeQuotes(gettext("Axes")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/axes.png\"></button>\
-																<button class=\"boundaries" + (modelEditor.showBoundaries ? " disabled" : "") + "\" title=\"" + encodeQuotes(gettext("Boundaries")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/boundaries.png\"></button>\
-																<button class=\"measurements" + (modelEditor.showMeasurements ? " disabled" : "") + "\" title=\"" + encodeQuotes(gettext("Measurements")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/measurements.png\"></button>\
-																<button class=\"grid" + (modelEditor.showGrid ? " disabled" : "") + " printerModel\" title=\"" + encodeQuotes(gettext("Grid")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/grid.png\"></button>\
-															</div>\
-															<div class=\"import show\">\
-																<div>\
-																	<button class=\"close\" title=\"" + encodeQuotes(gettext("Close")) + "\"><div></div><i class=\"icon-remove-sign\"></i></button>\
-																	<div>\
-																		<select class=\"input-block-level\"></select>\
-																		<button>Import</button>\
-																	</div>\
-																	<span></span>\
-																</div>\
-															</div>\
-															<div class=\"values translate\">\
-																<div>\
-																	<button class=\"close\" title=\"" + encodeQuotes(gettext("Close")) + "\"><div></div><i class=\"icon-remove-sign\"></i></button>\
-																	<p><span class=\"axis x\">X</span><input type=\"number\" step=\"any\" name=\"x\"><span></span></p>\
-																	<p><span class=\"axis y\">Y</span><input type=\"number\" step=\"any\" name=\"y\"><span></span></p>\
-																	<p><span class=\"axis z\">Z</span><input type=\"number\" step=\"any\" name=\"z\"><span></span></p>\
-																	<span></span>\
-																</div>\
-															</div>\
-															<div class=\"cutShape\">\
-																<div>\
-																	<button class=\"close\" title=\"" + encodeQuotes(gettext("Close")) + "\"><div></div><i class=\"icon-remove-sign\"></i></button>\
-																	<button class=\"cube disabled\" title=\"" + encodeQuotes(gettext("Cube")) +"\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/cube.png\"></button>\
-																	<button class=\"sphere\" title=\"" + encodeQuotes(gettext("Sphere")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/sphere.png\"></button>\
-																	<span></span>\
-																</div>\
-															</div>\
-															<div class=\"measurements\">\
-																<p class=\"width\"></p>\
-																<p class=\"depth\"></p>\
-																<p class=\"height\"></p>\
-															</div>\
-														");
-													
-														// Get all model downloads
-														var models = getModelDownloads(getRootModelPath(), "");
-													
-														// Sort models
-														var keys = [];
-														for(var key in models)
-															if(models.hasOwnProperty(key))
-																keys.push(key);
-
-														keys.sort(function(a, b) {
-			
-															if(a[0] === "/" && b[0] !== "/")
-																return 1;
-				
-															if(a[0] !== "/" && b[0] === "/")
-																return -1;
-				
-															return a.toLowerCase() - b.toLowerCase();
-														});
-													
-														// Go through all models
-														for(key in keys)
 														
-															// Add option to import from server selection
-															$("#slicing_configuration_dialog.model .modal-extra > div.import select").append("\
-																<option value=\"" + encodeQuotes(models[keys[key]]) + "\">" + htmlEncode(keys[key]) + "</option>\
-															");
-
-														$("#slicing_configuration_dialog .modal-extra div.printer button[data-color=\"" + modelEditorPrinterColor + "\"]").addClass("disabled");
-														$("#slicing_configuration_dialog .modal-extra div.filament button[data-color=\"" + modelEditorFilamentColor + "\"]").addClass("disabled");
-														$("#slicing_configuration_dialog .modal-extra").append(modelEditor.renderer.domElement);
-													
-														// Hide Micro 3D specific features
-														if(self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter())
-															$("#slicing_configuration_dialog .modal-extra .micro3d").addClass("notUsingAMicro3DPrinter");
-													
-														// Hide features that require having a printer model
-														if(modelEditor.printerModel === null)
-															$("#slicing_configuration_dialog .modal-extra .printerModel").addClass("noPrinterModel");
-													
-														// Image drag event
-														$("#slicing_configuration_dialog .modal-extra img").on("dragstart", function(event) {
-
-															// Prevent default
-															event.preventDefault();
-														});
-													
-														// Import model from file
-														function importModelFromFile(file) {
-													
-															// Set file type
-															var extension = typeof file !== "undefined" ? file.name.lastIndexOf(".") : -1;
-															var type = extension != -1 ? file.name.substr(extension + 1).toLowerCase() : "";
-															var url = URL.createObjectURL(file);
-														
-															// Clear value
-															$("#slicing_configuration_dialog .modal-extra input[type=\"file\"]").val("");
-														
-															// Check if file has the correct extension
-															if(type === "stl" || type === "obj" || type === "m3d" || type === "amf" || type === "wrl" || type === "dae" || type === "3mf") {
-															
-																// Set cursor to progress
-																$("body").addClass("progress");
-															
-																// Display cover
-																$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Loading Model…"));
-
-																setTimeout(function() {
-
-																	// Import model
-																	modelEditor.importModel(url, type);
-
-																	// Wait until model is loaded
-																	function isModelLoaded() {
-
-																		// Check if model is loaded
-																		if(modelEditor.modelLoaded) {
-																	
-																			// Remove progress cursor
-																			$("body").removeClass("progress");
-
-																			// Hide cover
-																			$("#slicing_configuration_dialog .modal-cover").removeClass("show");
-																			setTimeout(function() {
-																				$("#slicing_configuration_dialog .modal-cover").css("z-index", "");
-																			}, 200);
-																		}
-
-																		// Otherwise
-																		else
-
-																			// Check if model is loaded again
-																			setTimeout(isModelLoaded, 100);
-																	}
-																	isModelLoaded();
-																}, 600);
-															}
-														}
-
-														// Input change event
-														$("#slicing_configuration_dialog .modal-extra input[type=\"file\"]").change(function() {
-														
-															// Check if not cutting models
-															if(modelEditor.cutShape === null)
-														
-																// Import model from file
-																importModelFromFile(this.files[0]);
-														
-															// Clear value
-															$(this).val("");
-														});
-													
-														// Buttons and sections mouse over event
-														$("#slicing_configuration_dialog .modal-extra button, #slicing_configuration_dialog .modal-extra div.import, #slicing_configuration_dialog .modal-extra div.values, #slicing_configuration_dialog .modal-extra div.cutShape").mouseover(function() {
-													
-															// Check if not changing model
-															if(!$("body").hasClass("grabbing"))
-													
-																// Force transform control's mouse leave
-																modelEditor.transformControls.forceMouseLeave();
-													
-														// Buttons and sections mouse up event
-														}).mouseup(function() {
-														
-															// Remove grab cursor
-															$("body").removeClass("grab");
-														
-															setTimeout(function() {
-														
-																// Check if not changing model
-																if(!$("body").hasClass("grabbing"))
-													
-																	// Force transform control's mouse leave
-																	modelEditor.transformControls.forceMouseLeave();
-															}, 0);
-														});
-													
-														// Button click event
-														$("#slicing_configuration_dialog .modal-extra button").click(function() {
-
-															// Blur self
-															$(this).blur();
-														});
-													
-														// Import from server button click event
-														$("#slicing_configuration_dialog .modal-extra button.importFromServer").click(function() {
-
-															// Show file dialog box
-															$("#slicing_configuration_dialog .modal-extra input[type=\"file\"]").click();
-														});
-													
-														// Import from server select button click event
-														$("#slicing_configuration_dialog.model .modal-extra > div.import > div > div > button").click(function() {
-													
-															// set url and type
-															var url = $(this).siblings("select").val();
-															var type = "stl";
-														
-															// Set cursor to progress
-															$("body").addClass("progress");
-														
-															// Display cover
-															$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Loading Model…"));
-
-															setTimeout(function() {
-
-																// Import model
-																modelEditor.importModel(url, type);
-
-																// Wait until model is loaded
-																function isModelLoaded() {
-
-																	// Check if model is loaded
-																	if(modelEditor.modelLoaded) {
-																
-																		// Remove progress cursor
-																		$("body").removeClass("progress");
-
-																		// Hide cover
-																		$("#slicing_configuration_dialog .modal-cover").removeClass("show");
-																		setTimeout(function() {
-																			$("#slicing_configuration_dialog .modal-cover").css("z-index", "");
-																		}, 200);
-																	}
-
-																	// Otherwise
-																	else
-
-																		// Check if model is loaded again
-																		setTimeout(isModelLoaded, 100);
-																}
-																isModelLoaded();
-															}, 600);
-														});
-
-														// Import from file button click event
-														$("#slicing_configuration_dialog .modal-extra button.importFromFile").click(function() {
-
-															// Show file dialog box
-															$("#slicing_configuration_dialog .modal-extra input[type=\"file\"]").click();
-														});
-
-														// Translate button click event
-														$("#slicing_configuration_dialog .modal-extra button.translate").click(function(event) {
-
-															// Set selection mode to translate
-															modelEditor.setMode("translate");
-														});
-
-														// Rotate button click event
-														$("#slicing_configuration_dialog .modal-extra button.rotate").click(function() {
-
-															// Set selection mode to rotate
-															modelEditor.setMode("rotate");
-														});
-
-														// Scale button click event
-														$("#slicing_configuration_dialog .modal-extra button.scale").click(function() {
-
-															// Set selection mode to scale
-															modelEditor.setMode("scale");
-														});
-
-														// Snap button click event
-														$("#slicing_configuration_dialog .modal-extra button.snap").click(function() {
-
-															// Check if snap controls are currently enabled
-															if(modelEditor.transformControls.translationSnap !== null)
-
-																// Disable grid and rotation snap
-																modelEditor.disableSnap();
-
-															// Otherwise
-															else
-
-																// Enable grid and rotation snap
-																modelEditor.enableSnap();
-														});
-
-														// Delete button click event
-														$("#slicing_configuration_dialog .modal-extra button.delete").click(function() {
-
-															// Delete model
-															modelEditor.deleteModel();
-														});
-
-														// Clone button click event
-														$("#slicing_configuration_dialog .modal-extra button.clone").click(function() {
-														
-															// Set cursor to progress
-															$("body").addClass("progress");
-														
-															// Display cover
-															$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Cloning Model…"));
-
-															setTimeout(function() {
-
-																// Clone model
-																modelEditor.cloneModel();
-
-																// Wait until model is loaded
-																function isModelLoaded() {
-
-																	// Check if model is loaded
-																	if(modelEditor.modelLoaded) {
-																
-																		// Remove progress cursor
-																		$("body").removeClass("progress");
-
-																		// Hide cover
-																		$("#slicing_configuration_dialog .modal-cover").removeClass("show");
-																		setTimeout(function() {
-																			$("#slicing_configuration_dialog .modal-cover").css("z-index", "");
-																		}, 200);
-																	}
-
-																	// Otherwise
-																	else
-
-																		// Check if model is loaded again
-																		setTimeout(isModelLoaded, 100);
-																}
-																isModelLoaded();
-															}, 600);
-														});
-
-														// Reset button click event
-														$("#slicing_configuration_dialog .modal-extra button.reset").click(function() {
-
-															// Reset model
-															modelEditor.resetModel();
-														});
-													
-														// Axes button click event
-														$("#slicing_configuration_dialog .modal-extra button.axes").click(function() {
-
-															// Set show axes
-															modelEditor.showAxes = !modelEditor.showAxes;
-														
-															// Save model editor show axes
-															localStorage.modelEditorShowAxes = modelEditor.showAxes;
-
-															// Go through all axes
-															for(var i = 0; i < modelEditor.axes.length; i++)
-														
-																// Toggle visibility
-																modelEditor.axes[i].visible = modelEditor.showAxes;
-
-															// Select button
-															if(modelEditor.showAxes)
-																$(this).addClass("disabled");
-															else
-																$(this).removeClass("disabled");
-														});
-
-														// Boundaries button click event
-														$("#slicing_configuration_dialog .modal-extra button.boundaries").click(function() {
-
-															// Set show boundaries
-															modelEditor.showBoundaries = !modelEditor.showBoundaries;
-														
-															// Save model editor show boundaries
-															localStorage.modelEditorShowBoundaries = modelEditor.showBoundaries;
-
-															// Go through all boundaries
-															for(var i = 0; i < modelEditor.boundaries.length; i++)
-
-																// Check if boundary isn't set
-																if(modelEditor.boundaries[i].material.color.getHex() != 0xFF0000)
-
-																	// Toggle visibility
-																	modelEditor.boundaries[i].visible = modelEditor.showBoundaries;
-
-															// Select button
-															if(modelEditor.showBoundaries)
-																$(this).addClass("disabled");
-															else
-																$(this).removeClass("disabled");
-														});
-
-														// Measurements button click event
-														$("#slicing_configuration_dialog .modal-extra button.measurements").click(function() {
-
-															// Set show measurements
-															modelEditor.showMeasurements = !modelEditor.showMeasurements;
-														
-															// Save model editor show measurements
-															localStorage.modelEditorShowMeasurements = modelEditor.showMeasurements;
-
-															// Check if a model has focus
-															if(modelEditor.transformControls.object) {
-
-																// Go through all measurements
-																for(var i = 0; i < modelEditor.measurements.length; i++)
-
-																	// Toggle visibility
-																	modelEditor.measurements[i].visible = modelEditor.showMeasurements;
-
-																if(modelEditor.showMeasurements)
-																	$("div.measurements > p").addClass("show");
-																else
-																	$("div.measurements > p").removeClass("show");
-
-																// Update model changes
-																modelEditor.updateModelChanges();
-															}
-
-															// Select button
-															if(modelEditor.showMeasurements)
-																$(this).addClass("disabled");
-															else
-																$(this).removeClass("disabled");
-														});
-													
-														// Grid button click event
-														$("#slicing_configuration_dialog .modal-extra button.grid").click(function() {
-
-															// Set show grid
-															modelEditor.showGrid = !modelEditor.showGrid;
-														
-															// Save model editor show grid
-															localStorage.modelEditorShowGrid = modelEditor.showGrid;
-
-															// Toggle visibility
-															modelEditor.grid.visible = modelEditor.showGrid;
-
-															// Select button
-															if(modelEditor.showGrid)
-																$(this).addClass("disabled");
-															else
-																$(this).removeClass("disabled");
-														});
-
-														// Cut button click event
-														$("#slicing_configuration_dialog .modal-extra button.cut").click(function() {
-
-															// Check if not cutting models
-															if(modelEditor.cutShape === null) {
-
-																// Select button
-																$(this).addClass("disabled");
-
-																// Disable import and clone buttons
-																$("#slicing_configuration_dialog .modal-extra button.import, #slicing_configuration_dialog .modal-extra button.clone").prop("disabled", true);
-										
-																// Show cut shape options
-																$("#slicing_configuration_dialog .modal-extra div.cutShape").addClass("show");
-										
-																// Create cut shape geometry
-																if($("#slicing_configuration_dialog .modal-extra div.cutShape > div > button.disabled").hasClass("cube"))
-																	var cutShapeGeometry = new THREE.CubeGeometry(50, 50, 50);
-																else if($("#slicing_configuration_dialog .modal-extra div.cutShape > div > button.disabled").hasClass("sphere"))
-																	var cutShapeGeometry = new THREE.SphereGeometry(25, 10, 10);
-										
-																// Create cut shape
-																modelEditor.cutShape = new THREE.Mesh(cutShapeGeometry, new THREE.MeshBasicMaterial({
-																	color: 0xCCCCCC,
-																	transparent: true,
-																	opacity: 0.1,
-																	side: THREE.DoubleSide,
-																	depthWrite: false
-																}));
-																modelEditor.cutShape.position.set(0, (bedHighMaxZ - bedLowMinZ) / 2 + externalBedHeight, 0);
-																modelEditor.cutShape.rotation.set(0, 0, 0);
-										
-																// Create cut shape outline
-																modelEditor.cutShapeOutline = new THREE.LineSegments(modelEditor.lineGeometry(cutShapeGeometry), new THREE.LineDashedMaterial({
-																	color: 0xFFAA00,
-																	dashSize: 3,
-																	gapSize: 1,
-																	linewidth: 2
-																}));
-										
-																// Add cut shape and outline to scene
-																modelEditor.scene[0].add(modelEditor.cutShape);
-																modelEditor.scene[0].add(modelEditor.cutShapeOutline);
-
-																// Remove selection
-																modelEditor.removeSelection();
-															
-																// Set allowed translation
-																modelEditor.transformControls.setAllowedTranslation("XYZ");
-															
-																// Focus on cut shape
-																modelEditor.transformControls.attach(modelEditor.cutShape);
-
-																// Update model changes
-																modelEditor.updateModelChanges();
-															
-																modelEditor.transformControls.attach(modelEditor.transformControls.object);
-															
-																// Update camera focus
-																modelEditor.updateCameraFocus();
-															}
-
-															// Otherwise
-															else
-									
-																// Apply cut
-																modelEditor.applyCut();
-														});
-								
-														// Cut shape click event
-														$("#slicing_configuration_dialog .modal-extra div.cutShape button").click(function() {
-									
-															// Check if button is cube
-															if($(this).hasClass("cube"))
-
-																// Change cut shape to a sube
-																modelEditor.setCutShape("cube");
-									
-															// Otherwise check if button is sphere
-															else if($(this).hasClass("sphere"))
-
-																// Change cut shape to a sphere
-																modelEditor.setCutShape("sphere");
-														});
-
-														// Merge button click event
-														$("#slicing_configuration_dialog .modal-extra button.merge").click(function() {
-
-															// Apply merge
-															modelEditor.applyMerge();
-														});
-
-														// Printer color button click event
-														$("#slicing_configuration_dialog .modal-extra div.printer button").click(function() {
-													
-															// Set model editor printer color
-															modelEditorPrinterColor = $(this).data("color");
-														
-															// Save model editor printer color
-															localStorage.modelEditorPrinterColor = modelEditorPrinterColor;
-
-															// Set printer color
-															modelEditor.models[0].mesh.material = printerMaterials[modelEditorPrinterColor];
-															$(this).addClass("disabled").siblings(".disabled").removeClass("disabled");
-														});
-
-														// Filament color button click event
-														$("#slicing_configuration_dialog .modal-extra div.filament button").click(function() {
-												
-															// Set model editor filament color
-															modelEditorFilamentColor = $(this).data("color");
-														
-															// Save model editor filament color
-															localStorage.modelEditorFilamentColor = modelEditorFilamentColor;
-
-															// Go through all models
-															for(var i = 1; i < modelEditor.models.length; i++)
-
-																// Check if model isn't currently selected
-																if(modelEditor.models[i].glow === null) {
-
-																	// Set model's color
-																	modelEditor.models[i].mesh.material = filamentMaterials[modelEditorFilamentColor];
-																
-																	// Set adhesion's color
-																	if(modelEditor.models[i].adhesion !== null)
-																		modelEditor.models[i].adhesion.mesh.material = filamentMaterials[modelEditorFilamentColor];
-																}
-
-															// Select button
-															$(this).addClass("disabled").siblings(".disabled").removeClass("disabled");
-														});
-													
-														// Values close click event
-														$("#slicing_configuration_dialog.model .modal-extra > div.values > div > button.close").click(function() {
-													
-															modelEditor.removeSelection();
-														
-														});
-
-														// Value change event
-														$("#slicing_configuration_dialog .modal-extra div.values input").change(function() {
-
-															// Blur self
-															$(this).blur();
-
-															// Check if value is a number
-															if(!isNaN(parseFloat($(this).val()))) {
-
-																// Fix value
-																$(this).val(parseFloat($(this).val()).toFixed(3));
-															
-																// Check if changing scale and value is less than zero
-																if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("scale") && $(this).val() < 0)
-															
-																	// Set value to zero
-																	$(this).val(0);
-
-																// Apply changes
-																modelEditor.applyChanges($(this).attr("name"), $(this).val());
-															}
-
-															// Otherwise
-															else {
-														
-																// Fix model's Y
-																modelEditor.fixModelY();
-															
-																// Refocus on model
-																modelEditor.transformControls.attach(modelEditor.transformControls.object);
-															}
-														});
-
-														// Value change event
-														$("#slicing_configuration_dialog .modal-extra div.values input").keyup(function() {
-
-															// Check if value is a number
-															if(!isNaN(parseFloat($(this).val()))) {
-														
-																// Check if changing scale
-																if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("scale")) {
-															
-																	// Go through all inputs
-																	for(var i = 0; i < 3; i++)
-																
-																		// Check if not current input and is locked
-																		if(!$(this).is($("#slicing_configuration_dialog .modal-extra div.values input").eq(i)) && modelEditor.scaleLock[i])
-																	
-																			// Match input value
-																			$("#slicing_configuration_dialog .modal-extra div.values input").eq(i).val($(this).val());
-																
-																	// Check if value is less than zero
-																	if($(this).val() < 0)
-																
-																		// Return
-																		return;	
-																}
-															
-																// Apply changes
-																modelEditor.applyChanges($(this).attr("name"), $(this).val());
-															}
-														});
-													
-														// Initialize drag leave counter
-														var dragLeaveCounter = 0;
-													
-														// Slicing configuration dialog drop event
-														$("#slicing_configuration_dialog").off("drop dragenter dragleave").on("drop", function(event) {
-													
-															// Prevent default
-															event.preventDefault();
-														
-															// Clear drag leave counter
-															dragLeaveCounter = 0;
-														
-															// Check if importing model is applicable
-															if($("#slicing_configuration_dialog .modal-drag-and-drop").hasClass("show")) {
-														
-																// Hide drag and drop cover
-																$("#slicing_configuration_dialog .modal-drag-and-drop").removeClass("show");
-													
-																// Import model from file
-																importModelFromFile(event.originalEvent.dataTransfer.files[0]);
-															}
-													
-														// Slicing configuration dialog drag enter event
-														}).on("dragenter", function(event) {
-													
-															// Prevent default
-															event.preventDefault();
-														
-															// Increment drag leave counter
-															dragLeaveCounter++;
-														
-															// Check if not cutting models
-															if(modelEditor.cutShape === null)
-													
-																// Show drag and drop cover if cover isn't showing
-																if(!$("#slicing_configuration_dialog .modal-cover").hasClass("show"))
-																	$("#slicing_configuration_dialog .modal-drag-and-drop").addClass("show");
-													
-														// Slicing configuration dialog drag leave event
-														}).on("dragleave", function(event) {
-										
-															// Prevent default
-															event.preventDefault();
+														// Display dialog
+														$("#slicing_configuration_dialog").addClass("in");
 											
-															// Decrement drag leave counter
-															if(dragLeaveCounter > 0)
-																dragLeaveCounter--;
-										
-															// Hide drag and drop cover if not dragging anymore
-															if(dragLeaveCounter == 0)
-																$("#slicing_configuration_dialog .modal-drag-and-drop").removeClass("show");
-														});
-
-														// Update model changes to display current menu and measurements
-														modelEditor.updateModelChanges();
-
-														// Set current slicer dialog
-														currentSlicerDialog = "Modify Model";
-
-														// Set button
-														button.html(gettext("Slice")).removeClass("disabled");
-
-														// Resize window
-														$(window).resize();
+														// Show model editor
+														showModelEditor("Modify Model", $("#slicing_configuration_dialog > div.modal-header > h3").html(), gettext("Slice"));
 													}, 200);
 												}
 
@@ -10139,8 +10999,8 @@ $(function() {
 											value: modelName
 										},
 										{
-											name: "Model Location",
-											value: modelLocation
+											name: "Model Origin",
+											value: modelOrigin
 										},
 										{
 											name: "Model Path",
@@ -10198,7 +11058,7 @@ $(function() {
 			
 											// Send request
 											$.ajax({
-												url: API_BASEURL + "files/" + modelLocation,
+												url: API_BASEURL + "files/" + modelOrigin,
 												type: "POST",
 												dataType: "json",
 												data: form,
@@ -10390,11 +11250,96 @@ $(function() {
 						else
 						
 							// Show message
-							showMessage(gettext("Slicer Status"), gettext("Scene is invalid"), gettext("OK"), function() {
+							showMessage(currentSlicerDialog === "Modify Model" ? gettext("Slicer Status") : gettext("Saving Status"), gettext("Scene is invalid"), gettext("OK"), function() {
 							
 								// Enable button
 								button.removeClass("disabled");
 			
+								// Hide message
+								hideMessage();
+							});
+					}
+					
+					// Otherwise check if on editing G-code slicer dialog
+					else if(currentSlicerDialog === "Edit G-code") {
+						
+						// Get G-code content
+						var gcodeContent = $("#slicing_configuration_dialog .modal-extra textarea").val();
+					
+						// Check if G-code content isn't empty
+						if(gcodeContent.length) {
+			
+							// Set cursor to progress
+							$("body").addClass("progress");
+	
+							// Display cover
+							$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Saving G-Code…"));
+		
+							setTimeout(function() {
+							
+								// Create blob from G-code content
+								var blob = new Blob([gcodeContent], {type: "text/plain"})
+					
+								// Create request
+								var form = new FormData();
+								form.append("file", blob, gcodePathAndName);
+
+								// Send request
+								$.ajax({
+									url: API_BASEURL + "files/" + gcodeOrigin,
+									type: "POST",
+									dataType: "json",
+									data: form,
+									contentType: false,
+									traditional: false,
+									processData: false
+
+								// Done
+								}).done(function() {
+				
+									setTimeout(function() {
+												
+										// Remove progress cursor
+										$("body").removeClass("progress");
+									}, 300);
+									
+									// Hide dialog
+									$("#slicing_configuration_dialog").modal("hide");
+					
+									// Update files
+									self.files.requestData();
+						
+								// Fail
+								}).fail(function() {
+						
+									setTimeout(function() {
+												
+										// Remove progress cursor
+										$("body").removeClass("progress");
+									}, 300);
+									
+									// Hide dialog
+									$("#slicing_configuration_dialog").modal("hide");
+					
+									// Show message
+									showMessage(gettext("Saving Status"), gettext("Saving G-code file failed"), gettext("OK"), function() {
+									
+										// Hide message
+										hideMessage();
+									});
+								});
+							}, 600);
+						}
+				
+						// Otherwise
+						else
+				
+							// Show message
+							showMessage(gettext("Saving Status"), gettext("G-code is invalid"), gettext("OK"), function() {
+					
+								// Enable button
+								button.removeClass("disabled");
+					
 								// Hide message
 								hideMessage();
 							});
@@ -10786,7 +11731,7 @@ $(function() {
 		});
 	
 		// Override X Y home control
-		$("#control #control-xyhome").attr("title", htmlDecode(_.sprintf(gettext("Set extruder's X position to %(x)d and Y position to %(y)d"), {x: 54, y: 50}))).click(function(event) {
+		$("#control #control-xyhome").attr("title", htmlDecode(_.sprintf(gettext("Set extruder's X position to %(x)s and Y position to %(y)s"), {x: "54mm", y: "50mm"}))).click(function(event) {
 		
 			// Check if using a Micro 3D printer
 			if(!self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
@@ -10855,7 +11800,7 @@ $(function() {
 		});
 	
 		// Override Z home control
-		$("#control #control-zhome").attr("title", htmlDecode(_.sprintf(gettext("Set extruder's Z position to %(z)d"), {z: 5}))).click(function(event) {
+		$("#control #control-zhome").attr("title", htmlDecode(_.sprintf(gettext("Set extruder's Z position to %(z)s"), {z: "5mm"}))).click(function(event) {
 			
 			// Check if using a Micro 3D printer
 			if(!self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
@@ -10960,7 +11905,7 @@ $(function() {
 				];
 			
 				// Show message
-				showMessage(gettext("Temperature Status"), gettext("Warming up"));
+				showMessage(gettext("Temperature Status"), gettext("Warming up…"));
 			
 				// Display temperature
 				var updateTemperature = setInterval(function() {
@@ -11026,7 +11971,7 @@ $(function() {
 				];
 			
 				// Show message
-				showMessage(gettext("Temperature Status"), gettext("Warming up"));
+				showMessage(gettext("Temperature Status"), gettext("Warming up…"));
 			
 				// Display temperature
 				var updateTemperature = setInterval(function() {
@@ -11185,7 +12130,7 @@ $(function() {
 				hideMessage();
 				
 				// Show message
-				showMessage(gettext("Filament Status"), gettext("Positioning extruder"));
+				showMessage(gettext("Filament Status"), gettext("Positioning extruder…"));
 				
 				// Set commands
 				var commands = [
@@ -11202,7 +12147,7 @@ $(function() {
 					function unloadFilament() {
 			
 						// Show message
-						showMessage(gettext("Filament Status"), gettext("Warming up"));
+						showMessage(gettext("Filament Status"), gettext("Warming up…"));
 		
 						// Set commands
 						var commands = [
@@ -11345,7 +12290,7 @@ $(function() {
 				hideMessage();
 				
 				// Show message
-				showMessage(gettext("Filament Status"), gettext("Positioning extruder"));
+				showMessage(gettext("Filament Status"), gettext("Positioning extruder…"));
 				
 				// Set commands
 				var commands = [
@@ -11362,7 +12307,7 @@ $(function() {
 					function loadFilament() {
 			
 						// Show message
-						showMessage(gettext("Filament Status"), gettext("Warming up"));
+						showMessage(gettext("Filament Status"), gettext("Warming up…"));
 		
 						// Set commands
 						var commands = [
@@ -11499,7 +12444,7 @@ $(function() {
 		$("#control > div.jog-panel.filament").find("div > button:nth-of-type(3)").attr("title", htmlDecode(gettext("Changes filament during a print"))).click(function() {
 		
 			// Show message
-			showMessage(gettext("Filament Status"), gettext("Starting mid‐print filament change"));
+			showMessage(gettext("Filament Status"), gettext("Starting mid‐print filament change…"));
 			
 			// Set commands
 			var commands = [
@@ -11531,7 +12476,7 @@ $(function() {
 				hideMessage();
 				
 				// Show message
-				showMessage(gettext("Calibration Status"), gettext("Calibrating bed center Z0"));
+				showMessage(gettext("Calibration Status"), gettext("Calibrating bed center Z0…"));
 				
 				// Set commands
 				var commands = [
@@ -11648,7 +12593,7 @@ $(function() {
 				hideMessage();
 				
 				// Show message
-				showMessage(gettext("Calibration Status"), gettext("Calibrating bed orientation"));
+				showMessage(gettext("Calibration Status"), gettext("Calibrating bed orientation…"));
 				
 				// Set commands
 				var commands = [
@@ -12042,7 +12987,7 @@ $(function() {
 				hideMessage();
 				
 				// Show message
-				showMessage(gettext("Calibration Status"), gettext("Saving Z as front left Z0"));
+				showMessage(gettext("Calibration Status"), gettext("Saving Z as front left Z0…"));
 			
 				// Set commands
 				var commands = [
@@ -12129,7 +13074,7 @@ $(function() {
 				hideMessage();
 				
 				// Show message
-				showMessage(gettext("Calibration Status"), gettext("Saving Z as front right Z0"));
+				showMessage(gettext("Calibration Status"), gettext("Saving Z as front right Z0…"));
 		
 				// Set commands
 				var commands = [
@@ -12216,7 +13161,7 @@ $(function() {
 				hideMessage();
 				
 				// Show message
-				showMessage(gettext("Calibration Status"), gettext("Saving Z as back right Z0"));
+				showMessage(gettext("Calibration Status"), gettext("Saving Z as back right Z0…"));
 		
 				// Set commands
 				var commands = [
@@ -12303,7 +13248,7 @@ $(function() {
 				hideMessage();
 				
 				// Show message
-				showMessage(gettext("Calibration Status"), gettext("Saving Z as back left Z0"));
+				showMessage(gettext("Calibration Status"), gettext("Saving Z as back left Z0…"));
 		
 				// Set commands
 				var commands = [
@@ -12390,7 +13335,7 @@ $(function() {
 				hideMessage();
 				
 				// Show message
-				showMessage(gettext("Calibration Status"), gettext("Saving Z as bed center Z0"));
+				showMessage(gettext("Calibration Status"), gettext("Saving Z as bed center Z0…"));
 				
 				// Set commands
 				var commands = [
@@ -12504,7 +13449,7 @@ $(function() {
 				hideMessage();
 				
 				// Show message
-				showMessage(gettext("Calibration Status"), gettext("Saving Z as external bed height"));
+				showMessage(gettext("Calibration Status"), gettext("Saving Z as external bed height…"));
 		
 				// Set commands
 				var commands = [
@@ -12564,10 +13509,10 @@ $(function() {
 		});
 		
 		// Set print test border control
-		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(17)").attr("title", htmlDecode(_.sprintf(gettext("Prints %(thickness)smm test border"), {thickness: "0.4"}))).click(function() {
+		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(17)").attr("title", htmlDecode(_.sprintf(gettext("Prints %(thickness)s test border"), {thickness: "0.4mm"}))).click(function() {
 		
 			// Show message
-			showMessage(gettext("Calibration Status"), gettext("It's recommended to print this test border after completely calibrating the bed to ensure that the calibration is accurate. The test border should print as a solid, even extruded border") + "<img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/test-border-good.png\">" + gettext("The \"Back Left Offset\", \"Back Right Offset\", \"Front Right Offset\", and \"Front Left Offset\" values can be adjusted to correct any issues with it. If the test border contains squiggly ripples, then it is too high.") + "<img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/test-border-high.png\">" + gettext("If the test border contains missing gaps, then it is too low.") + "<img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/test-border-low.png\">" + gettext("It's also recommended to print a model with a raft after this is done to see if the \"Bed Height Offset\" value needs to be adjusted. If the raft does not securely stick to the bed, then it is too high. If the model isn't easily removed from the raft, then it is too low.<br><br>All the referenced values can be found by clicking the \"Print settings\" button in the \"General\" section of OctoPrint's Control tab. Proceed?"), gettext("Yes"), function() {
+			showMessage(gettext("Calibration Status"), gettext("It's recommended to print this test border after completely calibrating the bed to ensure that the calibration is accurate. The test border should print as a solid, even extruded border") + "<img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/test-border-good.png\">" + gettext("The \"Back Left Offset\", \"Back Right Offset\", \"Front Right Offset\", and \"Front Left Offset\" values can be adjusted to correct any issues with it. If the test border contains squiggly ripples, then it is too high.") + "<img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/test-border-high.png\">" + gettext("If the test border contains missing gaps, then it is too low.") + "<img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/test-border-low.png\">" + gettext("It's also recommended to print a model with a raft after this is done to see if the \"Bed Height Offset\" value needs to be adjusted. If the raft does not securely stick to the bed, then it is too high. If the model isn't easily removed from the raft, then it is too low.<br><br>All the referenced values can be found by clicking the \"Print settings\" button in the \"General\" section of OctoPrint's Control tab. Proceed?"), gettext("Print"), function() {
 			
 				// Hide message
 				hideMessage();
@@ -12653,7 +13598,7 @@ $(function() {
 						processData: true
 					});
 				
-			}, gettext("No"), function() {
+			}, gettext("Cancel"), function() {
 			
 				// Hide message
 				hideMessage();
@@ -12779,7 +13724,7 @@ $(function() {
 			function continueCalibration() {
 				
 				// Show message
-				showMessage(gettext("Calibration Status"), gettext("Calibrating bed center Z0"));
+				showMessage(gettext("Calibration Status"), gettext("Calibrating bed center Z0…"));
 				
 				// Set commands
 				var commands = [
@@ -12816,7 +13761,7 @@ $(function() {
 						waitingCallback = function() {
 				
 							// Show message
-							showMessage(gettext("Calibration Status"), gettext("Calibrating bed orientation"));
+							showMessage(gettext("Calibration Status"), gettext("Calibrating bed orientation…"));
 						
 							// Set commands
 							commands = [
@@ -12874,7 +13819,7 @@ $(function() {
 											function calibrateBedOffsets() {
 				
 												// Show message
-												showMessage(gettext("Calibration Status"), gettext("Calibrating front left offset"));
+												showMessage(gettext("Calibration Status"), gettext("Calibrating front left offset…"));
 	
 												// Set commands
 												commands = [
@@ -12895,7 +13840,7 @@ $(function() {
 														hideMessage();
 								
 														// Show message
-														showMessage(gettext("Calibration Status"), gettext("Saving front left offset"));
+														showMessage(gettext("Calibration Status"), gettext("Saving front left offset…"));
 								
 														// Set commands
 														commands = [
@@ -12917,7 +13862,7 @@ $(function() {
 															waitingCallback = function() {
 								
 																// Show message
-																showMessage(gettext("Calibration Status"), gettext("Calibrating front right offset"));
+																showMessage(gettext("Calibration Status"), gettext("Calibrating front right offset…"));
 
 																// Set commands
 																commands = [
@@ -12938,7 +13883,7 @@ $(function() {
 																		hideMessage();
 											
 																		// Show message
-																		showMessage(gettext("Calibration Status"), gettext("Saving front right offset"));
+																		showMessage(gettext("Calibration Status"), gettext("Saving front right offset…"));
 											
 																		// Set commands
 																		commands = [
@@ -12960,7 +13905,7 @@ $(function() {
 																			waitingCallback = function() {
 											
 																				// Show message
-																				showMessage(gettext("Calibration Status"), gettext("Calibrating back right offset"));
+																				showMessage(gettext("Calibration Status"), gettext("Calibrating back right offset…"));
 
 																				// Set commands
 																				commands = [
@@ -12981,7 +13926,7 @@ $(function() {
 																						hideMessage();
 														
 																						// Show message
-																						showMessage(gettext("Calibration Status"), gettext("Saving back right offset"));
+																						showMessage(gettext("Calibration Status"), gettext("Saving back right offset…"));
 														
 																						// Set commands
 																						commands = [
@@ -13003,7 +13948,7 @@ $(function() {
 																							waitingCallback = function() {
 														
 																								// Show message
-																								showMessage(gettext("Calibration Status"), gettext("Calibrating back left offset"));
+																								showMessage(gettext("Calibration Status"), gettext("Calibrating back left offset…"));
 
 																								// Set commands
 																								commands = [
@@ -13024,7 +13969,7 @@ $(function() {
 																										hideMessage();
 																	
 																										// Show message
-																										showMessage(gettext("Calibration Status"), gettext("Saving back left offset"));
+																										showMessage(gettext("Calibration Status"), gettext("Saving back left offset…"));
 																	
 																										// Set commands
 																										commands = [
@@ -13046,7 +13991,7 @@ $(function() {
 																											waitingCallback = function() {
 																	
 																												// Show message
-																												showMessage(gettext("Calibration Status"), gettext("Finishing calibration"));
+																												showMessage(gettext("Calibration Status"), gettext("Finishing calibration…"));
 																
 																												// Set commands
 																												commands = [
@@ -13402,7 +14347,7 @@ $(function() {
 					hideMessage();
 
 					// Show message
-					showMessage(gettext("Calibration Status"), gettext("Setting expand printable region"));
+					showMessage(gettext("Calibration Status"), gettext("Setting expand printable region…"));
 	
 					// Send request
 					$.ajax({
@@ -13429,7 +14374,7 @@ $(function() {
 					hideMessage();
 
 					// Show message
-					showMessage(gettext("Calibration Status"), gettext("Clearing expand printable region"));
+					showMessage(gettext("Calibration Status"), gettext("Clearing expand printable region…"));
 	
 					// Send request
 					$.ajax({
@@ -13466,13 +14411,13 @@ $(function() {
 					hideMessage();
 					
 					// Show message
-					showMessage(gettext("Calibration Status"), _.sprintf(gettext("Your external bed is currently set to be %(externalBedHeight)0.2fmm taller than the bed that came with the printer. If you wish to recalibrate the external bed height, please remove the external bed, attached the bed that came with the printer, and click \"Next\". Click \"Cancel\" to change the setting manually. Or click \"Skip\" to leave the setting as it is."), {externalBedHeight: self.settings.settings.plugins.m33fio.ExternalBedHeight()}), gettext("Next"), function() {
+					showMessage(gettext("Calibration Status"), _.sprintf(gettext("Your external bed is currently set to be %(externalBedHeight)s taller than the bed that came with the printer. If you wish to recalibrate the external bed height, please remove the external bed, attached the bed that came with the printer, and click \"Next\". Click \"Cancel\" to change the setting manually. Or click \"Skip\" to leave the setting as it is."), {externalBedHeight: parseFloat(self.settings.settings.plugins.m33fio.ExternalBedHeight()).toFixed(2) + "mm"}), gettext("Next"), function() {
 		
 						// Hide message
 						hideMessage();
 					
 						// Show message
-						showMessage(gettext("Calibration Status"), gettext("Calibrating bed center Z0"));
+						showMessage(gettext("Calibration Status"), gettext("Calibrating bed center Z0…"));
 					
 						// Set commands
 						var commands = [
@@ -13515,7 +14460,7 @@ $(function() {
 										hideMessage();
 		
 										// Show message
-										showMessage(gettext("Calibration Status"), gettext("Saving Z as external bed height"));
+										showMessage(gettext("Calibration Status"), gettext("Saving Z as external bed height…"));
 
 										// Set commands
 										commands = [
@@ -13626,7 +14571,7 @@ $(function() {
 							hideMessage();
 
 							// Show message
-							showMessage(gettext("Calibration Status"), gettext("Saving value as external bed height"));
+							showMessage(gettext("Calibration Status"), gettext("Saving value as external bed height…"));
 							
 							// Send request
 							$.ajax({
@@ -13662,7 +14607,7 @@ $(function() {
 					hideMessage();
 					
 					// Show message
-					showMessage(gettext("Calibration Status"), gettext("Clearing external bed settings"));
+					showMessage(gettext("Calibration Status"), gettext("Clearing external bed settings…"));
 					
 					// Send request
 					$.ajax({
@@ -13712,7 +14657,7 @@ $(function() {
 		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(20)").attr("title", htmlDecode(gettext("Saves printer settings to a file"))).click(function() {
 			
 			// Show message
-			showMessage(gettext("Settings Status"), gettext("Obtaining printer settings"));
+			showMessage(gettext("Settings Status"), gettext("Obtaining printer settings…"));
 			
 			setTimeout(function() {
 		
@@ -13791,7 +14736,7 @@ $(function() {
 			else {
 			
 				// Show message
-				showMessage(gettext("Settings Status"), gettext("Restoring printer settings"));
+				showMessage(gettext("Settings Status"), gettext("Restoring printer settings…"));
 		
 				setTimeout(function() {
 
@@ -13851,7 +14796,7 @@ $(function() {
 				hideMessage();
 				
 				// Show message
-				showMessage(gettext("Fan Status"), _.sprintf(gettext("Setting fan to %(type)s"), {type: "HengLiXin"}));
+				showMessage(gettext("Fan Status"), _.sprintf(gettext("Setting fan to %(type)s…"), {type: "HengLiXin"}));
 		
 				// Send request
 				$.ajax({
@@ -13907,7 +14852,7 @@ $(function() {
 				hideMessage();
 				
 				// Show message
-				showMessage(gettext("Fan Status"), _.sprintf(gettext("Setting fan to %(type)s"), {type: "Listener"}));
+				showMessage(gettext("Fan Status"), _.sprintf(gettext("Setting fan to %(type)s…"), {type: "Listener"}));
 		
 				// Send request
 				$.ajax({
@@ -13963,7 +14908,7 @@ $(function() {
 				hideMessage();
 				
 				// Show message
-				showMessage(gettext("Fan Status"), _.sprintf(gettext("Setting fan to %(type)s"), {type: "Shenzhew"}));
+				showMessage(gettext("Fan Status"), _.sprintf(gettext("Setting fan to %(type)s…"), {type: "Shenzhew"}));
 		
 				// Send request
 				$.ajax({
@@ -14019,7 +14964,7 @@ $(function() {
 				hideMessage();
 				
 				// Show message
-				showMessage(gettext("Fan Status"), _.sprintf(gettext("Setting fan to %(type)s"), {type: "Xinyujie"}));
+				showMessage(gettext("Fan Status"), _.sprintf(gettext("Setting fan to %(type)s…"), {type: "Xinyujie"}));
 		
 				// Send request
 				$.ajax({
@@ -14075,7 +15020,7 @@ $(function() {
 				hideMessage();
 				
 				// Show message
-				showMessage(gettext("Fan Status"), _.sprintf(gettext("Setting fan to %(type)s"), {type: "custom"}));
+				showMessage(gettext("Fan Status"), _.sprintf(gettext("Setting fan to %(type)s…"), {type: "custom"}));
 		
 				// Send request
 				$.ajax({
@@ -14124,7 +15069,7 @@ $(function() {
 								hideMessage();
 			
 								// Show message
-								showMessage(gettext("Fan Status"), gettext("Setting custom fan calibration"));
+								showMessage(gettext("Fan Status"), gettext("Setting custom fan calibration…"));
 	
 								// Send request
 								$.ajax({
@@ -14223,7 +15168,7 @@ $(function() {
 		});
 	
 		// Set 500mA extruder current control
-		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(6)").attr("title", htmlDecode(_.sprintf(gettext("Sets extruder's current to %(current)dmA"), {current: 500}))).click(function() {
+		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(6)").attr("title", htmlDecode(_.sprintf(gettext("Sets extruder's current to %(current)s"), {current: "500mA"}))).click(function() {
 			
 			// Show message
 			showMessage(gettext("Extruder Current Status"), gettext("This will overwrite the existing extruder current settings. Proceed?"), gettext("Yes"), function() {
@@ -14232,7 +15177,7 @@ $(function() {
 				hideMessage();
 				
 				// Show message
-				showMessage(gettext("Extruder Current Status"), _.sprintf(gettext("Setting extruder current to %(current)dmA"), {current: 500}));
+				showMessage(gettext("Extruder Current Status"), _.sprintf(gettext("Setting extruder current to %(current)s…"), {current: "500mA"}));
 		
 				// Send request
 				$.ajax({
@@ -14279,7 +15224,7 @@ $(function() {
 		});
 	
 		// Set 660mA extruder current control
-		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(7)").attr("title", htmlDecode(_.sprintf(gettext("Sets extruder's current to %(current)dmA"), {current: 660}))).click(function() {
+		$("#control > div.jog-panel.advanced").find("div > button:nth-of-type(7)").attr("title", htmlDecode(_.sprintf(gettext("Sets extruder's current to %(current)s"), {current: "660mA"}))).click(function() {
 			
 			// Show message
 			showMessage(gettext("Extruder Current Status"), gettext("This will overwrite the existing extruder current settings. Proceed?"), gettext("Yes"), function() {
@@ -14288,7 +15233,7 @@ $(function() {
 				hideMessage();
 				
 				// Show message
-				showMessage(gettext("Extruder Current Status"), _.sprintf(gettext("Setting extruder current to %(current)dmA"), {current: 660}));
+				showMessage(gettext("Extruder Current Status"), _.sprintf(gettext("Setting extruder current to %(current)s…"), {current: "660mA"}));
 		
 				// Send request
 				$.ajax({
@@ -14370,7 +15315,7 @@ $(function() {
 		$("#control > div.jog-panel.eeprom").find("div > button:nth-of-type(1)").attr("title", htmlDecode(gettext("Reads EEPROM from the printer"))).click(function() {
 			
 			// Show message
-			showMessage(gettext("EEPROM Status"), gettext("Reading EEPROM"));
+			showMessage(gettext("EEPROM Status"), gettext("Reading EEPROM…"));
 		
 			// Send request
 			$.ajax({
@@ -14467,7 +15412,7 @@ $(function() {
 				else {
 			
 					// Show message
-					showMessage(gettext("EEPROM Status"), gettext("Writing EEPROM"));
+					showMessage(gettext("EEPROM Status"), gettext("Writing EEPROM…"));
 			
 					// Send request
 					$.ajax({
@@ -14524,7 +15469,7 @@ $(function() {
 			if(select.val() === "createWithDefaultSettings") {
 			
 				// Show message
-				showMessage(gettext("OctoPrint Status"), gettext("Creating OctoPrint instance"));
+				showMessage(gettext("OctoPrint Status"), gettext("Creating OctoPrint instance…"));
 			
 				// Send request
 				$.ajax({
@@ -14568,7 +15513,7 @@ $(function() {
 			else if(select.val() === "createWithCurrentSettings") {
 			
 				// Show message
-				showMessage(gettext("OctoPrint Status"), gettext("Creating OctoPrint instance"));
+				showMessage(gettext("OctoPrint Status"), gettext("Creating OctoPrint instance…"));
 			
 				// Send request
 				$.ajax({
@@ -14622,7 +15567,7 @@ $(function() {
 			else if(select.val() === "saveCurrentSettings") {
 			
 				// Show message
-				showMessage(gettext("OctoPrint Status"), gettext("Obtaining OctoPrint instance's settings"));
+				showMessage(gettext("OctoPrint Status"), gettext("Obtaining OctoPrint instance's settings…"));
 			
 				setTimeout(function() {
 		
@@ -14681,7 +15626,7 @@ $(function() {
 				closingInstance = true;
 			
 				// Show message
-				showMessage(gettext("OctoPrint Status"), gettext("Closing OctoPrint instance"));
+				showMessage(gettext("OctoPrint Status"), gettext("Closing OctoPrint instance…"));
 			
 				// Send request
 				$.ajax({
@@ -14823,7 +15768,7 @@ $(function() {
 			else {
 			
 				// Show message
-				showMessage(gettext("OctoPrint Status"), gettext("Creating OctoPrint instance"));
+				showMessage(gettext("OctoPrint Status"), gettext("Creating OctoPrint instance…"));
 			
 				// On file load
 				var reader = new FileReader();
@@ -14935,7 +15880,7 @@ $(function() {
 				else {
 
 					// Show message
-					showMessage(gettext("Firmware Status"), gettext("Updating firmware"));
+					showMessage(gettext("Firmware Status"), gettext("Updating firmware…"));
 
 					// On file load
 					var reader = new FileReader();
@@ -15360,6 +16305,8 @@ $(function() {
 								self.printerProfile.requestData();
 			
 								// Update slicers
+								for(var slicer in self.slicers)
+									self.slicers[slicer].requestData();
 								self.slicing.requestData();
 							}
 
@@ -15397,6 +16344,8 @@ $(function() {
 								self.printerProfile.requestData();
 			
 								// Update slicers
+								for(var slicer in self.slicers)
+									self.slicers[slicer].requestData();
 								self.slicing.requestData();
 							}
 
@@ -15506,7 +16455,7 @@ $(function() {
 						if($(this).attr("value") === "createWithDefaultSettings" || $(this).attr("value") === "createWithCurrentSettings" || $(this).attr("value") === "createWithProvidedSettings" || $(this).attr("value") === "saveCurrentSettings" || $(this).attr("value") === "closeCurrent" || parseInt($(this).attr("value")) > parseInt(data.processes[i][0])) {
 			
 							// Insert option
-							$(this).before("<option" + (data.processes[i][1] ? " selected=\"true\"" : "") + " value = \"" + encodeQuotes(data.processes[i][0]) + "\">" + _.sprintf(gettext("Instance at port %(processPort)d"), {processPort: data.processes[i][0]}) + "</option>");
+							$(this).before("<option" + (data.processes[i][1] ? " selected=\"true\"" : "") + " value = \"" + encodeQuotes(data.processes[i][0]) + "\">" + _.sprintf(gettext("Instance at port %(processPort)s"), {processPort: htmlEncode(data.processes[i][0])}) + "</option>");
 							
 							// Return false
 							return false;
@@ -15539,13 +16488,13 @@ $(function() {
 						var firmwareType = firmwareName.substr(0, firmwareName.search(/ \d{10}$/));
 						
 						// Show message
-						showMessage(gettext("Firmware Status"), firmwareType === "M3D Mod" ? _.sprintf(gettext("M3D Mod is a modified version of M3D firmware that increases the max temperature from %(oldTemperature)d°C to %(newTemperature)d°C. Proceed?"), {oldTemperature: 285, newTemperature: 315}) : gettext("This will update the printer's current firmware. Proceed?"), gettext("Yes"), function() {
+						showMessage(gettext("Firmware Status"), firmwareType === "M3D Mod" ? _.sprintf(gettext("M3D Mod is a modified version of M3D firmware that increases the max temperature from %(oldTemperature)s to %(newTemperature)s. Proceed?"), {oldTemperature: "285°C", newTemperature: "315°C"}) : gettext("This will update the printer's current firmware. Proceed?"), gettext("Yes"), function() {
 		
 							// Hide message
 							hideMessage();
 					
 							// Show message
-							showMessage(gettext("Firmware Status"), gettext("Updating firmware"));
+							showMessage(gettext("Firmware Status"), gettext("Updating firmware…"));
 
 							// Send request
 							$.ajax({
@@ -15658,7 +16607,7 @@ $(function() {
 						hideMessage();
 				
 						// Show message
-						showMessage(gettext("Calibration Status"), gettext("Calibrating bed orientation"));
+						showMessage(gettext("Calibration Status"), gettext("Calibrating bed orientation…"));
 
 						// Set commands
 						var commands = [
@@ -16169,7 +17118,7 @@ $(function() {
 			else if(data.value === "Starting Mid-Print Filament Change")
 			
 				// Show message
-				showMessage(gettext("Filament Status"), gettext("Starting mid‐print filament change"));
+				showMessage(gettext("Filament Status"), gettext("Starting mid‐print filament change…"));
 			
 			// Otherwise check if data is failed to change filament mid-print
 			else if(data.value === "Failed Mid-Print Filament Change")
@@ -16228,7 +17177,7 @@ $(function() {
 						function unloadFilament() {
 
 							// Show message
-							showMessage(gettext("Filament Status"), gettext("Warming up"));
+							showMessage(gettext("Filament Status"), gettext("Warming up…"));
 
 							// Set commands
 							commands = [
@@ -16288,7 +17237,7 @@ $(function() {
 											function loadFilament() {
 
 												// Show message
-												showMessage(gettext("Filament Status"), gettext("Warming up"));
+												showMessage(gettext("Filament Status"), gettext("Warming up…"));
 
 												// Set commands
 												commands = [
@@ -16345,7 +17294,7 @@ $(function() {
 																hideMessage();
 
 																// Show message
-																showMessage(gettext("Filament Status"), gettext("Warming up"));
+																showMessage(gettext("Filament Status"), gettext("Warming up…"));
 
 																// Set commands
 																commands = [
@@ -16379,7 +17328,7 @@ $(function() {
 																		hideMessage();
 
 																		// Show message
-																		showMessage(gettext("Filament Status"), gettext("Resuming print"));
+																		showMessage(gettext("Filament Status"), gettext("Resuming print…"));
 
 																		// Send request
 																		$.ajax({
@@ -16533,6 +17482,12 @@ $(function() {
 		
 				// Enable changing mid-print filement change layers
 				$("#gcode div.midPrintFilamentChange button").eq(2).removeClass("disabled");
+			
+			// Add edit buttons to models
+			addEditButtonsToModels();
+		
+			// Add edit buttons to G-code
+			addEditButtonsToGcode();
 		}
 		
 		// User log out event
@@ -16543,6 +17498,12 @@ $(function() {
 			
 			// Hide mid-print filament change settings
 			$("div.midPrintFilamentChange").addClass("notUsingAMicro3DPrinter");
+			
+			// Add edit buttons to models
+			addEditButtonsToModels();
+			
+			// Add edit buttons to G-code
+			addEditButtonsToGcode();
 		}
 		
 		// On after tab change
@@ -16603,10 +17564,16 @@ $(function() {
 							originalUpdateItems();
 						
 							// Unload model if changed
-							unloadViewedModelIfChanged(getRootModelPath());
+							unloadViewedModelIfChanged(getRootFilePath());
 						
 							// Add view buttons to models
 							addViewButtonsToModels();
+							
+							// Add edit buttons to models
+							addEditButtonsToModels();
+							
+							// Add edit buttons to G-code
+							addEditButtonsToGcode();
 						}
 						
 						// Otherwise
@@ -16781,21 +17748,27 @@ $(function() {
 		
 		// On startup complete
 		self.onStartupComplete = function() {
+			
+			// Update files
+			self.files.requestData();
 		
 			// Go through all slicers
 			for(var slicer in self.slicers)
 			
 				// Add edit and default profile buttons to slicer's settings
 				addEditAndDefaultProfileButtons(self.slicers[slicer]);
+			
+			// Update slicer
+			self.slicing.requestData();
 		
 			// Add titles to buttons that weren't loaded before
 			$("#control div.jog-panel.controls > div > button:first-of-type, #control div.jog-panel.controls #control-jog-feedrate > button:first-of-type").attr("title", htmlDecode(gettext("Sets feed rate to the specified amount")));
 			$("#control div.jog-panel.extruder > div > button:nth-of-type(3)").attr("title", htmlDecode(gettext("Sets flow rate to the specified amount")));
-			$("#control-distance001").attr("title", htmlDecode(_.sprintf(gettext("Sets extruder's position adjustment to %(distance)smm"), {distance: "0.01"})));
-			$("#control-distance01").attr("title", htmlDecode(_.sprintf(gettext("Sets extruder's position adjustment to %(distance)smm"), {distance: "0.1"})));
-			$("#control-distance1").attr("title", htmlDecode(_.sprintf(gettext("Sets extruder's position adjustment to %(distance)smm"), {distance: "1"})));
-			$("#control-distance10").attr("title", htmlDecode(_.sprintf(gettext("Sets extruder's position adjustment to %(distance)smm"), {distance: "10"})));
-			$("#control-distance100").attr("title", htmlDecode(_.sprintf(gettext("Sets extruder's position adjustment to %(distance)smm"), {distance: "100"})));
+			$("#control-distance001").attr("title", htmlDecode(_.sprintf(gettext("Sets extruder's position adjustment to %(distance)s"), {distance: "0.01mm"})));
+			$("#control-distance01").attr("title", htmlDecode(_.sprintf(gettext("Sets extruder's position adjustment to %(distance)s"), {distance: "0.1mm"})));
+			$("#control-distance1").attr("title", htmlDecode(_.sprintf(gettext("Sets extruder's position adjustment to %(distance)s"), {distance: "1mm"})));
+			$("#control-distance10").attr("title", htmlDecode(_.sprintf(gettext("Sets extruder's position adjustment to %(distance)s"), {distance: "10mm"})));
+			$("#control-distance100").attr("title", htmlDecode(_.sprintf(gettext("Sets extruder's position adjustment to %(distance)s"), {distance: "100mm"})));
 			$("#control div.jog-panel.extruder > div > div:first-of-type").attr("title", htmlDecode(gettext("Sets tool to specified value")));
 		
 			// Make controls not Micro 3D applicable
@@ -16806,6 +17779,12 @@ $(function() {
 			
 			// Add view buttons to models
 			addViewButtonsToModels();
+			
+			// Add edit buttons to models
+			addEditButtonsToModels();
+			
+			// Add edit buttons to G-code
+			addEditButtonsToGcode();
 			
 			// Update model viewer's grid
 			modelViewer.updateGrid();
@@ -16874,6 +17853,18 @@ $(function() {
 					}
 				}
 			}
+			
+			// Check if user is logged in
+			if(self.loginState.loggedIn())
+			
+				// Run logged in function
+				self.onUserLoggedIn();
+			
+			// Otherwise
+			else
+			
+				// Run logged out function
+				self.onUserLoggedOut();
 		}
 		
 		// On Wizard details
@@ -16985,9 +17976,6 @@ $(function() {
 				
 				// Update printer profile
 				self.printerProfile.requestData();
-				
-				// Update slicers
-				self.slicing.requestData();
 				
 				// Update slicers
 				for(var slicer in self.slicers)

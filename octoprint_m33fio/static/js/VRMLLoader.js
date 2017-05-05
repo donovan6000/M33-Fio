@@ -1,6 +1,5 @@
 /**
  * @author mrdoob / http://mrdoob.com/
- * @author donvan6000 / http://exploitkings.com
  */
 
 THREE.VRMLLoader = function ( manager ) {
@@ -31,8 +30,7 @@ THREE.VRMLLoader.prototype = {
 
 		var scope = this;
 
-		var loader = new THREE.XHRLoader( this.manager );
-		loader.setCrossOrigin( this.crossOrigin );
+		var loader = new THREE.FileLoader( this.manager );
 		loader.load( url, function ( text ) {
 
 			onLoad( scope.parse( text ) );
@@ -45,13 +43,14 @@ THREE.VRMLLoader.prototype = {
 
 		this.crossOrigin = value;
 
-		THREE.ImageUtils.crossOrigin = value;
-
 	},
 
 	parse: function ( data ) {
 
 		var texturePath = this.texturePath || '';
+
+		var textureLoader = new THREE.TextureLoader( this.manager );
+		textureLoader.setCrossOrigin( this.crossOrigin );
 
 		var parseV1 = function ( lines, scene ) {
 
@@ -139,7 +138,7 @@ THREE.VRMLLoader.prototype = {
 				// painting the colors on the faces
 				for ( var i = 0; i < geometry.faces.length ; i ++ ) {
 
-					f = geometry.faces[ i ];
+					f  = geometry.faces[ i ];
 
 					n = ( f instanceof THREE.Face3 ) ? 3 : 4;
 
@@ -204,6 +203,8 @@ THREE.VRMLLoader.prototype = {
 
 			};
 
+			var index = [];
+
 			var parseProperty = function ( node, line ) {
 
 				var parts = [], part, property = {}, fieldName;
@@ -214,7 +215,7 @@ THREE.VRMLLoader.prototype = {
 				 */
 				var regex = /[^\s,\[\]]+/g;
 
-				var point, index, angles, colors;
+				var point, angles, colors;
 
 				while ( null != ( part = regex.exec( line ) ) ) {
 
@@ -256,8 +257,6 @@ THREE.VRMLLoader.prototype = {
 					// the parts hold the indexes as strings
 					if ( parts.length > 0 ) {
 
-						index = [];
-
 						for ( var ind = 0; ind < parts.length; ind ++ ) {
 
 							// the part should either be positive integer or -1
@@ -291,6 +290,15 @@ THREE.VRMLLoader.prototype = {
 
 					// end
 					if ( /]/.exec( line ) ) {
+
+						if ( index.length > 0 ) {
+
+							this.indexes.push( index );
+
+						}
+
+						// start new one
+						index = [];
 
 						this.isRecordingFaces = false;
 						node[this.recordingFieldname] = this.indexes;
@@ -407,7 +415,9 @@ THREE.VRMLLoader.prototype = {
 							};
 
 							break;
-
+							
+						case 'location':
+						case 'direction':
 						case 'translation':
 						case 'scale':
 						case 'size':
@@ -426,6 +436,8 @@ THREE.VRMLLoader.prototype = {
 
 							break;
 
+						case 'intensity':				
+						case 'cutOffAngle':
 						case 'radius':
 						case 'topRadius':
 						case 'bottomRadius':
@@ -460,7 +472,8 @@ THREE.VRMLLoader.prototype = {
 							};
 
 							break;
-
+							
+						case 'on':
 						case 'ccw':
 						case 'solid':
 						case 'colorPerVertex':
@@ -574,7 +587,7 @@ THREE.VRMLLoader.prototype = {
 
 					if ( /USE/.exec( data ) ) {
 
-						var defineKey = /USE\s+?(\w+)/.exec( data )[ 1 ];
+						var defineKey = /USE\s+?([^\s]+)/.exec( data )[ 1 ];
 
 						if ( undefined == defines[ defineKey ] ) {
 
@@ -615,13 +628,92 @@ THREE.VRMLLoader.prototype = {
 
 				var object = parent;
 
+				if(data.string.indexOf("AmbientLight")>-1 && data.nodeType=='PointLight'){
+					//wenn im Namen "AmbientLight" vorkommt und es ein PointLight ist, 
+					//diesen Typ in 'AmbientLight' ändern
+					data.nodeType='AmbientLight';	
+				}
+				
+				l_visible=data.on;
+				if(l_visible==undefined)l_visible=true;
+				l_intensity=data.intensity;
+				if(l_intensity==undefined)l_intensity=true;
+				if(data.color!=undefined)
+					l_color= new THREE.Color(data.color.r, data.color.g,data.color.b );
+					else
+					l_color= new THREE.Color(0, 0,0);
+				
+				
+				
+				if('AmbientLight' === data.nodeType){
+					object=new THREE.AmbientLight( 
+								l_color.getHex(), 
+								l_intensity
+								);
+					object.visible=l_visible;
+					
+					parent.add( object );
+					
+				}
+				else
+				if('PointLight' === data.nodeType){
+						l_distance =0;	//0="unendlich" ...1000
+						l_decay=0;		//-1.. ?
+						
+						if(data.radius!=undefined && data.radius<1000){
+							//l_radius=data.radius;
+							l_distance=data.radius;
+							l_decay=1;
+						}
+						object=new THREE.PointLight( 
+								l_color.getHex(), 
+								l_intensity, 
+								l_distance);
+						object.visible=l_visible;
+						
+						parent.add( object );
+				}
+				else
+				if('SpotLight' === data.nodeType){						
+						l_intensity=1;
+						l_distance =0;//0="unendlich"=1000
+						l_angle=Math.PI/3;
+						l_penumbra=0.0;//0..1
+						l_decay=0;//-1.. ?
+						l_visible=true;
+						
+						if(data.radius!=undefined && data.radius<1000){
+							//l_radius=data.radius;
+							l_distance=data.radius;
+							l_decay=1;
+						}
+						if(data.cutOffAngle!=undefined)l_angle=data.cutOffAngle;
+						
+						object = new THREE.SpotLight(
+									l_color.getHex(),
+									l_intensity,
+									l_distance,
+									l_angle,
+									l_penumbra,
+									l_decay
+									);
+						object.visible=l_visible;						
+						parent.add( object );
+						/*
+						var lightHelper = new THREE.SpotLightHelper( object );
+						parent.parent.add( lightHelper );
+						lightHelper.update();
+						*/
+				}
+				else				
+				
 				if ( 'Transform' === data.nodeType || 'Group' === data.nodeType ) {
 
 					object = new THREE.Object3D();
 
 					if ( /DEF/.exec( data.string ) ) {
 
-						object.name = /DEF\s+(\w+)/.exec( data.string )[ 1 ];
+						object.name = /DEF\s+([^\s]+)/.exec( data.string )[ 1 ];
 						defines[ object.name ] = object;
 
 					}
@@ -658,7 +750,7 @@ THREE.VRMLLoader.prototype = {
 
 					if ( /DEF/.exec( data.string ) ) {
 
-						object.name = /DEF\s+(\w+)/.exec( data.string )[ 1 ];
+						object.name = /DEF\s+([^\s]+)/.exec( data.string )[ 1 ];
 
 						defines[ object.name ] = object;
 
@@ -673,28 +765,24 @@ THREE.VRMLLoader.prototype = {
 					// sky (full sphere):
 
 					var radius = 2e4;
-					
-					if ( data.skyColor !== undefined ) {
 
-						var skyGeometry = new THREE.SphereGeometry( radius, segments, segments );
-						var skyMaterial = new THREE.MeshBasicMaterial( { fog: false, side: THREE.BackSide } );
+					var skyGeometry = new THREE.SphereGeometry( radius, segments, segments );
+					var skyMaterial = new THREE.MeshBasicMaterial( { fog: false, side: THREE.BackSide } );
 
-						if ( typeof data.skyColor.length > 1 ) {
+					if ( data.skyColor.length > 1 ) {
 
-							paintFaces( skyGeometry, radius, data.skyAngle, data.skyColor, true );
+						paintFaces( skyGeometry, radius, data.skyAngle, data.skyColor, true );
 
-							skyMaterial.vertexColors = THREE.VertexColors
+						skyMaterial.vertexColors = THREE.VertexColors
 
-						} else {
+					} else {
 
-							var color = data.skyColor[ 0 ];
-							skyMaterial.color.setRGB( color.r, color.b, color.g );
+						var color = data.skyColor[ 0 ];
+						skyMaterial.color.setRGB( color.r, color.b, color.g );
 
-						}
-
-						scene.add( new THREE.Mesh( skyGeometry, skyMaterial ) );
-					
 					}
+
+					scene.add( new THREE.Mesh( skyGeometry, skyMaterial ) );
 
 					// ground (half sphere):
 
@@ -768,7 +856,7 @@ THREE.VRMLLoader.prototype = {
 
 								if ( child.string.indexOf ( 'DEF' ) > -1 ) {
 
-									var name = /DEF\s+(\w+)/.exec( child.string )[ 1 ];
+									var name = /DEF\s+([^\s]+)/.exec( child.string )[ 1 ];
 
 									defines[ name ] = geometry.vertices;
 
@@ -776,7 +864,7 @@ THREE.VRMLLoader.prototype = {
 
 								if ( child.string.indexOf ( 'USE' ) > -1 ) {
 
-									var defineKey = /USE\s+(\w+)/.exec( child.string )[ 1 ];
+									var defineKey = /USE\s+([^\s]+)/.exec( child.string )[ 1 ];
 
 									geometry.vertices = defines[ defineKey ];
 								}
@@ -858,7 +946,7 @@ THREE.VRMLLoader.prototype = {
 						// see if it's a define
 						if ( /DEF/.exec( data.string ) ) {
 
-							geometry.name = /DEF (\w+)/.exec( data.string )[ 1 ];
+							geometry.name = /DEF ([^\s]+)/.exec( data.string )[ 1 ];
 							defines[ geometry.name ] = geometry;
 
 						}
@@ -916,7 +1004,7 @@ THREE.VRMLLoader.prototype = {
 
 							if ( /DEF/.exec( data.string ) ) {
 
-								material.name = /DEF (\w+)/.exec( data.string )[ 1 ];
+								material.name = /DEF ([^\s]+)/.exec( data.string )[ 1 ];
 
 								defines[ material.name ] = material;
 
@@ -934,7 +1022,7 @@ THREE.VRMLLoader.prototype = {
 
 								parent.material.name = textureName[ 1 ];
 
-								parent.material.map = THREE.ImageUtils.loadTexture (texturePath + textureName[ 1 ]);
+								parent.material.map = textureLoader.load( texturePath + textureName[ 1 ] );
 
 							}
 
@@ -1009,20 +1097,9 @@ THREE.VRMLLoader.prototype = {
 			parseV2( lines, scene );
 
 		}
-		
-		var mergedGeometry = new THREE.Geometry();
-		
-		scene.traverse( function ( object ) {
 
-			if( ( object instanceof THREE.Mesh ) ) {
-				
-				mergedGeometry.merge( object.geometry );
-				
-			}
-		} );
+		return scene;
 
-		return mergedGeometry;
-	
 	}
 
 };

@@ -17,6 +17,7 @@ The latest version of M33 Fio is V1.19 released on May Xth, 2017, and an entire 
 * Disables the hosts sleep functionality when printing
 * Includes a slicer profile editor that allows customizing everything in the selected slicer profile before slicing
 * Includes a model editor that allows modifying a model before slicing and can perform operations like moving, rotating, scaling, cutting, merging, clonging, and importing other models into the scene
+* Allows editing G-code files
 
 ### Installation
 There's installers available for [Windows](https://raw.githubusercontent.com/donovan6000/M33-Fio/master/installers/Windows/install.zip), [macOS](https://raw.githubusercontent.com/donovan6000/M33-Fio/master/installers/macOS/install.zip), and [Linux](https://raw.githubusercontent.com/donovan6000/M33-Fio/master/installers/Linux/install.zip) that install OctoPrint, M33 Fio, and device drivers for the Micro 3D printer and [Micro 3D compatible heatbed](https://www.kickstarter.com/projects/1668748285/the-micro-m3d-compatible-heated-print-bed). These installers all add OctoPrint as a startup program and create a shortcut on the desktop that allows accessing OctoPrint's user interface.

@@ -2572,7 +2572,7 @@ class M33FioPlugin(
 					return flask.jsonify(dict(value = "OK"))
 			
 			# Otherwise check if parameter is to print test border or print backlash calibration
-			elif data["value"] == "Print Test Border" or data["value"] == "Print Backlash Calibration X 0.0-0.99" or data["value"] == "Print Backlash Calibration X 0.70-1.69" or data["value"] == "Print Backlash Calibration Y 0.0-0.99" or data["value"] == "Print Backlash Calibration Y 0.70-1.69" :
+			elif data["value"] == "Print Test Border" or data["value"] == "Print Backlash Calibration X" or data["value"] == "Print Backlash Calibration Y" :
 			
 				# Set file location and destination
 				if data["value"] == "Print Test Border" :
@@ -8923,7 +8923,7 @@ class M33FioPlugin(
 				if not self.printingTestBorder and not self.printingBacklashCalibration :
 				
 					# Set progress bar text
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = gettext("Pre‐processing … (%(percent)d%%)"), percent = input.tell() * 100 / os.fstat(input.fileno()).st_size))
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = gettext("Pre‐processing … (%(percent)s)"), percent = str(input.tell() * 100 / os.fstat(input.fileno()).st_size) + "%"))
 			
 			# Otherwise check if no more commands
 			elif len(commands) == 0 :
@@ -10228,7 +10228,7 @@ class M33FioPlugin(
 				return flask.jsonify(dict(value = "Error"))
 			
 			# Set if model was modified
-			modelModified = "Model Name" in flask.request.values and "Model Location" in flask.request.values and "Model Path" in flask.request.values
+			modelModified = "Model Name" in flask.request.values and "Model Origin" in flask.request.values and "Model Path" in flask.request.values
 	
 			# Check if slicer profile identifier, model name, or model path contain path traversal
 			if "../" in flask.request.values["Slicer Profile Identifier"] or (modelModified and ("../" in flask.request.values["Model Name"] or "../" in flask.request.values["Model Path"])) :
@@ -10236,8 +10236,8 @@ class M33FioPlugin(
 				# Return error
 				return flask.jsonify(dict(value = "Error"))
 			
-			# Check if model location is invalid
-			if modelModified and (flask.request.values["Model Location"] != "local" and flask.request.values["Model Location"] != "sdcard") :
+			# Check if model origin is invalid
+			if modelModified and (flask.request.values["Model Origin"] != "local" and flask.request.values["Model Origin"] != "sdcard") :
 			
 				# Return error
 				return flask.jsonify(dict(value = "Error"))
@@ -10254,9 +10254,9 @@ class M33FioPlugin(
 			# Set model location
 			if modelModified :
 			
-				if flask.request.values["Model Location"] == "local" :
+				if flask.request.values["Model Origin"] == "local" :
 					modelLocation = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, flask.request.values["Model Path"] + flask.request.values["Model Name"]).replace("\\", "/")
-				elif flask.request.values["Model Location"] == "sdcard" :
+				elif flask.request.values["Model Origin"] == "sdcard" :
 					modelLocation = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.SDCARD, flask.request.values["Model Path"] + flask.request.values["Model Name"]).replace("\\", "/")
 		
 			# Check if slicer profile, model, or printer profile doesn't exist
