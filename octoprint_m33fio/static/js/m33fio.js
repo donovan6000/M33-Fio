@@ -4481,8 +4481,14 @@ $(function() {
 					return;
 			}
 			
+			// Get upload profile button
+			if(typeof slicer.uploadButton === "undefined")
+				var button = slicer.uploadDialog.find("button.btn-primary");
+			else
+				var button = slicer.uploadButton;
+			
 			// Add load default profile buttons
-			slicer.uploadButton.before("<button class=\"btn loadDefaultProfile\" aria-hidden=\"true\" data-input=\"" + encodeQuotes(slicer.uploadElement.selector) + "\" data-slicer=\"" + encodeQuotes(slicerName) + "\">" + gettext("Load Default Profile") + "</button>");
+			button.before("<button class=\"btn loadDefaultProfile\" aria-hidden=\"true\" data-input=\"" + encodeQuotes(slicer.uploadElement.selector) + "\" data-slicer=\"" + encodeQuotes(slicerName) + "\">" + gettext("Load Default Profile") + "</button>");
 			
 			// Set settings
 			var settings = "#settings_plugin_" + slicerName;
@@ -6330,7 +6336,7 @@ $(function() {
 	
 								// Otherwise
 								else {
-			
+								
 									// Set remove selection interval
 									var removeSelectionTimeout = setTimeout(function() {
 							
@@ -6340,16 +6346,19 @@ $(function() {
 										// Remove selection
 										modelEditor.removeSelection();
 									}, 125);
+									
+									setTimeout(function() {
 							
-									// Enable event
-									$(window.document).off("mousemove.modelEditor").on("mousemove.modelEditor", function() {
-							
-										// Disable event
-										$(window.document).off("mousemove.modelEditor");
+										// Enable event
+										$(window.document).off("mousemove.modelEditor").on("mousemove.modelEditor", function() {
+										
+											// Disable event
+											$(window.document).off("mousemove.modelEditor");
 	
-										// Clear remove selection timeout
-										clearTimeout(removeSelectionTimeout);
-									});
+											// Clear remove selection timeout
+											clearTimeout(removeSelectionTimeout);
+										});
+									}, 0);
 								}
 							}
 				},
@@ -16479,70 +16488,73 @@ $(function() {
 				
 				// Go through all provided firmwares
 				for(var i = 0; i < firmwares.length; i++) {
+				
+					// Check if not iMe Debug firmware
+					if(data.firmwares[firmwares[i]]["Type"] !== "iMe Debug")
 					
-					// Add update firmware to provided button
-					currentPosition.removeClass("placeHolder").addClass("firmware").data("name", firmwares[i]).attr("title", htmlDecode(_.sprintf(gettext("Updates printer's firmware to %(firmwareType)s V%(firmwareVersion)s"), {firmwareType: htmlEncode(data.firmwares[firmwares[i]]["Type"]), firmwareVersion: htmlEncode(data.firmwares[firmwares[i]]["Release"])}))).html(_.sprintf(gettext("Update firmware to %(firmwareType)s V%(firmwareVersion)s"), {firmwareType: htmlEncode(data.firmwares[firmwares[i]]["Type"]), firmwareVersion: htmlEncode(data.firmwares[firmwares[i]]["Release"])})).off("click").click(function() {
+						// Add update firmware to provided button
+						currentPosition.removeClass("placeHolder").addClass("firmware").data("name", firmwares[i]).attr("title", htmlDecode(_.sprintf(gettext("Updates printer's firmware to %(firmwareType)s V%(firmwareVersion)s"), {firmwareType: htmlEncode(data.firmwares[firmwares[i]]["Type"]), firmwareVersion: htmlEncode(data.firmwares[firmwares[i]]["Release"])}))).html(_.sprintf(gettext("Update firmware to %(firmwareType)s V%(firmwareVersion)s"), {firmwareType: htmlEncode(data.firmwares[firmwares[i]]["Type"]), firmwareVersion: htmlEncode(data.firmwares[firmwares[i]]["Release"])})).off("click").click(function() {
 					
-						// Set firmware name and type
-						var firmwareName = $(this).data("name");
-						var firmwareType = firmwareName.substr(0, firmwareName.search(/ \d{10}$/));
+							// Set firmware name and type
+							var firmwareName = $(this).data("name");
+							var firmwareType = firmwareName.substr(0, firmwareName.search(/ \d{10}$/));
 						
-						// Show message
-						showMessage(gettext("Firmware Status"), firmwareType === "M3D Mod" ? _.sprintf(gettext("M3D Mod is a modified version of M3D firmware that increases the max temperature from %(oldTemperature)s to %(newTemperature)s. Proceed?"), {oldTemperature: "285°C", newTemperature: "315°C"}) : gettext("This will update the printer's current firmware. Proceed?"), gettext("Yes"), function() {
-		
-							// Hide message
-							hideMessage();
-					
 							// Show message
-							showMessage(gettext("Firmware Status"), gettext("Updating firmware…"));
-
-							// Send request
-							$.ajax({
-								url: API_BASEURL + "plugin/m33fio",
-								type: "POST",
-								dataType: "json",
-								data: JSON.stringify({
-									command: "message",
-									value: "Update Firmware To Provided: " + firmwareName
-								}),
-								contentType: "application/json; charset=UTF-8",
-								traditional: true,
-								processData: true
-
-							// Done
-							}).done(function(data) {
-
+							showMessage(gettext("Firmware Status"), firmwareType === "M3D Mod" ? _.sprintf(gettext("M3D Mod is a modified version of M3D firmware that increases the max temperature from %(oldTemperature)s to %(newTemperature)s. Proceed?"), {oldTemperature: "285°C", newTemperature: "315°C"}) : gettext("This will update the printer's current firmware. Proceed?"), gettext("Yes"), function() {
+		
+								// Hide message
+								hideMessage();
+					
 								// Show message
-								showMessage(gettext("Firmware Status"), data.value === "OK" ? gettext("Done") : gettext("Failed"), gettext("OK"), function() {
+								showMessage(gettext("Firmware Status"), gettext("Updating firmware…"));
 
-									// Hide message
-									hideMessage();
+								// Send request
+								$.ajax({
+									url: API_BASEURL + "plugin/m33fio",
+									type: "POST",
+									dataType: "json",
+									data: JSON.stringify({
+										command: "message",
+										value: "Update Firmware To Provided: " + firmwareName
+									}),
+									contentType: "application/json; charset=UTF-8",
+									traditional: true,
+									processData: true
+
+								// Done
+								}).done(function(data) {
+
+									// Show message
+									showMessage(gettext("Firmware Status"), data.value === "OK" ? gettext("Done") : gettext("Failed"), gettext("OK"), function() {
+
+										// Hide message
+										hideMessage();
 								
-									// Send request
-									$.ajax({
-										url: API_BASEURL + "plugin/m33fio",
-										type: "POST",
-										dataType: "json",
-										data: JSON.stringify({
-											command: "message",
-											value: "Reconnect To Printer"
-										}),
-										contentType: "application/json; charset=UTF-8",
-										traditional: true,
-										processData: true
+										// Send request
+										$.ajax({
+											url: API_BASEURL + "plugin/m33fio",
+											type: "POST",
+											dataType: "json",
+											data: JSON.stringify({
+												command: "message",
+												value: "Reconnect To Printer"
+											}),
+											contentType: "application/json; charset=UTF-8",
+											traditional: true,
+											processData: true
+										});
 									});
 								});
-							});
-						}, gettext("No"), function() {
+							}, gettext("No"), function() {
 		
-							// Hide message
-							hideMessage();
+								// Hide message
+								hideMessage();
+							});
 						});
-					});
 					
-					// Go to next place holder
-					currentPosition = currentPosition.next("button");
-				}
+						// Go to next place holder
+						currentPosition = currentPosition.next("button");
+					}
 				
 				// Add update firmware with file button
 				currentPosition.removeClass("placeHolder").attr("title", htmlDecode(gettext("Updates printer's firmware with a provided file"))).html(gettext("Update firmware with file")).off("click").click(function() {
@@ -17832,10 +17844,17 @@ $(function() {
 					else {
 			
 						// Check if a message is shown
-						if(message.hasClass("show"))
+						if(message.hasClass("show")) {
+						
+							// Check if a disconnect message is already showing
+							if(message.find("h4").html() !== gettext("Server Status"))
+							
+								// Return
+								return;
 				
 							// Hide message
 							hideMessage();
+						}
 			
 						// Show message
 						showMessage(gettext("Server Status"), gettext("You've been disconnected from the server. It's recommended that you refresh this page to prevent further problems. Refresh now?"), gettext("Yes"), function() {

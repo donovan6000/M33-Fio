@@ -999,12 +999,12 @@
 						offset.copy( planeIntersect.point );
 
 					}
+					
+					_dragging = true;
 
 				}
 
 			}
-
-			_dragging = true;
 
 		}
 

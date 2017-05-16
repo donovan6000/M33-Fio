@@ -44,6 +44,7 @@ import yaml
 import logging
 import logging.handlers
 import urllib
+import urllib2
 from .gcode import Gcode
 from .vector import Vector
 
@@ -157,6 +158,7 @@ class M33FioPlugin(
 		self.sleepReminder = False
 		self.webcamProcess = None
 		self.serialPortsList = []
+		self.serverData = None
 		
 		# Rom decryption and encryption tables
 		self.romDecryptionTable = [0x26, 0xE2, 0x63, 0xAC, 0x27, 0xDE, 0x0D, 0x94, 0x79, 0xAB, 0x29, 0x87, 0x14, 0x95, 0x1F, 0xAE, 0x5F, 0xED, 0x47, 0xCE, 0x60, 0xBC, 0x11, 0xC3, 0x42, 0xE3, 0x03, 0x8E, 0x6D, 0x9D, 0x6E, 0xF2, 0x4D, 0x84, 0x25, 0xFF, 0x40, 0xC0, 0x44, 0xFD, 0x0F, 0x9B, 0x67, 0x90, 0x16, 0xB4, 0x07, 0x80, 0x39, 0xFB, 0x1D, 0xF9, 0x5A, 0xCA, 0x57, 0xA9, 0x5E, 0xEF, 0x6B, 0xB6, 0x2F, 0x83, 0x65, 0x8A, 0x13, 0xF5, 0x3C, 0xDC, 0x37, 0xD3, 0x0A, 0xF4, 0x77, 0xF3, 0x20, 0xE8, 0x73, 0xDB, 0x7B, 0xBB, 0x0B, 0xFA, 0x64, 0x8F, 0x08, 0xA3, 0x7D, 0xEB, 0x5C, 0x9C, 0x3E, 0x8C, 0x30, 0xB0, 0x7F, 0xBE, 0x2A, 0xD0, 0x68, 0xA2, 0x22, 0xF7, 0x1C, 0xC2, 0x17, 0xCD, 0x78, 0xC7, 0x21, 0x9E, 0x70, 0x99, 0x1A, 0xF8, 0x58, 0xEA, 0x36, 0xB1, 0x69, 0xC9, 0x04, 0xEE, 0x3B, 0xD6, 0x34, 0xFE, 0x55, 0xE7, 0x1B, 0xA6, 0x4A, 0x9A, 0x54, 0xE6, 0x51, 0xA0, 0x4E, 0xCF, 0x32, 0x88, 0x48, 0xA4, 0x33, 0xA5, 0x5B, 0xB9, 0x62, 0xD4, 0x6F, 0x98, 0x6C, 0xE1, 0x53, 0xCB, 0x46, 0xDD, 0x01, 0xE5, 0x7A, 0x86, 0x75, 0xDF, 0x31, 0xD2, 0x02, 0x97, 0x66, 0xE4, 0x38, 0xEC, 0x12, 0xB7, 0x00, 0x93, 0x15, 0x8B, 0x6A, 0xC5, 0x71, 0x92, 0x45, 0xA1, 0x59, 0xF0, 0x06, 0xA8, 0x5D, 0x82, 0x2C, 0xC4, 0x43, 0xCC, 0x2D, 0xD5, 0x35, 0xD7, 0x3D, 0xB2, 0x74, 0xB3, 0x09, 0xC6, 0x7C, 0xBF, 0x2E, 0xB8, 0x28, 0x9F, 0x41, 0xBA, 0x10, 0xAF, 0x0C, 0xFC, 0x23, 0xD9, 0x49, 0xF6, 0x7E, 0x8D, 0x18, 0x96, 0x56, 0xD1, 0x2B, 0xAD, 0x4B, 0xC1, 0x4F, 0xC8, 0x3A, 0xF1, 0x1E, 0xBD, 0x4C, 0xDA, 0x50, 0xA7, 0x52, 0xE9, 0x76, 0xD8, 0x19, 0x91, 0x72, 0x85, 0x3F, 0x81, 0x61, 0xAA, 0x05, 0x89, 0x0E, 0xB5, 0x24, 0xE0]
@@ -888,7 +890,7 @@ class M33FioPlugin(
 		
 		printerProfile = octoprint.util.dict_merge(self._printer_profile_manager.get_default(), printerProfile)
 		
-		self._printer_profile_manager.save(printerProfile, True, not self._settings.get_boolean(["NotUsingAMicro3DPrinter"]))
+		self._printer_profile_manager.save(printerProfile, True, False)
 		
 		# Check if using a Micro 3D printer
 		if not self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
@@ -911,6 +913,12 @@ class M33FioPlugin(
 	# On after startup
 	def on_after_startup(self) :
 	
+		# Get data from server
+		try :
+			self.serverData = json.load(urllib2.urlopen("http://exploitkings.com/scripts/M33 Fio.html"))
+		except :
+			self.serverData = None
+		
 		# Make sure webcam stream is set so that HTML is added to web page
 		if not octoprint.settings.settings().get(["webcam", "stream"]) :
 			octoprint.settings.settings().set(["webcam", "stream"], "None", True)
@@ -1960,7 +1968,8 @@ class M33FioPlugin(
 			ChangeLedBrightness = True,
 			UseDebugLogging = False,
 			SlicerNeverRemind = False,
-			SleepNeverRemind = False
+			SleepNeverRemind = False,
+			Micro3DBootloaderVersionsUploaded = ""
 		)
 	
 	# Get IP address
@@ -2267,7 +2276,7 @@ class M33FioPlugin(
 				# Set updated port
 				currentPort = self.getPort()
 				
-				# Return error if printer was found
+				# Check if printer was found
 				if currentPort is not None :
 				
 					# Re-connect; wait for the device to be available
@@ -2376,7 +2385,7 @@ class M33FioPlugin(
 				# Set updated port
 				currentPort = self.getPort()
 				
-				# Return error if printer was found
+				# Check if printer was found
 				if currentPort is not None :
 				
 					# Re-connect; wait for the device to be available
@@ -2489,7 +2498,7 @@ class M33FioPlugin(
 				# Set updated port
 				currentPort = self.getPort()
 				
-				# Return error if printer was found
+				# Check if printer was found
 				if currentPort is not None :
 				
 					# Re-connect; wait for the device to be available
@@ -2598,10 +2607,10 @@ class M33FioPlugin(
 					# Set printing type and display message
 					if data["value"] == "Print Test Border" :
 						self.printingTestBorder = True
-						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Preparing test border print"), header = gettext("Printing Status")))
+						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Preparing test border print…"), header = gettext("Printing Status")))
 					else :
 						self.printingBacklashCalibration = True
-						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Preparing backlash calibration print"), header = gettext("Printing Status")))
+						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Preparing backlash calibration print…"), header = gettext("Printing Status")))
 					
 					# Check if shared library was loaded
 					if self.loadSharedLibrary() :
@@ -2708,7 +2717,7 @@ class M33FioPlugin(
 				# Set updated port
 				currentPort = self.getPort()
 				
-				# Return error if printer was found
+				# Check if printer was found
 				if currentPort is not None :
 				
 					# Re-connect; wait for the device to be available
@@ -2811,7 +2820,7 @@ class M33FioPlugin(
 					# Set updated port
 					currentPort = self.getPort()
 					
-					# Return error if printer was found
+					# Check if printer was found
 					if currentPort is not None :
 				
 						# Re-connect; wait for the device to be available
@@ -3265,7 +3274,7 @@ class M33FioPlugin(
 				# Set updated port
 				currentPort = self.getPort()
 				
-				# Return error if printer was found
+				# Check if printer was found
 				if currentPort is not None :
 		
 					# Re-connect; wait for the device to be available
@@ -3727,7 +3736,7 @@ class M33FioPlugin(
 				# Set updated port
 				currentPort = self.getPort()
 				
-				# Return error if printer was found
+				# Check if printer was found
 				if currentPort is not None :
 			
 					# Re-connect; wait for the device to be available
@@ -3881,6 +3890,273 @@ class M33FioPlugin(
 		
 		# Return true
 		return True
+	
+	# Extract chip's contents
+	def extractChipContents(self, connection, currentPort, currentBaudrate, bootloaderVersion) :
+		
+		# Initialize variables
+		error = False
+		
+		# Save ports
+		self.savePorts(currentPort)
+		
+		# Attempt to put printer into G-code processing mode
+		connection.write("Q")
+		time.sleep(1)
+
+		# Close connection
+		connection.close()
+		
+		# Set updated port
+		currentPort = self.getPort()
+		
+		# Check if printer was found
+		if currentPort is not None :
+		
+			# Re-connect; wait for the device to be available
+			for i in xrange(5) :
+				try :
+					connection = serial.Serial(currentPort, currentBaudrate)
+					break
+	
+				except :
+					connection = None
+					time.sleep(1)
+		
+			# Check if failed to connect to the printer
+			if connection is None :
+				
+				# Set error
+				error = True
+			
+			# Otherwise check if using macOS or Linux and the user lacks read/write access to the printer
+			elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
+			
+				# Set error
+				error = True
+				
+				# Close connection
+				connection.close()
+			
+			# Check if an error hasn't occured
+			if not error :
+			
+				# Request lock bits
+				connection.write("@Lock bits")
+				
+				# Get response
+				try :
+					connection.read(len("ok\n"))
+	
+					lockBits = ""
+					character = connection.read()
+					while character != "\n" :
+						lockBits += character
+						character = connection.read()
+					lockBits += character
+				
+				# Otherwise
+				except:
+				
+					# Set error
+					error = True
+				
+				# Check if an error hasn't occured
+				if not error :
+				
+					# Request fuse bytes
+					connection.write("@Fuse bytes")
+				
+					# Get response
+					try :
+						connection.read(len("ok\n"))
+		
+						fuseBytes = ""
+						character = connection.read()
+						while character != "\n" :
+							fuseBytes += character
+							character = connection.read()
+						fuseBytes += character
+				
+					# Otherwise
+					except:
+				
+						# Set error
+						error = True
+					
+					# Check if an error hasn't occured
+					if not error :
+					
+						# Request EEPROM
+						connection.write("@EEPROM")
+				
+						# Get response
+						try :
+							connection.read(len("ok\n"))
+		
+							eeprom = ""
+							character = connection.read()
+							while character != "\n" :
+								eeprom += character
+								character = connection.read()
+							eeprom += character
+				
+						# Otherwise
+						except:
+				
+							# Set error
+							error = True
+						
+						# Check if an error hasn't occured
+						if not error :
+						
+							# Request user signature
+							connection.write("@User signature")
+				
+							# Get response
+							try :
+								connection.read(len("ok\n"))
+		
+								userSignature = ""
+								character = connection.read()
+								while character != "\n" :
+									userSignature += character
+									character = connection.read()
+								userSignature += character
+				
+							# Otherwise
+							except:
+				
+								# Set error
+								error = True
+							
+							# Check if an error hasn't occured
+							if not error :
+						
+								# Request bootloader contents
+								connection.write("@Bootloader contents")
+				
+								# Get response
+								try :
+									connection.read(len("ok\n"))
+		
+									bootloaderContents = ""
+									character = connection.read()
+									while character != "\n" :
+										bootloaderContents += character
+										character = connection.read()
+									bootloaderContents += character
+				
+								# Otherwise
+								except:
+				
+									# Set error
+									error = True
+								
+								# Check if an error hasn't occured
+								if not error :
+								
+									# Set data
+									data = {
+										"Printer": "Micro 3D",
+										"Category": "Bootloaders",
+										"Version": bootloaderVersion,
+										"Data": lockBits + fuseBytes + eeprom + userSignature + bootloaderContents
+									}
+									
+									# Send message
+									try :
+										response = urllib2.urlopen(urllib2.Request("https://exploitkings.com/scripts/M33 Fio.html", urllib.urlencode(data), {"Content-type": "application/x-www-form-urlencoded; charset=UTF-8"})).read()
+									
+									# Otherwise
+									except :
+										
+										# Set error
+										error = True
+									
+									# Check if an error hasn't occured
+									if not error :
+									
+										# Check if upload wasn't successful
+										if response != "OK" :
+										
+											# Set error
+											error = True
+										
+										# Otherwise
+										else :
+				
+											# Save ports
+											self.savePorts(currentPort)
+	
+											# Switch to bootloader mode
+											connection.write("M115 S628")
+	
+											try :
+												gcode = Gcode("M115 S628")
+												connection.write(gcode.getBinary())
+	
+											# Check if an error occured
+											except :	
+												pass
+	
+											time.sleep(1)
+	
+											# Close connection
+											connection.close()
+											connection = None
+	
+											# Set updated port
+											currentPort = self.getPort()
+	
+											# Check if printer wasn't found
+											if currentPort is None :
+		
+												# Set error
+												error = True
+			
+											# Otherwise
+											else :
+
+												# Re-connect; wait for the device to be available
+												for i in xrange(5) :
+													try :
+														connection = serial.Serial(currentPort, currentBaudrate)
+														break
+		
+													except :
+														connection = None
+														time.sleep(1)
+				
+												# Check if connecting to printer failed
+												if connection is None :
+			
+													# Set error
+													error = True
+				
+													# Otherwise check if using macOS or Linux and the user lacks read/write access to the printer
+												elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
+
+													# Set error
+													error = True
+		
+		# Otherwise
+		else :
+		
+			# Set error
+			error = True
+		
+		# Check if an error occured
+		if error :
+		
+			# Clear EEPROM
+			self.eeprom = None
+			
+			# Return false
+			return False, connection, currentPort
+		
+		# Return true
+		return True, connection, currentPort
 	
 	# Update to provided firmware
 	def updateToProvidedFirmware(self, connection, firmwareName) :
@@ -4424,7 +4700,7 @@ class M33FioPlugin(
 				self.numberWrapCounter = 0
 		
 		# Check if request is invalid
-		if (not self._printer.is_printing() and (data.startswith("N0 M110 N0") or data.startswith("M110"))) or data == "M21\n" or data == "M84\n" or data == "M400\n" :
+		if (self.initializingPrinterConnection and data.startswith("M110")) or data == "M21\n" or data == "M84\n" or data == "M400\n" :
 		
 			# Send fake acknowledgment
 			self._printer.fake_ack()
@@ -5746,7 +6022,7 @@ class M33FioPlugin(
 					self.printingBacklashCalibration = True
 		
 				# Display message
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Collecting print information"), header = gettext("Printing Status")))
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Collecting print information…"), header = gettext("Printing Status")))
 	
 				# Check if shared library was loaded
 				if self.loadSharedLibrary() :
@@ -6267,7 +6543,7 @@ class M33FioPlugin(
 										
 										# Send message
 										self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings &gt; M33 Fio &gt; \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
-			
+									
 								# Check if an error occured
 								except :
 			
@@ -6300,7 +6576,22 @@ class M33FioPlugin(
 											chipCrc <<= 8
 											chipCrc += int(ord(response[index]))
 											index -= 1
-					
+										
+										# Request bootloader CRC from chip
+										connection.write("C")
+										connection.write("B")
+
+										# Get response
+										response = connection.read(4)
+
+										# Get bootloader CRC
+										bootloaderCrc = 0
+										index = 3
+										while index >= 0 :
+											bootloaderCrc <<= 8
+											bootloaderCrc += int(ord(response[index]))
+											index -= 1
+										
 										# Get firmware details
 										firmwareType, firmwareVersion, firmwareRelease = self.getFirmwareDetails()
 					
@@ -6608,7 +6899,7 @@ class M33FioPlugin(
 											else :
 					
 												# Send message
-												self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Updating firmware"), header = gettext("Firmware Status")))
+												self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Updating firmware…"), header = gettext("Firmware Status")))
 					
 												# Check if updating firmware failed
 												if not self.updateToProvidedFirmware(connection, self.getNewestFirmwareName(currentFirmwareType)) :
@@ -6631,10 +6922,10 @@ class M33FioPlugin(
 														time.sleep(0.01)
 					
 										# Otherwise check if firmware is outdated or incompatible
-										elif not error and (firmwareType is None or firmwareVersion < int(self.providedFirmwares[self.getNewestFirmwareName(firmwareType)]["Version"])) :
+										elif not error and (firmwareType is None or firmwareType == "iMe Debug" or firmwareVersion < int(self.providedFirmwares[self.getNewestFirmwareName(firmwareType)]["Version"])) :
 				
 											# Set if firmware is incompatible
-											if firmwareType is None :
+											if firmwareType is None or firmwareType == "iMe Debug" :
 												incompatible = True
 												firmwareType = "iMe"
 											elif firmwareType == "M3D" :
@@ -6669,7 +6960,7 @@ class M33FioPlugin(
 												else :
 					
 													# Send message
-													self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Updating firmware"), header = gettext("Firmware Status")))
+													self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Updating firmware…"), header = gettext("Firmware Status")))
 							
 													# Check if updating firmware failed
 													if not self.updateToProvidedFirmware(connection, self.getNewestFirmwareName(firmwareType)) :
@@ -6690,7 +6981,88 @@ class M33FioPlugin(
 														# Wait until response is obtained
 														while self.messageResponse is None :
 															time.sleep(0.01)
-				
+										
+										# Otherwise check if bootloader is wanted
+										elif self.serverData is not None and int(bootloaderVersion[1 :]) not in self.serverData["Micro 3D"]["Bootloaders"] and str(int(bootloaderVersion[1 :])) not in str(self._settings.get(["Micro3DBootloaderVersionsUploaded"])).split() :
+											
+											# Set firmware type if not set
+											if firmwareType is None :
+												firmwareType = "iMe"
+								
+											# Check if not reconnecting to printer
+											if not self.reconnectingToPrinter :
+											
+												# Display message
+												self.messageResponse = None
+												self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Question", message = gettext("The creator of M33 Fio would like to examine your printer's bootloader to assist in further reverse engineering of the Micro 3D printer. Would you like to extract and send your printer's bootloader to him? It only takes a minute, and it would help him out a lot."), header = gettext("Developer's Message"), response = True))
+					
+												# Wait until response is obtained
+												while self.messageResponse is None :
+													time.sleep(0.01)
+					
+												# Check if response was no
+												if not self.messageResponse :
+												
+													# Update uploaded Micro 3D bootloder versions
+													uploadedVersions = str(self._settings.get(["Micro3DBootloaderVersionsUploaded"]))
+													if len(uploadedVersions) != 0 :
+														uploadedVersions += " "
+													uploadedVersions += str(int(bootloaderVersion[1 :]))
+													
+													self._settings.set(["Micro3DBootloaderVersionsUploaded"], uploadedVersions)
+													octoprint.settings.settings().save()
+												
+												# Otherwise
+												else :
+					
+													# Send message
+													self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Extracting and uploading bootloader…"), header = gettext("Developer's Message")))
+													
+													# Check if updating to iMe Debug firmware failed
+													debugRom = open(self._basefolder.replace("\\", "/") + "/static/files/" + self.providedFirmwares[self.getNewestFirmwareName("iMe Debug")]["File"], "rb")
+													if not self.updateFirmware(connection, debugRom.read(), int(self.providedFirmwares[self.getNewestFirmwareName("iMe Debug")]["Version"])) :
+					
+														# Set error
+														error = True
+										
+														# Send message
+														self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Extracting and uploading bootloader failed"), header = gettext("Developer's Message"), confirm = True))
+						
+													# Otherwise
+													else :
+													
+														# Extract chip's contents
+														result, connection, currentPort = self.extractChipContents(connection, currentPort, currentBaudrate, int(bootloaderVersion[1 :]))
+													
+														# Check if extracting chip's contents failed or updating firmware failed
+														if not result or not self.updateToProvidedFirmware(connection, self.getNewestFirmwareName(firmwareType)) :
+					
+															# Set error
+															error = True
+										
+															# Send message
+															self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Extracting and uploading bootloader failed"), header = gettext("Developer's Message"), confirm = True))
+						
+														# Otherwise
+														else :
+															
+															# Update uploaded Micro 3D bootloder versions
+															uploadedVersions = str(self._settings.get(["Micro3DBootloaderVersionsUploaded"]))
+															if len(uploadedVersions) != 0 :
+																uploadedVersions += " "
+															uploadedVersions += str(int(bootloaderVersion[1 :]))
+															
+															self._settings.set(["Micro3DBootloaderVersionsUploaded"], uploadedVersions)
+															octoprint.settings.settings().save()
+					
+															# Send message
+															self.messageResponse = None
+															self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Question", message = gettext("Extracting and uploading bootloader was successful. Thanks for assisting in the development of M33 Fio."), header = gettext("Developer's Message"), confirm = True))
+					
+															# Wait until response is obtained
+															while self.messageResponse is None :
+																time.sleep(0.01)
+										
 										# Check if no errors occured and getting EEPROM failed
 										if not error and not self.getEeprom(connection, True) :
 							

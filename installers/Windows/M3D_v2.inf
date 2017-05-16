@@ -1,0 +1,170 @@
+; Windows* setup file for M3D printer models ca. 2017.03
+; *Intended for Windows versions 2000, XP, Vista, 7, 8 and 10 (x32 and x64)
+; Copyright (c) 2014-2017 M3D
+
+[Version]
+Signature   = "$Windows NT$"
+
+Class       = Ports
+ClassGuid   = {4D36E978-E325-11CE-BFC1-08002BE10318}
+Provider    = %ManufacturerName%
+
+CatalogFile = M3D_v2.cat
+; CatalogFile.NTx86 = M3D_v2_x86.cat
+; CatalogFile.NTIA64 = M3D_v2_ia64.cat
+; CatalogFile.NTAMD64 = M3D_v2_amd64.cat
+DriverVer   = 03/27/2017,6.2.0.0
+
+;----------------------------------------------------------
+; Targets
+;----------------------------------------------------------
+[Manufacturer]
+%ManufacturerName%=PrinterModels,NT,NTAMD64,NTIA64,NTARM,NTARM64
+
+[PrinterModels]
+%DeviceName_M1%=Device_Install, USB\VID_03EB&PID_2404
+%DeviceName_M2%=Device_Install, USB\VID_0483&PID_A21E
+%DeviceName_M3%=Device_Install, USB\VID_0483&PID_A21F
+
+[PrinterModels.NT]
+%DeviceName_M1%=Device_Install.NT, USB\VID_03EB&PID_2404
+%DeviceName_M2%=Device_Install.NT, USB\VID_0483&PID_A21E
+%DeviceName_M3%=Device_Install.NT, USB\VID_0483&PID_A21F
+
+[PrinterModels.NTAMD64]
+%DeviceName_M1%=Device_Install.NTAMD64, USB\VID_03EB&PID_2404
+%DeviceName_M2%=Device_Install.NTAMD64, USB\VID_0483&PID_A21E
+%DeviceName_M3%=Device_Install.NTAMD64, USB\VID_0483&PID_A21F
+
+[PrinterModels.NTIA64]
+%DeviceName_M1%=Device_Install.NTIA64, USB\VID_03EB&PID_2404
+%DeviceName_M2%=Device_Install.NTIA64, USB\VID_0483&PID_A21E
+%DeviceName_M3%=Device_Install.NTIA64, USB\VID_0483&PID_A21F
+
+[PrinterModels.NTARM]
+%DeviceName_M1%=Device_Install.NTARM, USB\VID_03EB&PID_2404
+%DeviceName_M2%=Device_Install.NTARM, USB\VID_0483&PID_A21E
+%DeviceName_M3%=Device_Install.NTARM, USB\VID_0483&PID_A21F
+
+[PrinterModels.NTARM64]
+%DeviceName_M1%=Device_Install.NTARM64, USB\VID_03EB&PID_2404
+%DeviceName_M2%=Device_Install.NTARM64, USB\VID_0483&PID_A21E
+%DeviceName_M3%=Device_Install.NTARM64, USB\VID_0483&PID_A21F
+
+[SourceDisksNames]
+1 = %DiskName%
+
+[SourceDisksFiles]
+; usbser.sys = 1,7_8_10
+
+;----------------------------------------------------------
+; Windows (2000 and later) - 32bit
+; Windows (XP and later) - 64bit
+;----------------------------------------------------------
+[Device_Install]
+CopyFiles=FakeModemCopyFileSection
+AddReg=Device_Install.NT.AddReg
+Include=mdmcpq.inf
+
+[Device_Install.NT]
+CopyFiles=FakeModemCopyFileSection
+AddReg=Device_Install.NT.AddReg
+Include=mdmcpq.inf
+
+[Device_Install.NTAMD64]
+CopyFiles=FakeModemCopyFileSection
+AddReg=Device_Install.NT.AddReg
+Include=mdmcpq.inf
+
+[Device_Install.NTIA64]
+CopyFiles=FakeModemCopyFileSection
+AddReg=Device_Install.NT.AddReg
+Include=mdmcpq.inf
+
+[Device_Install.NTARM]
+CopyFiles=FakeModemCopyFileSection
+AddReg=Device_Install.NT.AddReg
+Include=mdmcpq.inf
+
+[Device_Install.NTARM64]
+CopyFiles=FakeModemCopyFileSection
+AddReg=Device_Install.NT.AddReg
+Include=mdmcpq.inf
+
+[Device_Install.HW]
+; 
+
+[Device_Install.NT.HW]
+; 
+
+[Device_Install.NTAMD64.HW]
+; 
+
+[Device_Install.NTIA64.HW]
+; 
+
+[Device_Install.NTARM.HW]
+; 
+
+[Device_Install.NTARM64.HW]
+; 
+
+[Device_Install.NT.AddReg]
+HKR,,DevLoader,,*ntkern
+HKR,,NTMPDriver,,usbser.sys
+HKR,,EnumPropPages32,,"MsPorts.dll,SerialPortPropPageProvider"
+
+; [Device_Install.NT.Copy]
+; usbser.sys
+
+[Device_Install.Services]
+AddService = usbser, 0x00000002, WUDFRD_ServiceInstall
+
+[Device_Install.NT.Services]
+AddService = usbser, 0x00000002, WUDFRD_ServiceInstall
+
+[Device_Install.NTAMD64.Services]
+AddService = usbser, 0x00000002, WUDFRD_ServiceInstall
+
+[Device_Install.NTIA64.Services]
+AddService = usbser, 0x00000002, WUDFRD_ServiceInstall
+
+[Device_Install.NTARM.Services]
+AddService = usbser, 0x00000002, WUDFRD_ServiceInstall
+
+[Device_Install.NTARM64.Services]
+AddService = usbser, 0x00000002, WUDFRD_ServiceInstall
+
+[WUDFRD_ServiceInstall]
+DisplayName = %Serial.SvcDesc%
+ServiceType = 1 ; SERVICE_KERNEL_DRIVER
+StartType = 3 ; SERVICE_DEMAND_START
+ErrorControl = 1 ; SERVICE_ERROR_NORMAL
+ServiceBinary = %12%\usbser.sys
+LoadOrderGroup = Base
+
+;--
+;
+;--
+
+[DestinationDirs]
+DefaultDestDir=12 ; DIRID_DRIVERS
+; Device_Install.Copy=12,UMDF
+; Device_Install.NT.Copy=12,UMDF
+; Device_Install.NTAMD64.Copy=12,UMDF
+; Device_Install.NTIA64.Copy=12,UMDF
+; Device_Install.NTARM.Copy=12,UMDF
+; Device_Install.NTARM64.Copy=12,UMDF
+
+;----------------------------------------------------------
+; String
+;----------------------------------------------------------
+
+[Strings]
+ManufacturerName = "M3D"
+DeviceName_M1 = "The Micro 3D Printer"
+DeviceName_M2 = "Pro"
+DeviceName_M3 = "Micro+"
+DiskName = "M3D Driver Installation Package"
+Serial.SvcDesc = "USB Serial Emulation Driver"
+
