@@ -2383,7 +2383,12 @@ body > div.page-container > div.message .customInput input {
 	display: none;
 }
 
-#files div.gcode_files div.entry .action-buttons div.btn-mini.viewModel, #files div.gcode_files div.entry .action-buttons div.btn-mini.editGcode {
+#model button.autorotate {
+	outline: none;
+	margin-bottom: -2px;
+}
+
+#files div.gcode_files div.entry .action-buttons div.btn-mini.viewModel, #files div.gcode_files div.entry .action-buttons div.btn-mini.editGcode, #files div.gcode_files div.entry .action-buttons div.btn-mini.editModel {
 	width: 11px;
 }
 

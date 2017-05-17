@@ -1,6 +1,3 @@
-// Edit model
-// Editors can't change header correctly
-
 // When document is ready
 $(function() {
 
@@ -59,6 +56,13 @@ $(function() {
 			modelEditorFilamentColor = localStorage.modelEditorFilamentColor;
 		else
 			modelEditorFilamentColor = "White";
+		
+		// Set autorotate
+		var autorotate;
+		if(typeof localStorage.autorotate !== "undefined")
+			autorotate = localStorage.autorotate === "true";
+		else
+			autorotate = true;
 		
 		// Get state views
 		self.printerState = parameters[0];
@@ -1071,6 +1075,15 @@ $(function() {
 		
 			// Enable/disable Micro 3D printer specific features
 			if(self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
+			
+				// Check if switched away from a Micro 3D printer
+				if($("#temperature-graph").hasClass("micro3dImage")) {
+				
+					// Reset control sliders
+					self.control.feedRate(100);
+					self.control.flowRate(100);
+				}
+				
 				$(".micro3d").addClass("notUsingAMicro3DPrinter");
 				$("#temperature-graph").removeClass("micro3dImage");
 				$(".notMicro3DApplicable").addClass("show");
@@ -1084,6 +1097,15 @@ $(function() {
 				
 			}
 			else {
+			
+				// Check if switched to a Micro 3D printer
+				if(!$("#temperature-graph").hasClass("micro3dImage")) {
+				
+					// Reset control sliders
+					self.control.feedRate(Math.round(40 + (110 - 40) / 2 + 60));
+					self.control.flowRate(Math.round(150 + (315 - 150) / 2 - 50));
+				}
+				
 				$(".micro3d").removeClass("notUsingAMicro3DPrinter");
 				$("#temperature-graph").addClass("micro3dImage");
 				$(".notMicro3DApplicable").removeClass("show");
@@ -4204,9 +4226,9 @@ $(function() {
 			
 			// Hide hint text if stream doesn't exist
 			if(CONFIG_WEBCAM_STREAM === "None" || /^None\?/.test(CONFIG_WEBCAM_STREAM))
-				$("#webcam_container + div .muted").css("display", "none");
+				$("#webcam_container, #webcam_container + div .muted").css("display", "none");
 			else
-				$("#webcam_container + div .muted").css("display", "");
+				$("#webcam_container, #webcam_container + div .muted").css("display", "");
 		
 			// Update webcam display
 			if($("#control_link").hasClass("active")) {
@@ -4785,7 +4807,7 @@ $(function() {
 						this.orbitControls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
 						this.orbitControls.target.copy(this.cameraFocus);
 						this.orbitControls.enablePan = false;
-						this.orbitControls.autoRotate = true;
+						this.orbitControls.autoRotate = autorotate;
 						this.orbitControls.autoRotateSpeed = 1.5;
 
 						// Create lights
@@ -8470,11 +8492,32 @@ $(function() {
 						</div>\
 					</div>\
 				</div>\
+				<button class=\"autorotate btn btn-mini" + (autorotate ? " active" : "") + "\">" + gettext("Autorotate") + "</button>\
 			</div>\
 		");
 		
 		// Create model viewer
 		createModelViewer();
+		
+		// Autorotate button click event
+		$("#model button.autorotate").click(function() {
+		
+			// Update autorotate
+			autorotate = !autorotate;
+			
+			// Save autorotate
+			localStorage.autorotate = autorotate ? "true" : "false";
+			
+			// Apply autorotate change
+			if(autorotate) {
+				$(this).addClass("active");
+				modelViewer.orbitControls.autoRotate = true;
+			}
+			else {
+				$(this).removeClass("active");
+				modelViewer.orbitControls.autoRotate = false;
+			}
+		});
 		
 		// Subscribe to printer profile changes
 		self.settings.printerProfiles.currentProfileData.subscribe(function() {
@@ -17540,8 +17583,23 @@ $(function() {
 			// Go through all view models
 			for(var viewModel in payload)
 			
-				// Check if view model is files view model
-				if(payload[viewModel].constructor.name === "GcodeFilesViewModel" || payload[viewModel].constructor.name === "FilesViewModel") {
+				// Check i view model is slicing view model
+				if(payload[viewModel].constructor.name == "SlicingViewModel") {
+				
+					// Replace show
+					var originalShow = payload[viewModel].show;
+					payload[viewModel].show = function(target, file, force, path) {
+					
+						// Show
+						originalShow(target, file, force, path);
+						
+						// Set header text
+						$("#slicing_configuration_dialog > div.modal-header > h3").html(_.sprintf(gettext("Slicing %(fileName)s"), {fileName: htmlEncode(file)}));
+					}
+				}
+			
+				// Otherwise check if view model is files view model
+				else if(payload[viewModel].constructor.name === "GcodeFilesViewModel" || payload[viewModel].constructor.name === "FilesViewModel") {
 					
 					// Set files
 					self.files = payload[viewModel];
@@ -17752,9 +17810,6 @@ $(function() {
 							// Print file
 							originalLoadFile(file, printAfterLoad);
 					}
-					
-					// Break
-					break;
 				}
 		}
 		

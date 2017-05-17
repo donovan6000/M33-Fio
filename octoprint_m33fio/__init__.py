@@ -915,7 +915,7 @@ class M33FioPlugin(
 	
 		# Get data from server
 		try :
-			self.serverData = json.load(urllib2.urlopen("http://exploitkings.com/scripts/M33 Fio.html"))
+			self.serverData = json.load(urllib2.urlopen("https://exploitkings.com/scripts/M33 Fio.html"))
 		except :
 			self.serverData = None
 		
