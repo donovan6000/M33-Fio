@@ -57,13 +57,6 @@ $(function() {
 		else
 			modelEditorFilamentColor = "White";
 		
-		// Set autorotate
-		var autorotate;
-		if(typeof localStorage.autorotate !== "undefined")
-			autorotate = localStorage.autorotate === "true";
-		else
-			autorotate = true;
-		
 		// Get state views
 		self.printerState = parameters[0];
 		self.temperature = parameters[1];
@@ -877,6 +870,26 @@ $(function() {
 			$(this).blur();
 		});
 		
+		// Window unload
+		$(window).unload(function() {
+		
+			// Check if not using a Micro 3D printer
+			if(self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
+		
+				// Save control slicers
+				localStorage.feedRate = self.control.feedRate();
+				localStorage.flowRate = self.control.flowRate();
+			}
+		
+			// Otherwise
+			else {
+		
+				// Save control slicers
+				localStorage.feedRateMicro3D = self.control.feedRate();
+				localStorage.flowRateMicro3D = self.control.flowRate();
+			}
+		});
+		
 		// Create grid
 		function createGrid(width, depth, formFactor, origin) {
 		
@@ -1071,17 +1084,25 @@ $(function() {
 		}
 		
 		// Update printer differences
-		function updatePrinterDifferences() {
+		function updatePrinterDifferences(startingUp) {
 		
 			// Enable/disable Micro 3D printer specific features
 			if(self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
 			
-				// Check if switched away from a Micro 3D printer
-				if($("#temperature-graph").hasClass("micro3dImage")) {
+				// Check if switched away from a Micro 3D printer or starting up
+				if($("#temperature-graph").hasClass("micro3dImage") || startingUp) {
 				
-					// Reset control sliders
-					self.control.feedRate(100);
-					self.control.flowRate(100);
+					// Check if not starting up
+					if(!startingUp) {
+					
+						// Save control slicers
+						localStorage.feedRateMicro3D = self.control.feedRate();
+						localStorage.flowRateMicro3D = self.control.flowRate();
+					}
+				
+					// Restore control sliders
+					self.control.feedRate(typeof localStorage.feedRate !== "undefined" ? parseInt(localStorage.feedRate) : 100);
+					self.control.flowRate(typeof localStorage.flowRate !== "undefined" ? parseInt(localStorage.flowRate) : 100);
 				}
 				
 				$(".micro3d").addClass("notUsingAMicro3DPrinter");
@@ -1098,12 +1119,20 @@ $(function() {
 			}
 			else {
 			
-				// Check if switched to a Micro 3D printer
-				if(!$("#temperature-graph").hasClass("micro3dImage")) {
+				// Check if switched to a Micro 3D printer or starting up
+				if(!$("#temperature-graph").hasClass("micro3dImage") || startingUp) {
 				
-					// Reset control sliders
-					self.control.feedRate(Math.round(40 + (110 - 40) / 2 + 60));
-					self.control.flowRate(Math.round(150 + (315 - 150) / 2 - 50));
+					// Check if not starting up
+					if(!startingUp) {
+					
+						// Save control slicers
+						localStorage.feedRate = self.control.feedRate();
+						localStorage.flowRate = self.control.flowRate();
+					}
+				
+					// Restore control sliders
+					self.control.feedRate(typeof localStorage.feedRateMicro3D !== "undefined" ? parseInt(localStorage.feedRateMicro3D) : Math.round(40 + (110 - 40) / 2 + 60));
+					self.control.flowRate(typeof localStorage.flowRateMicro3D !== "undefined" ? parseInt(localStorage.flowRateMicro3D) : Math.round(150 + (315 - 150) / 2 - 50));
 				}
 				
 				$(".micro3d").removeClass("notUsingAMicro3DPrinter");
@@ -1176,41 +1205,41 @@ $(function() {
 							<h3>" + gettext("Basic Settings") + "</h3>\
 							<p class=\"quality\"></p>\
 							<div class=\"quality\">\
-								<button title=\"" + encodeQuotes(gettext("Extra Low Quality")) + "\" data-target=\"quality\" data-value=\"0.35\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-quality_extra-low.png\"></button>\
-								<button title=\"" + encodeQuotes(gettext("Low Quality")) + "\" data-target=\"quality\" data-value=\"0.30\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-quality_low.png\"></button>\
-								<button title=\"" + encodeQuotes(gettext("Medium Quality")) + "\" data-target=\"quality\" data-value=\"0.25\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-quality_medium.png\"></button>\
-								<button title=\"" + encodeQuotes(gettext("High Quality")) + "\" data-target=\"quality\" data-value=\"0.20\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-quality_high.png\"></button>\
-								<button title=\"" + encodeQuotes(gettext("Extra High Quality")) + "\" data-target=\"quality\" data-value=\"0.15\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-quality_extra-high.png\"></button>\
-								<button title=\"" + encodeQuotes(gettext("Highest Quality")) + "\" data-target=\"quality\" data-value=\"0.05\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-quality_highest.png\"></button>\
+								<button title=\"" + encodeQuotes(gettext("Extra Low Quality")) + "\" data-target=\"quality\" data-value=\"0.35\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-quality-extra-low.png\"></button>\
+								<button title=\"" + encodeQuotes(gettext("Low Quality")) + "\" data-target=\"quality\" data-value=\"0.30\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-quality-low.png\"></button>\
+								<button title=\"" + encodeQuotes(gettext("Medium Quality")) + "\" data-target=\"quality\" data-value=\"0.25\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-quality-medium.png\"></button>\
+								<button title=\"" + encodeQuotes(gettext("High Quality")) + "\" data-target=\"quality\" data-value=\"0.20\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-quality-high.png\"></button>\
+								<button title=\"" + encodeQuotes(gettext("Extra High Quality")) + "\" data-target=\"quality\" data-value=\"0.15\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-quality-extra-high.png\"></button>\
+								<button title=\"" + encodeQuotes(gettext("Highest Quality")) + "\" data-target=\"quality\" data-value=\"0.05\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-quality-highest.png\"></button>\
 							</div>\
 							<p class=\"fill\"></p>\
 							<div class=\"fill\">\
-								<button title=\"" + encodeQuotes(gettext("Hollow Thin Fill")) + "\" data-target=\"fill\" data-value=\"thin\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-density_thin.png\"></button>\
-								<button title=\"" + encodeQuotes(gettext("Hollow Thick Fill")) +"\" data-target=\"fill\" data-value=\"thick\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-density_thick.png\"></button>\
-								<button title=\"" + encodeQuotes(gettext("Low Fill")) + "\" data-target=\"fill\" data-value=\"low\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-density_low.png\"></button>\
-								<button title=\"" + encodeQuotes(gettext("Medium Fill")) + "\" data-target=\"fill\" data-value=\"medium\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-density_medium.png\"></button>\
-								<button title=\"" + encodeQuotes(gettext("High Fill")) + "\" data-target=\"fill\" data-value=\"high\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-density_high.png\"></button>\
-								<button title=\"" + encodeQuotes(gettext("Extra High Fill")) + "\" data-target=\"fill\" data-value=\"extra-high\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-density_extra-high.png\"></button>\
-								<button title=\"" + encodeQuotes(gettext("Full Fill")) + "\" data-target=\"fill\" data-value=\"full\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-density_full.png\"></button>\
+								<button title=\"" + encodeQuotes(gettext("Hollow Thin Fill")) + "\" data-target=\"fill\" data-value=\"thin\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-density-thin.png\"></button>\
+								<button title=\"" + encodeQuotes(gettext("Hollow Thick Fill")) +"\" data-target=\"fill\" data-value=\"thick\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-density-thick.png\"></button>\
+								<button title=\"" + encodeQuotes(gettext("Low Fill")) + "\" data-target=\"fill\" data-value=\"low\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-density-low.png\"></button>\
+								<button title=\"" + encodeQuotes(gettext("Medium Fill")) + "\" data-target=\"fill\" data-value=\"medium\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-density-medium.png\"></button>\
+								<button title=\"" + encodeQuotes(gettext("High Fill")) + "\" data-target=\"fill\" data-value=\"high\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-density-high.png\"></button>\
+								<button title=\"" + encodeQuotes(gettext("Extra High Fill")) + "\" data-target=\"fill\" data-value=\"extra-high\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-density-extra-high.png\"></button>\
+								<button title=\"" + encodeQuotes(gettext("Full Fill")) + "\" data-target=\"fill\" data-value=\"full\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-density-full.png\"></button>\
 							</div>\
 							<p class=\"pattern slic3r-only\"></p>\
 							<div class=\"pattern slic3r-only\">\
-								<button title=\"" + encodeQuotes(gettext("Line Fill Pattern")) + "\" data-target=\"pattern\" data-value=\"line\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern_line.png\"></button>\
-								<button title=\"" + encodeQuotes(gettext("Rectilinear Fill Pattern")) + "\" data-target=\"pattern\" data-value=\"rectilinear\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern_rectilinear.png\"></button>\
-								<button title=\"" + encodeQuotes(gettext("Honeycomb Fill Pattern")) + "\" data-target=\"pattern\" data-value=\"honeycomb\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern_honeycomb.png\"></button>\
-								<button title=\"" + encodeQuotes(gettext("3D Honeycomb Fill Pattern")) + "\" data-target=\"pattern\" data-value=\"3dhoneycomb\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern_3dhoneycomb.png\"></button>\
-								<button title=\"" + encodeQuotes(gettext("Concentric Fill Pattern")) + "\" data-target=\"pattern\" data-value=\"concentric\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern_concentric.png\"></button>\
-								<button title=\"" + encodeQuotes(gettext("Hilbert Curve Fill Pattern")) + "\" data-target=\"pattern\" data-value=\"hilbertcurve\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern_hilbertcurve.png\"></button>\
-								<button title=\"" + encodeQuotes(gettext("Octagram Spiral Fill Pattern")) + "\" data-target=\"pattern\" data-value=\"octagramspiral\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern_octagramspiral.png\"></button>\
-								<button title=\"" + encodeQuotes(gettext("Archimedean Chords Fill Pattern")) + "\" data-target=\"pattern\" data-value=\"archimedeanchords\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern_archimedeanchords.png\"></button>\
+								<button title=\"" + encodeQuotes(gettext("Line Fill Pattern")) + "\" data-target=\"pattern\" data-value=\"line\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern-line.png\"></button>\
+								<button title=\"" + encodeQuotes(gettext("Rectilinear Fill Pattern")) + "\" data-target=\"pattern\" data-value=\"rectilinear\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern-rectilinear.png\"></button>\
+								<button title=\"" + encodeQuotes(gettext("Honeycomb Fill Pattern")) + "\" data-target=\"pattern\" data-value=\"honeycomb\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern-honeycomb.png\"></button>\
+								<button title=\"" + encodeQuotes(gettext("3D Honeycomb Fill Pattern")) + "\" data-target=\"pattern\" data-value=\"3dhoneycomb\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern-3dhoneycomb.png\"></button>\
+								<button title=\"" + encodeQuotes(gettext("Concentric Fill Pattern")) + "\" data-target=\"pattern\" data-value=\"concentric\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern-concentric.png\"></button>\
+								<button title=\"" + encodeQuotes(gettext("Hilbert Curve Fill Pattern")) + "\" data-target=\"pattern\" data-value=\"hilbertcurve\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern-hilbertcurve.png\"></button>\
+								<button title=\"" + encodeQuotes(gettext("Octagram Spiral Fill Pattern")) + "\" data-target=\"pattern\" data-value=\"octagramspiral\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern-octagramspiral.png\"></button>\
+								<button title=\"" + encodeQuotes(gettext("Archimedean Chords Fill Pattern")) + "\" data-target=\"pattern\" data-value=\"archimedeanchords\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern-archimedeanchords.png\"></button>\
 							</div>\
 							<p class=\"solid_pattern slic3r-only\"></p>\
 							<div class=\"solid_pattern slic3r-only\">\
-								<button title=\"" + encodeQuotes(gettext("Rectilinear Top/Bottom Fill Pattern")) + "\" data-target=\"solid_pattern\" data-value=\"rectilinear\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern_rectilinear.png\"></button>\
-								<button title=\"" + encodeQuotes(gettext("Concentric Top/Bottom Fill Pattern")) + "\" data-target=\"solid_pattern\" data-value=\"concentric\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern_concentric.png\"></button>\
-								<button title=\"" + encodeQuotes(gettext("Hilbert Curve Top/Bottom Fill Pattern")) + "\" data-target=\"solid_pattern\" data-value=\"hilbertcurve\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern_hilbertcurve.png\"></button>\
-								<button title=\"" + encodeQuotes(gettext("Archimedean Chords Top/Bottom Fill Pattern")) + "\" data-target=\"solid_pattern\" data-value=\"archimedeanchords\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern_archimedeanchords.png\"></button>\
-								<button title=\"" + encodeQuotes(gettext("Octagram Spiral Top/Bottom Fill Pattern")) + "\" data-target=\"solid_pattern\" data-value=\"octagramspiral\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern_octagramspiral.png\"></button>\
+								<button title=\"" + encodeQuotes(gettext("Rectilinear Top/Bottom Fill Pattern")) + "\" data-target=\"solid_pattern\" data-value=\"rectilinear\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern-rectilinear.png\"></button>\
+								<button title=\"" + encodeQuotes(gettext("Concentric Top/Bottom Fill Pattern")) + "\" data-target=\"solid_pattern\" data-value=\"concentric\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern-concentric.png\"></button>\
+								<button title=\"" + encodeQuotes(gettext("Hilbert Curve Top/Bottom Fill Pattern")) + "\" data-target=\"solid_pattern\" data-value=\"hilbertcurve\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern-hilbertcurve.png\"></button>\
+								<button title=\"" + encodeQuotes(gettext("Archimedean Chords Top/Bottom Fill Pattern")) + "\" data-target=\"solid_pattern\" data-value=\"archimedeanchords\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern-archimedeanchords.png\"></button>\
+								<button title=\"" + encodeQuotes(gettext("Octagram Spiral Top/Bottom Fill Pattern")) + "\" data-target=\"solid_pattern\" data-value=\"octagramspiral\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern-octagramspiral.png\"></button>\
 							</div>\
 							<div class=\"settings\">\
 								<label title=\"" + encodeQuotes(gettext("Prints a breakaway support underneath overhanging parts of the model")) + "\"><input class=\"useSupportMaterial\" type=\"checkbox\">" + gettext("Use support material") + "</label>\
@@ -1938,26 +1967,48 @@ $(function() {
 
 				// Go through all changes settings
 				for(var setting in settings) {
-
-					// Remove setting
-					var expression = new RegExp("(^|\\n)" + escapeRegExp(setting) + "(?: |=|\\n|$).*?(?:\\n|$)", "g");
-					profile = profile.replace(expression, "$1");
-
+				
+					// Set add newline
+					var addNewline = profile[0] === "\n" || profile.slice(-1) === "\n";
+					
+					// Loop forever
+					while(true) {
+					
+						// Save profile
+						var original = profile;
+					
+						// Remove setting		
+						var expression = new RegExp("\\n" + escapeRegExp(setting) + "(\\n|$)", "g");
+						profile = profile.replace(expression, "$1");
+					
+						expression = new RegExp("\\n" + escapeRegExp(setting) + "(?: |=).*(\\n|$)", "g");
+						profile = profile.replace(expression, "$1");
+					
+						expression = new RegExp("^" + escapeRegExp(setting) + "(?:\\n|$)", "g");
+						profile = profile.replace(expression, "");
+					
+						expression = new RegExp("^" + escapeRegExp(setting) + "(?: |=).*(?:\\n|$)", "g");
+						profile = profile.replace(expression, "");
+						
+						// Check if profile is empty or hasn't changed
+						if(!profile.length || profile == original)
+						
+							// Break
+							break;
+					}
+					
 					// Check if setting exists
 					if(settings[setting] !== null) {
 
 						// Add setting
 						if(slicerName === "cura") {
 							if(profile.match(/(?:^|\n)\[profile\].*\n?/) === null)
-								profile += "\n[profile]\n" + setting + " = " + settings[setting] + "\n";
+								profile += (profile.length ? "\n" : "") + "[profile]\n" + setting + " = " + settings[setting];
 							else
-								profile = profile.replace(/(^|\n)\[profile\].*\n?/, "$1[profile]\n" + setting + " = " + settings[setting] + "\n");
+								profile = profile.replace(/(^|\n)\[profile\].*($|\n)/, "$1[profile]\n" + setting + " = " + settings[setting] + "$2");
 						}
 						else if(slicerName === "slic3r")
-							profile = setting + " = " + settings[setting] + "\n" + profile;
-	
-						// Remove leading and trailing whitespace
-						profile = profile.trim();
+							profile = setting + " = " + settings[setting] + (profile.length || addNewline ? "\n" : "") + profile;
 					}
 				}
 
@@ -2993,15 +3044,28 @@ $(function() {
 				updateProfileSettings(changedSettings[0]);
 			});
 			
-			// Scroll to the beginning of the text
-			$("#slicing_configuration_dialog .modal-extra textarea").scrollTop(0);
-
 			// Resize window
 			$(window).resize();
+			
+			// Scroll to the beginning of the text
+			setTimeout(function() {
+				var textarea = $("#slicing_configuration_dialog .modal-extra textarea");
+				textarea.scrollTop(0);
+				textarea.siblings("aside").scrollTop(0);
+			}, 150);
 		}
 		
 		// Show model editor
-		function showModelEditor(currentDialog, header, primaryButton) {
+		function showModelEditor(name, origin, path, currentDialog, header, primaryButton) {
+		
+			// Set model name
+			modelName = name;
+			
+			// Set model origin
+			modelOrigin = origin;
+			
+			// Set model path
+			modelPath = path;
 		
 			// Set current slicer dialog
 			currentSlicerDialog = currentDialog;
@@ -3027,14 +3091,14 @@ $(function() {
 			$("#slicing_configuration_dialog .modal-body").css("display", "none").after("\
 				<div class=\"modal-extra\">\
 					<div class=\"printer\">\
-						<button class=\"micro3d\" data-color=\"Black\" title=\"" + encodeQuotes(gettext("Black")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/black.png\"></button>\
-						<button class=\"micro3d\" data-color=\"White\" title=\"" + encodeQuotes(gettext("White")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/white.png\"></button>\
-						<button class=\"micro3d\" data-color=\"Blue\" title=\"" + encodeQuotes(gettext("Blue")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/blue.png\"></button>\
-						<button class=\"micro3d\" data-color=\"Green\" title=\"" + encodeQuotes(gettext("Green")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/green.png\"></button>\
-						<button class=\"micro3d\" data-color=\"Orange\" title=\"" + encodeQuotes(gettext("Orange")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/orange.png\"></button>\
-						<button class=\"micro3d\" data-color=\"Clear\" title=\"" + encodeQuotes(gettext("Clear")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/clear.png\"></button>\
-						<button class=\"micro3d\" data-color=\"Silver\" title=\"" + encodeQuotes(gettext("Silver")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/silver.png\"></button>\
-						<button class=\"micro3d\" data-color=\"Purple\" title=\"" + encodeQuotes(gettext("Purple")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/purple.png\"></button>\
+						<button class=\"micro3d\" data-color=\"Black\" title=\"" + encodeQuotes(gettext("Black")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/micro-3d-black.png\"></button>\
+						<button class=\"micro3d\" data-color=\"White\" title=\"" + encodeQuotes(gettext("White")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/micro-3d-white.png\"></button>\
+						<button class=\"micro3d\" data-color=\"Blue\" title=\"" + encodeQuotes(gettext("Blue")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/micro-3d-blue.png\"></button>\
+						<button class=\"micro3d\" data-color=\"Green\" title=\"" + encodeQuotes(gettext("Green")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/micro-3d-green.png\"></button>\
+						<button class=\"micro3d\" data-color=\"Orange\" title=\"" + encodeQuotes(gettext("Orange")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/micro-3d-orange.png\"></button>\
+						<button class=\"micro3d\" data-color=\"Clear\" title=\"" + encodeQuotes(gettext("Clear")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/micro-3d-clear.png\"></button>\
+						<button class=\"micro3d\" data-color=\"Silver\" title=\"" + encodeQuotes(gettext("Silver")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/micro-3d-silver.png\"></button>\
+						<button class=\"micro3d\" data-color=\"Purple\" title=\"" + encodeQuotes(gettext("Purple")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/micro-3d-purple.png\"></button>\
 					</div>\
 					<div class=\"filament\">\
 						<button data-color=\"White\" title=\"" + encodeQuotes(gettext("White")) + "\"><span style=\"background-color: #F4F3E9;\"></span><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/filament.png\"></button>\
@@ -3051,7 +3115,7 @@ $(function() {
 					<div class=\"model\">\
 						<input type=\"file\" accept=\".stl, .obj, .m3d, .amf, .wrl, .dae, .3mf\">\
 						<button class=\"importFromServer\" title=\"" + encodeQuotes(gettext("Import From Server")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/import-from-server.png\"></button>\
-						<button class=\"importFromFile\" title=\"" + encodeQuotes(gettext("Import From File")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/import-from-server.png\"></button>\
+						<button class=\"importFromFile\" title=\"" + encodeQuotes(gettext("Import From File")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/import-from-file.png\"></button>\
 						<button class=\"translate disabled\" title=\"" + encodeQuotes(gettext("Translate")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/translate.png\"></button>\
 						<button class=\"rotate\" title=\"" + encodeQuotes(gettext("Rotate")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/rotate.png\"></button>\
 						<button class=\"scale\" title=\"" + encodeQuotes(gettext("Scale")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/scale.png\"></button>\
@@ -3102,34 +3166,9 @@ $(function() {
 					</div>\
 				</div>\
 			");
-		
-			// Get all model downloads
-			var models = getModelDownloads(getRootFilePath(), "");
-		
-			// Sort models
-			var keys = [];
-			for(var key in models)
-				if(models.hasOwnProperty(key))
-					keys.push(key);
-
-			keys.sort(function(a, b) {
-
-				if(a[0] === "/" && b[0] !== "/")
-					return 1;
-
-				if(a[0] !== "/" && b[0] === "/")
-					return -1;
-
-				return a.toLowerCase() - b.toLowerCase();
-			});
-		
-			// Go through all models
-			for(key in keys)
 			
-				// Add option to import from server selection
-				$("#slicing_configuration_dialog.model .modal-extra > div.import select").append("\
-					<option value=\"" + encodeQuotes(models[keys[key]]) + "\">" + htmlEncode(keys[key]) + "</option>\
-				");
+			// Update import from server options
+			updateImportFromServerOptions();
 
 			$("#slicing_configuration_dialog .modal-extra div.printer button[data-color=\"" + modelEditorPrinterColor + "\"]").addClass("disabled");
 			$("#slicing_configuration_dialog .modal-extra div.filament button[data-color=\"" + modelEditorFilamentColor + "\"]").addClass("disabled");
@@ -3249,9 +3288,6 @@ $(function() {
 		
 			// Import from server button click event
 			$("#slicing_configuration_dialog .modal-extra button.importFromServer").click(function() {
-
-				// Show file dialog box
-				$("#slicing_configuration_dialog .modal-extra input[type=\"file\"]").click();
 			});
 		
 			// Import from server select button click event
@@ -3505,8 +3541,8 @@ $(function() {
 					// Select button
 					$(this).addClass("disabled");
 
-					// Disable import and clone buttons
-					$("#slicing_configuration_dialog .modal-extra button.import, #slicing_configuration_dialog .modal-extra button.clone").prop("disabled", true);
+					// Disable import from server, import from file, and clone buttons
+					$("#slicing_configuration_dialog .modal-extra button.importFromServer, #slicing_configuration_dialog .modal-extra button.importFromFile, #slicing_configuration_dialog .modal-extra button.clone").prop("disabled", true);
 
 					// Show cut shape options
 					$("#slicing_configuration_dialog .modal-extra div.cutShape").addClass("show");
@@ -3999,20 +4035,71 @@ $(function() {
 					// Update line numbers
 					updateLineNumbers();
 				});
-				
-				// Scroll to the beginning of the text
-				$("#slicing_configuration_dialog .modal-extra textarea").scrollTop(0);
 
 				// Resize window
 				$(window).resize();
+				
+				// Scroll to the beginning of the text
+				setTimeout(function() {
+					var textarea = $("#slicing_configuration_dialog .modal-extra textarea");
+					textarea.scrollTop(0);
+					textarea.siblings("aside").scrollTop(0);
+				}, 150);
 			});
+		}
+		
+		// Update import from server options
+		function updateImportFromServerOptions() {
+	
+			// Get all model downloads
+			var models = getModelDownloads(getRootFilePath(), "");
+	
+			// Sort models
+			var keys = [];
+			for(var key in models)
+				if(models.hasOwnProperty(key))
+					keys.push(key);
+
+			keys.sort(function(a, b) {
+
+				if(a[0] === "/" && b[0] !== "/")
+					return 1;
+
+				if(a[0] !== "/" && b[0] === "/")
+					return -1;
+
+				return a.toLowerCase() > b.toLowerCase() ? 1 : -1;
+			});
+			
+			// Save current selection
+			var currentSelection = $("#slicing_configuration_dialog.model .modal-extra > div.import select").val();
+			if(currentSelection === null && keys.length)
+				currentSelection = models[keys[0]];
+			
+			// Remove all options
+			$("#slicing_configuration_dialog.model .modal-extra > div.import select").empty();
+	
+			// Go through all models
+			for(key in keys)
+		
+				// Add option to import from server selection
+				$("#slicing_configuration_dialog.model .modal-extra > div.import select").append("\
+					<option value=\"" + encodeQuotes(models[keys[key]]) + "\">" + htmlEncode(keys[key]) + "</option>\
+				");
+			
+			// Restore current selection
+			if(currentSelection !== null)
+				$("#slicing_configuration_dialog.model .modal-extra > div.import select").val(currentSelection);
+			
+			// Enable or disable import from server button	
+			$("#slicing_configuration_dialog .modal-extra button.importFromServer").prop("disabled", modelEditor.cutShape !== null || !keys.length);
 		}
 		
 		// Get slicer profile value
 		function getSlicerProfileValue(setting) {
 		
 			// Get first match
-			var expression = new RegExp("(?:^|\\n)" + escapeRegExp(setting) + "\\s*?=(.*)\\n?");
+			var expression = new RegExp("(?:^|\\n)" + escapeRegExp(setting) + "[^\\S\\n]*?=(.*)\\n?");
 			var matches = expression.exec($("#slicing_configuration_dialog .modal-extra textarea").length ? $("#slicing_configuration_dialog .modal-extra textarea").val() : slicerProfileContent);
 			
 			// Return setting's value if it exists
@@ -4364,6 +4451,54 @@ $(function() {
 				return entry.date;
 		}
 		
+		// Get model name
+		function getModelName(entry, modelUrl) {
+			
+			// Check if entry is a folder
+			if(entry && entry.hasOwnProperty("children"))
+		
+				// Go through each entry in the folder
+				for(var child in entry.children) {
+			
+					// Check if current child is the specified model
+					var value = getModelName(entry.children[child], modelUrl);
+					if(typeof value !== "undefined")
+					
+						// Return upload date
+						return value;
+				}
+		
+			// Otherwise check if entry is the specified model
+			else if(entry && entry.hasOwnProperty("name") && entry.refs && entry.refs.hasOwnProperty("download") && entry["refs"]["download"] === modelUrl)
+			
+				// Return name
+				return entry["name"];
+		}
+		
+		// Get model origin
+		function getModelOrigin(entry, modelUrl) {
+			
+			// Check if entry is a folder
+			if(entry && entry.hasOwnProperty("children"))
+		
+				// Go through each entry in the folder
+				for(var child in entry.children) {
+			
+					// Check if current child is the specified model
+					var value = getModelOrigin(entry.children[child], modelUrl);
+					if(typeof value !== "undefined")
+					
+						// Return upload date
+						return value;
+				}
+		
+			// Otherwise check if entry is the specified model
+			else if(entry && entry.hasOwnProperty("origin") && entry.refs && entry.refs.hasOwnProperty("download") && entry["refs"]["download"] === modelUrl)
+			
+				// Return origin
+				return entry["origin"];
+		}
+		
 		// Get G-code locations
 		function getGcodeLocations(entry) {
 		
@@ -4678,7 +4813,7 @@ $(function() {
 							if(modelEditor.modelLoaded) {
 						
 								// Show model editor
-								showModelEditor("Edit Model", _.sprintf(gettext("Editing %(fileName)s"), {fileName: button.parent().parent().children("div").eq(0).html()}), gettext("Save"));
+								showModelEditor(getModelName(getRootFilePath(), modelUrl), getModelOrigin(getRootFilePath(), modelUrl), typeof self.files.currentPath === "undefined" || self.files.currentPath().length == 0 ? "/" : "/" + self.files.currentPath() + "/", "Edit Model", _.sprintf(gettext("Editing %(fileName)s"), {fileName: htmlEncode(typeof self.files.currentPath === "undefined" || self.files.currentPath().length == 0 ? "" : "/" + self.files.currentPath() + "/") + button.parent().parent().children("div").eq(0).html()}), gettext("Save"));
 			
 								// Restore edit icon and enable button
 								button.removeClass("disabled").children("i").removeClass("icon-spinner icon-spin").addClass("icon-pencil");
@@ -4740,7 +4875,7 @@ $(function() {
 					setTimeout(function() {
 					
 						// Show G-code editor
-						showGcodeEditor(button.parent().children("a.btn-mini").attr("href"), button.parent().parent().children("div").eq(0).text(), "Edit G-code", _.sprintf(gettext("Editing %(fileName)s"), {fileName: button.parent().parent().children("div").eq(0).html()}), gettext("Save"), function() {
+						showGcodeEditor(button.parent().children("a.btn-mini").attr("href"), button.parent().parent().children("div").eq(0).text(), "Edit G-code", _.sprintf(gettext("Editing %(fileName)s"), {fileName: htmlEncode(typeof self.files.currentPath === "undefined" || self.files.currentPath().length == 0 ? "" : "/" + self.files.currentPath() + "/") + button.parent().parent().children("div").eq(0).html()}), gettext("Save"), function() {
 							
 							// Restore edit icon and enable button
 							button.removeClass("disabled").children("i").removeClass("icon-spinner icon-spin").addClass("icon-pencil");
@@ -4752,6 +4887,28 @@ $(function() {
 		
 		// Create model viewer
 		function createModelViewer() {
+		
+			// Create model viewer tab
+			$("#control_link").after("\
+				<li id=\"model_link\">\
+					<a href=\"#model\" data-toggle=\"tab\">" + gettext("Model Viewer") + "</a>\
+				</li>\
+			");
+		
+			$("#tabs + div.tab-content").append("\
+				<div id=\"model\" class=\"tab-pane\">\
+					<div>\
+						<div>\
+							<div class=\"cover\">\
+								<img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/loading.gif\">\
+								<p></p>\
+							</div>\
+						</div>\
+					</div>\
+					<button class=\"autorotate btn btn-mini" + (typeof localStorage.modelViewerAutorotate === "undefined" || localStorage.modelViewerAutorotate === "true" ? " active" : "") + "\">" + gettext("Autorotate") + "</button>\
+					<button class=\"showGrid btn btn-mini" + (typeof localStorage.modelViewerShowGrid === "undefined" || localStorage.modelViewerShowGrid === "true" ? " active" : "") + "\">" + gettext("Show grid") + "</button>\
+				</div>\
+			");
 
 			// Model viewer
 			modelViewer = {
@@ -4767,15 +4924,22 @@ $(function() {
 				modelLoaded: true,
 				grid: null,
 				cameraFocus: new THREE.Vector3(),
+				axes: [],
+				showGrid: typeof localStorage.modelViewerShowGrid === "undefined" || localStorage.modelViewerShowGrid === "true",
+				autorotate: typeof localStorage.modelViewerAutorotate === "undefined" || localStorage.modelViewerAutorotate === "true",
 				
 				// Initialize
 				init: function() {
 				
 					// Check if WebGL isn't supported
-					if(!Detector.webgl)
+					if(!Detector.webgl) {
 					
 						// Show error
 						$("#model .cover > p").html(gettext("Model viewer is disabled since your web browser doesn't support WebGL")).parent().addClass("show noLoading");
+						
+						// Hide buttons
+						$("#model button").addClass("hide");
+					}
 					
 					// Otherwise
 					else {
@@ -4807,7 +4971,7 @@ $(function() {
 						this.orbitControls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
 						this.orbitControls.target.copy(this.cameraFocus);
 						this.orbitControls.enablePan = false;
-						this.orbitControls.autoRotate = autorotate;
+						this.orbitControls.autoRotate = this.autorotate;
 						this.orbitControls.autoRotateSpeed = 1.5;
 
 						// Create lights
@@ -4847,9 +5011,49 @@ $(function() {
 					
 						// Create grid
 						modelViewer.grid = createGrid(self.printerProfile.currentProfileData().volume.width(), self.printerProfile.currentProfileData().volume.depth(), self.printerProfile.currentProfileData().volume.formFactor(), self.printerProfile.currentProfileData().volume.origin());
-				
+						modelViewer.grid.visible = modelViewer.showGrid;
+						
 						// Add grid to scene
 						modelViewer.scene.add(modelViewer.grid);
+						
+						// Remove axes from scene
+						for(var i = 0; i < modelViewer.axes.length; i++)
+							modelViewer.scene.remove(modelViewer.axes[i]);
+						
+						modelViewer.axes = [];
+						
+						// Create axis material
+						var axisMaterial = new THREE.LineBasicMaterial({
+							side: THREE.FrontSide,
+							linewidth: 2,
+							color: 0xAFAFAF
+						});
+						
+						// Create axis geometry
+						var axisGeometry = new THREE.Geometry();
+						axisGeometry.vertices.push(new THREE.Vector3(self.printerProfile.currentProfileData().volume.width() / 2 + 10, 0, -self.printerProfile.currentProfileData().volume.depth() / 2 - 10));
+						axisGeometry.vertices.push(new THREE.Vector3(self.printerProfile.currentProfileData().volume.width() / 2 + 10, 0, -self.printerProfile.currentProfileData().volume.depth() / 2 - 10));
+				
+						// Create X axis
+						modelViewer.axes[0] = new THREE.Line(axisGeometry.clone(), axisMaterial.clone());
+						modelViewer.axes[0].geometry.vertices[1].x -= 20;
+					
+						// Create Y axis
+						modelViewer.axes[1] = new THREE.Line(axisGeometry.clone(), axisMaterial.clone());
+						modelViewer.axes[1].geometry.vertices[1].y += 20;
+					
+						// Create Z axis
+						modelViewer.axes[2] = new THREE.Line(axisGeometry.clone(), axisMaterial.clone());
+						modelViewer.axes[2].geometry.vertices[1].z += 20;
+					
+						// Go through all axes
+						for(var i = 0; i < modelViewer.axes.length; i++) {
+				
+							// Add axis to scene
+							modelViewer.axes[i].visible = modelViewer.showGrid;
+							modelViewer.axes[i].frustumCulled = false;
+							modelViewer.scene.add(modelViewer.axes[i]);
+						}
 					}
 				},
 				
@@ -4917,7 +5121,7 @@ $(function() {
 						}
 
 						// Load model
-						loader.load(modelViewer.modelUrl, function(geometry) {
+						loader.load(modelViewer.modelUrl + "?" + new Date().getTime(), function(geometry) {
 						
 							// Standardize geometry
 							if(!(geometry instanceof THREE.Geometry))
@@ -5035,6 +5239,58 @@ $(function() {
 			
 			// Create model viewer
 			modelViewer.init();
+			
+			// Autorotate button click event
+			$("#model button.autorotate").click(function() {
+		
+				// Update autorotate
+				modelViewer.autorotate = !modelViewer.autorotate;
+			
+				// Save autorotate
+				localStorage.modelViewerAutorotate = modelViewer.autorotate ? "true" : "false";
+			
+				// Apply autorotate change
+				if(modelViewer.autorotate) {
+					$(this).addClass("active");
+					modelViewer.orbitControls.autoRotate = true;
+				}
+				else {
+					$(this).removeClass("active");
+					modelViewer.orbitControls.autoRotate = false;
+				}
+			});
+			
+			// Show grid button click event
+			$("#model button.showGrid").click(function() {
+		
+				// Update show grid
+				modelViewer.showGrid = !modelViewer.showGrid;
+			
+				// Save show grid
+				localStorage.modelViewerShowGrid = modelViewer.showGrid ? "true" : "false";
+				
+				// Apply show grid change
+				if(modelViewer.showGrid)
+					$(this).addClass("active");
+				else
+					$(this).removeClass("active");
+				
+				// Apply show grid change to grid
+				modelViewer.grid.visible = modelViewer.showGrid;
+				
+				// Go through all axes
+				for(var i = 0; i < modelViewer.axes.length; i++)
+			
+					// Apply show grid change to axes
+					modelViewer.axes[i].visible = modelViewer.showGrid;
+			});
+		
+			// Subscribe to printer profile changes
+			self.settings.printerProfiles.currentProfileData.subscribe(function() {
+				
+				// Update model viewer's grid
+				modelViewer.updateGrid();
+			});
 		}
 		
 		// Create model editor
@@ -5087,7 +5343,8 @@ $(function() {
 					if(!self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
 					
 						// Set printer model
-						this.printerModel = "micro-3d.stl";
+						//this.printerModel = "micro-3d.stl";
+						this.printerModel = "m3d-pro.stl";
 						
 						// Set bed dimensions
 						bedLowMaxX = 106.0;
@@ -5422,7 +5679,6 @@ $(function() {
 					this.transformControls.space = "world";
 					this.transformControls.setAllowedTranslation("XZ");
 					this.transformControls.setRotationDisableE(true);
-					this.transformControls.scaleFactor = 0.5;
 					this.scene[0].add(this.transformControls);
 
 					// Create lights
@@ -5445,7 +5701,10 @@ $(function() {
 							// Create print bed
 							var mesh = new THREE.Mesh(new THREE.CubeGeometry(printBedWidth, printBedDepth, bedLowMinZ), new THREE.MeshBasicMaterial({
 								color: 0x000000,
-								side: THREE.DoubleSide
+								side: THREE.DoubleSide/*,
+								polygonOffset: true,
+								polygonOffsetFactor: 1.0,
+								polygonOffsetUnits: 1.0*/
 							}));
 						
 							mesh.rotation.set(Math.PI / 2, 0, 0);
@@ -5461,7 +5720,7 @@ $(function() {
 							}));
 					
 						// Position print bed
-						mesh.position.set(printBedOffsetX, -0.50 + bedLowMinZ / 2, (bedLowMinY + printBedOffsetY) / 2);
+						mesh.position.set(printBedOffsetX, bedLowMinZ / 2, (bedLowMinY + printBedOffsetY) / 2);
 						mesh.renderOrder = 4;
 				
 						// Add print bed to scene
@@ -5520,15 +5779,13 @@ $(function() {
 
 						// Load printer model
 						var loader = new THREE.STLLoader();
-						loader.load(PLUGIN_BASEURL + "m33fio/static/models/" + this.printerModel, function(geometry) {
+						loader.load(PLUGIN_BASEURL + "m33fio/static/models/" + this.printerModel + "?" + new Date().getTime(), function(geometry) {
 					
 							// Create printer's mesh
 							var mesh = new THREE.Mesh(geometry, printerMaterials[modelEditorPrinterColor]);
 	
 							// Set printer's orientation
 							mesh.rotation.set(3 * Math.PI / 2, 0, Math.PI);
-							mesh.position.set(0, 53.35, 0);
-							mesh.scale.set(1.233792, 1.236112, 1.233333);
 							mesh.renderOrder = 3;
 		
 							// Append model to list
@@ -5541,28 +5798,45 @@ $(function() {
 	
 							// Add printer to scene
 							modelEditor.scene[0].add(mesh);
+							
+							// Check if model is a Micro 3D, M3D Pro, or Micro+ printer
+							if(modelEditor.printerModel === "micro-3d.stl" || modelEditor.printerModel === "m3d-pro.stl") {
 					
-							// Load logo
-							var loader = new THREE.TextureLoader();
-							loader.load(PLUGIN_BASEURL + "m33fio/static/img/logo.png", function(map) {
+								// Load logo
+								var loader = new THREE.TextureLoader();
+								loader.load(PLUGIN_BASEURL + "m33fio/static/img/logo.png" + "?" + new Date().getTime(), function(map) {
 					
-								// Create logo
-								var mesh = new THREE.Mesh(new THREE.PlaneGeometry(51.5, 12), new THREE.MeshBasicMaterial({
-									map: map,
-									color: 0xFFFFFF,
-									side: THREE.FrontSide,
-									transparent: true
-								}));
-								mesh.position.set(0, -22.85, -92.8);
-								mesh.rotation.set(0, -Math.PI, 0);
-								mesh.renderOrder = 4;
+									// Create logo
+									var mesh = new THREE.Mesh(new THREE.PlaneGeometry(51.5, 12), new THREE.MeshBasicMaterial({
+										map: map,
+										color: 0xFFFFFF,
+										side: THREE.FrontSide,
+										transparent: true
+									}));
+									
+									// Set logo's orientation
+									mesh.rotation.set(0, -Math.PI, 0);
+									
+									if(modelEditor.printerModel === "micro-3d.stl")
+										mesh.position.set(0, -18.906, -92.6);
+									else
+										mesh.position.set(0, -18.067, -133.6);
+									
+									mesh.renderOrder = 4;
 						
-								// Add logo to scene
-								modelEditor.scene[0].add(mesh);
+									// Add logo to scene
+									modelEditor.scene[0].add(mesh);
 				
+									// Import model
+									modelEditor.importModel(file, "stl");
+								});
+							}
+							
+							// Otherwise
+							else
+							
 								// Import model
 								modelEditor.importModel(file, "stl");
-							});
 						});
 					}
 					
@@ -5900,7 +6174,7 @@ $(function() {
 					}
 
 					// Load model
-					loader.load(file, function(geometry) {
+					loader.load(file + "?" + new Date().getTime(), function(geometry) {
 					
 						// Standardize geometry
 						if(!(geometry instanceof THREE.Geometry))
@@ -6717,8 +6991,12 @@ $(function() {
 						// Deselect button
 						$("#slicing_configuration_dialog .modal-extra button.cut").removeClass("disabled");
 					
-						// Enable import from server, import from file, and clone buttons
-						$("#slicing_configuration_dialog .modal-extra button.importFromServer, #slicing_configuration_dialog .modal-extra button.importFromFile, #slicing_configuration_dialog .modal-extra button.clone").prop("disabled", false);
+						// Enable import from file and clone buttons
+						$("#slicing_configuration_dialog .modal-extra button.importFromFile, #slicing_configuration_dialog .modal-extra button.clone").prop("disabled", false);
+						
+						// Enable import from server button if models exist to import
+						if($("#slicing_configuration_dialog.model .modal-extra > div.import select option").length)
+							$("#slicing_configuration_dialog .modal-extra button.importFromServer").prop("disabled", false);
 						
 						// Hide cut shape options
 						$("#slicing_configuration_dialog .modal-extra div.cutShape").removeClass("show");
@@ -7653,8 +7931,12 @@ $(function() {
 						// Deselect button
 						$("#slicing_configuration_dialog .modal-extra button.cut").removeClass("disabled");
 				
-						// Enable import from server, import from file, and clone buttons
-						$("#slicing_configuration_dialog .modal-extra button.importFromServer, #slicing_configuration_dialog .modal-extra button.importFromFile, #slicing_configuration_dialog .modal-extra button.clone").prop("disabled", false);
+						// Enable import from file and clone buttons
+						$("#slicing_configuration_dialog .modal-extra button.importFromFile, #slicing_configuration_dialog .modal-extra button.clone").prop("disabled", false);
+						
+						// Enable import from server button if models exist to import
+						if($("#slicing_configuration_dialog.model .modal-extra > div.import select option").length)
+							$("#slicing_configuration_dialog .modal-extra button.importFromServer").prop("disabled", false);
 						
 						// Hide cut shape options
 						$("#slicing_configuration_dialog .modal-extra div.cutShape").removeClass("show");
@@ -8184,7 +8466,7 @@ $(function() {
 				var loader = new THREE.ThreeMFLoader();
 		
 			// Load model
-			return loader.load(file, function(geometry) {
+			return loader.load(file + "?" + new Date().getTime(), function(geometry) {
 			
 				// Standardize geometry
 				if(!(geometry instanceof THREE.Geometry))
@@ -8234,21 +8516,21 @@ $(function() {
 		
 		// Preload all images
 		preload(
-			PLUGIN_BASEURL + "m33fio/static/img/logo.png",
 			PLUGIN_BASEURL + "m33fio/static/img/hengLiXin.png",
 			PLUGIN_BASEURL + "m33fio/static/img/listener.png",
 			PLUGIN_BASEURL + "m33fio/static/img/shenzhew.png",
 			PLUGIN_BASEURL + "m33fio/static/img/xinyujie.png",
 			PLUGIN_BASEURL + "m33fio/static/img/custom.png",
 			PLUGIN_BASEURL + "m33fio/static/img/loading.gif",
-			PLUGIN_BASEURL + "m33fio/static/img/black.png",
-			PLUGIN_BASEURL + "m33fio/static/img/white.png",
-			PLUGIN_BASEURL + "m33fio/static/img/blue.png",
-			PLUGIN_BASEURL + "m33fio/static/img/green.png",
-			PLUGIN_BASEURL + "m33fio/static/img/orange.png",
-			PLUGIN_BASEURL + "m33fio/static/img/clear.png",
-			PLUGIN_BASEURL + "m33fio/static/img/silver.png",
-			PLUGIN_BASEURL + "m33fio/static/img/purple.png",
+			PLUGIN_BASEURL + "m33fio/static/img/micro-3d-black.png",
+			PLUGIN_BASEURL + "m33fio/static/img/micro-3d-white.png",
+			PLUGIN_BASEURL + "m33fio/static/img/micro-3d-blue.png",
+			PLUGIN_BASEURL + "m33fio/static/img/micro-3d-green.png",
+			PLUGIN_BASEURL + "m33fio/static/img/micro-3d-orange.png",
+			PLUGIN_BASEURL + "m33fio/static/img/micro-3d-clear.png",
+			PLUGIN_BASEURL + "m33fio/static/img/micro-3d-silver.png",
+			PLUGIN_BASEURL + "m33fio/static/img/micro-3d-purple.png",
+			PLUGIN_BASEURL + "m33fio/static/img/m3d-pro-black.png",
 			PLUGIN_BASEURL + "m33fio/static/img/filament.png",
 			PLUGIN_BASEURL + "m33fio/static/img/import-from-file.png",
 			PLUGIN_BASEURL + "m33fio/static/img/import-from-server.png",
@@ -8273,27 +8555,27 @@ $(function() {
 			PLUGIN_BASEURL + "m33fio/static/img/backlash-layout.png",
 			PLUGIN_BASEURL + "m33fio/static/img/backlash-printed.png",
 			PLUGIN_BASEURL + "m33fio/static/img/graph-background.png",
-			PLUGIN_BASEURL + "m33fio/static/img/fill-density_extra-high.png",
-			PLUGIN_BASEURL + "m33fio/static/img/fill-density_full.png",
-			PLUGIN_BASEURL + "m33fio/static/img/fill-density_high.png",
-			PLUGIN_BASEURL + "m33fio/static/img/fill-density_low.png",
-			PLUGIN_BASEURL + "m33fio/static/img/fill-density_medium.png",
-			PLUGIN_BASEURL + "m33fio/static/img/fill-density_thick.png",
-			PLUGIN_BASEURL + "m33fio/static/img/fill-density_thin.png",
-			PLUGIN_BASEURL + "m33fio/static/img/fill-pattern_3dhoneycomb.png",
-			PLUGIN_BASEURL + "m33fio/static/img/fill-pattern_archimedeanchords.png",
-			PLUGIN_BASEURL + "m33fio/static/img/fill-pattern_concentric.png",
-			PLUGIN_BASEURL + "m33fio/static/img/fill-pattern_hilbertcurve.png",
-			PLUGIN_BASEURL + "m33fio/static/img/fill-pattern_honeycomb.png",
-			PLUGIN_BASEURL + "m33fio/static/img/fill-pattern_line.png",
-			PLUGIN_BASEURL + "m33fio/static/img/fill-pattern_octagramspiral.png",
-			PLUGIN_BASEURL + "m33fio/static/img/fill-pattern_rectilinear.png",
-			PLUGIN_BASEURL + "m33fio/static/img/fill-quality_extra-high.png",
-			PLUGIN_BASEURL + "m33fio/static/img/fill-quality_extra-low.png",
-			PLUGIN_BASEURL + "m33fio/static/img/fill-quality_high.png",
-			PLUGIN_BASEURL + "m33fio/static/img/fill-quality_highest.png",
-			PLUGIN_BASEURL + "m33fio/static/img/fill-quality_low.png",
-			PLUGIN_BASEURL + "m33fio/static/img/fill-quality_medium.png"
+			PLUGIN_BASEURL + "m33fio/static/img/fill-density-extra-high.png",
+			PLUGIN_BASEURL + "m33fio/static/img/fill-density-full.png",
+			PLUGIN_BASEURL + "m33fio/static/img/fill-density-high.png",
+			PLUGIN_BASEURL + "m33fio/static/img/fill-density-low.png",
+			PLUGIN_BASEURL + "m33fio/static/img/fill-density-medium.png",
+			PLUGIN_BASEURL + "m33fio/static/img/fill-density-thick.png",
+			PLUGIN_BASEURL + "m33fio/static/img/fill-density-thin.png",
+			PLUGIN_BASEURL + "m33fio/static/img/fill-pattern-3dhoneycomb.png",
+			PLUGIN_BASEURL + "m33fio/static/img/fill-pattern-archimedeanchords.png",
+			PLUGIN_BASEURL + "m33fio/static/img/fill-pattern-concentric.png",
+			PLUGIN_BASEURL + "m33fio/static/img/fill-pattern-hilbertcurve.png",
+			PLUGIN_BASEURL + "m33fio/static/img/fill-pattern-honeycomb.png",
+			PLUGIN_BASEURL + "m33fio/static/img/fill-pattern-line.png",
+			PLUGIN_BASEURL + "m33fio/static/img/fill-pattern-octagramspiral.png",
+			PLUGIN_BASEURL + "m33fio/static/img/fill-pattern-rectilinear.png",
+			PLUGIN_BASEURL + "m33fio/static/img/fill-quality-extra-high.png",
+			PLUGIN_BASEURL + "m33fio/static/img/fill-quality-extra-low.png",
+			PLUGIN_BASEURL + "m33fio/static/img/fill-quality-high.png",
+			PLUGIN_BASEURL + "m33fio/static/img/fill-quality-highest.png",
+			PLUGIN_BASEURL + "m33fio/static/img/fill-quality-low.png",
+			PLUGIN_BASEURL + "m33fio/static/img/fill-quality-medium.png"
 		);
 		
 		// Edit profile click event
@@ -8475,56 +8757,8 @@ $(function() {
 			}
 		});
 		
-		// Create model viewer tab
-		$("#control_link").after("\
-			<li id=\"model_link\">\
-				<a href=\"#model\" data-toggle=\"tab\">" + gettext("Model Viewer") + "</a>\
-			</li>\
-		");
-		
-		$("#tabs + div.tab-content").append("\
-			<div id=\"model\" class=\"tab-pane\">\
-				<div>\
-					<div>\
-						<div class=\"cover\">\
-							<img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/loading.gif\">\
-							<p></p>\
-						</div>\
-					</div>\
-				</div>\
-				<button class=\"autorotate btn btn-mini" + (autorotate ? " active" : "") + "\">" + gettext("Autorotate") + "</button>\
-			</div>\
-		");
-		
 		// Create model viewer
 		createModelViewer();
-		
-		// Autorotate button click event
-		$("#model button.autorotate").click(function() {
-		
-			// Update autorotate
-			autorotate = !autorotate;
-			
-			// Save autorotate
-			localStorage.autorotate = autorotate ? "true" : "false";
-			
-			// Apply autorotate change
-			if(autorotate) {
-				$(this).addClass("active");
-				modelViewer.orbitControls.autoRotate = true;
-			}
-			else {
-				$(this).removeClass("active");
-				modelViewer.orbitControls.autoRotate = false;
-			}
-		});
-		
-		// Subscribe to printer profile changes
-		self.settings.printerProfiles.currentProfileData.subscribe(function() {
-				
-			// Update model viewer's grid
-			modelViewer.updateGrid();
-		});
 		
 		// Add mid-print filament change settings
 		$("#gcode div.progress").after("\
@@ -8849,7 +9083,7 @@ $(function() {
 						<div>\
 							<button class=\"btn btn-block confirm\"></button>\
 							<button class=\"btn btn-block confirm\"></button>\
-							<button class=\"btn btn-block confirm\"></button>\
+							<button class=\"btn btn-block btn-primary confirm\"></button>\
 						</div>\
 						<span>" + gettext("Do not refresh this page or disconnect from the server at this time") + "</span>\
 					</div>\
@@ -9643,6 +9877,8 @@ $(function() {
 			
 					// Get slicer profile content
 					slicerProfileContent = $("#slicing_configuration_dialog .modal-extra textarea").val();
+					if(slicerProfileContent.slice(-1) === "\n")
+						slicerProfileContent += "\n";
 			
 					// Set parameter
 					var parameter = [
@@ -9682,7 +9918,7 @@ $(function() {
 			
 								// Remove comments from text
 								var text = "";
-								var lines = $("#slicing_configuration_dialog .modal-extra textarea").val().split("\n");
+								var lines = slicerProfileContent.split("\n");
 				
 								for(var i = 0; i < lines.length; i++) {
 					
@@ -9715,7 +9951,7 @@ $(function() {
 									fileName = fileName.substr(0, extension) + " " + getTimeStamp() + fileName.substr(extension);
 			
 								// Download profile
-								var blob = new Blob([text.slice(-1) === "\n" ? text.slice(0, -1) : text], {type: "text/plain"});
+								var blob = new Blob([text], {type: "text/plain"});
 								saveFile(blob, fileName);
 					
 								// Remove progress cursor
@@ -9822,6 +10058,8 @@ $(function() {
 				
 					// Get G-code content
 					var gcodeContent = $("#slicing_configuration_dialog .modal-extra textarea").val();
+					if(gcodeContent.slice(-1) === "\n")
+						gcodeContent += "\n";
 					
 					// Check if G-code content isn't empty
 					if(gcodeContent.length) {
@@ -9845,7 +10083,7 @@ $(function() {
 								fileName = fileName.substr(0, extension) + " " + getTimeStamp() + fileName.substr(extension);
 							
 							// Download profile
-							var blob = new Blob([gcodeContent.slice(-1) === "\n" ? gcodeContent.slice(0, -1) : gcodeContent], {type: "text/plain"});
+							var blob = new Blob([gcodeContent], {type: "text/plain"});
 							saveFile(blob, fileName);
 				
 							// Remove progress cursor
@@ -9914,7 +10152,7 @@ $(function() {
 				$("body > div.page-container > div.message button.confirm").eq(2).prop("disabled", !modelPathInput[0].checkValidity() || !modelPathInput.val().length);
 				
 				// Set model path
-				var modelPath = modelPathInput.val();
+				var modelPath = modelPathInput.val().replace(/\/+/g, "/").replace(/\s+/g, "_");
 				if(typeof self.files.currentPath !== "undefined" && modelPath[0] !== "/")
 					modelPath = "/" + modelPath;
 				
@@ -9943,7 +10181,7 @@ $(function() {
 				$("body > div.page-container > div.message button.confirm").eq(2).prop("disabled", !gcodePathInput[0].checkValidity() || !gcodePathInput.val().length);
 				
 				// Set G-code path
-				var gcodePath = gcodePathInput.val();
+				var gcodePath = gcodePathInput.val().replace(/\/+/g, "/").replace(/\s+/g, "_");
 				if(typeof self.files.currentPath !== "undefined" && gcodePath[0] !== "/")
 					gcodePath = "/" + gcodePath;
 				
@@ -9967,7 +10205,7 @@ $(function() {
 				$(this).parent().parent().siblings("span.saveOnServer.warning").removeClass("show");
 		});
 		
-		// Save local on server click event
+		// Save copy on server click event
 		$("#slicing_configuration_dialog .modal-footer a.saveOnServer").click(function(event) {
 		
 			// Stop default behavior
@@ -9990,6 +10228,8 @@ $(function() {
 			
 					// Get slicer profile content
 					slicerProfileContent = $("#slicing_configuration_dialog .modal-extra textarea").val();
+					if(slicerProfileContent.slice(-1) === "\n")
+						slicerProfileContent += "\n";
 			
 					// Set parameter
 					var parameter = [
@@ -10158,7 +10398,7 @@ $(function() {
 												<br>\
 												<label class=\"control-label\">" + gettext("Model Path") + "</label>\
 												<div class=\"controls modelPath\">\
-													<input type=\"text\" pattern=\"[^\\\\\\s" + (typeof self.files.currentPath === "undefined" ? "/" : "") + "]+\\.stl\" class=\"input-block-level\" value=\"" + encodeQuotes(readableModelPath) + "\">\
+													<input type=\"text\" pattern=\"[^\\\\" + (typeof self.files.currentPath === "undefined" ? "/" : "") + "]+\\.stl\" class=\"input-block-level\" value=\"" + encodeQuotes(readableModelPath) + "\">\
 												</div>\
 											</div><span class=\"saveOnServer warning show\">" + gettext("A model with that location and path already exists. Saving will overwrite that existing model.") + "</span>", gettext("Save"), function() {
 			
@@ -10281,6 +10521,8 @@ $(function() {
 				
 					// Get G-code content
 					var gcodeContent = $("#slicing_configuration_dialog .modal-extra textarea").val();
+					if(gcodeContent.slice(-1) === "\n")
+						gcodeContent += "\n";
 					
 					// Check if G-code content isn't empty
 					if(gcodeContent.length) {
@@ -10295,7 +10537,7 @@ $(function() {
 												<br>\
 												<label class=\"control-label\">" + gettext("G-Code Path") + "</label>\
 												<div class=\"controls gcodePath\">\
-													<input type=\"text\" pattern=\"[^\\\\\\s" + (typeof self.files.currentPath === "undefined" ? "/" : "") + "]+\\.(g|gco|gcode)\" class=\"input-block-level\" value=\"" + encodeQuotes(gcodePathAndName) + "\">\
+													<input type=\"text\" pattern=\"[^\\\\" + (typeof self.files.currentPath === "undefined" ? "/" : "") + "]+\\.(g|gco|gcode)\" class=\"input-block-level\" value=\"" + encodeQuotes(typeof self.files.currentPath !== "undefined" && self.files.currentPath().length == 0 ? gcodePathAndName.substr(1) : gcodePathAndName) + "\">\
 												</div>\
 											</div><span class=\"saveOnServer warning show\">" + gettext("A G-code file with that location and path already exists. Saving will overwrite that existing file.") + "</span>", gettext("Save"), function() {
 			
@@ -10446,6 +10688,17 @@ $(function() {
 							parent.find("input[type=\"checkbox\"]").trigger("click");
 					}
 				}
+			}
+			
+			// Check if setting is printer type
+			if($(this).hasClass("printerType")) {
+			
+				// Enable/disable Micro 3D printer specific settings
+				if(checked)
+					$("#settings_plugin_m33fio .micro3d").addClass("notUsingAMicro3DPrinter");
+				else
+			
+					$("#settings_plugin_m33fio .micro3d").removeClass("notUsingAMicro3DPrinter");
 			}
 		});
 		
@@ -10826,6 +11079,8 @@ $(function() {
 					
 						// Get slicer profile content
 						slicerProfileContent = $("#slicing_configuration_dialog .modal-extra textarea").val();
+						if(slicerProfileContent.slice(-1) === "\n")
+							slicerProfileContent += "\n";
 					
 						// Set parameter
 						var parameter = [
@@ -10984,7 +11239,7 @@ $(function() {
 														$("#slicing_configuration_dialog").addClass("in");
 											
 														// Show model editor
-														showModelEditor("Modify Model", $("#slicing_configuration_dialog > div.modal-header > h3").html(), gettext("Slice"));
+														showModelEditor(modelName, modelOrigin, modelPath, "Modify Model", $("#slicing_configuration_dialog > div.modal-header > h3").html(), gettext("Slice"));
 													}, 200);
 												}
 
@@ -11019,185 +11274,308 @@ $(function() {
 						});
 					}
 					
-					// Otherwise check if on modify model slicer dialog
-					else if(currentSlicerDialog === "Modify Model") {
+					// Otherwise check if current slicer dialog is modify or edit model
+					else if(currentSlicerDialog === "Modify Model" || currentSlicerDialog === "Edit Model") {
 					
 						// Check if WebGL isn't supported, model editor is being skipped, or scene isn't empty
 						if(!Detector.webgl || skipModelEditor || modelEditor.models.length > 1) {
-					
-							// Apply changes
-							function applyChanges() {
+						
+							// Check if current slicer dialog is edit model
+							if(currentSlicerDialog === "Edit Model") {
 							
 								// Set cursor to progress
 								$("body").addClass("progress");
-						
+					
 								// Display cover
-								$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Applying Changes…"));
-						
+								$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Saving Model…"));
+					
 								setTimeout(function() {
-								
-									// Set parameter
-									var parameter = [];
-								
-									// Check if WebGL is supported and not skipping model editor
-									if(Detector.webgl && !skipModelEditor) {
-								
-										// Export scene as an STL
-										var scene = modelEditor.exportScene();
-								
-										// Append parameters
-										parameter.push({
-											name: "Model Name",
-											value: modelName
-										},
-										{
-											name: "Model Origin",
-											value: modelOrigin
-										},
-										{
-											name: "Model Path",
-											value: modelPath
-										});
-									}
 							
-									// Append parameters
-									parameter.push({
-										name: "Slicer Name",
-										value: slicerName
-									},
-									{
-										name: "Slicer Profile Identifier",
-										value: slicerProfileIdentifier
-									},
-									{
-										name: "Slicer Profile Content",
-										value: slicerProfileContent
-									},
-									{
-										name: "Printer Profile Name",
-										value: printerProfileName
-									},
-									{
-										name: "After Slicing Action",
-										value: self.printerState.isErrorOrClosed() ? "none" : afterSlicingAction
-									});
-								
+									// Export scene as an STL
+									var scene = modelEditor.exportScene();
+						
+									// Create request
+									var form = new FormData();
+									if(typeof self.files.currentPath === "undefined")
+										form.append("file", scene, modelPath.substr(1) + modelName);
+									else
+										form.append("file", scene, modelPath + modelName);
+
 									// Send request
 									$.ajax({
-										url: PLUGIN_BASEURL + "m33fio/upload",
+										url: API_BASEURL + "files/" + modelOrigin,
 										type: "POST",
 										dataType: "json",
-										data: $.param(parameter),
-										contentType: "application/x-www-form-urlencoded; charset=UTF-8",
-										traditional: true,
-										processData: true
+										data: form,
+										contentType: false,
+										traditional: false,
+										processData: false
 
 									// Done
 									}).done(function() {
-									
+						
+										setTimeout(function() {
+												
+											// Remove progress cursor
+											$("body").removeClass("progress");
+										}, 300);
+										
+										// Hide dialog
+										$("#slicing_configuration_dialog").modal("hide");
+										
+										// Update files
+										self.files.requestData();
+									});
+								}, 600);
+							}
+							
+							// Otherwise
+							else {
+					
+								// Apply changes
+								function applyChanges() {
+							
+									// Set cursor to progress
+									$("body").addClass("progress");
+						
+									// Display cover
+									$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Applying Changes…"));
+						
+									setTimeout(function() {
+								
+										// Set parameter
+										var parameter = [];
+								
 										// Check if WebGL is supported and not skipping model editor
 										if(Detector.webgl && !skipModelEditor) {
+								
+											// Export scene as an STL
+											var scene = modelEditor.exportScene();
+								
+											// Append parameters
+											parameter.push({
+												name: "Model Name",
+												value: modelName
+											},
+											{
+												name: "Model Origin",
+												value: modelOrigin
+											},
+											{
+												name: "Model Path",
+												value: modelPath
+											});
+										}
 							
-											// Create request
-											var form = new FormData();
-											if(typeof self.files.currentPath === "undefined")
-												form.append("file", scene, modelPath.substr(1) + modelName);
-											else
-												form.append("file", scene, modelPath + modelName);
-											
-											// Prevent updating files
-											preventUpdatingFiles = true;
-			
-											// Send request
-											$.ajax({
-												url: API_BASEURL + "files/" + modelOrigin,
-												type: "POST",
-												dataType: "json",
-												data: form,
-												contentType: false,
-												traditional: false,
-												processData: false
+										// Append parameters
+										parameter.push({
+											name: "Slicer Name",
+											value: slicerName
+										},
+										{
+											name: "Slicer Profile Identifier",
+											value: slicerProfileIdentifier
+										},
+										{
+											name: "Slicer Profile Content",
+											value: slicerProfileContent
+										},
+										{
+											name: "Printer Profile Name",
+											value: printerProfileName
+										},
+										{
+											name: "After Slicing Action",
+											value: self.printerState.isErrorOrClosed() ? "none" : afterSlicingAction
+										});
+								
+										// Send request
+										$.ajax({
+											url: PLUGIN_BASEURL + "m33fio/upload",
+											type: "POST",
+											dataType: "json",
+											data: $.param(parameter),
+											contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+											traditional: true,
+											processData: true
 
-											// Done
-											}).done(function() {
+										// Done
+										}).done(function() {
+									
+											// Check if WebGL is supported and not skipping model editor
+											if(Detector.webgl && !skipModelEditor) {
+							
+												// Create request
+												var form = new FormData();
+												if(typeof self.files.currentPath === "undefined")
+													form.append("file", scene, modelPath.substr(1) + modelName);
+												else
+													form.append("file", scene, modelPath + modelName);
+											
+												// Prevent updating files
+												preventUpdatingFiles = true;
+			
+												// Send request
+												$.ajax({
+													url: API_BASEURL + "files/" + modelOrigin,
+													type: "POST",
+													dataType: "json",
+													data: form,
+													contentType: false,
+													traditional: false,
+													processData: false
+
+												// Done
+												}).done(function() {
+									
+													// Set current slicer dialog to done
+													currentSlicerDialog = "Done";
+												
+													// Clear after slicing action if printer isn't connected
+													if(self.printerState.isErrorOrClosed())
+														self.slicing.afterSlicing("none");
+												
+													setTimeout(function() {
+												
+														// Remove progress cursor
+														$("body").removeClass("progress");
+													}, 300);
+								
+													// Slice file
+													button.removeClass("disabled").click();
+												});
+											}
+									
+											// Otherwise
+											else {
+										
+												// Check if using a Micro 3D printer
+												if(!self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
+											
+													// Set bed dimensions
+													bedLowMaxX = 106.0;
+													bedLowMinX = -2.0;
+													bedLowMaxY = 105.0;
+													bedMediumMinY = -9.0;
+													bedLowMinY = self.settings.settings.plugins.m33fio.ExpandPrintableRegion() ? bedMediumMinY : -2.0;
+
+													// Set extruder center
+													extruderCenterX = (bedLowMaxX + bedLowMinX) / 2;
+													extruderCenterY = (bedLowMaxY + bedLowMinY + 14.0) / 2;
+											
+													// Set model center
+													self.modelCenter = [((bedLowMaxX - bedLowMinX) + (-(extruderCenterX - (bedLowMaxX + bedLowMinX) / 2) + bedLowMinX) * 2) / 2, ((bedLowMaxY - bedLowMinY) + (extruderCenterY - (bedLowMaxY + bedLowMinY) / 2 + bedLowMinY) * 2) / 2];
+												}
+											
+												// Otherwise
+												else
+											
+													// Reset model center
+													self.modelCenter = [null, null];
 									
 												// Set current slicer dialog to done
 												currentSlicerDialog = "Done";
-												
+											
 												// Clear after slicing action if printer isn't connected
 												if(self.printerState.isErrorOrClosed())
 													self.slicing.afterSlicing("none");
-												
+											
 												setTimeout(function() {
 												
 													// Remove progress cursor
 													$("body").removeClass("progress");
 												}, 300);
-								
+							
 												// Slice file
 												button.removeClass("disabled").click();
-											});
-										}
-									
-										// Otherwise
-										else {
-										
-											// Check if using a Micro 3D printer
-											if(!self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
-											
-												// Set bed dimensions
-												bedLowMaxX = 106.0;
-												bedLowMinX = -2.0;
-												bedLowMaxY = 105.0;
-												bedMediumMinY = -9.0;
-												bedLowMinY = self.settings.settings.plugins.m33fio.ExpandPrintableRegion() ? bedMediumMinY : -2.0;
-
-												// Set extruder center
-												extruderCenterX = (bedLowMaxX + bedLowMinX) / 2;
-												extruderCenterY = (bedLowMaxY + bedLowMinY + 14.0) / 2;
-											
-												// Set model center
-												self.modelCenter = [((bedLowMaxX - bedLowMinX) + (-(extruderCenterX - (bedLowMaxX + bedLowMinX) / 2) + bedLowMinX) * 2) / 2, ((bedLowMaxY - bedLowMinY) + (extruderCenterY - (bedLowMaxY + bedLowMinY) / 2 + bedLowMinY) * 2) / 2];
 											}
-											
-											// Otherwise
-											else
-											
-												// Reset model center
-												self.modelCenter = [null, null];
-									
-											// Set current slicer dialog to done
-											currentSlicerDialog = "Done";
-											
-											// Clear after slicing action if printer isn't connected
-											if(self.printerState.isErrorOrClosed())
-												self.slicing.afterSlicing("none");
-											
-											setTimeout(function() {
-												
-												// Remove progress cursor
-												$("body").removeClass("progress");
-											}, 300);
+										});
+									}, 600);
+								}
 							
-											// Slice file
-											button.removeClass("disabled").click();
-										}
-									});
-								}, 600);
-							}
-							
-							// Check if printing after slicing, a printer is connected, and using a Micro 3D printer
-							if(afterSlicingAction === "print" && !self.printerState.isErrorOrClosed() && !self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
+								// Check if printing after slicing, a printer is connected, and using a Micro 3D printer
+								if(afterSlicingAction === "print" && !self.printerState.isErrorOrClosed() && !self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
 								
-								// Check if using on the fly pre-processing and changing settings before print
-								if(self.settings.settings.plugins.m33fio.PreprocessOnTheFly() && self.settings.settings.plugins.m33fio.ChangeSettingsBeforePrint()) {
+									// Check if using on the fly pre-processing and changing settings before print
+									if(self.settings.settings.plugins.m33fio.PreprocessOnTheFly() && self.settings.settings.plugins.m33fio.ChangeSettingsBeforePrint()) {
 
-									// Show message
-									showMessage(gettext("Printing Status"), "", gettext("Print"), function() {
+										// Show message
+										showMessage(gettext("Printing Status"), "", gettext("Print"), function() {
 
-										// Hide message
-										hideMessage();
+											// Hide message
+											hideMessage();
 
+											// Send request
+											$.ajax({
+												url: API_BASEURL + "plugin/m33fio",
+												type: "POST",
+												dataType: "json",
+												data: JSON.stringify({
+													command: "message",
+													value: "Print Settings: " + JSON.stringify({
+														filamentTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").eq(0).val(),
+														heatbedTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").eq(1).val(),
+														filamentType: $("body > div.page-container > div.message > div > div > div.printSettings select").val(),
+														useWaveBondingPreprocessor: $("body > div.page-container > div.message > div > div > div.printSettings input[type=\"checkbox\"]").is(":checked")
+													})
+												}),
+												contentType: "application/json; charset=UTF-8",
+												traditional: true,
+												processData: true
+				
+											// Done
+											}).done(function() {
+
+												// Slice file
+												function sliceFile() {
+							
+													// Send request
+													$.ajax({
+														url: API_BASEURL + "plugin/m33fio",
+														type: "POST",
+														dataType: "json",
+														data: JSON.stringify({
+															command: "message",
+															value: "Starting Print"
+														}),
+														contentType: "application/json; charset=UTF-8",
+														traditional: true,
+														processData: true
+				
+													// Done
+													}).done(function() {
+			
+														// Apply changes
+														applyChanges();
+													});
+												}
+					
+												// Update settings
+												if(self.settings.requestData.toString().split("\n")[0].indexOf("callback") != -1)
+													self.settings.requestData(sliceFile);
+												else
+													self.settings.requestData().done(sliceFile);
+											});
+										}, gettext("Cancel"), function() {
+
+											// Hide message
+											hideMessage();
+										
+											// Clear skip model editor
+											skipModelEditor = false;
+										
+											// Set current slicer dialog back to modifying profile if it's currently there
+											if($("#slicing_configuration_dialog").hasClass("profile"))
+												currentSlicerDialog = "Modify Profile";
+								
+											// Enable button
+											button.removeClass("disabled");
+										});
+									}
+							
+									// Otherwise
+									else {
+							
 										// Send request
 										$.ajax({
 											url: API_BASEURL + "plugin/m33fio",
@@ -11205,97 +11583,27 @@ $(function() {
 											dataType: "json",
 											data: JSON.stringify({
 												command: "message",
-												value: "Print Settings: " + JSON.stringify({
-													filamentTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").eq(0).val(),
-													heatbedTemperature: $("body > div.page-container > div.message > div > div > div.printSettings input").eq(1).val(),
-													filamentType: $("body > div.page-container > div.message > div > div > div.printSettings select").val(),
-													useWaveBondingPreprocessor: $("body > div.page-container > div.message > div > div > div.printSettings input[type=\"checkbox\"]").is(":checked")
-												})
+												value: "Starting Print"
 											}),
 											contentType: "application/json; charset=UTF-8",
 											traditional: true,
 											processData: true
-				
+		
 										// Done
 										}).done(function() {
-
-											// Slice file
-											function sliceFile() {
-							
-												// Send request
-												$.ajax({
-													url: API_BASEURL + "plugin/m33fio",
-													type: "POST",
-													dataType: "json",
-													data: JSON.stringify({
-														command: "message",
-														value: "Starting Print"
-													}),
-													contentType: "application/json; charset=UTF-8",
-													traditional: true,
-													processData: true
-				
-												// Done
-												}).done(function() {
 			
-													// Apply changes
-													applyChanges();
-												});
-											}
-					
-											// Update settings
-											if(self.settings.requestData.toString().split("\n")[0].indexOf("callback") != -1)
-												self.settings.requestData(sliceFile);
-											else
-												self.settings.requestData().done(sliceFile);
+											// Apply changes
+											applyChanges();
 										});
-									}, gettext("Cancel"), function() {
-
-										// Hide message
-										hideMessage();
-										
-										// Clear skip model editor
-										skipModelEditor = false;
-										
-										// Set current slicer dialog back to modifying profile if it's currently there
-										if($("#slicing_configuration_dialog").hasClass("profile"))
-											currentSlicerDialog = "Modify Profile";
-								
-										// Enable button
-										button.removeClass("disabled");
-									});
+									}
 								}
-							
+
 								// Otherwise
-								else {
-							
-									// Send request
-									$.ajax({
-										url: API_BASEURL + "plugin/m33fio",
-										type: "POST",
-										dataType: "json",
-										data: JSON.stringify({
-											command: "message",
-											value: "Starting Print"
-										}),
-										contentType: "application/json; charset=UTF-8",
-										traditional: true,
-										processData: true
-		
-									// Done
-									}).done(function() {
-			
-										// Apply changes
-										applyChanges();
-									});
-								}
+								else
+
+									// Apply changes
+									applyChanges();
 							}
-
-							// Otherwise
-							else
-
-								// Apply changes
-								applyChanges();
 						}
 						
 						// Otherwise
@@ -11317,6 +11625,8 @@ $(function() {
 						
 						// Get G-code content
 						var gcodeContent = $("#slicing_configuration_dialog .modal-extra textarea").val();
+						if(gcodeContent.slice(-1) === "\n")
+							gcodeContent += "\n";
 					
 						// Check if G-code content isn't empty
 						if(gcodeContent.length) {
@@ -16526,7 +16836,7 @@ $(function() {
 				
 				// Sort firmwares
 				var firmwares = Object.keys(data.firmwares).sort(function(a, b) {
-					return a.toUpperCase() > b.toUpperCase();
+					return a.toUpperCase() > b.toUpperCase() ? 1 : -1;
 				});
 				
 				// Go through all provided firmwares
@@ -17583,7 +17893,7 @@ $(function() {
 			// Go through all view models
 			for(var viewModel in payload)
 			
-				// Check i view model is slicing view model
+				// Check if view model is slicing view model
 				if(payload[viewModel].constructor.name == "SlicingViewModel") {
 				
 					// Replace show
@@ -17594,7 +17904,7 @@ $(function() {
 						originalShow(target, file, force, path);
 						
 						// Set header text
-						$("#slicing_configuration_dialog > div.modal-header > h3").html(_.sprintf(gettext("Slicing %(fileName)s"), {fileName: htmlEncode(file)}));
+						$("#slicing_configuration_dialog > div.modal-header > h3").html(_.sprintf(gettext("Slicing %(fileName)s"), {fileName: htmlEncode((typeof self.files.currentPath !== "undefined" && self.files.currentPath().length > 0 ? "/" : "") + file)}));
 					}
 				}
 			
@@ -17626,6 +17936,12 @@ $(function() {
 					// Replace list helper update items
 					var originalUpdateItems = self.files.listHelper._updateItems;
 					self.files.listHelper._updateItems = function() {
+					
+						// Check if model editor exists
+						if(modelEditor !== null)
+						
+							// Update import from server options
+							updateImportFromServerOptions();
 					
 						// Check if updating files is allowed
 						if(!preventUpdatingFiles) {
@@ -17862,7 +18178,7 @@ $(function() {
 			}, 0);
 			
 			// Update printer differences
-			updatePrinterDifferences();
+			updatePrinterDifferences(true);
 		
 			// On server disconnect event
 			self.onServerDisconnect = function() {
@@ -17902,7 +18218,7 @@ $(function() {
 						if(message.hasClass("show")) {
 						
 							// Check if a disconnect message is already showing
-							if(message.find("h4").html() !== gettext("Server Status"))
+							if(message.find("h4").html() === gettext("Server Status"))
 							
 								// Return
 								return;
@@ -18001,7 +18317,7 @@ $(function() {
 				$("#gcode div.midPrintFilamentChange input").val(self.settings.settings.plugins.m33fio.MidPrintFilamentChangeLayers());
 				
 				// Update printer differences
-				updatePrinterDifferences();
+				updatePrinterDifferences(false);
 				
 				// Check if using a Micro 3D printer
 				if(!self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {

@@ -5,42 +5,7 @@
 	<div class="control-group">
 		<div class="controls">
 			<label class="checkbox" title="{{_("Disables all the Micro 3D printer specific features which allows using other types of printers" | replace("\"", "&quot;"))}}">
-				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.NotUsingAMicro3DPrinter"><span>{{_("Not using a Micro 3D printer")}}</span>
-			</label>
-		</div>
-	</div>
-	<div class="control-group micro3d">
-		<div class="controls">
-			<label class="checkbox" title="{{_("Uses settings obtained from the printer to overwrite existing settings when a Micro 3D printer connects" | replace("\"", "&quot;"))}}">
-				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.AutomaticallyObtainSettings"><span>{{_("Obtain printer settings automatically when a Micro 3D printer connects")}}</span>
-			</label>
-		</div>
-	</div>
-	<div class="control-group micro3d">
-		<div class="controls">
-			<label class="checkbox" title="{{_("Pre‐processes each G-code command right before being sent to the printer instead of having the entire G-code file pre‐processed when being uploaded or sliced" | replace("\"", "&quot;"))}}">
-				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.PreprocessOnTheFly"><span>{{_("Pre‐process on the fly")}}</span>
-			</label>
-		</div>
-	</div>
-	<div class="control-group dependant micro3d">
-		<div class="controls">
-			<label class="checkbox" title="{{_("A dialog box will appear right before printing to allow changing print settings")}}">
-				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.ChangeSettingsBeforePrint"><span>{{_("Change settings before print" | replace("\"", "&quot;"))}}</span>
-			</label>
-		</div>
-	</div>
-	<div class="control-group sharedLibrary micro3d">
-		<div class="controls">
-			<label class="checkbox" title="{{_("Uses the shared library pre‐processor instead of the Python pre‐processor to pre‐process G-code files and commands" | replace("\"", "&quot;"))}}">
-				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.UseSharedLibrary"><span>{{_("Use shared library")}}</span>
-			</label>
-		</div>
-	</div>
-	<div class="control-group micro3d">
-		<div class="controls">
-			<label class="checkbox" title="{{_("Allows uploading and printing models that are larger than the printer's max dimensions" | replace("\"", "&quot;"))}}">
-				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.IgnorePrintDimensionLimitations"><span>{{_("Ignore print dimension limitations")}} <span class="label label-important">{{_("Dangerous")}}</span></span>
+				<input type="checkbox" class="input-block-level printerType" data-bind="checked: settings.plugins.m33fio.NotUsingAMicro3DPrinter"><span>{{_("Not using a Micro 3D printer")}}</span>
 			</label>
 		</div>
 	</div>
@@ -84,6 +49,41 @@
 				<input type="number" step="1" min="1" max="60" class="input-block-level" data-bind="value: settings.plugins.m33fio.CameraFramesPerSecond">
 				<span class="add-on">fps</span>
 			</div>
+		</div>
+	</div>
+	<div class="control-group micro3d">
+		<div class="controls">
+			<label class="checkbox" title="{{_("Uses settings obtained from the printer to overwrite existing settings when a Micro 3D printer connects" | replace("\"", "&quot;"))}}">
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.AutomaticallyObtainSettings"><span>{{_("Obtain printer settings automatically when a Micro 3D printer connects")}}</span>
+			</label>
+		</div>
+	</div>
+	<div class="control-group micro3d">
+		<div class="controls">
+			<label class="checkbox" title="{{_("Pre‐processes each G-code command right before being sent to the printer instead of having the entire G-code file pre‐processed when being uploaded or sliced" | replace("\"", "&quot;"))}}">
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.PreprocessOnTheFly"><span>{{_("Pre‐process on the fly")}}</span>
+			</label>
+		</div>
+	</div>
+	<div class="control-group dependant micro3d">
+		<div class="controls">
+			<label class="checkbox" title="{{_("A dialog box will appear right before printing to allow changing print settings")}}">
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.ChangeSettingsBeforePrint"><span>{{_("Change settings before print" | replace("\"", "&quot;"))}}</span>
+			</label>
+		</div>
+	</div>
+	<div class="control-group sharedLibrary micro3d">
+		<div class="controls">
+			<label class="checkbox" title="{{_("Uses the shared library pre‐processor instead of the Python pre‐processor to pre‐process G-code files and commands" | replace("\"", "&quot;"))}}">
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.UseSharedLibrary"><span>{{_("Use shared library")}}</span>
+			</label>
+		</div>
+	</div>
+	<div class="control-group micro3d">
+		<div class="controls">
+			<label class="checkbox" title="{{_("Allows uploading and printing models that are larger than the printer's max dimensions" | replace("\"", "&quot;"))}}">
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.IgnorePrintDimensionLimitations"><span>{{_("Ignore print dimension limitations")}} <span class="label label-important">{{_("Dangerous")}}</span></span>
+			</label>
 		</div>
 	</div>
 	<div class="control-group title micro3d">

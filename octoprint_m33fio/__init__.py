@@ -898,6 +898,28 @@ class M33FioPlugin(
 			# Select Micro 3D printer profile
 			self._printer_profile_manager.select("micro_3d")
 	
+	# Add channel
+	def addChannel(self) :
+	
+		# Check if M33 Fio channel doesn't exist
+		if octoprint.settings.settings().get(["server", "firstRun"]) is not None and not octoprint.settings.settings().get(["server", "firstRun"]) and octoprint.settings.settings().get(["plugins", "announcements", "channels", "_m33fio"]) is None :
+		
+			# Add M33 Fio channel to announcements
+			octoprint.settings.settings().set(["plugins", "announcements", "channels", "_m33fio"], dict(
+				name = "M33 Fio Announcements and News",
+				description = "Announcements and news related to M33 Fio.",
+				priority = 2,
+				type = "rss",
+				url = "https://exploitkings.com/scripts/M33 Fio.xml",
+				read_until = 0), True)
+			
+			# Enable M33 Fio channel
+			enabledChannels = octoprint.settings.settings().get(["plugins", "announcements", "enabled_channels"])
+			if enabledChannels is None :
+				enabledChannels = []
+			enabledChannels += ['_m33fio']
+			octoprint.settings.settings().set(["plugins", "announcements", "enabled_channels"], enabledChannels, True)
+	
 	# On startup
 	def on_startup(self, host, port) :
 	
@@ -909,6 +931,9 @@ class M33FioPlugin(
 		self._m33fio_logger.addHandler(m33fio_logging_handler)
 		self._m33fio_logger.setLevel(logging.DEBUG if self._settings.get_boolean(["UseDebugLogging"]) else logging.CRITICAL)
 		self._m33fio_logger.propagate = False
+		
+		# Add channel
+		self.addChannel()
 	
 	# On after startup
 	def on_after_startup(self) :
@@ -2973,8 +2998,8 @@ class M33FioPlugin(
 					# Return error
 					return flask.jsonify(dict(value = "Error"))
 				
-				# Check if slicer isn't registered
-				if values["slicerName"] not in self._slicing_manager.registered_slicers :
+				# Check if slicer isn't registered or configured
+				if values["slicerName"] not in self._slicing_manager.registered_slicers or values["slicerName"] not in self._slicing_manager.configured_slicers :
 				
 					# Return error
 					return flask.jsonify(dict(value = "Error"))
@@ -3016,8 +3041,8 @@ class M33FioPlugin(
 				# Get slicer name
 				slicerName = data["value"][22 :]
 				
-				# Check if slicer isn't registered
-				if slicerName not in self._slicing_manager.registered_slicers :
+				# Check if slicer isn't registered or configured
+				if slicerName not in self._slicing_manager.registered_slicers or slicerName not in self._slicing_manager.configured_slicers :
 				
 					# Return error
 					return flask.jsonify(dict(value = "Error"))
@@ -5813,6 +5838,8 @@ class M33FioPlugin(
 					self._printer_profile_manager.deselect()
 				
 				# Remove Micro 3D printer profile
+				if octoprint.settings.settings().get(["printerProfiles", "default"]) == "micro_3d" :
+					octoprint.settings.settings().set(["printerProfiles", "default"], None)
 				self._printer_profile_manager.remove("micro_3d")
 		
 		# Otherwise
@@ -5880,6 +5907,9 @@ class M33FioPlugin(
 		
 		# Otherwise check if client connects
 		elif event == octoprint.events.Events.CLIENT_OPENED :
+		
+			# Add channel
+			self.addChannel()
 		
 			# Send OctoPrint process details
 			self.sendOctoPrintProcessDetails()

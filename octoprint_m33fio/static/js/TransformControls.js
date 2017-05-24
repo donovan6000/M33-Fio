@@ -639,7 +639,6 @@
 		this.axis = null;
 		this.maintainPosition = false;
 		this.enable = true;
-		this.scaleFactor = 1;
 
 		var scope = this;
 
@@ -1082,10 +1081,10 @@
 				point.multiply( parentScale );
 
 				if ( scope.space === "local" ) {
-
+				
 					if ( scope.axis === "XYZ" ) {
 
-						scale = 1 + ( ( point.y ) / Math.max( oldScale.x, oldScale.y, oldScale.z ) ) * scope.scaleFactor;
+						scale = 1 + ( ( point.y ) / 50 );
 
 						scope.object.scale.x = oldScale.x * scale;
 						scope.object.scale.y = oldScale.y * scale;
@@ -1095,9 +1094,9 @@
 
 						point.applyMatrix4( tempMatrix.getInverse( worldRotationMatrix ) );
 
-						if ( scope.axis === "X" ) scope.object.scale.x = oldScale.x * ( 1 - point.x / oldScale.x * scope.scaleFactor );
-						if ( scope.axis === "Y" ) scope.object.scale.y = oldScale.y * ( 1 + point.y / oldScale.y * scope.scaleFactor );
-						if ( scope.axis === "Z" ) scope.object.scale.z = oldScale.z * ( 1 + point.z / oldScale.z * scope.scaleFactor );
+						if ( scope.axis === "X" ) scope.object.scale.x = oldScale.x * ( 1 - point.x / 50 );
+						if ( scope.axis === "Y" ) scope.object.scale.y = oldScale.y * ( 1 + point.y / 50 );
+						if ( scope.axis === "Z" ) scope.object.scale.z = oldScale.z * ( 1 + point.z / 50 );
 
 					}
 					

@@ -700,13 +700,18 @@ body > div.page-container > div.message > div {
 	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 	font-size: 14px;
 	color: #333;
+	border: 1px solid rgba(0, 0, 0, 0.3);
 	background-color: #fff;
-	border: 1px solid #e5e5e5;
-	-ms-border-radius: 4px;
-	-moz-border-radius: 4px;
-	-webkit-border-radius: 4px;
-	-o-border-radius: 4px;
-	border-radius: 4px;
+	-ms-border-radius: 6px;
+	-moz-border-radius: 6px;
+	-webkit-border-radius: 6px;
+	-o-border-radius: 6px;
+	border-radius: 6px;
+	-ms-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
+	-moz-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
+	-webkit-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
+	-o-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
+	box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
 }
 
 body > div.page-container > div.message > div > h4 {
@@ -1070,10 +1075,17 @@ body > div.page-container > div.message .customInput input {
 	top: 50% !important;
 }
 
-#slicing_configuration_dialog.profile, #slicing_configuration_dialog.gcode {
+#slicing_configuration_dialog.profile {
 	max-width: 850px !important;
 	min-width: 810px !important;
 	min-height: 137px !important;
+}
+
+#slicing_configuration_dialog.gcode {
+	max-width: 850px !important;
+	min-width: 610px !important;
+	min-height: 200px !important;
+	height: calc(100% - 200px);
 }
 
 #slicing_configuration_dialog.profile.transitionHeight {
@@ -1151,6 +1163,7 @@ body > div.page-container > div.message .customInput input {
 
 #slicing_configuration_dialog.gcode .modal-extra {
 	overflow: hidden !important;
+	height: 100%;
 }
 
 #slicing_configuration_dialog.profile .modal-extra div.advanced, #slicing_configuration_dialog.gcode .modal-extra > div {
@@ -1300,6 +1313,10 @@ body > div.page-container > div.message .customInput input {
 
 #slicing_configuration_dialog .group.advanced, #slicing_configuration_dialog.gcode .modal-extra > div {
 	background-color: transparent;
+}
+
+#slicing_configuration_dialog.gcode .modal-extra > div {
+	height: 100%;
 }
 
 #slicing_configuration_dialog .group.advanced h3:after, #slicing_configuration_dialog .group.advanced h3::after {
@@ -2383,9 +2400,17 @@ body > div.page-container > div.message .customInput input {
 	display: none;
 }
 
-#model button.autorotate {
+#model button {
 	outline: none;
 	margin-bottom: -2px;
+}
+
+#model button.hide {
+	display: none;
+}
+
+#model button.showGrid {
+	float: right;
 }
 
 #files div.gcode_files div.entry .action-buttons div.btn-mini.viewModel, #files div.gcode_files div.entry .action-buttons div.btn-mini.editGcode, #files div.gcode_files div.entry .action-buttons div.btn-mini.editModel {
