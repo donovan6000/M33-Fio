@@ -890,7 +890,7 @@ class M33FioPlugin(
 		
 		printerProfile = octoprint.util.dict_merge(self._printer_profile_manager.get_default(), printerProfile)
 		
-		self._printer_profile_manager.save(printerProfile, True, False)
+		self._printer_profile_manager.save(printerProfile, True, not self._settings.get_boolean(["NotUsingAMicro3DPrinter"]))
 		
 		# Check if using a Micro 3D printer
 		if not self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
@@ -955,6 +955,9 @@ class M33FioPlugin(
 		# Guarantee settings are valid
 		self.guaranteeSettingsAreValid()
 		
+		# Set default slicer profile
+		self.setDefaultSlicerProfile(False)
+		
 		# Check if shared library is usable
 		if self.loadSharedLibrary(True) :
 	
@@ -978,6 +981,9 @@ class M33FioPlugin(
 		
 		# Save settings
 		octoprint.settings.settings().save()
+		
+		# Send message
+		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Refresh Settings"))
 	
 		# Set reminders on initial OctoPrint instance
 		currentPort = self.getListenPort(psutil.Process(os.getpid()))
@@ -1084,11 +1090,14 @@ class M33FioPlugin(
 					octoprint.settings.settings().set(["webcam", "stream"], "None", True)
 					octoprint.settings.settings().set(["webcam", "snapshot"], "None", True)
 					
+					# Send message
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Hosting camera failed"), header = gettext("Camera Host Status"), confirm = True))
+					
 					# Save settings
 					octoprint.settings.settings().save()
 					
 					# Send message
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Hosting camera failed"), header = gettext("Camera Host Status"), confirm = True))
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Refresh Settings"))
 	
 	# Load shared library
 	def loadSharedLibrary(self, isUsable = False) :
@@ -1875,9 +1884,13 @@ class M33FioPlugin(
 		# Make sure sleep never remind is valid
 		if self._settings.get_boolean(["SleepNeverRemind"]) is None :
 			self._settings.set_boolean(["SleepNeverRemind"], self.get_settings_defaults()["SleepNeverRemind"])
+		
+		# Make sure Micro 3D bootloader versions uploaded is valid
+		if self._settings.get(["Micro3DBootloaderVersionsUploaded"]) is None :
+			self._settings.set(["Micro3DBootloaderVersionsUploaded"], self.get_settings_defaults()["Micro3DBootloaderVersionsUploaded"])
 	
 	# Set default slicer profile
-	def setDefaultSlicerProfile(self) :
+	def setDefaultSlicerProfile(self, overwrite) :
 	
 		# Check if Cura is configured
 		if "cura" in self._slicing_manager.configured_slicers :
@@ -1898,7 +1911,8 @@ class M33FioPlugin(
 				
 					# Set profile as default
 					try :
-						self._slicing_manager.set_default_profile("cura", os.path.splitext(profileIdentifier)[0])
+						if overwrite or self._slicing_manager._get_default_profile("cura").display_name is None :
+							self._slicing_manager.set_default_profile("cura", os.path.splitext(profileIdentifier)[0])
 					except :
 						pass
 				
@@ -1924,7 +1938,8 @@ class M33FioPlugin(
 				
 					# Set profile as default
 					try :
-						self._slicing_manager.set_default_profile("slic3r", os.path.splitext(profileIdentifier)[0])
+						if overwrite or self._slicing_manager._get_default_profile("slic3r").display_name is None :
+							self._slicing_manager.set_default_profile("slic3r", os.path.splitext(profileIdentifier)[0])
 					except :
 						pass
 				
@@ -2098,6 +2113,9 @@ class M33FioPlugin(
 			
 			# Save settings
 			octoprint.settings.settings().save()
+			
+			# Send message
+			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Refresh Settings"))
 		
 		# Check if hosting camera
 		if self._settings.get_boolean(["HostCamera"]) :
@@ -2179,7 +2197,7 @@ class M33FioPlugin(
 			if not self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
 			
 				# Set default slicer profile
-				self.setDefaultSlicerProfile()
+				self.setDefaultSlicerProfile(True)
 	
 	# Template manager
 	def get_template_configs(self) :
@@ -2985,6 +3003,9 @@ class M33FioPlugin(
 				
 				# Save settings
 				octoprint.settings.settings().save()
+				
+				# Send message
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Refresh Settings"))
 			
 			# Otherwise check if parameter is to view a profile
 			elif data["value"].startswith("View Profile:") :
@@ -3232,6 +3253,9 @@ class M33FioPlugin(
 				# Save software settings
 				octoprint.settings.settings().save()
 				
+				# Send message
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Refresh Settings"))
+				
 				# Send response
 				return flask.jsonify(dict(value = "OK"))
 			
@@ -3243,6 +3267,9 @@ class M33FioPlugin(
 			
 				# Save software settings
 				octoprint.settings.settings().save()
+				
+				# Send message
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Refresh Settings"))
 			
 			# Otherwise check if parameter is to set expand printable region
 			elif data["value"].startswith("Set Expand Printable Region:") :
@@ -3258,6 +3285,9 @@ class M33FioPlugin(
 			
 				# Save software settings
 				octoprint.settings.settings().save()
+				
+				# Send message
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Refresh Settings"))
 			
 			# Otherwise check if parameter is to remove temporary files
 			elif data["value"] == "Remove Temp" :
@@ -3593,6 +3623,9 @@ class M33FioPlugin(
 				
 				# Save settings
 				octoprint.settings.settings().save()
+				
+				# Send message
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Refresh Settings"))
 			
 			# Otherwise check if parameter is to set mid-print filament change layers
 			elif data["value"].startswith("Mid-Print Filament Change Layers:") :
@@ -3602,6 +3635,9 @@ class M33FioPlugin(
 				
 				# Save settings
 				octoprint.settings.settings().save()
+				
+				# Send message
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Refresh Settings"))
 			
 			# Otherwise check if parameter is cancel print
 			elif data["value"] == "Cancel Print" :
@@ -5746,6 +5782,9 @@ class M33FioPlugin(
 		
 				# Save software settings
 				octoprint.settings.settings().save()
+				
+				# Send message
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Refresh Settings"))
 		
 		# Check if Cura is configured
 		if "cura" in self._slicing_manager.configured_slicers :
@@ -7040,7 +7079,12 @@ class M33FioPlugin(
 													uploadedVersions += str(int(bootloaderVersion[1 :]))
 													
 													self._settings.set(["Micro3DBootloaderVersionsUploaded"], uploadedVersions)
+													
+													# Save software settings
 													octoprint.settings.settings().save()
+													
+													# Send message
+													self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Refresh Settings"))
 												
 												# Otherwise
 												else :
@@ -7083,7 +7127,12 @@ class M33FioPlugin(
 															uploadedVersions += str(int(bootloaderVersion[1 :]))
 															
 															self._settings.set(["Micro3DBootloaderVersionsUploaded"], uploadedVersions)
+															
+															# Save software settings
 															octoprint.settings.settings().save()
+															
+															# Send message
+															self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Refresh Settings"))
 					
 															# Send message
 															self.messageResponse = None
@@ -7838,7 +7887,7 @@ class M33FioPlugin(
 					self._settings.set(["FilamentType"], self.printerFilamentType)
 					
 					# Set default slicer profile
-					self.setDefaultSlicerProfile()
+					self.setDefaultSlicerProfile(True)
 			
 			# Otherwise check if data is for filament temperature
 			elif "PT:" + str(self.eepromOffsets["filamentTemperature"]["offset"]) + " " in data :
@@ -8127,6 +8176,9 @@ class M33FioPlugin(
 					
 					# Save software settings
 					octoprint.settings.settings().save()
+					
+					# Send message
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Refresh Settings"))
 				
 				# Send invalid values
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Invalid", bedCenter = self.invalidBedCenter, bedPlane = self.invalidBedPlane, bedOrientation = self.invalidBedOrientation))
