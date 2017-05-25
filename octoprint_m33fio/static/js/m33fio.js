@@ -9,7 +9,6 @@ $(function() {
 	
 		// Initialize variables
 		var eepromDisplayType = "hexadecimal";
-		var slicerOpen = false;
 		var currentSlicerDialog = "Select Profile";
 		var modelName;
 		var modelOrigin;
@@ -42,7 +41,8 @@ $(function() {
 		var heatbedAttached = false;
 		var enableMessages = true;
 		var closingInstance = false;
-		var loadingSlicerProfile = false;
+		var loadingFile = false;
+		var forceShowMessage = false;
 		
 		// Set model editor printer and filament color
 		var modelEditorPrinterColor;
@@ -723,142 +723,149 @@ $(function() {
 		// Show stored messages
 		setInterval(function() {
 		
-			// Get message
-			var message = $("body > div.page-container > div.message");
+			// Check if offline message isn't currently being shown
+			if($("#offline_overlay").css("display") !== "block") {
+		
+				// Get message
+				var message = $("body > div.page-container > div.message");
 			
-			// Check if the current displayed message doesn't need confirmation
-			if(message.hasClass("show") && !message.find("button.confirm").eq(2).hasClass("show")) {
+				// Check if the current displayed message doesn't need confirmation
+				if(message.hasClass("show") && !message.find("button.confirm").eq(2).hasClass("show")) {
 			
-				// Check if skipping a message
-				if(skippedMessages) {
+					// Check if skipping a message
+					if(skippedMessages) {
 			
-					// Decrement skipped messages
-					skippedMessages--;
+						// Decrement skipped messages
+						skippedMessages--;
 				
-					// Hide message
-					hideMessage();
-				}
-			
-				// Otherwise check if using waiting or location callback, but the printer isn't connected
-				else if((typeof waitingCallback === "function" || typeof locationCallback === "function") && self.printerState.isErrorOrClosed()) {
-			
-					// Clear waiting and location callbacks
-					waitingCallback = locationCallback = null;
-				
-					// Hide message
-					hideMessage();
-				
-					// Show message
-					showMessage(message.find("h4").html(), gettext("Operation couldn't be completed because the printer was disconnected"), gettext("OK"), function() {
-
 						// Hide message
 						hideMessage();
-					});
-				}
-			}
-		
-			// Check if more messages exist
-			if(messages.length) {
-			
-				// Skip messages
-				while(skippedMessages && messages.length) {
-					skippedMessages--;
-					messages.shift();
-				}
-				
-				// Check if a message can be displayed
-				if(messages.length && self.loginState.loggedIn() && ((message.hasClass("show") && !message.find("button.confirm").eq(2).hasClass("show")) || message.css("z-index") !== "9999")) {
-				
-					// Get current message
-					var currentMessage = messages.shift();
-					
-					// Blur focused element
-					$("*:focus").blur();
-		
-					// Set header and text
-					message.find("h4").html(currentMessage.header);
-					message.find("p").eq(0).html(currentMessage.text).addClass("show").scrollTop(0);
-					
-					// Set first button if specified
-					var buttons = message.find("button.confirm");
-					if(typeof currentMessage.firstButton === "undefined")
-						buttons.eq(0).removeClass("show");
-					else
-						buttons.eq(0).html(currentMessage.firstButton).addClass("show");
-
-					// Set second button if specified
-					if(typeof currentMessage.secondButton === "undefined")
-						buttons.eq(1).removeClass("show");
-					else
-						buttons.eq(1).html(currentMessage.secondButton).addClass("show");
-					
-					// Set third button if specified
-					if(typeof currentMessage.thirdButton === "undefined")
-						buttons.eq(2).removeClass("show");
-					else
-						buttons.eq(2).html(currentMessage.thirdButton).addClass("show");
-
-					// Hide button area and show loading if no buttons are specified
-					if(typeof currentMessage.thirdButton === "undefined" && typeof currentMessage.secondButton === "undefined" && typeof currentMessage.firstButton === "undefined") {
-						$("body > div.page-container > div.message > div > div").addClass("loading");
-						$("body > div.page-container > div.message > div > div > div").removeClass("show");
-						$("body > div.page-container > div.message > div > img").addClass("show");
-						$("body > div.page-container > div.message > div > div > span").addClass("show");
-					}
-		
-					// Otherwise show button area and hide loading
-					else {
-						$("body > div.page-container > div.message > div > div").removeClass("loading");
-						$("body > div.page-container > div.message > div > div > div:not(.calibrate)").addClass("show");
-						$("body > div.page-container > div.message > div > img").removeClass("show");
-						$("body > div.page-container > div.message > div > div > span").removeClass("show");
-			
-						// Show calibration menu or print settings if applicable
-						$("body > div.page-container > div.message > div > div > div.calibrate, body > div.page-container > div.message > div > div > div.printSettings, body > div.page-container > div.message > div > div > div.filamentSettings").removeClass("show");
-						
-						if(currentMessage.thirdButton === gettext("Done") && !message.find("p").eq(0).find(".customInput").length)
-							$("body > div.page-container > div.message > div > div > div.calibrate").addClass("show");
-						
-						else if(currentMessage.thirdButton === gettext("Print") && currentMessage.text === "") {
-							$("body > div.page-container > div.message > div > div > div.printSettings input").eq(0).val(self.settings.settings.plugins.m33fio.FilamentTemperature());
-							$("body > div.page-container > div.message > div > div > div.printSettings input").eq(1).val(self.settings.settings.plugins.m33fio.HeatbedTemperature());
-							$("body > div.page-container > div.message > div > div > div.printSettings select").val(self.settings.settings.plugins.m33fio.FilamentType());
-							$("body > div.page-container > div.message > div > div > div.printSettings input[type=\"checkbox\"]").prop("checked", self.settings.settings.plugins.m33fio.UseWaveBondingPreprocessor());
-							$("body > div.page-container > div.message > div > div > div.printSettings").addClass("show");
-							message.find("p").eq(0).removeClass("show")
-						}
-						
-						else if(currentMessage.thirdButton === gettext("Unload") || currentMessage.thirdButton === gettext("Load") || currentMessage.thirdButton === gettext("Set")) {
-							$("body > div.page-container > div.message > div > div > div.filamentSettings input").eq(0).val(self.settings.settings.plugins.m33fio.FilamentTemperature());
-							$("body > div.page-container > div.message > div > div > div.filamentSettings label").html(currentMessage.thirdButton === gettext("Unload") ? gettext("Unload Temperature") : currentMessage.thirdButton === gettext("Load") ? gettext("Load Temperature") : gettext("New Temperature"));
-							$("body > div.page-container > div.message > div > div > div.filamentSettings p").html(gettext("Recommended") + "<ul>" + (currentMessage.thirdButton === gettext("Unload") ? "<li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "285°C", type: "ABS"}) + "</li><li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "225°C", type: "PLA"}) + "</li><li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "275°C", type: "HIPS"}) + "</li><li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "230°C", type: "FLX"}) + "</li><li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "230°C", type: "TGH"}) + "</li><li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "225°C", type: "CAM"}) + "</li><li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "250°C", type: "ABS‐R"}) + "</li>" : "<li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "275°C", type: "ABS"}) + "</li><li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "215°C", type: "PLA"}) + "</li><li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "265°C", type: "HIPS"}) + "</li><li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "220°C", type: "FLX"}) + "</li><li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "220°C", type: "TGH"}) + "</li><li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "215°C", type: "CAM"}) + "</li><li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "240°C", type: "ABS‐R"}) + "</li>") + "</ul>");
-							$("body > div.page-container > div.message > div > div > div.filamentSettings").addClass("show");
-							message.find("p").eq(0).removeClass("show")
-						}
 					}
 			
-					// Attach function callbacks
-					if(typeof currentMessage.firstButtonCallback === "function")
-						buttons.eq(0).one("click", currentMessage.firstButtonCallback);
-					else
-						buttons.eq(0).off("click");
-					
-					if(typeof currentMessage.secondButtonCallback === "function")
-						buttons.eq(1).one("click", currentMessage.secondButtonCallback);
-					else
-						buttons.eq(1).off("click");
-					
-					if(typeof currentMessage.thirdButtonCallback === "function")
-						buttons.eq(2).one("click", currentMessage.thirdButtonCallback);
-					else
-						buttons.eq(2).off("click");
+					// Otherwise check if using waiting or location callback, but the printer isn't connected
+					else if((typeof waitingCallback === "function" || typeof locationCallback === "function") && self.printerState.isErrorOrClosed()) {
 			
-					// Show message
-					message.addClass("show").css("z-index", "9999");
+						// Clear waiting and location callbacks
+						waitingCallback = locationCallback = null;
+				
+						// Hide message
+						hideMessage();
+				
+						// Show message
+						showMessage(message.find("h4").html(), gettext("Operation couldn't be completed because the printer was disconnected"), gettext("OK"), function() {
+
+							// Hide message
+							hideMessage();
+						});
+					}
+				}
+		
+				// Check if more messages exist
+				if(messages.length) {
+			
+					// Skip messages
+					while(skippedMessages && messages.length) {
+						skippedMessages--;
+						messages.shift();
+					}
+				
+					// Check if a message can be displayed
+					if(messages.length && (self.loginState.loggedIn() || forceShowMessage) && ((message.hasClass("show") && !message.find("button.confirm").eq(2).hasClass("show")) || message.css("z-index") !== "9999")) {
+						
+						// Clear force show message
+						forceShowMessage = false;
+						
+						// Get current message
+						var currentMessage = messages.shift();
 					
-					// Disable model editor
-					if(modelEditor !== null)
-						modelEditor.disable();
+						// Blur focused element
+						$("*:focus").blur();
+		
+						// Set header and text
+						message.find("h4").html(currentMessage.header);
+						message.find("p").eq(0).html(currentMessage.text).addClass("show").scrollTop(0);
+					
+						// Set first button if specified
+						var buttons = message.find("button.confirm");
+						if(typeof currentMessage.firstButton === "undefined")
+							buttons.eq(0).removeClass("show");
+						else
+							buttons.eq(0).html(currentMessage.firstButton).addClass("show");
+
+						// Set second button if specified
+						if(typeof currentMessage.secondButton === "undefined")
+							buttons.eq(1).removeClass("show");
+						else
+							buttons.eq(1).html(currentMessage.secondButton).addClass("show");
+					
+						// Set third button if specified
+						if(typeof currentMessage.thirdButton === "undefined")
+							buttons.eq(2).removeClass("show");
+						else
+							buttons.eq(2).html(currentMessage.thirdButton).addClass("show");
+
+						// Hide button area and show loading if no buttons are specified
+						if(typeof currentMessage.thirdButton === "undefined" && typeof currentMessage.secondButton === "undefined" && typeof currentMessage.firstButton === "undefined") {
+							$("body > div.page-container > div.message > div > div").addClass("loading");
+							$("body > div.page-container > div.message > div > div > div").removeClass("show");
+							$("body > div.page-container > div.message > div > img").addClass("show");
+							$("body > div.page-container > div.message > div > div > span").addClass("show");
+						}
+		
+						// Otherwise show button area and hide loading
+						else {
+							$("body > div.page-container > div.message > div > div").removeClass("loading");
+							$("body > div.page-container > div.message > div > div > div:not(.calibrate)").addClass("show");
+							$("body > div.page-container > div.message > div > img").removeClass("show");
+							$("body > div.page-container > div.message > div > div > span").removeClass("show");
+			
+							// Show calibration menu or print settings if applicable
+							$("body > div.page-container > div.message > div > div > div.calibrate, body > div.page-container > div.message > div > div > div.printSettings, body > div.page-container > div.message > div > div > div.filamentSettings").removeClass("show");
+						
+							if(currentMessage.thirdButton === gettext("Done") && !message.find("p").eq(0).find(".customInput").length)
+								$("body > div.page-container > div.message > div > div > div.calibrate").addClass("show");
+						
+							else if(currentMessage.thirdButton === gettext("Print") && currentMessage.text === "") {
+								$("body > div.page-container > div.message > div > div > div.printSettings input").eq(0).val(self.settings.settings.plugins.m33fio.FilamentTemperature());
+								$("body > div.page-container > div.message > div > div > div.printSettings input").eq(1).val(self.settings.settings.plugins.m33fio.HeatbedTemperature());
+								$("body > div.page-container > div.message > div > div > div.printSettings select").val(self.settings.settings.plugins.m33fio.FilamentType());
+								$("body > div.page-container > div.message > div > div > div.printSettings input[type=\"checkbox\"]").prop("checked", self.settings.settings.plugins.m33fio.UseWaveBondingPreprocessor());
+								$("body > div.page-container > div.message > div > div > div.printSettings").addClass("show");
+								message.find("p").eq(0).removeClass("show")
+							}
+						
+							else if(currentMessage.thirdButton === gettext("Unload") || currentMessage.thirdButton === gettext("Load") || currentMessage.thirdButton === gettext("Set")) {
+								$("body > div.page-container > div.message > div > div > div.filamentSettings input").eq(0).val(self.settings.settings.plugins.m33fio.FilamentTemperature());
+								$("body > div.page-container > div.message > div > div > div.filamentSettings label").html(currentMessage.thirdButton === gettext("Unload") ? gettext("Unload Temperature") : currentMessage.thirdButton === gettext("Load") ? gettext("Load Temperature") : gettext("New Temperature"));
+								$("body > div.page-container > div.message > div > div > div.filamentSettings p").html(gettext("Recommended") + "<ul>" + (currentMessage.thirdButton === gettext("Unload") ? "<li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "285°C", type: "ABS"}) + "</li><li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "225°C", type: "PLA"}) + "</li><li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "275°C", type: "HIPS"}) + "</li><li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "230°C", type: "FLX"}) + "</li><li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "230°C", type: "TGH"}) + "</li><li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "225°C", type: "CAM"}) + "</li><li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "250°C", type: "ABS‐R"}) + "</li>" : "<li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "275°C", type: "ABS"}) + "</li><li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "215°C", type: "PLA"}) + "</li><li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "265°C", type: "HIPS"}) + "</li><li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "220°C", type: "FLX"}) + "</li><li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "220°C", type: "TGH"}) + "</li><li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "215°C", type: "CAM"}) + "</li><li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "240°C", type: "ABS‐R"}) + "</li>") + "</ul>");
+								$("body > div.page-container > div.message > div > div > div.filamentSettings").addClass("show");
+								message.find("p").eq(0).removeClass("show")
+							}
+						}
+			
+						// Attach function callbacks
+						if(typeof currentMessage.firstButtonCallback === "function")
+							buttons.eq(0).one("click", currentMessage.firstButtonCallback);
+						else
+							buttons.eq(0).off("click");
+					
+						if(typeof currentMessage.secondButtonCallback === "function")
+							buttons.eq(1).one("click", currentMessage.secondButtonCallback);
+						else
+							buttons.eq(1).off("click");
+					
+						if(typeof currentMessage.thirdButtonCallback === "function")
+							buttons.eq(2).one("click", currentMessage.thirdButtonCallback);
+						else
+							buttons.eq(2).off("click");
+			
+						// Show message
+						message.addClass("show").css("z-index", "9999");
+					
+						// Disable model editor
+						if(modelEditor !== null)
+							modelEditor.disable();
+					}
 				}
 			}
 		}, 300);
@@ -3175,7 +3182,7 @@ $(function() {
 									<button class=\"measurements" + (modelEditor.showMeasurements ? " disabled" : "") + "\" title=\"" + encodeQuotes(gettext("Measurements")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/measurements.png\"></button>\
 									<button class=\"grid" + (modelEditor.showGrid ? " disabled" : "") + " printerModel\" title=\"" + encodeQuotes(gettext("Grid")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/grid.png\"></button>\
 								</div>\
-								<div class=\"import show\">\
+								<div class=\"import\">\
 									<div>\
 										<button class=\"close\" title=\"" + encodeQuotes(gettext("Close")) + "\"><div></div><i class=\"icon-remove-sign\"></i></button>\
 										<div>\
@@ -4855,32 +4862,44 @@ $(function() {
 			
 				// Initialize variables
 				var button = $(this);
+				
+				// Blur self
+				button.blur();
 			
 				// Check if button is not disabled
-				if(!button.hasClass("disabled")) {
+				if(!button.hasClass("disabled"))
+				
+					// Check if not already loading a file
+					if(!loadingFile) {
+			
+						// Set loading file
+						loadingFile = true;
 					
-					// Get model URL
-					var modelUrl = button.parent().children("a.btn-mini").attr("href");
+						// Get model URL
+						var modelUrl = button.parent().children("a.btn-mini").attr("href");
 					
-					// Enable other edit buttons
-					$("#files div.gcode_files div.entry .action-buttons div.btn-mini.editModel").removeClass("disabled");
+						// Enable other edit buttons
+						$("#files div.gcode_files div.entry .action-buttons div.btn-mini.editModel").removeClass("disabled");
 					
-					// Set icon to spinning animation
-					button.addClass("disabled").children("i").removeClass("icon-pencil").addClass("icon-spinner icon-spin");
+						// Set icon to spinning animation
+						button.addClass("disabled").children("i").removeClass("icon-pencil").addClass("icon-spinner icon-spin");
 					
-					setTimeout(function() {
+						setTimeout(function() {
 					
-						// Show model editor
-						showModelEditor(modelUrl, "", "", getModelName(getRootFilePath(), modelUrl), getModelOrigin(getRootFilePath(), modelUrl), typeof self.files.currentPath === "undefined" || self.files.currentPath().length == 0 ? "/" : "/" + self.files.currentPath() + "/", "Edit Model", _.sprintf(gettext("Editing %(fileName)s"), {fileName: htmlEncode(typeof self.files.currentPath === "undefined" || self.files.currentPath().length == 0 ? "" : "/" + self.files.currentPath() + "/") + button.parent().parent().children("div").eq(0).html()}), gettext("Save"), function() {
+							// Show model editor
+							showModelEditor(modelUrl, "", "", getModelName(getRootFilePath(), modelUrl), getModelOrigin(getRootFilePath(), modelUrl), typeof self.files.currentPath === "undefined" || self.files.currentPath().length == 0 ? "/" : "/" + self.files.currentPath() + "/", "Edit Model", _.sprintf(gettext("Editing %(fileName)s"), {fileName: htmlEncode(typeof self.files.currentPath === "undefined" || self.files.currentPath().length == 0 ? "" : "/" + self.files.currentPath() + "/") + button.parent().parent().children("div").eq(0).html()}), gettext("Save"), function() {
 						
-							setTimeout(function() {
+								setTimeout(function() {
+								
+									// Clear loading file
+									loadingFile = false;
 							
-								// Restore edit icon and enable button
-								button.removeClass("disabled").children("i").removeClass("icon-spinner icon-spin").addClass("icon-pencil");
+									// Restore edit icon and enable button
+									button.removeClass("disabled").children("i").removeClass("icon-spinner icon-spin").addClass("icon-pencil");
+								}, 0);
 							}, 0);
-						}, 0);
-					}, 200);
-				}
+						}, 200);
+					}
 			});
 		}
 		
@@ -4915,29 +4934,41 @@ $(function() {
 			
 				// Initialize variables
 				var button = $(this);
-			
+				
+				// Blur self
+				button.blur();
+				
 				// Check if button is not disabled
-				if(!button.hasClass("disabled")) {
+				if(!button.hasClass("disabled"))
+				
+					// Check if not already loading file
+					if(!loadingFile) {
+			
+						// Set loading file
+						loadingFile = true;
+			
+						// Enable other edit buttons
+						$("#files div.gcode_files div.entry .action-buttons div.btn-mini.editGcode").removeClass("disabled");
 					
-					// Enable other edit buttons
-					$("#files div.gcode_files div.entry .action-buttons div.btn-mini.editGcode").removeClass("disabled");
+						// Set icon to spinning animation
+						button.addClass("disabled").children("i").removeClass("icon-pencil").addClass("icon-spinner icon-spin");
+				
+						setTimeout(function() {
+				
+							// Show G-code editor
+							showGcodeEditor(button.parent().children("a.btn-mini").attr("href"), button.parent().parent().children("div").eq(0).text(), "Edit G-code", _.sprintf(gettext("Editing %(fileName)s"), {fileName: htmlEncode(typeof self.files.currentPath === "undefined" || self.files.currentPath().length == 0 ? "" : "/" + self.files.currentPath() + "/") + button.parent().parent().children("div").eq(0).html()}), gettext("Save"), function() {
+					
+								setTimeout(function() {
+								
+									// Clear loading file
+									loadingFile = false;
 						
-					// Set icon to spinning animation
-					button.addClass("disabled").children("i").removeClass("icon-pencil").addClass("icon-spinner icon-spin");
-					
-					setTimeout(function() {
-					
-						// Show G-code editor
-						showGcodeEditor(button.parent().children("a.btn-mini").attr("href"), button.parent().parent().children("div").eq(0).text(), "Edit G-code", _.sprintf(gettext("Editing %(fileName)s"), {fileName: htmlEncode(typeof self.files.currentPath === "undefined" || self.files.currentPath().length == 0 ? "" : "/" + self.files.currentPath() + "/") + button.parent().parent().children("div").eq(0).html()}), gettext("Save"), function() {
-						
-							setTimeout(function() {
-							
-								// Restore edit icon and enable button
-								button.removeClass("disabled").children("i").removeClass("icon-spinner icon-spin").addClass("icon-pencil");
+									// Restore edit icon and enable button
+									button.removeClass("disabled").children("i").removeClass("icon-spinner icon-spin").addClass("icon-pencil");
+								}, 0);
 							}, 0);
-						}, 0);
-					}, 200);
-				}
+						}, 200);
+					}
 			});
 		}
 		
@@ -5849,7 +5880,8 @@ $(function() {
 								mesh: mesh,
 								type: "stl",
 								glow: null,
-								adhesion: null
+								adhesion: null,
+								boundaryBox: new THREE.Box3()
 							});
 	
 							// Add printer to scene
@@ -5904,7 +5936,8 @@ $(function() {
 							mesh: null,
 							type: null,
 							glow: null,
-							adhesion: null
+							adhesion: null,
+							boundaryBox: null
 						});
 					
 						// Import model
@@ -6141,15 +6174,29 @@ $(function() {
 					this.transformControls.addEventListener("mouseLeave", this.mouseLeaveEvent);
 					this.transformControls.addEventListener("mouseDown", this.startTransform);
 					this.transformControls.addEventListener("mouseUp", this.endTransform);
-					this.transformControls.addEventListener("change", this.fixModelY);
-					this.orbitControls.addEventListener("change", this.updateMeasurementPosition);
-					this.orbitControls.addEventListener("change", this.updateGlowPerspective);
+					
+					this.transformControls.addEventListener("change", function() {
+					
+						// Apply group transformation and fix models' Y
+						modelEditor.applyGroupTransformation();
+						modelEditor.fixModelY();
+					});
+					
+					this.orbitControls.addEventListener("change", function() {
+					
+						// Update measurement position and glow perspective
+						modelEditor.updateMeasurementPosition();
+						modelEditor.updateGlowPerspective();
+					});
+					
 					this.orbitControls.addEventListener("end", function() {
 					
 						// Update measurement position and glow perspective after orbit controls change fully ends
 						setTimeout(function() {
-							modelEditor.updateMeasurementPosition();
-							modelEditor.updateGlowPerspective();
+							if(modelEditor !== null) {
+								modelEditor.updateMeasurementPosition();
+								modelEditor.updateGlowPerspective();
+							}
 						}, 50);
 					});
 					
@@ -6275,7 +6322,8 @@ $(function() {
 							mesh: mesh,
 							type: type,
 							glow: null,
-							adhesion: modelEditor.createPlatformAdhesion(mesh)
+							adhesion: modelEditor.createPlatformAdhesion(mesh),
+							boundaryBox: new THREE.Box3()
 						});
 					
 						// Select model
@@ -6365,190 +6413,196 @@ $(function() {
 							// Prevent default action
 							event.preventDefault();
 						
-						// Check if input is allowed and not transforming a model
-						if(modelEditor.allowInput && !modelEditor.transformControls.isDragging())
-
-							// Check what key was pressed
-							switch(event.which) {
-					
-								// Check if A is pressed
-								case "A".charCodeAt(0) :
-				
-									// Check if ctrl is pressed
-									if(event.ctrlKey) {
+						// Check if input is allowed
+						if(modelEditor.allowInput) {
 						
-										// Prevent default action
-										event.preventDefault();
+							// Check if shift was pressed
+							if(event.which === "\x10".charCodeAt(0))
+		
+								// Enable snap
+								modelEditor.enableSnap();
+						
+							// Check if not transforming a model
+							if(!modelEditor.transformControls.isDragging())
+
+								// Check what key was pressed
+								switch(event.which) {
+					
+									// Check if A is pressed
+									case "A".charCodeAt(0) :
+				
+										// Check if ctrl is pressed
+										if(event.ctrlKey) {
+						
+											// Prevent default action
+											event.preventDefault();
 									
-										// Check if not cutting models
-										if(modelEditor.cutShape === null) {
+											// Check if not cutting models
+											if(modelEditor.cutShape === null) {
 							
-											// Get currently focused model
-											var current = modelEditor.transformControls.object;
+												// Get currently focused model
+												var current = modelEditor.transformControls.object;
 							
-											// Go through all models
-											for(var i = 1; i < modelEditor.models.length; i++)
-							
-												// Check if model isn't focused on
-												if(modelEditor.models[i].mesh !== current)
-							
-													// Select model
-													modelEditor.selectModel(modelEditor.models[i].mesh);
-							
-											// Select the previously focused model
-											if(current)
-												modelEditor.selectModel(current);
-										}
-									}
-								break;
-							
-								// Check if F is pressed
-								case "F".charCodeAt(0) :
-							
-									// Prevent default action
-									event.preventDefault();
-							
-									// Reset camera focus
-									modelEditor.cameraFocus.set(0, 0, 0);
-								break;
-	
-								// Check if tab was pressed
-								case "\t".charCodeAt(0) :
-		
-									// Prevent default action
-									event.preventDefault();
-								
-									// Check if tab isn't already pressed
-									if(modelEditor.allowTab) {
-								
-										// Clear allow tab
-										modelEditor.allowTab = false;
-								
-										// Check if not cutting models
-										if(modelEditor.cutShape === null) {
-	
-											// Check if a model is being focused on
-											if(modelEditor.transformControls.object) {
-		
 												// Go through all models
 												for(var i = 1; i < modelEditor.models.length; i++)
-			
-													// Check if model is currently being focused on
-													if(modelEditor.models[i].mesh == modelEditor.transformControls.object) {
-								
-														// Check if shift isn't pressed
-														if(!event.shiftKey)
-									
-															// Remove selection
-															modelEditor.removeSelection();
-								
-														// Select next model
-														modelEditor.selectModel(modelEditor.models[i != modelEditor.models.length - 1 ? i + 1 : 1].mesh);
-					
-														// Break
-														break;
-													}
-											}
-				
-											// Otherwise check if a model exists
-											else if(modelEditor.models.length > 1)
-			
-												// Select first model
-												modelEditor.selectModel(modelEditor.models[1].mesh);
-										}
-								
-										// Otherwise
-										else {
-								
-											// Check if cut chape is a cube
-											if(modelEditor.cutShape.geometry.type === "BoxGeometry")
-									
-												// Change cut shape to a sphere
-												modelEditor.setCutShape("sphere");
-									
-											// Otherwise check if cut shape is a sphere
-											else if(modelEditor.cutShape.geometry.type === "SphereGeometry")
-									
-												// Change cut shape to a sube
-												modelEditor.setCutShape("cube");
-										}
-									}
-								break;
-	
-								// Check if delete was pressed
-								case "\x2E".charCodeAt(0) :
-		
-									// Check if a model is being focused on
-									if(modelEditor.transformControls.object)
-			
-										// Delete model
-										modelEditor.deleteModel();
-								break;
-		
-								// Check if shift was pressed
-								case "\x10".charCodeAt(0) :
-		
-									// Enable snap
-									modelEditor.enableSnap();
-								break;
-
-								// Check if W was pressed
-								case "W".charCodeAt(0) :
-	
-									// Set selection mode to translate
-									modelEditor.setMode("translate");
-								break;
-	
-								// Check if E was pressed
-								case "E".charCodeAt(0) :
-	
-									// Set selection mode to rotate
-									modelEditor.setMode("rotate");
-								break;
-	
-								// Check if R was pressed
-								case "R".charCodeAt(0) :
-	
-									// Set selection mode to scale
-									modelEditor.setMode("scale");
-								break;
-						
-								// Check if enter was pressed
-								case "\r".charCodeAt(0) :
-						
-									// Check if cutting models
-									if(modelEditor.cutShape !== null)
 							
-										// Apply cut
-										modelEditor.applyCut();
-								break;
-							}
+													// Check if model isn't focused on
+													if(modelEditor.models[i].mesh !== current)
+							
+														// Select model
+														modelEditor.selectModel(modelEditor.models[i].mesh);
+							
+												// Select the previously focused model
+												if(current)
+													modelEditor.selectModel(current);
+											}
+										}
+									break;
+							
+									// Check if F is pressed
+									case "F".charCodeAt(0) :
+							
+										// Prevent default action
+										event.preventDefault();
+							
+										// Reset camera focus
+										modelEditor.cameraFocus.set(0, 0, 0);
+									break;
+	
+									// Check if tab was pressed
+									case "\t".charCodeAt(0) :
+		
+										// Prevent default action
+										event.preventDefault();
+								
+										// Check if tab isn't already pressed
+										if(modelEditor.allowTab) {
+								
+											// Clear allow tab
+											modelEditor.allowTab = false;
+								
+											// Check if not cutting models
+											if(modelEditor.cutShape === null) {
+	
+												// Check if a model is being focused on
+												if(modelEditor.transformControls.object) {
+		
+													// Go through all models
+													for(var i = 1; i < modelEditor.models.length; i++)
+			
+														// Check if model is currently being focused on
+														if(modelEditor.models[i].mesh == modelEditor.transformControls.object) {
+								
+															// Check if shift isn't pressed
+															if(!event.shiftKey)
+									
+																// Remove selection
+																modelEditor.removeSelection();
+								
+															// Select next model
+															modelEditor.selectModel(modelEditor.models[i != modelEditor.models.length - 1 ? i + 1 : 1].mesh);
+					
+															// Break
+															break;
+														}
+												}
+				
+												// Otherwise check if a model exists
+												else if(modelEditor.models.length > 1)
+			
+													// Select first model
+													modelEditor.selectModel(modelEditor.models[1].mesh);
+											}
+								
+											// Otherwise
+											else {
+								
+												// Check if cut chape is a cube
+												if(modelEditor.cutShape.geometry.type === "BoxGeometry")
+									
+													// Change cut shape to a sphere
+													modelEditor.setCutShape("sphere");
+									
+												// Otherwise check if cut shape is a sphere
+												else if(modelEditor.cutShape.geometry.type === "SphereGeometry")
+									
+													// Change cut shape to a sube
+													modelEditor.setCutShape("cube");
+											}
+										}
+									break;
+	
+									// Check if delete was pressed
+									case "\x2E".charCodeAt(0) :
+		
+										// Check if a model is being focused on
+										if(modelEditor.transformControls.object)
+			
+											// Delete model
+											modelEditor.deleteModel();
+									break;
+
+									// Check if W was pressed
+									case "W".charCodeAt(0) :
+	
+										// Set selection mode to translate
+										modelEditor.setMode("translate");
+									break;
+	
+									// Check if E was pressed
+									case "E".charCodeAt(0) :
+	
+										// Set selection mode to rotate
+										modelEditor.setMode("rotate");
+									break;
+	
+									// Check if R was pressed
+									case "R".charCodeAt(0) :
+	
+										// Set selection mode to scale
+										modelEditor.setMode("scale");
+									break;
+						
+									// Check if enter was pressed
+									case "\r".charCodeAt(0) :
+						
+										// Check if cutting models
+										if(modelEditor.cutShape !== null)
+							
+											// Apply cut
+											modelEditor.applyCut();
+									break;
+								}
+						}
 					}
 				},
 
 				// Key up event
 				keyUpEvent: function(event) {
 				
-					// Check if input is allowed and not transforming a model
-					if(modelEditor.allowInput && !modelEditor.transformControls.isDragging())
-
-						// Check what key was pressed
-						switch(event.which) {
+					// Check if input is allowed
+					if(modelEditor.allowInput) {
 					
-							// Check if tab was released
-							case "\t".charCodeAt(0) :
+						// Check if shift was pressed
+						if(event.which === "\x10".charCodeAt(0))
+	
+							// Disable snap
+							modelEditor.disableSnap();
+				
+						// Check if not transforming a model
+						if(!modelEditor.transformControls.isDragging())
+
+							// Check what key was pressed
+							switch(event.which) {
+					
+								// Check if tab was released
+								case "\t".charCodeAt(0) :
 						
-								// Set allow tab
-								modelEditor.allowTab = true;
-							break;
-		
-							// Check if shift was released
-							case "\x10".charCodeAt(0) :
-		
-								// Disable snap
-								modelEditor.disableSnap();
-							break;
-						}
+									// Set allow tab
+									modelEditor.allowTab = true;
+								break;
+							}
+					}
 				},
 				
 				// Mouse enter event
@@ -6573,15 +6627,15 @@ $(function() {
 				
 						// Check if left click was pressed
 						if(event.which == 1)
-
+							
 							// Check if not cutting models, is clicking inside the model editor, and is not clicking on a button or input
 							if(modelEditor.cutShape === null && $(event.target).closest(".modal-extra").length && !$(event.target).closest("div.import, div.values, div.cutshape").length && !$(event.target).is("button, img, input")) {
-
+								
 								// Set mouse coordinates
 								var mouse = new THREE.Vector2();
 								var offset = $(modelEditor.renderer.domElement).offset();
-								mouse.x = ((event.clientX - offset.left) / modelEditor.renderer.domElement.clientWidth) * 2 - 1;
-								mouse.y = -((event.clientY - offset.top) / modelEditor.renderer.domElement.clientHeight) * 2 + 1;
+								mouse.x = (event.clientX - (offset.left - $(window).scrollLeft())) / modelEditor.renderer.domElement.clientWidth * 2 - 1;
+								mouse.y = -(event.clientY - (offset.top - $(window).scrollTop())) / modelEditor.renderer.domElement.clientHeight * 2 + 1;
 	
 								// Set ray caster's perspective
 								var raycaster = new THREE.Raycaster();
@@ -6590,7 +6644,7 @@ $(function() {
 								// Get model's meshes and adhesion's meshes
 								var modelMeshes = [];
 								for(var i = 0; i < modelEditor.models.length; i++) {
-						
+									
 									if(modelEditor.models[i].mesh !== null)
 										modelMeshes.push(modelEditor.models[i].mesh);
 									if(modelEditor.models[i].adhesion !== null)
@@ -6599,7 +6653,7 @@ $(function() {
 	
 								// Get objects that intersect ray caster
 								var intersects = raycaster.intersectObjects(modelMeshes);
-	
+								
 								// Check if an object intersects and it's not the printer
 								if(intersects.length > 0 && intersects[0].object != modelEditor.models[0].mesh) {
 				
@@ -6686,8 +6740,8 @@ $(function() {
 									}
 								}
 	
-								// Otherwise
-								else {
+								// Otherwise check if ctrl and shift aren't pressed
+								else if(!event.ctrlKey && !event.shiftKey) {
 								
 									// Set remove selection interval
 									var removeSelectionTimeout = setTimeout(function() {
@@ -6695,22 +6749,20 @@ $(function() {
 										// Disable event
 										$(window.document).off("mousemove.modelEditor");
 				
-										// Remove selection
-										modelEditor.removeSelection();
+										// Remove selection if model editor still exists
+										if(modelEditor !== null)
+											modelEditor.removeSelection();
 									}, 125);
 									
-									setTimeout(function() {
-							
-										// Enable event
-										$(window.document).off("mousemove.modelEditor").on("mousemove.modelEditor", function() {
-										
-											// Disable event
-											$(window.document).off("mousemove.modelEditor");
-	
-											// Clear remove selection timeout
-											clearTimeout(removeSelectionTimeout);
-										});
-									}, 0);
+									// Enable event
+									$(window.document).off("mousemove.modelEditor").on("mousemove.modelEditor", function() {
+									
+										// Disable event
+										$(window.document).off("mousemove.modelEditor");
+
+										// Clear remove selection timeout
+										clearTimeout(removeSelectionTimeout);
+									});
 								}
 							}
 				},
@@ -6894,11 +6946,12 @@ $(function() {
 						// Check if model is selected
 						if(modelEditor.models[i].glow !== null) {
 
-							// Get model's boundary box
-							var boundaryBox = new THREE.Box3().setFromObject(modelEditor.models[i].mesh);
-							boundaryBox.min.sub(modelEditor.models[i].mesh.position);
-
+							// Update model's boundary box
+							modelEditor.models[i].boundaryBox.setFromObject(modelEditor.models[i].mesh);
+							
 							// Set model's lowest Y value to be on the bed
+							var boundaryBox = modelEditor.models[i].boundaryBox.clone();
+							boundaryBox.min.sub(modelEditor.models[i].mesh.position);
 							modelEditor.models[i].mesh.position.y = -boundaryBox.min.y + bedLowMinZ;
 						}
 					
@@ -6948,7 +7001,8 @@ $(function() {
 								mesh: clonedModel,
 								type: modelEditor.models[i].type,
 								glow: null,
-								adhesion: modelEditor.createPlatformAdhesion(clonedModel)
+								adhesion: modelEditor.createPlatformAdhesion(clonedModel),
+								boundaryBox: new THREE.Box3()
 							});
 					
 							// Check if model is focused
@@ -7318,7 +7372,49 @@ $(function() {
 				},
 	
 				// Update model changes
+				valuesDisplay: null,
+				valuesInput: [],
+				valuesUnits: null,
+				measurementsDisplay: [],
+				mergeButton: null,
+				cutButton: null,
+				deleteButton: null,
+				cloneButton: null,
+				resetButton: null,
+				translateButton: null,
+				rotateButton: null,
+				scaleButton: null,
 				updateModelChanges: function() {
+				
+					// Check if selectors need to be stored
+					if(modelEditor.valuesDisplay === null || !modelEditor.valuesDisplay.length)  {
+					
+						// Set values' display
+						modelEditor.valuesDisplay = $("#slicing_configuration_dialog .modal-extra div.values");
+						
+						// Set value's units
+						modelEditor.valuesUnits = $("#slicing_configuration_dialog .modal-extra div.values p span:not(.axis)");
+						
+						// Set values' input
+						modelEditor.valuesInput[0] = $("#slicing_configuration_dialog .modal-extra div.values input[name=\"x\"]");
+						modelEditor.valuesInput[1] = $("#slicing_configuration_dialog .modal-extra div.values input[name=\"y\"]");
+						modelEditor.valuesInput[2] = $("#slicing_configuration_dialog .modal-extra div.values input[name=\"z\"]");
+						
+						// Set measurements' display
+						modelEditor.measurementsDisplay[0] = $("#slicing_configuration_dialog .modal-extra div.measurements > p.width");
+						modelEditor.measurementsDisplay[1] = $("#slicing_configuration_dialog .modal-extra div.measurements > p.depth");
+						modelEditor.measurementsDisplay[2] = $("#slicing_configuration_dialog .modal-extra div.measurements > p.height");
+						
+						// Set buttons
+						modelEditor.mergeButton = $("#slicing_configuration_dialog .modal-extra button.merge");
+						modelEditor.cutButton = $("#slicing_configuration_dialog .modal-extra button.cut");
+						modelEditor.deleteButton = $("#slicing_configuration_dialog .modal-extra button.delete");
+						modelEditor.cloneButton = $("#slicing_configuration_dialog .modal-extra button.clone");
+						modelEditor.resetButton = $("#slicing_configuration_dialog .modal-extra button.reset");
+						modelEditor.translateButton = $("#slicing_configuration_dialog .modal-extra button.translate");
+						modelEditor.rotateButton = $("#slicing_configuration_dialog .modal-extra button.rotate");
+						modelEditor.scaleButton = $("#slicing_configuration_dialog .modal-extra button.scale");
+					}
 		
 					// Get currently selected model
 					var model = modelEditor.transformControls.object;
@@ -7327,98 +7423,101 @@ $(function() {
 					if(modelEditor.showMeasurements && model && modelEditor.cutShape === null) {
 		
 						// Get model's boundary box
-						var boundaryBox = new THREE.Box3().setFromObject(model);
+						for(var i = 1; i < modelEditor.models.length; i++)
+							if(modelEditor.models[i].mesh == model) {
+								var boundaryBox = modelEditor.models[i].boundaryBox;
+								break;
+							}
 			
 						// Set width measurement
 						modelEditor.measurements[0].geometry.vertices[0].set(boundaryBox.max.x + 1, boundaryBox.min.y - 1, boundaryBox.min.z - 1);
 						modelEditor.measurements[0].geometry.vertices[1].set(boundaryBox.min.x - 1, boundaryBox.min.y - 1, boundaryBox.min.z - 1);
 						var value = boundaryBox.max.x - boundaryBox.min.x;
-						$("#slicing_configuration_dialog .modal-extra div.measurements > p.width").text(value.toFixed(3) + "mm / " + (value / 25.4).toFixed(3) + "in");
+						modelEditor.measurementsDisplay[0].text(value.toFixed(3) + "mm / " + (value / 25.4).toFixed(3) + "in");
 		
 						// Set depth measurement
 						modelEditor.measurements[1].geometry.vertices[0].set(boundaryBox.min.x - 1, boundaryBox.min.y - 1, boundaryBox.min.z - 1);
 						modelEditor.measurements[1].geometry.vertices[1].set(boundaryBox.min.x - 1, boundaryBox.min.y - 1, boundaryBox.max.z + 1);
 						value = boundaryBox.max.z - boundaryBox.min.z;
-						$("#slicing_configuration_dialog .modal-extra div.measurements > p.depth").text(value.toFixed(3) + "mm / " + (value / 25.4).toFixed(3) + "in");
+						modelEditor.measurementsDisplay[1].text(value.toFixed(3) + "mm / " + (value / 25.4).toFixed(3) + "in");
 			
 						// Set height measurement
 						modelEditor.measurements[2].geometry.vertices[0].set(boundaryBox.min.x - 1, boundaryBox.min.y - 1, boundaryBox.max.z + 1);
 						modelEditor.measurements[2].geometry.vertices[1].set(boundaryBox.min.x - 1, boundaryBox.max.y + 1, boundaryBox.max.z + 1);
 						value = boundaryBox.max.y - boundaryBox.min.y;
-						$("#slicing_configuration_dialog .modal-extra div.measurements > p.height").text(value.toFixed(3) + "mm / " + (value / 25.4).toFixed(3) + "in");
+						modelEditor.measurementsDisplay[2].text(value.toFixed(3) + "mm / " + (value / 25.4).toFixed(3) + "in");
 			
 						// Show measurements
 						for(var i = 0; i < modelEditor.measurements.length; i++) {
 							modelEditor.measurements[i].geometry.verticesNeedUpdate = true;
 							modelEditor.measurements[i].visible = true;
+							modelEditor.measurementsDisplay[i].addClass("show");
 						}
-			
-						$("#slicing_configuration_dialog .modal-extra div.measurements > p").addClass("show");
 					}
 		
 					// Otherwise
-					else {
+					else
 		
 						// Hide measurements
-						for(var i = 0; i < modelEditor.measurements.length; i++)
+						for(var i = 0; i < modelEditor.measurements.length; i++) {
 							modelEditor.measurements[i].visible = false;
-			
-						$("#slicing_configuration_dialog .modal-extra div.measurements > p").removeClass("show");
-					}
+							modelEditor.measurementsDisplay[i].removeClass("show");
+						}
 		
 					// Set currently active buttons
-					$("#slicing_configuration_dialog .modal-extra button.translate, #slicing_configuration_dialog .modal-extra button.rotate, #slicing_configuration_dialog .modal-extra button.scale").removeClass("disabled");
-					$("#slicing_configuration_dialog .modal-extra div.values").removeClass("translate rotate scale").addClass(modelEditor.transformControls.getMode());
+					modelEditor.translateButton.removeClass("disabled");
+					modelEditor.rotateButton.removeClass("disabled");
+					modelEditor.scaleButton.removeClass("disabled");
+					modelEditor.valuesDisplay.removeClass("translate rotate scale").addClass(modelEditor.transformControls.getMode());
 					$("#slicing_configuration_dialog .modal-extra button." + modelEditor.transformControls.getMode()).addClass("disabled");
 
 					// Check if a model is currently selected
 					if(model) {
 				
 						// Enable delete, clone, and reset
-						$("#slicing_configuration_dialog .modal-extra button.delete, #slicing_configuration_dialog .modal-extra button.clone, #slicing_configuration_dialog .modal-extra button.reset").removeClass("disabled");
-
+						modelEditor.deleteButton.removeClass("disabled");
+						modelEditor.cloneButton.removeClass("disabled");
+						modelEditor.resetButton.removeClass("disabled");
+						
 						// Show values
-						$("#slicing_configuration_dialog .modal-extra div.values div").addClass("show").children("p").addClass("show");
-						if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("translate") && modelEditor.cutShape === null)
-							$("#slicing_configuration_dialog .modal-extra div.values input[name=\"y\"]").parent().removeClass("show");
+						modelEditor.valuesDisplay.find("div").addClass("show").children("p").addClass("show");
+						if(modelEditor.valuesDisplay.hasClass("translate") && modelEditor.cutShape === null)
+							modelEditor.valuesInput[1].parent().removeClass("show");
 
 						// Check if an input is not focused
 						if(!$("#slicing_configuration_dialog .modal-extra input:focus").length) {
 
 							// Check if in translate mode
-							if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("translate")) {
+							if(modelEditor.valuesDisplay.hasClass("translate")) {
 
 								// Display position values
-								$("#slicing_configuration_dialog .modal-extra div.values p span:not(.axis)").text("mm").attr("title", "");
-								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"x\"]").val((model.position.x.toFixed(3) == 0 ? 0 : -model.position.x).toFixed(3)).attr("min", "");
-								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"y\"]").val(model.position.y.toFixed(3)).attr("min", "");
-								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"z\"]").val(model.position.z.toFixed(3)).attr("min", "");
+								modelEditor.valuesUnits.text("mm").attr("title", "");
+								modelEditor.valuesInput[0].val((model.position.x.toFixed(3) == 0 ? 0 : -model.position.x).toFixed(3)).attr("min", "");
+								modelEditor.valuesInput[1].val(model.position.y.toFixed(3)).attr("min", "");
+								modelEditor.valuesInput[2].val(model.position.z.toFixed(3)).attr("min", "");
 							}
 
 							// Otherwise check if in rotate mode
-							else if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("rotate")) {
+							else if(modelEditor.valuesDisplay.hasClass("rotate")) {
 
 								// Display rotation values
-								$("#slicing_configuration_dialog .modal-extra div.values p span:not(.axis)").text("°").attr("title", "");
-								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"x\"]").val((model.rotation.x * 180 / Math.PI).toFixed(3)).attr("min", "");
-								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"y\"]").val((model.rotation.y * 180 / Math.PI).toFixed(3)).attr("min", "");
-								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"z\"]").val((model.rotation.z * 180 / Math.PI).toFixed(3)).attr("min", "");
+								modelEditor.valuesUnits.text("°").attr("title", "");
+								modelEditor.valuesInput[0].val((model.rotation.x * 180 / Math.PI).toFixed(3)).attr("min", "");
+								modelEditor.valuesInput[1].val((model.rotation.y * 180 / Math.PI).toFixed(3)).attr("min", "");
+								modelEditor.valuesInput[2].val((model.rotation.z * 180 / Math.PI).toFixed(3)).attr("min", "");
 							}
 
 							// Otherwise check if in scale mode
-							else if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("scale")) {
+							else if(modelEditor.valuesDisplay.hasClass("scale")) {
 
 								// Display scale values
 								for(var i = 0; i < 3; i++)
-									$("#slicing_configuration_dialog .modal-extra div.values p span:not(.axis)").eq(i).text(modelEditor.scaleLock[i] ? "\uF023" : "\uF13E").attr("title", modelEditor.scaleLock[i] ? htmlDecode(gettext("Unlock")) : htmlDecode(gettext("Lock")));
-								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"x\"]").val(model.scale.x.toFixed(3)).attr("min", "0");
-								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"y\"]").val(model.scale.y.toFixed(3)).attr("min", "0");
-								$("#slicing_configuration_dialog .modal-extra div.values input[name=\"z\"]").val(model.scale.z.toFixed(3)).attr("min", "0");
+									modelEditor.valuesUnits.eq(i).text(modelEditor.scaleLock[i] ? "\uF023" : "\uF13E").attr("title", modelEditor.scaleLock[i] ? htmlDecode(gettext("Unlock")) : htmlDecode(gettext("Lock")));
+								modelEditor.valuesInput[0].val(model.scale.x.toFixed(3)).attr("min", "0");
+								modelEditor.valuesInput[1].val(model.scale.y.toFixed(3)).attr("min", "0");
+								modelEditor.valuesInput[2].val(model.scale.z.toFixed(3)).attr("min", "0");
 							}
 						}
-			
-						// Apply group transformation
-						modelEditor.applyGroupTransformation();
 					
 						// Go through all models
 						var numberOfModelsSelected = 0;
@@ -7441,7 +7540,7 @@ $(function() {
 									// Set adhesion's orientation
 									modelEditor.models[i].adhesion.mesh.position.set(modelEditor.models[i].mesh.position.x, bedLowMinZ, modelEditor.models[i].mesh.position.z);
 									modelEditor.models[i].adhesion.mesh.rotation.set(0, 0, 0);
-									var boundaryBox = new THREE.Box3().setFromObject(modelEditor.models[i].mesh);
+									var boundaryBox = modelEditor.models[i].boundaryBox;
 									modelEditor.models[i].adhesion.mesh.scale.set((boundaryBox.max.x - boundaryBox.min.x + modelEditor.adhesionSize * 2) / (boundaryBox.max.x - boundaryBox.min.x), 0.000000000001, (boundaryBox.max.z - boundaryBox.min.z + modelEditor.adhesionSize * 2) / (boundaryBox.max.z - boundaryBox.min.z));
 									
 									// Update adhesion glow's orientation
@@ -7454,9 +7553,9 @@ $(function() {
 					
 						// Enable or disable merge button based on the number os models selected
 						if(numberOfModelsSelected >= 2)
-							$("#slicing_configuration_dialog .modal-extra button.merge").removeClass("disabled");
+							modelEditor.mergeButton.removeClass("disabled");
 						else
-							$("#slicing_configuration_dialog .modal-extra button.merge").addClass("disabled");
+							modelEditor.mergeButton.addClass("disabled");
 						
 						// Check if cutting models
 						if(modelEditor.cutShape !== null) {
@@ -7472,32 +7571,34 @@ $(function() {
 					else if(modelEditor.cutShape === null) {
 
 						// Disable delete, clone, and reset
-						$("#slicing_configuration_dialog .modal-extra button.delete, #slicing_configuration_dialog .modal-extra button.clone, #slicing_configuration_dialog .modal-extra button.reset").addClass("disabled");
-
+						modelEditor.deleteButton.addClass("disabled");
+						modelEditor.cloneButton.addClass("disabled");
+						modelEditor.resetButton.addClass("disabled");
+						
 						// Hide values
-						$("#slicing_configuration_dialog .modal-extra div.values div").removeClass("show").children("p").removeClass("show");
+						modelEditor.valuesDisplay.find("div").removeClass("show").children("p").removeClass("show");
 
 						// Blur input
-						$("#slicing_configuration_dialog .modal-extra div.values input").blur();
+						modelEditor.valuesDisplay.find("input").blur();
 					}
 				
 					// Check if no model is selected
 					if(!model)
 				
 						// Disable merge button
-						$("#slicing_configuration_dialog .modal-extra button.merge").addClass("disabled");
+						modelEditor.mergeButton.addClass("disabled");
 					
 					// Check if no models exist
 					if(modelEditor.models.length == 1)
 					
 						// Disable cut button
-						$("#slicing_configuration_dialog .modal-extra button.cut").addClass("off");
+						modelEditor.cutButton.addClass("off");
 					
 					// Otherwise
 					else
 					
 						// Enable cut button
-						$("#slicing_configuration_dialog .modal-extra button.cut").removeClass("off");
+						modelEditor.cutButton.removeClass("off");
 					
 					// Update boundaries
 					modelEditor.updateBoundaries();
@@ -7539,12 +7640,15 @@ $(function() {
 					
 								// Get saved position
 								var savedRotation = new THREE.Euler();
-								savedRotation.setFromRotationMatrix(modelEditor.savedMatrix);
+								var pureRotation = new THREE.Matrix4();
+								pureRotation.extractRotation(modelEditor.savedMatrix);
+								savedRotation.setFromRotationMatrix(pureRotation);
 								var savedValue = savedRotation.toVector3();
 						
 								// Get new position
 								var newRotation = new THREE.Euler();
-								newRotation.setFromRotationMatrix(newMatrix);
+								pureRotation.extractRotation(newMatrix);
+								newRotation.setFromRotationMatrix(pureRotation);
 								var newValue = newRotation.toVector3();
 							break;
 					
@@ -8110,7 +8214,8 @@ $(function() {
 								mesh: intersections[i].mesh,
 								type: intersections[i].type,
 								glow: null,
-								adhesion: modelEditor.createPlatformAdhesion(intersections[i].mesh)
+								adhesion: modelEditor.createPlatformAdhesion(intersections[i].mesh),
+								boundaryBox: new THREE.Box3()
 							});
 				
 							// Select intersection mesh
@@ -8128,7 +8233,8 @@ $(function() {
 								mesh: differences[i].mesh,
 								type: differences[i].type,
 								glow: null,
-								adhesion: modelEditor.createPlatformAdhesion(differences[i].mesh)
+								adhesion: modelEditor.createPlatformAdhesion(differences[i].mesh),
+								boundaryBox: new THREE.Box3()
 							});
 				
 							// Select difference mesh
@@ -8294,7 +8400,8 @@ $(function() {
 							mesh: meshUnion,
 							type: type,
 							glow: null,
-							adhesion: modelEditor.createPlatformAdhesion(meshUnion)
+							adhesion: modelEditor.createPlatformAdhesion(meshUnion),
+							boundaryBox: new THREE.Box3()
 						});
 			
 						// Select union mesh
@@ -8476,7 +8583,7 @@ $(function() {
 						for(var i = 0; i < 3; i++) {
 					
 							// Ease out camera focus change
-							var speed = Math.sqrt(Math.pow(modelEditor.orbitControls.target.getComponent(i) - modelEditor.cameraFocus.getComponent(i), 2)) / 10;
+							var speed = Math.sqrt(Math.pow(modelEditor.orbitControls.target.getComponent(i) - modelEditor.cameraFocus.getComponent(i), 2)) / 6;
 					
 							if(modelEditor.orbitControls.target.getComponent(i) < modelEditor.cameraFocus.getComponent(i))
 								modelEditor.orbitControls.target.setComponent(i, Math.min(modelEditor.cameraFocus.getComponent(i), modelEditor.orbitControls.target.getComponent(i) + speed));
@@ -8635,7 +8742,10 @@ $(function() {
 		);
 		
 		// Edit profile click event
-		$(window.document).on("click", "a.editProfile", function() {
+		$(window.document).on("click", "a.editProfile", function(event) {
+		
+			// Prevent default behavior
+			event.preventDefault();
 		
 			// Set button
 			var button = $(this);
@@ -8643,11 +8753,11 @@ $(function() {
 			// Blur self
 			button.blur();
 			
-			// Check if not already loading a slicer profile
-			if(!loadingSlicerProfile) {
+			// Check if not already loading a file
+			if(!loadingFile) {
 			
-				// Set loading slicer profile
-				loadingSlicerProfile = true;
+				// Set loading file
+				loadingFile = true;
 			
 				// Change icon to loading and disable self
 				button.removeClass("icon-pencil").addClass("icon-spinner icon-spin disabled");
@@ -8682,8 +8792,8 @@ $(function() {
 								
 								setTimeout(function() {
 								
-									// Clear loading slicer profile
-									loadingSlicerProfile = false;
+									// Clear loading file
+									loadingFile = false;
 						
 									// Change icon to pencil and enable self
 									button.removeClass("icon-spinner icon-spin disabled").addClass("icon-pencil");
@@ -8693,8 +8803,8 @@ $(function() {
 						// Otherwise
 						else {
 						
-							// Clear loading slicer profile
-							loadingSlicerProfile = false;
+							// Clear loading file
+							loadingFile = false;
 							
 							// Change icon to pencil and enable self
 							button.removeClass("icon-spinner icon-spin disabled").addClass("icon-pencil");
@@ -9891,6 +10001,9 @@ $(function() {
 		// Save local copy button click event
 		$("#slicing_configuration_dialog .modal-footer a.saveLocalCopy").click(function(event) {
 		
+			// Prevent default behavior
+			event.preventDefault();
+		
 			// Stop default behavior
 			event.stopImmediatePropagation();
 			
@@ -10241,6 +10354,9 @@ $(function() {
 		
 		// Save copy on server click event
 		$("#slicing_configuration_dialog .modal-footer a.saveOnServer").click(function(event) {
+		
+			// Prevent default behavior
+			event.preventDefault();
 		
 			// Stop default behavior
 			event.stopImmediatePropagation();
@@ -10605,62 +10721,93 @@ $(function() {
 										else
 											form.append("file", blob, savedGcodePath);
 									}
-
+									
 									// Send request
 									$.ajax({
-										url: API_BASEURL + "files/" + savedGcodeOrigin,
+										url: API_BASEURL + "plugin/m33fio",
 										type: "POST",
 										dataType: "json",
-										data: form,
-										contentType: false,
-										traditional: false,
-										processData: false
-
+										data: JSON.stringify({
+											command: "message",
+											value: "Disable Pre-processing"
+										}),
+										contentType: "application/json; charset=UTF-8",
+										traditional: true,
+										processData: true
+						
 									// Done
 									}).done(function() {
+
+										// Send request
+										$.ajax({
+											url: API_BASEURL + "files/" + savedGcodeOrigin,
+											type: "POST",
+											dataType: "json",
+											data: form,
+											contentType: false,
+											traditional: false,
+											processData: false
+
+										// Done
+										}).done(function() {
 					
-										// Remove progress cursor
-										$("body").removeClass("progress");
+											// Remove progress cursor
+											$("body").removeClass("progress");
 				
-										// Hide cover
-										$("#slicing_configuration_dialog .modal-cover").removeClass("show");
-										setTimeout(function() {
-											$("#slicing_configuration_dialog .modal-cover").css("z-index", "");
-										}, 200);
+											// Hide cover
+											$("#slicing_configuration_dialog .modal-cover").removeClass("show");
+											setTimeout(function() {
+												$("#slicing_configuration_dialog .modal-cover").css("z-index", "");
+											}, 200);
 							
-										// Update files
-										self.files.requestData();
+											// Update files
+											self.files.requestData();
 						
-										// Show message
-										showMessage(gettext("Saving Status"), gettext("Done"), gettext("OK"), function() {
+											// Show message
+											showMessage(gettext("Saving Status"), gettext("Done"), gettext("OK"), function() {
 										
-											// Enable button
-											button.removeClass("disabled");
+												// Enable button
+												button.removeClass("disabled");
 						
-											// Hide message
-											hideMessage();
-										});
+												// Hide message
+												hideMessage();
+											});
 							
-									// Fail
-									}).fail(function() {
+										// Fail
+										}).fail(function() {
+										
+											// Send request
+											$.ajax({
+												url: API_BASEURL + "plugin/m33fio",
+												type: "POST",
+												dataType: "json",
+												data: JSON.stringify({
+													command: "message",
+													value: "Enable Pre-processing"
+												}),
+												contentType: "application/json; charset=UTF-8",
+												traditional: true,
+												processData: true
+											});
 							
-										// Remove progress cursor
-										$("body").removeClass("progress");
+											// Remove progress cursor
+											$("body").removeClass("progress");
 				
-										// Hide cover
-										$("#slicing_configuration_dialog .modal-cover").removeClass("show");
-										setTimeout(function() {
-											$("#slicing_configuration_dialog .modal-cover").css("z-index", "");
-										}, 200);
+											// Hide cover
+											$("#slicing_configuration_dialog .modal-cover").removeClass("show");
+											setTimeout(function() {
+												$("#slicing_configuration_dialog .modal-cover").css("z-index", "");
+											}, 200);
 						
-										// Show message
-										showMessage(gettext("Saving Status"), gettext("Saving G-code file failed"), gettext("OK"), function() {
+											// Show message
+											showMessage(gettext("Saving Status"), gettext("Saving G-code file failed"), gettext("OK"), function() {
 										
-											// Enable button
-											button.removeClass("disabled");
+												// Enable button
+												button.removeClass("disabled");
 						
-											// Hide message
-											hideMessage();
+												// Hide message
+												hideMessage();
+											});
 										});
 									});
 								}, 600);
@@ -10850,81 +10997,73 @@ $(function() {
 			}
 		}
 		
-		// Manage if slicer is opened or closed
-		setInterval(function() {
+		// Slicer dialog show event
+		$("#slicing_configuration_dialog").on("show", function() {
+			
+			setTimeout(function() {
+			
+				// Prevent closing slicer by clicking outside
+				$("div.modal-scrollable").off("click.modal").addClass("hideOverflow");
+			
+				// Disable uploading file by drag and drop
+				$("#drop_overlay").css("display", "none");
+			}, 0);
 		
-			// Check if slicer is open
-			if($("#slicing_configuration_dialog").css("display") === "block") {
+		// Slicer dialog hide event
+		}).on("hide", function() {
 			
-				// Set slicer open is not already set
-				if(!slicerOpen) {
-					slicerOpen = true;
-					
-					// Prevent closing slicer by clicking outside
-					$("div.modal-scrollable").off("click.modal").addClass("hideOverflow");
-					
-					// Disable uploading file by drag and drop
-					$("#drop_overlay").css("display", "none");
-				}
-			}
+			setTimeout(function() {
 			
-			// Otherwise
-			else {
+				// Enable uploading file by drag and drop
+				$("#drop_overlay").css("display", "");
 			
-				// Check is slicer was open
-				if(slicerOpen) {
+				// Send request
+				$.ajax({
+					url: API_BASEURL + "plugin/m33fio",
+					type: "POST",
+					dataType: "json",
+					data: JSON.stringify({
+						command: "message",
+						value: "Remove Temp"
+					}),
+					contentType: "application/json; charset=UTF-8",
+					traditional: true,
+					processData: true
+				});
+			
+				setTimeout(function() {
+
+					// Reset current slicer dialog
+					currentSlicerDialog = "Select Profile";
+
+					// Set text back to next
+					$("#slicing_configuration_dialog > div.modal-footer > .btn-primary").html(gettext("Next"));
 				
-					// Clear slicer open
-					slicerOpen = false;
-					
-					// Enable uploading file by drag and drop
-					$("#drop_overlay").css("display", "");
-					
-					// Send request
-					$.ajax({
-						url: API_BASEURL + "plugin/m33fio",
-						type: "POST",
-						dataType: "json",
-						data: JSON.stringify({
-							command: "message",
-							value: "Remove Temp"
-						}),
-						contentType: "application/json; charset=UTF-8",
-						traditional: true,
-						processData: true
-					});
-					
-					setTimeout(function() {
-		
-						// Reset current slicer dialog
-						currentSlicerDialog = "Select Profile";
-	
-						// Set text back to next
-						$("#slicing_configuration_dialog > div.modal-footer > .btn-primary").html(gettext("Next"));
-						
-						// Destroy modelEditor
-						if(modelEditor)
-							modelEditor.destroy();
-		
-						// Restore slicer dialog
-						$("#slicing_configuration_dialog").off("drop dragenter dragleave").removeClass("profile model gcode").css("height", "");
-						$("#slicing_configuration_dialog p.currentMenu").html(gettext("Select Profile"));
-						$("#slicing_configuration_dialog .modal-extra").remove();
-						$("#slicing_configuration_dialog .modal-body").css("display", "");
-						$("#slicing_configuration_dialog .modal-cover").removeClass("show").css("z-index", "");
-						$("#slicing_configuration_dialog .modal-footer p.warning").html("");
-						$("#slicing_configuration_dialog .modal-footer a.skip").css("display", "");
-						skipModelEditor = false;
-						
-						// Remove grab, grabbing, and progress cursor
-						$("body").removeClass("grab grabbing progress");
-					}, 300);
-				}
-			}
-		}, 300);
+					// Destroy modelEditor
+					if(modelEditor)
+						modelEditor.destroy();
+
+					// Restore slicer dialog
+					$("#slicing_configuration_dialog").off("drop dragenter dragleave").removeClass("profile model gcode").css("height", "");
+					$("#slicing_configuration_dialog p.currentMenu").html(gettext("Select Profile"));
+					$("#slicing_configuration_dialog .modal-extra").remove();
+					$("#slicing_configuration_dialog .modal-body").css("display", "");
+					$("#slicing_configuration_dialog .modal-cover").removeClass("show").css("z-index", "");
+					$("#slicing_configuration_dialog .modal-footer p.warning").html("");
+					$("#slicing_configuration_dialog .modal-footer a.skip").css("display", "");
+					skipModelEditor = false;
+				
+					// Remove grab, grabbing, and progress cursor
+					$("body").removeClass("grab grabbing progress");
+				}, 300);
+			}, 0);
+		});
 		
 		// Skip model editor button click event
 		$("#slicing_configuration_dialog > div.modal-footer > a.skip").click(function(event) {
+		
+			// Prevent default behavior
+			event.preventDefault();
 		
 			// Stop default behavior
 			event.stopImmediatePropagation();
@@ -10961,6 +11100,9 @@ $(function() {
 		// Slicer next button click event
 		$("#slicing_configuration_dialog > div.modal-footer > .btn-primary").html(gettext("Next")).click(function(event) {
 		
+			// Prevent default behavior
+			event.preventDefault();
+			
 			// Initialize variables
 			var button = $(this);
 			
@@ -11644,49 +11786,80 @@ $(function() {
 								// Create request
 								var form = new FormData();
 								form.append("file", blob, gcodePathAndName);
-
+								
 								// Send request
 								$.ajax({
-									url: API_BASEURL + "files/" + gcodeOrigin,
+									url: API_BASEURL + "plugin/m33fio",
 									type: "POST",
 									dataType: "json",
-									data: form,
-									contentType: false,
-									traditional: false,
-									processData: false
-
+									data: JSON.stringify({
+										command: "message",
+										value: "Disable Pre-processing"
+									}),
+									contentType: "application/json; charset=UTF-8",
+									traditional: true,
+									processData: true
+					
 								// Done
 								}).done(function() {
+
+									// Send request
+									$.ajax({
+										url: API_BASEURL + "files/" + gcodeOrigin,
+										type: "POST",
+										dataType: "json",
+										data: form,
+										contentType: false,
+										traditional: false,
+										processData: false
+
+									// Done
+									}).done(function() {
 				
-									setTimeout(function() {
+										setTimeout(function() {
 												
-										// Remove progress cursor
-										$("body").removeClass("progress");
-									}, 300);
+											// Remove progress cursor
+											$("body").removeClass("progress");
+										}, 300);
 									
-									// Hide dialog
-									$("#slicing_configuration_dialog").modal("hide");
+										// Hide dialog
+										$("#slicing_configuration_dialog").modal("hide");
 					
-									// Update files
-									self.files.requestData();
+										// Update files
+										self.files.requestData();
 						
-								// Fail
-								}).fail(function() {
+									// Fail
+									}).fail(function() {
+									
+										// Send request
+										$.ajax({
+											url: API_BASEURL + "plugin/m33fio",
+											type: "POST",
+											dataType: "json",
+											data: JSON.stringify({
+												command: "message",
+												value: "Enable Pre-processing"
+											}),
+											contentType: "application/json; charset=UTF-8",
+											traditional: true,
+											processData: true
+										});
 						
-									setTimeout(function() {
+										setTimeout(function() {
 												
-										// Remove progress cursor
-										$("body").removeClass("progress");
-									}, 300);
+											// Remove progress cursor
+											$("body").removeClass("progress");
+										}, 300);
 									
-									// Hide dialog
-									$("#slicing_configuration_dialog").modal("hide");
+										// Hide dialog
+										$("#slicing_configuration_dialog").modal("hide");
 					
-									// Show message
-									showMessage(gettext("Saving Status"), gettext("Saving G-code file failed"), gettext("OK"), function() {
+										// Show message
+										showMessage(gettext("Saving Status"), gettext("Saving G-code file failed"), gettext("OK"), function() {
 									
-										// Hide message
-										hideMessage();
+											// Hide message
+											hideMessage();
+										});
 									});
 								});
 							}, 600);
@@ -16078,10 +16251,24 @@ $(function() {
 			}
 			
 			// Otherwise
-			else
+			else {
 			
-				// Go to OctoPrint instance
-				window.location.port = select.val();
+				// Reset message system
+				messages = [];
+				skippedMessages = 0;
+				
+				// Set force show message
+				forceShowMessage = true;
+			
+				// Show message
+				showMessage(gettext("OctoPrint Status"), gettext("Navigating to OctoPrint instance…"));
+				
+				setTimeout(function() {
+			
+					// Go to OctoPrint instance
+					window.location.port = select.val();
+				}, 300);
+			}
 		});
 		
 		// On creating a new instance with provided settings file input change
@@ -16537,7 +16724,7 @@ $(function() {
 			else if(data.value === "Pre-processing file") {
 			
 				// Show message
-				showMessage(gettext("Pre‐processing Status"), gettext("Collecting Print Information …"));
+				showMessage(gettext("Pre‐processing Status"), gettext("Collecting Print Information…"));
 			
 				// Update pre-processing status
 				function updatePreprocessingStatus() {
@@ -16545,8 +16732,8 @@ $(function() {
 					// Check if not done slicing
 					if($("#gcode_upload_progress").hasClass("active")) {
 					
-						// Update message
-						$("body > div.page-container > div.message").find("p").eq(0).html($("#gcode_upload_progress > div.bar > span").length ? $("#gcode_upload_progress > div.bar > span").html() : $("#gcode_upload_progress > div.bar").html());
+						// Update messaged
+						$("body > div.page-container > div.message").find("p").eq(0).html(($("#gcode_upload_progress > div.bar > span").length ? $("#gcode_upload_progress > div.bar > span").html() : $("#gcode_upload_progress > div.bar").html()).replace(/\s(?=\.\.\.|…)/g, ""));
 					
 						// Update pre-processing status again
 						setTimeout(updatePreprocessingStatus, 300);
@@ -18191,9 +18378,13 @@ $(function() {
 
 							// Hide message
 							hideMessage();
+							
+							// Show message
+							showMessage(gettext("Server Status"), gettext("Refreshing page…"));
 					
 							// Refresh the page
 							location.reload();
+						
 						}, gettext("No"), function() {
 
 							// Hide message
@@ -18222,9 +18413,13 @@ $(function() {
 
 							// Hide message
 							hideMessage();
+							
+							// Show message
+							showMessage(gettext("Server Status"), gettext("Refreshing page…"));
 					
 							// Refresh the page
 							location.reload();
+						
 						}, gettext("No"), function() {
 
 							// Hide message
@@ -18428,7 +18623,7 @@ $(function() {
 		self.onEventSlicingStarted = function() {
 		
 			// Show message
-			showMessage(gettext("Slicing Status"), gettext("Slicing …"));
+			showMessage(gettext("Slicing Status"), gettext("Slicing…"));
 			
 			// Update slicing status
 			function updateSlicingStatus() {
@@ -18439,7 +18634,7 @@ $(function() {
 					// Update message
 					var text = $("#gcode_upload_progress > div.bar > span").length ? $("#gcode_upload_progress > div.bar > span").html() : $("#gcode_upload_progress > div.bar").html();
 					if(text.length)
-						$("body > div.page-container > div.message").find("p").eq(0).html(text);
+						$("body > div.page-container > div.message").find("p").eq(0).html(text.replace(/\s(?=\.\.\.|…)/g, ""));
 					
 					// Update slicing status again
 					setTimeout(updateSlicingStatus, 300);
