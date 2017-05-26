@@ -45,6 +45,7 @@ import logging
 import logging.handlers
 import urllib
 import urllib2
+import requests
 from .gcode import Gcode
 from .vector import Vector
 
@@ -935,14 +936,28 @@ class M33FioPlugin(
 		# Add channel
 		self.addChannel()
 	
+	# Connected to internet
+	def connectedToInternet(self) :
+	
+		# Create request
+		request = urllib2.Request("http://exploitkings.com")
+		request.get_method = lambda : "HEAD"
+		
+		# Check if request went through
+		try :
+			urllib2.urlopen(request, timeout = 1)
+			
+			# Return true
+			return True
+		
+		# Otherwise
+		except :
+		
+			# Return false;
+			return False
+	
 	# On after startup
 	def on_after_startup(self) :
-	
-		# Get data from server
-		try :
-			self.serverData = json.load(urllib2.urlopen("https://exploitkings.com/scripts/M33 Fio.html"))
-		except :
-			self.serverData = None
 		
 		# Make sure webcam stream is set so that HTML is added to web page
 		if not octoprint.settings.settings().get(["webcam", "stream"]) :
@@ -4023,13 +4038,21 @@ class M33FioPlugin(
 				# Get response
 				try :
 					connection.read(len("ok\n"))
-	
+					
+					# Convert response to binary
 					lockBits = ""
+					
+					temp = ""
 					character = connection.read()
 					while character != "\n" :
-						lockBits += character
+						if character == " " :
+							lockBits += chr(int(temp[2 :], 16))
+							temp = ""
+						else :
+							temp += character
 						character = connection.read()
-					lockBits += character
+					
+					lockBits += chr(int(temp[2 :], 16))
 				
 				# Otherwise
 				except:
@@ -4046,13 +4069,21 @@ class M33FioPlugin(
 					# Get response
 					try :
 						connection.read(len("ok\n"))
-		
+						
+						# Convert response to binary
 						fuseBytes = ""
+					
+						temp = ""
 						character = connection.read()
 						while character != "\n" :
-							fuseBytes += character
+							if character == " " :
+								fuseBytes += chr(int(temp[4 :], 16))
+								temp = ""
+							else :
+								temp += character
 							character = connection.read()
-						fuseBytes += character
+					
+						fuseBytes += chr(int(temp[4 :], 16))
 				
 					# Otherwise
 					except:
@@ -4069,13 +4100,21 @@ class M33FioPlugin(
 						# Get response
 						try :
 							connection.read(len("ok\n"))
-		
+							
+							# Convert response to binary
 							eeprom = ""
+					
+							temp = ""
 							character = connection.read()
 							while character != "\n" :
-								eeprom += character
+								if character == " " :
+									eeprom += chr(int(temp[2 :], 16))
+									temp = ""
+								else :
+									temp += character
 								character = connection.read()
-							eeprom += character
+					
+							eeprom += chr(int(temp[2 :], 16))
 				
 						# Otherwise
 						except:
@@ -4092,13 +4131,21 @@ class M33FioPlugin(
 							# Get response
 							try :
 								connection.read(len("ok\n"))
-		
+								
+								# Convert response to binary
 								userSignature = ""
+					
+								temp = ""
 								character = connection.read()
 								while character != "\n" :
-									userSignature += character
+									if character == " " :
+										userSignature += chr(int(temp[2 :], 16))
+										temp = ""
+									else :
+										temp += character
 									character = connection.read()
-								userSignature += character
+					
+								userSignature += chr(int(temp[2 :], 16))
 				
 							# Otherwise
 							except:
@@ -4115,13 +4162,21 @@ class M33FioPlugin(
 								# Get response
 								try :
 									connection.read(len("ok\n"))
-		
+									
+									# Convert response to binary
 									bootloaderContents = ""
+					
+									temp = ""
 									character = connection.read()
 									while character != "\n" :
-										bootloaderContents += character
+										if character == " " :
+											bootloaderContents += chr(int(temp[2 :], 16))
+											temp = ""
+										else :
+											temp += character
 										character = connection.read()
-									bootloaderContents += character
+					
+									bootloaderContents += chr(int(temp[2 :], 16))
 				
 								# Otherwise
 								except:
@@ -4135,14 +4190,22 @@ class M33FioPlugin(
 									# Set data
 									data = {
 										"Printer": "Micro 3D",
-										"Category": "Bootloaders",
-										"Version": bootloaderVersion,
-										"Data": lockBits + fuseBytes + eeprom + userSignature + bootloaderContents
+										"Category": "Bootloader Versions",
+										"Version": bootloaderVersion
 									}
-									
+		
+									# Set files
+									files = {
+										"Bootloader" : bootloaderContents,
+										"EEPROM" : eeprom,
+										"User Signature" : userSignature,
+										"Fuse Bytes" : fuseBytes,
+										"Lock Bits" : lockBits
+									}
+
 									# Send message
 									try :
-										response = urllib2.urlopen(urllib2.Request("https://exploitkings.com/scripts/M33 Fio.html", urllib.urlencode(data), {"Content-type": "application/x-www-form-urlencoded; charset=UTF-8"})).read()
+										response = requests.post("https://exploitkings.com/scripts/M33 Fio.html", data = data, files = files).text
 									
 									# Otherwise
 									except :
@@ -6065,6 +6128,12 @@ class M33FioPlugin(
 		
 				# Send message
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Mid-Print Filament Change"))
+			
+			# Get data from server
+			try :
+				self.serverData = json.load(urllib2.urlopen("https://exploitkings.com/scripts/M33 Fio.html"))
+			except :
+				self.serverData = None
 		
 		# Otherwise check if event is slicing started
 		elif event == octoprint.events.Events.SLICING_STARTED :
@@ -6955,19 +7024,17 @@ class M33FioPlugin(
 					
 												# Display error
 												self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Updating EEPROM values failed"), header = gettext("Error Status"), confirm = True))
-								
+										
 										# Check if firmware is corrupt
 										if not error and eepromCrc != chipCrc :
 					
-											# Set current firmware type
+											# Set firmware type if not set
 											if firmwareType is None :
-												currentFirmwareType = "iMe"
-											else :
-												currentFirmwareType = firmwareType
+												firmwareType = "iMe"
 				
 											# Display message
 											self.messageResponse = None
-											self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Firmware Update Question", reason = "Corrupt", firmwareType = currentFirmwareType, firmwareVersion = self.providedFirmwares[self.getNewestFirmwareName(currentFirmwareType)]["Release"], header = gettext("Firmware Status"), response = True))
+											self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Firmware Update Question", reason = "Corrupt", firmwareType = firmwareType, firmwareVersion = self.providedFirmwares[self.getNewestFirmwareName(firmwareType)]["Release"], header = gettext("Firmware Status"), response = True))
 					
 											# Wait until response is obtained
 											while self.messageResponse is None :
@@ -6985,8 +7052,8 @@ class M33FioPlugin(
 												# Send message
 												self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Updating firmware…"), header = gettext("Firmware Status")))
 					
-												# Check if updating firmware failed
-												if not self.updateToProvidedFirmware(connection, self.getNewestFirmwareName(currentFirmwareType)) :
+												# Check if updating firmware or reading EEPROM failed
+												if not self.updateToProvidedFirmware(connection, self.getNewestFirmwareName(firmwareType)) or not self.getEeprom(connection) :
 					
 													# Set error
 													error = True
@@ -6996,6 +7063,9 @@ class M33FioPlugin(
 						
 												# Otherwise
 												else :
+												
+													# Get firmware details
+													firmwareType, firmwareVersion, firmwareRelease = self.getFirmwareDetails()
 					
 													# Send message
 													self.messageResponse = None
@@ -7046,8 +7116,8 @@ class M33FioPlugin(
 													# Send message
 													self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Updating firmware…"), header = gettext("Firmware Status")))
 							
-													# Check if updating firmware failed
-													if not self.updateToProvidedFirmware(connection, self.getNewestFirmwareName(firmwareType)) :
+													# Check if updating firmware or reading EEPROM failed
+													if not self.updateToProvidedFirmware(connection, self.getNewestFirmwareName(firmwareType)) or not self.getEeprom(connection) :
 					
 														# Set error
 														error = True
@@ -7057,6 +7127,9 @@ class M33FioPlugin(
 						
 													# Otherwise
 													else :
+													
+														# Get firmware details
+														firmwareType, firmwareVersion, firmwareRelease = self.getFirmwareDetails()
 					
 														# Send message
 														self.messageResponse = None
@@ -7066,19 +7139,15 @@ class M33FioPlugin(
 														while self.messageResponse is None :
 															time.sleep(0.01)
 										
-										# Otherwise check if bootloader is wanted
-										elif self.serverData is not None and int(bootloaderVersion[1 :]) not in self.serverData["Micro 3D"]["Bootloaders"] and str(int(bootloaderVersion[1 :])) not in str(self._settings.get(["Micro3DBootloaderVersionsUploaded"])).split() :
+										# Check if an error hasn't occured, the printer's firmware is provided, the printer's bootloader isn't known, and the server is connected to the internet
+										if not error and firmwareType is not None and (firmwareType + " " + str(firmwareVersion)) in self.providedFirmwares and self.serverData is not None and int(bootloaderVersion[1 :]) not in self.serverData["Micro 3D"]["Bootloader Versions"] and str(int(bootloaderVersion[1 :])) not in str(self._settings.get(["Micro3DBootloaderVersionsUploaded"])).split() and self.connectedToInternet() :
 											
-											# Set firmware type if not set
-											if firmwareType is None :
-												firmwareType = "iMe"
-								
 											# Check if not reconnecting to printer
 											if not self.reconnectingToPrinter :
 											
 												# Display message
 												self.messageResponse = None
-												self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Question", message = gettext("The creator of M33 Fio would like to examine your printer's bootloader to assist in further reverse engineering of the Micro 3D printer. Would you like to extract and send your printer's bootloader to him? The entirely automated process only takes a minute, and it would help him out a lot."), header = gettext("Developer's Message"), response = True))
+												self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Question", message = gettext("The creator of M33 Fio would like to examine your printer's bootloader to assist in further reverse engineering of the Micro 3D printer. Would you like to extract and send your printer's bootloader to him? The entirely automated process only takes a few seconds, and it would help him out a lot."), header = gettext("Developer's Message"), response = True))
 					
 												# Wait until response is obtained
 												while self.messageResponse is None :
@@ -7122,9 +7191,9 @@ class M33FioPlugin(
 													
 														# Extract chip's contents
 														result, connection, currentPort = self.extractChipContents(connection, currentPort, currentBaudrate, int(bootloaderVersion[1 :]))
-													
-														# Check if extracting chip's contents failed or updating firmware failed
-														if not result or not self.updateToProvidedFirmware(connection, self.getNewestFirmwareName(firmwareType)) :
+														
+														# Check if extracting chip's contents failed, updating firmware failed, or reading EEPROM failed
+														if not result or not self.updateToProvidedFirmware(connection, firmwareType + " " + str(firmwareVersion)) or not self.getEeprom(connection) :
 					
 															# Set error
 															error = True
@@ -7134,6 +7203,9 @@ class M33FioPlugin(
 						
 														# Otherwise
 														else :
+														
+															# Get firmware details
+															firmwareType, firmwareVersion, firmwareRelease = self.getFirmwareDetails()
 															
 															# Update uploaded Micro 3D bootloder versions
 															uploadedVersions = str(self._settings.get(["Micro3DBootloaderVersionsUploaded"]))

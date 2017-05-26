@@ -18379,6 +18379,10 @@ $(function() {
 							// Hide message
 							hideMessage();
 							
+							// Reset message system
+							messages = [];
+							skippedMessages = 0;
+							
 							// Show message
 							showMessage(gettext("Server Status"), gettext("Refreshing page…"));
 					
@@ -18413,6 +18417,10 @@ $(function() {
 
 							// Hide message
 							hideMessage();
+							
+							// Reset message system
+							messages = [];
+							skippedMessages = 0;
 							
 							// Show message
 							showMessage(gettext("Server Status"), gettext("Refreshing page…"));
