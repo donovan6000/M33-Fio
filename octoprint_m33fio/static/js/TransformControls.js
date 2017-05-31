@@ -11,8 +11,8 @@
 
 		THREE.MeshBasicMaterial.call( this );
 
-		this.depthTest = false;
-		this.depthWrite = false;
+		this.depthTest = true;
+		this.depthWrite = true;
 		this.side = THREE.FrontSide;
 		this.transparent = true;
 
@@ -47,8 +47,8 @@
 
 		THREE.LineBasicMaterial.call( this );
 
-		this.depthTest = false;
-		this.depthWrite = false;
+		this.depthTest = true;
+		this.depthWrite = true;
 		this.transparent = true;
 		this.linewidth = 1;
 
@@ -635,6 +635,7 @@
 		this.rotationDisableE = false;
 		this.space = "world";
 		this.allowedTranslation = "XYZXZ";
+		this.lockedAxes = "";
 		this.size = 1;
 		this.axis = null;
 		this.maintainPosition = false;
@@ -741,10 +742,14 @@
 
 		this.attach = function ( object ) {
 
-			this.object = object;
-			this.visible = true;
-			_savedObjectWorldMatrix = this.object.matrixWorld.clone();
-			this.update();
+			if ( object !== undefined ) {
+			
+				this.object = object;
+				this.visible = true;
+				_savedObjectWorldMatrix = this.object.matrixWorld.clone();
+				this.update();
+			
+			}
 
 		};
 
@@ -860,6 +865,12 @@
 
 		};
 		
+		this.setLockedAxes = function ( lockedAxes ) {
+		
+			scope.lockedAxes = lockedAxes;
+
+		};
+		
 		this.setRotationDisableE = function ( rotationDisableE ) {
 
 			scope.rotationDisableE = rotationDisableE;
@@ -900,18 +911,22 @@
 				eye.copy( camPosition ).normalize();
 
 			}
+			
+			if ( _mode in _gizmo ) {
 
-			if ( scope.space === "local" ) {
+				if ( scope.space === "local" ) {
 
-				_gizmo[ _mode ].update( worldRotation, eye );
+					_gizmo[ _mode ].update( worldRotation, eye );
 
-			} else if ( scope.space === "world" ) {
+				} else if ( scope.space === "world" ) {
 
-				_gizmo[ _mode ].update( new THREE.Euler(), eye );
+					_gizmo[ _mode ].update( new THREE.Euler(), eye );
 
+				}
+
+				_gizmo[ _mode ].highlight( scope.axis );
+			
 			}
-
-			_gizmo[ _mode ].highlight( scope.axis );
 
 		};
 
@@ -921,7 +936,7 @@
 
 			var pointer = event.changedTouches ? event.changedTouches[ 0 ] : event;
 
-			var intersect = intersectObjects( pointer, _gizmo[ _mode ].pickers.children );
+			var intersect = _mode in _gizmo ? intersectObjects( pointer, _gizmo[ _mode ].pickers.children ) : false;
 
 			var axis = null;
 
@@ -965,7 +980,7 @@
 
 			if ( pointer.button === 0 || pointer.button === undefined ) {
 
-				var intersect = intersectObjects( pointer, _gizmo[ _mode ].pickers.children );
+				var intersect = _mode in _gizmo ? intersectObjects( pointer, _gizmo[ _mode ].pickers.children ) : false;
 
 				if ( intersect ) {
 
@@ -1013,7 +1028,7 @@
 
 			var pointer = event.changedTouches ? event.changedTouches[ 0 ] : event;
 
-			var planeIntersect = intersectObjects( pointer, [ _gizmo[ _mode ].activePlane ] );
+			var planeIntersect = _mode in _gizmo ? intersectObjects( pointer, [ _gizmo[ _mode ].activePlane ] ) : false;
 
 			if ( planeIntersect === false ) return;
 
@@ -1026,6 +1041,13 @@
 
 				point.sub( offset );
 				point.multiply( parentScale );
+				
+				if ( scope.translationSnap !== null ) {
+					
+					var initialX = scope.object.position.x % scope.translationSnap;
+					var initialY = scope.object.position.y % scope.translationSnap;
+					var initialZ = scope.object.position.z % scope.translationSnap;
+				}
 
 				if ( scope.space === "local" ) {
 
@@ -1063,9 +1085,9 @@
 
 					}
 
-					if ( scope.axis.search( "X" ) !== - 1 && scope.allowedTranslation.search( "X" ) !== - 1 ) scope.object.position.x = Math.round( scope.object.position.x / scope.translationSnap ) * scope.translationSnap;
-					if ( scope.axis.search( "Y" ) !== - 1 && scope.allowedTranslation.search( "Y" ) !== - 1 ) scope.object.position.y = Math.round( scope.object.position.y / scope.translationSnap ) * scope.translationSnap;
-					if ( scope.axis.search( "Z" ) !== - 1 && scope.allowedTranslation.search( "Z" ) !== - 1 ) scope.object.position.z = Math.round( scope.object.position.z / scope.translationSnap ) * scope.translationSnap;
+					if ( scope.axis.search( "X" ) !== - 1 && scope.allowedTranslation.search( "X" ) !== - 1 ) scope.object.position.x = initialX + Math.round( scope.object.position.x / scope.translationSnap ) * scope.translationSnap;
+					if ( scope.axis.search( "Y" ) !== - 1 && scope.allowedTranslation.search( "Y" ) !== - 1 ) scope.object.position.y = initialY + Math.round( scope.object.position.y / scope.translationSnap ) * scope.translationSnap;
+					if ( scope.axis.search( "Z" ) !== - 1 && scope.allowedTranslation.search( "Z" ) !== - 1 ) scope.object.position.z = initialZ + Math.round( scope.object.position.z / scope.translationSnap ) * scope.translationSnap;
 
 					if ( scope.space === "local" ) {
 
@@ -1079,6 +1101,13 @@
 
 				point.sub( offset );
 				point.multiply( parentScale );
+				
+				if ( scope.scaleSnap !== null ) {
+					
+					var initialX = scope.object.scale.x % scope.scaleSnap;
+					var initialY = scope.object.scale.y % scope.scaleSnap;
+					var initialZ = scope.object.scale.z % scope.scaleSnap;
+				}
 
 				if ( scope.space === "local" ) {
 				
@@ -1104,41 +1133,95 @@
 					
 						if ( scope.axis.search( "X" ) !== - 1 ) {
 						
-							scope.object.scale.x = Math.round( scope.object.scale.x / scope.scaleSnap ) * scope.scaleSnap;
-						
+							scope.object.scale.x = initialX + Math.round( scope.object.scale.x / scope.scaleSnap ) * scope.scaleSnap;
+							
 						}
 						
 						if ( scope.axis.search( "Y" ) !== - 1 ) {
 						
-							scope.object.scale.y = Math.round( scope.object.scale.y / scope.scaleSnap ) * scope.scaleSnap;
+							scope.object.scale.y = initialY + Math.round( scope.object.scale.y / scope.scaleSnap ) * scope.scaleSnap;
 							
 						}
 						
 						if ( scope.axis.search( "Z" ) !== - 1 ) {
 						
-							scope.object.scale.z = Math.round( scope.object.scale.z / scope.scaleSnap ) * scope.scaleSnap;
+							scope.object.scale.z = initialZ + Math.round( scope.object.scale.z / scope.scaleSnap ) * scope.scaleSnap;
 							
 						}
 						
 					}
 					
 					if( scope.object.scale.x <= 0 )
-						scope.object.scale.x = 0.000000000001;
+						scope.object.scale.x = scope.scaleSnap !== null ? initialX : 0.000000000001;
 					
 					if( scope.object.scale.y <= 0 )
-						scope.object.scale.y = 0.000000000001;
+						scope.object.scale.y = scope.scaleSnap !== null ? initialY : 0.000000000001;
 					
 					if( scope.object.scale.z <= 0 )
-						scope.object.scale.z = 0.000000000001;
+						scope.object.scale.z = scope.scaleSnap !== null ? initialZ : 0.000000000001;
+					
+					if ( scope.lockedAxes.length ) {
+					
+						var currentAxis = scope.axis;
+						
+						if ( currentAxis === "XYZ" ) {
+						
+							if ( scope.object.scale.x >= scope.object.scale.y && scope.object.scale.x >= scope.object.scale.z )
+								currentAxis = "X";
+							
+							else if ( scope.object.scale.y >= scope.object.scale.x && scope.object.scale.y >= scope.object.scale.z )
+								currentAxis = "Y";
+							
+							else if ( scope.object.scale.z >= scope.object.scale.x && scope.object.scale.z >= scope.object.scale.y )
+								currentAxis = "Z";
+						}
+						
+						if ( currentAxis === "X" ) {
+						
+							if ( scope.lockedAxes.search( "Y" ) !== - 1 )
+								scope.object.scale.y = scope.object.scale.x;
+						
+							if ( scope.lockedAxes.search( "Z" ) !== - 1 )
+								scope.object.scale.z = scope.object.scale.x;
+							
+						}
+					
+						else if ( currentAxis === "Y" ) {
+					
+							if ( scope.lockedAxes.search( "X" ) !== - 1 )
+								scope.object.scale.x = scope.object.scale.y;
+						
+							if ( scope.lockedAxes.search( "Z" ) !== - 1 )
+								scope.object.scale.z = scope.object.scale.y;
+					
+						}
+					
+						else if ( currentAxis === "Z" ) {
+					
+							if ( scope.lockedAxes.search( "X" ) !== - 1 )
+								scope.object.scale.x = scope.object.scale.z;
+						
+							if ( scope.lockedAxes.search( "Y" ) !== - 1 )
+								scope.object.scale.y = scope.object.scale.z;
+					
+						}
+					}
 
 				}
 
 			} else if ( _mode === "rotate" ) {
-
+			
 				point.sub( worldPosition );
 				point.multiply( parentScale );
 				tempVector.copy( offset ).sub( worldPosition );
 				tempVector.multiply( parentScale );
+				
+				if ( scope.rotationSnap !== null ) {
+					
+					var initialX = scope.object.rotation.x % scope.rotationSnap;
+					var initialY = scope.object.rotation.y % scope.rotationSnap;
+					var initialZ = scope.object.rotation.z % scope.rotationSnap;
+				}
 
 				if ( scope.axis === "E" ) {
 
@@ -1184,9 +1267,9 @@
 
 					if ( scope.rotationSnap !== null ) {
 
-						quaternionX.setFromAxisAngle( unitX, Math.round( ( rotation.x - offsetRotation.x ) / scope.rotationSnap ) * scope.rotationSnap );
-						quaternionY.setFromAxisAngle( unitY, Math.round( ( rotation.y - offsetRotation.y ) / scope.rotationSnap ) * scope.rotationSnap );
-						quaternionZ.setFromAxisAngle( unitZ, Math.round( ( rotation.z - offsetRotation.z ) / scope.rotationSnap ) * scope.rotationSnap );
+						quaternionX.setFromAxisAngle( unitX, initialX + Math.round( ( rotation.x - offsetRotation.x ) / scope.rotationSnap ) * scope.rotationSnap );
+						quaternionY.setFromAxisAngle( unitY, initialY + Math.round( ( rotation.y - offsetRotation.y ) / scope.rotationSnap ) * scope.rotationSnap );
+						quaternionZ.setFromAxisAngle( unitZ, initialZ + Math.round( ( rotation.z - offsetRotation.z ) / scope.rotationSnap ) * scope.rotationSnap );
 
 					} else {
 
@@ -1211,9 +1294,9 @@
 
 					if ( scope.rotationSnap !== null ) {
 
-						quaternionX.setFromAxisAngle( unitX, Math.round( ( rotation.x - offsetRotation.x ) / scope.rotationSnap ) * scope.rotationSnap );
-						quaternionY.setFromAxisAngle( unitY, Math.round( ( rotation.y - offsetRotation.y ) / scope.rotationSnap ) * scope.rotationSnap );
-						quaternionZ.setFromAxisAngle( unitZ, Math.round( ( rotation.z - offsetRotation.z ) / scope.rotationSnap ) * scope.rotationSnap );
+						quaternionX.setFromAxisAngle( unitX, initialX + Math.round( ( rotation.x - offsetRotation.x ) / scope.rotationSnap ) * scope.rotationSnap );
+						quaternionY.setFromAxisAngle( unitY, initialY + Math.round( ( rotation.y - offsetRotation.y ) / scope.rotationSnap ) * scope.rotationSnap );
+						quaternionZ.setFromAxisAngle( unitZ, initialZ + Math.round( ( rotation.z - offsetRotation.z ) / scope.rotationSnap ) * scope.rotationSnap );
 
 					} else {
 

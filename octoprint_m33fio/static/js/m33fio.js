@@ -723,8 +723,8 @@ $(function() {
 		// Show stored messages
 		setInterval(function() {
 		
-			// Check if offline message isn't currently being shown
-			if($("#offline_overlay").css("display") !== "block") {
+			// Check if offline or reload message isn't currently being shown
+			if($("#offline_overlay").css("display") !== "block" && $("#reloadui_overlay").css("display") !== "block") {
 		
 				// Get message
 				var message = $("body > div.page-container > div.message");
@@ -875,26 +875,6 @@ $(function() {
 		
 			// Blur self
 			$(this).blur();
-		});
-		
-		// Window unload
-		$(window).unload(function() {
-		
-			// Check if not using a Micro 3D printer
-			if(self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
-		
-				// Save control slicers
-				localStorage.feedRate = self.control.feedRate();
-				localStorage.flowRate = self.control.flowRate();
-			}
-		
-			// Otherwise
-			else {
-		
-				// Save control slicers
-				localStorage.feedRateMicro3D = self.control.feedRate();
-				localStorage.flowRateMicro3D = self.control.flowRate();
-			}
 		});
 		
 		// Create grid
@@ -3166,7 +3146,7 @@ $(function() {
 									<input type=\"file\" accept=\".stl, .obj, .m3d, .amf, .wrl, .dae, .3mf\">\
 									<button class=\"importFromServer\" title=\"" + encodeQuotes(gettext("Import From Server")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/import-from-server.png\"></button>\
 									<button class=\"importFromFile\" title=\"" + encodeQuotes(gettext("Import From File")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/import-from-file.png\"></button>\
-									<button class=\"translate disabled\" title=\"" + encodeQuotes(gettext("Translate")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/translate.png\"></button>\
+									<button class=\"translate\" title=\"" + encodeQuotes(gettext("Translate")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/translate.png\"></button>\
 									<button class=\"rotate\" title=\"" + encodeQuotes(gettext("Rotate")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/rotate.png\"></button>\
 									<button class=\"scale\" title=\"" + encodeQuotes(gettext("Scale")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/scale.png\"></button>\
 									<button class=\"snap\" title=\"" + encodeQuotes(gettext("Snap")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/snap.png\"></button>\
@@ -3206,6 +3186,7 @@ $(function() {
 										<button class=\"close\" title=\"" + encodeQuotes(gettext("Close")) + "\"><div></div><i class=\"icon-remove-sign\"></i></button>\
 										<button class=\"cube disabled\" title=\"" + encodeQuotes(gettext("Cube")) +"\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/cube.png\"></button>\
 										<button class=\"sphere\" title=\"" + encodeQuotes(gettext("Sphere")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/sphere.png\"></button>\
+										<button class=\"apply\" title=\"" + encodeQuotes(gettext("Apply Cut")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/apply-cut.png\"></button>\
 										<span></span>\
 									</div>\
 								</div>\
@@ -3213,6 +3194,12 @@ $(function() {
 									<p class=\"width\"></p>\
 									<p class=\"depth\"></p>\
 									<p class=\"height\"></p>\
+									<p class=\"groupWidth\"></p>\
+									<p class=\"groupDepth\"></p>\
+									<p class=\"groupHeight\"></p>\
+									<p class=\"totalWidth\"></p>\
+									<p class=\"totalDepth\"></p>\
+									<p class=\"totalHeight\"></p>\
 								</div>\
 							</div>\
 						");
@@ -3338,6 +3325,30 @@ $(function() {
 		
 						// Import from server button click event
 						$("#slicing_configuration_dialog .modal-extra button.importFromServer").click(function() {
+						
+							// Check if import options are already showing
+							if($("#slicing_configuration_dialog .modal-extra button.importFromServer").hasClass("disabled")) {
+							
+								// Hide import options
+								$("#slicing_configuration_dialog .modal-extra button.importFromServer").removeClass("disabled");
+								$("#slicing_configuration_dialog .modal-extra div.import").removeClass("show");
+							}
+							
+							// Otherwise
+							else {
+							
+								// Show import options
+								$("#slicing_configuration_dialog .modal-extra button.importFromServer").addClass("disabled");
+								$("#slicing_configuration_dialog .modal-extra div.import").addClass("show");
+							}
+						});
+						
+						// Import close click event
+						$("#slicing_configuration_dialog.model .modal-extra > div.import > div > button.close").click(function() {
+		
+							// Hide import options
+							$("#slicing_configuration_dialog .modal-extra button.importFromServer").removeClass("disabled");
+							$("#slicing_configuration_dialog .modal-extra div.import").removeClass("show");
 						});
 		
 						// Import from server select button click event
@@ -3393,23 +3404,50 @@ $(function() {
 
 						// Translate button click event
 						$("#slicing_configuration_dialog .modal-extra button.translate").click(function(event) {
+						
+							// Check if already in translate mode
+							if(modelEditor.transformControls.getMode() === "translate")
+							
+								// Set selection mode to none
+								modelEditor.setMode("none");
+							
+							// Otherwise
+							else
 
-							// Set selection mode to translate
-							modelEditor.setMode("translate");
+								// Set selection mode to translate
+								modelEditor.setMode("translate");
 						});
 
 						// Rotate button click event
 						$("#slicing_configuration_dialog .modal-extra button.rotate").click(function() {
+						
+							// Check if already in rotate mode
+							if(modelEditor.transformControls.getMode() === "rotate")
+							
+								// Set selection mode to none
+								modelEditor.setMode("none");
+							
+							// Otherwise
+							else
 
-							// Set selection mode to rotate
-							modelEditor.setMode("rotate");
+								// Set selection mode to rotate
+								modelEditor.setMode("rotate");
 						});
 
 						// Scale button click event
 						$("#slicing_configuration_dialog .modal-extra button.scale").click(function() {
+						
+							// Check if already in scale mode
+							if(modelEditor.transformControls.getMode() === "scale")
+							
+								// Set selection mode to none
+								modelEditor.setMode("none");
+							
+							// Otherwise
+							else
 
-							// Set selection mode to scale
-							modelEditor.setMode("scale");
+								// Set selection mode to scale
+								modelEditor.setMode("scale");
 						});
 
 						// Snap button click event
@@ -3538,23 +3576,19 @@ $(function() {
 							// Save model editor show measurements
 							localStorage.modelEditorShowMeasurements = modelEditor.showMeasurements;
 
-							// Check if a model has focus
-							if(modelEditor.transformControls.object) {
+							// Go through all measurements
+							for(var i = 0; i < modelEditor.measurements.length; i++)
 
-								// Go through all measurements
-								for(var i = 0; i < modelEditor.measurements.length; i++)
+								// Toggle visibility
+								modelEditor.measurements[i].visible = modelEditor.showMeasurements;
 
-									// Toggle visibility
-									modelEditor.measurements[i].visible = modelEditor.showMeasurements;
+							if(modelEditor.showMeasurements)
+								$("div.measurements > p").addClass("show");
+							else
+								$("div.measurements > p").removeClass("show");
 
-								if(modelEditor.showMeasurements)
-									$("div.measurements > p").addClass("show");
-								else
-									$("div.measurements > p").removeClass("show");
-
-								// Update model changes
-								modelEditor.updateModelChanges();
-							}
+							// Update model changes
+							modelEditor.updateModelChanges();
 
 							// Select button
 							if(modelEditor.showMeasurements)
@@ -3593,6 +3627,8 @@ $(function() {
 
 								// Disable import from server, import from file, and clone buttons
 								$("#slicing_configuration_dialog .modal-extra button.importFromServer, #slicing_configuration_dialog .modal-extra button.importFromFile, #slicing_configuration_dialog .modal-extra button.clone").prop("disabled", true);
+								$("#slicing_configuration_dialog .modal-extra button.importFromServer").removeClass("disabled");
+								$("#slicing_configuration_dialog .modal-extra div.import").removeClass("show");
 
 								// Show cut shape options
 								$("#slicing_configuration_dialog .modal-extra div.cutShape").addClass("show");
@@ -3621,6 +3657,9 @@ $(function() {
 									gapSize: 1,
 									linewidth: 2
 								}));
+								
+								// Update cut shape boundary box
+								modelEditor.cutShapeBoundaryBox.setFromObject(modelEditor.cutShape);
 
 								// Add cut shape and outline to scene
 								modelEditor.scene[0].add(modelEditor.cutShape);
@@ -3646,9 +3685,16 @@ $(function() {
 
 							// Otherwise
 							else
-
-								// Apply cut
-								modelEditor.applyCut();
+							
+								// Delete cut shape
+								modelEditor.deleteModel();
+						});
+						
+						// Cut shape close click event
+						$("#slicing_configuration_dialog.model .modal-extra > div.cutShape > div > button.close").click(function() {
+		
+							// Delete cut shape
+							modelEditor.deleteModel();
 						});
 
 						// Cut shape click event
@@ -3665,6 +3711,12 @@ $(function() {
 
 								// Change cut shape to a sphere
 								modelEditor.setCutShape("sphere");
+							
+							// Otherwise check if button is to apply cut
+							else if($(this).hasClass("apply"))
+							
+								// Apply cut
+								modelEditor.applyCut();
 						});
 
 						// Merge button click event
@@ -3718,8 +3770,8 @@ $(function() {
 						// Values close click event
 						$("#slicing_configuration_dialog.model .modal-extra > div.values > div > button.close").click(function() {
 		
-							modelEditor.removeSelection();
-			
+							// Set selection mode to none
+							modelEditor.setMode("none");
 						});
 
 						// Value change event
@@ -3735,20 +3787,20 @@ $(function() {
 								$(this).val(parseFloat($(this).val()).toFixed(3));
 				
 								// Check if changing scale and value is less than zero
-								if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("scale") && $(this).val() < 0)
+								if(modelEditor.transformControls.getMode() === "scale" && $(this).val() < 0)
 				
 									// Set value to zero
 									$(this).val(0);
 
 								// Apply changes
-								modelEditor.applyChanges($(this).attr("name"), $(this).val());
+								modelEditor.applyChanges($(this).attr("name"), $(this).val(), modelEditor.transformControls.getMode() === "rotate" || modelEditor.transformControls.getMode() === "scale");
 							}
 
 							// Otherwise
 							else {
 			
 								// Fix model's Y
-								modelEditor.fixModelY();
+								modelEditor.fixModelY(modelEditor.transformControls.getMode() === "rotate" || modelEditor.transformControls.getMode() === "scale");
 				
 								// Refocus on model
 								modelEditor.transformControls.attach(modelEditor.transformControls.object);
@@ -3762,7 +3814,7 @@ $(function() {
 							if(!isNaN(parseFloat($(this).val()))) {
 			
 								// Check if changing scale
-								if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("scale")) {
+								if(modelEditor.transformControls.getMode() === "scale") {
 				
 									// Go through all inputs
 									for(var i = 0; i < 3; i++)
@@ -3781,7 +3833,7 @@ $(function() {
 								}
 				
 								// Apply changes
-								modelEditor.applyChanges($(this).attr("name"), $(this).val());
+								modelEditor.applyChanges($(this).attr("name"), $(this).val(), modelEditor.transformControls.getMode() === "rotate" || modelEditor.transformControls.getMode() === "scale");
 							}
 						});
 		
@@ -3843,6 +3895,11 @@ $(function() {
 
 						// Resize window
 						$(window).resize();
+						
+						// Fix initial measurement display
+						setTimeout(function() {
+							$(window).resize();
+						}, 250);
 					}, delay);
 				}
 
@@ -4165,8 +4222,16 @@ $(function() {
 			if(currentSelection !== null)
 				$("#slicing_configuration_dialog.model .modal-extra > div.import select").val(currentSelection);
 			
+			// Set default selection if restored selection doesn't exist
+			if($("#slicing_configuration_dialog.model .modal-extra > div.import select").val() === null && keys.length)
+				$("#slicing_configuration_dialog.model .modal-extra > div.import select").val(models[keys[0]]);
+			
 			// Enable or disable import from server button	
 			$("#slicing_configuration_dialog .modal-extra button.importFromServer").prop("disabled", modelEditor.cutShape !== null || !keys.length);
+			if($("#slicing_configuration_dialog .modal-extra button.importFromServer").prop("disabled")) {
+				$("#slicing_configuration_dialog .modal-extra button.importFromServer").removeClass("disabled");
+				$("#slicing_configuration_dialog .modal-extra div.import").removeClass("show");
+			}
 		}
 		
 		// Get slicer profile value
@@ -5408,6 +5473,7 @@ $(function() {
 				savedMatrix: null,
 				cutShape: null,
 				cutShapeOutline: null,
+				cutShapeBoundaryBox: new THREE.Box3(),
 				platformAdhesion: null,
 				adhesionSize: null,
 				scaleLock: [false, false, false],
@@ -5430,8 +5496,8 @@ $(function() {
 					if(!self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
 					
 						// Set printer model
-						//this.printerModel = "micro-3d.stl";
-						this.printerModel = "m3d-pro.stl";
+						this.printerModel = "micro-3d.stl";
+						//this.printerModel = "m3d-pro.stl";
 						
 						// Set bed dimensions
 						bedLowMaxX = 106.0;
@@ -5731,7 +5797,7 @@ $(function() {
 					}
 
 					// Create scene
-					for(var i = 0; i < 2; i++)
+					for(var i = 0; i < 3; i++)
 						this.scene[i] = new THREE.Scene();
 					
 					// Set camera settings
@@ -5749,7 +5815,8 @@ $(function() {
 
 					// Create renderer
 					this.renderer = new THREE.WebGLRenderer({
-						antialias: true
+						antialias: true,
+						logarithmicDepthBuffer: true
 					});
 					this.renderer.setSize(displayWidth, displayHeight);
 					this.renderer.setClearColor(0xFCFCFC, 1);
@@ -5763,10 +5830,10 @@ $(function() {
 					this.orbitControls.dampingFactor = 0.70;
 	
 					this.transformControls = new THREE.TransformControls(this.camera, this.renderer.domElement);
-					this.transformControls.space = "world";
 					this.transformControls.setAllowedTranslation("XZ");
 					this.transformControls.setRotationDisableE(true);
-					this.scene[0].add(this.transformControls);
+					this.transformControls.setMode("translate");
+					this.scene[2].add(this.transformControls);
 
 					// Create lights
 					this.scene[0].add(new THREE.AmbientLight(0x444444));
@@ -5788,10 +5855,7 @@ $(function() {
 							// Create print bed
 							var mesh = new THREE.Mesh(new THREE.CubeGeometry(printBedWidth, printBedDepth, bedLowMinZ), new THREE.MeshBasicMaterial({
 								color: 0x000000,
-								side: THREE.DoubleSide/*,
-								polygonOffset: true,
-								polygonOffsetFactor: 1.0,
-								polygonOffsetUnits: 1.0*/
+								side: THREE.DoubleSide
 							}));
 						
 							mesh.rotation.set(Math.PI / 2, 0, 0);
@@ -5807,7 +5871,7 @@ $(function() {
 							}));
 					
 						// Position print bed
-						mesh.position.set(printBedOffsetX, bedLowMinZ / 2, (bedLowMinY + printBedOffsetY) / 2);
+						mesh.position.set(printBedOffsetX, -0.50 + bedLowMinZ / 2, (bedLowMinY + printBedOffsetY) / 2);
 						mesh.renderOrder = 4;
 				
 						// Add print bed to scene
@@ -5833,23 +5897,26 @@ $(function() {
 					var axisGeometry = new THREE.Geometry();
 					axisGeometry.vertices.push(new THREE.Vector3(printBedWidth / 2 - 0.05, 0.05, -printBedDepth / 2 + 0.05));
 					axisGeometry.vertices.push(new THREE.Vector3(printBedWidth / 2 - 0.05, 0.05, -printBedDepth / 2 + 0.05));
+					
+					// Set axes offset
+					var axesOffset = this.printerModel !== null ? 0.45 : 0.20;
 				
 					// Create X axis
 					this.axes[0] = new THREE.Line(axisGeometry.clone(), axisMaterial.clone());
 					this.axes[0].geometry.vertices[1].x -= 20;
-					this.axes[0].position.set(printBedOffsetX, -0.35 + bedLowMinZ, (bedLowMinY + printBedOffsetY) / 2);
+					this.axes[0].position.set(printBedOffsetX, bedLowMinZ - axesOffset, (bedLowMinY + printBedOffsetY) / 2);
 					this.axes[0].material.color.setHex(0xFF0000);
 					
 					// Create Y axis
 					this.axes[1] = new THREE.Line(axisGeometry.clone(), axisMaterial.clone());
 					this.axes[1].geometry.vertices[1].y += 20;
-					this.axes[1].position.set(printBedOffsetX, -0.35 + bedLowMinZ, (bedLowMinY + printBedOffsetY) / 2);
+					this.axes[1].position.set(printBedOffsetX, bedLowMinZ - axesOffset, (bedLowMinY + printBedOffsetY) / 2);
 					this.axes[1].material.color.setHex(0x00FF00);
 					
 					// Create Z axis
 					this.axes[2] = new THREE.Line(axisGeometry.clone(), axisMaterial.clone());
 					this.axes[2].geometry.vertices[1].z += 20;
-					this.axes[2].position.set(printBedOffsetX, -0.35 + bedLowMinZ, (bedLowMinY + printBedOffsetY) / 2);
+					this.axes[2].position.set(printBedOffsetX, bedLowMinZ - axesOffset, (bedLowMinY + printBedOffsetY) / 2);
 					this.axes[2].material.color.setHex(0x0000FF);
 					
 					// Go through all axes
@@ -5858,7 +5925,7 @@ $(function() {
 						// Add axis to scene
 						this.axes[i].visible = this.showAxes;
 						this.axes[i].frustumCulled = false;
-						this.scene[1].add(this.axes[i]);
+						this.scene[2].add(this.axes[i]);
 					}
 					
 					// Check if a printer model is available
@@ -5867,6 +5934,13 @@ $(function() {
 						// Load printer model
 						var loader = new THREE.STLLoader();
 						loader.load(PLUGIN_BASEURL + "m33fio/static/models/" + this.printerModel + "?" + new Date().getTime(), function(geometry) {
+							
+							// Standardize geometry
+							if(!(geometry instanceof THREE.Geometry))
+								geometry = standardizeGeometry(geometry);
+							
+							// Compute normals
+							computeNormals(geometry);
 					
 							// Create printer's mesh
 							var mesh = new THREE.Mesh(geometry, printerMaterials[modelEditorPrinterColor]);
@@ -5906,7 +5980,7 @@ $(function() {
 									mesh.rotation.set(0, -Math.PI, 0);
 									
 									if(modelEditor.printerModel === "micro-3d.stl")
-										mesh.position.set(0, -18.906, -92.6);
+										mesh.position.set(0, -18.906, -92.71);
 									else
 										mesh.position.set(0, -18.067, -133.6);
 									
@@ -5956,9 +6030,17 @@ $(function() {
 					measurementGeometry.vertices.push(new THREE.Vector3());
 					measurementGeometry.vertices.push(new THREE.Vector3());
 		
-					// Create measurement
-					for(var i = 0; i < 3; i++)
-						this.measurements[i] = new THREE.Line(measurementGeometry.clone(), measurementMaterial);
+					// Create measurements
+					for(var i = 0; i < 9; i++)
+						this.measurements[i] = new THREE.Line(measurementGeometry.clone(), measurementMaterial.clone());
+					
+					// Set group measurement's color
+					for(var i = 3; i < 6; i++)
+						this.measurements[i].material.color.setHex(0x00FFFF);
+					
+					// Set total measurement's color
+					for(var i = 6; i < this.measurements.length; i++)
+						this.measurements[i].material.color.setHex(0xFFFF00);
 					
 					// Go through all measurements
 					for(var i = 0; i < this.measurements.length; i++) {
@@ -5966,7 +6048,7 @@ $(function() {
 						// Add measurements to scene
 						this.measurements[i].visible = this.showMeasurements;
 						this.measurements[i].frustumCulled = false;
-						this.scene[1].add(this.measurements[i]);
+						this.scene[2].add(this.measurements[i]);
 					}
 					
 					// Create boundary material
@@ -5978,41 +6060,44 @@ $(function() {
 						depthWrite: false
 					});
 					
+					// Set boundary offset
+					var boundaryOffset = this.printerModel !== null ? 0.5 : 0.25;
+					
 					// Check if bed shape is rectangular
 					if(this.bedShape === "rectangular") {
 		
 						// Low bottom boundary
 						this.boundaries[0] = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), boundaryMaterial.clone());
-						this.boundaries[0].geometry.vertices[0].set(-bedLowMinX, bedLowMinZ - 0.25, bedLowMinY);
-						this.boundaries[0].geometry.vertices[1].set(-bedLowMaxX, bedLowMinZ - 0.25, bedLowMinY);
-						this.boundaries[0].geometry.vertices[2].set(-bedLowMinX, bedLowMinZ - 0.25, bedLowMaxY);
-						this.boundaries[0].geometry.vertices[3].set(-bedLowMaxX, bedLowMinZ - 0.25, bedLowMaxY);
+						this.boundaries[0].geometry.vertices[0].set(-bedLowMinX, bedLowMinZ - boundaryOffset, bedLowMinY);
+						this.boundaries[0].geometry.vertices[1].set(-bedLowMaxX, bedLowMinZ - boundaryOffset, bedLowMinY);
+						this.boundaries[0].geometry.vertices[2].set(-bedLowMinX, bedLowMinZ - boundaryOffset, bedLowMaxY);
+						this.boundaries[0].geometry.vertices[3].set(-bedLowMaxX, bedLowMinZ - boundaryOffset, bedLowMaxY);
 		
 						// Low front boundary
 						this.boundaries[1] = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), boundaryMaterial.clone());
-						this.boundaries[1].geometry.vertices[0].set(-bedLowMinX, bedLowMinZ - 0.25, bedLowMinY);
-						this.boundaries[1].geometry.vertices[1].set(-bedLowMaxX, bedLowMinZ - 0.25, bedLowMinY);
+						this.boundaries[1].geometry.vertices[0].set(-bedLowMinX, bedLowMinZ - boundaryOffset, bedLowMinY);
+						this.boundaries[1].geometry.vertices[1].set(-bedLowMaxX, bedLowMinZ - boundaryOffset, bedLowMinY);
 						this.boundaries[1].geometry.vertices[2].set(-bedLowMinX, bedLowMaxZ, bedLowMinY);
 						this.boundaries[1].geometry.vertices[3].set(-bedLowMaxX, bedLowMaxZ, bedLowMinY);
 		
 						// Low back boundary
 						this.boundaries[2] = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), boundaryMaterial.clone());
-						this.boundaries[2].geometry.vertices[0].set(-bedLowMinX, bedLowMinZ - 0.25, bedLowMaxY);
-						this.boundaries[2].geometry.vertices[1].set(-bedLowMaxX, bedLowMinZ - 0.25, bedLowMaxY);
+						this.boundaries[2].geometry.vertices[0].set(-bedLowMinX, bedLowMinZ - boundaryOffset, bedLowMaxY);
+						this.boundaries[2].geometry.vertices[1].set(-bedLowMaxX, bedLowMinZ - boundaryOffset, bedLowMaxY);
 						this.boundaries[2].geometry.vertices[2].set(-bedLowMinX, bedLowMaxZ, bedLowMaxY);
 						this.boundaries[2].geometry.vertices[3].set(-bedLowMaxX, bedLowMaxZ, bedLowMaxY);
 		
 						// Low right boundary
 						this.boundaries[3] = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), boundaryMaterial.clone());
-						this.boundaries[3].geometry.vertices[0].set(-bedLowMaxX, bedLowMinZ - 0.25, bedLowMinY);
-						this.boundaries[3].geometry.vertices[1].set(-bedLowMaxX, bedLowMinZ - 0.25, bedLowMaxY);
+						this.boundaries[3].geometry.vertices[0].set(-bedLowMaxX, bedLowMinZ - boundaryOffset, bedLowMinY);
+						this.boundaries[3].geometry.vertices[1].set(-bedLowMaxX, bedLowMinZ - boundaryOffset, bedLowMaxY);
 						this.boundaries[3].geometry.vertices[2].set(-bedLowMaxX, bedLowMaxZ, bedLowMinY);
 						this.boundaries[3].geometry.vertices[3].set(-bedLowMaxX, bedLowMaxZ, bedLowMaxY);
 		
 						// Low left boundary
 						this.boundaries[4] = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), boundaryMaterial.clone());
-						this.boundaries[4].geometry.vertices[0].set(-bedLowMinX, bedLowMinZ - 0.25, bedLowMinY);
-						this.boundaries[4].geometry.vertices[1].set(-bedLowMinX, bedLowMinZ - 0.25, bedLowMaxY);
+						this.boundaries[4].geometry.vertices[0].set(-bedLowMinX, bedLowMinZ - boundaryOffset, bedLowMinY);
+						this.boundaries[4].geometry.vertices[1].set(-bedLowMinX, bedLowMinZ - boundaryOffset, bedLowMaxY);
 						this.boundaries[4].geometry.vertices[2].set(-bedLowMinX, bedLowMaxZ, bedLowMinY);
 						this.boundaries[4].geometry.vertices[3].set(-bedLowMinX, bedLowMaxZ, bedLowMaxY);
 		
@@ -6141,12 +6226,12 @@ $(function() {
 					
 						// Bottom boundary
 						this.boundaries[0] = new THREE.Mesh(new THREE.CircleGeometry(printBedWidth / 2, 200), boundaryMaterial.clone());
-						this.boundaries[0].position.set(-printBedWidth / 2, bedLowMinZ - 0.25, printBedDepth / 2);
+						this.boundaries[0].position.set(-printBedWidth / 2, bedLowMinZ - boundaryOffset, printBedDepth / 2);
 						this.boundaries[0].rotation.set(-Math.PI / 2, 0, 0);
 					
 						// Side boundary
 						this.boundaries[1] = new THREE.Mesh(new THREE.CylinderGeometry(printBedWidth / 2, printBedWidth / 2, bedHighMaxZ - bedLowMinZ + 0.50, 200, 1, true), boundaryMaterial.clone());
-						this.boundaries[1].position.set(-printBedWidth / 2, (bedHighMaxZ - bedLowMinZ) / 2 - 0.25, printBedDepth / 2);
+						this.boundaries[1].position.set(-printBedWidth / 2, (bedHighMaxZ - bedLowMinZ) / 2 - boundaryOffset, printBedDepth / 2);
 						
 						// Top boundary
 						this.boundaries[2] = new THREE.Mesh(new THREE.CircleGeometry(printBedWidth / 2, 200), boundaryMaterial.clone());
@@ -6179,7 +6264,7 @@ $(function() {
 					
 						// Apply group transformation and fix models' Y
 						modelEditor.applyGroupTransformation();
-						modelEditor.fixModelY();
+						modelEditor.fixModelY(modelEditor.transformControls.getMode() === "rotate" || modelEditor.transformControls.getMode() === "scale");
 					});
 					
 					this.orbitControls.addEventListener("change", function() {
@@ -6233,9 +6318,6 @@ $(function() {
 				
 					// Remove grabbing cursor
 					$("body").removeClass("grabbing");
-		
-					// Clear saved matrix
-					modelEditor.savedMatrix = null;
 	
 					// Enable orbit controls
 					modelEditor.orbitControls.enabled = true;
@@ -6334,7 +6416,7 @@ $(function() {
 						modelEditor.updatePlatformAdhesion();
 
 						// Fix model's Y
-						modelEditor.fixModelY();
+						modelEditor.fixModelY(true);
 						
 						// Refocus on model
 						modelEditor.transformControls.attach(modelEditor.transformControls.object);
@@ -6491,7 +6573,7 @@ $(function() {
 													for(var i = 1; i < modelEditor.models.length; i++)
 			
 														// Check if model is currently being focused on
-														if(modelEditor.models[i].mesh == modelEditor.transformControls.object) {
+														if(modelEditor.models[i].mesh === modelEditor.transformControls.object) {
 								
 															// Check if shift isn't pressed
 															if(!event.shiftKey)
@@ -6544,23 +6626,32 @@ $(function() {
 
 									// Check if W was pressed
 									case "W".charCodeAt(0) :
+									
+										// Check if translate button isn't disabled
+										if(!$("#slicing_configuration_dialog .modal-extra button.translate").prop("disabled"))
 	
-										// Set selection mode to translate
-										modelEditor.setMode("translate");
+											// Set selection mode to translate
+											modelEditor.setMode("translate");
 									break;
 	
 									// Check if E was pressed
 									case "E".charCodeAt(0) :
+									
+										// Check if rotate button isn't disabled
+										if(!$("#slicing_configuration_dialog .modal-extra button.rotate").prop("disabled"))
 	
-										// Set selection mode to rotate
-										modelEditor.setMode("rotate");
+											// Set selection mode to rotate
+											modelEditor.setMode("rotate");
 									break;
 	
 									// Check if R was pressed
 									case "R".charCodeAt(0) :
+									
+										// Check if scale button isn't disabled
+										if(!$("#slicing_configuration_dialog .modal-extra button.scale").prop("disabled"))
 	
-										// Set selection mode to scale
-										modelEditor.setMode("scale");
+											// Set selection mode to scale
+											modelEditor.setMode("scale");
 									break;
 						
 									// Check if enter was pressed
@@ -6790,9 +6881,10 @@ $(function() {
 				// Set mode
 				setMode: function(mode) {
 	
+					// Check mode
 					switch(mode) {
 		
-						// Check if translate mode
+						// Translate mode
 						case "translate" :
 			
 							// Set selection mode to translate
@@ -6801,7 +6893,7 @@ $(function() {
 							modelEditor.transformControls.maintainPosition = false;
 						break;
 			
-						// Check if rotate mode
+						// Rotate mode
 						case "rotate" :
 			
 							// Set selection mode to rotate
@@ -6810,13 +6902,20 @@ $(function() {
 							modelEditor.transformControls.maintainPosition = true;
 						break;
 			
-						// Check if scale mode
+						// Scale mode
 						case "scale" :
 			
 							// Set selection mode to scale
 							modelEditor.transformControls.setMode("scale");
 							modelEditor.transformControls.space = "local";
 							modelEditor.transformControls.maintainPosition = true;
+						break;
+						
+						// Default
+						default :
+						
+							// Set selection mode to none
+							modelEditor.transformControls.setMode("none");
 						break;
 					}
 				},
@@ -6938,22 +7037,34 @@ $(function() {
 				},
 
 				// Fix model Y
-				fixModelY: function() {
-			
-					// Go through all models
-					for(var i = 1; i < modelEditor.models.length; i++)
+				fixModelY: function(updateBoundaryBox) {
+				
+					// Check if updating boundary box
+					if(updateBoundaryBox)
+				
+						// Go through all models
+						for(var i = 1; i < modelEditor.models.length; i++)
 
-						// Check if model is selected
-						if(modelEditor.models[i].glow !== null) {
-
-							// Update model's boundary box
-							modelEditor.models[i].boundaryBox.setFromObject(modelEditor.models[i].mesh);
+							// Check if model is selected
+							if(modelEditor.models[i].glow !== null) {
+						
+								// Set boundary box
+								var boundaryBox = modelEditor.models[i].boundaryBox;
+						
+								// Update model's boundary box
+								boundaryBox.setFromObject(modelEditor.models[i].mesh);
 							
-							// Set model's lowest Y value to be on the bed
-							var boundaryBox = modelEditor.models[i].boundaryBox.clone();
-							boundaryBox.min.sub(modelEditor.models[i].mesh.position);
-							modelEditor.models[i].mesh.position.y = -boundaryBox.min.y + bedLowMinZ;
-						}
+								// Set model's lowest Y value to be on the bed
+								modelEditor.models[i].mesh.position.y += -boundaryBox.min.y + bedLowMinZ;
+							
+								// Update boundary box
+								boundaryBox.max.y -= boundaryBox.min.y - bedLowMinZ;
+								boundaryBox.min.y -= boundaryBox.min.y - bedLowMinZ;
+							}
+					
+					// Update cut shape boundary box
+					if(modelEditor.cutShape !== null)
+						modelEditor.cutShapeBoundaryBox.setFromObject(modelEditor.cutShape);
 					
 					// Upate measurements
 					modelEditor.updateModelChanges();
@@ -7006,7 +7117,7 @@ $(function() {
 							});
 					
 							// Check if model is focused
-							if(modelEditor.models[i].mesh == modelEditor.transformControls.object)
+							if(modelEditor.models[i].mesh === modelEditor.transformControls.object)
 							
 								// Append cloned model to the beginning of list
 								clonedModels.unshift(clonedModel);
@@ -7028,7 +7139,7 @@ $(function() {
 					modelEditor.updatePlatformAdhesion();
 
 					// Fix model's Y
-					modelEditor.fixModelY();
+					modelEditor.fixModelY(true);
 					
 					// Refocus on model
 					modelEditor.transformControls.attach(modelEditor.transformControls.object);
@@ -7080,7 +7191,7 @@ $(function() {
 					modelEditor.updatePlatformAdhesion();
 					
 					// Fix model's Y
-					modelEditor.fixModelY();
+					modelEditor.fixModelY(true);
 					
 					// Refocus on model
 					modelEditor.transformControls.attach(modelEditor.transformControls.object);
@@ -7238,8 +7349,8 @@ $(function() {
 					// Go through all models
 					for(var i = 1; i < modelEditor.models.length; i++)
 			
-						// Check if model is being selected
-						if(modelEditor.models[i].mesh == model) {
+						// Check if model has focus
+						if(modelEditor.models[i].mesh === model) {
 				
 							// Focus on model
 							modelEditor.transformControls.attach(model);
@@ -7312,7 +7423,7 @@ $(function() {
 				},
 		
 				// Apply changes
-				applyChanges: function(name, value) {
+				applyChanges: function(name, value, updateBoundaryBox) {
 
 					// Check if a model has focus
 					var model = modelEditor.transformControls.object;
@@ -7320,52 +7431,59 @@ $(function() {
 			
 						// Save matrix
 						modelEditor.savedMatrix = model.matrix.clone();
+						
+						// Check what mode transform controls are in
+						switch(modelEditor.transformControls.getMode()) {
 
-						// Check if in translate mode
-						if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("translate")) {
+							// Translate mode
+							case "translate" :
 
-							// Set model's position
-							if(name === "x")
-								model.position.x = -parseFloat(value);
-							else if(name === "y")
-								model.position.y = parseFloat(value);
-							else if(name === "z")
-								model.position.z = parseFloat(value);
-						}
+								// Set model's position
+								if(name === "x")
+									model.position.x = -parseFloat(value);
+								else if(name === "y")
+									model.position.y = parseFloat(value);
+								else if(name === "z")
+									model.position.z = parseFloat(value);
+							break;
 
-						// Otherwise check if in rotate mode
-						else if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("rotate")) {
+							// Rotate mode
+							case "rotate" :
+						
+								// Set adjusted value
+								var adjustedValue = parseFloat(value) % 360;
 
-							// Set model's rotation
-							if(name === "x")
-								model.rotation.x = THREE.Math.degToRad(parseFloat(value));
-							else if(name === "y")
-								model.rotation.y = THREE.Math.degToRad(parseFloat(value));
-							else if(name === "z")
-								model.rotation.z = THREE.Math.degToRad(parseFloat(value));
-						}
+								// Set model's rotation
+								if(name === "x")
+									model.rotation.x = THREE.Math.degToRad(adjustedValue);
+								else if(name === "y")
+									model.rotation.y = THREE.Math.degToRad(adjustedValue);
+								else if(name === "z")
+									model.rotation.z = THREE.Math.degToRad(adjustedValue);
+							break;
 
-						// Otherwise check if in scale mode
-						else if($("#slicing_configuration_dialog .modal-extra div.values").hasClass("scale")) {
+							// Scale mode
+							case "scale" :
+						
+								// Set adjusted value
+								var adjustedValue = parseFloat(value) == 0 ? 0.000000000001 : parseFloat(value);
 
-							// Set model's scale
-							if(name === "x" || modelEditor.scaleLock[0])
-								model.scale.x = parseFloat(value) == 0 ? 0.000000000001 : parseFloat(value);
-							if(name === "y" || modelEditor.scaleLock[1])
-								model.scale.y = parseFloat(value) == 0 ? 0.000000000001 : parseFloat(value);
-							if(name === "z" || modelEditor.scaleLock[2])
-								model.scale.z = parseFloat(value == 0 ? 0.000000000001 : parseFloat(value));
+								// Set model's scale
+								if(name === "x" || modelEditor.scaleLock[0])
+									model.scale.x = adjustedValue;
+								if(name === "y" || modelEditor.scaleLock[1])
+									model.scale.y = adjustedValue;
+								if(name === "z" || modelEditor.scaleLock[2])
+									model.scale.z = adjustedValue;
+							break;
 						}
 					}
 			
 					// Apply group transformation
 					modelEditor.applyGroupTransformation();
-		
-					// Clear saved matrix
-					modelEditor.savedMatrix = null;
 
 					// Fix model's Y
-					modelEditor.fixModelY();
+					modelEditor.fixModelY(updateBoundaryBox);
 					
 					// Refocus on model
 					modelEditor.transformControls.attach(modelEditor.transformControls.object);
@@ -7387,7 +7505,7 @@ $(function() {
 				updateModelChanges: function() {
 				
 					// Check if selectors need to be stored
-					if(modelEditor.valuesDisplay === null || !modelEditor.valuesDisplay.length)  {
+					if(modelEditor.valuesDisplay === null || !modelEditor.valuesDisplay.length) {
 					
 						// Set values' display
 						modelEditor.valuesDisplay = $("#slicing_configuration_dialog .modal-extra div.values");
@@ -7404,6 +7522,12 @@ $(function() {
 						modelEditor.measurementsDisplay[0] = $("#slicing_configuration_dialog .modal-extra div.measurements > p.width");
 						modelEditor.measurementsDisplay[1] = $("#slicing_configuration_dialog .modal-extra div.measurements > p.depth");
 						modelEditor.measurementsDisplay[2] = $("#slicing_configuration_dialog .modal-extra div.measurements > p.height");
+						modelEditor.measurementsDisplay[3] = $("#slicing_configuration_dialog .modal-extra div.measurements > p.groupWidth");
+						modelEditor.measurementsDisplay[4] = $("#slicing_configuration_dialog .modal-extra div.measurements > p.groupDepth");
+						modelEditor.measurementsDisplay[5] = $("#slicing_configuration_dialog .modal-extra div.measurements > p.groupHeight");
+						modelEditor.measurementsDisplay[6] = $("#slicing_configuration_dialog .modal-extra div.measurements > p.totalWidth");
+						modelEditor.measurementsDisplay[7] = $("#slicing_configuration_dialog .modal-extra div.measurements > p.totalDepth");
+						modelEditor.measurementsDisplay[8] = $("#slicing_configuration_dialog .modal-extra div.measurements > p.totalHeight");
 						
 						// Set buttons
 						modelEditor.mergeButton = $("#slicing_configuration_dialog .modal-extra button.merge");
@@ -7419,40 +7543,205 @@ $(function() {
 					// Get currently selected model
 					var model = modelEditor.transformControls.object;
 				
-					// Check if a showing measurements, a model has focus, and not cutting models
-					if(modelEditor.showMeasurements && model && modelEditor.cutShape === null) {
+					// Check if a showing measurements
+					if(modelEditor.showMeasurements) {
+					
+						// Set number of models selected
+						var numberOfModelsSelected = 0;
+						
+						// Set group boundary box
+						var groupBoundaryBox = new THREE.Box3();
+						
+						// Set total boundary box
+						var totalBoundaryBox = new THREE.Box3();
 		
-						// Get model's boundary box
-						for(var i = 1; i < modelEditor.models.length; i++)
-							if(modelEditor.models[i].mesh == model) {
+						// Go through all models
+						for(var i = 1; i < modelEditor.models.length; i++) {
+						
+							// Check if model has focus
+							if(modelEditor.models[i].mesh === model)
+							
+								// Get model's boundary box
 								var boundaryBox = modelEditor.models[i].boundaryBox;
-								break;
+							
+							// Check if model is selected
+							if(modelEditor.models[i].glow !== null) {
+							
+								// Increment number of models selected
+								numberOfModelsSelected++;
+								
+								// Update group boundary box
+								groupBoundaryBox.union(modelEditor.models[i].boundaryBox);
 							}
-			
-						// Set width measurement
-						modelEditor.measurements[0].geometry.vertices[0].set(boundaryBox.max.x + 1, boundaryBox.min.y - 1, boundaryBox.min.z - 1);
-						modelEditor.measurements[0].geometry.vertices[1].set(boundaryBox.min.x - 1, boundaryBox.min.y - 1, boundaryBox.min.z - 1);
-						var value = boundaryBox.max.x - boundaryBox.min.x;
-						modelEditor.measurementsDisplay[0].text(value.toFixed(3) + "mm / " + (value / 25.4).toFixed(3) + "in");
-		
-						// Set depth measurement
-						modelEditor.measurements[1].geometry.vertices[0].set(boundaryBox.min.x - 1, boundaryBox.min.y - 1, boundaryBox.min.z - 1);
-						modelEditor.measurements[1].geometry.vertices[1].set(boundaryBox.min.x - 1, boundaryBox.min.y - 1, boundaryBox.max.z + 1);
-						value = boundaryBox.max.z - boundaryBox.min.z;
-						modelEditor.measurementsDisplay[1].text(value.toFixed(3) + "mm / " + (value / 25.4).toFixed(3) + "in");
-			
-						// Set height measurement
-						modelEditor.measurements[2].geometry.vertices[0].set(boundaryBox.min.x - 1, boundaryBox.min.y - 1, boundaryBox.max.z + 1);
-						modelEditor.measurements[2].geometry.vertices[1].set(boundaryBox.min.x - 1, boundaryBox.max.y + 1, boundaryBox.max.z + 1);
-						value = boundaryBox.max.y - boundaryBox.min.y;
-						modelEditor.measurementsDisplay[2].text(value.toFixed(3) + "mm / " + (value / 25.4).toFixed(3) + "in");
-			
-						// Show measurements
-						for(var i = 0; i < modelEditor.measurements.length; i++) {
-							modelEditor.measurements[i].geometry.verticesNeedUpdate = true;
-							modelEditor.measurements[i].visible = true;
-							modelEditor.measurementsDisplay[i].addClass("show");
+							
+							// Update total boundary box
+							totalBoundaryBox.union(modelEditor.models[i].boundaryBox);
 						}
+						
+						// Set initial offset
+						var offset = 1;
+						
+						// Check if not cutting models
+						if(modelEditor.cutShape === null) {
+						
+							// Check if a model has focus and more than one model exists
+							if(model && modelEditor.models.length - 1 > 1 && typeof boundaryBox !== "undefined") {
+			
+								// Set width measurement
+								modelEditor.measurements[0].geometry.vertices[0].set(boundaryBox.max.x + 1, boundaryBox.min.y, boundaryBox.min.z - offset);
+								modelEditor.measurements[0].geometry.vertices[1].set(boundaryBox.min.x - offset, boundaryBox.min.y, boundaryBox.min.z - offset);
+								var value = boundaryBox.max.x - boundaryBox.min.x;
+								modelEditor.measurementsDisplay[0].text(value.toFixed(3) + "mm / " + (value / 25.4).toFixed(3) + "in");
+		
+								// Set depth measurement
+								modelEditor.measurements[1].geometry.vertices[0].set(boundaryBox.min.x - offset, boundaryBox.min.y, boundaryBox.min.z - offset);
+								modelEditor.measurements[1].geometry.vertices[1].set(boundaryBox.min.x - offset, boundaryBox.min.y, boundaryBox.max.z + 1);
+								value = boundaryBox.max.z - boundaryBox.min.z;
+								modelEditor.measurementsDisplay[1].text(value.toFixed(3) + "mm / " + (value / 25.4).toFixed(3) + "in");
+			
+								// Set height measurement
+								modelEditor.measurements[2].geometry.vertices[0].set(boundaryBox.min.x - offset, boundaryBox.min.y, boundaryBox.max.z + 1);
+								modelEditor.measurements[2].geometry.vertices[1].set(boundaryBox.min.x - offset, boundaryBox.max.y + 1, boundaryBox.max.z + 1);
+								value = boundaryBox.max.y - boundaryBox.min.y;
+								modelEditor.measurementsDisplay[2].text(value.toFixed(3) + "mm / " + (value / 25.4).toFixed(3) + "in");
+						
+								// Show measurements
+								for(var i = 0; i < 3; i++) {
+									modelEditor.measurements[i].geometry.verticesNeedUpdate = true;
+									modelEditor.measurements[i].visible = true;
+									modelEditor.measurementsDisplay[i].addClass("show");
+								}
+							
+								// Increment offset
+								offset++;
+							}
+						
+							// Otherwise
+							else
+						
+								// Hide measurements
+								for(var i = 0; i < 3; i++) {
+									modelEditor.measurements[i].visible = false;
+									modelEditor.measurementsDisplay[i].removeClass("show");
+								}
+						
+							// Check if not all models are selected
+							if(numberOfModelsSelected > 1 && numberOfModelsSelected < modelEditor.models.length - 1) {
+						
+								// Set group width measurement
+								modelEditor.measurements[3].geometry.vertices[0].set(groupBoundaryBox.max.x + 1, groupBoundaryBox.min.y, groupBoundaryBox.min.z - offset);
+								modelEditor.measurements[3].geometry.vertices[1].set(groupBoundaryBox.min.x - offset, groupBoundaryBox.min.y, groupBoundaryBox.min.z - offset);
+								var value = groupBoundaryBox.max.x - groupBoundaryBox.min.x;
+								modelEditor.measurementsDisplay[3].text(value.toFixed(3) + "mm / " + (value / 25.4).toFixed(3) + "in");
+		
+								// Set group depth measurement
+								modelEditor.measurements[4].geometry.vertices[0].set(groupBoundaryBox.min.x - offset, groupBoundaryBox.min.y, groupBoundaryBox.min.z - offset);
+								modelEditor.measurements[4].geometry.vertices[1].set(groupBoundaryBox.min.x - offset, groupBoundaryBox.min.y, groupBoundaryBox.max.z + 1);
+								value = groupBoundaryBox.max.z - groupBoundaryBox.min.z;
+								modelEditor.measurementsDisplay[4].text(value.toFixed(3) + "mm / " + (value / 25.4).toFixed(3) + "in");
+			
+								// Set group height measurement
+								modelEditor.measurements[5].geometry.vertices[0].set(groupBoundaryBox.min.x - offset, groupBoundaryBox.min.y, groupBoundaryBox.max.z + 1);
+								modelEditor.measurements[5].geometry.vertices[1].set(groupBoundaryBox.min.x - offset, groupBoundaryBox.max.y + 1, groupBoundaryBox.max.z + 1);
+								value = groupBoundaryBox.max.y - groupBoundaryBox.min.y;
+								modelEditor.measurementsDisplay[5].text(value.toFixed(3) + "mm / " + (value / 25.4).toFixed(3) + "in");
+							
+								// Show group measurements
+								for(var i = 3; i < 6; i++) {
+									modelEditor.measurements[i].geometry.verticesNeedUpdate = true;
+									modelEditor.measurements[i].visible = true;
+									modelEditor.measurementsDisplay[i].addClass("show");
+								}
+							
+								// Increment offset
+								offset++;
+							}
+						
+							// Otherwise
+							else
+						
+								// Hide group measurements
+								for(var i = 3; i < 6; i++) {
+									modelEditor.measurements[i].visible = false;
+									modelEditor.measurementsDisplay[i].removeClass("show");
+								}
+						}
+						
+						// Otherwise
+						else {
+						
+							// Get cut shape's boundary box
+							var boundaryBox = modelEditor.cutShapeBoundaryBox;
+						
+							// Set width measurement
+							modelEditor.measurements[0].geometry.vertices[0].set(boundaryBox.max.x + 1, boundaryBox.min.y, boundaryBox.min.z - offset);
+							modelEditor.measurements[0].geometry.vertices[1].set(boundaryBox.min.x - offset, boundaryBox.min.y, boundaryBox.min.z - offset);
+							var value = boundaryBox.max.x - boundaryBox.min.x;
+							modelEditor.measurementsDisplay[0].text(value.toFixed(3) + "mm / " + (value / 25.4).toFixed(3) + "in");
+	
+							// Set depth measurement
+							modelEditor.measurements[1].geometry.vertices[0].set(boundaryBox.min.x - offset, boundaryBox.min.y, boundaryBox.min.z - offset);
+							modelEditor.measurements[1].geometry.vertices[1].set(boundaryBox.min.x - offset, boundaryBox.min.y, boundaryBox.max.z + 1);
+							value = boundaryBox.max.z - boundaryBox.min.z;
+							modelEditor.measurementsDisplay[1].text(value.toFixed(3) + "mm / " + (value / 25.4).toFixed(3) + "in");
+		
+							// Set height measurement
+							modelEditor.measurements[2].geometry.vertices[0].set(boundaryBox.min.x - offset, boundaryBox.min.y, boundaryBox.max.z + 1);
+							modelEditor.measurements[2].geometry.vertices[1].set(boundaryBox.min.x - offset, boundaryBox.max.y + 1, boundaryBox.max.z + 1);
+							value = boundaryBox.max.y - boundaryBox.min.y;
+							modelEditor.measurementsDisplay[2].text(value.toFixed(3) + "mm / " + (value / 25.4).toFixed(3) + "in");
+						
+							// Show measurements
+							for(var i = 0; i < 3; i++) {
+								modelEditor.measurements[i].geometry.verticesNeedUpdate = true;
+								modelEditor.measurements[i].visible = true;
+								modelEditor.measurementsDisplay[i].addClass("show");
+							}
+						
+							// Hide group measurements
+							for(var i = 3; i < 6; i++) {
+								modelEditor.measurements[i].visible = false;
+								modelEditor.measurementsDisplay[i].removeClass("show");
+							}
+						}
+						
+						// Check if at least one model exists
+						if(modelEditor.models.length - 1 > 0) {
+						
+							// Set total width measurement
+							modelEditor.measurements[6].geometry.vertices[0].set(totalBoundaryBox.max.x + 1, totalBoundaryBox.min.y, totalBoundaryBox.min.z - offset);
+							modelEditor.measurements[6].geometry.vertices[1].set(totalBoundaryBox.min.x - offset, totalBoundaryBox.min.y, totalBoundaryBox.min.z - offset);
+							var value = totalBoundaryBox.max.x - totalBoundaryBox.min.x;
+							modelEditor.measurementsDisplay[6].text(value.toFixed(3) + "mm / " + (value / 25.4).toFixed(3) + "in");
+	
+							// Set total depth measurement
+							modelEditor.measurements[7].geometry.vertices[0].set(totalBoundaryBox.min.x - offset, totalBoundaryBox.min.y, totalBoundaryBox.min.z - offset);
+							modelEditor.measurements[7].geometry.vertices[1].set(totalBoundaryBox.min.x - offset, totalBoundaryBox.min.y, totalBoundaryBox.max.z + 1);
+							value = totalBoundaryBox.max.z - totalBoundaryBox.min.z;
+							modelEditor.measurementsDisplay[7].text(value.toFixed(3) + "mm / " + (value / 25.4).toFixed(3) + "in");
+		
+							// Set total height measurement
+							modelEditor.measurements[8].geometry.vertices[0].set(totalBoundaryBox.min.x - offset, totalBoundaryBox.min.y, totalBoundaryBox.max.z + 1);
+							modelEditor.measurements[8].geometry.vertices[1].set(totalBoundaryBox.min.x - offset, totalBoundaryBox.max.y + 1, totalBoundaryBox.max.z + 1);
+							value = totalBoundaryBox.max.y - totalBoundaryBox.min.y;
+							modelEditor.measurementsDisplay[8].text(value.toFixed(3) + "mm / " + (value / 25.4).toFixed(3) + "in");
+							
+							// Show total measurements
+							for(var i = 6; i < modelEditor.measurements.length; i++) {
+								modelEditor.measurements[i].geometry.verticesNeedUpdate = true;
+								modelEditor.measurements[i].visible = true;
+								modelEditor.measurementsDisplay[i].addClass("show");
+							}
+						}
+						
+						// Otherwise
+						else
+					
+							// Hide total measurements
+							for(var i = 6; i < modelEditor.measurements.length; i++) {
+								modelEditor.measurements[i].visible = false;
+								modelEditor.measurementsDisplay[i].removeClass("show");
+							}
 					}
 		
 					// Otherwise
@@ -7465,10 +7754,10 @@ $(function() {
 						}
 		
 					// Set currently active buttons
-					modelEditor.translateButton.removeClass("disabled");
-					modelEditor.rotateButton.removeClass("disabled");
-					modelEditor.scaleButton.removeClass("disabled");
-					modelEditor.valuesDisplay.removeClass("translate rotate scale").addClass(modelEditor.transformControls.getMode());
+					modelEditor.translateButton.removeClass("disabled").prop("disabled", false);
+					modelEditor.rotateButton.removeClass("disabled").prop("disabled", false);
+					modelEditor.scaleButton.removeClass("disabled").prop("disabled", false);
+					modelEditor.valuesDisplay.removeClass("translate rotate scale none").addClass(modelEditor.transformControls.getMode());
 					$("#slicing_configuration_dialog .modal-extra button." + modelEditor.transformControls.getMode()).addClass("disabled");
 
 					// Check if a model is currently selected
@@ -7479,45 +7768,53 @@ $(function() {
 						modelEditor.cloneButton.removeClass("disabled");
 						modelEditor.resetButton.removeClass("disabled");
 						
-						// Show values
-						modelEditor.valuesDisplay.find("div").addClass("show").children("p").addClass("show");
-						if(modelEditor.valuesDisplay.hasClass("translate") && modelEditor.cutShape === null)
+						// Set values display
+						if(modelEditor.transformControls.getMode() !== "none")
+							modelEditor.valuesDisplay.find("div").addClass("show").children("p").addClass("show");
+						else
+							modelEditor.valuesDisplay.find("div").removeClass("show");
+						
+						// Hide Y value when translating
+						if(modelEditor.transformControls.getMode() === "translate" && modelEditor.cutShape === null)
 							modelEditor.valuesInput[1].parent().removeClass("show");
 
 						// Check if an input is not focused
-						if(!$("#slicing_configuration_dialog .modal-extra input:focus").length) {
+						if(!$("#slicing_configuration_dialog .modal-extra input:focus").length)
+						
+							// Check what mode transform controls are in
+							switch(modelEditor.transformControls.getMode()) {
 
-							// Check if in translate mode
-							if(modelEditor.valuesDisplay.hasClass("translate")) {
+								// Translate mode
+								case "translate" :
 
-								// Display position values
-								modelEditor.valuesUnits.text("mm").attr("title", "");
-								modelEditor.valuesInput[0].val((model.position.x.toFixed(3) == 0 ? 0 : -model.position.x).toFixed(3)).attr("min", "");
-								modelEditor.valuesInput[1].val(model.position.y.toFixed(3)).attr("min", "");
-								modelEditor.valuesInput[2].val(model.position.z.toFixed(3)).attr("min", "");
+									// Display position values
+									modelEditor.valuesUnits.text("mm").attr("title", "");
+									modelEditor.valuesInput[0].val((model.position.x.toFixed(3) == 0 ? 0 : -model.position.x).toFixed(3)).attr("min", "");
+									modelEditor.valuesInput[1].val(model.position.y.toFixed(3)).attr("min", "");
+									modelEditor.valuesInput[2].val(model.position.z.toFixed(3)).attr("min", "");
+								break;
+
+								// Rotate mode
+								case "rotate" :
+							
+									// Display rotation values
+									modelEditor.valuesUnits.text("°").attr("title", "");
+									modelEditor.valuesInput[0].val(THREE.Math.radToDeg(model.rotation.x).toFixed(3)).attr("min", "");
+									modelEditor.valuesInput[1].val(THREE.Math.radToDeg(model.rotation.y).toFixed(3)).attr("min", "");
+									modelEditor.valuesInput[2].val(THREE.Math.radToDeg(model.rotation.z).toFixed(3)).attr("min", "");
+								break;
+
+								// Scale mode
+								case "scale" :
+
+									// Display scale values
+									for(var i = 0; i < 3; i++)
+										modelEditor.valuesUnits.eq(i).text(modelEditor.scaleLock[i] ? "\uF023" : "\uF13E").attr("title", modelEditor.scaleLock[i] ? htmlDecode(gettext("Unlock")) : htmlDecode(gettext("Lock")));
+									modelEditor.valuesInput[0].val(model.scale.x.toFixed(3)).attr("min", "0");
+									modelEditor.valuesInput[1].val(model.scale.y.toFixed(3)).attr("min", "0");
+									modelEditor.valuesInput[2].val(model.scale.z.toFixed(3)).attr("min", "0");
+								break;
 							}
-
-							// Otherwise check if in rotate mode
-							else if(modelEditor.valuesDisplay.hasClass("rotate")) {
-
-								// Display rotation values
-								modelEditor.valuesUnits.text("°").attr("title", "");
-								modelEditor.valuesInput[0].val((model.rotation.x * 180 / Math.PI).toFixed(3)).attr("min", "");
-								modelEditor.valuesInput[1].val((model.rotation.y * 180 / Math.PI).toFixed(3)).attr("min", "");
-								modelEditor.valuesInput[2].val((model.rotation.z * 180 / Math.PI).toFixed(3)).attr("min", "");
-							}
-
-							// Otherwise check if in scale mode
-							else if(modelEditor.valuesDisplay.hasClass("scale")) {
-
-								// Display scale values
-								for(var i = 0; i < 3; i++)
-									modelEditor.valuesUnits.eq(i).text(modelEditor.scaleLock[i] ? "\uF023" : "\uF13E").attr("title", modelEditor.scaleLock[i] ? htmlDecode(gettext("Unlock")) : htmlDecode(gettext("Lock")));
-								modelEditor.valuesInput[0].val(model.scale.x.toFixed(3)).attr("min", "0");
-								modelEditor.valuesInput[1].val(model.scale.y.toFixed(3)).attr("min", "0");
-								modelEditor.valuesInput[2].val(model.scale.z.toFixed(3)).attr("min", "0");
-							}
-						}
 					
 						// Go through all models
 						var numberOfModelsSelected = 0;
@@ -7570,7 +7867,10 @@ $(function() {
 					// Otherwise check if not cutting models
 					else if(modelEditor.cutShape === null) {
 
-						// Disable delete, clone, and reset
+						// Disable translate, rotate, scale, delete, clone, and reset
+						modelEditor.translateButton.prop("disabled", true);
+						modelEditor.rotateButton.prop("disabled", true);
+						modelEditor.scaleButton.prop("disabled", true);
 						modelEditor.deleteButton.addClass("disabled");
 						modelEditor.cloneButton.addClass("disabled");
 						modelEditor.resetButton.addClass("disabled");
@@ -7614,8 +7914,8 @@ $(function() {
 				applyGroupTransformation: function() {
 		
 					// Check if a matrix was saved
-					if(modelEditor.savedMatrix) {
-			
+					if(modelEditor.savedMatrix && modelEditor.transformControls.object) {
+					
 						// Get new matrix
 						modelEditor.transformControls.object.updateMatrix();
 						var newMatrix = modelEditor.transformControls.object.matrix;
@@ -7665,47 +7965,60 @@ $(function() {
 							break;
 						}
 				
-						// Get changes
-						var changes = savedValue.sub(newValue);
+						// Get changes if transforming model
+						if(modelEditor.transformControls.getMode() !== "none")
+							var changes = savedValue.sub(newValue);
 		
 						// Go through all models
 						for(var i = 1; i < modelEditor.models.length; i++)
 
-							// Check if model is selected, but not focused
-							if(modelEditor.models[i].glow !== null && modelEditor.models[i].mesh !== modelEditor.transformControls.object)
-					
-								// Check current mode
-								switch(modelEditor.transformControls.getMode()) {
-						
-									// Check if in translate mode
-									case "translate" :
+							// Check if model is selected
+							if(modelEditor.models[i].glow !== null) {
 							
-										// Update model's position
-										modelEditor.models[i].mesh.position.sub(changes);
-									break;
-							
-									// Check if in rotate mode
-									case "rotate" :
-							
-										// Update model's rotation
-										modelEditor.models[i].mesh.rotation.setFromVector3(modelEditor.models[i].mesh.rotation.toVector3().sub(changes));
-									break;
-							
-									// Check if in scale mode
-									case "scale" :
-							
-										// Update model's size
-										modelEditor.models[i].mesh.scale.sub(changes);
-										
-										// Prevent scaling less than zero
-										if(modelEditor.models[i].mesh.scale.x <= 0)
-											modelEditor.models[i].mesh.scale.x = 0.000000000001;
-										if(modelEditor.models[i].mesh.scale.y <= 0)
-											modelEditor.models[i].mesh.scale.y = 0.000000000001;
-										if(modelEditor.models[i].mesh.scale.z <= 0)
-											modelEditor.models[i].mesh.scale.z = 0.000000000001;
-									break;
+								// Check if in translate mode
+								if(modelEditor.transformControls.getMode() === "translate") {
+								
+									// Update boundary box
+									modelEditor.models[i].boundaryBox.min.sub(changes);
+									modelEditor.models[i].boundaryBox.max.sub(changes);
 								}
+							
+								// Check if model isn't focused
+								if(modelEditor.models[i].mesh !== modelEditor.transformControls.object)
+					
+									// Check current mode
+									switch(modelEditor.transformControls.getMode()) {
+						
+										// Check if in translate mode
+										case "translate" :
+							
+											// Update model's position
+											modelEditor.models[i].mesh.position.sub(changes);
+										break;
+							
+										// Check if in rotate mode
+										case "rotate" :
+							
+											// Update model's rotation
+											modelEditor.models[i].mesh.rotation.setFromVector3(modelEditor.models[i].mesh.rotation.toVector3().sub(changes));
+										break;
+							
+										// Check if in scale mode
+										case "scale" :
+							
+											// Update model's size
+											modelEditor.models[i].mesh.scale.sub(changes);
+										
+											// Prevent scaling less than zero
+											if(modelEditor.models[i].mesh.scale.x <= 0)
+												modelEditor.models[i].mesh.scale.x = 0.000000000001;
+											if(modelEditor.models[i].mesh.scale.y <= 0)
+												modelEditor.models[i].mesh.scale.y = 0.000000000001;
+											if(modelEditor.models[i].mesh.scale.z <= 0)
+												modelEditor.models[i].mesh.scale.z = 0.000000000001;
+										break;
+									}
+							}
 				
 						// Save new matrix
 						modelEditor.savedMatrix = newMatrix.clone();
@@ -8245,7 +8558,7 @@ $(function() {
 						modelEditor.updatePlatformAdhesion();
 			
 						// Fix model's Y
-						modelEditor.fixModelY();
+						modelEditor.fixModelY(true);
 						
 						// Refocus on model
 						modelEditor.transformControls.attach(modelEditor.transformControls.object);
@@ -8305,10 +8618,20 @@ $(function() {
 					}
 					
 					// Check if cut shape changed
-					if(changed)
+					if(changed) {
 					
 						// Update cut shape outline
 						modelEditor.cutShapeOutline.geometry = modelEditor.lineGeometry(modelEditor.cutShape.geometry);
+						
+						// Update cut shape boundary box
+						modelEditor.cutShapeBoundaryBox.setFromObject(modelEditor.cutShape);
+						
+						// Update model changes
+						modelEditor.updateModelChanges();
+						
+						// Update measurement position
+						modelEditor.updateMeasurementPosition();
+					}
 				},
 			
 				// Apply merge
@@ -8376,7 +8699,7 @@ $(function() {
 						for(var i = 1; i < modelEditor.models.length; i++)
 				
 							// Check if is focused on
-							if(modelEditor.models[i].mesh == modelEditor.transformControls.object) {
+							if(modelEditor.models[i].mesh === modelEditor.transformControls.object) {
 					
 								// Delete model and adhesion
 								modelEditor.scene[0].remove(modelEditor.models[i].mesh);
@@ -8411,7 +8734,7 @@ $(function() {
 						modelEditor.updatePlatformAdhesion();
 				
 						// Fix model's Y
-						modelEditor.fixModelY();
+						modelEditor.fixModelY(true);
 						
 						// Refocus on model
 						modelEditor.transformControls.attach(modelEditor.transformControls.object);
@@ -8486,13 +8809,20 @@ $(function() {
 				},
 				
 				// Update measurement position
+				allMeasurementsDisplay: null,
 				updateMeasurementPosition: function() {
 				
-					// Check if a model has focus and measurements are shown
-					if(modelEditor.transformControls.object && modelEditor.showMeasurements) {
+					// Check if measurements are shown
+					if(modelEditor.showMeasurements) {
+					
+						// Check if selectors need to be stored
+						if(modelEditor.allMeasurementsDisplay === null || !modelEditor.allMeasurementsDisplay.length)
+						
+							// Set all measurements' display
+							modelEditor.allMeasurementsDisplay = $("#slicing_configuration_dialog .modal-extra div.measurements > p");
 			
-						// Get camera distance to model
-						var distance = modelEditor.camera.position.distanceTo(modelEditor.transformControls.object.position);
+						// Get camera distance to focus
+						var distance = modelEditor.camera.position.distanceTo(modelEditor.cameraFocus);
 						
 						// Set font limitations
 						var fontSizeMin = 0;
@@ -8501,12 +8831,22 @@ $(function() {
 						var distanceMax = 2000;
 						
 						// Set measurement font size
-						$("#slicing_configuration_dialog .modal-extra div.measurements > p").css("font-size", fontSizeMin + (distanceMax / Math.max(Math.min(distance, distanceMax), distanceMin) - 1) / (distanceMax / distanceMin - 1) * (fontSizeMax - fontSizeMin) + "px");
+						modelEditor.allMeasurementsDisplay.css("font-size", fontSizeMin + (distanceMax / Math.max(Math.min(distance, distanceMax), distanceMin) - 1) / (distanceMax / distanceMin - 1) * (fontSizeMax - fontSizeMin) + "px");
 	
 						// Go through all measurements
 						var midPoints = [];
 						var order = [];
 						for(var i = 0; i < modelEditor.measurements.length; i++) {
+						
+							// Check if measurement isn't being shown
+							if(!modelEditor.allMeasurementsDisplay.eq(i).hasClass("show")) {
+							
+								// Set arbitrary distance
+								order[i] = 0;
+							
+								// Continue
+								continue;
+							}
 						
 							// Get the middle of measurement's text location
 							midPoints[i] = new THREE.Vector3();
@@ -8521,14 +8861,20 @@ $(function() {
 						// Go through all measurements
 						for(var i = 0; i < modelEditor.measurements.length; i++) {
 						
+							// Check if measurement isn't being shown
+							if(!modelEditor.allMeasurementsDisplay.eq(i).hasClass("show"))
+							
+								// Continue
+								continue;
+						
 							// Set z index order for measurement values
 							var lowest = order.indexOf(Math.max.apply(null, order));
-							$("#slicing_configuration_dialog .modal-extra div.measurements > p").eq(lowest).css("z-index", i.toString());
+							modelEditor.allMeasurementsDisplay.eq(lowest).css("z-index", i.toString());
 							order[lowest] = Number.NEGATIVE_INFINITY;
 							
 							// Position measurement values
 							var position = modelEditor.get2dPosition(midPoints[i]);
-							var measurement = $("#slicing_configuration_dialog .modal-extra div.measurements > p").eq(i);
+							var measurement = modelEditor.allMeasurementsDisplay.eq(i);
 							measurement.css({
 								"top": position.y - measurement.height() / 2 + "px",
 								"left": position.x - measurement.width() / 2 + "px"
@@ -8583,7 +8929,7 @@ $(function() {
 						for(var i = 0; i < 3; i++) {
 					
 							// Ease out camera focus change
-							var speed = Math.sqrt(Math.pow(modelEditor.orbitControls.target.getComponent(i) - modelEditor.cameraFocus.getComponent(i), 2)) / 6;
+							var speed = Math.sqrt(Math.pow(modelEditor.orbitControls.target.getComponent(i) - modelEditor.cameraFocus.getComponent(i), 2)) / 8;
 					
 							if(modelEditor.orbitControls.target.getComponent(i) < modelEditor.cameraFocus.getComponent(i))
 								modelEditor.orbitControls.target.setComponent(i, Math.min(modelEditor.cameraFocus.getComponent(i), modelEditor.orbitControls.target.getComponent(i) + speed));
@@ -8600,6 +8946,8 @@ $(function() {
 						modelEditor.renderer.render(modelEditor.scene[0], modelEditor.camera);
 						modelEditor.renderer.clearDepth();
 						modelEditor.renderer.render(modelEditor.scene[1], modelEditor.camera);
+						modelEditor.renderer.clearDepth();
+						modelEditor.renderer.render(modelEditor.scene[2], modelEditor.camera);
 					
 						// Animate when repainting window
 						requestAnimationFrame(modelEditor.animate);
@@ -11921,6 +12269,7 @@ $(function() {
 					for(var i = 0; i < 3; i++)
 						if($(this).is($("#slicing_configuration_dialog .modal-extra div.values p span:not(.axis)").eq(i))) {
 							modelEditor.scaleLock[i] = true;
+							modelEditor.transformControls.setLockedAxes((modelEditor.scaleLock[0] ? "X" : "") + (modelEditor.scaleLock[1] ? "Y" : "") + (modelEditor.scaleLock[2] ? "Z" : ""));
 							break;
 						}
 				}
@@ -11935,6 +12284,7 @@ $(function() {
 					for(var i = 0; i < 3; i++)
 						if($(this).is($("#slicing_configuration_dialog .modal-extra div.values p span:not(.axis)").eq(i))) {
 							modelEditor.scaleLock[i] = false;
+							modelEditor.transformControls.setLockedAxes((modelEditor.scaleLock[0] ? "X" : "") + (modelEditor.scaleLock[1] ? "Y" : "") + (modelEditor.scaleLock[2] ? "Z" : ""));
 							break;
 						}
 				}
@@ -18448,6 +18798,26 @@ $(function() {
 			
 				// Run logged out function
 				self.onUserLoggedOut();
+			
+			// Window unload
+			$(window).unload(function() {
+		
+				// Check if not using a Micro 3D printer
+				if(self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
+		
+					// Save control slicers
+					localStorage.feedRate = self.control.feedRate();
+					localStorage.flowRate = self.control.flowRate();
+				}
+		
+				// Otherwise
+				else {
+		
+					// Save control slicers
+					localStorage.feedRateMicro3D = self.control.feedRate();
+					localStorage.flowRateMicro3D = self.control.flowRate();
+				}
+			});
 		}
 		
 		// On Wizard details
