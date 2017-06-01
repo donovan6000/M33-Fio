@@ -289,6 +289,7 @@ body > div.modal-scrollable.hideOverflow {
 	right: 30px;
 	top: 5px;
 	border-color: #E5E5E5;
+	text-overflow: ellipsis;
 }
 
 #navbar_plugin_m33fio > a {
@@ -700,13 +701,18 @@ body > div.page-container > div.message > div {
 	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 	font-size: 14px;
 	color: #333;
+	border: 1px solid rgba(0, 0, 0, 0.3);
 	background-color: #fff;
-	border: 1px solid #e5e5e5;
-	-ms-border-radius: 4px;
-	-moz-border-radius: 4px;
-	-webkit-border-radius: 4px;
-	-o-border-radius: 4px;
-	border-radius: 4px;
+	-ms-border-radius: 6px;
+	-moz-border-radius: 6px;
+	-webkit-border-radius: 6px;
+	-o-border-radius: 6px;
+	border-radius: 6px;
+	-ms-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
+	-moz-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
+	-webkit-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
+	-o-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
+	box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
 }
 
 body > div.page-container > div.message > div > h4 {
@@ -940,6 +946,86 @@ body > div.page-container > div.message > div > div > div.printSettings input[ty
 	top: -18px;
 }
 
+body > div.page-container > div.message > div > div > p > div.saveOnServer {
+	padding-bottom: 8px;
+}
+
+body > div.page-container > div.message > div > div > p > div.saveOnServer.profile {
+	min-width: 340px;
+}
+
+body > div.page-container > div.message > div > div > p > div.saveOnServer.model {
+	min-width: 385px;
+}
+
+body > div.page-container > div.message > div > div > p > div.saveOnServer.gcode {
+	min-width: 395px;
+}
+
+body > div.page-container > div.message > div > div > p > div.saveOnServer label {
+	cursor: default;
+	display: inline-block;
+}
+
+body > div.page-container > div.message > div > div > p > div.saveOnServer > div.controls {
+	display: inline-block;
+}
+
+body > div.page-container > div.message > div > div > p > div.saveOnServer input[type="text"] {
+	position: relative;
+	top: 4px;
+	width: 239px;
+	margin-right: 6px;
+}
+
+body > div.page-container > div.message > div > div > p > div.saveOnServer div.modelPath input, body > div.page-container > div.message > div > div > p > div.saveOnServer div.gcodePath input {
+	width: 297px;
+}
+
+body > div.page-container > div.message > div > div > p > div.saveOnServer div.modelOrigin input, body > div.page-container > div.message > div > div > p > div.saveOnServer div.gcodeOrigin input {
+	position: relative;
+	top: -3px;
+	outline: none !important;
+}
+
+body > div.page-container > div.message > div > div > p > div.saveOnServer div.modelOrigin input:first-of-type, body > div.page-container > div.message > div > div > p > div.saveOnServer div.gcodeOrigin input:first-of-type {
+	margin-left: 3px;
+}
+
+body > div.page-container > div.message > div > div > p > div.saveOnServer div.modelOrigin label, body > div.page-container > div.message > div > div > p > div.saveOnServer div.gcodeOrigin label {
+	margin-right: 7px;
+	cursor: pointer;
+	padding-left: 4px;
+}
+
+body > div.page-container > div.message > div > div > p > div.saveOnServer div.modelOrigin input:disabled, body > div.page-container > div.message > div > div > p > div.saveOnServer div.gcodeOrigin input:disabled {
+	cursor: default;
+}
+
+body > div.page-container > div.message > div > div > p > div.saveOnServer div.modelOrigin label.disabled, body > div.page-container > div.message > div > div > p > div.saveOnServer div.gcodeOrigin label.disabled {
+	cursor: default;
+	opacity: 0.5;
+}
+
+body > div.page-container > div.message > div > div > p > span.saveOnServer.warning {
+	font-size: 9px;
+	color: #999;
+	position: absolute;
+	margin-top: -9px;
+	visibility: hidden;
+	opacity: 0;
+	-ms-transition: visibility 0.2s linear, opacity 0.2s linear;
+	-moz-transition: visibility 0.2s linear, opacity 0.2s linear;
+	-webkit-transition: visibility 0.2s linear, opacity 0.2s linear;
+	-o-transition: visibility 0.2s linear, opacity 0.2s linear;
+	transition: visibility 0.2s linear, opacity 0.2s linear;
+}
+
+body > div.page-container > div.message > div > div > p > span.saveOnServer.warning.show {
+	visibility: visible;
+	opacity: 1;
+}
+
 body > div.page-container > div.message > div > div > span {
 	font-size: 9px;
 	color: #999;
@@ -967,7 +1053,7 @@ body > div.page-container > div.message .customInput input {
 	display: none;
 }
 
-#slicing_configuration_dialog.profile, #slicing_configuration_dialog.model {
+#slicing_configuration_dialog.profile, #slicing_configuration_dialog.model, #slicing_configuration_dialog.gcode {
 	width: 80% !important;
 	max-width: 900px !important;
 	position: absolute; !important;
@@ -986,7 +1072,7 @@ body > div.page-container > div.message .customInput input {
 	overflow: hidden !important;
 }
 
-#slicing_configuration_dialog.profile.in, #slicing_configuration_dialog.model.in {
+#slicing_configuration_dialog.profile.in, #slicing_configuration_dialog.model.in, #slicing_configuration_dialog.gcode.in {
 	top: 50% !important;
 }
 
@@ -994,6 +1080,13 @@ body > div.page-container > div.message .customInput input {
 	max-width: 850px !important;
 	min-width: 810px !important;
 	min-height: 137px !important;
+}
+
+#slicing_configuration_dialog.gcode {
+	max-width: 850px !important;
+	min-width: 610px !important;
+	min-height: 200px !important;
+	height: calc(100% - 200px) !important;
 }
 
 #slicing_configuration_dialog.profile.transitionHeight {
@@ -1014,15 +1107,23 @@ body > div.page-container > div.message .customInput input {
 	min-width: 540px !important;
 }
 
-#slicing_configuration_dialog .modal-footer a.save {
+#slicing_configuration_dialog .modal-footer a.saveLocalCopy, #slicing_configuration_dialog .modal-footer a.saveOnServer, button.loadDefaultProfile {
 	float: left;
 	position: relative;
 	left: -5px;
 }
 
+#slicing_configuration_dialog .modal-footer a.saveOnServer {
+	left: -1px;
+}
+
 #slicing_configuration_dialog .modal-footer p.warning {
 	position: absolute;
-	left: 50%;
+	left: -ms-calc(50% + 66px);
+	left: -moz-calc(50% + 66px);
+	left: -webkit-calc(50% + 66px);
+	left: -o-calc(50% + 66px);
+	left: calc(50% + 66px);
 	bottom: 17px;
 	-ms-transform: translateX(-50%);
 	-moz-transform: translateX(-50%);
@@ -1035,16 +1136,27 @@ body > div.page-container > div.message .customInput input {
 	cursor: default;
 }
 
-#slicing_configuration_dialog .modal-footer a.link, #slicing_configuration_dialog:not(.model):not(.profile) .modal-footer a.save, #slicing_configuration_dialog:not(.profile) .modal-footer a.skip {
+#slicing_configuration_dialog .modal-footer a.link, #slicing_configuration_dialog:not(.model):not(.profile):not(.gcode) .modal-footer a.saveLocalCopy, #slicing_configuration_dialog:not(.model):not(.profile):not(.gcode) .modal-footer a.saveOnServer, #slicing_configuration_dialog:not(.profile):not(.gcode) .modal-footer a.skip {
 	display: none;
+}
+
+#slicing_configuration_dialog.profile .modal-footer a.skip {
+	margin-right: 4px;
 }
 
 #slicing_configuration_dialog.model .modal-extra {
 	margin-bottom: -5px;
 	z-index: -1;
 	position: relative;
+	min-height: 510px;
+	overflow: hidden;
 }
-#slicing_configuration_dialog.profile .modal-extra {
+
+#slicing_configuration_dialog.model.printerButtons .modal-extra {
+	min-height: 600px;
+}
+
+#slicing_configuration_dialog.profile .modal-extra, #slicing_configuration_dialog.gcode .modal-extra {
 	overflow: auto !important;
 	overflow-x: hidden !important;
 	max-height: -ms-calc(100% - 123px);
@@ -1054,7 +1166,12 @@ body > div.page-container > div.message .customInput input {
 	max-height: calc(100% - 123px);
 }
 
-#slicing_configuration_dialog.profile .modal-extra div.advanced {
+#slicing_configuration_dialog.gcode .modal-extra {
+	overflow: hidden !important;
+	height: 100%;
+}
+
+#slicing_configuration_dialog.profile .modal-extra div.advanced, #slicing_configuration_dialog.gcode .modal-extra > div {
 	width: 100%;
 	display: -ms-flex;
 	display: -moz-flex;
@@ -1062,6 +1179,11 @@ body > div.page-container > div.message .customInput input {
 	display: -o-flex;
 	display: flex;
 	height: 200px;
+}
+
+#slicing_configuration_dialog.gcode .modal-extra > div {
+	position: relative;
+	height: 400px;
 }
 
 #slicing_configuration_dialog.profile .modal-extra div.advanced.fullSpace {
@@ -1194,8 +1316,12 @@ body > div.page-container > div.message .customInput input {
 	height: 157px;
 }
 
-#slicing_configuration_dialog .group.advanced {
+#slicing_configuration_dialog .group.advanced, #slicing_configuration_dialog.gcode .modal-extra > div {
 	background-color: transparent;
+}
+
+#slicing_configuration_dialog.gcode .modal-extra > div {
+	height: 100%;
 }
 
 #slicing_configuration_dialog .group.advanced h3:after, #slicing_configuration_dialog .group.advanced h3::after {
@@ -1330,7 +1456,7 @@ body > div.page-container > div.message .customInput input {
 	margin-left: 3px;
 }
 
-#slicing_configuration_dialog .group.advanced > div {
+#slicing_configuration_dialog .group.advanced > div, #slicing_configuration_dialog.gcode .modal-extra > div > div {
 	width: 100%;
 	height: 100%;
 	overflow: visible;
@@ -1342,7 +1468,11 @@ body > div.page-container > div.message .customInput input {
 	margin-top: 11px;
 }
 
-#slicing_configuration_dialog .group.advanced > span {
+#slicing_configuration_dialog.gcode .modal-extra > div > div {
+	margin-top: 0;
+}
+
+#slicing_configuration_dialog .group.advanced > span, #slicing_configuration_dialog.gcode .modal-extra > div > span {
 	width: 100%;
 	display: none;
 	height: 16px;
@@ -1353,11 +1483,23 @@ body > div.page-container > div.message .customInput input {
 	left: 0;
 }
 
-#slicing_configuration_dialog .group.advanced > span.firefox {
+#slicing_configuration_dialog.gcode .modal-extra > div > span {
+	bottom: -3px;
+}
+
+#slicing_configuration_dialog.gcode .modal-extra > div > span {
+	display: block;
+}
+
+#slicing_configuration_dialog .group.advanced > span.firefox, #slicing_configuration_dialog.gcode .modal-extra > div > span.firefox {
 	height: 11px;
 }
 
-#slicing_configuration_dialog .group.advanced aside {
+#slicing_configuration_dialog.gcode .modal-extra > div > span.firefox {
+	bottom: -1px;
+}
+
+#slicing_configuration_dialog .group.advanced aside, #slicing_configuration_dialog.gcode .modal-extra > div aside {
 	float: left;
 	font: normal 12px monospace;
 	height: 100%;
@@ -1368,9 +1510,25 @@ body > div.page-container > div.message .customInput input {
 	color: #555;
 	position: relative;
 	z-index: -1;
+	counter-reset: line;
 }
 
-#slicing_configuration_dialog .group.advanced textarea {
+#slicing_configuration_dialog.gcode .modal-extra > div aside.firefox {
+	padding: 0 5px;
+}
+
+#slicing_configuration_dialog .group.advanced aside > span:last-of-type, #slicing_configuration_dialog.gcode .modal-extra > div aside > span:last-of-type {
+	margin-bottom: 30px;
+	display: inline-block;
+}
+
+#slicing_configuration_dialog .group.advanced aside > span:before, #slicing_configuration_dialog .group.advanced aside > span::before, #slicing_configuration_dialog.gcode .modal-extra > div aside > span:before, #slicing_configuration_dialog.gcode .modal-extra > div aside > span::before {
+	counter-increment: line;
+	content: counter(line);
+	display: block;
+}
+
+#slicing_configuration_dialog .group.advanced textarea, #slicing_configuration_dialog.gcode .modal-extra > div textarea {
 	resize: none;
 	font: normal 12px monospace;
 	white-space: pre;
@@ -1407,7 +1565,11 @@ body > div.page-container > div.message .customInput input {
 	color: #333;
 }
 
-#slicing_configuration_dialog .group.advanced textarea.firefox {
+#slicing_configuration_dialog.gcode .modal-extra > div textarea {
+	padding-bottom: 0 !important;
+}
+
+#slicing_configuration_dialog .group.advanced textarea.firefox, #slicing_configuration_dialog.gcode .modal-extra > div textarea.firefox {
 	height: -ms-calc(100% - 8px) !important;
 	height: -moz-calc(100% - 8px) !important;
 	height: -webkit-calc(100% - 8px) !important;
@@ -1415,6 +1577,10 @@ body > div.page-container > div.message .customInput input {
 	height: calc(100% - 8px) !important;
 	padding: 0px 2px 0px 5px !important;
 }
+
+ #slicing_configuration_dialog.gcode .modal-extra > div textarea, #slicing_configuration_dialog.gcode .modal-extra > div textarea.firefox {
+ 	height: 100% !important;
+ }
 
 #slicing_configuration_dialog .modal-drag-and-drop {
 	position: absolute;
@@ -1621,44 +1787,39 @@ body > div.page-container > div.message .customInput input {
 	-webkit-flex-direction: column;
 	-o-flex-direction: column;
 	flex-direction: column;
-	-ms-transition: top 0.3s ease-out;
-	-moz-transition: top 0.3s ease-out;
-	-webkit-transition: top 0.3s ease-out;
-	-o-transition: top 0.3s ease-out;
-	transition: top 0.3s ease-out;
 }
 
 #slicing_configuration_dialog.model .modal-extra > div.values.translate {
-	top: -ms-calc(50% - 160px);
-	top: -moz-calc(50% - 160px);
-	top: -webkit-calc(50% - 160px);
-	top: -o-calc(50% - 160px);
-	top: calc(50% - 160px);
+	top: -ms-calc(50% - 139px);
+	top: -moz-calc(50% - 139px);
+	top: -webkit-calc(50% - 139px);
+	top: -o-calc(50% - 139px);
+	top: calc(50% - 139px);
 }
 
 #slicing_configuration_dialog.model .modal-extra > div.values.rotate {
-	top: -ms-calc(50% - 116px);
-	top: -moz-calc(50% - 116px);
-	top: -webkit-calc(50% - 116px);
-	top: -o-calc(50% - 116px);
-	top: calc(50% - 116px);
+	top: -ms-calc(50% - 95px);
+	top: -moz-calc(50% - 95px);
+	top: -webkit-calc(50% - 95px);
+	top: -o-calc(50% - 95px);
+	top: calc(50% - 95px);
 }
 
 #slicing_configuration_dialog.model .modal-extra > div.values.scale {
-	top: -ms-calc(50% - 74px);
-	top: -moz-calc(50% - 74px);
-	top: -webkit-calc(50% - 74px);
-	top: -o-calc(50% - 74px);
-	top: calc(50% - 74px);
+	top: -ms-calc(50% - 53px);
+	top: -moz-calc(50% - 53px);
+	top: -webkit-calc(50% - 53px);
+	top: -o-calc(50% - 53px);
+	top: calc(50% - 53px);
 }
 
 #slicing_configuration_dialog.model .modal-extra > div.cutShape {
 	left: 60px;
-	top: -ms-calc(50% + 148px);
-	top: -moz-calc(50% + 148px);
-	top: -webkit-calc(50% + 148px);
-	top: -o-calc(50% + 148px);
-	top: calc(50% + 148px);
+	top: -ms-calc(50% + 169px);
+	top: -moz-calc(50% + 169px);
+	top: -webkit-calc(50% + 169px);
+	top: -o-calc(50% + 169px);
+	top: calc(50% + 169px);
 	-ms-transform: translateY(-50%);
 	-moz-transform: translateY(-50%);
 	-webkit-transform: translateY(-50%);
@@ -1671,7 +1832,26 @@ body > div.page-container > div.message .customInput input {
 	display: block;
 }
 
-#slicing_configuration_dialog.model .modal-extra > div.values > div, #slicing_configuration_dialog.model .modal-extra > div.cutShape > div {
+#slicing_configuration_dialog.model .modal-extra > div.import {
+	left: 60px;
+	top: -ms-calc(50% - 227px);
+	top: -moz-calc(50% - 227px);
+	top: -webkit-calc(50% - 227px);
+	top: -o-calc(50% - 227px);
+	top: calc(50% - 227px);
+	-ms-transform: translateY(-50%);
+	-moz-transform: translateY(-50%);
+	-webkit-transform: translateY(-50%);
+	-o-transform: translateY(-50%);
+	transform: translateY(-50%);
+	display: none;
+}
+
+#slicing_configuration_dialog.model .modal-extra > div.import.show {
+	display: block;
+}
+
+#slicing_configuration_dialog.model .modal-extra > div.values > div, #slicing_configuration_dialog.model .modal-extra > div.cutShape > div, #slicing_configuration_dialog.model .modal-extra > div.import > div {
 	padding: 7px;
 	margin: 0 0 -9px 9px;
 	background-color: #f5f5f5;
@@ -1691,15 +1871,11 @@ body > div.page-container > div.message .customInput input {
 	display: none;
 }
 
-#slicing_configuration_dialog.model .modal-extra > div.cutShape > div {
-	padding: 4px;
-}
-
-#slicing_configuration_dialog.model .modal-extra > div.values > div.show, #slicing_configuration_dialog.model .modal-extra > div.cutShape > div {
+#slicing_configuration_dialog.model .modal-extra > div.values > div.show, #slicing_configuration_dialog.model .modal-extra > div.cutShape > div, #slicing_configuration_dialog.model .modal-extra > div.import > div {
 	display: block;
 }
 
-#slicing_configuration_dialog.model .modal-extra > div.values > div > span, #slicing_configuration_dialog.model .modal-extra > div.cutShape > div > span {
+#slicing_configuration_dialog.model .modal-extra > div.values > div > span, #slicing_configuration_dialog.model .modal-extra > div.cutShape > div > span, #slicing_configuration_dialog.model .modal-extra > div.import > div > span {
 	background-color: #f5f5f5;
 	z-index: 0;
 	display: block;
@@ -1740,6 +1916,34 @@ body > div.page-container > div.message .customInput input {
 	display: block;
 }
 
+#slicing_configuration_dialog.model .modal-extra > div > div > button.close {
+	color: rgba(0, 0, 0, 0.7);
+	opacity: 1;
+	position: absolute;
+	top: -12px;
+	right: -9px;
+	margin: 0;
+	-ms-text-shadow: none;
+	-moz-text-shadow: none;
+	-webkit-text-shadow: none;
+	-o-text-shadow: none;
+	-ms-border-radius: 45px;
+	-moz-border-radius: 45px;
+	-webkit-border-radius: 45px;
+	-o-border-radius: 45px;
+	border-radius: 45px;
+}
+
+#slicing_configuration_dialog.model .modal-extra > div > div > button.close > div {
+	background-color: #f5f5f5;
+	position: absolute;
+	top: 8px;
+	left: 4px;
+	z-index: -1;
+	width: 10px;
+	height: 10px;
+}
+
 #slicing_configuration_dialog.model .modal-extra > div.values > div > p > input {
 	width: 75px;
 	height: 15px;
@@ -1755,31 +1959,25 @@ body > div.page-container > div.message .customInput input {
 	line-height: 16px;
 }
 
-#slicing_configuration_dialog.model .modal-extra > div.values > div > p > span.axis.x {
-	color: #F00;
+#slicing_configuration_dialog.model .modal-extra > div.values > div > p > span.axis {
 	-ms-text-shadow: 0 1px 0 #fff;
 	-moz-text-shadow: 0 1px 0 #fff;
 	-webkit-text-shadow: 0 1px 0 #fff;
 	-o-text-shadow: 0 1px 0 #fff;
 	text-shadow: 0 1px 0 #fff;
+	cursor: default;
+}
+
+#slicing_configuration_dialog.model .modal-extra > div.values > div > p > span.axis.x {
+	color: #F00;
 }
 
 #slicing_configuration_dialog.model .modal-extra > div.values > div > p > span.axis.y {
 	color: #0F0;
-	-ms-text-shadow: 0 1px 0 #fff;
-	-moz-text-shadow: 0 1px 0 #fff;
-	-webkit-text-shadow: 0 1px 0 #fff;
-	-o-text-shadow: 0 1px 0 #fff;
-	text-shadow: 0 1px 0 #fff;
 }
 
 #slicing_configuration_dialog.model .modal-extra > div.values > div > p > span.axis.z {
 	color: #00F;
-	-ms-text-shadow: 0 1px 0 #fff;
-	-moz-text-shadow: 0 1px 0 #fff;
-	-webkit-text-shadow: 0 1px 0 #fff;
-	-o-text-shadow: 0 1px 0 #fff;
-	text-shadow: 0 1px 0 #fff;
 }
 
 #slicing_configuration_dialog.model .modal-extra > div.values > div > p > span:not(.axis) {
@@ -1820,7 +2018,81 @@ body > div.page-container > div.message .customInput input {
 	font-family: FontAwesome, sans-serif;
 }
 
-#slicing_configuration_dialog.model .modal-extra > div button {
+#slicing_configuration_dialog.model .modal-extra > div.cutShape > div > button:not(.close) {
+	margin: 0;
+}
+
+#slicing_configuration_dialog.model .modal-extra > div.cutShape > div > button:not(.close):not(.apply) {
+	margin-bottom: 2px;
+}
+
+#slicing_configuration_dialog.model .modal-extra > div.import > div > div {
+	display: block;
+	z-index: 1;
+	position: relative;
+}
+
+#slicing_configuration_dialog.model .modal-extra > div.import > div > div > select {
+	display: inline;
+	width: 120px;
+	margin: 0;
+	outline: none;
+	height: 28px;
+	text-align: left;
+	-ms-border-radius: 4px 0 0 4px;
+	-moz-border-radius: 4px 0 0 4px;
+	-webkit-border-radius: 4px 0 0 4px;
+	-o-border-radius: 4px 0 0 4px;
+	border-radius: 4px 0 0 4px;
+	padding: 4px 2px 3px 0;
+	vertical-align: middle;
+	line-height: 16px;
+	min-height: 0;
+	text-overflow: ellipsis;
+	background-color: #fff;
+	border: 1px solid #ccc;
+	color: #555;
+	-ms-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+	-moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+	-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+	-o-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+	box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+}
+
+#slicing_configuration_dialog.model .modal-extra > div.import > div > div > select:-moz-focusring {
+	color: transparent;
+	text-shadow: 0 0 0 #555;
+}
+
+#slicing_configuration_dialog.model .modal-extra > div.import > div > div > button {
+	-ms-border-radius: 0 4px 4px 0;
+	-moz-border-radius: 0 4px 4px 0;
+	-webkit-border-radius: 0 4px 4px 0;
+	-o-border-radius: 0 4px 4px 0;
+	border-radius: 0 4px 4px 0;
+	border: 1px solid #ccc;
+	border-left: none;
+	line-height: 26px;
+	height: 28px;
+	width: 52px;
+	color: #555;
+	vertical-align: middle;
+	-ms-text-shadow: 0 1px 0 #fff;
+	-moz-text-shadow: 0 1px 0 #fff;
+	-webkit-text-shadow: 0 1px 0 #fff;
+	-o-text-shadow: 0 1px 0 #fff;
+	text-shadow: 0 1px 0 #fff;
+	background-color: #eee;
+	position: relative;
+	top: 0;
+	padding: 0 2px;
+	margin: 0;
+	cursor: pointer;
+	display: inline-block;
+	float: right;
+}
+
+#slicing_configuration_dialog.model .modal-extra > div button:not(.close) {
 	display: block;
 	cursor: pointer;
 	width: 40px;
@@ -1910,7 +2182,7 @@ body > div.page-container > div.message .customInput input {
 	pointer-events: none;
 }
 
-#slicing_configuration_dialog .modal-extra > div button:active, #slicing_configuration_dialog .modal-extra > div button.disabled {
+#slicing_configuration_dialog .modal-extra > div button:not(.close):active, #slicing_configuration_dialog .modal-extra > div button.disabled:not([disabled]) {
 	background-image: none !important;
 	background-color: #e6e6e6 !important;
 	-ms-box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05) !important;
@@ -2128,7 +2400,20 @@ body > div.page-container > div.message .customInput input {
 	display: none;
 }
 
-#files div.gcode_files div.entry .action-buttons div.btn-mini.viewModel {
+#model button {
+	outline: none;
+	margin-bottom: -2px;
+}
+
+#model button.hide {
+	display: none;
+}
+
+#model button.showGrid {
+	float: right;
+}
+
+#files div.gcode_files div.entry .action-buttons div.btn-mini.viewModel, #files div.gcode_files div.entry .action-buttons div.btn-mini.editGcode, #files div.gcode_files div.entry .action-buttons div.btn-mini.editModel {
 	width: 11px;
 }
 
@@ -2146,4 +2431,16 @@ body > div.page-container > div.message .customInput input {
 
 .notUsingAMicro3DPrinter, .usingAMicro3DPrinter, .notUsingAHeatbed, .dontShow, .noPrinterModel {
 	display: none !important;
+}
+
+body.grab, body.grab * {
+	cursor: grab !important;
+}
+
+body.grabbing, body.grabbing * {
+	cursor: grabbing !important;
+}
+
+body.progress, body.progress * {
+	cursor: progress !important;
 }

@@ -44,6 +44,8 @@ import yaml
 import logging
 import logging.handlers
 import urllib
+import urllib2
+import requests
 from .gcode import Gcode
 from .vector import Vector
 
@@ -157,6 +159,8 @@ class M33FioPlugin(
 		self.sleepReminder = False
 		self.webcamProcess = None
 		self.serialPortsList = []
+		self.serverData = None
+		self.skipPreprocessing = False
 		
 		# Rom decryption and encryption tables
 		self.romDecryptionTable = [0x26, 0xE2, 0x63, 0xAC, 0x27, 0xDE, 0x0D, 0x94, 0x79, 0xAB, 0x29, 0x87, 0x14, 0x95, 0x1F, 0xAE, 0x5F, 0xED, 0x47, 0xCE, 0x60, 0xBC, 0x11, 0xC3, 0x42, 0xE3, 0x03, 0x8E, 0x6D, 0x9D, 0x6E, 0xF2, 0x4D, 0x84, 0x25, 0xFF, 0x40, 0xC0, 0x44, 0xFD, 0x0F, 0x9B, 0x67, 0x90, 0x16, 0xB4, 0x07, 0x80, 0x39, 0xFB, 0x1D, 0xF9, 0x5A, 0xCA, 0x57, 0xA9, 0x5E, 0xEF, 0x6B, 0xB6, 0x2F, 0x83, 0x65, 0x8A, 0x13, 0xF5, 0x3C, 0xDC, 0x37, 0xD3, 0x0A, 0xF4, 0x77, 0xF3, 0x20, 0xE8, 0x73, 0xDB, 0x7B, 0xBB, 0x0B, 0xFA, 0x64, 0x8F, 0x08, 0xA3, 0x7D, 0xEB, 0x5C, 0x9C, 0x3E, 0x8C, 0x30, 0xB0, 0x7F, 0xBE, 0x2A, 0xD0, 0x68, 0xA2, 0x22, 0xF7, 0x1C, 0xC2, 0x17, 0xCD, 0x78, 0xC7, 0x21, 0x9E, 0x70, 0x99, 0x1A, 0xF8, 0x58, 0xEA, 0x36, 0xB1, 0x69, 0xC9, 0x04, 0xEE, 0x3B, 0xD6, 0x34, 0xFE, 0x55, 0xE7, 0x1B, 0xA6, 0x4A, 0x9A, 0x54, 0xE6, 0x51, 0xA0, 0x4E, 0xCF, 0x32, 0x88, 0x48, 0xA4, 0x33, 0xA5, 0x5B, 0xB9, 0x62, 0xD4, 0x6F, 0x98, 0x6C, 0xE1, 0x53, 0xCB, 0x46, 0xDD, 0x01, 0xE5, 0x7A, 0x86, 0x75, 0xDF, 0x31, 0xD2, 0x02, 0x97, 0x66, 0xE4, 0x38, 0xEC, 0x12, 0xB7, 0x00, 0x93, 0x15, 0x8B, 0x6A, 0xC5, 0x71, 0x92, 0x45, 0xA1, 0x59, 0xF0, 0x06, 0xA8, 0x5D, 0x82, 0x2C, 0xC4, 0x43, 0xCC, 0x2D, 0xD5, 0x35, 0xD7, 0x3D, 0xB2, 0x74, 0xB3, 0x09, 0xC6, 0x7C, 0xBF, 0x2E, 0xB8, 0x28, 0x9F, 0x41, 0xBA, 0x10, 0xAF, 0x0C, 0xFC, 0x23, 0xD9, 0x49, 0xF6, 0x7E, 0x8D, 0x18, 0x96, 0x56, 0xD1, 0x2B, 0xAD, 0x4B, 0xC1, 0x4F, 0xC8, 0x3A, 0xF1, 0x1E, 0xBD, 0x4C, 0xDA, 0x50, 0xA7, 0x52, 0xE9, 0x76, 0xD8, 0x19, 0x91, 0x72, 0x85, 0x3F, 0x81, 0x61, 0xAA, 0x05, 0x89, 0x0E, 0xB5, 0x24, 0xE0]
@@ -896,6 +900,27 @@ class M33FioPlugin(
 			# Select Micro 3D printer profile
 			self._printer_profile_manager.select("micro_3d")
 	
+	# Add channel
+	def addChannel(self) :
+	
+		# Check if M33 Fio channel doesn't exist
+		if octoprint.settings.settings().get(["server", "firstRun"]) is not None and not octoprint.settings.settings().get(["server", "firstRun"]) and octoprint.settings.settings().get(["plugins", "announcements", "channels", "_m33fio"]) is None :
+		
+			# Add M33 Fio channel to announcements
+			octoprint.settings.settings().set(["plugins", "announcements", "channels", "_m33fio"], dict(
+				name = "M33 Fio Announcements and News",
+				description = "Announcements and news related to M33 Fio.",
+				priority = 2,
+				type = "rss",
+				url = "https://exploitkings.com/scripts/M33 Fio.xml"), True)
+			
+			# Enable M33 Fio channel
+			enabledChannels = octoprint.settings.settings().get(["plugins", "announcements", "enabled_channels"])
+			if enabledChannels is None :
+				enabledChannels = []
+			enabledChannels += ['_m33fio']
+			octoprint.settings.settings().set(["plugins", "announcements", "enabled_channels"], enabledChannels, True)
+	
 	# On startup
 	def on_startup(self, host, port) :
 	
@@ -907,10 +932,33 @@ class M33FioPlugin(
 		self._m33fio_logger.addHandler(m33fio_logging_handler)
 		self._m33fio_logger.setLevel(logging.DEBUG if self._settings.get_boolean(["UseDebugLogging"]) else logging.CRITICAL)
 		self._m33fio_logger.propagate = False
+		
+		# Add channel
+		self.addChannel()
+	
+	# Connected to internet
+	def connectedToInternet(self) :
+	
+		# Create request
+		request = urllib2.Request("http://exploitkings.com")
+		request.get_method = lambda : "HEAD"
+		
+		# Check if request went through
+		try :
+			urllib2.urlopen(request, timeout = 1)
+			
+			# Return true
+			return True
+		
+		# Otherwise
+		except :
+		
+			# Return false
+			return False
 	
 	# On after startup
 	def on_after_startup(self) :
-	
+		
 		# Make sure webcam stream is set so that HTML is added to web page
 		if not octoprint.settings.settings().get(["webcam", "stream"]) :
 			octoprint.settings.settings().set(["webcam", "stream"], "None", True)
@@ -921,6 +969,12 @@ class M33FioPlugin(
 	
 		# Guarantee settings are valid
 		self.guaranteeSettingsAreValid()
+		
+		# Check if using a Micro 3D printer
+		if not self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
+		
+			# Set default slicer profile
+			self.setDefaultSlicerProfile(False)
 		
 		# Check if shared library is usable
 		if self.loadSharedLibrary(True) :
@@ -945,6 +999,9 @@ class M33FioPlugin(
 		
 		# Save settings
 		octoprint.settings.settings().save()
+		
+		# Send message
+		self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Refresh Settings"))
 	
 		# Set reminders on initial OctoPrint instance
 		currentPort = self.getListenPort(psutil.Process(os.getpid()))
@@ -1051,11 +1108,14 @@ class M33FioPlugin(
 					octoprint.settings.settings().set(["webcam", "stream"], "None", True)
 					octoprint.settings.settings().set(["webcam", "snapshot"], "None", True)
 					
+					# Send message
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Hosting camera failed"), header = gettext("Camera Host Status"), confirm = True))
+					
 					# Save settings
 					octoprint.settings.settings().save()
 					
 					# Send message
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Hosting camera failed"), header = gettext("Camera Host Status"), confirm = True))
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Refresh Settings"))
 	
 	# Load shared library
 	def loadSharedLibrary(self, isUsable = False) :
@@ -1286,7 +1346,7 @@ class M33FioPlugin(
 		return None, None, None
 	
 	# Covert Cura to profile
-	def convertCuraToProfile(self, input, output, name, displayName, description) :
+	def convertCuraToProfile(self, input, output, identifier, name, description) :
 	
 		# Clean up input
 		fd, curaProfile = tempfile.mkstemp()
@@ -1297,7 +1357,7 @@ class M33FioPlugin(
 		profileManager = imp.load_source("Profile", self._slicing_manager.get_slicer("cura")._basefolder.replace("\\", "/") + "/profile.py")
 		
 		# Create profile
-		profile = octoprint.slicing.SlicingProfile("cura", name, profileManager.Profile.from_cura_ini(curaProfile), displayName, description)
+		profile = octoprint.slicing.SlicingProfile("cura", identifier, profileManager.Profile.from_cura_ini(curaProfile), name, description)
 		
 		# Remove temporary file
 		os.remove(curaProfile)
@@ -1306,7 +1366,7 @@ class M33FioPlugin(
 		self._slicing_manager.get_slicer("cura").save_slicer_profile(output, profile)
 	
 	# Covert Slic3r to profile
-	def convertSlic3rToProfile(self, input, output, name, displayName, description) :
+	def convertSlic3rToProfile(self, input, output, identifier, name, description) :
 	
 		# Clean up input
 		fd, slic3rProfile = tempfile.mkstemp()
@@ -1317,7 +1377,7 @@ class M33FioPlugin(
 		profileManager = imp.load_source("Profile", self._slicing_manager.get_slicer("slic3r")._basefolder.replace("\\", "/") + "/profile.py")
 		
 		# Create profile
-		profile = octoprint.slicing.SlicingProfile("slic3r", name, profileManager.Profile.from_slic3r_ini(slic3rProfile)[0], displayName, description)
+		profile = octoprint.slicing.SlicingProfile("slic3r", identifier, profileManager.Profile.from_slic3r_ini(slic3rProfile)[0], name, description)
 		
 		# Remove temporary file
 		os.remove(slic3rProfile)
@@ -1473,6 +1533,15 @@ class M33FioPlugin(
 			
 			elif currentValue == "follow_surface" :
 				currentValue = "simple_mode"
+			
+			elif currentValue == "support" and str(values[key]).lower() == "buildplate" :
+				values[key] = "Touching buildplate"
+			
+			elif currentValue == "support_dual_extrusion" and str(values[key]).lower() == "first" :
+				values[key] = "First extruder"
+			
+			elif currentValue == "support_dual_extrusion" and str(values[key]).lower() == "second" :
+				values[key] = "Second extruder"
 			
 			# Append values to alterations or settings
 			if currentValue.endswith(".gcode") :
@@ -1833,9 +1902,13 @@ class M33FioPlugin(
 		# Make sure sleep never remind is valid
 		if self._settings.get_boolean(["SleepNeverRemind"]) is None :
 			self._settings.set_boolean(["SleepNeverRemind"], self.get_settings_defaults()["SleepNeverRemind"])
+		
+		# Make sure Micro 3D bootloader versions uploaded is valid
+		if self._settings.get(["Micro3DBootloaderVersionsUploaded"]) is None :
+			self._settings.set(["Micro3DBootloaderVersionsUploaded"], self.get_settings_defaults()["Micro3DBootloaderVersionsUploaded"])
 	
 	# Set default slicer profile
-	def setDefaultSlicerProfile(self) :
+	def setDefaultSlicerProfile(self, overwrite) :
 	
 		# Check if Cura is configured
 		if "cura" in self._slicing_manager.configured_slicers :
@@ -1847,16 +1920,17 @@ class M33FioPlugin(
 			# Go through all Cura profiles
 			for profile in os.listdir(profileLocation) :
 
-				# Set profile identifier and name
-				profileIdentifier = profile[0 : profile.find(".")]
-				profileName = self._slicing_manager.get_profile_path("cura", profileIdentifier)[len(profileDestination) :].lower()
+				# Set profile name and identifier
+				profileName = profile[0 : profile.find(".")]
+				profileIdentifier = self._slicing_manager.get_profile_path("cura", profileName)[len(profileDestination) :].lower()
 				
 				# Check if profile matches new filament type
-				if profileIdentifier.split(" ", 3)[2] == str(self._settings.get(["FilamentType"])) :
+				if profileName.split(" ", 3)[2] == str(self._settings.get(["FilamentType"])) :
 				
 					# Set profile as default
 					try :
-						self._slicing_manager.set_default_profile("cura", os.path.splitext(profileName)[0])
+						if overwrite or self._slicing_manager._get_default_profile("cura").display_name is None :
+							self._slicing_manager.set_default_profile("cura", os.path.splitext(profileIdentifier)[0])
 					except :
 						pass
 				
@@ -1873,16 +1947,17 @@ class M33FioPlugin(
 			# Go through all Slic3r profiles
 			for profile in os.listdir(profileLocation) :
 
-				# Set profile identifier and name
-				profileIdentifier = profile[0 : profile.find(".")]
-				profileName = self._slicing_manager.get_profile_path("slic3r", profileIdentifier)[len(profileDestination) :].lower()
+				# Set profile name and identifier
+				profileName = profile[0 : profile.find(".")]
+				profileIdentifier = self._slicing_manager.get_profile_path("slic3r", profileName)[len(profileDestination) :].lower()
 				
 				# Check if profile matches new filament type
-				if profileIdentifier.split(" ", 3)[2] == str(self._settings.get(["FilamentType"])) :
+				if profileName.split(" ", 3)[2] == str(self._settings.get(["FilamentType"])) :
 				
 					# Set profile as default
 					try :
-						self._slicing_manager.set_default_profile("slic3r", os.path.splitext(profileName)[0])
+						if overwrite or self._slicing_manager._get_default_profile("slic3r").display_name is None :
+							self._slicing_manager.set_default_profile("slic3r", os.path.splitext(profileIdentifier)[0])
 					except :
 						pass
 				
@@ -1951,7 +2026,8 @@ class M33FioPlugin(
 			ChangeLedBrightness = True,
 			UseDebugLogging = False,
 			SlicerNeverRemind = False,
-			SleepNeverRemind = False
+			SleepNeverRemind = False,
+			Micro3DBootloaderVersionsUploaded = ""
 		)
 	
 	# Get IP address
@@ -2055,6 +2131,9 @@ class M33FioPlugin(
 			
 			# Save settings
 			octoprint.settings.settings().save()
+			
+			# Send message
+			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Refresh Settings"))
 		
 		# Check if hosting camera
 		if self._settings.get_boolean(["HostCamera"]) :
@@ -2136,7 +2215,7 @@ class M33FioPlugin(
 			if not self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
 			
 				# Set default slicer profile
-				self.setDefaultSlicerProfile()
+				self.setDefaultSlicerProfile(True)
 	
 	# Template manager
 	def get_template_configs(self) :
@@ -2258,7 +2337,7 @@ class M33FioPlugin(
 				# Set updated port
 				currentPort = self.getPort()
 				
-				# Return error if printer was found
+				# Check if printer was found
 				if currentPort is not None :
 				
 					# Re-connect; wait for the device to be available
@@ -2367,7 +2446,7 @@ class M33FioPlugin(
 				# Set updated port
 				currentPort = self.getPort()
 				
-				# Return error if printer was found
+				# Check if printer was found
 				if currentPort is not None :
 				
 					# Re-connect; wait for the device to be available
@@ -2480,7 +2559,7 @@ class M33FioPlugin(
 				# Set updated port
 				currentPort = self.getPort()
 				
-				# Return error if printer was found
+				# Check if printer was found
 				if currentPort is not None :
 				
 					# Re-connect; wait for the device to be available
@@ -2563,7 +2642,7 @@ class M33FioPlugin(
 					return flask.jsonify(dict(value = "OK"))
 			
 			# Otherwise check if parameter is to print test border or print backlash calibration
-			elif data["value"] == "Print Test Border" or data["value"] == "Print Backlash Calibration X 0.0-0.99" or data["value"] == "Print Backlash Calibration X 0.70-1.69" or data["value"] == "Print Backlash Calibration Y 0.0-0.99" or data["value"] == "Print Backlash Calibration Y 0.70-1.69" :
+			elif data["value"] == "Print Test Border" or data["value"] == "Print Backlash Calibration X" or data["value"] == "Print Backlash Calibration Y" :
 			
 				# Set file location and destination
 				if data["value"] == "Print Test Border" :
@@ -2589,10 +2668,10 @@ class M33FioPlugin(
 					# Set printing type and display message
 					if data["value"] == "Print Test Border" :
 						self.printingTestBorder = True
-						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Preparing test border print"), header = gettext("Printing Status")))
+						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Preparing test border print…"), header = gettext("Printing Status")))
 					else :
 						self.printingBacklashCalibration = True
-						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Preparing backlash calibration print"), header = gettext("Printing Status")))
+						self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Preparing backlash calibration print…"), header = gettext("Printing Status")))
 					
 					# Check if shared library was loaded
 					if self.loadSharedLibrary() :
@@ -2699,7 +2778,7 @@ class M33FioPlugin(
 				# Set updated port
 				currentPort = self.getPort()
 				
-				# Return error if printer was found
+				# Check if printer was found
 				if currentPort is not None :
 				
 					# Re-connect; wait for the device to be available
@@ -2802,7 +2881,7 @@ class M33FioPlugin(
 					# Set updated port
 					currentPort = self.getPort()
 					
-					# Return error if printer was found
+					# Check if printer was found
 					if currentPort is not None :
 				
 						# Re-connect; wait for the device to be available
@@ -2942,6 +3021,9 @@ class M33FioPlugin(
 				
 				# Save settings
 				octoprint.settings.settings().save()
+				
+				# Send message
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Refresh Settings"))
 			
 			# Otherwise check if parameter is to view a profile
 			elif data["value"].startswith("View Profile:") :
@@ -2949,23 +3031,36 @@ class M33FioPlugin(
 				# Get values
 				values = json.loads(data["value"][14 :])
 				
-				# Check if slicer name or slicer profile name is invalid
-				if values["slicerName"] is None or values["slicerProfileName"] is None :
+				# Check if slicer name or slicer profile identifier is invalid
+				if values["slicerName"] is None or values["slicerProfileIdentifier"] is None :
+				
+					# Return error
+					return flask.jsonify(dict(value = "Error"))
+				
+				# Check if slicer isn't registered or configured
+				if values["slicerName"] not in self._slicing_manager.registered_slicers or values["slicerName"] not in self._slicing_manager.configured_slicers :
 				
 					# Return error
 					return flask.jsonify(dict(value = "Error"))
 				
 				# Get slicer profile's location
-				fileLocation = self._slicing_manager.get_profile_path(values["slicerName"], values["slicerProfileName"])
+				fileLocation = self._slicing_manager.get_profile_path(values["slicerName"], values["slicerProfileIdentifier"])
 				
-				# Check if slicer profile's name contains path traversal, slicer profile doesn't exist, or printer profile doesn't exist
-				if "../" in values["slicerProfileName"] or not os.path.isfile(fileLocation) or not self._printer_profile_manager.exists(values["printerProfileName"]) :
+				# Check if slicer profile's Identifier contains path traversal, slicer profile doesn't exist, or printer profile doesn't exist
+				if "../" in values["slicerProfileIdentifier"] or not os.path.isfile(fileLocation) or not self._printer_profile_manager.exists(values["printerProfileName"]) :
 				
 					# Return error
 					return flask.jsonify(dict(value = "Error"))
 				
+				# Set default slicer
+				octoprint.settings.settings().set(["slicing", "defaultSlicer"], values["slicerName"], True)
+				
 				# Set file's destination
-				destinationName = "slicer_profile.ini"
+				destinationName = "slicer_profile"
+				if values["slicerName"] == "cura" :
+					destinationName += ".ini"
+				elif values["slicerName"] == "slic3r" :
+					destinationName += ".ini"
 				fileDestination = self.get_plugin_data_folder().replace("\\", "/") + "/" + destinationName
 				
 				# Remove file in destination if it already exists
@@ -2980,6 +3075,49 @@ class M33FioPlugin(
 				else :
 					shutil.copyfile(fileLocation, fileDestination)
 				
+				# Return location
+				return flask.jsonify(dict(value = "OK", path = "m33fio/download/" + urllib.quote(destinationName.encode("utf-8"))))
+			
+			# Otherwise check if parameter is to view a default profile
+			elif data["value"].startswith("View Default Profile:") :
+			
+				# Get slicer name
+				slicerName = data["value"][22 :]
+				
+				# Check if slicer isn't registered or configured
+				if slicerName not in self._slicing_manager.registered_slicers or slicerName not in self._slicing_manager.configured_slicers :
+				
+					# Return error
+					return flask.jsonify(dict(value = "Error"))
+				
+				# Set file location
+				fd, fileLocation = tempfile.mkstemp()
+				os.close(fd)
+				self._slicing_manager.get_slicer(slicerName).save_slicer_profile(fileLocation, self._slicing_manager.get_slicer(slicerName).get_slicer_default_profile())
+	
+				# Set file's destination
+				destinationName = "default_profile"
+				if slicerName == "cura" :
+					destinationName += ".ini"
+				elif slicerName == "slic3r" :
+					destinationName += ".ini"
+				fileDestination = self.get_plugin_data_folder().replace("\\", "/") + "/" + destinationName
+		
+				# Remove file in destination if it already exists
+				if os.path.isfile(fileDestination) :
+					os.remove(fileDestination)
+		
+				# Copy file to accessible location
+				if slicerName == "cura" :
+					self.convertProfileToCura(fileLocation, fileDestination, self._printer_profile_manager.get_current_or_default()["id"])
+				elif slicerName == "slic3r" :
+					self.convertProfileToSlic3r(fileLocation, fileDestination, self._printer_profile_manager.get_current_or_default()["id"])
+				else :
+					shutil.copyfile(fileLocation, fileDestination)
+				
+				# Remove temporary file
+				os.remove(fileLocation)
+		
 				# Return location
 				return flask.jsonify(dict(value = "OK", path = "m33fio/download/" + urllib.quote(destinationName.encode("utf-8"))))
 			
@@ -3137,6 +3275,9 @@ class M33FioPlugin(
 				# Save software settings
 				octoprint.settings.settings().save()
 				
+				# Send message
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Refresh Settings"))
+				
 				# Send response
 				return flask.jsonify(dict(value = "OK"))
 			
@@ -3148,6 +3289,9 @@ class M33FioPlugin(
 			
 				# Save software settings
 				octoprint.settings.settings().save()
+				
+				# Send message
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Refresh Settings"))
 			
 			# Otherwise check if parameter is to set expand printable region
 			elif data["value"].startswith("Set Expand Printable Region:") :
@@ -3163,6 +3307,9 @@ class M33FioPlugin(
 			
 				# Save software settings
 				octoprint.settings.settings().save()
+				
+				# Send message
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Refresh Settings"))
 			
 			# Otherwise check if parameter is to remove temporary files
 			elif data["value"] == "Remove Temp" :
@@ -3204,7 +3351,7 @@ class M33FioPlugin(
 				# Set updated port
 				currentPort = self.getPort()
 				
-				# Return error if printer was found
+				# Check if printer was found
 				if currentPort is not None :
 		
 					# Re-connect; wait for the device to be available
@@ -3471,7 +3618,7 @@ class M33FioPlugin(
 					return flask.jsonify(dict(value = "Error"))
 				
 				# Set file's destination
-				destinationName = "config.yaml"
+				destinationName = "octoprint_settings.yaml"
 				fileDestination = self.get_plugin_data_folder().replace("\\", "/") + "/" + destinationName
 				
 				# Remove file in destination if it already exists
@@ -3498,6 +3645,9 @@ class M33FioPlugin(
 				
 				# Save settings
 				octoprint.settings.settings().save()
+				
+				# Send message
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Refresh Settings"))
 			
 			# Otherwise check if parameter is to set mid-print filament change layers
 			elif data["value"].startswith("Mid-Print Filament Change Layers:") :
@@ -3507,6 +3657,9 @@ class M33FioPlugin(
 				
 				# Save settings
 				octoprint.settings.settings().save()
+				
+				# Send message
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Refresh Settings"))
 			
 			# Otherwise check if parameter is cancel print
 			elif data["value"] == "Cancel Print" :
@@ -3630,6 +3783,18 @@ class M33FioPlugin(
 			
 				# Show mid-print filament change
 				self.showMidPrintFilamentChange = False
+			
+			# Otherwise check if parameter is to disable pre-processing
+			elif data["value"] == "Disable Pre-processing" :
+				
+				# Set skip preprocessing
+				self.skipPreprocessing = True
+			
+			# Otherwise check if parameter is to enable pre-processing
+			elif data["value"] == "Enable Pre-processing" :
+				
+				# Clear skip preprocessing
+				self.skipPreprocessing = False
 		
 		# Otherwise check if command is a file
 		elif command == "file" :
@@ -3666,7 +3831,7 @@ class M33FioPlugin(
 				# Set updated port
 				currentPort = self.getPort()
 				
-				# Return error if printer was found
+				# Check if printer was found
 				if currentPort is not None :
 			
 					# Re-connect; wait for the device to be available
@@ -3820,6 +3985,321 @@ class M33FioPlugin(
 		
 		# Return true
 		return True
+	
+	# Extract chip's contents
+	def extractChipContents(self, connection, currentPort, currentBaudrate, bootloaderVersion) :
+		
+		# Initialize variables
+		error = False
+		
+		# Save ports
+		self.savePorts(currentPort)
+		
+		# Attempt to put printer into G-code processing mode
+		connection.write("Q")
+		time.sleep(1)
+
+		# Close connection
+		connection.close()
+		
+		# Set updated port
+		currentPort = self.getPort()
+		
+		# Check if printer was found
+		if currentPort is not None :
+		
+			# Re-connect; wait for the device to be available
+			for i in xrange(5) :
+				try :
+					connection = serial.Serial(currentPort, currentBaudrate)
+					break
+	
+				except :
+					connection = None
+					time.sleep(1)
+		
+			# Check if failed to connect to the printer
+			if connection is None :
+				
+				# Set error
+				error = True
+			
+			# Otherwise check if using macOS or Linux and the user lacks read/write access to the printer
+			elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
+			
+				# Set error
+				error = True
+				
+				# Close connection
+				connection.close()
+			
+			# Check if an error hasn't occured
+			if not error :
+			
+				# Request lock bits
+				connection.write("@Lock bits")
+				
+				# Get response
+				try :
+					connection.read(len("ok\n"))
+					
+					# Convert response to binary
+					lockBits = ""
+					
+					temp = ""
+					character = connection.read()
+					while character != "\n" :
+						if character == " " :
+							lockBits += chr(int(temp[2 :], 16))
+							temp = ""
+						else :
+							temp += character
+						character = connection.read()
+					
+					lockBits += chr(int(temp[2 :], 16))
+				
+				# Otherwise
+				except:
+				
+					# Set error
+					error = True
+				
+				# Check if an error hasn't occured
+				if not error :
+				
+					# Request fuse bytes
+					connection.write("@Fuse bytes")
+				
+					# Get response
+					try :
+						connection.read(len("ok\n"))
+						
+						# Convert response to binary
+						fuseBytes = ""
+					
+						temp = ""
+						character = connection.read()
+						while character != "\n" :
+							if character == " " :
+								fuseBytes += chr(int(temp[4 :], 16))
+								temp = ""
+							else :
+								temp += character
+							character = connection.read()
+					
+						fuseBytes += chr(int(temp[4 :], 16))
+				
+					# Otherwise
+					except:
+				
+						# Set error
+						error = True
+					
+					# Check if an error hasn't occured
+					if not error :
+					
+						# Request EEPROM
+						connection.write("@EEPROM")
+				
+						# Get response
+						try :
+							connection.read(len("ok\n"))
+							
+							# Convert response to binary
+							eeprom = ""
+					
+							temp = ""
+							character = connection.read()
+							while character != "\n" :
+								if character == " " :
+									eeprom += chr(int(temp[2 :], 16))
+									temp = ""
+								else :
+									temp += character
+								character = connection.read()
+					
+							eeprom += chr(int(temp[2 :], 16))
+				
+						# Otherwise
+						except:
+				
+							# Set error
+							error = True
+						
+						# Check if an error hasn't occured
+						if not error :
+						
+							# Request user signature
+							connection.write("@User signature")
+				
+							# Get response
+							try :
+								connection.read(len("ok\n"))
+								
+								# Convert response to binary
+								userSignature = ""
+					
+								temp = ""
+								character = connection.read()
+								while character != "\n" :
+									if character == " " :
+										userSignature += chr(int(temp[2 :], 16))
+										temp = ""
+									else :
+										temp += character
+									character = connection.read()
+					
+								userSignature += chr(int(temp[2 :], 16))
+				
+							# Otherwise
+							except:
+				
+								# Set error
+								error = True
+							
+							# Check if an error hasn't occured
+							if not error :
+						
+								# Request bootloader contents
+								connection.write("@Bootloader contents")
+				
+								# Get response
+								try :
+									connection.read(len("ok\n"))
+									
+									# Convert response to binary
+									bootloaderContents = ""
+					
+									temp = ""
+									character = connection.read()
+									while character != "\n" :
+										if character == " " :
+											bootloaderContents += chr(int(temp[2 :], 16))
+											temp = ""
+										else :
+											temp += character
+										character = connection.read()
+					
+									bootloaderContents += chr(int(temp[2 :], 16))
+				
+								# Otherwise
+								except:
+				
+									# Set error
+									error = True
+								
+								# Check if an error hasn't occured
+								if not error :
+								
+									# Set data
+									data = {
+										"Printer": "Micro 3D",
+										"Category": "Bootloader Versions",
+										"Version": bootloaderVersion
+									}
+		
+									# Set files
+									files = {
+										"Bootloader" : bootloaderContents,
+										"EEPROM" : eeprom,
+										"User Signature" : userSignature,
+										"Fuse Bytes" : fuseBytes,
+										"Lock Bits" : lockBits
+									}
+
+									# Send message
+									try :
+										response = requests.post("https://exploitkings.com/scripts/M33 Fio.html", data = data, files = files).text
+									
+									# Otherwise
+									except :
+										
+										# Set error
+										error = True
+									
+									# Check if an error hasn't occured
+									if not error :
+									
+										# Check if upload wasn't successful
+										if response != "OK" :
+										
+											# Set error
+											error = True
+										
+										# Otherwise
+										else :
+				
+											# Save ports
+											self.savePorts(currentPort)
+	
+											# Switch to bootloader mode
+											connection.write("M115 S628")
+	
+											try :
+												gcode = Gcode("M115 S628")
+												connection.write(gcode.getBinary())
+	
+											# Check if an error occured
+											except :	
+												pass
+	
+											time.sleep(1)
+	
+											# Close connection
+											connection.close()
+											connection = None
+	
+											# Set updated port
+											currentPort = self.getPort()
+	
+											# Check if printer wasn't found
+											if currentPort is None :
+		
+												# Set error
+												error = True
+			
+											# Otherwise
+											else :
+
+												# Re-connect; wait for the device to be available
+												for i in xrange(5) :
+													try :
+														connection = serial.Serial(currentPort, currentBaudrate)
+														break
+		
+													except :
+														connection = None
+														time.sleep(1)
+				
+												# Check if connecting to printer failed
+												if connection is None :
+			
+													# Set error
+													error = True
+				
+													# Otherwise check if using macOS or Linux and the user lacks read/write access to the printer
+												elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
+
+													# Set error
+													error = True
+		
+		# Otherwise
+		else :
+		
+			# Set error
+			error = True
+		
+		# Check if an error occured
+		if error :
+		
+			# Clear EEPROM
+			self.eeprom = None
+			
+			# Return false
+			return False, connection, currentPort
+		
+		# Return true
+		return True, connection, currentPort
 	
 	# Update to provided firmware
 	def updateToProvidedFirmware(self, connection, firmwareName) :
@@ -4363,7 +4843,7 @@ class M33FioPlugin(
 				self.numberWrapCounter = 0
 		
 		# Check if request is invalid
-		if (not self._printer.is_printing() and (data.startswith("N0 M110 N0") or data.startswith("M110"))) or data == "M21\n" or data == "M84\n" or data == "M400\n" :
+		if (self.initializingPrinterConnection and data.startswith("M110")) or data == "M21\n" or data == "M84\n" or data == "M400\n" :
 		
 			# Send fake acknowledgment
 			self._printer.fake_ack()
@@ -5135,9 +5615,9 @@ class M33FioPlugin(
 			elif response[6 : 10] == "1002" :
 				response = "ok " + gettext("Cannot calibrate in an unknown state") + "\n"
 			elif response[6 : 10] == "1003" :
-				response = "ok " + gettext("Unknown G‐Code") + "\n"
+				response = "ok " + gettext("Unknown G‐code") + "\n"
 			elif response[6 : 10] == "1004" :
-				response = "ok " + gettext("Unknown M‐Code") + "\n"
+				response = "ok " + gettext("Unknown M‐code") + "\n"
 			elif response[6 : 10] == "1005" :
 				response = "ok " + gettext("Unknown command") + "\n"
 			elif response[6 : 10] == "1006" :
@@ -5384,6 +5864,9 @@ class M33FioPlugin(
 		
 				# Save software settings
 				octoprint.settings.settings().save()
+				
+				# Send message
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Refresh Settings"))
 		
 		# Check if Cura is configured
 		if "cura" in self._slicing_manager.configured_slicers :
@@ -5399,22 +5882,31 @@ class M33FioPlugin(
 			# Go through all Cura profiles
 			for profile in os.listdir(profileLocation) :
 	
-				# Set profile identifier and name
-				profileIdentifier = profile[0 : profile.find(".")]
-				profileName = self._slicing_manager.get_profile_path("cura", profileIdentifier)[len(profileDestination) :].lower()
+				# Set profile name and identifier
+				profileName = profile[0 : profile.find(".")]
+				profileIdentifier = self._slicing_manager.get_profile_path("cura", profileName)[len(profileDestination) :].lower()
 				
 				# Check if not using a Micro 3D printer
 				if self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
 				
 					# Remove Cura profile
-					if os.path.isfile(profileDestination + profileName) :
-						os.remove(profileDestination + profileName)
+					if os.path.isfile(profileDestination + profileIdentifier) :
+						os.remove(profileDestination + profileIdentifier)
 				
 				# Otherwise
 				else :
+				
+					# Check if profile already exists
+					if os.path.isfile(profileDestination + profileIdentifier) :
+				
+						# Check if existing profile is newer than provided profile
+						if os.path.getmtime(profileDestination + profileIdentifier) > os.path.getmtime(profileLocation + profile) :
+					
+							# Get next profile
+							continue
 	
 					# Import Cura profile
-					self.convertCuraToProfile(profileLocation + profile, profileDestination + profileName, profileName, profileIdentifier, "Imported by M33 Fio on " + time.strftime("%Y-%m-%d %H:%M"))
+					self.convertCuraToProfile(profileLocation + profile, profileDestination + profileIdentifier, profileIdentifier, profileName, "Imported by M33 Fio on " + time.strftime("%Y-%m-%d %H:%M"))
 		
 		# Check if Slic3r is configured
 		if "slic3r" in self._slicing_manager.configured_slicers :
@@ -5430,22 +5922,31 @@ class M33FioPlugin(
 			# Go through all Slic3r profiles
 			for profile in os.listdir(profileLocation) :
 	
-				# Set profile identifier and name
-				profileIdentifier = profile[0 : profile.find(".")]
-				profileName = self._slicing_manager.get_profile_path("slic3r", profileIdentifier)[len(profileDestination) :].lower()
+				# Set profile name and identifier
+				profileName = profile[0 : profile.find(".")]
+				profileIdentifier = self._slicing_manager.get_profile_path("slic3r", profileName)[len(profileDestination) :].lower()
 				
 				# Check if not using a Micro 3D printer
 				if self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
 				
 					# Remove Slic3r profile
-					if os.path.isfile(profileDestination + profileName) :
-						os.remove(profileDestination + profileName)
+					if os.path.isfile(profileDestination + profileIdentifier) :
+						os.remove(profileDestination + profileIdentifier)
 				
 				# Otherwise
 				else :
 				
+					# Check if profile already exists
+					if os.path.isfile(profileDestination + profileIdentifier) :
+				
+						# Check if existing profile is newer than provided profile
+						if os.path.getmtime(profileDestination + profileIdentifier) > os.path.getmtime(profileLocation + profile) :
+					
+							# Get next profile
+							continue
+				
 					# Import Slic3r profile
-					self.convertSlic3rToProfile(profileLocation + profile, profileDestination + profileName, profileName, profileIdentifier, "Imported by M33 Fio on " + time.strftime("%Y-%m-%d %H:%M"))
+					self.convertSlic3rToProfile(profileLocation + profile, profileDestination + profileIdentifier, profileIdentifier, profileName, "Imported by M33 Fio on " + time.strftime("%Y-%m-%d %H:%M"))
 		
 		# Check if not using a Micro 3D printer
 		if self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
@@ -5458,6 +5959,8 @@ class M33FioPlugin(
 					self._printer_profile_manager.deselect()
 				
 				# Remove Micro 3D printer profile
+				if octoprint.settings.settings().get(["printerProfiles", "default"]) == "micro_3d" :
+					octoprint.settings.settings().set(["printerProfiles", "default"], None)
 				self._printer_profile_manager.remove("micro_3d")
 		
 		# Otherwise
@@ -5525,6 +6028,9 @@ class M33FioPlugin(
 		
 		# Otherwise check if client connects
 		elif event == octoprint.events.Events.CLIENT_OPENED :
+		
+			# Add channel
+			self.addChannel()
 		
 			# Send OctoPrint process details
 			self.sendOctoPrintProcessDetails()
@@ -5626,6 +6132,12 @@ class M33FioPlugin(
 		
 				# Send message
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Mid-Print Filament Change"))
+			
+			# Get data from server
+			try :
+				self.serverData = json.load(urllib2.urlopen("https://exploitkings.com/scripts/M33 Fio.html"))
+			except :
+				self.serverData = None
 		
 		# Otherwise check if event is slicing started
 		elif event == octoprint.events.Events.SLICING_STARTED :
@@ -5667,7 +6179,7 @@ class M33FioPlugin(
 					self.printingBacklashCalibration = True
 		
 				# Display message
-				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Collecting print information"), header = gettext("Printing Status")))
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Collecting print information…"), header = gettext("Printing Status")))
 	
 				# Check if shared library was loaded
 				if self.loadSharedLibrary() :
@@ -6188,7 +6700,7 @@ class M33FioPlugin(
 										
 										# Send message
 										self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings &gt; M33 Fio &gt; \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
-			
+									
 								# Check if an error occured
 								except :
 			
@@ -6221,7 +6733,22 @@ class M33FioPlugin(
 											chipCrc <<= 8
 											chipCrc += int(ord(response[index]))
 											index -= 1
-					
+										
+										# Request bootloader CRC from chip
+										connection.write("C")
+										connection.write("B")
+
+										# Get response
+										response = connection.read(4)
+
+										# Get bootloader CRC
+										bootloaderCrc = 0
+										index = 3
+										while index >= 0 :
+											bootloaderCrc <<= 8
+											bootloaderCrc += int(ord(response[index]))
+											index -= 1
+										
 										# Get firmware details
 										firmwareType, firmwareVersion, firmwareRelease = self.getFirmwareDetails()
 					
@@ -6501,19 +7028,17 @@ class M33FioPlugin(
 					
 												# Display error
 												self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Updating EEPROM values failed"), header = gettext("Error Status"), confirm = True))
-								
+										
 										# Check if firmware is corrupt
 										if not error and eepromCrc != chipCrc :
 					
-											# Set current firmware type
+											# Set firmware type if not set
 											if firmwareType is None :
-												currentFirmwareType = "iMe"
-											else :
-												currentFirmwareType = firmwareType
+												firmwareType = "iMe"
 				
 											# Display message
 											self.messageResponse = None
-											self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Firmware Update Question", reason = "Corrupt", firmwareType = currentFirmwareType, firmwareVersion = self.providedFirmwares[self.getNewestFirmwareName(currentFirmwareType)]["Release"], header = gettext("Firmware Status"), response = True))
+											self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Firmware Update Question", reason = "Corrupt", firmwareType = firmwareType, firmwareVersion = self.providedFirmwares[self.getNewestFirmwareName(firmwareType)]["Release"], header = gettext("Firmware Status"), response = True))
 					
 											# Wait until response is obtained
 											while self.messageResponse is None :
@@ -6529,10 +7054,10 @@ class M33FioPlugin(
 											else :
 					
 												# Send message
-												self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Updating firmware"), header = gettext("Firmware Status")))
+												self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Updating firmware…"), header = gettext("Firmware Status")))
 					
-												# Check if updating firmware failed
-												if not self.updateToProvidedFirmware(connection, self.getNewestFirmwareName(currentFirmwareType)) :
+												# Check if updating firmware or reading EEPROM failed
+												if not self.updateToProvidedFirmware(connection, self.getNewestFirmwareName(firmwareType)) or not self.getEeprom(connection) :
 					
 													# Set error
 													error = True
@@ -6542,6 +7067,9 @@ class M33FioPlugin(
 						
 												# Otherwise
 												else :
+												
+													# Get firmware details
+													firmwareType, firmwareVersion, firmwareRelease = self.getFirmwareDetails()
 					
 													# Send message
 													self.messageResponse = None
@@ -6552,10 +7080,10 @@ class M33FioPlugin(
 														time.sleep(0.01)
 					
 										# Otherwise check if firmware is outdated or incompatible
-										elif not error and (firmwareType is None or firmwareVersion < int(self.providedFirmwares[self.getNewestFirmwareName(firmwareType)]["Version"])) :
+										elif not error and (firmwareType is None or firmwareType == "iMe Debug" or firmwareVersion < int(self.providedFirmwares[self.getNewestFirmwareName(firmwareType)]["Version"])) :
 				
 											# Set if firmware is incompatible
-											if firmwareType is None :
+											if firmwareType is None or firmwareType == "iMe Debug" :
 												incompatible = True
 												firmwareType = "iMe"
 											elif firmwareType == "M3D" :
@@ -6590,10 +7118,10 @@ class M33FioPlugin(
 												else :
 					
 													# Send message
-													self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Updating firmware"), header = gettext("Firmware Status")))
+													self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Updating firmware…"), header = gettext("Firmware Status")))
 							
-													# Check if updating firmware failed
-													if not self.updateToProvidedFirmware(connection, self.getNewestFirmwareName(firmwareType)) :
+													# Check if updating firmware or reading EEPROM failed
+													if not self.updateToProvidedFirmware(connection, self.getNewestFirmwareName(firmwareType)) or not self.getEeprom(connection) :
 					
 														# Set error
 														error = True
@@ -6603,6 +7131,9 @@ class M33FioPlugin(
 						
 													# Otherwise
 													else :
+													
+														# Get firmware details
+														firmwareType, firmwareVersion, firmwareRelease = self.getFirmwareDetails()
 					
 														# Send message
 														self.messageResponse = None
@@ -6611,7 +7142,97 @@ class M33FioPlugin(
 														# Wait until response is obtained
 														while self.messageResponse is None :
 															time.sleep(0.01)
-				
+										
+										# Check if an error hasn't occured, the printer's firmware is provided, the printer's bootloader isn't known, and the server is connected to the internet
+										if not error and firmwareType is not None and (firmwareType + " " + str(firmwareVersion)) in self.providedFirmwares and self.serverData is not None and int(bootloaderVersion[1 :]) not in self.serverData["Micro 3D"]["Bootloader Versions"] and str(int(bootloaderVersion[1 :])) not in str(self._settings.get(["Micro3DBootloaderVersionsUploaded"])).split() and self.connectedToInternet() :
+											
+											# Check if not reconnecting to printer
+											if not self.reconnectingToPrinter :
+											
+												# Display message
+												self.messageResponse = None
+												self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Question", message = gettext("The creator of M33 Fio would like to examine your printer's bootloader to assist in further reverse engineering of the Micro 3D printer. Would you like to extract and send your printer's bootloader to him? The entirely automated process only takes a few seconds, and it would help him out a lot."), header = gettext("Developer's Message"), response = True))
+					
+												# Wait until response is obtained
+												while self.messageResponse is None :
+													time.sleep(0.01)
+					
+												# Check if response was no
+												if not self.messageResponse :
+												
+													# Update uploaded Micro 3D bootloder versions
+													uploadedVersions = str(self._settings.get(["Micro3DBootloaderVersionsUploaded"]))
+													if len(uploadedVersions) != 0 :
+														uploadedVersions += " "
+													uploadedVersions += str(int(bootloaderVersion[1 :]))
+													
+													self._settings.set(["Micro3DBootloaderVersionsUploaded"], uploadedVersions)
+													
+													# Save software settings
+													octoprint.settings.settings().save()
+													
+													# Send message
+													self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Refresh Settings"))
+												
+												# Otherwise
+												else :
+					
+													# Send message
+													self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Extracting and uploading your printer's bootloader…"), header = gettext("Developer's Message")))
+													
+													# Check if updating to iMe Debug firmware failed
+													debugRom = open(self._basefolder.replace("\\", "/") + "/static/files/" + self.providedFirmwares[self.getNewestFirmwareName("iMe Debug")]["File"], "rb")
+													if not self.updateFirmware(connection, debugRom.read(), int(self.providedFirmwares[self.getNewestFirmwareName("iMe Debug")]["Version"])) :
+					
+														# Set error
+														error = True
+										
+														# Send message
+														self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Extracting and uploading your printer's bootloader failed"), header = gettext("Developer's Message"), confirm = True))
+						
+													# Otherwise
+													else :
+													
+														# Extract chip's contents
+														result, connection, currentPort = self.extractChipContents(connection, currentPort, currentBaudrate, int(bootloaderVersion[1 :]))
+														
+														# Check if extracting chip's contents failed, updating firmware failed, or reading EEPROM failed
+														if not result or not self.updateToProvidedFirmware(connection, firmwareType + " " + str(firmwareVersion)) or not self.getEeprom(connection) :
+					
+															# Set error
+															error = True
+										
+															# Send message
+															self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Extracting and uploading your printer's bootloader failed"), header = gettext("Developer's Message"), confirm = True))
+						
+														# Otherwise
+														else :
+														
+															# Get firmware details
+															firmwareType, firmwareVersion, firmwareRelease = self.getFirmwareDetails()
+															
+															# Update uploaded Micro 3D bootloder versions
+															uploadedVersions = str(self._settings.get(["Micro3DBootloaderVersionsUploaded"]))
+															if len(uploadedVersions) != 0 :
+																uploadedVersions += " "
+															uploadedVersions += str(int(bootloaderVersion[1 :]))
+															
+															self._settings.set(["Micro3DBootloaderVersionsUploaded"], uploadedVersions)
+															
+															# Save software settings
+															octoprint.settings.settings().save()
+															
+															# Send message
+															self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Refresh Settings"))
+					
+															# Send message
+															self.messageResponse = None
+															self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Question", message = gettext("Extracting and uploading your printer's bootloader was successful. Thanks for helping."), header = gettext("Developer's Message"), confirm = True))
+					
+															# Wait until response is obtained
+															while self.messageResponse is None :
+																time.sleep(0.01)
+										
 										# Check if no errors occured and getting EEPROM failed
 										if not error and not self.getEeprom(connection, True) :
 							
@@ -7357,7 +7978,7 @@ class M33FioPlugin(
 					self._settings.set(["FilamentType"], self.printerFilamentType)
 					
 					# Set default slicer profile
-					self.setDefaultSlicerProfile()
+					self.setDefaultSlicerProfile(True)
 			
 			# Otherwise check if data is for filament temperature
 			elif "PT:" + str(self.eepromOffsets["filamentTemperature"]["offset"]) + " " in data :
@@ -7646,6 +8267,9 @@ class M33FioPlugin(
 					
 					# Save software settings
 					octoprint.settings.settings().save()
+					
+					# Send message
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Refresh Settings"))
 				
 				# Send invalid values
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Invalid", bedCenter = self.invalidBedCenter, bedPlane = self.invalidBedPlane, bedOrientation = self.invalidBedOrientation))
@@ -7942,8 +8566,11 @@ class M33FioPlugin(
 	# Pre-process G-code
 	def preprocessGcode(self, path, file_object, links = None, printer_profile = None, allow_overwrite = True, *args, **kwargs) :
 	
-		# Check if file is not G-code or not using a Micro 3D printer
-		if not octoprint.filemanager.valid_file_type(path, "gcode") or self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
+		# Check if file is not G-code, not using a Micro 3D printer, or skipping pre-processing
+		if not octoprint.filemanager.valid_file_type(path, "gcode") or self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) or self.skipPreprocessing :
+		
+			# Clear skip pre-processing
+			self.skipPreprocessing = False
 		
 			# Return unmodified file
 			return file_object
@@ -7963,7 +8590,7 @@ class M33FioPlugin(
 			self.resetPreprocessorSettings()
 		
 			# Set progress bar percent and text
-			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = gettext("Collecting Print Information …")))
+			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = gettext("Collecting print information …")))
 			
 			# Check if not processing a slice
 			if not self.processingSlice :
@@ -8844,7 +9471,7 @@ class M33FioPlugin(
 				if not self.printingTestBorder and not self.printingBacklashCalibration :
 				
 					# Set progress bar text
-					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = gettext("Pre‐processing … (%(percent)d%%)"), percent = input.tell() * 100 / os.fstat(input.fileno()).st_size))
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = gettext("Pre‐processing … (%(percent)s)"), percent = str(input.tell() * 100 / os.fstat(input.fileno()).st_size) + "%"))
 			
 			# Otherwise check if no more commands
 			elif len(commands) == 0 :
@@ -10140,7 +10767,7 @@ class M33FioPlugin(
 	def upload(self) :
 		
 		# Check if uploading everything
-		if "Slicer Profile Name" in flask.request.values and "Slicer Name" in flask.request.values and "Printer Profile Name" in flask.request.values and "Slicer Profile Content" in flask.request.values and "After Slicing Action" in flask.request.values :
+		if "Slicer Profile Identifier" in flask.request.values and "Slicer Name" in flask.request.values and "Printer Profile Name" in flask.request.values and "Slicer Profile Content" in flask.request.values and "After Slicing Action" in flask.request.values :
 		
 			# Check if printing after slicing and a printer isn't connected
 			if flask.request.values["After Slicing Action"] != "none" and self._printer.is_closed_or_error() :
@@ -10149,29 +10776,35 @@ class M33FioPlugin(
 				return flask.jsonify(dict(value = "Error"))
 			
 			# Set if model was modified
-			modelModified = "Model Name" in flask.request.values and "Model Location" in flask.request.values and "Model Path" in flask.request.values
+			modelModified = "Model Name" in flask.request.values and "Model Origin" in flask.request.values and "Model Path" in flask.request.values
 	
-			# Check if slicer profile, model name, or model path contain path traversal
-			if "../" in flask.request.values["Slicer Profile Name"] or (modelModified and ("../" in flask.request.values["Model Name"] or "../" in flask.request.values["Model Path"])) :
+			# Check if slicer profile identifier, model name, or model path contain path traversal
+			if "../" in flask.request.values["Slicer Profile Identifier"] or (modelModified and ("../" in flask.request.values["Model Name"] or "../" in flask.request.values["Model Path"])) :
 		
 				# Return error
 				return flask.jsonify(dict(value = "Error"))
 			
-			# Check if model location is invalid
-			if modelModified and (flask.request.values["Model Location"] != "local" and flask.request.values["Model Location"] != "sdcard") :
+			# Check if model origin is invalid
+			if modelModified and (flask.request.values["Model Origin"] != "local" and flask.request.values["Model Origin"] != "sdcard") :
 			
+				# Return error
+				return flask.jsonify(dict(value = "Error"))
+			
+			# Check if slicer isn't configured
+			if flask.request.values["Slicer Name"] not in self._slicing_manager.configured_slicers :
+		
 				# Return error
 				return flask.jsonify(dict(value = "Error"))
 	
 			# Set profile location
-			profileLocation = self._slicing_manager.get_profile_path(flask.request.values["Slicer Name"], flask.request.values["Slicer Profile Name"])
+			profileLocation = self._slicing_manager.get_profile_path(flask.request.values["Slicer Name"], flask.request.values["Slicer Profile Identifier"])
 			
 			# Set model location
 			if modelModified :
 			
-				if flask.request.values["Model Location"] == "local" :
+				if flask.request.values["Model Origin"] == "local" :
 					modelLocation = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, flask.request.values["Model Path"] + flask.request.values["Model Name"]).replace("\\", "/")
-				elif flask.request.values["Model Location"] == "sdcard" :
+				elif flask.request.values["Model Origin"] == "sdcard" :
 					modelLocation = self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.SDCARD, flask.request.values["Model Path"] + flask.request.values["Model Name"]).replace("\\", "/")
 		
 			# Check if slicer profile, model, or printer profile doesn't exist
@@ -10307,8 +10940,85 @@ class M33FioPlugin(
 			# Return ok
 			return flask.jsonify(dict(value = "OK"))
 		
+		# Otherwise check if saving profile
+		elif "Slicer Profile Identifier" in flask.request.values and "Slicer Profile Name" in flask.request.values and "Slicer Profile Content" in flask.request.values and "Slicer Name" in flask.request.values and "Replace Existing" in flask.request.values :
+		
+			# Check if slicer profile identifier or slicer profile name contains path traversal or slicer isn't configured
+			if "../" in flask.request.values["Slicer Profile Identifier"] or "../" in flask.request.values["Slicer Profile Name"] or flask.request.values["Slicer Name"] not in self._slicing_manager.configured_slicers :
+		
+				# Return error
+				return flask.jsonify(dict(value = "Error"))
+			
+			# Save slicer profile to temporary file
+			fd, temp = tempfile.mkstemp()
+			os.close(fd)
+		
+			output = open(temp, "wb")
+			for character in flask.request.values["Slicer Profile Content"] :
+				output.write(chr(ord(character)))
+			output.close()
+			
+			# Set profile destination
+			profileDestination = self._slicing_manager.get_slicer_profile_path(flask.request.values["Slicer Name"]).replace("\\", "/") + "/"
+			
+			# Check if not replacing existing profile
+			if flask.request.values["Replace Existing"] == "false" :
+			
+				# Set profile identifier
+				profileIdentifier = self._slicing_manager.get_profile_path(flask.request.values["Slicer Name"], flask.request.values["Slicer Profile Name"])[len(profileDestination) :].lower()
+			
+				# Make sure profile name is unique
+				while os.path.isfile(profileDestination + profileIdentifier) :
+					profileIdentifier = os.path.splitext(profileIdentifier)[0] + "_" + os.path.splitext(profileIdentifier)[1]
+			
+			# Otherwise
+			else :
+			
+				# Set profile identifier
+				profileIdentifier = self._slicing_manager.get_profile_path(flask.request.values["Slicer Name"], flask.request.values["Slicer Profile Identifier"])[len(profileDestination) :].lower()
+			
+			# Import profile
+			if flask.request.values["Slicer Name"] == "cura" :
+				self.convertCuraToProfile(temp, profileDestination + profileIdentifier, profileIdentifier, flask.request.values["Slicer Profile Name"], "Imported by M33 Fio on " + time.strftime("%Y-%m-%d %H:%M"))
+			elif flask.request.values["Slicer Name"] == "slic3r" :
+				self.convertSlic3rToProfile(temp, profileDestination + profileIdentifier, profileIdentifier, flask.request.values["Slicer Profile Name"], "Imported by M33 Fio on " + time.strftime("%Y-%m-%d %H:%M"))
+			else :
+			
+				# Import profile manager
+				profileManager = imp.load_source("Profile", self._slicing_manager.get_slicer(flask.request.values["Slicer Name"])._basefolder.replace("\\", "/") + "/profile.py")
+				
+				# Check if profile manager doesn't have a profile converter function
+				if not hasattr(profileManager.Profile, "from_" + flask.request.values["Slicer Name"] + "_ini") :
+				
+					# Return error
+					return flask.jsonify(dict(value = "Error"))
+				
+				# Create profile
+				toProfile = getattr(profileManager.Profile, "from_" + flask.request.values["Slicer Name"] + "_ini")
+				try:
+					profileDict = toProfile(temp)[0]
+				except :
+					profileDict = toProfile(temp)
+				
+				profile = octoprint.slicing.SlicingProfile(flask.request.values["Slicer Name"], profileIdentifier, profileDict, flask.request.values["Slicer Profile Name"], "Imported by M33 Fio on " + time.strftime("%Y-%m-%d %H:%M"))
+		
+				# Save profile
+				self._slicing_manager.get_slicer(flask.request.values["Slicer Name"]).save_slicer_profile(profileDestination + profileIdentifier, profile)
+			
+			# Remove temporary file
+			os.remove(temp)
+			
+			# Return ok
+			return flask.jsonify(dict(value = "OK"))
+			
 		# Otherwise check if verifying profile
 		elif "Slicer Profile Content" in flask.request.values and "Slicer Name" in flask.request.values :
+		
+			# Check if slicer isn't configured
+			if flask.request.values["Slicer Name"] not in self._slicing_manager.configured_slicers :
+		
+				# Return error
+				return flask.jsonify(dict(value = "Error"))
 		
 			# Check if slicer is Cura
 			if flask.request.values["Slicer Name"] == "cura" :

@@ -1,0 +1,6 @@
+# Run the following commands to install this rule
+# sudo cp ./92-m3d-pro-local.rules /etc/udev/rules.d/
+# sudo udevadm control --reload-rules
+# sudo udevadm trigger
+
+ACTION=="add", SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="a21e", GROUP="users", MODE="0666", ENV{ID_MM_DEVICE_IGNORE}="1"
