@@ -274,7 +274,7 @@ $(function() {
 		// EEPROM offsets
 		var eepromOffsets = {
 			firmwareVersion: {
-				name: gettext("Firmware Version"),
+				name: gettext("Firmware version"),
 				offset: 0x00,
 				bytes: 4,
 				color: "rgb(245, 160, 245)"
@@ -286,7 +286,7 @@ $(function() {
 				color: "rgb(245, 245, 160)"
 			},
 			lastRecordedZValue: {
-				name: gettext("Last Recorded Z Value"),
+				name: gettext("Last recorded Z value"),
 				offset: 0x08,
 				bytes: 4,
 				color: "rgb(230, 210, 230)"
@@ -304,115 +304,115 @@ $(function() {
 				color: "rgb(150, 200, 150)"
 			},
 			bedOrientationBackRight: {
-				name: gettext("Bed Orientation Back Right"),
+				name: gettext("Bed orientation back right"),
 				offset: 0x14,
 				bytes: 4,
 				color: "rgb(200, 200, 150)"
 			},
 			bedOrientationBackLeft: {
-				name: gettext("Bed Orientation Back Left"),
+				name: gettext("Bed orientation back left"),
 				offset: 0x18,
 				bytes: 4,
 				color: "rgb(150, 150, 200)"
 			},
 			bedOrientationFrontLeft: {
-				name: gettext("Bed Orientation Front Left"),
+				name: gettext("Bed orientation front left"),
 				offset: 0x1C,
 				bytes: 4,
 				color: "rgb(200, 150, 200)"
 			},
 			bedOrientationFrontRight: {
-				name: gettext("Bed Orientation Front Right"),
+				name: gettext("Bed orientation front right"),
 				offset: 0x20,
 				bytes: 4,
 				color: "rgb(150, 200, 200)"
 			},
 			filamentColor: {
-				name: gettext("Filament Color"),
+				name: gettext("Filament color"),
 				offset: 0x24,
 				bytes: 4,
 				color: "rgb(250, 210, 230)"
 			},
 			filamentTypeAndLocation: {
-				name: gettext("Filament Type And Location"),
+				name: gettext("Filament type and location"),
 				offset: 0x28,
 				bytes: 1,
 				color: "rgb(160, 160, 245)"
 			},
 			filamentTemperature: {
-				name: gettext("Filament Temperature"),
+				name: gettext("Filament temperature"),
 				offset: 0x29,
 				bytes: 1,
 				color: "rgb(160, 245, 160)"
 			},
 			filamentAmount: {
-				name: gettext("Filament Amount"),
+				name: gettext("Filament amount"),
 				offset: 0x2A,
 				bytes: 4,
 				color: "rgb(245, 160, 160)"
 			},
 			backlashExpansionXPositive: {
-				name: gettext("Backlash Expansion X+"),
+				name: gettext("Backlash expansion X+"),
 				offset: 0x2E,
 				bytes: 4,
 				color: "rgb(200, 255, 200)"
 			},
 			backlashExpansionYLPositive: {
-				name: gettext("Backlash Expansion YL+"),
+				name: gettext("Backlash expansion YL+"),
 				offset: 0x32,
 				bytes: 4,
 				color: "rgb(200, 200, 255)"
 			},
 			backlashExpansionYRPositive: {
-				name: gettext("Backlash Expansion YR+"),
+				name: gettext("Backlash expansion YR+"),
 				offset: 0x36,
 				bytes: 4,
 				color: "rgb(255, 200, 255)"
 			},
 			backlashExpansionYRNegative: {
-				name: gettext("Backlash Expansion YR−"),
+				name: gettext("Backlash expansion YR−"),
 				offset: 0x3A,
 				bytes: 4,
 				color: "rgb(255, 255, 200)"
 			},
 			backlashExpansionZ: {
-				name: gettext("Backlash Expansion Z"),
+				name: gettext("Backlash expansion Z"),
 				offset: 0x3E,
 				bytes: 4,
 				color: "rgb(200, 255, 255)"
 			},
 			backlashExpansionE: {
-				name: gettext("Backlash Expansion E"),
+				name: gettext("Backlash expansion E"),
 				offset: 0x42,
 				bytes: 4,
 				color: "rgb(255, 200, 200)"
 			},
 			bedOffsetBackLeft: {
-				name: gettext("Bed Offset Back Left"),
+				name: gettext("Bed offset back left"),
 				offset: 0x46,
 				bytes: 4,
 				color: "rgb(170, 220, 220)"
 			},
 			bedOffsetBackRight: {
-				name: gettext("Bed Offset Back Right"),
+				name: gettext("Bed offset back right"),
 				offset: 0x4A,
 				bytes: 4,
 				color: "rgb(190, 165, 165)"
 			},
 			bedOffsetFrontRight: {
-				name: gettext("Bed Offset Front Right"),
+				name: gettext("Bed offset front right"),
 				offset: 0x4E,
 				bytes: 4,
 				color: "rgb(165, 165, 190)"
 			},
 			bedOffsetFrontLeft: {
-				name: gettext("Bed Offset Front Left"),
+				name: gettext("Bed offset front left"),
 				offset: 0x52,
 				bytes: 4,
 				color: "rgb(165, 190, 165)"
 			},
 			bedHeightOffset: {
-				name: gettext("Bed Height Offset"),
+				name: gettext("Bed height offset"),
 				offset: 0x56,
 				bytes: 4,
 				color: "rgb(190, 190, 165)"
@@ -424,211 +424,211 @@ $(function() {
 				color: "rgb(250, 190, 165)"
 			},
 			backlashSpeed: {
-				name: gettext("Backlash Speed"),
+				name: gettext("Backlash speed"),
 				offset: 0x5E,
 				bytes: 4,
 				color: "rgb(200, 200, 200)"
 			},
 			bedOrientationVersion: {
-				name: gettext("Bed Orientation Version"),
+				name: gettext("Bed orientation version"),
 				offset: 0x62,
 				bytes: 1,
 				color: "rgb(230, 180, 180)"
 			},
 			speedLimitX: {
-				name: gettext("Speed Limit X"),
+				name: gettext("Speed limit X"),
 				offset: 0x66,
 				bytes: 4,
 				color: "rgb(240, 160, 160)"
 			},
 			speedLimitY: {
-				name: gettext("Speed Limit Y"),
+				name: gettext("Speed limit Y"),
 				offset: 0x6A,
 				bytes: 4,
 				color: "rgb(160, 240, 160)"
 			},
 			speedLimitZ: {
-				name: gettext("Speed Limit Z"),
+				name: gettext("Speed limit Z"),
 				offset: 0x6E,
 				bytes: 4,
 				color: "rgb(160, 160, 240)"
 			},
 			speedLimitEPositive: {
-				name: gettext("Speed Limit E+"),
+				name: gettext("Speed limit E+"),
 				offset: 0x72,
 				bytes: 4,
 				color: "rgb(240, 240, 160)"
 			},
 			speedLimitENegative: {
-				name: gettext("Speed Limit E−"),
+				name: gettext("Speed limit E−"),
 				offset: 0x76,
 				bytes: 4,
 				color: "rgb(240, 160, 240)"
 			},
 			bedOrientationFirstSample: {
-				name: gettext("Bed Orientation First Sample"),
+				name: gettext("Bed orientation first sample"),
 				offset: 0x106,
 				bytes: 4,
 				color: "rgb(200, 200, 200)"
 			},
 			calibrateZ0Correction: {
-				name: gettext("Calibrate Z0 Correction"),
+				name: gettext("Calibrate Z0 correction"),
 				offset: 0x299,
 				bytes: 4,
 				color: "rgb(140, 140, 220)"
 			},
 			xJerkSensitivity: {
-				name: gettext("X Jerk Sensitivity"),
+				name: gettext("X jerk sensitivity"),
 				offset: 0x29D,
 				bytes: 1,
 				color: "rgb(220, 140, 140)"
 			},
 			yJerkSensitivity: {
-				name: gettext("Y Jerk Sensitivity"),
+				name: gettext("Y jerk sensitivity"),
 				offset: 0x29E,
 				bytes: 1,
 				color: "rgb(140, 220, 140)"
 			},
 			lastRecordedXValue: {
-				name: gettext("Last Recorded X Value"),
+				name: gettext("Last recorded X value"),
 				offset: 0x29F,
 				bytes: 4,
 				color: "rgb(170, 200, 220)"
 			},
 			lastRecordedYValue: {
-				name: gettext("Last Recorded Y Value"),
+				name: gettext("Last recorded Y value"),
 				offset: 0x2A3,
 				bytes: 4,
 				color: "rgb(170, 220, 200)"
 			},
 			lastRecordedXDirection: {
-				name: gettext("Last Recorded X Direction"),
+				name: gettext("Last recorded X direction"),
 				offset: 0x2A7,
 				bytes: 1,
 				color: "rgb(200, 170, 220)"
 			},
 			lastRecordedYDirection: {
-				name: gettext("Last Recorded Y Direction"),
+				name: gettext("Last recorded Y direction"),
 				offset: 0x2A8,
 				bytes: 1,
 				color: "rgb(200, 220, 170)"
 			},
 			savedXState: {
-				name: gettext("Saved X State"),
+				name: gettext("Saved X state"),
 				offset: 0x2A9,
 				bytes: 1,
 				color: "rgb(220, 170, 200)"
 			},
 			savedYState: {
-				name: gettext("Saved Y State"),
+				name: gettext("Saved Y state"),
 				offset: 0x2AA,
 				bytes: 1,
 				color: "rgb(220, 200, 170)"
 			},
 			fanType: {
-				name: gettext("Fan Type"),
+				name: gettext("Fan type"),
 				offset: 0x2AB,
 				bytes: 1,
 				color: "rgb(180, 230, 230)"
 			},
 			fanOffset: {
-				name: gettext("Fan Offset"),
+				name: gettext("Fan offset"),
 				offset: 0x2AC,
 				bytes: 1,
 				color: "rgb(230, 230, 180)"
 			},
 			fanScale: {
-				name: gettext("Fan Scale"),
+				name: gettext("Fan scale"),
 				offset: 0x2AD,
 				bytes: 4,
 				color: "rgb(230, 180, 230)"
 			},
 			heaterCalibrationMode: {
-				name: gettext("Heater Calibration Mode"),
+				name: gettext("Heater calibration mode"),
 				offset: 0x2B1,
 				bytes: 1,
 				color: "rgb(160, 240, 240)"
 			},
 			xMotorCurrent: {
-				name: gettext("X Motor Current"),
+				name: gettext("X motor current"),
 				offset: 0x2B2,
 				bytes: 2,
 				color: "rgb(170, 220, 170)"
 			},
 			yMotorCurrent: {
-				name: gettext("Y Motor Current"),
+				name: gettext("Y motor current"),
 				offset: 0x2B4,
 				bytes: 2,
 				color: "rgb(220, 220, 170)"
 			},
 			zMotorCurrent: {
-				name: gettext("Z Motor Current"),
+				name: gettext("Z motor current"),
 				offset: 0x2B6,
 				bytes: 2,
 				color: "rgb(190, 165, 190)"
 			},
 			hardwareStatus: {
-				name: gettext("Hardware Status"),
+				name: gettext("Hardware status"),
 				offset: 0x2B8,
 				bytes: 2,
 				color: "rgb(160, 245, 245)"
 			},
 			heaterTemperatureMeasurementB: {
-				name: gettext("Heater Temperature Measurement B"),
+				name: gettext("Heater temperature measurement B"),
 				offset: 0x2BA,
 				bytes: 4,
 				color: "rgb(210, 210, 230)"
 			},
 			hoursCounter: {
-				name: gettext("Hours Counter"),
+				name: gettext("Hours counter"),
 				offset: 0x2C0,
 				bytes: 4,
 				color: "rgb(230, 230, 110)"
 			},
 			xMotorStepsPerMm: {
-				name: gettext("X Motor Steps/mm"),
+				name: gettext("X motor steps/mm"),
 				offset: 0x2D6,
 				bytes: 4,
 				color: "rgb(220, 170, 170)"
 			},
 			yMotorStepsPerMm: {
-				name: gettext("Y Motor Steps/mm"),
+				name: gettext("Y motor steps/mm"),
 				offset: 0x2DA,
 				bytes: 4,
 				color: "rgb(170, 170, 220)"
 			},
 			zMotorStepsPerMm: {
-				name: gettext("Z Motor Steps/mm"),
+				name: gettext("Z motor steps/mm"),
 				offset: 0x2DE,
 				bytes: 4,
 				color: "rgb(220, 170, 220)"
 			},
 			eMotorStepsPerMm: {
-				name: gettext("E Motor Steps/mm"),
+				name: gettext("E motor steps/mm"),
 				offset: 0x2E2,
 				bytes: 4,
 				color: "rgb(180, 230, 180)"
 			},
 			savedZState: {
-				name: gettext("Saved Z State"),
+				name: gettext("Saved Z state"),
 				offset: 0x2E6,
 				bytes: 2,
 				color: "rgb(210, 230, 230)"
 			},
 			eMotorCurrent: {
-				name: gettext("E Motor Current"),
+				name: gettext("E motor current"),
 				offset: 0x2E8,
 				bytes: 2,
 				color: "rgb(180, 180, 230)"
 			},
 			heaterResistanceM: {
-				name: gettext("Heater Resistance M"),
+				name: gettext("Heater resistance M"),
 				offset: 0x2EA,
 				bytes: 4,
 				color: "rgb(210, 230, 210)"
 			},
 			serialNumber: {
-				name: gettext("Serial Number"),
+				name: gettext("Serial number"),
 				offset: 0x2EF,
 				bytes: 17,
 				color: "rgb(230, 210, 250)"
@@ -661,6 +661,15 @@ $(function() {
 		
 			// Return string with regex meta characters escaped
 			return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+		}
+		
+		// Upper case words
+		function upperCaseWords(string) {
+		
+			// Return string with first character of each word upper cased
+			return string.replace(/\S+/g, function(word) {
+				return word.charAt(0).toUpperCase() + word.substr(1).toLowerCase();
+			});
 		}
 
 		// Get already translated text
@@ -836,7 +845,7 @@ $(function() {
 						
 							else if(currentMessage.thirdButton === gettext("Unload") || currentMessage.thirdButton === gettext("Load") || currentMessage.thirdButton === gettext("Set")) {
 								$("body > div.page-container > div.message > div > div > div.filamentSettings input").eq(0).val(self.settings.settings.plugins.m33fio.FilamentTemperature());
-								$("body > div.page-container > div.message > div > div > div.filamentSettings label").html(currentMessage.thirdButton === gettext("Unload") ? gettext("Unload Temperature") : currentMessage.thirdButton === gettext("Load") ? gettext("Load Temperature") : gettext("New Temperature"));
+								$("body > div.page-container > div.message > div > div > div.filamentSettings label").html(currentMessage.thirdButton === gettext("Unload") ? gettext("Unload temperature") : currentMessage.thirdButton === gettext("Load") ? gettext("Load temperature") : gettext("New temperature"));
 								$("body > div.page-container > div.message > div > div > div.filamentSettings p").html(gettext("Recommended") + "<ul>" + (currentMessage.thirdButton === gettext("Unload") ? "<li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "285°C", type: "ABS"}) + "</li><li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "225°C", type: "PLA"}) + "</li><li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "275°C", type: "HIPS"}) + "</li><li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "230°C", type: "FLX"}) + "</li><li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "230°C", type: "TGH"}) + "</li><li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "225°C", type: "CAM"}) + "</li><li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "250°C", type: "ABS‐R"}) + "</li>" : "<li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "275°C", type: "ABS"}) + "</li><li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "215°C", type: "PLA"}) + "</li><li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "265°C", type: "HIPS"}) + "</li><li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "220°C", type: "FLX"}) + "</li><li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "220°C", type: "TGH"}) + "</li><li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "215°C", type: "CAM"}) + "</li><li>" + _.sprintf(gettext("%(temperature)s for %(type)s"), {temperature: "240°C", type: "ABS‐R"}) + "</li>") + "</ul>");
 								$("body > div.page-container > div.message > div > div > div.filamentSettings").addClass("show");
 								message.find("p").eq(0).removeClass("show")
@@ -1178,7 +1187,7 @@ $(function() {
 					currentSlicerDialog = currentDialog;
 		
 					// Show dialog
-					$("#slicing_configuration_dialog").modal("show").removeClass("model gcode").addClass("profile");
+					$("#slicing_configuration_dialog").modal("show").removeClass("model gcode printerButtons").addClass("profile");
 			
 					// Set header text
 					$("#slicing_configuration_dialog > div.modal-header > h3").html(header);
@@ -1218,41 +1227,41 @@ $(function() {
 									<h3>" + gettext("Basic Settings") + "</h3>\
 									<p class=\"quality\"></p>\
 									<div class=\"quality\">\
-										<button title=\"" + encodeQuotes(gettext("Extra Low Quality")) + "\" data-target=\"quality\" data-value=\"0.35\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-quality-extra-low.png\"></button>\
-										<button title=\"" + encodeQuotes(gettext("Low Quality")) + "\" data-target=\"quality\" data-value=\"0.30\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-quality-low.png\"></button>\
-										<button title=\"" + encodeQuotes(gettext("Medium Quality")) + "\" data-target=\"quality\" data-value=\"0.25\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-quality-medium.png\"></button>\
-										<button title=\"" + encodeQuotes(gettext("High Quality")) + "\" data-target=\"quality\" data-value=\"0.20\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-quality-high.png\"></button>\
-										<button title=\"" + encodeQuotes(gettext("Extra High Quality")) + "\" data-target=\"quality\" data-value=\"0.15\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-quality-extra-high.png\"></button>\
-										<button title=\"" + encodeQuotes(gettext("Highest Quality")) + "\" data-target=\"quality\" data-value=\"0.05\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-quality-highest.png\"></button>\
+										<button title=\"" + encodeQuotes(gettext("Extra low quality")) + "\" data-target=\"quality\" data-value=\"0.35\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-quality-extra-low.png\"></button>\
+										<button title=\"" + encodeQuotes(gettext("Low quality")) + "\" data-target=\"quality\" data-value=\"0.30\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-quality-low.png\"></button>\
+										<button title=\"" + encodeQuotes(gettext("Medium quality")) + "\" data-target=\"quality\" data-value=\"0.25\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-quality-medium.png\"></button>\
+										<button title=\"" + encodeQuotes(gettext("High quality")) + "\" data-target=\"quality\" data-value=\"0.20\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-quality-high.png\"></button>\
+										<button title=\"" + encodeQuotes(gettext("Extra high quality")) + "\" data-target=\"quality\" data-value=\"0.15\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-quality-extra-high.png\"></button>\
+										<button title=\"" + encodeQuotes(gettext("Highest quality")) + "\" data-target=\"quality\" data-value=\"0.05\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-quality-highest.png\"></button>\
 									</div>\
 									<p class=\"fill\"></p>\
 									<div class=\"fill\">\
-										<button title=\"" + encodeQuotes(gettext("Hollow Thin Fill")) + "\" data-target=\"fill\" data-value=\"thin\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-density-thin.png\"></button>\
-										<button title=\"" + encodeQuotes(gettext("Hollow Thick Fill")) +"\" data-target=\"fill\" data-value=\"thick\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-density-thick.png\"></button>\
-										<button title=\"" + encodeQuotes(gettext("Low Fill")) + "\" data-target=\"fill\" data-value=\"low\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-density-low.png\"></button>\
-										<button title=\"" + encodeQuotes(gettext("Medium Fill")) + "\" data-target=\"fill\" data-value=\"medium\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-density-medium.png\"></button>\
-										<button title=\"" + encodeQuotes(gettext("High Fill")) + "\" data-target=\"fill\" data-value=\"high\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-density-high.png\"></button>\
-										<button title=\"" + encodeQuotes(gettext("Extra High Fill")) + "\" data-target=\"fill\" data-value=\"extra-high\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-density-extra-high.png\"></button>\
-										<button title=\"" + encodeQuotes(gettext("Full Fill")) + "\" data-target=\"fill\" data-value=\"full\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-density-full.png\"></button>\
+										<button title=\"" + encodeQuotes(gettext("Hollow thin fill")) + "\" data-target=\"fill\" data-value=\"thin\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-density-thin.png\"></button>\
+										<button title=\"" + encodeQuotes(gettext("Hollow thick fill")) +"\" data-target=\"fill\" data-value=\"thick\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-density-thick.png\"></button>\
+										<button title=\"" + encodeQuotes(gettext("Low fill")) + "\" data-target=\"fill\" data-value=\"low\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-density-low.png\"></button>\
+										<button title=\"" + encodeQuotes(gettext("Medium fill")) + "\" data-target=\"fill\" data-value=\"medium\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-density-medium.png\"></button>\
+										<button title=\"" + encodeQuotes(gettext("High fill")) + "\" data-target=\"fill\" data-value=\"high\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-density-high.png\"></button>\
+										<button title=\"" + encodeQuotes(gettext("Extra high fill")) + "\" data-target=\"fill\" data-value=\"extra-high\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-density-extra-high.png\"></button>\
+										<button title=\"" + encodeQuotes(gettext("Full fill")) + "\" data-target=\"fill\" data-value=\"full\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-density-full.png\"></button>\
 									</div>\
 									<p class=\"pattern slic3r-only\"></p>\
 									<div class=\"pattern slic3r-only\">\
-										<button title=\"" + encodeQuotes(gettext("Line Fill Pattern")) + "\" data-target=\"pattern\" data-value=\"line\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern-line.png\"></button>\
-										<button title=\"" + encodeQuotes(gettext("Rectilinear Fill Pattern")) + "\" data-target=\"pattern\" data-value=\"rectilinear\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern-rectilinear.png\"></button>\
-										<button title=\"" + encodeQuotes(gettext("Honeycomb Fill Pattern")) + "\" data-target=\"pattern\" data-value=\"honeycomb\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern-honeycomb.png\"></button>\
-										<button title=\"" + encodeQuotes(gettext("3D Honeycomb Fill Pattern")) + "\" data-target=\"pattern\" data-value=\"3dhoneycomb\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern-3dhoneycomb.png\"></button>\
-										<button title=\"" + encodeQuotes(gettext("Concentric Fill Pattern")) + "\" data-target=\"pattern\" data-value=\"concentric\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern-concentric.png\"></button>\
-										<button title=\"" + encodeQuotes(gettext("Hilbert Curve Fill Pattern")) + "\" data-target=\"pattern\" data-value=\"hilbertcurve\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern-hilbertcurve.png\"></button>\
-										<button title=\"" + encodeQuotes(gettext("Octagram Spiral Fill Pattern")) + "\" data-target=\"pattern\" data-value=\"octagramspiral\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern-octagramspiral.png\"></button>\
-										<button title=\"" + encodeQuotes(gettext("Archimedean Chords Fill Pattern")) + "\" data-target=\"pattern\" data-value=\"archimedeanchords\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern-archimedeanchords.png\"></button>\
+										<button title=\"" + encodeQuotes(gettext("Line fill pattern")) + "\" data-target=\"pattern\" data-value=\"line\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern-line.png\"></button>\
+										<button title=\"" + encodeQuotes(gettext("Rectilinear fill pattern")) + "\" data-target=\"pattern\" data-value=\"rectilinear\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern-rectilinear.png\"></button>\
+										<button title=\"" + encodeQuotes(gettext("Honeycomb fill pattern")) + "\" data-target=\"pattern\" data-value=\"honeycomb\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern-honeycomb.png\"></button>\
+										<button title=\"" + encodeQuotes(gettext("3D honeycomb fill pattern")) + "\" data-target=\"pattern\" data-value=\"3dhoneycomb\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern-3dhoneycomb.png\"></button>\
+										<button title=\"" + encodeQuotes(gettext("Concentric fill pattern")) + "\" data-target=\"pattern\" data-value=\"concentric\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern-concentric.png\"></button>\
+										<button title=\"" + encodeQuotes(gettext("Hilbert curve fill pattern")) + "\" data-target=\"pattern\" data-value=\"hilbertcurve\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern-hilbertcurve.png\"></button>\
+										<button title=\"" + encodeQuotes(gettext("Octagram spiral fill pattern")) + "\" data-target=\"pattern\" data-value=\"octagramspiral\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern-octagramspiral.png\"></button>\
+										<button title=\"" + encodeQuotes(gettext("Archimedean chords fill pattern")) + "\" data-target=\"pattern\" data-value=\"archimedeanchords\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern-archimedeanchords.png\"></button>\
 									</div>\
 									<p class=\"solid_pattern slic3r-only\"></p>\
 									<div class=\"solid_pattern slic3r-only\">\
-										<button title=\"" + encodeQuotes(gettext("Rectilinear Top/Bottom Fill Pattern")) + "\" data-target=\"solid_pattern\" data-value=\"rectilinear\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern-rectilinear.png\"></button>\
-										<button title=\"" + encodeQuotes(gettext("Concentric Top/Bottom Fill Pattern")) + "\" data-target=\"solid_pattern\" data-value=\"concentric\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern-concentric.png\"></button>\
-										<button title=\"" + encodeQuotes(gettext("Hilbert Curve Top/Bottom Fill Pattern")) + "\" data-target=\"solid_pattern\" data-value=\"hilbertcurve\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern-hilbertcurve.png\"></button>\
-										<button title=\"" + encodeQuotes(gettext("Archimedean Chords Top/Bottom Fill Pattern")) + "\" data-target=\"solid_pattern\" data-value=\"archimedeanchords\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern-archimedeanchords.png\"></button>\
-										<button title=\"" + encodeQuotes(gettext("Octagram Spiral Top/Bottom Fill Pattern")) + "\" data-target=\"solid_pattern\" data-value=\"octagramspiral\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern-octagramspiral.png\"></button>\
+										<button title=\"" + encodeQuotes(gettext("Rectilinear top/bottom fill pattern")) + "\" data-target=\"solid_pattern\" data-value=\"rectilinear\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern-rectilinear.png\"></button>\
+										<button title=\"" + encodeQuotes(gettext("Concentric top/bottom fill pattern")) + "\" data-target=\"solid_pattern\" data-value=\"concentric\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern-concentric.png\"></button>\
+										<button title=\"" + encodeQuotes(gettext("Hilbert curve top/bottom fill pattern")) + "\" data-target=\"solid_pattern\" data-value=\"hilbertcurve\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern-hilbertcurve.png\"></button>\
+										<button title=\"" + encodeQuotes(gettext("Archimedean chords top/bottom fill pattern")) + "\" data-target=\"solid_pattern\" data-value=\"archimedeanchords\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern-archimedeanchords.png\"></button>\
+										<button title=\"" + encodeQuotes(gettext("Octagram spiral top/bottom fill pattern")) + "\" data-target=\"solid_pattern\" data-value=\"octagramspiral\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/fill-pattern-octagramspiral.png\"></button>\
 									</div>\
 									<div class=\"settings\">\
 										<label title=\"" + encodeQuotes(gettext("Prints a breakaway support underneath overhanging parts of the model")) + "\"><input class=\"useSupportMaterial\" type=\"checkbox\">" + gettext("Use support material") + "</label>\
@@ -1485,31 +1494,31 @@ $(function() {
 							var solidLayerThickness = parseFloat(getSlicerProfileValue("solid_layer_thickness")).toFixed(3);
 		
 							if(layerHeight == 0.35 && bottomThickness == 0.3 && (fanFullHeight == parseFloat((1 - 1) * 0.35 + 0.3 + 0.001).toFixed(3) || parseFloat((2 - 1) * 0.35 + 0.3 + 0.001).toFixed(3)) && solidLayerThickness == parseFloat((8 - 0.0000001) * 0.35).toFixed(3)) {
-								$("#slicing_configuration_dialog p.quality").html(gettext("Extra Low Quality"));
+								$("#slicing_configuration_dialog p.quality").html(upperCaseWords(gettext("Extra low quality")));
 								$("#slicing_configuration_dialog div.quality button[data-value=\"0.35\"]").addClass("disabled");
 							}
 							else if(layerHeight == 0.30 && bottomThickness == 0.3 && (fanFullHeight == parseFloat((1 - 1) * 0.30 + 0.3 + 0.001).toFixed(3) || parseFloat((2 - 1) * 0.30 + 0.3 + 0.001).toFixed(3)) && solidLayerThickness == parseFloat((8 - 0.0000001) * 0.30).toFixed(3)) {
-								$("#slicing_configuration_dialog p.quality").html(gettext("Low Quality"));
+								$("#slicing_configuration_dialog p.quality").html(upperCaseWords(gettext("Low quality")));
 								$("#slicing_configuration_dialog div.quality button[data-value=\"0.30\"]").addClass("disabled");
 							}
 							else if(layerHeight == 0.25 && bottomThickness == 0.3 && (fanFullHeight == parseFloat((1 - 1) * 0.25 + 0.3 + 0.001).toFixed(3) || parseFloat((2 - 1) * 0.25 + 0.3 + 0.001).toFixed(3)) && solidLayerThickness == parseFloat((8 - 0.0000001) * 0.25).toFixed(3)) {
-								$("#slicing_configuration_dialog p.quality").html(gettext("Medium Quality"));
+								$("#slicing_configuration_dialog p.quality").html(upperCaseWords(gettext("Medium quality")));
 								$("#slicing_configuration_dialog div.quality button[data-value=\"0.25\"]").addClass("disabled");
 							}
 							else if(layerHeight == 0.20 && bottomThickness == 0.3 && (fanFullHeight == parseFloat((1 - 1) * 0.20 + 0.3 + 0.001).toFixed(3) || parseFloat((2 - 1) * 0.20 + 0.3 + 0.001).toFixed(3)) && solidLayerThickness == parseFloat((8 - 0.0000001) * 0.20).toFixed(3)) {
-								$("#slicing_configuration_dialog p.quality").html(gettext("High Quality"));
+								$("#slicing_configuration_dialog p.quality").html(upperCaseWords(gettext("High quality")));
 								$("#slicing_configuration_dialog div.quality button[data-value=\"0.20\"]").addClass("disabled");
 							}
 							else if(layerHeight == 0.15 && bottomThickness == 0.3 && (fanFullHeight == parseFloat((1 - 1) * 0.15 + 0.3 + 0.001).toFixed(3) || parseFloat((2 - 1) * 0.15 + 0.3 + 0.001).toFixed(3)) && solidLayerThickness == parseFloat((8 - 0.0000001) * 0.15).toFixed(3)) {
-								$("#slicing_configuration_dialog p.quality").html(gettext("Extra High Quality"));
+								$("#slicing_configuration_dialog p.quality").html(upperCaseWords(gettext("Extra high quality")));
 								$("#slicing_configuration_dialog div.quality button[data-value=\"0.15\"]").addClass("disabled");
 							}
 							else if(layerHeight == 0.05 && bottomThickness == 0.3 && (fanFullHeight == parseFloat((1 - 1) * 0.05 + 0.3 + 0.001).toFixed(3) || parseFloat((2 - 1) * 0.05 + 0.3 + 0.001).toFixed(3)) && solidLayerThickness == parseFloat((8 - 0.0000001) * 0.05).toFixed(3)) {
-								$("#slicing_configuration_dialog p.quality").html(gettext("Highest Quality"));
+								$("#slicing_configuration_dialog p.quality").html(upperCaseWords(gettext("Highest quality")));
 								$("#slicing_configuration_dialog div.quality button[data-value=\"0.05\"]").addClass("disabled");
 							}
 							else
-								$("#slicing_configuration_dialog p.quality").html(gettext("Unknown Quality"));
+								$("#slicing_configuration_dialog p.quality").html(upperCaseWords(gettext("Unknown quality")));
 		
 							// Fill
 							$("#slicing_configuration_dialog div.fill button.disabled").removeClass("disabled");
@@ -1519,35 +1528,35 @@ $(function() {
 							var nozzleSize = parseFloat(getSlicerProfileValue("nozzle_size"));
 		
 							if(fillDensity == 0 && wallThickness == parseFloat(1 * nozzleSize).toFixed(3)) {
-								$("#slicing_configuration_dialog p.fill").html(gettext("Hollow Thin Fill"));
+								$("#slicing_configuration_dialog p.fill").html(upperCaseWords(gettext("Hollow thin fill")));
 								$("#slicing_configuration_dialog div.fill button[data-value=\"thin\"]").addClass("disabled");
 							}
 							else if(fillDensity == 0 && wallThickness == parseFloat(3 * nozzleSize).toFixed(3)) {
-								$("#slicing_configuration_dialog p.fill").html(gettext("Hollow Thick Fill"));
+								$("#slicing_configuration_dialog p.fill").html(upperCaseWords(gettext("Hollow thick fill")));
 								$("#slicing_configuration_dialog div.fill button[data-value=\"thick\"]").addClass("disabled");
 							}
 							else if(fillDensity == parseFloat(nozzleSize / 5500 * 100000).toFixed(3) && wallThickness == parseFloat(3 * nozzleSize).toFixed(3)) {
-								$("#slicing_configuration_dialog p.fill").html(gettext("Low Fill"));
+								$("#slicing_configuration_dialog p.fill").html(upperCaseWords(gettext("Low fill")));
 								$("#slicing_configuration_dialog div.fill button[data-value=\"low\"]").addClass("disabled");
 							}
 							else if(fillDensity == parseFloat(nozzleSize / 4000 * 100000).toFixed(3) && wallThickness == parseFloat(4 * nozzleSize).toFixed(3)) {
-								$("#slicing_configuration_dialog p.fill").html(gettext("Medium Fill"));
+								$("#slicing_configuration_dialog p.fill").html(upperCaseWords(gettext("Medium fill")));
 								$("#slicing_configuration_dialog div.fill button[data-value=\"medium\"]").addClass("disabled");
 							}
 							else if(fillDensity == parseFloat(nozzleSize / 2500 * 100000).toFixed(3) && wallThickness == parseFloat(4 * nozzleSize).toFixed(3)) {
-								$("#slicing_configuration_dialog p.fill").html(gettext("High Fill"));
+								$("#slicing_configuration_dialog p.fill").html(upperCaseWords(gettext("High fill")));
 								$("#slicing_configuration_dialog div.fill button[data-value=\"high\"]").addClass("disabled");
 							}
 							else if(fillDensity == parseFloat(nozzleSize / 1500 * 100000).toFixed(3) && wallThickness == parseFloat(4 * nozzleSize).toFixed(3)) {
-								$("#slicing_configuration_dialog p.fill").html(gettext("Extra High Fill"));
+								$("#slicing_configuration_dialog p.fill").html(upperCaseWords(gettext("Extra high fill")));
 								$("#slicing_configuration_dialog div.fill button[data-value=\"extra-high\"]").addClass("disabled");
 							}
 							else if(fillDensity == 100 && wallThickness == parseFloat(4 * nozzleSize).toFixed(3)) {
-								$("#slicing_configuration_dialog p.fill").html(gettext("Full Fill"));
+								$("#slicing_configuration_dialog p.fill").html(upperCaseWords(gettext("Full fill")));
 								$("#slicing_configuration_dialog div.fill button[data-value=\"full\"]").addClass("disabled");
 							}
 							else
-								$("#slicing_configuration_dialog p.fill").html(gettext("Unknown Fill"));
+								$("#slicing_configuration_dialog p.fill").html(upperCaseWords(gettext("Unknown fill")));
 						}
 						else if(slicerName === "slic3r") {
 	
@@ -1560,31 +1569,31 @@ $(function() {
 							var bottomSolidLayers = parseInt(getSlicerProfileValue("bottom_solid_layers"));
 		
 							if(layerHeight == 0.35 && firstLayerHeight == Math.round(0.3 / 0.35 * 100) + "%" && topSolidLayers == 8 && bottomSolidLayers == 8) {
-								$("#slicing_configuration_dialog p.quality").html(gettext("Extra Low Quality"));
+								$("#slicing_configuration_dialog p.quality").html(upperCaseWords(gettext("Extra low quality")));
 								$("#slicing_configuration_dialog div.quality button[data-value=\"0.35\"]").addClass("disabled");
 							}
 							else if(layerHeight == 0.30 && firstLayerHeight == Math.round(0.3 / 0.30 * 100) + "%" && topSolidLayers == 8 && bottomSolidLayers == 8) {
-								$("#slicing_configuration_dialog p.quality").html(gettext("Low Quality"));
+								$("#slicing_configuration_dialog p.quality").html(upperCaseWords(gettext("Low quality")));
 								$("#slicing_configuration_dialog div.quality button[data-value=\"0.30\"]").addClass("disabled");
 							}
 							else if(layerHeight == 0.25 && firstLayerHeight == Math.round(0.3 / 0.25 * 100) + "%" && topSolidLayers == 8 && bottomSolidLayers == 8) {
-								$("#slicing_configuration_dialog p.quality").html(gettext("Medium Quality"));
+								$("#slicing_configuration_dialog p.quality").html(upperCaseWords(gettext("Medium quality")));
 								$("#slicing_configuration_dialog div.quality button[data-value=\"0.25\"]").addClass("disabled");
 							}
 							else if(layerHeight == 0.20 && firstLayerHeight == Math.round(0.3 / 0.20 * 100) + "%" && topSolidLayers == 8 && bottomSolidLayers == 8) {
-								$("#slicing_configuration_dialog p.quality").html(gettext("High Quality"));
+								$("#slicing_configuration_dialog p.quality").html(upperCaseWords(gettext("High quality")));
 								$("#slicing_configuration_dialog div.quality button[data-value=\"0.20\"]").addClass("disabled");
 							}
 							else if(layerHeight == 0.15 && firstLayerHeight == Math.round(0.3 / 0.15 * 100) + "%" && topSolidLayers == 8 && bottomSolidLayers == 8) {
-								$("#slicing_configuration_dialog p.quality").html(gettext("Extra High Quality"));
+								$("#slicing_configuration_dialog p.quality").html(upperCaseWords(gettext("Extra high quality")));
 								$("#slicing_configuration_dialog div.quality button[data-value=\"0.15\"]").addClass("disabled");
 							}
 							else if(layerHeight == 0.05 && firstLayerHeight == Math.round(0.3 / 0.05 * 100) + "%" && topSolidLayers == 8 && bottomSolidLayers == 8) {
-								$("#slicing_configuration_dialog p.quality").html(gettext("Highest Quality"));
+								$("#slicing_configuration_dialog p.quality").html(upperCaseWords(gettext("Highest quality")));
 								$("#slicing_configuration_dialog div.quality button[data-value=\"0.05\"]").addClass("disabled");
 							}
 							else
-								$("#slicing_configuration_dialog p.quality").html(gettext("Unknown Quality"));
+								$("#slicing_configuration_dialog p.quality").html(upperCaseWords(gettext("Unknown quality")));
 		
 							// Fill
 							$("#slicing_configuration_dialog div.fill button.disabled").removeClass("disabled");
@@ -1594,35 +1603,35 @@ $(function() {
 							var nozzleDiameter = parseFloat(getSlicerProfileValue("nozzle_diameter"));
 		
 							if(fillDensity == 0 && perimeters == 1) {
-								$("#slicing_configuration_dialog p.fill").html(gettext("Hollow Thin Fill"));
+								$("#slicing_configuration_dialog p.fill").html(upperCaseWords(gettext("Hollow thin fill")));
 								$("#slicing_configuration_dialog div.fill button[data-value=\"thin\"]").addClass("disabled");
 							}
 							else if(fillDensity == 0 && perimeters == 3) {
-								$("#slicing_configuration_dialog p.fill").html(gettext("Hollow Thick Fill"));
+								$("#slicing_configuration_dialog p.fill").html(upperCaseWords(gettext("Hollow thick fill")));
 								$("#slicing_configuration_dialog div.fill button[data-value=\"thick\"]").addClass("disabled");
 							}
 							else if(fillDensity == parseFloat(nozzleDiameter / 5500 * 100000).toFixed(3) && perimeters == 3) {
-								$("#slicing_configuration_dialog p.fill").html(gettext("Low Fill"));
+								$("#slicing_configuration_dialog p.fill").html(upperCaseWords(gettext("Low fill")));
 								$("#slicing_configuration_dialog div.fill button[data-value=\"low\"]").addClass("disabled");
 							}
 							else if(fillDensity == parseFloat(nozzleDiameter / 4000 * 100000).toFixed(3) && perimeters == 4) {
-								$("#slicing_configuration_dialog p.fill").html(gettext("Medium Fill"));
+								$("#slicing_configuration_dialog p.fill").html(upperCaseWords(gettext("Medium fill")));
 								$("#slicing_configuration_dialog div.fill button[data-value=\"medium\"]").addClass("disabled");
 							}
 							else if(fillDensity == parseFloat(nozzleDiameter / 2500 * 100000).toFixed(3) && perimeters == 4) {
-								$("#slicing_configuration_dialog p.fill").html(gettext("High Fill"));
+								$("#slicing_configuration_dialog p.fill").html(upperCaseWords(gettext("High fill")));
 								$("#slicing_configuration_dialog div.fill button[data-value=\"high\"]").addClass("disabled");
 							}
 							else if(fillDensity == parseFloat(nozzleDiameter / 1500 * 100000).toFixed(3) && perimeters == 4) {
-								$("#slicing_configuration_dialog p.fill").html(gettext("Extra High Fill"));
+								$("#slicing_configuration_dialog p.fill").html(upperCaseWords(gettext("Extra high fill")));
 								$("#slicing_configuration_dialog div.fill button[data-value=\"extra-high\"]").addClass("disabled");
 							}
 							else if(fillDensity == 100 && perimeters == 4) {
-								$("#slicing_configuration_dialog p.fill").html(gettext("Full Fill"));
+								$("#slicing_configuration_dialog p.fill").html(upperCaseWords(gettext("Full fill")));
 								$("#slicing_configuration_dialog div.fill button[data-value=\"full\"]").addClass("disabled");
 							}
 							else
-								$("#slicing_configuration_dialog p.fill").html(gettext("Unknown Fill"));
+								$("#slicing_configuration_dialog p.fill").html(upperCaseWords(gettext("Unknown fill")));
 		
 							// Fill pattern
 							$("#slicing_configuration_dialog div.pattern button.disabled").removeClass("disabled");
@@ -1630,39 +1639,39 @@ $(function() {
 							var fillPattern = getSlicerProfileValue("fill_pattern");
 		
 							if(fillPattern === "archimedeanchords") {
-								$("#slicing_configuration_dialog p.pattern").html(gettext("Archimedean Chords Fill Pattern"));
+								$("#slicing_configuration_dialog p.pattern").html(upperCaseWords(gettext("Archimedean chords fill pattern")));
 								$("#slicing_configuration_dialog div.pattern button[data-value=\"archimedeanchords\"]").addClass("disabled");
 							}
 							else if(fillPattern === "rectilinear") {
-								$("#slicing_configuration_dialog p.pattern").html(gettext("Rectilinear Fill Pattern"));
+								$("#slicing_configuration_dialog p.pattern").html(upperCaseWords(gettext("Rectilinear fill pattern")));
 								$("#slicing_configuration_dialog div.pattern button[data-value=\"rectilinear\"]").addClass("disabled");
 							}
 							else if(fillPattern === "octagramspiral") {
-								$("#slicing_configuration_dialog p.pattern").html(gettext("Octagram Spiral Fill Pattern"));
+								$("#slicing_configuration_dialog p.pattern").html(upperCaseWords(gettext("Octagram spiral fill pattern")));
 								$("#slicing_configuration_dialog div.pattern button[data-value=\"octagramspiral\"]").addClass("disabled");
 							}
 							else if(fillPattern === "hilbertcurve") {
-								$("#slicing_configuration_dialog p.pattern").html(gettext("Hilbert Curve Fill Pattern"));
+								$("#slicing_configuration_dialog p.pattern").html(upperCaseWords(gettext("Hilbert curve fill pattern")));
 								$("#slicing_configuration_dialog div.pattern button[data-value=\"hilbertcurve\"]").addClass("disabled");
 							}
 							else if(fillPattern === "line") {
-								$("#slicing_configuration_dialog p.pattern").html(gettext("Line Fill Pattern"));
+								$("#slicing_configuration_dialog p.pattern").html(upperCaseWords(gettext("Line fill pattern")));
 								$("#slicing_configuration_dialog div.pattern button[data-value=\"line\"]").addClass("disabled");
 							}
 							else if(fillPattern === "concentric") {
-								$("#slicing_configuration_dialog p.pattern").html(gettext("Concentric Fill Pattern"));
+								$("#slicing_configuration_dialog p.pattern").html(upperCaseWords(gettext("Concentric fill pattern")));
 								$("#slicing_configuration_dialog div.pattern button[data-value=\"concentric\"]").addClass("disabled");
 							}
 							else if(fillPattern === "honeycomb") {
-								$("#slicing_configuration_dialog p.pattern").html(gettext("Honeycomb Fill Pattern"));
+								$("#slicing_configuration_dialog p.pattern").html(upperCaseWords(gettext("Honeycomb fill pattern")));
 								$("#slicing_configuration_dialog div.pattern button[data-value=\"honeycomb\"]").addClass("disabled");
 							}
 							else if(fillPattern === "3dhoneycomb") {
-								$("#slicing_configuration_dialog p.pattern").html(gettext("3D Honeycomb Fill Pattern"));
+								$("#slicing_configuration_dialog p.pattern").html(upperCaseWords(gettext("3D honeycomb fill pattern")));
 								$("#slicing_configuration_dialog div.pattern button[data-value=\"3dhoneycomb\"]").addClass("disabled");
 							}
 							else
-								$("#slicing_configuration_dialog p.pattern").html(gettext("Unknown Fill Pattern"));
+								$("#slicing_configuration_dialog p.pattern").html(upperCaseWords(gettext("Unknown fill pattern")));
 		
 							// Top/bottom fill pattern
 							$("#slicing_configuration_dialog div.solid_pattern button.disabled").removeClass("disabled");
@@ -1670,27 +1679,27 @@ $(function() {
 							var solidFillPattern = getSlicerProfileValue("solid_fill_pattern");
 		
 							if(solidFillPattern === "archimedeanchords") {
-								$("#slicing_configuration_dialog p.solid_pattern").html(gettext("Archimedean Chords Top/Bottom Fill Pattern"));
+								$("#slicing_configuration_dialog p.solid_pattern").html(upperCaseWords(gettext("Archimedean chords top/bottom fill pattern")));
 								$("#slicing_configuration_dialog div.solid_pattern button[data-value=\"archimedeanchords\"]").addClass("disabled");
 							}
 							else if(solidFillPattern === "rectilinear") {
-								$("#slicing_configuration_dialog p.solid_pattern").html(gettext("Rectilinear Top/Bottom Fill Pattern"));
+								$("#slicing_configuration_dialog p.solid_pattern").html(upperCaseWords(gettext("Rectilinear top/bottom fill pattern")));
 								$("#slicing_configuration_dialog div.solid_pattern button[data-value=\"rectilinear\"]").addClass("disabled");
 							}
 							else if(solidFillPattern === "octagramspiral") {
-								$("#slicing_configuration_dialog p.solid_pattern").html(gettext("Octagram Spiral Top/Bottom Fill Pattern"));
+								$("#slicing_configuration_dialog p.solid_pattern").html(upperCaseWords(gettext("Octagram spiral top/bottom fill pattern")));
 								$("#slicing_configuration_dialog div.solid_pattern button[data-value=\"octagramspiral\"]").addClass("disabled");
 							}
 							else if(solidFillPattern === "hilbertcurve") {
-								$("#slicing_configuration_dialog p.solid_pattern").html(gettext("Hilbert Curve Top/Bottom Fill Pattern"));
+								$("#slicing_configuration_dialog p.solid_pattern").html(upperCaseWords(gettext("Hilbert curve top/bottom fill pattern")));
 								$("#slicing_configuration_dialog div.solid_pattern button[data-value=\"hilbertcurve\"]").addClass("disabled");
 							}
 							else if(solidFillPattern === "concentric") {
-								$("#slicing_configuration_dialog p.solid_pattern").html(gettext("Concentric Top/Bottom Fill Pattern"));
+								$("#slicing_configuration_dialog p.solid_pattern").html(upperCaseWords(gettext("Concentric top/bottom fill pattern")));
 								$("#slicing_configuration_dialog div.solid_pattern button[data-value=\"concentric\"]").addClass("disabled");
 							}
 							else
-								$("#slicing_configuration_dialog p.solid_pattern").html(gettext("Unknown Top/Bottom Fill Pattern"));
+								$("#slicing_configuration_dialog p.solid_pattern").html(upperCaseWords(gettext("Unknown top/bottom fill pattern")));
 						}
 	
 						if(slicerName === "cura") {
@@ -2551,7 +2560,7 @@ $(function() {
 								});
 
 							// Clear basic quality settings
-							$("#slicing_configuration_dialog p.quality").html(gettext("Unknown Quality"));
+							$("#slicing_configuration_dialog p.quality").html(upperCaseWords(gettext("Unknown quality")));
 							$("#slicing_configuration_dialog div.quality button.disabled").removeClass("disabled");
 						}
 
@@ -2568,7 +2577,7 @@ $(function() {
 								});
 
 							// Clear basic fill settings
-							$("#slicing_configuration_dialog p.fill").html(gettext("Unknown Fill"));
+							$("#slicing_configuration_dialog p.fill").html(upperCaseWords(gettext("Unknown fill")));
 							$("#slicing_configuration_dialog div.fill button.disabled").removeClass("disabled");
 						}
 
@@ -2597,7 +2606,7 @@ $(function() {
 								});
 
 							// Clear basic fill settings
-							$("#slicing_configuration_dialog p.fill").html(gettext("Unknown Fill"));
+							$("#slicing_configuration_dialog p.fill").html(upperCaseWords(gettext("Unknown fill")));
 							$("#slicing_configuration_dialog div.fill button.disabled").removeClass("disabled");
 						}
 
@@ -2642,7 +2651,7 @@ $(function() {
 								changedSettings[0]["layer_height"] = 0.1;
 
 							// Clear basic quality settings
-							$("#slicing_configuration_dialog p.quality").html(gettext("Unknown Quality"));
+							$("#slicing_configuration_dialog p.quality").html(upperCaseWords(gettext("Unknown quality")));
 							$("#slicing_configuration_dialog div.quality button.disabled").removeClass("disabled");
 						}
 
@@ -2702,7 +2711,7 @@ $(function() {
 							});
 		
 							// Clear basic quality settings
-							$("#slicing_configuration_dialog p.quality").html(gettext("Unknown Quality"));
+							$("#slicing_configuration_dialog p.quality").html(upperCaseWords(gettext("Unknown quality")));
 							$("#slicing_configuration_dialog div.quality button.disabled").removeClass("disabled");
 						}
 	
@@ -2714,7 +2723,7 @@ $(function() {
 							});
 		
 							// Clear basic quality settings
-							$("#slicing_configuration_dialog p.quality").html(gettext("Unknown Quality"));
+							$("#slicing_configuration_dialog p.quality").html(upperCaseWords(gettext("Unknown quality")));
 							$("#slicing_configuration_dialog div.quality button.disabled").removeClass("disabled");
 						}
 
@@ -2734,7 +2743,7 @@ $(function() {
 						var target = $(this).data("target");
 	
 						// Set setting's text
-						$("#slicing_configuration_dialog .groups p." + target).text($(this).attr("title"));
+						$("#slicing_configuration_dialog .groups p." + target).text(upperCaseWords($(this).attr("title")));
 	
 						// Check which setting was changes
 						switch(target) {
@@ -3101,7 +3110,7 @@ $(function() {
 						currentSlicerDialog = currentDialog;
 		
 						// Show dialog
-						$("#slicing_configuration_dialog").modal("show").removeClass("profile gcode").addClass("model");
+						$("#slicing_configuration_dialog").modal("show").removeClass("profile gcode printerButtons").addClass("model");
 			
 						// Set header text
 						$("#slicing_configuration_dialog > div.modal-header > h3").html(header);
@@ -3121,35 +3130,35 @@ $(function() {
 						$("#slicing_configuration_dialog .modal-body").css("display", "none").after("\
 							<div class=\"modal-extra\">\
 								<div class=\"printer\">\
-									<button class=\"micro3d\" data-color=\"Black\" title=\"" + encodeQuotes(gettext("Black")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/micro-3d-black.png\"></button>\
-									<button class=\"micro3d\" data-color=\"White\" title=\"" + encodeQuotes(gettext("White")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/micro-3d-white.png\"></button>\
-									<button class=\"micro3d\" data-color=\"Blue\" title=\"" + encodeQuotes(gettext("Blue")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/micro-3d-blue.png\"></button>\
-									<button class=\"micro3d\" data-color=\"Green\" title=\"" + encodeQuotes(gettext("Green")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/micro-3d-green.png\"></button>\
-									<button class=\"micro3d\" data-color=\"Orange\" title=\"" + encodeQuotes(gettext("Orange")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/micro-3d-orange.png\"></button>\
-									<button class=\"micro3d\" data-color=\"Clear\" title=\"" + encodeQuotes(gettext("Clear")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/micro-3d-clear.png\"></button>\
-									<button class=\"micro3d\" data-color=\"Silver\" title=\"" + encodeQuotes(gettext("Silver")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/micro-3d-silver.png\"></button>\
-									<button class=\"micro3d\" data-color=\"Purple\" title=\"" + encodeQuotes(gettext("Purple")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/micro-3d-purple.png\"></button>\
+									<button class=\"micro3d\" data-color=\"Black\" title=\"" + encodeQuotes(gettext("Black printer")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/micro-3d-black.png\"></button>\
+									<button class=\"micro3d\" data-color=\"White\" title=\"" + encodeQuotes(gettext("White printer")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/micro-3d-white.png\"></button>\
+									<button class=\"micro3d\" data-color=\"Blue\" title=\"" + encodeQuotes(gettext("Blue printer")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/micro-3d-blue.png\"></button>\
+									<button class=\"micro3d\" data-color=\"Green\" title=\"" + encodeQuotes(gettext("Green printer")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/micro-3d-green.png\"></button>\
+									<button class=\"micro3d\" data-color=\"Orange\" title=\"" + encodeQuotes(gettext("Orange printer")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/micro-3d-orange.png\"></button>\
+									<button class=\"micro3d\" data-color=\"Clear\" title=\"" + encodeQuotes(gettext("Clear printer")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/micro-3d-clear.png\"></button>\
+									<button class=\"micro3d\" data-color=\"Silver\" title=\"" + encodeQuotes(gettext("Silver printer")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/micro-3d-silver.png\"></button>\
+									<button class=\"micro3d\" data-color=\"Purple\" title=\"" + encodeQuotes(gettext("Purple printer")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/micro-3d-purple.png\"></button>\
 								</div>\
 								<div class=\"filament\">\
-									<button data-color=\"White\" title=\"" + encodeQuotes(gettext("White")) + "\"><span style=\"background-color: #F4F3E9;\"></span><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/filament.png\"></button>\
-									<button data-color=\"Pink\" title=\"" + encodeQuotes(gettext("Pink")) + "\"><span style=\"background-color: #FF006B;\"></span><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/filament.png\"></button>\
-									<button data-color=\"Red\" title=\"" + encodeQuotes(gettext("Red")) + "\"><span style=\"background-color: #EE0000;\"></span><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/filament.png\"></button>\
-									<button data-color=\"Orange\" title=\"" + encodeQuotes(gettext("Orange")) + "\"><span style=\"background-color: #FE9800;\"></span><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/filament.png\"></button>\
-									<button data-color=\"Yellow\" title=\"" + encodeQuotes(gettext("Yellow")) + "\"><span style=\"background-color: #FFEA00;\"></span><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/filament.png\"></button>\
-									<button data-color=\"Green\" title=\"" + encodeQuotes(gettext("Green")) + "\"><span style=\"background-color: #009E60;\"></span><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/filament.png\"></button>\
-									<button data-color=\"Light Blue\" title=\"" + encodeQuotes(gettext("Light Blue")) + "\"><span style=\"background-color: #00EEEE;\"></span><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/filament.png\"></button>\
-									<button data-color=\"Blue\" title=\"" + encodeQuotes(gettext("Blue")) + "\"><span style=\"background-color: #236B8E;\"></span><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/filament.png\"></button>\
-									<button data-color=\"Purple\" title=\"" + encodeQuotes(gettext("Purple")) + "\"><span style=\"background-color: #9A009A;\"></span><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/filament.png\"></button>\
-									<button data-color=\"Black\" title=\"" + encodeQuotes(gettext("Black")) + "\"><span style=\"background-color: #404040;\"></span><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/filament.png\"></button>\
+									<button data-color=\"White\" title=\"" + encodeQuotes(gettext("White filament")) + "\"><span style=\"background-color: #F4F3E9;\"></span><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/filament.png\"></button>\
+									<button data-color=\"Pink\" title=\"" + encodeQuotes(gettext("Pink filament")) + "\"><span style=\"background-color: #FF006B;\"></span><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/filament.png\"></button>\
+									<button data-color=\"Red\" title=\"" + encodeQuotes(gettext("Red filament")) + "\"><span style=\"background-color: #EE0000;\"></span><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/filament.png\"></button>\
+									<button data-color=\"Orange\" title=\"" + encodeQuotes(gettext("Orange filament")) + "\"><span style=\"background-color: #FE9800;\"></span><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/filament.png\"></button>\
+									<button data-color=\"Yellow\" title=\"" + encodeQuotes(gettext("Yellow filament")) + "\"><span style=\"background-color: #FFEA00;\"></span><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/filament.png\"></button>\
+									<button data-color=\"Green\" title=\"" + encodeQuotes(gettext("Green filament")) + "\"><span style=\"background-color: #009E60;\"></span><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/filament.png\"></button>\
+									<button data-color=\"Light Blue\" title=\"" + encodeQuotes(gettext("Light blue filament")) + "\"><span style=\"background-color: #00EEEE;\"></span><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/filament.png\"></button>\
+									<button data-color=\"Blue\" title=\"" + encodeQuotes(gettext("Blue filament")) + "\"><span style=\"background-color: #236B8E;\"></span><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/filament.png\"></button>\
+									<button data-color=\"Purple\" title=\"" + encodeQuotes(gettext("Purple filament")) + "\"><span style=\"background-color: #9A009A;\"></span><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/filament.png\"></button>\
+									<button data-color=\"Black\" title=\"" + encodeQuotes(gettext("Black filament")) + "\"><span style=\"background-color: #404040;\"></span><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/filament.png\"></button>\
 								</div>\
 								<div class=\"model\">\
 									<input type=\"file\" accept=\".stl, .obj, .m3d, .amf, .wrl, .dae, .3mf\">\
-									<button class=\"importFromServer\" title=\"" + encodeQuotes(gettext("Import From Server")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/import-from-server.png\"></button>\
-									<button class=\"importFromFile\" title=\"" + encodeQuotes(gettext("Import From File")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/import-from-file.png\"></button>\
+									<button class=\"importFromServer\" title=\"" + encodeQuotes(gettext("Import from server")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/import-from-server.png\"></button>\
+									<button class=\"importFromFile\" title=\"" + encodeQuotes(gettext("Import from file")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/import-from-file.png\"></button>\
 									<button class=\"translate\" title=\"" + encodeQuotes(gettext("Translate")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/translate.png\"></button>\
 									<button class=\"rotate\" title=\"" + encodeQuotes(gettext("Rotate")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/rotate.png\"></button>\
 									<button class=\"scale\" title=\"" + encodeQuotes(gettext("Scale")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/scale.png\"></button>\
-									<button class=\"snap\" title=\"" + encodeQuotes(gettext("Snap")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/snap.png\"></button>\
+									<button class=\"snap\" title=\"" + encodeQuotes(gettext("Enable snap")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/snap.png\"></button>\
 									<button class=\"delete\" title=\"" + encodeQuotes(gettext("Delete")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/delete.png\"></button>\
 									<button class=\"clone\" title=\"" + encodeQuotes(gettext("Clone")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/clone.png\"></button>\
 									<button class=\"reset\" title=\"" + encodeQuotes(gettext("Reset")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/reset.png\"></button>\
@@ -3157,10 +3166,10 @@ $(function() {
 									<button class=\"merge disabled\" title=\"" + encodeQuotes(gettext("Merge")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/merge.png\"></button>\
 								</div>\
 								<div class=\"display\">\
-									<button class=\"axes" + (modelEditor.showAxes ? " disabled" : "") + "\" title=\"" + encodeQuotes(gettext("Axes")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/axes.png\"></button>\
-									<button class=\"boundaries" + (modelEditor.showBoundaries ? " disabled" : "") + "\" title=\"" + encodeQuotes(gettext("Boundaries")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/boundaries.png\"></button>\
-									<button class=\"measurements" + (modelEditor.showMeasurements ? " disabled" : "") + "\" title=\"" + encodeQuotes(gettext("Measurements")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/measurements.png\"></button>\
-									<button class=\"grid" + (modelEditor.showGrid ? " disabled" : "") + " printerModel\" title=\"" + encodeQuotes(gettext("Grid")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/grid.png\"></button>\
+									<button class=\"axes" + (modelEditor.showAxes ? " disabled" : "") + "\" title=\"" + encodeQuotes(modelEditor.showAxes ? gettext("Hide axes") : gettext("Show axes")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/axes.png\"></button>\
+									<button class=\"boundaries" + (modelEditor.showBoundaries ? " disabled" : "") + "\" title=\"" + encodeQuotes(modelEditor.showBoundaries ? gettext("Hide boundaries") : gettext("Show boundaries")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/boundaries.png\"></button>\
+									<button class=\"measurements" + (modelEditor.showMeasurements ? " disabled" : "") + "\" title=\"" + encodeQuotes(modelEditor.showMeasurements ? gettext("Hide measurements") : gettext("Show measurements")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/measurements.png\"></button>\
+									<button class=\"grid" + (modelEditor.showGrid ? " disabled" : "") + " printerModel\" title=\"" + encodeQuotes(modelEditor.showGrid ? gettext("Hide grid") : gettext("Show grid")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/grid.png\"></button>\
 								</div>\
 								<div class=\"import\">\
 									<div>\
@@ -3184,9 +3193,9 @@ $(function() {
 								<div class=\"cutShape\">\
 									<div>\
 										<button class=\"close\" title=\"" + encodeQuotes(gettext("Close")) + "\"><div></div><i class=\"icon-remove-sign\"></i></button>\
-										<button class=\"cube disabled\" title=\"" + encodeQuotes(gettext("Cube")) +"\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/cube.png\"></button>\
-										<button class=\"sphere\" title=\"" + encodeQuotes(gettext("Sphere")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/sphere.png\"></button>\
-										<button class=\"apply\" title=\"" + encodeQuotes(gettext("Apply Cut")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/apply-cut.png\"></button>\
+										<button class=\"cube disabled\" title=\"" + encodeQuotes(gettext("Cube stencil")) +"\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/cube.png\"></button>\
+										<button class=\"sphere\" title=\"" + encodeQuotes(gettext("Sphere stencil")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/sphere.png\"></button>\
+										<button class=\"apply\" title=\"" + encodeQuotes(gettext("Apply cut")) + "\"><img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/apply-cut.png\"></button>\
 										<span></span>\
 									</div>\
 								</div>\
@@ -3211,9 +3220,11 @@ $(function() {
 						$("#slicing_configuration_dialog .modal-extra div.filament button[data-color=\"" + modelEditorFilamentColor + "\"]").addClass("disabled");
 						$("#slicing_configuration_dialog .modal-extra").append(modelEditor.renderer.domElement);
 		
-						// Hide Micro 3D specific features
+						// Hide or show Micro 3D specific features
 						if(self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter())
 							$("#slicing_configuration_dialog .modal-extra .micro3d").addClass("notUsingAMicro3DPrinter");
+						else
+							$("#slicing_configuration_dialog").addClass("printerButtons");
 		
 						// Hide features that require having a printer model
 						if(modelEditor.printerModel === null)
@@ -3330,7 +3341,7 @@ $(function() {
 							if($("#slicing_configuration_dialog .modal-extra button.importFromServer").hasClass("disabled")) {
 							
 								// Hide import options
-								$("#slicing_configuration_dialog .modal-extra button.importFromServer").removeClass("disabled");
+								$("#slicing_configuration_dialog .modal-extra button.importFromServer").removeClass("disabled").attr("title", htmlDecode(gettext("Import from server")));
 								$("#slicing_configuration_dialog .modal-extra div.import").removeClass("show");
 							}
 							
@@ -3338,7 +3349,7 @@ $(function() {
 							else {
 							
 								// Show import options
-								$("#slicing_configuration_dialog .modal-extra button.importFromServer").addClass("disabled");
+								$("#slicing_configuration_dialog .modal-extra button.importFromServer").addClass("disabled").attr("title", htmlDecode(gettext("Close")));
 								$("#slicing_configuration_dialog .modal-extra div.import").addClass("show");
 							}
 						});
@@ -3347,7 +3358,7 @@ $(function() {
 						$("#slicing_configuration_dialog.model .modal-extra > div.import > div > button.close").click(function() {
 		
 							// Hide import options
-							$("#slicing_configuration_dialog .modal-extra button.importFromServer").removeClass("disabled");
+							$("#slicing_configuration_dialog .modal-extra button.importFromServer").removeClass("disabled").attr("title", htmlDecode(gettext("Import from server")));
 							$("#slicing_configuration_dialog .modal-extra div.import").removeClass("show");
 						});
 		
@@ -3537,9 +3548,9 @@ $(function() {
 
 							// Select button
 							if(modelEditor.showAxes)
-								$(this).addClass("disabled");
+								$(this).addClass("disabled").attr("title", htmlDecode(gettext("Hide axes")));
 							else
-								$(this).removeClass("disabled");
+								$(this).removeClass("disabled").attr("title", htmlDecode(gettext("Show axes")));
 						});
 
 						// Boundaries button click event
@@ -3562,9 +3573,9 @@ $(function() {
 
 							// Select button
 							if(modelEditor.showBoundaries)
-								$(this).addClass("disabled");
+								$(this).addClass("disabled").attr("title", htmlDecode(gettext("Hide boundaries")));
 							else
-								$(this).removeClass("disabled");
+								$(this).removeClass("disabled").attr("title", htmlDecode(gettext("Show boundaries")));
 						});
 
 						// Measurements button click event
@@ -3592,9 +3603,9 @@ $(function() {
 
 							// Select button
 							if(modelEditor.showMeasurements)
-								$(this).addClass("disabled");
+								$(this).addClass("disabled").attr("title", htmlDecode(gettext("Hide measurements")));
 							else
-								$(this).removeClass("disabled");
+								$(this).removeClass("disabled").attr("title", htmlDecode(gettext("Show measurements")));
 						});
 		
 						// Grid button click event
@@ -3611,9 +3622,9 @@ $(function() {
 
 							// Select button
 							if(modelEditor.showGrid)
-								$(this).addClass("disabled");
+								$(this).addClass("disabled").attr("title", htmlDecode(gettext("Hide grid")));
 							else
-								$(this).removeClass("disabled");
+								$(this).removeClass("disabled").attr("title", htmlDecode(gettext("Show grid")));
 						});
 
 						// Cut button click event
@@ -3623,11 +3634,11 @@ $(function() {
 							if(modelEditor.cutShape === null) {
 
 								// Select button
-								$(this).addClass("disabled");
+								$(this).addClass("disabled").attr("title", htmlDecode(gettext("Close")));
 
 								// Disable import from server, import from file, and clone buttons
 								$("#slicing_configuration_dialog .modal-extra button.importFromServer, #slicing_configuration_dialog .modal-extra button.importFromFile, #slicing_configuration_dialog .modal-extra button.clone").prop("disabled", true);
-								$("#slicing_configuration_dialog .modal-extra button.importFromServer").removeClass("disabled");
+								$("#slicing_configuration_dialog .modal-extra button.importFromServer").removeClass("disabled").attr("title", htmlDecode(gettext("Import from server")));
 								$("#slicing_configuration_dialog .modal-extra div.import").removeClass("show");
 
 								// Show cut shape options
@@ -3952,7 +3963,7 @@ $(function() {
 					currentSlicerDialog = currentDialog;
 		
 					// Show dialog
-					$("#slicing_configuration_dialog").modal("show").removeClass("profile model").addClass("gcode");
+					$("#slicing_configuration_dialog").modal("show").removeClass("profile model printerButtons").addClass("gcode");
 			
 					// Set header text
 					$("#slicing_configuration_dialog > div.modal-header > h3").html(header);
@@ -3968,7 +3979,7 @@ $(function() {
 						$("#slicing_configuration_dialog .modal-extra").remove();
 		
 					// Display G-code editor
-					$("#slicing_configuration_dialog p.currentMenu").html(gettext("Modify G-Code"));
+					$("#slicing_configuration_dialog p.currentMenu").html(gettext("Modify G‐Code"));
 					$("#slicing_configuration_dialog .modal-body").css("display", "none").after("\
 						<div class=\"modal-extra\">\
 							<div>\
@@ -4019,7 +4030,7 @@ $(function() {
 								$("body").addClass("progress");
 			
 								// Display cover
-								$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Loading G-Code…"));
+								$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Loading G‐Code…"));
 
 								setTimeout(function() {
 	
@@ -4229,7 +4240,7 @@ $(function() {
 			// Enable or disable import from server button	
 			$("#slicing_configuration_dialog .modal-extra button.importFromServer").prop("disabled", modelEditor.cutShape !== null || !keys.length);
 			if($("#slicing_configuration_dialog .modal-extra button.importFromServer").prop("disabled")) {
-				$("#slicing_configuration_dialog .modal-extra button.importFromServer").removeClass("disabled");
+				$("#slicing_configuration_dialog .modal-extra button.importFromServer").removeClass("disabled").attr("title", htmlDecode(gettext("Import from server")));
 				$("#slicing_configuration_dialog .modal-extra div.import").removeClass("show");
 			}
 		}
@@ -4784,7 +4795,7 @@ $(function() {
 				var button = slicer.uploadButton;
 			
 			// Add load default profile buttons
-			button.before("<button class=\"btn loadDefaultProfile\" aria-hidden=\"true\" data-input=\"" + encodeQuotes(slicer.uploadElement.selector) + "\" data-slicer=\"" + encodeQuotes(slicerName) + "\">" + gettext("Load Default Profile") + "</button>");
+			button.before("<button class=\"btn loadDefaultProfile\" aria-hidden=\"true\" data-input=\"" + encodeQuotes(slicer.uploadElement.selector) + "\" data-slicer=\"" + encodeQuotes(slicerName) + "\">" + gettext("Load default profile") + "</button>");
 			
 			// Set settings
 			var settings = "#settings_plugin_" + slicerName;
@@ -4799,7 +4810,7 @@ $(function() {
 				// Add edit profiles options
 				$(settings).find("table a.icon-star").each(function() {
 					if(!$(this).next().hasClass("editProfile"))
-						$(this).after("&nbsp;|&nbsp;<a href=\"#\" class=\"icon-pencil editProfile\" title=\"Edit Profile\" data-slicer=\"" + encodeQuotes(slicerName) + "\"></a>");
+						$(this).after("&nbsp;|&nbsp;<a href=\"#\" class=\"icon-pencil editProfile\" title=\"Edit profile\" data-slicer=\"" + encodeQuotes(slicerName) + "\"></a>");
 				});
 			}
 			
@@ -4813,7 +4824,7 @@ $(function() {
 				// Add edit profiles options
 				$(settings).find("table a.icon-star").each(function() {
 					if(!$(this).next().hasClass("editProfile"))
-						$(this).after("&nbsp;|&nbsp;<a href=\"#\" class=\"icon-pencil editProfile\" title=\"Edit Profile\" data-slicer=\"" + encodeQuotes(slicerName) + "\"></a>");
+						$(this).after("&nbsp;|&nbsp;<a href=\"#\" class=\"icon-pencil editProfile\" title=\"Edit profile\" data-slicer=\"" + encodeQuotes(slicerName) + "\"></a>");
 				});
 			}
 			
@@ -6865,7 +6876,7 @@ $(function() {
 					modelEditor.transformControls.setTranslationSnap(5);
 					modelEditor.transformControls.setScaleSnap(0.05);
 					modelEditor.transformControls.setRotationSnap(THREE.Math.degToRad(15));
-					$("#slicing_configuration_dialog .modal-extra button.snap").addClass("disabled");
+					$("#slicing_configuration_dialog .modal-extra button.snap").addClass("disabled").attr("title", htmlDecode(gettext("Disable snap")));
 				},
 	
 				// Disable snap
@@ -6875,7 +6886,7 @@ $(function() {
 					modelEditor.transformControls.setTranslationSnap(null);
 					modelEditor.transformControls.setScaleSnap(null);
 					modelEditor.transformControls.setRotationSnap(null);
-					$("#slicing_configuration_dialog .modal-extra button.snap").removeClass("disabled");
+					$("#slicing_configuration_dialog .modal-extra button.snap").removeClass("disabled").attr("title", htmlDecode(gettext("Enable snap")));
 				},
 	
 				// Set mode
@@ -7210,7 +7221,7 @@ $(function() {
 						modelEditor.cutShapeOutline = null;
 					
 						// Deselect button
-						$("#slicing_configuration_dialog .modal-extra button.cut").removeClass("disabled");
+						$("#slicing_configuration_dialog .modal-extra button.cut").removeClass("disabled").attr("title", htmlDecode(gettext("Cut")));
 					
 						// Enable import from file and clone buttons
 						$("#slicing_configuration_dialog .modal-extra button.importFromFile, #slicing_configuration_dialog .modal-extra button.clone").prop("disabled", false);
@@ -7754,11 +7765,11 @@ $(function() {
 						}
 		
 					// Set currently active buttons
-					modelEditor.translateButton.removeClass("disabled").prop("disabled", false);
-					modelEditor.rotateButton.removeClass("disabled").prop("disabled", false);
-					modelEditor.scaleButton.removeClass("disabled").prop("disabled", false);
+					modelEditor.translateButton.removeClass("disabled").prop("disabled", false).attr("title", htmlDecode(gettext("Translate")));
+					modelEditor.rotateButton.removeClass("disabled").prop("disabled", false).attr("title", htmlDecode(gettext("Rotate")));
+					modelEditor.scaleButton.removeClass("disabled").prop("disabled", false).attr("title", htmlDecode(gettext("Scale")));
 					modelEditor.valuesDisplay.removeClass("translate rotate scale none").addClass(modelEditor.transformControls.getMode());
-					$("#slicing_configuration_dialog .modal-extra button." + modelEditor.transformControls.getMode()).addClass("disabled");
+					$("#slicing_configuration_dialog .modal-extra button." + modelEditor.transformControls.getMode()).addClass("disabled").attr("title", htmlDecode(gettext("Close")));
 
 					// Check if a model is currently selected
 					if(model) {
@@ -8402,7 +8413,7 @@ $(function() {
 					setTimeout(function() {
 
 						// Deselect button
-						$("#slicing_configuration_dialog .modal-extra button.cut").removeClass("disabled");
+						$("#slicing_configuration_dialog .modal-extra button.cut").removeClass("disabled").attr("title", htmlDecode(gettext("Cut")));
 				
 						// Enable import from file and clone buttons
 						$("#slicing_configuration_dialog .modal-extra button.importFromFile, #slicing_configuration_dialog .modal-extra button.clone").prop("disabled", false);
@@ -9060,12 +9071,12 @@ $(function() {
 			PLUGIN_BASEURL + "m33fio/static/img/grid.png",
 			PLUGIN_BASEURL + "m33fio/static/img/cube.png",
 			PLUGIN_BASEURL + "m33fio/static/img/sphere.png",
+			PLUGIN_BASEURL + "m33fio/static/img/apply-cut.png",
 			PLUGIN_BASEURL + "m33fio/static/img/test-border-good.png",
 			PLUGIN_BASEURL + "m33fio/static/img/test-border-high.png",
 			PLUGIN_BASEURL + "m33fio/static/img/test-border-low.png",
 			PLUGIN_BASEURL + "m33fio/static/img/backlash-layout.png",
 			PLUGIN_BASEURL + "m33fio/static/img/backlash-printed.png",
-			PLUGIN_BASEURL + "m33fio/static/img/graph-background.png",
 			PLUGIN_BASEURL + "m33fio/static/img/fill-density-extra-high.png",
 			PLUGIN_BASEURL + "m33fio/static/img/fill-density-full.png",
 			PLUGIN_BASEURL + "m33fio/static/img/fill-density-high.png",
@@ -9525,7 +9536,7 @@ $(function() {
 						<div class=\"printSettings\">\
 							<h3>" + gettext("Print Settings") + "</h3>\
 							<div class=\"control-group\">\
-								<label class=\"control-label\">" + gettext("Filament Temperature") + "</label>\
+								<label class=\"control-label\">" + gettext("Filament temperature") + "</label>\
 								<div class=\"controls\">\
 									<div class=\"input-append degreesCelsius\">\
 										<input type=\"number\" step=\"1\" min=\"150\" max=\"315\" class=\"input-block-level\">\
@@ -9534,7 +9545,7 @@ $(function() {
 								</div>\
 							</div>\
 							<div class=\"control-group heatbed\">\
-								<label class=\"control-label\">" + gettext("Heatbed Temperature") + "</label>\
+								<label class=\"control-label\">" + gettext("Heatbed temperature") + "</label>\
 								<div class=\"controls\">\
 									<div class=\"input-append degreesCelsius\">\
 										<input type=\"number\" step=\"1\" min=\"0\" max=\"110\" class=\"input-block-level\">\
@@ -9543,7 +9554,7 @@ $(function() {
 								</div>\
 							</div>\
 							<div class=\"control-group\">\
-								<label class=\"control-label\">" + gettext("Filament Type") + "</label>\
+								<label class=\"control-label\">" + gettext("Filament type") + "</label>\
 								<div class=\"controls\">\
 									<select class=\"input-block-level\">\
 										<option value=\"ABS\">" + _.sprintf(gettext("%(type)s (Recommended %(temperature)s)"), {type: "ABS", temperature: "275°C"}) + "</option>\
@@ -9560,7 +9571,7 @@ $(function() {
 							<div class=\"control-group\">\
 								<div class=\"controls\">\
 									<label class=\"checkbox\" title=\"" + encodeQuotes(gettext("Smooths out the bottom layer")) + "\">\
-										<input type=\"checkbox\" class=\"input-block-level\" data-bind=\"checked: settings.plugins.m33fio.UseWaveBondingPreprocessor\"><span>" + gettext("Use Wave Bonding") + "</span>\
+										<input type=\"checkbox\" class=\"input-block-level\" data-bind=\"checked: settings.plugins.m33fio.UseWaveBondingPreprocessor\"><span>" + gettext("Use wave bonding") + "</span>\
 									</label>\
 								</div>\
 							</div>\
@@ -9604,10 +9615,10 @@ $(function() {
 		");
 		
 		// Add save local copy button, save on server button, and warning
-		$("#slicing_configuration_dialog .modal-footer").append("<a href=\"#\" class=\"btn saveLocalCopy\" data-dismiss=\"modal\">" + gettext("Save Local Copy") + "</a><a href=\"#\" class=\"btn saveOnServer\" data-dismiss=\"modal\">" + gettext("Save On Server") + "</a><a class=\"link\"></a><p class=\"warning\"></p>");
+		$("#slicing_configuration_dialog .modal-footer").append("<a href=\"#\" class=\"btn saveLocalCopy\" data-dismiss=\"modal\">" + gettext("Save local copy") + "</a><a href=\"#\" class=\"btn saveOnServer\" data-dismiss=\"modal\">" + gettext("Save on server") + "</a><a class=\"link\"></a><p class=\"warning\"></p>");
 		
 		// Add skip model editor button
-		$("#slicing_configuration_dialog > div.modal-footer > .btn-primary").before("<a href=\"#\" class=\"btn skip\" data-dismiss=\"modal\">" + gettext("Skip Model Editor") + "</a>");
+		$("#slicing_configuration_dialog > div.modal-footer > .btn-primary").before("<a href=\"#\" class=\"btn skip\" data-dismiss=\"modal\">" + gettext("Skip model editor") + "</a>");
 		
 		// Wrap movement controls in section
 		$("#control > div.jog-panel.controls > *").wrapAll("<div></div>");
@@ -10563,7 +10574,7 @@ $(function() {
 						$("body").addClass("progress");
 			
 						// Display cover
-						$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Saving G-Code…"));
+						$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Saving G‐Code…"));
 				
 						setTimeout(function() {
 				
@@ -10599,7 +10610,7 @@ $(function() {
 					else
 				
 						// Show message
-						showMessage(gettext("Saving Status"), gettext("G-code is invalid"), gettext("OK"), function() {
+						showMessage(gettext("Saving Status"), gettext("G‐code is invalid"), gettext("OK"), function() {
 					
 							// Enable button
 							button.removeClass("disabled");
@@ -10759,7 +10770,7 @@ $(function() {
 			
 							// Show message
 							showMessage(gettext("Saving Status"), "<div class=\"saveOnServer profile\">\
-													<label class=\"control-label\">" + gettext("Profile Name") + "</label>\
+													<label class=\"control-label\">" + gettext("Profile name") + "</label>\
 													<div class=\"controls\">\
 														<input type=\"text\" pattern=\"[^\\\\/]+\" class=\"input-block-level\" value=\"" + encodeQuotes(getSlicerProfileName(slicerProfileIdentifier)) + "\">\
 													</div>\
@@ -10888,13 +10899,13 @@ $(function() {
 			
 						// Show message
 						showMessage(gettext("Saving Status"), "<div class=\"saveOnServer model\">\
-												<label class=\"control-label\">" + gettext("Model Location") + "</label>\
+												<label class=\"control-label\">" + gettext("Model location") + "</label>\
 												<div class=\"controls modelOrigin\">\
 													<input type=\"radio\" name=\"modelOrigin\" id=\"localModelOrigin\" value=\"local\"" + (modelOrigin == "local" ? " checked" : "") + "><label for=\"localModelOrigin\">" + gettext("Local") + "</label>\
-													<input type=\"radio\" name=\"modelOrigin\" id=\"sdcardModelOrigin\"" + ($("#gcode_upload_sd").prop("disabled") ? " disabled" : "") + " value=\"sdcard\"" + (modelOrigin == "sdcard" ? " checked" : "") + "><label for=\"sdcardModelOrigin\"" + ($("#gcode_upload_sd").prop("disabled") ? " class=\"disabled\"" : "") + ">" + gettext("SD Card") + "</label>\
+													<input type=\"radio\" name=\"modelOrigin\" id=\"sdcardModelOrigin\"" + ($("#gcode_upload_sd").prop("disabled") ? " disabled" : "") + " value=\"sdcard\"" + (modelOrigin == "sdcard" ? " checked" : "") + "><label for=\"sdcardModelOrigin\"" + ($("#gcode_upload_sd").prop("disabled") ? " class=\"disabled\"" : "") + ">" + gettext("SD card") + "</label>\
 												</div>\
 												<br>\
-												<label class=\"control-label\">" + gettext("Model Path") + "</label>\
+												<label class=\"control-label\">" + gettext("Model path") + "</label>\
 												<div class=\"controls modelPath\">\
 													<input type=\"text\" pattern=\"[^\\\\" + (typeof self.files.currentPath === "undefined" ? "/" : "") + "]+\\.stl\" class=\"input-block-level\" value=\"" + encodeQuotes(readableModelPath) + "\">\
 												</div>\
@@ -11027,17 +11038,17 @@ $(function() {
 			
 						// Show message
 						showMessage(gettext("Saving Status"), "<div class=\"saveOnServer gcode\">\
-												<label class=\"control-label\">" + gettext("G-Code Location") + "</label>\
+												<label class=\"control-label\">" + gettext("G‐code location") + "</label>\
 												<div class=\"controls gcodeOrigin\">\
 													<input type=\"radio\" name=\"gcodeOrigin\" id=\"localGcodeOrigin\" value=\"local\"" + (gcodeOrigin == "local" ? " checked" : "") + "><label for=\"localGcodeOrigin\">" + gettext("Local") + "</label>\
-													<input type=\"radio\" name=\"gcodeOrigin\" id=\"sdcardGcodeOrigin\"" + ($("#gcode_upload_sd").prop("disabled") ? " disabled" : "") + " value=\"sdcard\"" + (gcodeOrigin == "sdcard" ? " checked" : "") + "><label for=\"sdcardGcodeOrigin\"" + ($("#gcode_upload_sd").prop("disabled") ? " class=\"disabled\"" : "") + ">" + gettext("SD Card") + "</label>\
+													<input type=\"radio\" name=\"gcodeOrigin\" id=\"sdcardGcodeOrigin\"" + ($("#gcode_upload_sd").prop("disabled") ? " disabled" : "") + " value=\"sdcard\"" + (gcodeOrigin == "sdcard" ? " checked" : "") + "><label for=\"sdcardGcodeOrigin\"" + ($("#gcode_upload_sd").prop("disabled") ? " class=\"disabled\"" : "") + ">" + gettext("SD card") + "</label>\
 												</div>\
 												<br>\
-												<label class=\"control-label\">" + gettext("G-Code Path") + "</label>\
+												<label class=\"control-label\">" + gettext("G‐code path") + "</label>\
 												<div class=\"controls gcodePath\">\
 													<input type=\"text\" pattern=\"[^\\\\" + (typeof self.files.currentPath === "undefined" ? "/" : "") + "]+\\.(g|gco|gcode)\" class=\"input-block-level\" value=\"" + encodeQuotes(typeof self.files.currentPath !== "undefined" && self.files.currentPath().length == 0 ? gcodePathAndName.substr(1) : gcodePathAndName) + "\">\
 												</div>\
-											</div><span class=\"saveOnServer warning show\">" + gettext("A G-code file with that location and path already exists. Saving will overwrite that existing file.") + "</span>", gettext("Save"), function() {
+											</div><span class=\"saveOnServer warning show\">" + gettext("A G‐code file with that location and path already exists. Saving will overwrite that existing file.") + "</span>", gettext("Save"), function() {
 			
 							// Get saved G-code origin and path
 							var savedGcodeOrigin = $("body > div.page-container > div.message > div > div > p > div.saveOnServer input[type=\"radio\"]:checked").val();
@@ -11052,7 +11063,7 @@ $(function() {
 								$("body").addClass("progress");
 		
 								// Display cover
-								$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Saving G-Code…"));
+								$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Saving G‐Code…"));
 			
 								setTimeout(function() {
 								
@@ -11148,7 +11159,7 @@ $(function() {
 											}, 200);
 						
 											// Show message
-											showMessage(gettext("Saving Status"), gettext("Saving G-code file failed"), gettext("OK"), function() {
+											showMessage(gettext("Saving Status"), gettext("Saving G‐code file failed"), gettext("OK"), function() {
 										
 												// Enable button
 												button.removeClass("disabled");
@@ -11174,7 +11185,7 @@ $(function() {
 					else
 				
 						// Show message
-						showMessage(gettext("Saving Status"), gettext("G-code is invalid"), gettext("OK"), function() {
+						showMessage(gettext("Saving Status"), gettext("G‐code is invalid"), gettext("OK"), function() {
 						
 							// Enable button
 							button.removeClass("disabled");
@@ -11363,7 +11374,7 @@ $(function() {
 			setTimeout(function() {
 			
 				// Enable uploading file by drag and drop
-				$("#drop_overlay").css("display", "");
+				$("#drop_overlay").removeClass("in").css("display", "");
 			
 				// Send request
 				$.ajax({
@@ -11392,7 +11403,7 @@ $(function() {
 						modelEditor.destroy();
 
 					// Restore slicer dialog
-					$("#slicing_configuration_dialog").off("drop dragenter dragleave").removeClass("profile model gcode").css("height", "");
+					$("#slicing_configuration_dialog").off("drop dragenter dragleave").removeClass("profile model gcode printerButtons").css("height", "");
 					$("#slicing_configuration_dialog p.currentMenu").html(gettext("Select Profile"));
 					$("#slicing_configuration_dialog .modal-extra").remove();
 					$("#slicing_configuration_dialog .modal-body").css("display", "");
@@ -11560,7 +11571,7 @@ $(function() {
 									else
 									
 										// Show slicer profile editor
-										showSlicerProfileEditor(PLUGIN_BASEURL + data.path, slicerName, slicerProfileIdentifier, "Modify Profile", $("#slicing_configuration_dialog > div.modal-header > h3").html(), gettext("Next"), gettext("Skip Model Editor"), "", onload, 200);
+										showSlicerProfileEditor(PLUGIN_BASEURL + data.path, slicerName, slicerProfileIdentifier, "Modify Profile", $("#slicing_configuration_dialog > div.modal-header > h3").html(), gettext("Next"), gettext("Skip model editor"), "", onload, 200);
 								}, 600);
 							}
 							
@@ -12124,7 +12135,7 @@ $(function() {
 							$("body").addClass("progress");
 	
 							// Display cover
-							$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Saving G-Code…"));
+							$("#slicing_configuration_dialog .modal-cover").addClass("show").css("z-index", "9999").children("p").html(gettext("Saving G‐Code…"));
 		
 							setTimeout(function() {
 							
@@ -12203,7 +12214,7 @@ $(function() {
 										$("#slicing_configuration_dialog").modal("hide");
 					
 										// Show message
-										showMessage(gettext("Saving Status"), gettext("Saving G-code file failed"), gettext("OK"), function() {
+										showMessage(gettext("Saving Status"), gettext("Saving G‐code file failed"), gettext("OK"), function() {
 									
 											// Hide message
 											hideMessage();
@@ -12217,7 +12228,7 @@ $(function() {
 						else
 				
 							// Show message
-							showMessage(gettext("Saving Status"), gettext("G-code is invalid"), gettext("OK"), function() {
+							showMessage(gettext("Saving Status"), gettext("G‐code is invalid"), gettext("OK"), function() {
 					
 								// Enable button
 								button.removeClass("disabled");
@@ -13060,7 +13071,7 @@ $(function() {
 							clearInterval(updateTemperature);
 		
 							// Show message
-							showMessage(gettext("Filament Status"), gettext("Remove filament"));
+							showMessage(gettext("Filament Status"), gettext("Remove filament…"));
 	
 							// Set commands
 							commands = [
@@ -13220,7 +13231,7 @@ $(function() {
 							clearInterval(updateTemperature);
 	
 							// Show message
-							showMessage(gettext("Filament Status"), gettext("Insert filament"));
+							showMessage(gettext("Filament Status"), gettext("Insert filament…"));
 	
 							// Set commands
 							commands = [
@@ -14487,7 +14498,7 @@ $(function() {
 		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(18)").attr("title", htmlDecode(gettext("Prints a specified backlash calibration"))).click(function() {
 		
 			// Show message
-			showMessage(gettext("Calibration Status"), gettext("It's recommended to print the backlash calibration prints after the print bed has been accurately calibrated. Make sure to set the \"Backlash X\" and \"Backlash Y\" values to 0 before printing a backlash calibration print which will print the model without any backlash compensation applied to it. The X backlash calibration and Y backlash calibration prints each assist in determining the X and Y backlash respectively.<br><br>The backlash values can be determined by finding the sample with the highest possible value that doesn't curve. Identifying the first sample that curves can be difficult, but it can be made easier by using a ruler and a flashlight to make the curves appear more prominent.") + "<img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/backlash-printed.png\">" + gettext("Once the correct sample has been located, the following chart can help determine the compensation in millimeters to fix the axis's backlash. It's recommended to print several copies and take the average compensation value to get a more accurate final value.") + "<img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/backlash-layout.png\">" + gettext("For more information check out <a target=\"_blank\" rel=\"nofollow\" href=\"http://www.thingiverse.com/thing:2040624\">Muele's quick backlash calibration method</a>.<br><br>All the referenced values can be found by clicking the \"Print settings\" button in the \"General\" section of OctoPrint's Control tab.<br><br>Choose a backlash calibration print to continue.") + "<span class=\"backlash\"><button class=\"btn btn-block\">" + gettext("X Axis Calibration") + "</button><button class=\"btn btn-block\">" + gettext("Y Axis Calibration") + "</button></span>", gettext("Cancel"), function() {
+			showMessage(gettext("Calibration Status"), gettext("It's recommended to print the backlash calibration prints after the print bed has been accurately calibrated. Make sure to set the \"Backlash X\" and \"Backlash Y\" values to 0 before printing a backlash calibration print which will print the model without any backlash compensation applied to it. The X backlash calibration and Y backlash calibration prints each assist in determining the X and Y backlash respectively.<br><br>The backlash values can be determined by finding the sample with the highest possible value that doesn't curve. Identifying the first sample that curves can be difficult, but it can be made easier by using a ruler and a flashlight to make the curves appear more prominent.") + "<img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/backlash-printed.png\">" + gettext("Once the correct sample has been located, the following chart can help determine the compensation in millimeters to fix the axis's backlash. It's recommended to print several copies and take the average compensation value to get a more accurate final value.") + "<img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/backlash-layout.png\">" + gettext("For more information check out <a target=\"_blank\" rel=\"nofollow\" href=\"http://www.thingiverse.com/thing:2040624\">Muele's quick backlash calibration method</a>.<br><br>All the referenced values can be found by clicking the \"Print settings\" button in the \"General\" section of OctoPrint's Control tab.<br><br>Choose a backlash calibration print to continue.") + "<span class=\"backlash\"><button class=\"btn btn-block\">" + gettext("X axis calibration") + "</button><button class=\"btn btn-block\">" + gettext("Y axis calibration") + "</button></span>", gettext("Cancel"), function() {
 			
 				// Hide message
 				hideMessage();
@@ -15575,7 +15586,7 @@ $(function() {
 				
 						// Download profile
 						var blob = new Blob([data], {type: "text/plain"});
-						saveFile(blob, "printer settings " + getTimeStamp() + ".yaml");
+						saveFile(blob, "Printer Settings " + getTimeStamp() + ".yaml");
 					});
 				});
 			}, 500);
@@ -16485,7 +16496,7 @@ $(function() {
 				
 							// Download profile
 							var blob = new Blob([data], {type: "text/plain"});
-							saveFile(blob, "config " + getTimeStamp() + ".yaml");
+							saveFile(blob, "OctoPrint Settings " + getTimeStamp() + ".yaml");
 						});
 					});
 				}, 500);
@@ -17067,14 +17078,14 @@ $(function() {
 					$("#gcode_upload_progress > div.bar").html(text);
 				
 				// Update message header
-				$("body > div.page-container > div.message").find("h4").html(gettext("Pre‐processing Status"));
+				$("body > div.page-container > div.message").find("h4").html(gettext("Pre‐Processing Status"));
 			}
 			
 			// Otherwise check if data is pre-processing file
 			else if(data.value === "Pre-processing file") {
 			
 				// Show message
-				showMessage(gettext("Pre‐processing Status"), gettext("Collecting Print Information…"));
+				showMessage(gettext("Pre‐Processing Status"), gettext("Collecting print information…"));
 			
 				// Update pre-processing status
 				function updatePreprocessingStatus() {
@@ -17202,7 +17213,7 @@ $(function() {
 							else
 								self.settings.requestData().done(updateValues);
 						});
-					}, gettext("Disable Reminder"), function() {
+					}, gettext("Disable reminder"), function() {
 					
 						// Hide message
 						hideMessage();
@@ -17284,7 +17295,7 @@ $(function() {
 							traditional: true,
 							processData: true
 						});
-					}, gettext("Disable Reminder"), function() {
+					}, gettext("Disable reminder"), function() {
 				
 						// Hide message
 						hideMessage();
@@ -18094,7 +18105,7 @@ $(function() {
 								clearInterval(updateTemperature);
 
 								// Show message
-								showMessage(gettext("Filament Status"), gettext("Remove filament"));
+								showMessage(gettext("Filament Status"), gettext("Remove filament…"));
 
 								// Set commands
 								commands = [
@@ -18154,7 +18165,7 @@ $(function() {
 													clearInterval(updateTemperature);
 
 													// Show message
-													showMessage(gettext("Filament Status"), gettext("Insert filament"));
+													showMessage(gettext("Filament Status"), gettext("Insert filament…"));
 
 													// Set commands
 													commands = [

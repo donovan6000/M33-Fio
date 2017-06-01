@@ -953,7 +953,7 @@ class M33FioPlugin(
 		# Otherwise
 		except :
 		
-			# Return false;
+			# Return false
 			return False
 	
 	# On after startup
@@ -3056,7 +3056,11 @@ class M33FioPlugin(
 				octoprint.settings.settings().set(["slicing", "defaultSlicer"], values["slicerName"], True)
 				
 				# Set file's destination
-				destinationName = "slicer_profile.ini"
+				destinationName = "slicer_profile"
+				if values["slicerName"] == "cura" :
+					destinationName += ".ini"
+				elif values["slicerName"] == "slic3r" :
+					destinationName += ".ini"
 				fileDestination = self.get_plugin_data_folder().replace("\\", "/") + "/" + destinationName
 				
 				# Remove file in destination if it already exists
@@ -3614,7 +3618,7 @@ class M33FioPlugin(
 					return flask.jsonify(dict(value = "Error"))
 				
 				# Set file's destination
-				destinationName = "config.yaml"
+				destinationName = "octoprint_settings.yaml"
 				fileDestination = self.get_plugin_data_folder().replace("\\", "/") + "/" + destinationName
 				
 				# Remove file in destination if it already exists
@@ -5611,9 +5615,9 @@ class M33FioPlugin(
 			elif response[6 : 10] == "1002" :
 				response = "ok " + gettext("Cannot calibrate in an unknown state") + "\n"
 			elif response[6 : 10] == "1003" :
-				response = "ok " + gettext("Unknown G‐Code") + "\n"
+				response = "ok " + gettext("Unknown G‐code") + "\n"
 			elif response[6 : 10] == "1004" :
-				response = "ok " + gettext("Unknown M‐Code") + "\n"
+				response = "ok " + gettext("Unknown M‐code") + "\n"
 			elif response[6 : 10] == "1005" :
 				response = "ok " + gettext("Unknown command") + "\n"
 			elif response[6 : 10] == "1006" :
@@ -8586,7 +8590,7 @@ class M33FioPlugin(
 			self.resetPreprocessorSettings()
 		
 			# Set progress bar percent and text
-			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = gettext("Collecting Print Information …")))
+			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Progress bar text", text = gettext("Collecting print information …")))
 			
 			# Check if not processing a slice
 			if not self.processingSlice :

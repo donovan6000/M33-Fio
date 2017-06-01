@@ -289,6 +289,7 @@ body > div.modal-scrollable.hideOverflow {
 	right: 30px;
 	top: 5px;
 	border-color: #E5E5E5;
+	text-overflow: ellipsis;
 }
 
 #navbar_plugin_m33fio > a {
@@ -1085,7 +1086,7 @@ body > div.page-container > div.message .customInput input {
 	max-width: 850px !important;
 	min-width: 610px !important;
 	min-height: 200px !important;
-	height: calc(100% - 200px);
+	height: calc(100% - 200px) !important;
 }
 
 #slicing_configuration_dialog.profile.transitionHeight {
@@ -1147,8 +1148,12 @@ body > div.page-container > div.message .customInput input {
 	margin-bottom: -5px;
 	z-index: -1;
 	position: relative;
-	min-height: 600px;
+	min-height: 510px;
 	overflow: hidden;
+}
+
+#slicing_configuration_dialog.model.printerButtons .modal-extra {
+	min-height: 600px;
 }
 
 #slicing_configuration_dialog.profile .modal-extra, #slicing_configuration_dialog.gcode .modal-extra {

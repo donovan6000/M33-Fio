@@ -19,13 +19,13 @@
 	<div class="control-group camera">
 		<div class="controls">
 			<label class="checkbox noWrap" title="{{_("Hosts a camera's stream and snapshot at port 4999 at /stream.mjpg and /snapshot.jpg respectively" | replace("\"", "&quot;"))}}">
-				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.HostCamera"><span>{{_("Host Camera")}}</span>
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.HostCamera"><span>{{_("Host camera")}}</span>
 				<select class="input-block-level short" data-bind="value: settings.plugins.m33fio.CameraPort"></select>
 			</label>
 		</div>
 	</div>
 	<div class="control-group dependant camera">
-		<label class="control-label">{{_("Camera Width")}}</label>
+		<label class="control-label">{{_("Camera width")}}</label>
 		<div class="controls">
 			<div class="input-append px">
 				<input type="number" step="1" min="1" max="4096" class="input-block-level" data-bind="value: settings.plugins.m33fio.CameraWidth">
@@ -34,7 +34,7 @@
 		</div>
 	</div>
 	<div class="control-group dependant camera">
-		<label class="control-label">{{_("Camera Height")}}</label>
+		<label class="control-label">{{_("Camera height")}}</label>
 		<div class="controls">
 			<div class="input-append">
 				<input type="number" step="1" min="1" max="4096" class="input-block-level" data-bind="value: settings.plugins.m33fio.CameraHeight">
@@ -43,7 +43,7 @@
 		</div>
 	</div>
 	<div class="control-group dependant camera">
-		<label class="control-label">{{_("Camera Frames/Second")}}</label>
+		<label class="control-label">{{_("Camera frames/second")}}</label>
 		<div class="controls">
 			<div class="input-append">
 				<input type="number" step="1" min="1" max="60" class="input-block-level" data-bind="value: settings.plugins.m33fio.CameraFramesPerSecond">
@@ -87,7 +87,7 @@
 		</div>
 	</div>
 	<div class="control-group title micro3d">
-		<h4>{{_("Pre‐Processor Stages")}}</h4>
+		<h4>{{_("Pre‐processor stages")}}</h4>
 	</div>
 	<div class="control-group micro3d">
 		<div class="controls">
@@ -100,7 +100,7 @@
 	<div class="control-group micro3d">
 		<div class="controls">
 			<label class="checkbox" title="{{_("Positions the printed object in the middle of the print bed. If possible, the centered model will be repositioned if it goes out of bounds." | replace("\"", "&quot;"))}}">
-				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.UseCenterModelPreprocessor"><span>{{_("Center Model")}}</span>
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.UseCenterModelPreprocessor"><span>{{_("Center model")}}</span>
 			</label>
 		</div>
 	</div>
@@ -158,33 +158,33 @@
 	<div class="control-group micro3d">
 		<div class="controls">
 			<label class="checkbox" title="{{_("Adds dwell times and higher temperatures to the first few layers" | replace("\"", "&quot;"))}}">
-				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.UseThermalBondingPreprocessor"><span>{{_("Thermal Bonding")}}</span>
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.UseThermalBondingPreprocessor"><span>{{_("Thermal bonding")}}</span>
 			</label>
 		</div>
 	</div>
 	<div class="control-group micro3d">
 		<div class="controls">
 			<label class="checkbox" title="{{_("Smooths out the bottom layer" | replace("\"", "&quot;"))}}">
-				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.UseWaveBondingPreprocessor"><span>{{_("Wave Bonding")}}</span>
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.UseWaveBondingPreprocessor"><span>{{_("Wave bonding")}}</span>
 			</label>
 		</div>
 	</div>
 	<div class="control-group micro3d">
 		<div class="controls">
 			<label class="checkbox" title="{{_("Adjusts the Z value of every G-code command to account for bed leveling" | replace("\"", "&quot;"))}}">
-				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.UseBedCompensationPreprocessor"><span>{{_("Bed Compensation")}} <span class="label label-important">{{_("Always internally enabled when using iMe firmware")}}</span></span>
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.UseBedCompensationPreprocessor"><span>{{_("Bed compensation")}} <span class="label label-important">{{_("Always internally enabled when using iMe firmware")}}</span></span>
 			</label>
 		</div>
 	</div>
 	<div class="control-group micro3d">
 		<div class="controls">
 			<label class="checkbox" title="{{_("Adjusts the X and Y values of G-code commands that change the current X or Y direction to account for backlash when changing directions" | replace("\"", "&quot;"))}}">
-				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.UseBacklashCompensationPreprocessor"><span>{{_("Backlash Compensation")}} <span class="label label-important">{{_("Always internally enabled when using iMe firmware")}}</span></span>
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.UseBacklashCompensationPreprocessor"><span>{{_("Backlash compensation")}} <span class="label label-important">{{_("Always internally enabled when using iMe firmware")}}</span></span>
 			</label>
 		</div>
 	</div>
 	<div class="control-group title micro3d">
-		<h4>{{_("Printer Settings")}}</h4>
+		<h4>{{_("Printer settings")}}</h4>
 	</div>
 	<div class="control-group micro3d" title="{{_("Amount of backlash compensation required for the X motor" | replace("\"", "&quot;"))}}">
 		<label class="control-label">{{_("Backlash X")}}</label>
@@ -205,7 +205,7 @@
 		</div>
 	</div>
 	<div class="control-group micro3d" title="{{_("Speed of the backlash compensation" | replace("\"", "&quot;"))}}">
-		<label class="control-label">{{_("Backlash Speed")}}</label>
+		<label class="control-label">{{_("Backlash speed")}}</label>
 		<div class="controls">
 			<div class="input-append mmPerMinute">
 				<input type="number" step="0.000001" min="1" max="5000" class="input-block-level" data-bind="value: settings.plugins.m33fio.BacklashSpeed">
@@ -214,7 +214,7 @@
 		</div>
 	</div>
 	<div class="control-group micro3d" title="{{_("The sum of this value and the back left offset is the total vertical displacement for the back left corner. A positive vertical displacement means that the back left corner is higher than the bed's center, and a negative vertical displacement means that the back left corner is lower than the bed's center." | replace("\"", "&quot;"))}}">
-		<label class="control-label">{{_("Back Left Orientation")}}</label>
+		<label class="control-label">{{_("Back left orientation")}}</label>
 		<div class="controls">
 			<div class="input-append">
 				<input type="number" step="0.000001" min="-3" max="3" class="input-block-level" data-bind="value: settings.plugins.m33fio.BackLeftOrientation">
@@ -223,7 +223,7 @@
 		</div>
 	</div>
 	<div class="control-group micro3d" title="{{_("The sum of this value and the back right offset is the total vertical displacement for the back right corner. A positive vertical displacement means that the back right corner is higher than the bed's center, and a negative vertical displacement means that the back right corner is lower than the bed's center." | replace("\"", "&quot;"))}}">
-		<label class="control-label">{{_("Back Right Orientation")}}</label>
+		<label class="control-label">{{_("Back right orientation")}}</label>
 		<div class="controls">
 			<div class="input-append">
 				<input type="number" step="0.000001" min="-3" max="3" class="input-block-level" data-bind="value: settings.plugins.m33fio.BackRightOrientation">
@@ -232,7 +232,7 @@
 		</div>
 	</div>
 	<div class="control-group micro3d" title="{{_("The sum of this value and the front right offset is the total vertical displacement for the front right corner. A positive vertical displacement means that the front right corner is higher than the bed's center, and a negative vertical displacement means that the front right corner is lower than the bed's center." | replace("\"", "&quot;"))}}">
-		<label class="control-label">{{_("Front Right Orientation")}}</label>
+		<label class="control-label">{{_("Front right orientation")}}</label>
 		<div class="controls">
 			<div class="input-append">
 				<input type="number" step="0.000001" min="-3" max="3" class="input-block-level" data-bind="value: settings.plugins.m33fio.FrontRightOrientation">
@@ -241,7 +241,7 @@
 		</div>
 	</div>
 	<div class="control-group micro3d" title="{{_("The sum of this value and the front left offset is the total vertical displacement for the front left corner. A positive vertical displacement means that the front left corner is higher than the bed's center, and a negative vertical displacement means that the front left corner is lower than the bed's center." | replace("\"", "&quot;"))}}">
-		<label class="control-label">{{_("Front Left Orientation")}}</label>
+		<label class="control-label">{{_("Front left orientation")}}</label>
 		<div class="controls">
 			<div class="input-append">
 				<input type="number" step="0.000001" min="-3" max="3" class="input-block-level" data-bind="value: settings.plugins.m33fio.FrontLeftOrientation">
@@ -250,7 +250,7 @@
 		</div>
 	</div>
 	<div class="control-group micro3d" title="{{_("The vertical displacement for the entire bed. A positive vertical displacement means that the entire bed is higher than it is, and a negative vertical displacement means that the entire bed is lower than it is." | replace("\"", "&quot;"))}}">
-		<label class="control-label">{{_("Bed Height Offset")}}</label>
+		<label class="control-label">{{_("Bed height offset")}}</label>
 		<div class="controls">
 			<div class="input-append">
 				<input type="number" step="0.000001" class="input-block-level" data-bind="value: settings.plugins.m33fio.BedHeightOffset">
@@ -259,7 +259,7 @@
 		</div>
 	</div>
 	<div class="control-group micro3d" title="{{_("The sum of this value and the back left orientation is the total vertical displacement for the back left corner. A positive vertical displacement means that the back left corner is higher than the bed's center, and a negative vertical displacement means that the back left corner is lower than the bed's center." | replace("\"", "&quot;"))}}">
-		<label class="control-label">{{_("Back Left Offset")}}</label>
+		<label class="control-label">{{_("Back left offset")}}</label>
 		<div class="controls">
 			<div class="input-append">
 				<input type="number" step="0.000001" class="input-block-level" data-bind="value: settings.plugins.m33fio.BackLeftOffset">
@@ -268,7 +268,7 @@
 		</div>
 	</div>
 	<div class="control-group micro3d" title="{{_("The sum of this value and the back right orientation is the total vertical displacement for the back right corner. A positive vertical displacement means that the back right corner is higher than the bed's center, and a negative vertical displacement means that the back right corner is lower than the bed's center." | replace("\"", "&quot;"))}}">
-		<label class="control-label">{{_("Back Right Offset")}}</label>
+		<label class="control-label">{{_("Back right offset")}}</label>
 		<div class="controls">
 			<div class="input-append">
 				<input type="number" step="0.000001" class="input-block-level" data-bind="value: settings.plugins.m33fio.BackRightOffset">
@@ -277,7 +277,7 @@
 		</div>
 	</div>
 	<div class="control-group micro3d" title="{{_("The sum of this value and the front right orientation is the total vertical displacement for the front right corner. A positive vertical displacement means that the front right corner is higher than the bed's center, and a negative vertical displacement means that the front right corner is lower than the bed's center." | replace("\"", "&quot;"))}}">
-		<label class="control-label">{{_("Front Right Offset")}}</label>
+		<label class="control-label">{{_("Front right offset")}}</label>
 		<div class="controls">
 			<div class="input-append">
 				<input type="number" step="0.000001" class="input-block-level" data-bind="value: settings.plugins.m33fio.FrontRightOffset">
@@ -286,7 +286,7 @@
 		</div>
 	</div>
 	<div class="control-group micro3d" title="{{_("The sum of this value and the front left orientation is the total vertical displacement for the front left corner. A positive vertical displacement means that the front left corner is higher than the bed's center, and a negative vertical displacement means that the front left corner is lower than the bed's center." | replace("\"", "&quot;"))}}">
-		<label class="control-label">{{_("Front Left Offset")}}</label>
+		<label class="control-label">{{_("Front left offset")}}</label>
 		<div class="controls">
 			<div class="input-append">
 				<input type="number" step="0.000001" class="input-block-level" data-bind="value: settings.plugins.m33fio.FrontLeftOffset">
@@ -295,7 +295,7 @@
 		</div>
 	</div>
 	<div class="control-group micro3d" title="{{_("Height of an external object that's placed on the bed, such as a heatbed" | replace("\"", "&quot;"))}}">
-		<label class="control-label">{{_("External Bed Height")}}</label>
+		<label class="control-label">{{_("External bed height")}}</label>
 		<div class="controls">
 			<div class="input-append">
 				<input type="number" step="0.000001" min="0" max="50" class="input-block-level" data-bind="value: settings.plugins.m33fio.ExternalBedHeight">
@@ -311,7 +311,7 @@
 		</div>
 	</div>
 	<div class="control-group micro3d" title="{{_("Extruder's printing temperature" | replace("\"", "&quot;"))}}">
-		<label class="control-label">{{_("Filament Temperature")}}</label>
+		<label class="control-label">{{_("Filament temperature")}}</label>
 		<div class="controls">
 			<div class="input-append degreesCelsius">
 				<input type="number" step="1" min="150" max="315" class="input-block-level" data-bind="value: settings.plugins.m33fio.FilamentTemperature">
@@ -320,7 +320,7 @@
 		</div>
 	</div>
 	<div class="control-group heatbed micro3d" title="{{_("Heatbed's printing temperature" | replace("\"", "&quot;"))}}">
-		<label class="control-label">{{_("Heatbed Temperature")}}</label>
+		<label class="control-label">{{_("Heatbed temperature")}}</label>
 		<div class="controls">
 			<div class="input-append degreesCelsius">
 				<input type="number" step="1" min="0" max="110" class="input-block-level" data-bind="value: settings.plugins.m33fio.HeatbedTemperature">
@@ -329,7 +329,7 @@
 		</div>
 	</div>
 	<div class="control-group micro3d" title="{{_("Type of filement being printed" | replace("\"", "&quot;"))}}">
-		<label class="control-label">{{_("Filament Type")}}</label>
+		<label class="control-label">{{_("Filament type")}}</label>
 		<div class="controls">
 			<select class="input-block-level" data-bind="value: settings.plugins.m33fio.FilamentType">
 				<option value="ABS">{{_("%(type)s (Recommended %(temperature)s)", type = "ABS", temperature = "275°C")}}</option>
@@ -347,7 +347,7 @@
 		<h4><span class="label label-important">{{_("Changes to speed limits require restarting the printer to<br>take effect when using M3D or M3D Mod firmware")}}</span></h4>
 	</div>
 	<div class="control-group micro3d" title="{{_("X motor's speed limit" | replace("\"", "&quot;"))}}">
-		<label class="control-label">{{_("Speed Limit X")}}</label>
+		<label class="control-label">{{_("Speed limit X")}}</label>
 		<div class="controls">
 			<div class="input-append mmPerMinute">
 				<input type="number" step="1" min="120" max="4800" class="input-block-level" data-bind="value: settings.plugins.m33fio.SpeedLimitX">
@@ -356,7 +356,7 @@
 		</div>
 	</div>
 	<div class="control-group micro3d" title="{{_("Y motor's speed limit" | replace("\"", "&quot;"))}}">
-		<label class="control-label">{{_("Speed Limit Y")}}</label>
+		<label class="control-label">{{_("Speed limit Y")}}</label>
 		<div class="controls">
 			<div class="input-append mmPerMinute">
 				<input type="number" step="1" min="120" max="4800" class="input-block-level" data-bind="value: settings.plugins.m33fio.SpeedLimitY">
@@ -365,7 +365,7 @@
 		</div>
 	</div>
 	<div class="control-group micro3d" title="{{_("Z motor's speed limit" | replace("\"", "&quot;"))}}">
-		<label class="control-label">{{_("Speed Limit Z")}}</label>
+		<label class="control-label">{{_("Speed limit Z")}}</label>
 		<div class="controls">
 			<div class="input-append mmPerMinute">
 				<input type="number" step="1" min="30" max="60" class="input-block-level" data-bind="value: settings.plugins.m33fio.SpeedLimitZ">
@@ -374,7 +374,7 @@
 		</div>
 	</div>
 	<div class="control-group micro3d" title="{{_("E motor's extrusion speed limit" | replace("\"", "&quot;"))}}">
-		<label class="control-label">{{_("Speed Limit E+")}}</label>
+		<label class="control-label">{{_("Speed limit E+")}}</label>
 		<div class="controls">
 			<div class="input-append mmPerMinute">
 				<input type="number" step="1" min="60" max="600" class="input-block-level" data-bind="value: settings.plugins.m33fio.SpeedLimitEPositive">
@@ -383,7 +383,7 @@
 		</div>
 	</div>
 	<div class="control-group micro3d" title="{{_("E motor's retraction speed limit" | replace("\"", "&quot;"))}}">
-		<label class="control-label">{{_("Speed Limit E−")}}</label>
+		<label class="control-label">{{_("Speed limit E−")}}</label>
 		<div class="controls">
 			<div class="input-append mmPerMinute">
 				<input type="number" step="1" min="60" max="720" class="input-block-level" data-bind="value: settings.plugins.m33fio.SpeedLimitENegative">
@@ -395,7 +395,7 @@
 		<h4><span class="label label-important">{{_("Steps/mm, jerk sensitivity, and calibrate Z0 correction<br>settings are only used by iMe firmware")}}</span></h4>
 	</div>
 	<div class="control-group micro3d" title="{{_("Amount of steps/mm for the X motor" | replace("\"", "&quot;"))}}">
-		<label class="control-label">{{_("X Motor Steps/mm")}}</label>
+		<label class="control-label">{{_("X motor steps/mm")}}</label>
 		<div class="controls">
 			<div class="input-append stepsPerMm">
 				<input type="number" step="0.000001" min="0.000001" class="input-block-level" data-bind="value: settings.plugins.m33fio.XMotorStepsPerMm">
@@ -404,7 +404,7 @@
 		</div>
 	</div>
 	<div class="control-group micro3d" title="{{_("Amount of steps/mm for the Y motor" | replace("\"", "&quot;"))}}">
-		<label class="control-label">{{_("Y Motor Steps/mm")}}</label>
+		<label class="control-label">{{_("Y motor steps/mm")}}</label>
 		<div class="controls">
 			<div class="input-append stepsPerMm">
 				<input type="number" step="0.000001" min="0.000001" class="input-block-level" data-bind="value: settings.plugins.m33fio.YMotorStepsPerMm">
@@ -413,7 +413,7 @@
 		</div>
 	</div>
 	<div class="control-group micro3d" title="{{_("Amount of steps/mm for the Z motor" | replace("\"", "&quot;"))}}">
-		<label class="control-label">{{_("Z Motor Steps/mm")}}</label>
+		<label class="control-label">{{_("Z motor steps/mm")}}</label>
 		<div class="controls">
 			<div class="input-append stepsPerMm">
 				<input type="number" step="0.000001" min="0.000001" class="input-block-level" data-bind="value: settings.plugins.m33fio.ZMotorStepsPerMm">
@@ -422,7 +422,7 @@
 		</div>
 	</div>
 	<div class="control-group micro3d" title="{{_("Amount of steps/mm for the E motor" | replace("\"", "&quot;"))}}">
-		<label class="control-label">{{_("E Motor Steps/mm")}}</label>
+		<label class="control-label">{{_("E motor steps/mm")}}</label>
 		<div class="controls">
 			<div class="input-append stepsPerMm">
 				<input type="number" step="0.000001" min="0.000001" class="input-block-level" data-bind="value: settings.plugins.m33fio.EMotorStepsPerMm">
@@ -431,7 +431,7 @@
 		</div>
 	</div>
 	<div class="control-group micro3d" title="{{_("Sensitivity of the X jerk detection when homing. Lower values mean less sensitivity and higher values mean more sensitivity." | replace("\"", "&quot;"))}}">
-		<label class="control-label">{{_("X Jerk Homing Sensitivity")}}</label>
+		<label class="control-label">{{_("X jerk homing sensitivity")}}</label>
 		<div class="controls">
 			<div class="input-append ratio255">
 				<input type="number" step="1" min="1" max="255" class="input-block-level" data-bind="value: settings.plugins.m33fio.XJerkSensitivity">
@@ -440,7 +440,7 @@
 		</div>
 	</div>
 	<div class="control-group micro3d" title="{{_("Sensitivity of the Y jerk detection when homing. Lower values mean less sensitivity and higher values mean more sensitivity." | replace("\"", "&quot;"))}}">
-		<label class="control-label">{{_("Y Jerk Homing Sensitivity")}}</label>
+		<label class="control-label">{{_("Y jerk homing sensitivity")}}</label>
 		<div class="controls">
 			<div class="input-append ratio255">
 				<input type="number" step="1" min="1" max="255" class="input-block-level" data-bind="value: settings.plugins.m33fio.YJerkSensitivity">
