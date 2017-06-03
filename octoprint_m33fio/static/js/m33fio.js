@@ -484,7 +484,7 @@ $(function() {
 				color: "rgb(200, 200, 200)"
 			},
 			expandPrintableRegion: {
-				name: gettext("Use max printable region"),
+				name: gettext("Expand printable region"),
 				offset: 0x294,
 				bytes: 1,
 				color: "rgb(230, 150, 150)"
