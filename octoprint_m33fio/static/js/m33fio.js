@@ -465,6 +465,18 @@ $(function() {
 				bytes: 4,
 				color: "rgb(240, 160, 240)"
 			},
+			filamentSize: {
+				name: gettext("Filament Size"),
+				offset: 0x82,
+				bytes: 1,
+				color: "rgb(180, 180, 240)"
+			},
+			filamentUid: {
+				name: gettext("Filament UID"),
+				offset: 0x83,
+				bytes: 4,
+				color: "rgb(180, 240, 180)"
+			},
 			bedOrientationFirstSample: {
 				name: gettext("Bed orientation first sample"),
 				offset: 0x106,

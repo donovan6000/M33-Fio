@@ -297,6 +297,14 @@ class M33FioPlugin(
 				offset = 0x76,
 				bytes = 4
 			),
+			filamentSize = dict(
+				offset = 0x82,
+				bytes = 1
+			),
+			filamentUid = dict(
+				offset = 0x83,
+				bytes = 4
+			),
 			bedOrientationFirstSample = dict(
 				offset = 0x106,
 				bytes = 4
@@ -438,7 +446,6 @@ class M33FioPlugin(
 		# Chip details
 		self.chipName = "ATxmega32C4"
 		self.chipPageSize = 0x80
-		self.chipNrwwSize = 0x20
 		self.chipNumberOfPages = 0x80
 		self.chipTotalMemory = self.chipNumberOfPages * self.chipPageSize * 2
 		
@@ -4378,12 +4385,21 @@ class M33FioPlugin(
 							# Check if data to be written exists
 							position = pageAddress + self.chipPageSize * index * 2
 							if position < len(encryptedRom) :
-			
-								# Send value
-								if position % 2 == 0 :
-									connection.write(encryptedRom[position + 1])
+							
+								# Check if padding is required
+								if position % 2 == 0 and position == len(encryptedRom) - 1 :
+
+									# Send padding
+									connection.write(chr(self.romEncryptionTable[0xFF]))
+
+								# Otherwise
 								else :
-									connection.write(encryptedRom[position - 1])
+			
+									# Send value
+									if position % 2 == 0 :
+										connection.write(encryptedRom[position + 1])
+									else :
+										connection.write(encryptedRom[position - 1])
 
 							# Otherwise
 							else :
@@ -4400,6 +4416,9 @@ class M33FioPlugin(
 							# Set error
 							error = True
 							break
+						
+						# Delay
+						time.sleep(0.02)
 		
 						# Increment index
 						index += 1
@@ -5605,35 +5624,76 @@ class M33FioPlugin(
 			response = ""
 		
 		# Otherwise check if response was an error code
-		elif response.startswith("Error:") :
-
-			# Set error response
-			if response[6 : 10] == "1000" :
-				response = "ok " + gettext("M110 without a line number") + "\n"
-			elif response[6 : 10] == "1001" :
-				response = "ok " + gettext("Cannot cold extrude") + "\n"
-			elif response[6 : 10] == "1002" :
-				response = "ok " + gettext("Cannot calibrate in an unknown state") + "\n"
-			elif response[6 : 10] == "1003" :
-				response = "ok " + gettext("Unknown G‐code") + "\n"
-			elif response[6 : 10] == "1004" :
-				response = "ok " + gettext("Unknown M‐code") + "\n"
-			elif response[6 : 10] == "1005" :
-				response = "ok " + gettext("Unknown command") + "\n"
-			elif response[6 : 10] == "1006" :
-				response = "ok " + gettext("Heater failed") + "\n"
-			elif response[6 : 10] == "1007" :
-				response = "ok " + gettext("Move to large") + "\n"
-			elif response[6 : 10] == "1008" :
-				response = "ok " + gettext("Printer has been inactive for too long, heater and motors have been turned off") + "\n"
-			elif response[6 : 10] == "1009" :
-				response = "ok " + gettext("Target address out of range") + "\n"
-			elif response[6 : 10] == "1010" :
-				response = "ok " + gettext("Command cannot run because micro motion chip encountered an error") + "\n"
-			elif response[6 : 10].isdigit() :
-				response = "ok " + gettext("An error has occured") + "\n"
+		elif response.startswith("Error:") or response.startswith("!!") or response.startswith("e") :
+		
+			# Check if an error code exists
+			errorCode = re.search("\\d+", response)
+			if errorCode :
+			
+				# Set error code
+				errorCode = errorCode.group(0)
+			
+				# Set error response
+				if errorCode == "0" :
+					response = "ok " + gettext("Firmware parser returned a parse error") + "\n"
+				elif errorCode == "1" :
+					response = "ok " + gettext("Firmware parser returned a not supported protocol error") + "\n"
+				elif errorCode == "2" :
+					response = "ok " + gettext("Firmware parser returned an ASCII buffer overflow error") + "\n"
+				elif errorCode == "3" :
+					response = "ok " + gettext("Firmware parser returned a number expected error") + "\n"
+				elif errorCode == "4" :
+					response = "ok " + gettext("Firmware parser returned a number overload error") + "\n"
+				elif errorCode == "5" :
+					response = "ok " + gettext("Firmware parser returned an unknown error") + "\n"
+				elif errorCode == "6" :
+					response = "ok " + gettext("Firmware interpreter returned an unsupported error") + "\n"
+				elif errorCode == "7" :
+					response = "ok " + gettext("Firmware interpreter returned an unknown error") + "\n"
+				elif errorCode == "1000" :
+					response = "ok " + gettext("M110 without a line number") + "\n"
+				elif errorCode == "1001" :
+					response = "ok " + gettext("Cannot cold extrude") + "\n"
+				elif errorCode == "1002" :
+					response = "ok " + gettext("Cannot calibrate in an unknown state") + "\n"
+				elif errorCode == "1003" :
+					response = "ok " + gettext("Unknown G‐code") + "\n"
+				elif errorCode == "1004" :
+					response = "ok " + gettext("Unknown M‐code") + "\n"
+				elif errorCode == "1005" :
+					response = "ok " + gettext("Unknown command") + "\n"
+				elif errorCode == "1006" :
+					response = "ok " + gettext("Heater failed") + "\n"
+				elif errorCode == "1007" :
+					response = "ok " + gettext("Move to large") + "\n"
+				elif errorCode == "1008" :
+					response = "ok " + gettext("Printer has been inactive for too long, heater and motors have been turned off") + "\n"
+				elif errorCode == "1009" :
+					response = "ok " + gettext("M618 or M619 was sent with invalid parameters") + "\n"
+				elif errorCode == "1010" :
+					response = "ok " + gettext("There was an error initializing the hardware") + "\n"
+				elif errorCode == "1011" :
+					response = "ok " + gettext("EEPROM address read/write size is invalid") + "\n"
+				elif errorCode == "1012" :
+					response = "ok " + gettext("Commanded temperature is outside the commandable range") + "\n"
+				else :
+					response = "ok " + gettext("An error has occured") + "\n"
+			
+			# Otherwise
 			else :
-				response = "ok " + gettext(response[6 :].strip()) + "\n"
+			
+				# Set response
+				if response.startswith("Error:") :
+					response = response[6 :].strip()
+				elif response.startswith("!!") :
+					response = response[2 :].strip()
+				else :
+					response = response[1 :].strip()
+				
+				if len(response) == 0 :
+					response = "An error has occured"
+				
+				response = "ok " + gettext(response) + "\n"
 			
 			# Check if waiting for a command to be processed
 			if self.lastLineNumberSent is not None and self.lastLineNumberSent % 0x10000 in self.sentCommands :
@@ -9284,6 +9344,9 @@ class M33FioPlugin(
 	
 	# Get current adjustment Z
 	def getCurrentAdjustmentZ(self) :
+	
+		# Increment wave step
+		self.waveStep = (self.waveStep + 1) % 4
 
 		# Set adjustment
 		if self.waveStep == 0 :
@@ -9292,9 +9355,6 @@ class M33FioPlugin(
 			adjustment = -1.5
 		else :
 			adjustment = 0
-	
-		# Increment wave step
-		self.waveStep = (self.waveStep + 1) % 4
 		
 		# Return adjustment
 		return adjustment * self.waveSize

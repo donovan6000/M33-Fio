@@ -305,7 +305,7 @@ double getDistance(const Gcode &firstPoint, const Gcode &secondPoint) {
 	return sqrt(pow(firstX - secondX, 2) + pow(firstY - secondY, 2));
 }
 
-Gcode createTackPointForThermalBonding(const Gcode &point, const Gcode &refrence, float time) {
+Gcode createTackPointForThermalBonding(const Gcode &point, const Gcode &refrence, double time) {
 
 	// Initialize variables
 	Gcode gcode;
@@ -346,7 +346,7 @@ Gcode createTackPointForWaveBonding(const Gcode &point, const Gcode &refrence) {
 	return gcode;
 }
 
-bool isSharpCornerForThermalBonding(const Gcode &point, const Gcode &refrence, float angle) {
+bool isSharpCornerForThermalBonding(const Gcode &point, const Gcode &refrence, double angle) {
 
 	// Initialize variables
 	double value;
@@ -420,11 +420,11 @@ bool isSharpCornerForWaveBonding(const Gcode &point, const Gcode &refrence) {
 
 double getCurrentAdjustmentZ() {
 
-	// Set adjustment
-	double adjustment = waveStep ? waveStep != 2 ? 0 : -1.5 : 1;
-	
 	// Increment wave step
 	waveStep = (waveStep + 1) % 4;
+
+	// Set adjustment
+	double adjustment = waveStep ? waveStep != 2 ? 0 : -1.5 : 1;
 	
 	// Return adjustment
 	return adjustment * WAVE_SIZE;
