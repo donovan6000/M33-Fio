@@ -18,8 +18,8 @@
 	</div>
 	<div class="control-group camera">
 		<div class="controls">
-			<label class="checkbox noWrap" title="{{_("Hosts a camera's stream and snapshot at port 4999 at /stream.mjpg and /snapshot.jpg respectively" | replace("\"", "&quot;"))}}">
-				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.HostCamera"><span>{{_("Host camera")}}</span>
+			<label class="checkbox noWrap camera" title="{{_("Hosts a camera's stream and snapshot at port 4999 at /stream.mjpg and /snapshot.jpg respectively" | replace("\"", "&quot;"))}}">
+				<input type="checkbox" class="input-block-level hostCamera" data-bind="checked: settings.plugins.m33fio.HostCamera"><span>{{_("Host camera")}}</span>
 				<select class="input-block-level short" data-bind="value: settings.plugins.m33fio.CameraPort"></select>
 			</label>
 		</div>
@@ -148,8 +148,8 @@
 	</div>
 	<div class="control-group dependant gpio micro3d">
 		<div class="controls">
-			<label class="checkbox noWrap" title="{{_("Sets a GPIO pin high at the start of the specified layer and sets it low when the print is done" | replace("\"", "&quot;"))}}">
-				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.UseGpio"><span>{{_("Use GPIO")}}</span>
+			<label class="checkbox noWrap gpio" title="{{_("Sets a GPIO pin high at the start of the specified layer and sets it low when the print is done" | replace("\"", "&quot;"))}}">
+				<input type="checkbox" class="input-block-level useGpio" data-bind="checked: settings.plugins.m33fio.UseGpio"><span>{{_("Use GPIO")}}</span>
 				<input type="number" step="1" min="0" class="input-block-level short" data-bind="value: settings.plugins.m33fio.GpioPin" placeholder="{{_("GPIO pin number" | replace("\"", "&quot;"))}}">
 				<input type="number" step="1" min="1" class="input-block-level short" data-bind="value: settings.plugins.m33fio.GpioLayer" placeholder="{{_("GPIO start layer" | replace("\"", "&quot;"))}}">
 			</label>
@@ -164,7 +164,7 @@
 	</div>
 	<div class="control-group micro3d">
 		<div class="controls">
-			<label class="checkbox" title="{{_("Smooths out the bottom layer" | replace("\"", "&quot;"))}}">
+			<label class="checkbox" title="{{_("Moves the extruder in a wave pattern during the first layer of a print to improve adhesion with the print bed" | replace("\"", "&quot;"))}}">
 				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.UseWaveBondingPreprocessor"><span>{{_("Wave bonding")}}</span>
 			</label>
 		</div>
@@ -208,7 +208,7 @@
 		<label class="control-label">{{_("Backlash speed")}}</label>
 		<div class="controls">
 			<div class="input-append mmPerMinute">
-				<input type="number" step="0.000001" min="1" max="5000" class="input-block-level" data-bind="value: settings.plugins.m33fio.BacklashSpeed">
+				<input type="number" step="0.000001" min="1" class="input-block-level" data-bind="value: settings.plugins.m33fio.BacklashSpeed">
 				<span class="add-on">mm/min</span>
 			</div>
 		</div>

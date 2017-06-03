@@ -483,6 +483,18 @@ $(function() {
 				bytes: 4,
 				color: "rgb(200, 200, 200)"
 			},
+			expandPrintableRegion: {
+				name: gettext("Use max printable region"),
+				offset: 0x294,
+				bytes: 1,
+				color: "rgb(230, 150, 150)"
+			},
+			externalBedHeight: {
+				name: gettext("External bed height"),
+				offset: 0x295,
+				bytes: 4,
+				color: "rgb(150, 230, 150)"
+			},
 			calibrateZ0Correction: {
 				name: gettext("Calibrate Z0 correction"),
 				offset: 0x299,
@@ -9582,7 +9594,7 @@ $(function() {
 							</div>\
 							<div class=\"control-group\">\
 								<div class=\"controls\">\
-									<label class=\"checkbox\" title=\"" + encodeQuotes(gettext("Smooths out the bottom layer")) + "\">\
+									<label class=\"checkbox\" title=\"" + encodeQuotes(gettext("Moves the extruder in a wave pattern during the first layer of a print to improve adhesion with the print bed")) + "\">\
 										<input type=\"checkbox\" class=\"input-block-level\" data-bind=\"checked: settings.plugins.m33fio.UseWaveBondingPreprocessor\"><span>" + gettext("Use wave bonding") + "</span>\
 									</label>\
 								</div>\
@@ -11241,6 +11253,18 @@ $(function() {
 					}
 				}
 			}
+			
+			// Enable or disable camera port selection
+			if($("#settings_plugin_m33fio input[type=\"checkbox\"].hostCamera").is(":checked"))
+				$("#settings_plugin_m33fio .camera select").removeClass("disabled");
+			else
+				$("#settings_plugin_m33fio .camera select").addClass("disabled");
+			
+			// Enable or disable GPIO pin and layer number
+			if($("#settings_plugin_m33fio input[type=\"checkbox\"].useGpio").is(":checked"))
+				$("#settings_plugin_m33fio .gpio input[type=\"number\"]").removeClass("disabled");
+			else
+				$("#settings_plugin_m33fio .gpio input[type=\"number\"]").addClass("disabled");
 			
 			// Check if setting is printer type
 			if($(this).hasClass("printerType")) {
@@ -18888,6 +18912,18 @@ $(function() {
 						parent.addClass("disabled");
 				}
 			});
+			
+			// Enable or disable camera port selection
+			if($("#settings_plugin_m33fio input[type=\"checkbox\"].hostCamera").is(":checked"))
+				$("#settings_plugin_m33fio .camera select").removeClass("disabled");
+			else
+				$("#settings_plugin_m33fio .camera select").addClass("disabled");
+			
+			// Enable or disable GPIO pin and layer number
+			if($("#settings_plugin_m33fio input[type=\"checkbox\"].useGpio").is(":checked"))
+				$("#settings_plugin_m33fio .gpio input[type=\"number\"]").removeClass("disabled");
+			else
+				$("#settings_plugin_m33fio .gpio input[type=\"number\"]").addClass("disabled");
 		
 			// Resize window
 			$(window).resize();

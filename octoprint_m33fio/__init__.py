@@ -309,6 +309,14 @@ class M33FioPlugin(
 				offset = 0x106,
 				bytes = 4
 			),
+			expandPrintableRegion = dict(
+				offset = 0x294,
+				bytes = 1
+			),
+			externalBedHeight = dict(
+				offset = 0x295,
+				bytes = 4
+			),
 			calibrateZ0Correction = dict(
 				offset = 0x299,
 				bytes = 4
@@ -1691,227 +1699,358 @@ class M33FioPlugin(
 	def guaranteeSettingsAreValid(self) :
 	
 		# Make sure backlash X is valid
-		if self._settings.get_float(["BacklashX"]) is None :
+		value = self._settings.get_float(["BacklashX"])
+		if not isinstance(value, float) or math.isnan(value) :
 			self._settings.set_float(["BacklashX"], self.get_settings_defaults()["BacklashX"])
+		elif value < 0 or value > 2 :
+			self._settings.set_float(["BacklashX"], min(2, max(0, value)))
 		
 		# Make sure backlash Y is valid
-		if self._settings.get_float(["BacklashY"]) is None :
+		value = self._settings.get_float(["BacklashY"])
+		if not isinstance(value, float) or math.isnan(value) :
 			self._settings.set_float(["BacklashY"], self.get_settings_defaults()["BacklashY"])
+		elif value < 0 or value > 2 :
+			self._settings.set_float(["BacklashY"], min(2, max(0, value)))
 		
 		# Make sure back left orientation is valid
-		if self._settings.get_float(["BackLeftOrientation"]) is None :
+		value = self._settings.get_float(["BackLeftOrientation"])
+		if not isinstance(value, float) or math.isnan(value) :
 			self._settings.set_float(["BackLeftOrientation"], self.get_settings_defaults()["BackLeftOrientation"])
+		elif value < -3 or value > 3 :
+			self._settings.set_float(["BackLeftOrientation"], min(3, max(-3, value)))
 		
 		# Make sure back right orientation is valid
-		if self._settings.get_float(["BackRightOrientation"]) is None :
+		value = self._settings.get_float(["BackRightOrientation"])
+		if not isinstance(value, float) or math.isnan(value) :
 			self._settings.set_float(["BackRightOrientation"], self.get_settings_defaults()["BackRightOrientation"])
+		elif value < -3 or value > 3 :
+			self._settings.set_float(["BackRightOrientation"], min(3, max(-3, value)))
 		
 		# Make sure front right orientation is valid
-		if self._settings.get_float(["FrontRightOrientation"]) is None :
+		value = self._settings.get_float(["FrontRightOrientation"])
+		if not isinstance(value, float) or math.isnan(value) :
 			self._settings.set_float(["FrontRightOrientation"], self.get_settings_defaults()["FrontRightOrientation"])
+		elif value < -3 or value > 3 :
+			self._settings.set_float(["FrontRightOrientation"], min(3, max(-3, value)))
 		
 		# Make sure front left orientation is valid
-		if self._settings.get_float(["FrontLeftOrientation"]) is None :
+		value = self._settings.get_float(["FrontLeftOrientation"])
+		if not isinstance(value, float) or math.isnan(value) :
 			self._settings.set_float(["FrontLeftOrientation"], self.get_settings_defaults()["FrontLeftOrientation"])
+		elif value < -3 or value > 3 :
+			self._settings.set_float(["FrontLeftOrientation"], min(3, max(-3, value)))
 		
 		# Make sure backlash speed is valid
-		if self._settings.get_float(["BacklashSpeed"]) is None :
+		value = self._settings.get_float(["BacklashSpeed"])
+		if not isinstance(value, float) or math.isnan(value) :
 			self._settings.set_float(["BacklashSpeed"], self.get_settings_defaults()["BacklashSpeed"])
+		elif value < 1 or value > sys.float_info.max :
+			self._settings.set_float(["BacklashSpeed"], min(sys.float_info.max, max(1, value)))
 		
 		# Make sure back left offset is valid
-		if self._settings.get_float(["BackLeftOffset"]) is None :
+		value = self._settings.get_float(["BackLeftOffset"])
+		if not isinstance(value, float) or math.isnan(value) :
 			self._settings.set_float(["BackLeftOffset"], self.get_settings_defaults()["BackLeftOffset"])
+		elif value < -sys.float_info.max or value > sys.float_info.max :
+			self._settings.set_float(["BackLeftOffset"], min(sys.float_info.max, max(-sys.float_info.max, value)))
 		
 		# Make sure back right offset is valid
-		if self._settings.get_float(["BackRightOffset"]) is None :
+		value = self._settings.get_float(["BackRightOffset"])
+		if not isinstance(value, float) or math.isnan(value) :
 			self._settings.set_float(["BackRightOffset"], self.get_settings_defaults()["BackRightOffset"])
+		elif value < -sys.float_info.max or value > sys.float_info.max :
+			self._settings.set_float(["BackRightOffset"], min(sys.float_info.max, max(-sys.float_info.max, value)))
 		
 		# Make sure front right offset is valid
-		if self._settings.get_float(["FrontRightOffset"]) is None :
+		value = self._settings.get_float(["FrontRightOffset"])
+		if not isinstance(value, float) or math.isnan(value) :
 			self._settings.set_float(["FrontRightOffset"], self.get_settings_defaults()["FrontRightOffset"])
+		elif value < -sys.float_info.max or value > sys.float_info.max :
+			self._settings.set_float(["FrontRightOffset"], min(sys.float_info.max, max(-sys.float_info.max, value)))
 		
 		# Make sure front left offset is valid
-		if self._settings.get_float(["FrontLeftOffset"]) is None :
+		value = self._settings.get_float(["FrontLeftOffset"])
+		if not isinstance(value, float) or math.isnan(value) :
 			self._settings.set_float(["FrontLeftOffset"], self.get_settings_defaults()["FrontLeftOffset"])
+		elif value < -sys.float_info.max or value > sys.float_info.max :
+			self._settings.set_float(["FrontLeftOffset"], min(sys.float_info.max, max(-sys.float_info.max, value)))
 		
 		# Make sure bed height offset is valid
-		if self._settings.get_float(["BedHeightOffset"]) is None :
+		value = self._settings.get_float(["BedHeightOffset"])
+		if not isinstance(value, float) or math.isnan(value) :
 			self._settings.set_float(["BedHeightOffset"], self.get_settings_defaults()["BedHeightOffset"])
+		elif value < -sys.float_info.max or value > sys.float_info.max :
+			self._settings.set_float(["BedHeightOffset"], min(sys.float_info.max, max(-sys.float_info.max, value)))
 		
 		# Make sure filament temperature is valid
-		if self._settings.get_int(["FilamentTemperature"]) is None :
+		value = self._settings.get_int(["FilamentTemperature"])
+		if not isinstance(value, int) :
 			self._settings.set_int(["FilamentTemperature"], self.get_settings_defaults()["FilamentTemperature"])
+		elif value < 150 or value > 315 :
+			self._settings.set_int(["FilamentTemperature"], min(315, max(150, value)))
 		
 		# Make sure filament type is valid
-		if self._settings.get(["FilamentType"]) is None :
+		value = self._settings.get(["FilamentType"])
+		if not isinstance(value, (str, unicode)) or (value != "ABS" and value != "PLA" and value != "HIPS" and value != "FLX" and value != "TGH" and value != "CAM" and value != "ABS-R" and value != "OTHER") :
 			self._settings.set(["FilamentType"], self.get_settings_defaults()["FilamentType"])
 		
 		# Make sure use validation preprocessor is valid
-		if self._settings.get_boolean(["UseValidationPreprocessor"]) is None :
+		value = self._settings.get_boolean(["UseValidationPreprocessor"])
+		if not isinstance(value, bool) :
 			self._settings.set_boolean(["UseValidationPreprocessor"], self.get_settings_defaults()["UseValidationPreprocessor"])
 		
 		# Make sure use preparation preprocessor is valid
-		if self._settings.get_boolean(["UsePreparationPreprocessor"]) is None :
+		value = self._settings.get_boolean(["UsePreparationPreprocessor"])
+		if not isinstance(value, bool) :
 			self._settings.set_boolean(["UsePreparationPreprocessor"], self.get_settings_defaults()["UsePreparationPreprocessor"])
 		
 		# Make sure use thermal bonding preprocessor is valid
-		if self._settings.get_boolean(["UseThermalBondingPreprocessor"]) is None :
+		value = self._settings.get_boolean(["UseThermalBondingPreprocessor"])
+		if not isinstance(value, bool) :
 			self._settings.set_boolean(["UseThermalBondingPreprocessor"], self.get_settings_defaults()["UseThermalBondingPreprocessor"])
 		
 		# Make sure use wave bonding preprocessor is valid
-		if self._settings.get_boolean(["UseWaveBondingPreprocessor"]) is None :
+		value = self._settings.get_boolean(["UseWaveBondingPreprocessor"])
+		if not isinstance(value, bool) :
 			self._settings.set_boolean(["UseWaveBondingPreprocessor"], self.get_settings_defaults()["UseWaveBondingPreprocessor"])
 		
 		# Make sure use bed compensation preprocessor is valid
-		if self._settings.get_boolean(["UseBedCompensationPreprocessor"]) is None :
+		value = self._settings.get_boolean(["UseBedCompensationPreprocessor"])
+		if not isinstance(value, bool) :
 			self._settings.set_boolean(["UseBedCompensationPreprocessor"], self.get_settings_defaults()["UseBedCompensationPreprocessor"])
 		
 		# Make sure use backlash compensation preprocessor is valid
-		if self._settings.get_boolean(["UseBacklashCompensationPreprocessor"]) is None :
+		value = self._settings.get_boolean(["UseBacklashCompensationPreprocessor"])
+		if not isinstance(value, bool) :
 			self._settings.set_boolean(["UseBacklashCompensationPreprocessor"], self.get_settings_defaults()["UseBacklashCompensationPreprocessor"])
 		
 		# Make sure automatically obtain settings is valid
-		if self._settings.get_boolean(["AutomaticallyObtainSettings"]) is None :
+		value = self._settings.get_boolean(["AutomaticallyObtainSettings"])
+		if not isinstance(value, bool) :
 			self._settings.set_boolean(["AutomaticallyObtainSettings"], self.get_settings_defaults()["AutomaticallyObtainSettings"])
 		
 		# Make sure use center model preprocessor is valid
-		if self._settings.get_boolean(["UseCenterModelPreprocessor"]) is None :
+		value = self._settings.get_boolean(["UseCenterModelPreprocessor"])
+		if not isinstance(value, bool) :
 			self._settings.set_boolean(["UseCenterModelPreprocessor"], self.get_settings_defaults()["UseCenterModelPreprocessor"])
 		
 		# Make sure ignore print dimension limitations is valid
-		if self._settings.get_boolean(["IgnorePrintDimensionLimitations"]) is None :
+		value = self._settings.get_boolean(["IgnorePrintDimensionLimitations"])
+		if not isinstance(value, bool) :
 			self._settings.set_boolean(["IgnorePrintDimensionLimitations"], self.get_settings_defaults()["IgnorePrintDimensionLimitations"])
 
 		# Make sure preprocess on the fly is valid
-		if self._settings.get_boolean(["PreprocessOnTheFly"]) is None :
+		value = self._settings.get_boolean(["PreprocessOnTheFly"])
+		if not isinstance(value, bool) :
 			self._settings.set_boolean(["PreprocessOnTheFly"], self.get_settings_defaults()["PreprocessOnTheFly"])
 		
 		# Make sure use shared library is valid
-		if self._settings.get_boolean(["UseSharedLibrary"]) is None :
+		value = self._settings.get_boolean(["UseSharedLibrary"])
+		if not isinstance(value, bool) :
 			self._settings.set_boolean(["UseSharedLibrary"], self.get_settings_defaults()["UseSharedLibrary"])
 		
 		# Make sure speed limit X is valid
-		if self._settings.get_float(["SpeedLimitX"]) is None :
+		value = self._settings.get_float(["SpeedLimitX"])
+		if not isinstance(value, float) or math.isnan(value) :
 			self._settings.set_float(["SpeedLimitX"], self.get_settings_defaults()["SpeedLimitX"])
+		elif value < 120 or value > 4800 :
+			self._settings.set_float(["SpeedLimitX"], min(4800, max(120, value)))
 		
 		# Make sure speed limit Y is valid
-		if self._settings.get_float(["SpeedLimitY"]) is None :
+		value = self._settings.get_float(["SpeedLimitY"])
+		if not isinstance(value, float) or math.isnan(value) :
 			self._settings.set_float(["SpeedLimitY"], self.get_settings_defaults()["SpeedLimitY"])
+		elif value < 120 or value > 4800 :
+			self._settings.set_float(["SpeedLimitY"], min(4800, max(120, value)))
 		
 		# Make sure speed limit Z is valid
-		if self._settings.get_float(["SpeedLimitZ"]) is None :
+		value = self._settings.get_float(["SpeedLimitZ"])
+		if not isinstance(value, float) or math.isnan(value) :
 			self._settings.set_float(["SpeedLimitZ"], self.get_settings_defaults()["SpeedLimitZ"])
+		elif value < 30 or value > 60 :
+			self._settings.set_float(["SpeedLimitZ"], min(60, max(30, value)))
 		
 		# Make sure speed limit E positive is valid
-		if self._settings.get_float(["SpeedLimitEPositive"]) is None :
+		value = self._settings.get_float(["SpeedLimitEPositive"])
+		if not isinstance(value, float) or math.isnan(value) :
 			self._settings.set_float(["SpeedLimitEPositive"], self.get_settings_defaults()["SpeedLimitEPositive"])
+		elif value < 60 or value > 600 :
+			self._settings.set_float(["SpeedLimitEPositive"], min(600, max(60, value)))
 		
 		# Make sure speed limit E negative is valid
-		if self._settings.get_float(["SpeedLimitENegative"]) is None :
+		value = self._settings.get_float(["SpeedLimitENegative"])
+		if not isinstance(value, float) or math.isnan(value) :
 			self._settings.set_float(["SpeedLimitENegative"], self.get_settings_defaults()["SpeedLimitENegative"])
+		elif value < 60 or value > 720 :
+			self._settings.set_float(["SpeedLimitENegative"], min(720, max(60, value)))
 		
 		# Make sure X motor steps/mm is valid
-		if self._settings.get_float(["XMotorStepsPerMm"]) is None :
+		value = self._settings.get_float(["XMotorStepsPerMm"])
+		if not isinstance(value, float) or math.isnan(value) :
 			self._settings.set_float(["XMotorStepsPerMm"], self.get_settings_defaults()["XMotorStepsPerMm"])
+		elif value < sys.float_info.min or value > sys.float_info.max :
+			self._settings.set_float(["XMotorStepsPerMm"], min(sys.float_info.max, max(sys.float_info.min, value)))
 		
 		# Make sure Y motor steps/mm is valid
-		if self._settings.get_float(["YMotorStepsPerMm"]) is None :
+		value = self._settings.get_float(["YMotorStepsPerMm"])
+		if not isinstance(value, float) or math.isnan(value) :
 			self._settings.set_float(["YMotorStepsPerMm"], self.get_settings_defaults()["YMotorStepsPerMm"])
+		elif value < sys.float_info.min or value > sys.float_info.max :
+			self._settings.set_float(["YMotorStepsPerMm"], min(sys.float_info.max, max(sys.float_info.min, value)))
 		
 		# Make sure Z motor steps/mm is valid
-		if self._settings.get_float(["ZMotorStepsPerMm"]) is None :
+		value = self._settings.get_float(["ZMotorStepsPerMm"])
+		if not isinstance(value, float) or math.isnan(value) :
 			self._settings.set_float(["ZMotorStepsPerMm"], self.get_settings_defaults()["ZMotorStepsPerMm"])
+		elif value < sys.float_info.min or value > sys.float_info.max :
+			self._settings.set_float(["ZMotorStepsPerMm"], min(sys.float_info.max, max(sys.float_info.min, value)))
 		
 		# Make sure E motor steps/mm is valid
-		if self._settings.get_float(["EMotorStepsPerMm"]) is None :
+		value = self._settings.get_float(["EMotorStepsPerMm"])
+		if not isinstance(value, float) or math.isnan(value) :
 			self._settings.set_float(["EMotorStepsPerMm"], self.get_settings_defaults()["EMotorStepsPerMm"])
+		elif value < sys.float_info.min or value > sys.float_info.max :
+			self._settings.set_float(["EMotorStepsPerMm"], min(sys.float_info.max, max(sys.float_info.min, value)))
 		
 		# Make sure X jerk sensitivity is valid
-		if self._settings.get_int(["XJerkSensitivity"]) is None :
+		value = self._settings.get_int(["XJerkSensitivity"])
+		if not isinstance(value, int) :
 			self._settings.set_int(["XJerkSensitivity"], self.get_settings_defaults()["XJerkSensitivity"])
+		elif value < 1 or value > 255 :
+			self._settings.set_int(["XJerkSensitivity"], min(255, max(1, value)))
 		
 		# Make sure Y jerk sensitivity is valid
-		if self._settings.get_int(["YJerkSensitivity"]) is None :
+		value = self._settings.get_int(["YJerkSensitivity"])
+		if not isinstance(value, int) :
 			self._settings.set_int(["YJerkSensitivity"], self.get_settings_defaults()["YJerkSensitivity"])
+		elif value < 1 or value > 255 :
+			self._settings.set_int(["YJerkSensitivity"], min(255, max(1, value)))
 		
 		# Make sure calibrate Z0 correction is valid
-		if self._settings.get_float(["CalibrateZ0Correction"]) is None :
+		value = self._settings.get_float(["CalibrateZ0Correction"])
+		if not isinstance(value, float) or math.isnan(value) :
 			self._settings.set_float(["CalibrateZ0Correction"], self.get_settings_defaults()["CalibrateZ0Correction"])
+		elif value < -sys.float_info.max or value > sys.float_info.max :
+			self._settings.set_float(["CalibrateZ0Correction"], min(sys.float_info.max, max(-sys.float_info.max, value)))
 		
 		# Make sure change settings before print is valid
-		if self._settings.get_boolean(["ChangeSettingsBeforePrint"]) is None :
+		value = self._settings.get_boolean(["ChangeSettingsBeforePrint"])
+		if not isinstance(value, bool) :
 			self._settings.set_boolean(["ChangeSettingsBeforePrint"], self.get_settings_defaults()["ChangeSettingsBeforePrint"])
 		
 		# Make sure not using a Micro 3D printer is valid
-		if self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) is None :
+		value = self._settings.get_boolean(["NotUsingAMicro3DPrinter"])
+		if not isinstance(value, bool) :
 			self._settings.set_boolean(["NotUsingAMicro3DPrinter"], self.get_settings_defaults()["NotUsingAMicro3DPrinter"])
 		
 		# Make sure calibrate before print is valid
-		if self._settings.get_boolean(["CalibrateBeforePrint"]) is None :
+		value = self._settings.get_boolean(["CalibrateBeforePrint"])
+		if not isinstance(value, bool) :
 			self._settings.set_boolean(["CalibrateBeforePrint"], self.get_settings_defaults()["CalibrateBeforePrint"])
 		
 		# Make sure remove fan commands is valid
-		if self._settings.get_boolean(["RemoveFanCommands"]) is None :
+		value = self._settings.get_boolean(["RemoveFanCommands"])
+		if not isinstance(value, bool) :
 			self._settings.set_boolean(["RemoveFanCommands"], self.get_settings_defaults()["RemoveFanCommands"])
 		
 		# Make sure remove temperature commands is valid
-		if self._settings.get_boolean(["RemoveTemperatureCommands"]) is None :
+		value = self._settings.get_boolean(["RemoveTemperatureCommands"])
+		if not isinstance(value, bool) :
 			self._settings.set_boolean(["RemoveTemperatureCommands"], self.get_settings_defaults()["RemoveTemperatureCommands"])
 		
 		# Make sure use GPIO is valid
-		if self._settings.get_boolean(["UseGpio"]) is None :
+		value = self._settings.get_boolean(["UseGpio"])
+		if not isinstance(value, bool) :
 			self._settings.set_boolean(["UseGpio"], self.get_settings_defaults()["UseGpio"])
 
+		# Make sure use GPIO pin is valid
+		value = self._settings.get_int(["GpioPin"])
+		if value is not None and not isinstance(value, int) :
+			self._settings.set(["GpioPin"], self.get_settings_defaults()["GpioPin"])
+		
+		# Make sure use GPIO layer is valid
+		value = self._settings.get_int(["GpioLayer"])
+		if value is not None and not isinstance(value, int) :
+			self._settings.set(["GpioLayer"], self.get_settings_defaults()["GpioLayer"])
+		
 		# Make sure heatbed temperature is valid
-		if self._settings.get_int(["HeatbedTemperature"]) is None :
+		value = self._settings.get_int(["HeatbedTemperature"])
+		if not isinstance(value, int) :
 			self._settings.set_int(["HeatbedTemperature"], self.get_settings_defaults()["HeatbedTemperature"])
+		elif value < 0 or value > 110 :
+			self._settings.set_int(["HeatbedTemperature"], min(110, max(0, value)))
 		
 		# Make sure external bed height is valid
-		if self._settings.get_float(["ExternalBedHeight"]) is None :
+		value = self._settings.get_float(["ExternalBedHeight"])
+		if not isinstance(value, float) or math.isnan(value) :
 			self._settings.set_float(["ExternalBedHeight"], self.get_settings_defaults()["ExternalBedHeight"])
+		elif value < 0 or value > 50 :
+			self._settings.set_float(["ExternalBedHeight"], min(50, max(0, value)))
 		
 		# Make sure expand printable region is valid
-		if self._settings.get_boolean(["ExpandPrintableRegion"]) is None :
+		value = self._settings.get_boolean(["ExpandPrintableRegion"])
+		if not isinstance(value, bool) :
 			self._settings.set_boolean(["ExpandPrintableRegion"], self.get_settings_defaults()["ExpandPrintableRegion"])
 		
 		# Make sure host camera is valid
-		if self._settings.get_boolean(["HostCamera"]) is None :
+		value = self._settings.get_boolean(["HostCamera"])
+		if not isinstance(value, bool) :
 			self._settings.set_boolean(["HostCamera"], self.get_settings_defaults()["HostCamera"])
 		
+		# Make sure use camera port is valid
+		value = self._settings.get(["CameraPort"])
+		if value is not None and not isinstance(value, (str, unicode)) :
+			self._settings.set(["CameraPort"], self.get_settings_defaults()["CameraPort"])
+		
 		# Make sure camera width is valid
-		if self._settings.get_int(["CameraWidth"]) is None :
+		value = self._settings.get_int(["CameraWidth"])
+		if not isinstance(value, int) :
 			self._settings.set_int(["CameraWidth"], self.get_settings_defaults()["CameraWidth"])
+		elif value < 1 or value > 4096 :
+			self._settings.set_int(["CameraWidth"], min(4096, max(1, value)))
 		
 		# Make sure camera height is valid
-		if self._settings.get_int(["CameraHeight"]) is None :
+		value = self._settings.get_int(["CameraHeight"])
+		if not isinstance(value, int) :
 			self._settings.set_int(["CameraHeight"], self.get_settings_defaults()["CameraHeight"])
+		elif value < 1 or value > 4096 :
+			self._settings.set_int(["CameraHeight"], min(4096, max(1, value)))
 		
 		# Make sure camera frames/second is valid
-		if self._settings.get_int(["CameraFramesPerSecond"]) is None :
+		value = self._settings.get_int(["CameraFramesPerSecond"])
+		if not isinstance(value, int) :
 			self._settings.set_int(["CameraFramesPerSecond"], self.get_settings_defaults()["CameraFramesPerSecond"])
+		elif value < 1 or value > 60:
+			self._settings.set_int(["CameraFramesPerSecond"], min(60, max(1, value)))
 		
 		# Make sure mid print filament change layers is valid
-		if self._settings.get(["MidPrintFilamentChangeLayers"]) is None :
+		value = self._settings.get(["MidPrintFilamentChangeLayers"])
+		if not isinstance(value, (str, unicode)) :
 			self._settings.set(["MidPrintFilamentChangeLayers"], self.get_settings_defaults()["MidPrintFilamentChangeLayers"])
 		
 		# Make sure change led brightness is valid
-		if self._settings.get_boolean(["ChangeLedBrightness"]) is None :
+		value = self._settings.get_boolean(["ChangeLedBrightness"])
+		if not isinstance(value, bool) :
 			self._settings.set_boolean(["ChangeLedBrightness"], self.get_settings_defaults()["ChangeLedBrightness"])
 		
 		# Make sure use debug logging is valid
-		if self._settings.get_boolean(["UseDebugLogging"]) is None :
+		value = self._settings.get_boolean(["UseDebugLogging"])
+		if not isinstance(value, bool) :
 			self._settings.set_boolean(["UseDebugLogging"], self.get_settings_defaults()["UseDebugLogging"])
 		
 		# Make sure slicer never remind is valid
-		if self._settings.get_boolean(["SlicerNeverRemind"]) is None :
+		value = self._settings.get_boolean(["SlicerNeverRemind"])
+		if not isinstance(value, bool) :
 			self._settings.set_boolean(["SlicerNeverRemind"], self.get_settings_defaults()["SlicerNeverRemind"])
 		
 		# Make sure sleep never remind is valid
-		if self._settings.get_boolean(["SleepNeverRemind"]) is None :
+		value = self._settings.get_boolean(["SleepNeverRemind"])
+		if not isinstance(value, bool) :
 			self._settings.set_boolean(["SleepNeverRemind"], self.get_settings_defaults()["SleepNeverRemind"])
 		
 		# Make sure Micro 3D bootloader versions uploaded is valid
-		if self._settings.get(["Micro3DBootloaderVersionsUploaded"]) is None :
+		value = self._settings.get(["Micro3DBootloaderVersionsUploaded"])
+		if not isinstance(value, (str, unicode)) :
 			self._settings.set(["Micro3DBootloaderVersionsUploaded"], self.get_settings_defaults()["Micro3DBootloaderVersionsUploaded"])
 	
 	# Set default slicer profile
@@ -2073,6 +2212,9 @@ class M33FioPlugin(
 		
 		# Save settings
 		octoprint.plugin.SettingsPlugin.on_settings_save(self, data)
+		
+		# Guarantee settings are valid
+		self.guaranteeSettingsAreValid()
 		
 		# Send message for enabling/disabling GPIO buttons
 		if self._settings.get_boolean(["UseGpio"]) and self._settings.get_int(["GpioPin"]) is not None and self._settings.get_int(["GpioLayer"]) is not None :
@@ -4544,8 +4686,8 @@ class M33FioPlugin(
 										# Check if an error hasn't occured
 										if not error :
 									
-											# Set error to if clearing calibrate Z0 correction and X and Y sensitivity, value, direction, and validity in EEPROM failed
-											error = self.eepromSetInt(connection, "calibrateZ0Correction", 0, self.eepromOffsets["savedYState"]["offset"] + self.eepromOffsets["savedYState"]["bytes"] - self.eepromOffsets["calibrateZ0Correction"]["offset"])
+											# Set error to if clearing expand printable region, external bed height, calibrate Z0 correction and X and Y sensitivity, value, direction, and validity in EEPROM failed
+											error = self.eepromSetInt(connection, "expandPrintableRegion", 0, self.eepromOffsets["savedYState"]["offset"] + self.eepromOffsets["savedYState"]["bytes"] - self.eepromOffsets["expandPrintableRegion"]["offset"])
 										
 										# Check if an error hasn't occured
 										if not error :
@@ -6544,10 +6686,16 @@ class M33FioPlugin(
 		intValue = self.eepromGetInt(eepromName)
 
 		# Check if EEPROM value is invalid
-		if not isinstance(intValue, int) or intValue < minValue or intValue > maxValue :
+		if not isinstance(intValue, int) :
 		
 			# Set error to if setting default value in EEPROM failed
 			error = self.eepromSetInt(connection, eepromName, defaultValue)
+		
+		# Otherwise check if EEPROM value is out of bounds
+		elif intValue < minValue or intValue > maxValue :
+		
+			# Set error to if setting clamped value in EEPROM failed
+			error = self.eepromSetInt(connection, eepromName, min(maxValue, max(minValue, intValue)))
 		
 		# Return error
 		return error
@@ -6562,10 +6710,16 @@ class M33FioPlugin(
 		floatValue = self.eepromGetFloat(eepromName)
 
 		# Check if EEPROM value is invalid
-		if not isinstance(floatValue, float) or math.isnan(floatValue) or round(floatValue, 6) < minValue or round(floatValue, 6) > maxValue :
+		if not isinstance(floatValue, float) or math.isnan(floatValue) :
 		
 			# Set error to if setting default value in EEPROM failed
 			error = self.eepromSetFloat(connection, eepromName, defaultValue)
+		
+		# Otherwise check if EEPROM value is out of bounds
+		elif round(floatValue, 6) < minValue or round(floatValue, 6) > maxValue :
+		
+			# Set error to if setting clamped value in EEPROM failed
+			error = self.eepromSetFloat(connection, eepromName, min(maxValue, max(minValue, round(floatValue, 6))))
 		
 		# Return error
 		return error
@@ -6910,7 +7064,7 @@ class M33FioPlugin(
 											if not error :
 								
 												# Set error to if setting default backlash speed failed
-												error = self.eepromSetFloat(connection, "backlashSpeed", 1500)
+												error = self.eepromSetFloat(connection, "backlashSpeed", self.get_settings_defaults()["BacklashSpeed"])
 						
 											# Check if an error has occured
 											if error :
@@ -6934,7 +7088,7 @@ class M33FioPlugin(
 											if not error :
 							
 												# Set error to if limiting backlash speed failed
-												error = self.eepromKeepFloatWithinRange(connection, "backlashSpeed", 1, 5000, self.get_settings_defaults()["BacklashSpeed"])
+												error = self.eepromKeepFloatWithinRange(connection, "backlashSpeed", 1, sys.float_info.max, self.get_settings_defaults()["BacklashSpeed"])
 							
 											# Check if an error hasn't occured
 											if not error :
@@ -6989,7 +7143,13 @@ class M33FioPlugin(
 							
 												# Set error to if limiting bed height offset failed
 												error = self.eepromKeepFloatWithinRange(connection, "bedHeightOffset", -sys.float_info.max, sys.float_info.max, self.get_settings_defaults()["BedHeightOffset"])
-								
+											
+											# Check if an error hasn't occured
+											if not error :
+						
+												# Set error to if filament temperature failed
+												error = self.eepromKeepIntWithinRange(connection, "filamentTemperature", 150 - 100, 315 - 100, self.get_settings_defaults()["FilamentTemperature"] - 100)
+											
 											# Check if an error hasn't occured
 											if not error :
 							
@@ -7076,6 +7236,12 @@ class M33FioPlugin(
 							
 													# Set error to if limiting calibrate Z0 correction failed
 													error = self.eepromKeepFloatWithinRange(connection, "calibrateZ0Correction", -sys.float_info.max, sys.float_info.max, self.get_settings_defaults()["CalibrateZ0Correction"])
+												
+												# Check if an error hasn't occured
+												if not error :
+							
+													# Set error to if limiting external bed height failed
+													error = self.eepromKeepFloatWithinRange(connection, "externalBedHeight", 0, 50, self.get_settings_defaults()["ExternalBedHeight"])
 										
 											# Check if an error hasn't occured
 											if not error :
@@ -7590,7 +7756,9 @@ class M33FioPlugin(
 						"M619 S" + str(self.eepromOffsets["eMotorStepsPerMm"]["offset"]) + " T" + str(self.eepromOffsets["eMotorStepsPerMm"]["bytes"]),
 						"M619 S" + str(self.eepromOffsets["xJerkSensitivity"]["offset"]) + " T" + str(self.eepromOffsets["xJerkSensitivity"]["bytes"]),
 						"M619 S" + str(self.eepromOffsets["yJerkSensitivity"]["offset"]) + " T" + str(self.eepromOffsets["yJerkSensitivity"]["bytes"]),
-						"M619 S" + str(self.eepromOffsets["calibrateZ0Correction"]["offset"]) + " T" + str(self.eepromOffsets["calibrateZ0Correction"]["bytes"])
+						"M619 S" + str(self.eepromOffsets["calibrateZ0Correction"]["offset"]) + " T" + str(self.eepromOffsets["calibrateZ0Correction"]["bytes"]),
+						"M619 S" + str(self.eepromOffsets["expandPrintableRegion"]["offset"]) + " T" + str(self.eepromOffsets["expandPrintableRegion"]["bytes"]),
+						"M619 S" + str(self.eepromOffsets["externalBedHeight"]["offset"]) + " T" + str(self.eepromOffsets["externalBedHeight"]["bytes"])
 					]
 				
 				# Lower LED brightness for clear color printers
@@ -8310,11 +8478,36 @@ class M33FioPlugin(
 				if self._settings.get_boolean(["AutomaticallyObtainSettings"]) :
 					self._settings.set_float(["CalibrateZ0Correction"], self.printerCalibrateZ0Correction)
 			
+			# Otherwise check if data is for expand printable region
+			elif "PT:" + str(self.eepromOffsets["expandPrintableRegion"]["offset"]) + " " in data :
+			
+				# Convert data to value
+				self.printerExpandPrintableRegion = int(data[data.find("DT:") + 3 :]) != 0
+				
+				# Check if set to automatically collect printer settings
+				if self._settings.get_boolean(["AutomaticallyObtainSettings"]) :
+					self._settings.set_bool(["ExpandPrintableRegion"], self.printerExpandPrintableRegion)
+			
+			# Otherwise check if data is for external bed height
+			elif "PT:" + str(self.eepromOffsets["externalBedHeight"]["offset"]) + " " in data :
+			
+				# Convert data to float
+				value = self.intToFloat(int(data[data.find("DT:") + 3 :]))
+				
+				if not isinstance(value, float) or math.isnan(value) :
+					self.printerExternalBedHeight = self.get_settings_defaults()["ExternalBedHeight"]
+				else :
+					self.printerExternalBedHeight = round(value, 6)
+				
+				# Check if set to automatically collect printer settings
+				if self._settings.get_boolean(["AutomaticallyObtainSettings"]) :
+					self._settings.set_float(["ExternalBedHeight"], self.printerExternalBedHeight)
+			
 			# Otherwise check if data is for bed orientation version
 			elif "PT:" + str(self.eepromOffsets["bedOrientationVersion"]["offset"]) + " " in data :
 			
 				# Set invalid bed orientation
-				self.invalidBedOrientation = data[data.find("DT:") + 3 :] == "0" or self.invalidBedOrientation
+				self.invalidBedOrientation = data[data.find("DT:") + 3 :] == "0" or data[data.find("DT:") + 3 :] == "255" or self.invalidBedOrientation
 				
 				# Check if not automatically collecting settings from printer
 				if not self._settings.get_boolean(["AutomaticallyObtainSettings"]) :
@@ -8441,6 +8634,14 @@ class M33FioPlugin(
 		softwareCalibrateZ0Correction = self._settings.get_float(["CalibrateZ0Correction"])
 		if not isinstance(softwareCalibrateZ0Correction, float) :
 			softwareCalibrateZ0Correction = self.get_settings_defaults()["CalibrateZ0Correction"]
+		
+		softwareExpandPrintableRegion = self._settings.get_boolean(["ExpandPrintableRegion"])
+		if not isinstance(softwareExpandPrintableRegion, bool) :
+			softwareExpandPrintableRegion = self.get_settings_defaults()["ExpandPrintableRegion"]
+		
+		softwareExternalBedHeight = self._settings.get_float(["ExternalBedHeight"])
+		if not isinstance(softwareExternalBedHeight, float) :
+			softwareExternalBedHeight = self.get_settings_defaults()["ExternalBedHeight"]
 		
 		# Check if backlash Xs differ
 		commandList = []
@@ -8619,6 +8820,22 @@ class M33FioPlugin(
 
 				# Add new value to list
 				commandList += ["M618 S" + str(self.eepromOffsets["calibrateZ0Correction"]["offset"]) + " T" + str(self.eepromOffsets["calibrateZ0Correction"]["bytes"]) + " P" + str(self.floatToInt(softwareCalibrateZ0Correction)), "M619 S" + str(self.eepromOffsets["calibrateZ0Correction"]["offset"]) + " T" + str(self.eepromOffsets["calibrateZ0Correction"]["bytes"])]
+			
+			# Check if expand printable regions differ
+			if hasattr(self, "printerExpandPrintableRegion") and self.printerExpandPrintableRegion != softwareExpandPrintableRegion :
+
+				# Add new value to list
+				newValue = 0
+				if softwareExpandPrintableRegion :
+					newValue = 1
+				
+				commandList += ["M618 S" + str(self.eepromOffsets["expandPrintableRegion"]["offset"]) + " T" + str(self.eepromOffsets["expandPrintableRegion"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.eepromOffsets["expandPrintableRegion"]["offset"]) + " T" + str(self.eepromOffsets["expandPrintableRegion"]["bytes"])]
+			
+			# Check if external bed heights differ
+			if hasattr(self, "printerExternalBedHeight") and self.printerExternalBedHeight != softwareExternalBedHeight :
+
+				# Add new value to list
+				commandList += ["M618 S" + str(self.eepromOffsets["externalBedHeight"]["offset"]) + " T" + str(self.eepromOffsets["externalBedHeight"]["bytes"]) + " P" + str(self.floatToInt(softwareExternalBedHeight)), "M619 S" + str(self.eepromOffsets["externalBedHeight"]["offset"]) + " T" + str(self.eepromOffsets["externalBedHeight"]["bytes"])]
 			
 		# Return command list
 		return commandList
