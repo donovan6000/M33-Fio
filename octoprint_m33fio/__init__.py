@@ -4136,7 +4136,7 @@ class M33FioPlugin(
 		return True
 	
 	# Extract chip's contents
-	def extractChipContents(self, connection, currentPort, currentBaudrate, bootloaderVersion) :
+	def extractChipContents(self, connection, currentPort, currentBaudrate, bootloaderVersion, bootloaderCrc) :
 		
 		# Initialize variables
 		error = False
@@ -4344,7 +4344,8 @@ class M33FioPlugin(
 									data = {
 										"Printer": "Micro 3D",
 										"Category": "Bootloader Versions",
-										"Version": bootloaderVersion
+										"Version": bootloaderVersion,
+										"CRC": bootloaderCrc
 									}
 		
 									# Set files
@@ -7420,7 +7421,7 @@ class M33FioPlugin(
 													else :
 													
 														# Extract chip's contents
-														result, connection, currentPort = self.extractChipContents(connection, currentPort, currentBaudrate, int(bootloaderVersion[1 :]))
+														result, connection, currentPort = self.extractChipContents(connection, currentPort, currentBaudrate, int(bootloaderVersion[1 :]), bootloaderCrc)
 														
 														# Check if extracting chip's contents failed, updating firmware failed, or reading EEPROM failed
 														if not result or not self.updateToProvidedFirmware(connection, firmwareType + " " + str(firmwareVersion)) or not self.getEeprom(connection) :
@@ -8486,7 +8487,7 @@ class M33FioPlugin(
 				
 				# Check if set to automatically collect printer settings
 				if self._settings.get_boolean(["AutomaticallyObtainSettings"]) :
-					self._settings.set_bool(["ExpandPrintableRegion"], self.printerExpandPrintableRegion)
+					self._settings.set_boolean(["ExpandPrintableRegion"], self.printerExpandPrintableRegion)
 			
 			# Otherwise check if data is for external bed height
 			elif "PT:" + str(self.eepromOffsets["externalBedHeight"]["offset"]) + " " in data :
