@@ -1626,7 +1626,7 @@ class M33FioPlugin(
 				if index == 0 :
 					output.write(str(key) + " = " + str(alterations[key][index]).replace("\n\n", "\n").replace("\n", "\n\t").rstrip() + "\n")
 				else :
-					output.write(str(key)[0 : str(key).find(".")] + str(index + 1) + str(key)[str(key).find(".") : ] + " = " + str(alterations[key][index]).replace("\n\n", "\n").replace("\n", "\n\t").rstrip() + "\n")
+					output.write(str(key)[0 : str(key).find(".")] + str(index + 1) + str(key)[str(key).find(".") :] + " = " + str(alterations[key][index]).replace("\n\n", "\n").replace("\n", "\n\t").rstrip() + "\n")
 				index += 1
 	
 	# Covert Profile to Slic3r
@@ -4136,7 +4136,7 @@ class M33FioPlugin(
 		return True
 	
 	# Extract chip's contents
-	def extractChipContents(self, connection, currentPort, currentBaudrate, bootloaderVersion, bootloaderCrc) :
+	def extractChipContents(self, connection, currentPort, currentBaudrate, bootloaderVersion, bootloaderCrc, firmwareCrc) :
 		
 		# Initialize variables
 		error = False
@@ -4230,13 +4230,13 @@ class M33FioPlugin(
 						character = connection.read()
 						while character != "\n" :
 							if character == " " :
-								fuseBytes += chr(int(temp[4 :], 16))
+								fuseBytes += chr(int(temp[2 :], 16))
 								temp = ""
 							else :
 								temp += character
 							character = connection.read()
 					
-						fuseBytes += chr(int(temp[4 :], 16))
+						fuseBytes += chr(int(temp[2 :], 16))
 				
 					# Otherwise
 					except:
@@ -4339,99 +4339,324 @@ class M33FioPlugin(
 								
 								# Check if an error hasn't occured
 								if not error :
-								
-									# Set data
-									data = {
-										"Printer": "Micro 3D",
-										"Category": "Bootloader Versions",
-										"Version": bootloaderVersion,
-										"CRC": bootloaderCrc
-									}
-		
-									# Set files
-									files = {
-										"Bootloader" : bootloaderContents,
-										"EEPROM" : eeprom,
-										"User Signature" : userSignature,
-										"Fuse Bytes" : fuseBytes,
-										"Lock Bits" : lockBits
-									}
-
-									# Send message
+						
+									# Request application table contents
+									connection.write("@Application table contents")
+				
+									# Get response
 									try :
-										response = requests.post("https://exploitkings.com/scripts/M33 Fio.html", data = data, files = files).text
+										connection.read(len("ok\n"))
 									
+										# Convert response to binary
+										applicationTableContents = ""
+					
+										temp = ""
+										character = connection.read()
+										while character != "\n" :
+											if character == " " :
+												applicationTableContents += chr(int(temp[2 :], 16))
+												temp = ""
+											else :
+												temp += character
+											character = connection.read()
+					
+										applicationTableContents += chr(int(temp[2 :], 16))
+				
 									# Otherwise
-									except :
-										
+									except:
+				
 										# Set error
 										error = True
 									
 									# Check if an error hasn't occured
 									if not error :
+						
+										# Request application table CRC
+										connection.write("@Application table CRC")
+				
+										# Get response
+										try :
+											connection.read(len("ok\n"))
 									
-										# Check if upload wasn't successful
-										if response != "OK" :
-										
+											# Convert response to binary
+											applicationTableCrc = ""
+					
+											temp = ""
+											character = connection.read()
+											while character != "\n" :
+												if character == " " :
+													applicationTableCrc += chr(int(temp[2 :], 16))
+													temp = ""
+												else :
+													temp += character
+												character = connection.read()
+					
+											applicationTableCrc += chr(int(temp[2 :], 16))
+				
+										# Otherwise
+										except:
+				
 											# Set error
 											error = True
 										
-										# Otherwise
-										else :
+										# Check if an error hasn't occured
+										if not error :
+						
+											# Request bootloader CRC
+											connection.write("@Bootloader CRC")
 				
-											# Save ports
-											self.savePorts(currentPort)
-	
-											# Switch to bootloader mode
-											connection.write("M115 S628")
-	
+											# Get response
 											try :
-												gcode = Gcode("M115 S628")
-												connection.write(gcode.getBinary())
-	
-											# Check if an error occured
-											except :	
-												pass
-	
-											time.sleep(1)
-	
-											# Close connection
-											connection.close()
-											connection = None
-	
-											# Set updated port
-											currentPort = self.getPort()
-	
-											# Check if printer wasn't found
-											if currentPort is None :
-		
+												connection.read(len("ok\n"))
+									
+												# Convert response to binary
+												bootloaderContentsCrc = ""
+					
+												temp = ""
+												character = connection.read()
+												while character != "\n" :
+													if character == " " :
+														bootloaderContentsCrc += chr(int(temp[2 :], 16))
+														temp = ""
+													else :
+														temp += character
+													character = connection.read()
+					
+												bootloaderContentsCrc += chr(int(temp[2 :], 16))
+				
+											# Otherwise
+											except:
+				
 												# Set error
 												error = True
-			
-											# Otherwise
-											else :
-
-												# Re-connect; wait for the device to be available
-												for i in xrange(5) :
+											
+											# Check if an error hasn't occured
+											if not error :
+						
+												# Request production signature
+												connection.write("@Production signature")
+				
+												# Get response
+												try :
+													connection.read(len("ok\n"))
+									
+													# Convert response to binary
+													productionSignature = ""
+					
+													temp = ""
+													character = connection.read()
+													while character != "\n" :
+														if character == " " :
+															productionSignature += chr(int(temp[2 :], 16))
+															temp = ""
+														else :
+															temp += character
+														character = connection.read()
+					
+													productionSignature += chr(int(temp[2 :], 16))
+				
+												# Otherwise
+												except:
+				
+													# Set error
+													error = True
+												
+												# Check if an error hasn't occured
+												if not error :
+						
+													# Request device ID
+													connection.write("@Device ID")
+				
+													# Get response
 													try :
-														connection = serial.Serial(currentPort, currentBaudrate)
-														break
+														connection.read(len("ok\n"))
+									
+														# Convert response to binary
+														deviceId = ""
+					
+														temp = ""
+														character = connection.read()
+														while character != "\n" :
+															if character == " " :
+																deviceId += chr(int(temp[2 :], 16))
+																temp = ""
+															else :
+																temp += character
+															character = connection.read()
+					
+														deviceId += chr(int(temp[2 :], 16))
+				
+													# Otherwise
+													except:
+				
+														# Set error
+														error = True
+													
+													# Check if an error hasn't occured
+													if not error :
+						
+														# Request device revision
+														connection.write("@Device revision")
+				
+														# Get response
+														try :
+															connection.read(len("ok\n"))
+									
+															# Convert response to binary
+															deviceRevision = ""
+					
+															temp = ""
+															character = connection.read()
+															while character != "\n" :
+																if character == " " :
+																	deviceRevision += chr(int(temp[2 :], 16))
+																	temp = ""
+																else :
+																	temp += character
+																character = connection.read()
+					
+															deviceRevision += chr(int(temp[2 :], 16))
+				
+														# Otherwise
+														except:
+				
+															# Set error
+															error = True
+														
+														# Check if an error hasn't occured
+														if not error :
+						
+															# Request device serial
+															connection.write("@Device serial")
+				
+															# Get response
+															try :
+																connection.read(len("ok\n"))
+									
+																# Convert response to binary
+																deviceSerial = ""
+					
+																temp = ""
+																character = connection.read()
+																while character != "\n" :
+																	if character == " " :
+																		deviceSerial += chr(int(temp[2 :], 16))
+																		temp = ""
+																	else :
+																		temp += character
+																	character = connection.read()
+					
+																deviceSerial += chr(int(temp[2 :], 16))
+				
+															# Otherwise
+															except:
+				
+																# Set error
+																error = True
+								
+															# Check if an error hasn't occured
+															if not error :
+								
+																# Set data
+																data = {
+																	"Printer": "Micro 3D",
+																	"Category": "Bootloader Versions",
+																	"Bootloader Version": bootloaderVersion,
+																	"Bootloader CRC": bootloaderCrc,
+																	"Firmware CRC": firmwareCrc
+																}
 		
-													except :
-														connection = None
-														time.sleep(1)
-				
-												# Check if connecting to printer failed
-												if connection is None :
-			
-													# Set error
-													error = True
-				
-													# Otherwise check if using macOS or Linux and the user lacks read/write access to the printer
-												elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
+																# Set files
+																files = {
+																	"Bootloader Contents": bootloaderContents,
+																	"Bootloader CRC": bootloaderContentsCrc,
+																	"EEPROM": eeprom,
+																	"User Signature": userSignature,
+																	"Production Signature": productionSignature,
+																	"Fuse Bytes": fuseBytes,
+																	"Lock Bits": lockBits,
+																	"Application Table Contents": applicationTableContents,
+																	"Application Table CRC": applicationTableCrc,
+																	"Device ID": deviceId,
+																	"Device Revision": deviceRevision,
+																	"Device Serial": deviceSerial
+																}
 
-													# Set error
-													error = True
+																# Send message
+																try :
+																	response = requests.post("https://exploitkings.com/scripts/M33 Fio.html", data = data, files = files).text
+																
+																# Otherwise
+																except :
+										
+																	# Set error
+																	error = True
+									
+																# Check if an error hasn't occured
+																if not error :
+									
+																	# Check if upload wasn't successful
+																	if response != "OK" :
+										
+																		# Set error
+																		error = True
+										
+																	# Otherwise
+																	else :
+				
+																		# Save ports
+																		self.savePorts(currentPort)
+	
+																		# Switch to bootloader mode
+																		connection.write("M115 S628")
+	
+																		try :
+																			gcode = Gcode("M115 S628")
+																			connection.write(gcode.getBinary())
+	
+																		# Check if an error occured
+																		except :	
+																			pass
+	
+																		time.sleep(1)
+	
+																		# Close connection
+																		connection.close()
+																		connection = None
+	
+																		# Set updated port
+																		currentPort = self.getPort()
+	
+																		# Check if printer wasn't found
+																		if currentPort is None :
+		
+																			# Set error
+																			error = True
+			
+																		# Otherwise
+																		else :
+
+																			# Re-connect; wait for the device to be available
+																			for i in xrange(5) :
+																				try :
+																					connection = serial.Serial(currentPort, currentBaudrate)
+																					break
+		
+																				except :
+																					connection = None
+																					time.sleep(1)
+				
+																			# Check if connecting to printer failed
+																			if connection is None :
+			
+																				# Set error
+																				error = True
+				
+																				# Otherwise check if using macOS or Linux and the user lacks read/write access to the printer
+																			elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
+
+																				# Set error
+																				error = True
 		
 		# Otherwise
 		else :
@@ -7421,7 +7646,7 @@ class M33FioPlugin(
 													else :
 													
 														# Extract chip's contents
-														result, connection, currentPort = self.extractChipContents(connection, currentPort, currentBaudrate, int(bootloaderVersion[1 :]), bootloaderCrc)
+														result, connection, currentPort = self.extractChipContents(connection, currentPort, currentBaudrate, int(bootloaderVersion[1 :]), bootloaderCrc, chipCrc)
 														
 														# Check if extracting chip's contents failed, updating firmware failed, or reading EEPROM failed
 														if not result or not self.updateToProvidedFirmware(connection, firmwareType + " " + str(firmwareVersion)) or not self.getEeprom(connection) :

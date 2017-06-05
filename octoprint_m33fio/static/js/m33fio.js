@@ -2621,7 +2621,7 @@ $(function() {
 							if(slicerName === "cura")
 								changedSettings.push({
 									wall_thickness: parseFloat(parseInt($(this).val()) * parseFloat(nozzleSize)).toFixed(3),
-									nozzle_size : nozzleSize
+									nozzle_size: nozzleSize
 								});
 							else if(slicerName === "slic3r")
 								changedSettings.push({

@@ -89,10 +89,10 @@ class Vector(object) :
 		
 		# Return component
 		return {
-			0 : self.x,
-			1 : self.y,
-			2 : self.z,
-			3 : self.e,
+			0: self.x,
+			1: self.y,
+			2: self.z,
+			3: self.e,
 		}[key]
 	
 	# Set item operator
