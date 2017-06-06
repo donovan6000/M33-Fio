@@ -4756,28 +4756,46 @@ class M33FioPlugin(
 		decryptedRom = ""
 		newChipCrc = 0
 		
-		# Check if rom isn't encrypted
+		# Check if ROM isn't encrypted
 		if encryptedRom[0] == "\x0C" or encryptedRom[0] == "\xFD" :
+		
+			# Check if ROM requires padding
+			if len(encryptedRom) % 2 != 0 and len(encryptedRom) < self.chipTotalMemory :
+			
+				# Add padding to ROM
+				encryptedRom += "\xFF"
 	
 			# Go through the ROM
 			index = 0
 			while index < len(encryptedRom) :
 		
-				# Check if padding wasn't required
+				# Check if padding isn't required
 				if index % 2 != 0 or index != len(encryptedRom) - 1 :
 			
 					# Encrypt the ROM
-					if index % 2 :
+					if index % 2 != 0 :
 						temp += chr(self.romEncryptionTable[int(ord(encryptedRom[index - 1]))])
 					else :
 				
 						temp += chr(self.romEncryptionTable[int(ord(encryptedRom[index + 1]))])
+				
+				# Otherwise
+				else :
+				
+					# Add padding
+					temp += chr(self.romEncryptionTable[0xFF])
 				
 				# Increment index
 				index += 1
 		
 			# Set encrypted ROM
 			encryptedRom = temp
+		
+		# Check if ROM requires padding
+		if len(encryptedRom) % 2 != 0 and len(encryptedRom) < self.chipTotalMemory :
+		
+			# Add padding to ROM
+			encryptedRom += chr(self.romEncryptionTable[0xFF])
 	
 		# Check if rom isn't too big
 		if len(encryptedRom) <= self.chipTotalMemory :
@@ -4957,6 +4975,63 @@ class M33FioPlugin(
 									
 											# Set error to if setting current Z in EEPROM failed
 											error = self.eepromSetFloat(connection, "lastRecordedZValue", currentValueZ)
+											
+										# Check if an error hasn't occured
+										if not error :
+										
+											# Set error to if setting expand printable region in EEPROM failed
+											value = 0
+											if self._settings.get_boolean(["ExpandPrintableRegion"]) :
+												value = 1
+											error = self.eepromSetInt(connection, "expandPrintableRegion", value)
+											
+										# Check if an error hasn't occured
+										if not error :
+									
+											# Set error to if setting external bed height in EEPROM failed
+											error = self.eepromSetFloat(connection, "externalBedHeight", self._settings.get_float(["ExternalBedHeight"]))
+											
+										# Check if an error hasn't occured
+										if not error :
+								
+											# Set error to if setting calibrate Z0 correction in EEPROM failed
+											error = self.eepromSetFloat(connection, "calibrateZ0Correction", self._settings.get_float(["CalibrateZ0Correction"]))
+											
+										# Check if an error hasn't occured
+										if not error :
+							
+											# Set error to if setting X jerk sensitivity in EEPROM failed
+											error = self.eepromSetInt(connection, "xJerkSensitivity", self._settings.get_int(["XJerkSensitivity"]))
+											
+										# Check if an error hasn't occured
+										if not error :
+						
+											# Set error to if setting Y jerk sensitivity in EEPROM failed
+											error = self.eepromSetInt(connection, "yJerkSensitivity", self._settings.get_int(["YJerkSensitivity"]))
+											
+										# Check if an error hasn't occured
+										if not error :
+					
+											# Set error to if setting X motor steps/mm in EEPROM failed
+											error = self.eepromSetFloat(connection, "xMotorStepsPerMm", self._settings.get_float(["XMotorStepsPerMm"]))
+											
+										# Check if an error hasn't occured
+										if not error :
+				
+											# Set error to if setting Y motor steps/mm in EEPROM failed
+											error = self.eepromSetFloat(connection, "yMotorStepsPerMm", self._settings.get_float(["YMotorStepsPerMm"]))
+											
+										# Check if an error hasn't occured
+										if not error :
+			
+											# Set error to if setting Z motor steps/mm in EEPROM failed
+											error = self.eepromSetFloat(connection, "zMotorStepsPerMm", self._settings.get_float(["ZMotorStepsPerMm"]))
+											
+										# Check if an error hasn't occured
+										if not error :
+		
+											# Set error to if setting E motor steps/mm in EEPROM failed
+											error = self.eepromSetFloat(connection, "eMotorStepsPerMm", self._settings.get_float(["EMotorStepsPerMm"]))
 								
 									# Otherwise check if going from a different firmware to M3D or M3D Mod firmware
 									elif (oldFirmwareType != "M3D" and oldFirmwareType != "M3D Mod") and (newFirmwareType == "M3D" or newFirmwareType == "M3D Mod") :
@@ -4976,7 +5051,7 @@ class M33FioPlugin(
 										# Check if an error hasn't occured
 										if not error :
 									
-											# Set error to if clearing expand printable region, external bed height, calibrate Z0 correction and X and Y sensitivity, value, direction, and validity in EEPROM failed
+											# Set error to if clearing expand printable region, external bed height, calibrate Z0 correction, and X and Y jerk sensitivity, value, direction, and validity in EEPROM failed
 											error = self.eepromSetInt(connection, "expandPrintableRegion", 0, self.eepromOffsets["savedYState"]["offset"] + self.eepromOffsets["savedYState"]["bytes"] - self.eepromOffsets["expandPrintableRegion"]["offset"])
 										
 										# Check if an error hasn't occured
