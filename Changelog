@@ -1,5 +1,13 @@
 Changelog:
 
+V1.20 June 6 2017
+
+	* Fixes settings that have invalid values when they are saved
+	* Implemented latest useful changes from M3D's official software
+	* Fixed issue where 'Update firmware from file' button disappeared
+	* Fixed issue with flashing firmware ROMs that have an uneven number of bytes
+	* Updated iMe firmware to version V00.00.01.24
+
 V1.19 June 1 2017
 
 	* Last slicer selected will be set as the default slicer so you dont have to keep reselecting it

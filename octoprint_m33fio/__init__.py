@@ -297,8 +297,24 @@ class M33FioPlugin(
 				offset = 0x76,
 				bytes = 4
 			),
+			filamentSize = dict(
+				offset = 0x82,
+				bytes = 1
+			),
+			filamentUid = dict(
+				offset = 0x83,
+				bytes = 4
+			),
 			bedOrientationFirstSample = dict(
 				offset = 0x106,
+				bytes = 4
+			),
+			expandPrintableRegion = dict(
+				offset = 0x294,
+				bytes = 1
+			),
+			externalBedHeight = dict(
+				offset = 0x295,
 				bytes = 4
 			),
 			calibrateZ0Correction = dict(
@@ -438,7 +454,6 @@ class M33FioPlugin(
 		# Chip details
 		self.chipName = "ATxmega32C4"
 		self.chipPageSize = 0x80
-		self.chipNrwwSize = 0x20
 		self.chipNumberOfPages = 0x80
 		self.chipTotalMemory = self.chipNumberOfPages * self.chipPageSize * 2
 		
@@ -1611,7 +1626,7 @@ class M33FioPlugin(
 				if index == 0 :
 					output.write(str(key) + " = " + str(alterations[key][index]).replace("\n\n", "\n").replace("\n", "\n\t").rstrip() + "\n")
 				else :
-					output.write(str(key)[0 : str(key).find(".")] + str(index + 1) + str(key)[str(key).find(".") : ] + " = " + str(alterations[key][index]).replace("\n\n", "\n").replace("\n", "\n\t").rstrip() + "\n")
+					output.write(str(key)[0 : str(key).find(".")] + str(index + 1) + str(key)[str(key).find(".") :] + " = " + str(alterations[key][index]).replace("\n\n", "\n").replace("\n", "\n\t").rstrip() + "\n")
 				index += 1
 	
 	# Covert Profile to Slic3r
@@ -1684,227 +1699,358 @@ class M33FioPlugin(
 	def guaranteeSettingsAreValid(self) :
 	
 		# Make sure backlash X is valid
-		if self._settings.get_float(["BacklashX"]) is None :
+		value = self._settings.get_float(["BacklashX"])
+		if not isinstance(value, float) or math.isnan(value) :
 			self._settings.set_float(["BacklashX"], self.get_settings_defaults()["BacklashX"])
+		elif value < 0 or value > 2 :
+			self._settings.set_float(["BacklashX"], min(2, max(0, value)))
 		
 		# Make sure backlash Y is valid
-		if self._settings.get_float(["BacklashY"]) is None :
+		value = self._settings.get_float(["BacklashY"])
+		if not isinstance(value, float) or math.isnan(value) :
 			self._settings.set_float(["BacklashY"], self.get_settings_defaults()["BacklashY"])
+		elif value < 0 or value > 2 :
+			self._settings.set_float(["BacklashY"], min(2, max(0, value)))
 		
 		# Make sure back left orientation is valid
-		if self._settings.get_float(["BackLeftOrientation"]) is None :
+		value = self._settings.get_float(["BackLeftOrientation"])
+		if not isinstance(value, float) or math.isnan(value) :
 			self._settings.set_float(["BackLeftOrientation"], self.get_settings_defaults()["BackLeftOrientation"])
+		elif value < -3 or value > 3 :
+			self._settings.set_float(["BackLeftOrientation"], min(3, max(-3, value)))
 		
 		# Make sure back right orientation is valid
-		if self._settings.get_float(["BackRightOrientation"]) is None :
+		value = self._settings.get_float(["BackRightOrientation"])
+		if not isinstance(value, float) or math.isnan(value) :
 			self._settings.set_float(["BackRightOrientation"], self.get_settings_defaults()["BackRightOrientation"])
+		elif value < -3 or value > 3 :
+			self._settings.set_float(["BackRightOrientation"], min(3, max(-3, value)))
 		
 		# Make sure front right orientation is valid
-		if self._settings.get_float(["FrontRightOrientation"]) is None :
+		value = self._settings.get_float(["FrontRightOrientation"])
+		if not isinstance(value, float) or math.isnan(value) :
 			self._settings.set_float(["FrontRightOrientation"], self.get_settings_defaults()["FrontRightOrientation"])
+		elif value < -3 or value > 3 :
+			self._settings.set_float(["FrontRightOrientation"], min(3, max(-3, value)))
 		
 		# Make sure front left orientation is valid
-		if self._settings.get_float(["FrontLeftOrientation"]) is None :
+		value = self._settings.get_float(["FrontLeftOrientation"])
+		if not isinstance(value, float) or math.isnan(value) :
 			self._settings.set_float(["FrontLeftOrientation"], self.get_settings_defaults()["FrontLeftOrientation"])
+		elif value < -3 or value > 3 :
+			self._settings.set_float(["FrontLeftOrientation"], min(3, max(-3, value)))
 		
 		# Make sure backlash speed is valid
-		if self._settings.get_float(["BacklashSpeed"]) is None :
+		value = self._settings.get_float(["BacklashSpeed"])
+		if not isinstance(value, float) or math.isnan(value) :
 			self._settings.set_float(["BacklashSpeed"], self.get_settings_defaults()["BacklashSpeed"])
+		elif value < 1 or value > sys.float_info.max :
+			self._settings.set_float(["BacklashSpeed"], min(sys.float_info.max, max(1, value)))
 		
 		# Make sure back left offset is valid
-		if self._settings.get_float(["BackLeftOffset"]) is None :
+		value = self._settings.get_float(["BackLeftOffset"])
+		if not isinstance(value, float) or math.isnan(value) :
 			self._settings.set_float(["BackLeftOffset"], self.get_settings_defaults()["BackLeftOffset"])
+		elif value < -sys.float_info.max or value > sys.float_info.max :
+			self._settings.set_float(["BackLeftOffset"], min(sys.float_info.max, max(-sys.float_info.max, value)))
 		
 		# Make sure back right offset is valid
-		if self._settings.get_float(["BackRightOffset"]) is None :
+		value = self._settings.get_float(["BackRightOffset"])
+		if not isinstance(value, float) or math.isnan(value) :
 			self._settings.set_float(["BackRightOffset"], self.get_settings_defaults()["BackRightOffset"])
+		elif value < -sys.float_info.max or value > sys.float_info.max :
+			self._settings.set_float(["BackRightOffset"], min(sys.float_info.max, max(-sys.float_info.max, value)))
 		
 		# Make sure front right offset is valid
-		if self._settings.get_float(["FrontRightOffset"]) is None :
+		value = self._settings.get_float(["FrontRightOffset"])
+		if not isinstance(value, float) or math.isnan(value) :
 			self._settings.set_float(["FrontRightOffset"], self.get_settings_defaults()["FrontRightOffset"])
+		elif value < -sys.float_info.max or value > sys.float_info.max :
+			self._settings.set_float(["FrontRightOffset"], min(sys.float_info.max, max(-sys.float_info.max, value)))
 		
 		# Make sure front left offset is valid
-		if self._settings.get_float(["FrontLeftOffset"]) is None :
+		value = self._settings.get_float(["FrontLeftOffset"])
+		if not isinstance(value, float) or math.isnan(value) :
 			self._settings.set_float(["FrontLeftOffset"], self.get_settings_defaults()["FrontLeftOffset"])
+		elif value < -sys.float_info.max or value > sys.float_info.max :
+			self._settings.set_float(["FrontLeftOffset"], min(sys.float_info.max, max(-sys.float_info.max, value)))
 		
 		# Make sure bed height offset is valid
-		if self._settings.get_float(["BedHeightOffset"]) is None :
+		value = self._settings.get_float(["BedHeightOffset"])
+		if not isinstance(value, float) or math.isnan(value) :
 			self._settings.set_float(["BedHeightOffset"], self.get_settings_defaults()["BedHeightOffset"])
+		elif value < -sys.float_info.max or value > sys.float_info.max :
+			self._settings.set_float(["BedHeightOffset"], min(sys.float_info.max, max(-sys.float_info.max, value)))
 		
 		# Make sure filament temperature is valid
-		if self._settings.get_int(["FilamentTemperature"]) is None :
+		value = self._settings.get_int(["FilamentTemperature"])
+		if not isinstance(value, int) :
 			self._settings.set_int(["FilamentTemperature"], self.get_settings_defaults()["FilamentTemperature"])
+		elif value < 150 or value > 315 :
+			self._settings.set_int(["FilamentTemperature"], min(315, max(150, value)))
 		
 		# Make sure filament type is valid
-		if self._settings.get(["FilamentType"]) is None :
+		value = self._settings.get(["FilamentType"])
+		if not isinstance(value, (str, unicode)) or (value != "ABS" and value != "PLA" and value != "HIPS" and value != "FLX" and value != "TGH" and value != "CAM" and value != "ABS-R" and value != "OTHER") :
 			self._settings.set(["FilamentType"], self.get_settings_defaults()["FilamentType"])
 		
 		# Make sure use validation preprocessor is valid
-		if self._settings.get_boolean(["UseValidationPreprocessor"]) is None :
+		value = self._settings.get_boolean(["UseValidationPreprocessor"])
+		if not isinstance(value, bool) :
 			self._settings.set_boolean(["UseValidationPreprocessor"], self.get_settings_defaults()["UseValidationPreprocessor"])
 		
 		# Make sure use preparation preprocessor is valid
-		if self._settings.get_boolean(["UsePreparationPreprocessor"]) is None :
+		value = self._settings.get_boolean(["UsePreparationPreprocessor"])
+		if not isinstance(value, bool) :
 			self._settings.set_boolean(["UsePreparationPreprocessor"], self.get_settings_defaults()["UsePreparationPreprocessor"])
 		
 		# Make sure use thermal bonding preprocessor is valid
-		if self._settings.get_boolean(["UseThermalBondingPreprocessor"]) is None :
+		value = self._settings.get_boolean(["UseThermalBondingPreprocessor"])
+		if not isinstance(value, bool) :
 			self._settings.set_boolean(["UseThermalBondingPreprocessor"], self.get_settings_defaults()["UseThermalBondingPreprocessor"])
 		
 		# Make sure use wave bonding preprocessor is valid
-		if self._settings.get_boolean(["UseWaveBondingPreprocessor"]) is None :
+		value = self._settings.get_boolean(["UseWaveBondingPreprocessor"])
+		if not isinstance(value, bool) :
 			self._settings.set_boolean(["UseWaveBondingPreprocessor"], self.get_settings_defaults()["UseWaveBondingPreprocessor"])
 		
 		# Make sure use bed compensation preprocessor is valid
-		if self._settings.get_boolean(["UseBedCompensationPreprocessor"]) is None :
+		value = self._settings.get_boolean(["UseBedCompensationPreprocessor"])
+		if not isinstance(value, bool) :
 			self._settings.set_boolean(["UseBedCompensationPreprocessor"], self.get_settings_defaults()["UseBedCompensationPreprocessor"])
 		
 		# Make sure use backlash compensation preprocessor is valid
-		if self._settings.get_boolean(["UseBacklashCompensationPreprocessor"]) is None :
+		value = self._settings.get_boolean(["UseBacklashCompensationPreprocessor"])
+		if not isinstance(value, bool) :
 			self._settings.set_boolean(["UseBacklashCompensationPreprocessor"], self.get_settings_defaults()["UseBacklashCompensationPreprocessor"])
 		
 		# Make sure automatically obtain settings is valid
-		if self._settings.get_boolean(["AutomaticallyObtainSettings"]) is None :
+		value = self._settings.get_boolean(["AutomaticallyObtainSettings"])
+		if not isinstance(value, bool) :
 			self._settings.set_boolean(["AutomaticallyObtainSettings"], self.get_settings_defaults()["AutomaticallyObtainSettings"])
 		
 		# Make sure use center model preprocessor is valid
-		if self._settings.get_boolean(["UseCenterModelPreprocessor"]) is None :
+		value = self._settings.get_boolean(["UseCenterModelPreprocessor"])
+		if not isinstance(value, bool) :
 			self._settings.set_boolean(["UseCenterModelPreprocessor"], self.get_settings_defaults()["UseCenterModelPreprocessor"])
 		
 		# Make sure ignore print dimension limitations is valid
-		if self._settings.get_boolean(["IgnorePrintDimensionLimitations"]) is None :
+		value = self._settings.get_boolean(["IgnorePrintDimensionLimitations"])
+		if not isinstance(value, bool) :
 			self._settings.set_boolean(["IgnorePrintDimensionLimitations"], self.get_settings_defaults()["IgnorePrintDimensionLimitations"])
 
 		# Make sure preprocess on the fly is valid
-		if self._settings.get_boolean(["PreprocessOnTheFly"]) is None :
+		value = self._settings.get_boolean(["PreprocessOnTheFly"])
+		if not isinstance(value, bool) :
 			self._settings.set_boolean(["PreprocessOnTheFly"], self.get_settings_defaults()["PreprocessOnTheFly"])
 		
 		# Make sure use shared library is valid
-		if self._settings.get_boolean(["UseSharedLibrary"]) is None :
+		value = self._settings.get_boolean(["UseSharedLibrary"])
+		if not isinstance(value, bool) :
 			self._settings.set_boolean(["UseSharedLibrary"], self.get_settings_defaults()["UseSharedLibrary"])
 		
 		# Make sure speed limit X is valid
-		if self._settings.get_float(["SpeedLimitX"]) is None :
+		value = self._settings.get_float(["SpeedLimitX"])
+		if not isinstance(value, float) or math.isnan(value) :
 			self._settings.set_float(["SpeedLimitX"], self.get_settings_defaults()["SpeedLimitX"])
+		elif value < 120 or value > 4800 :
+			self._settings.set_float(["SpeedLimitX"], min(4800, max(120, value)))
 		
 		# Make sure speed limit Y is valid
-		if self._settings.get_float(["SpeedLimitY"]) is None :
+		value = self._settings.get_float(["SpeedLimitY"])
+		if not isinstance(value, float) or math.isnan(value) :
 			self._settings.set_float(["SpeedLimitY"], self.get_settings_defaults()["SpeedLimitY"])
+		elif value < 120 or value > 4800 :
+			self._settings.set_float(["SpeedLimitY"], min(4800, max(120, value)))
 		
 		# Make sure speed limit Z is valid
-		if self._settings.get_float(["SpeedLimitZ"]) is None :
+		value = self._settings.get_float(["SpeedLimitZ"])
+		if not isinstance(value, float) or math.isnan(value) :
 			self._settings.set_float(["SpeedLimitZ"], self.get_settings_defaults()["SpeedLimitZ"])
+		elif value < 30 or value > 60 :
+			self._settings.set_float(["SpeedLimitZ"], min(60, max(30, value)))
 		
 		# Make sure speed limit E positive is valid
-		if self._settings.get_float(["SpeedLimitEPositive"]) is None :
+		value = self._settings.get_float(["SpeedLimitEPositive"])
+		if not isinstance(value, float) or math.isnan(value) :
 			self._settings.set_float(["SpeedLimitEPositive"], self.get_settings_defaults()["SpeedLimitEPositive"])
+		elif value < 60 or value > 600 :
+			self._settings.set_float(["SpeedLimitEPositive"], min(600, max(60, value)))
 		
 		# Make sure speed limit E negative is valid
-		if self._settings.get_float(["SpeedLimitENegative"]) is None :
+		value = self._settings.get_float(["SpeedLimitENegative"])
+		if not isinstance(value, float) or math.isnan(value) :
 			self._settings.set_float(["SpeedLimitENegative"], self.get_settings_defaults()["SpeedLimitENegative"])
+		elif value < 60 or value > 720 :
+			self._settings.set_float(["SpeedLimitENegative"], min(720, max(60, value)))
 		
 		# Make sure X motor steps/mm is valid
-		if self._settings.get_float(["XMotorStepsPerMm"]) is None :
+		value = self._settings.get_float(["XMotorStepsPerMm"])
+		if not isinstance(value, float) or math.isnan(value) :
 			self._settings.set_float(["XMotorStepsPerMm"], self.get_settings_defaults()["XMotorStepsPerMm"])
+		elif value < sys.float_info.min or value > sys.float_info.max :
+			self._settings.set_float(["XMotorStepsPerMm"], min(sys.float_info.max, max(sys.float_info.min, value)))
 		
 		# Make sure Y motor steps/mm is valid
-		if self._settings.get_float(["YMotorStepsPerMm"]) is None :
+		value = self._settings.get_float(["YMotorStepsPerMm"])
+		if not isinstance(value, float) or math.isnan(value) :
 			self._settings.set_float(["YMotorStepsPerMm"], self.get_settings_defaults()["YMotorStepsPerMm"])
+		elif value < sys.float_info.min or value > sys.float_info.max :
+			self._settings.set_float(["YMotorStepsPerMm"], min(sys.float_info.max, max(sys.float_info.min, value)))
 		
 		# Make sure Z motor steps/mm is valid
-		if self._settings.get_float(["ZMotorStepsPerMm"]) is None :
+		value = self._settings.get_float(["ZMotorStepsPerMm"])
+		if not isinstance(value, float) or math.isnan(value) :
 			self._settings.set_float(["ZMotorStepsPerMm"], self.get_settings_defaults()["ZMotorStepsPerMm"])
+		elif value < sys.float_info.min or value > sys.float_info.max :
+			self._settings.set_float(["ZMotorStepsPerMm"], min(sys.float_info.max, max(sys.float_info.min, value)))
 		
 		# Make sure E motor steps/mm is valid
-		if self._settings.get_float(["EMotorStepsPerMm"]) is None :
+		value = self._settings.get_float(["EMotorStepsPerMm"])
+		if not isinstance(value, float) or math.isnan(value) :
 			self._settings.set_float(["EMotorStepsPerMm"], self.get_settings_defaults()["EMotorStepsPerMm"])
+		elif value < sys.float_info.min or value > sys.float_info.max :
+			self._settings.set_float(["EMotorStepsPerMm"], min(sys.float_info.max, max(sys.float_info.min, value)))
 		
 		# Make sure X jerk sensitivity is valid
-		if self._settings.get_int(["XJerkSensitivity"]) is None :
+		value = self._settings.get_int(["XJerkSensitivity"])
+		if not isinstance(value, int) :
 			self._settings.set_int(["XJerkSensitivity"], self.get_settings_defaults()["XJerkSensitivity"])
+		elif value < 1 or value > 255 :
+			self._settings.set_int(["XJerkSensitivity"], min(255, max(1, value)))
 		
 		# Make sure Y jerk sensitivity is valid
-		if self._settings.get_int(["YJerkSensitivity"]) is None :
+		value = self._settings.get_int(["YJerkSensitivity"])
+		if not isinstance(value, int) :
 			self._settings.set_int(["YJerkSensitivity"], self.get_settings_defaults()["YJerkSensitivity"])
+		elif value < 1 or value > 255 :
+			self._settings.set_int(["YJerkSensitivity"], min(255, max(1, value)))
 		
 		# Make sure calibrate Z0 correction is valid
-		if self._settings.get_float(["CalibrateZ0Correction"]) is None :
+		value = self._settings.get_float(["CalibrateZ0Correction"])
+		if not isinstance(value, float) or math.isnan(value) :
 			self._settings.set_float(["CalibrateZ0Correction"], self.get_settings_defaults()["CalibrateZ0Correction"])
+		elif value < -sys.float_info.max or value > sys.float_info.max :
+			self._settings.set_float(["CalibrateZ0Correction"], min(sys.float_info.max, max(-sys.float_info.max, value)))
 		
 		# Make sure change settings before print is valid
-		if self._settings.get_boolean(["ChangeSettingsBeforePrint"]) is None :
+		value = self._settings.get_boolean(["ChangeSettingsBeforePrint"])
+		if not isinstance(value, bool) :
 			self._settings.set_boolean(["ChangeSettingsBeforePrint"], self.get_settings_defaults()["ChangeSettingsBeforePrint"])
 		
 		# Make sure not using a Micro 3D printer is valid
-		if self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) is None :
+		value = self._settings.get_boolean(["NotUsingAMicro3DPrinter"])
+		if not isinstance(value, bool) :
 			self._settings.set_boolean(["NotUsingAMicro3DPrinter"], self.get_settings_defaults()["NotUsingAMicro3DPrinter"])
 		
 		# Make sure calibrate before print is valid
-		if self._settings.get_boolean(["CalibrateBeforePrint"]) is None :
+		value = self._settings.get_boolean(["CalibrateBeforePrint"])
+		if not isinstance(value, bool) :
 			self._settings.set_boolean(["CalibrateBeforePrint"], self.get_settings_defaults()["CalibrateBeforePrint"])
 		
 		# Make sure remove fan commands is valid
-		if self._settings.get_boolean(["RemoveFanCommands"]) is None :
+		value = self._settings.get_boolean(["RemoveFanCommands"])
+		if not isinstance(value, bool) :
 			self._settings.set_boolean(["RemoveFanCommands"], self.get_settings_defaults()["RemoveFanCommands"])
 		
 		# Make sure remove temperature commands is valid
-		if self._settings.get_boolean(["RemoveTemperatureCommands"]) is None :
+		value = self._settings.get_boolean(["RemoveTemperatureCommands"])
+		if not isinstance(value, bool) :
 			self._settings.set_boolean(["RemoveTemperatureCommands"], self.get_settings_defaults()["RemoveTemperatureCommands"])
 		
 		# Make sure use GPIO is valid
-		if self._settings.get_boolean(["UseGpio"]) is None :
+		value = self._settings.get_boolean(["UseGpio"])
+		if not isinstance(value, bool) :
 			self._settings.set_boolean(["UseGpio"], self.get_settings_defaults()["UseGpio"])
 
+		# Make sure use GPIO pin is valid
+		value = self._settings.get_int(["GpioPin"])
+		if value is not None and not isinstance(value, int) :
+			self._settings.set(["GpioPin"], self.get_settings_defaults()["GpioPin"])
+		
+		# Make sure use GPIO layer is valid
+		value = self._settings.get_int(["GpioLayer"])
+		if value is not None and not isinstance(value, int) :
+			self._settings.set(["GpioLayer"], self.get_settings_defaults()["GpioLayer"])
+		
 		# Make sure heatbed temperature is valid
-		if self._settings.get_int(["HeatbedTemperature"]) is None :
+		value = self._settings.get_int(["HeatbedTemperature"])
+		if not isinstance(value, int) :
 			self._settings.set_int(["HeatbedTemperature"], self.get_settings_defaults()["HeatbedTemperature"])
+		elif value < 0 or value > 110 :
+			self._settings.set_int(["HeatbedTemperature"], min(110, max(0, value)))
 		
 		# Make sure external bed height is valid
-		if self._settings.get_float(["ExternalBedHeight"]) is None :
+		value = self._settings.get_float(["ExternalBedHeight"])
+		if not isinstance(value, float) or math.isnan(value) :
 			self._settings.set_float(["ExternalBedHeight"], self.get_settings_defaults()["ExternalBedHeight"])
+		elif value < 0 or value > 50 :
+			self._settings.set_float(["ExternalBedHeight"], min(50, max(0, value)))
 		
 		# Make sure expand printable region is valid
-		if self._settings.get_boolean(["ExpandPrintableRegion"]) is None :
+		value = self._settings.get_boolean(["ExpandPrintableRegion"])
+		if not isinstance(value, bool) :
 			self._settings.set_boolean(["ExpandPrintableRegion"], self.get_settings_defaults()["ExpandPrintableRegion"])
 		
 		# Make sure host camera is valid
-		if self._settings.get_boolean(["HostCamera"]) is None :
+		value = self._settings.get_boolean(["HostCamera"])
+		if not isinstance(value, bool) :
 			self._settings.set_boolean(["HostCamera"], self.get_settings_defaults()["HostCamera"])
 		
+		# Make sure use camera port is valid
+		value = self._settings.get(["CameraPort"])
+		if value is not None and not isinstance(value, (str, unicode)) :
+			self._settings.set(["CameraPort"], self.get_settings_defaults()["CameraPort"])
+		
 		# Make sure camera width is valid
-		if self._settings.get_int(["CameraWidth"]) is None :
+		value = self._settings.get_int(["CameraWidth"])
+		if not isinstance(value, int) :
 			self._settings.set_int(["CameraWidth"], self.get_settings_defaults()["CameraWidth"])
+		elif value < 1 or value > 4096 :
+			self._settings.set_int(["CameraWidth"], min(4096, max(1, value)))
 		
 		# Make sure camera height is valid
-		if self._settings.get_int(["CameraHeight"]) is None :
+		value = self._settings.get_int(["CameraHeight"])
+		if not isinstance(value, int) :
 			self._settings.set_int(["CameraHeight"], self.get_settings_defaults()["CameraHeight"])
+		elif value < 1 or value > 4096 :
+			self._settings.set_int(["CameraHeight"], min(4096, max(1, value)))
 		
 		# Make sure camera frames/second is valid
-		if self._settings.get_int(["CameraFramesPerSecond"]) is None :
+		value = self._settings.get_int(["CameraFramesPerSecond"])
+		if not isinstance(value, int) :
 			self._settings.set_int(["CameraFramesPerSecond"], self.get_settings_defaults()["CameraFramesPerSecond"])
+		elif value < 1 or value > 60:
+			self._settings.set_int(["CameraFramesPerSecond"], min(60, max(1, value)))
 		
 		# Make sure mid print filament change layers is valid
-		if self._settings.get(["MidPrintFilamentChangeLayers"]) is None :
+		value = self._settings.get(["MidPrintFilamentChangeLayers"])
+		if not isinstance(value, (str, unicode)) :
 			self._settings.set(["MidPrintFilamentChangeLayers"], self.get_settings_defaults()["MidPrintFilamentChangeLayers"])
 		
 		# Make sure change led brightness is valid
-		if self._settings.get_boolean(["ChangeLedBrightness"]) is None :
+		value = self._settings.get_boolean(["ChangeLedBrightness"])
+		if not isinstance(value, bool) :
 			self._settings.set_boolean(["ChangeLedBrightness"], self.get_settings_defaults()["ChangeLedBrightness"])
 		
 		# Make sure use debug logging is valid
-		if self._settings.get_boolean(["UseDebugLogging"]) is None :
+		value = self._settings.get_boolean(["UseDebugLogging"])
+		if not isinstance(value, bool) :
 			self._settings.set_boolean(["UseDebugLogging"], self.get_settings_defaults()["UseDebugLogging"])
 		
 		# Make sure slicer never remind is valid
-		if self._settings.get_boolean(["SlicerNeverRemind"]) is None :
+		value = self._settings.get_boolean(["SlicerNeverRemind"])
+		if not isinstance(value, bool) :
 			self._settings.set_boolean(["SlicerNeverRemind"], self.get_settings_defaults()["SlicerNeverRemind"])
 		
 		# Make sure sleep never remind is valid
-		if self._settings.get_boolean(["SleepNeverRemind"]) is None :
+		value = self._settings.get_boolean(["SleepNeverRemind"])
+		if not isinstance(value, bool) :
 			self._settings.set_boolean(["SleepNeverRemind"], self.get_settings_defaults()["SleepNeverRemind"])
 		
 		# Make sure Micro 3D bootloader versions uploaded is valid
-		if self._settings.get(["Micro3DBootloaderVersionsUploaded"]) is None :
+		value = self._settings.get(["Micro3DBootloaderVersionsUploaded"])
+		if not isinstance(value, (str, unicode)) :
 			self._settings.set(["Micro3DBootloaderVersionsUploaded"], self.get_settings_defaults()["Micro3DBootloaderVersionsUploaded"])
 	
 	# Set default slicer profile
@@ -2066,6 +2212,9 @@ class M33FioPlugin(
 		
 		# Save settings
 		octoprint.plugin.SettingsPlugin.on_settings_save(self, data)
+		
+		# Guarantee settings are valid
+		self.guaranteeSettingsAreValid()
 		
 		# Send message for enabling/disabling GPIO buttons
 		if self._settings.get_boolean(["UseGpio"]) and self._settings.get_int(["GpioPin"]) is not None and self._settings.get_int(["GpioLayer"]) is not None :
@@ -3987,7 +4136,7 @@ class M33FioPlugin(
 		return True
 	
 	# Extract chip's contents
-	def extractChipContents(self, connection, currentPort, currentBaudrate, bootloaderVersion) :
+	def extractChipContents(self, connection, currentPort, currentBaudrate, bootloaderVersion, bootloaderCrc, firmwareCrc) :
 		
 		# Initialize variables
 		error = False
@@ -4059,7 +4208,7 @@ class M33FioPlugin(
 					lockBits += chr(int(temp[2 :], 16))
 				
 				# Otherwise
-				except:
+				except :
 				
 					# Set error
 					error = True
@@ -4081,16 +4230,16 @@ class M33FioPlugin(
 						character = connection.read()
 						while character != "\n" :
 							if character == " " :
-								fuseBytes += chr(int(temp[4 :], 16))
+								fuseBytes += chr(int(temp[2 :], 16))
 								temp = ""
 							else :
 								temp += character
 							character = connection.read()
 					
-						fuseBytes += chr(int(temp[4 :], 16))
+						fuseBytes += chr(int(temp[2 :], 16))
 				
 					# Otherwise
-					except:
+					except :
 				
 						# Set error
 						error = True
@@ -4121,7 +4270,7 @@ class M33FioPlugin(
 							eeprom += chr(int(temp[2 :], 16))
 				
 						# Otherwise
-						except:
+						except :
 				
 							# Set error
 							error = True
@@ -4152,7 +4301,7 @@ class M33FioPlugin(
 								userSignature += chr(int(temp[2 :], 16))
 				
 							# Otherwise
-							except:
+							except :
 				
 								# Set error
 								error = True
@@ -4183,105 +4332,395 @@ class M33FioPlugin(
 									bootloaderContents += chr(int(temp[2 :], 16))
 				
 								# Otherwise
-								except:
+								except :
 				
 									# Set error
 									error = True
 								
 								# Check if an error hasn't occured
 								if not error :
-								
-									# Set data
-									data = {
-										"Printer": "Micro 3D",
-										"Category": "Bootloader Versions",
-										"Version": bootloaderVersion
-									}
-		
-									# Set files
-									files = {
-										"Bootloader" : bootloaderContents,
-										"EEPROM" : eeprom,
-										"User Signature" : userSignature,
-										"Fuse Bytes" : fuseBytes,
-										"Lock Bits" : lockBits
-									}
-
-									# Send message
+						
+									# Request application table contents
+									connection.write("@Application table contents")
+				
+									# Get response
 									try :
-										response = requests.post("https://exploitkings.com/scripts/M33 Fio.html", data = data, files = files).text
+										connection.read(len("ok\n"))
 									
+										# Convert response to binary
+										applicationTableContents = ""
+					
+										temp = ""
+										character = connection.read()
+										while character != "\n" :
+											if character == " " :
+												applicationTableContents += chr(int(temp[2 :], 16))
+												temp = ""
+											else :
+												temp += character
+											character = connection.read()
+					
+										applicationTableContents += chr(int(temp[2 :], 16))
+				
 									# Otherwise
 									except :
-										
+				
 										# Set error
 										error = True
 									
 									# Check if an error hasn't occured
 									if not error :
+						
+										# Request application table CRC
+										connection.write("@Application table CRC")
+				
+										# Get response
+										try :
+											connection.read(len("ok\n"))
 									
-										# Check if upload wasn't successful
-										if response != "OK" :
-										
+											# Convert response to binary
+											applicationTableCrc = ""
+					
+											temp = ""
+											character = connection.read()
+											while character != "\n" :
+												if character == " " :
+													applicationTableCrc += chr(int(temp[2 :], 16))
+													temp = ""
+												else :
+													temp += character
+												character = connection.read()
+					
+											applicationTableCrc += chr(int(temp[2 :], 16))
+				
+										# Otherwise
+										except :
+				
 											# Set error
 											error = True
 										
-										# Otherwise
-										else :
+										# Check if an error hasn't occured
+										if not error :
+						
+											# Request bootloader CRC
+											connection.write("@Bootloader CRC")
 				
-											# Save ports
-											self.savePorts(currentPort)
-	
-											# Switch to bootloader mode
-											connection.write("M115 S628")
-	
+											# Get response
 											try :
-												gcode = Gcode("M115 S628")
-												connection.write(gcode.getBinary())
-	
-											# Check if an error occured
-											except :	
-												pass
-	
-											time.sleep(1)
-	
-											# Close connection
-											connection.close()
-											connection = None
-	
-											# Set updated port
-											currentPort = self.getPort()
-	
-											# Check if printer wasn't found
-											if currentPort is None :
-		
+												connection.read(len("ok\n"))
+									
+												# Convert response to binary
+												bootloaderContentsCrc = ""
+					
+												temp = ""
+												character = connection.read()
+												while character != "\n" :
+													if character == " " :
+														bootloaderContentsCrc += chr(int(temp[2 :], 16))
+														temp = ""
+													else :
+														temp += character
+													character = connection.read()
+					
+												bootloaderContentsCrc += chr(int(temp[2 :], 16))
+				
+											# Otherwise
+											except :
+				
 												# Set error
 												error = True
-			
-											# Otherwise
-											else :
-
-												# Re-connect; wait for the device to be available
-												for i in xrange(5) :
+											
+											# Check if an error hasn't occured
+											if not error :
+						
+												# Request production signature
+												connection.write("@Production signature")
+				
+												# Get response
+												try :
+													connection.read(len("ok\n"))
+									
+													# Convert response to binary
+													productionSignature = ""
+					
+													temp = ""
+													character = connection.read()
+													while character != "\n" :
+														if character == " " :
+															productionSignature += chr(int(temp[2 :], 16))
+															temp = ""
+														else :
+															temp += character
+														character = connection.read()
+					
+													productionSignature += chr(int(temp[2 :], 16))
+				
+												# Otherwise
+												except :
+				
+													# Set error
+													error = True
+												
+												# Check if an error hasn't occured
+												if not error :
+						
+													# Request device ID
+													connection.write("@Device ID")
+				
+													# Get response
 													try :
-														connection = serial.Serial(currentPort, currentBaudrate)
-														break
-		
+														connection.read(len("ok\n"))
+									
+														# Convert response to binary
+														deviceId = ""
+					
+														temp = ""
+														character = connection.read()
+														while character != "\n" :
+															if character == " " :
+																deviceId += chr(int(temp[2 :], 16))
+																temp = ""
+															else :
+																temp += character
+															character = connection.read()
+					
+														deviceId += chr(int(temp[2 :], 16))
+				
+													# Otherwise
 													except :
-														connection = None
-														time.sleep(1)
 				
-												# Check if connecting to printer failed
-												if connection is None :
+														# Set error
+														error = True
+													
+													# Check if an error hasn't occured
+													if not error :
+						
+														# Request device revision
+														connection.write("@Device revision")
+				
+														# Get response
+														try :
+															connection.read(len("ok\n"))
+									
+															# Convert response to binary
+															deviceRevision = ""
+					
+															temp = ""
+															character = connection.read()
+															while character != "\n" :
+																if character == " " :
+																	deviceRevision += chr(int(temp[2 :], 16))
+																	temp = ""
+																else :
+																	temp += character
+																character = connection.read()
+					
+															deviceRevision += chr(int(temp[2 :], 16))
+				
+														# Otherwise
+														except :
+				
+															# Set error
+															error = True
+														
+														# Check if an error hasn't occured
+														if not error :
+						
+															# Request device serial
+															connection.write("@Device serial")
+				
+															# Get response
+															try :
+																connection.read(len("ok\n"))
+									
+																# Convert response to binary
+																deviceSerial = ""
+					
+																temp = ""
+																character = connection.read()
+																while character != "\n" :
+																	if character == " " :
+																		deviceSerial += chr(int(temp[2 :], 16))
+																		temp = ""
+																	else :
+																		temp += character
+																	character = connection.read()
+					
+																deviceSerial += chr(int(temp[2 :], 16))
+				
+															# Otherwise
+															except :
+				
+																# Set error
+																error = True
+															
+															# Check if an error hasn't occured
+															if not error :
+						
+																# Request bootloader CRC steps
+																connection.write("@Bootloader CRC steps")
+				
+																# Get response
+																try :
+																	connection.read(len("ok\n"))
+									
+																	# Convert response to binary
+																	bootloaderCrcSteps = ""
+					
+																	temp = ""
+																	character = connection.read()
+																	while character != "\n" :
+																		if character == " " :
+																			bootloaderCrcSteps += chr(int(temp[2 :], 16))
+																			temp = ""
+																		else :
+																			temp += character
+																		character = connection.read()
+					
+																	bootloaderCrcSteps += chr(int(temp[2 :], 16))
+				
+																# Otherwise
+																except :
+				
+																	# Set error
+																	error = True
+																
+																# Check if an error hasn't occured
+																if not error :
+						
+																	# Request application table CRC steps
+																	connection.write("@Application table CRC steps")
+				
+																	# Get response
+																	try :
+																		connection.read(len("ok\n"))
+									
+																		# Convert response to binary
+																		applicationTableCrcSteps = ""
+					
+																		temp = ""
+																		character = connection.read()
+																		while character != "\n" :
+																			if character == " " :
+																				applicationTableCrcSteps += chr(int(temp[2 :], 16))
+																				temp = ""
+																			else :
+																				temp += character
+																			character = connection.read()
+					
+																		applicationTableCrcSteps += chr(int(temp[2 :], 16))
+				
+																	# Otherwise
+																	except :
+				
+																		# Set error
+																		error = True
+								
+																	# Check if an error hasn't occured
+																	if not error :
+							
+																		# Set data
+																		data = {
+																			"Printer": "Micro 3D",
+																			"Category": "Bootloader Versions",
+																			"Bootloader Version": bootloaderVersion,
+																			"Bootloader CRC": bootloaderCrc,
+																			"Firmware CRC": firmwareCrc
+																		}
+	
+																		# Set files
+																		files = {
+																			"Bootloader Contents": bootloaderContents,
+																			"Bootloader CRC": bootloaderContentsCrc,
+																			"Bootloader CRC Steps": bootloaderCrcSteps,
+																			"EEPROM": eeprom,
+																			"User Signature": userSignature,
+																			"Production Signature": productionSignature,
+																			"Fuse Bytes": fuseBytes,
+																			"Lock Bits": lockBits,
+																			"Application Table Contents": applicationTableContents,
+																			"Application Table CRC": applicationTableCrc,
+																			"Application Table CRC Steps": applicationTableCrcSteps,
+																			"Device ID": deviceId,
+																			"Device Revision": deviceRevision,
+																			"Device Serial": deviceSerial
+																		}
+																		
+																		# Send message
+																		try :
+																			response = requests.post("https://exploitkings.com/scripts/M33 Fio.html", data = data, files = files).text
+																		
+																		# Otherwise
+																		except :
+									
+																			# Set error
+																			error = True
+								
+																		# Check if an error hasn't occured
+																		if not error :
+								
+																			# Check if upload wasn't successful
+																			if response != "OK" :
+									
+																				# Set error
+																				error = True
+									
+																			# Otherwise
+																			else :
 			
-													# Set error
-													error = True
-				
-													# Otherwise check if using macOS or Linux and the user lacks read/write access to the printer
-												elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
+																				# Save ports
+																				self.savePorts(currentPort)
 
-													# Set error
-													error = True
+																				# Switch to bootloader mode
+																				connection.write("M115 S628")
+
+																				try :
+																					gcode = Gcode("M115 S628")
+																					connection.write(gcode.getBinary())
+
+																				# Check if an error occured
+																				except :	
+																					pass
+
+																				time.sleep(1)
+
+																				# Close connection
+																				connection.close()
+																				connection = None
+
+																				# Set updated port
+																				currentPort = self.getPort()
+
+																				# Check if printer wasn't found
+																				if currentPort is None :
+	
+																					# Set error
+																					error = True
+		
+																				# Otherwise
+																				else :
+
+																					# Re-connect; wait for the device to be available
+																					for i in xrange(5) :
+																						try :
+																							connection = serial.Serial(currentPort, currentBaudrate)
+																							break
+	
+																						except :
+																							connection = None
+																							time.sleep(1)
+			
+																					# Check if connecting to printer failed
+																					if connection is None :
+		
+																						# Set error
+																						error = True
+			
+																						# Otherwise check if using macOS or Linux and the user lacks read/write access to the printer
+																					elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
+
+																						# Set error
+																						error = True
 		
 		# Otherwise
 		else :
@@ -4317,28 +4756,46 @@ class M33FioPlugin(
 		decryptedRom = ""
 		newChipCrc = 0
 		
-		# Check if rom isn't encrypted
+		# Check if ROM isn't encrypted
 		if encryptedRom[0] == "\x0C" or encryptedRom[0] == "\xFD" :
+		
+			# Check if ROM requires padding
+			if len(encryptedRom) % 2 != 0 and len(encryptedRom) < self.chipTotalMemory :
+			
+				# Add padding to ROM
+				encryptedRom += "\xFF"
 	
 			# Go through the ROM
 			index = 0
 			while index < len(encryptedRom) :
 		
-				# Check if padding wasn't required
+				# Check if padding isn't required
 				if index % 2 != 0 or index != len(encryptedRom) - 1 :
 			
 					# Encrypt the ROM
-					if index % 2 :
+					if index % 2 != 0 :
 						temp += chr(self.romEncryptionTable[int(ord(encryptedRom[index - 1]))])
 					else :
 				
 						temp += chr(self.romEncryptionTable[int(ord(encryptedRom[index + 1]))])
+				
+				# Otherwise
+				else :
+				
+					# Add padding
+					temp += chr(self.romEncryptionTable[0xFF])
 				
 				# Increment index
 				index += 1
 		
 			# Set encrypted ROM
 			encryptedRom = temp
+		
+		# Check if ROM requires padding
+		if len(encryptedRom) % 2 != 0 and len(encryptedRom) < self.chipTotalMemory :
+		
+			# Add padding to ROM
+			encryptedRom += chr(self.romEncryptionTable[0xFF])
 	
 		# Check if rom isn't too big
 		if len(encryptedRom) <= self.chipTotalMemory :
@@ -4378,12 +4835,21 @@ class M33FioPlugin(
 							# Check if data to be written exists
 							position = pageAddress + self.chipPageSize * index * 2
 							if position < len(encryptedRom) :
-			
-								# Send value
-								if position % 2 == 0 :
-									connection.write(encryptedRom[position + 1])
+							
+								# Check if padding is required
+								if position % 2 == 0 and position == len(encryptedRom) - 1 :
+
+									# Send padding
+									connection.write(chr(self.romEncryptionTable[0xFF]))
+
+								# Otherwise
 								else :
-									connection.write(encryptedRom[position - 1])
+			
+									# Send value
+									if position % 2 == 0 :
+										connection.write(encryptedRom[position + 1])
+									else :
+										connection.write(encryptedRom[position - 1])
 
 							# Otherwise
 							else :
@@ -4400,6 +4866,9 @@ class M33FioPlugin(
 							# Set error
 							error = True
 							break
+						
+						# Delay
+						time.sleep(0.02)
 		
 						# Increment index
 						index += 1
@@ -4506,6 +4975,63 @@ class M33FioPlugin(
 									
 											# Set error to if setting current Z in EEPROM failed
 											error = self.eepromSetFloat(connection, "lastRecordedZValue", currentValueZ)
+											
+										# Check if an error hasn't occured
+										if not error :
+										
+											# Set error to if setting expand printable region in EEPROM failed
+											value = 0
+											if self._settings.get_boolean(["ExpandPrintableRegion"]) :
+												value = 1
+											error = self.eepromSetInt(connection, "expandPrintableRegion", value)
+											
+										# Check if an error hasn't occured
+										if not error :
+									
+											# Set error to if setting external bed height in EEPROM failed
+											error = self.eepromSetFloat(connection, "externalBedHeight", self._settings.get_float(["ExternalBedHeight"]))
+											
+										# Check if an error hasn't occured
+										if not error :
+								
+											# Set error to if setting calibrate Z0 correction in EEPROM failed
+											error = self.eepromSetFloat(connection, "calibrateZ0Correction", self._settings.get_float(["CalibrateZ0Correction"]))
+											
+										# Check if an error hasn't occured
+										if not error :
+							
+											# Set error to if setting X jerk sensitivity in EEPROM failed
+											error = self.eepromSetInt(connection, "xJerkSensitivity", self._settings.get_int(["XJerkSensitivity"]))
+											
+										# Check if an error hasn't occured
+										if not error :
+						
+											# Set error to if setting Y jerk sensitivity in EEPROM failed
+											error = self.eepromSetInt(connection, "yJerkSensitivity", self._settings.get_int(["YJerkSensitivity"]))
+											
+										# Check if an error hasn't occured
+										if not error :
+					
+											# Set error to if setting X motor steps/mm in EEPROM failed
+											error = self.eepromSetFloat(connection, "xMotorStepsPerMm", self._settings.get_float(["XMotorStepsPerMm"]))
+											
+										# Check if an error hasn't occured
+										if not error :
+				
+											# Set error to if setting Y motor steps/mm in EEPROM failed
+											error = self.eepromSetFloat(connection, "yMotorStepsPerMm", self._settings.get_float(["YMotorStepsPerMm"]))
+											
+										# Check if an error hasn't occured
+										if not error :
+			
+											# Set error to if setting Z motor steps/mm in EEPROM failed
+											error = self.eepromSetFloat(connection, "zMotorStepsPerMm", self._settings.get_float(["ZMotorStepsPerMm"]))
+											
+										# Check if an error hasn't occured
+										if not error :
+		
+											# Set error to if setting E motor steps/mm in EEPROM failed
+											error = self.eepromSetFloat(connection, "eMotorStepsPerMm", self._settings.get_float(["EMotorStepsPerMm"]))
 								
 									# Otherwise check if going from a different firmware to M3D or M3D Mod firmware
 									elif (oldFirmwareType != "M3D" and oldFirmwareType != "M3D Mod") and (newFirmwareType == "M3D" or newFirmwareType == "M3D Mod") :
@@ -4525,8 +5051,8 @@ class M33FioPlugin(
 										# Check if an error hasn't occured
 										if not error :
 									
-											# Set error to if clearing calibrate Z0 correction and X and Y sensitivity, value, direction, and validity in EEPROM failed
-											error = self.eepromSetInt(connection, "calibrateZ0Correction", 0, self.eepromOffsets["savedYState"]["offset"] + self.eepromOffsets["savedYState"]["bytes"] - self.eepromOffsets["calibrateZ0Correction"]["offset"])
+											# Set error to if clearing expand printable region, external bed height, calibrate Z0 correction, and X and Y jerk sensitivity, value, direction, and validity in EEPROM failed
+											error = self.eepromSetInt(connection, "expandPrintableRegion", 0, self.eepromOffsets["savedYState"]["offset"] + self.eepromOffsets["savedYState"]["bytes"] - self.eepromOffsets["expandPrintableRegion"]["offset"])
 										
 										# Check if an error hasn't occured
 										if not error :
@@ -5605,35 +6131,76 @@ class M33FioPlugin(
 			response = ""
 		
 		# Otherwise check if response was an error code
-		elif response.startswith("Error:") :
-
-			# Set error response
-			if response[6 : 10] == "1000" :
-				response = "ok " + gettext("M110 without a line number") + "\n"
-			elif response[6 : 10] == "1001" :
-				response = "ok " + gettext("Cannot cold extrude") + "\n"
-			elif response[6 : 10] == "1002" :
-				response = "ok " + gettext("Cannot calibrate in an unknown state") + "\n"
-			elif response[6 : 10] == "1003" :
-				response = "ok " + gettext("Unknown G‐code") + "\n"
-			elif response[6 : 10] == "1004" :
-				response = "ok " + gettext("Unknown M‐code") + "\n"
-			elif response[6 : 10] == "1005" :
-				response = "ok " + gettext("Unknown command") + "\n"
-			elif response[6 : 10] == "1006" :
-				response = "ok " + gettext("Heater failed") + "\n"
-			elif response[6 : 10] == "1007" :
-				response = "ok " + gettext("Move to large") + "\n"
-			elif response[6 : 10] == "1008" :
-				response = "ok " + gettext("Printer has been inactive for too long, heater and motors have been turned off") + "\n"
-			elif response[6 : 10] == "1009" :
-				response = "ok " + gettext("Target address out of range") + "\n"
-			elif response[6 : 10] == "1010" :
-				response = "ok " + gettext("Command cannot run because micro motion chip encountered an error") + "\n"
-			elif response[6 : 10].isdigit() :
-				response = "ok " + gettext("An error has occured") + "\n"
+		elif response.startswith("Error:") or response.startswith("!!") or response.startswith("e") :
+		
+			# Check if an error code exists
+			errorCode = re.search("\\d+", response)
+			if errorCode :
+			
+				# Set error code
+				errorCode = errorCode.group(0)
+			
+				# Set error response
+				if errorCode == "0" :
+					response = "ok " + gettext("Firmware parser returned a parse error") + "\n"
+				elif errorCode == "1" :
+					response = "ok " + gettext("Firmware parser returned a not supported protocol error") + "\n"
+				elif errorCode == "2" :
+					response = "ok " + gettext("Firmware parser returned an ASCII buffer overflow error") + "\n"
+				elif errorCode == "3" :
+					response = "ok " + gettext("Firmware parser returned a number expected error") + "\n"
+				elif errorCode == "4" :
+					response = "ok " + gettext("Firmware parser returned a number overload error") + "\n"
+				elif errorCode == "5" :
+					response = "ok " + gettext("Firmware parser returned an unknown error") + "\n"
+				elif errorCode == "6" :
+					response = "ok " + gettext("Firmware interpreter returned an unsupported error") + "\n"
+				elif errorCode == "7" :
+					response = "ok " + gettext("Firmware interpreter returned an unknown error") + "\n"
+				elif errorCode == "1000" :
+					response = "ok " + gettext("M110 without a line number") + "\n"
+				elif errorCode == "1001" :
+					response = "ok " + gettext("Cannot cold extrude") + "\n"
+				elif errorCode == "1002" :
+					response = "ok " + gettext("Cannot calibrate in an unknown state") + "\n"
+				elif errorCode == "1003" :
+					response = "ok " + gettext("Unknown G‐code") + "\n"
+				elif errorCode == "1004" :
+					response = "ok " + gettext("Unknown M‐code") + "\n"
+				elif errorCode == "1005" :
+					response = "ok " + gettext("Unknown command") + "\n"
+				elif errorCode == "1006" :
+					response = "ok " + gettext("Heater failed") + "\n"
+				elif errorCode == "1007" :
+					response = "ok " + gettext("Move to large") + "\n"
+				elif errorCode == "1008" :
+					response = "ok " + gettext("Printer has been inactive for too long, heater and motors have been turned off") + "\n"
+				elif errorCode == "1009" :
+					response = "ok " + gettext("M618 or M619 was sent with invalid parameters") + "\n"
+				elif errorCode == "1010" :
+					response = "ok " + gettext("There was an error initializing the hardware") + "\n"
+				elif errorCode == "1011" :
+					response = "ok " + gettext("EEPROM address read/write size is invalid") + "\n"
+				elif errorCode == "1012" :
+					response = "ok " + gettext("Commanded temperature is outside the commandable range") + "\n"
+				else :
+					response = "ok " + gettext("An error has occured") + "\n"
+			
+			# Otherwise
 			else :
-				response = "ok " + gettext(response[6 :].strip()) + "\n"
+			
+				# Set response
+				if response.startswith("Error:") :
+					response = response[6 :].strip()
+				elif response.startswith("!!") :
+					response = response[2 :].strip()
+				else :
+					response = response[1 :].strip()
+				
+				if len(response) == 0 :
+					response = "An error has occured"
+				
+				response = "ok " + gettext(response) + "\n"
 			
 			# Check if waiting for a command to be processed
 			if self.lastLineNumberSent is not None and self.lastLineNumberSent % 0x10000 in self.sentCommands :
@@ -6484,10 +7051,16 @@ class M33FioPlugin(
 		intValue = self.eepromGetInt(eepromName)
 
 		# Check if EEPROM value is invalid
-		if not isinstance(intValue, int) or intValue < minValue or intValue > maxValue :
+		if not isinstance(intValue, int) :
 		
 			# Set error to if setting default value in EEPROM failed
 			error = self.eepromSetInt(connection, eepromName, defaultValue)
+		
+		# Otherwise check if EEPROM value is out of bounds
+		elif intValue < minValue or intValue > maxValue :
+		
+			# Set error to if setting clamped value in EEPROM failed
+			error = self.eepromSetInt(connection, eepromName, min(maxValue, max(minValue, intValue)))
 		
 		# Return error
 		return error
@@ -6502,10 +7075,16 @@ class M33FioPlugin(
 		floatValue = self.eepromGetFloat(eepromName)
 
 		# Check if EEPROM value is invalid
-		if not isinstance(floatValue, float) or math.isnan(floatValue) or round(floatValue, 6) < minValue or round(floatValue, 6) > maxValue :
+		if not isinstance(floatValue, float) or math.isnan(floatValue) :
 		
 			# Set error to if setting default value in EEPROM failed
 			error = self.eepromSetFloat(connection, eepromName, defaultValue)
+		
+		# Otherwise check if EEPROM value is out of bounds
+		elif round(floatValue, 6) < minValue or round(floatValue, 6) > maxValue :
+		
+			# Set error to if setting clamped value in EEPROM failed
+			error = self.eepromSetFloat(connection, eepromName, min(maxValue, max(minValue, round(floatValue, 6))))
 		
 		# Return error
 		return error
@@ -6850,7 +7429,7 @@ class M33FioPlugin(
 											if not error :
 								
 												# Set error to if setting default backlash speed failed
-												error = self.eepromSetFloat(connection, "backlashSpeed", 1500)
+												error = self.eepromSetFloat(connection, "backlashSpeed", self.get_settings_defaults()["BacklashSpeed"])
 						
 											# Check if an error has occured
 											if error :
@@ -6874,7 +7453,7 @@ class M33FioPlugin(
 											if not error :
 							
 												# Set error to if limiting backlash speed failed
-												error = self.eepromKeepFloatWithinRange(connection, "backlashSpeed", 1, 5000, self.get_settings_defaults()["BacklashSpeed"])
+												error = self.eepromKeepFloatWithinRange(connection, "backlashSpeed", 1, sys.float_info.max, self.get_settings_defaults()["BacklashSpeed"])
 							
 											# Check if an error hasn't occured
 											if not error :
@@ -6929,7 +7508,13 @@ class M33FioPlugin(
 							
 												# Set error to if limiting bed height offset failed
 												error = self.eepromKeepFloatWithinRange(connection, "bedHeightOffset", -sys.float_info.max, sys.float_info.max, self.get_settings_defaults()["BedHeightOffset"])
-								
+											
+											# Check if an error hasn't occured
+											if not error :
+						
+												# Set error to if filament temperature failed
+												error = self.eepromKeepIntWithinRange(connection, "filamentTemperature", 150 - 100, 315 - 100, self.get_settings_defaults()["FilamentTemperature"] - 100)
+											
 											# Check if an error hasn't occured
 											if not error :
 							
@@ -7016,6 +7601,12 @@ class M33FioPlugin(
 							
 													# Set error to if limiting calibrate Z0 correction failed
 													error = self.eepromKeepFloatWithinRange(connection, "calibrateZ0Correction", -sys.float_info.max, sys.float_info.max, self.get_settings_defaults()["CalibrateZ0Correction"])
+												
+												# Check if an error hasn't occured
+												if not error :
+							
+													# Set error to if limiting external bed height failed
+													error = self.eepromKeepFloatWithinRange(connection, "externalBedHeight", 0, 50, self.get_settings_defaults()["ExternalBedHeight"])
 										
 											# Check if an error hasn't occured
 											if not error :
@@ -7194,7 +7785,7 @@ class M33FioPlugin(
 													else :
 													
 														# Extract chip's contents
-														result, connection, currentPort = self.extractChipContents(connection, currentPort, currentBaudrate, int(bootloaderVersion[1 :]))
+														result, connection, currentPort = self.extractChipContents(connection, currentPort, currentBaudrate, int(bootloaderVersion[1 :]), bootloaderCrc, chipCrc)
 														
 														# Check if extracting chip's contents failed, updating firmware failed, or reading EEPROM failed
 														if not result or not self.updateToProvidedFirmware(connection, firmwareType + " " + str(firmwareVersion)) or not self.getEeprom(connection) :
@@ -7530,7 +8121,9 @@ class M33FioPlugin(
 						"M619 S" + str(self.eepromOffsets["eMotorStepsPerMm"]["offset"]) + " T" + str(self.eepromOffsets["eMotorStepsPerMm"]["bytes"]),
 						"M619 S" + str(self.eepromOffsets["xJerkSensitivity"]["offset"]) + " T" + str(self.eepromOffsets["xJerkSensitivity"]["bytes"]),
 						"M619 S" + str(self.eepromOffsets["yJerkSensitivity"]["offset"]) + " T" + str(self.eepromOffsets["yJerkSensitivity"]["bytes"]),
-						"M619 S" + str(self.eepromOffsets["calibrateZ0Correction"]["offset"]) + " T" + str(self.eepromOffsets["calibrateZ0Correction"]["bytes"])
+						"M619 S" + str(self.eepromOffsets["calibrateZ0Correction"]["offset"]) + " T" + str(self.eepromOffsets["calibrateZ0Correction"]["bytes"]),
+						"M619 S" + str(self.eepromOffsets["expandPrintableRegion"]["offset"]) + " T" + str(self.eepromOffsets["expandPrintableRegion"]["bytes"]),
+						"M619 S" + str(self.eepromOffsets["externalBedHeight"]["offset"]) + " T" + str(self.eepromOffsets["externalBedHeight"]["bytes"])
 					]
 				
 				# Lower LED brightness for clear color printers
@@ -8250,11 +8843,36 @@ class M33FioPlugin(
 				if self._settings.get_boolean(["AutomaticallyObtainSettings"]) :
 					self._settings.set_float(["CalibrateZ0Correction"], self.printerCalibrateZ0Correction)
 			
+			# Otherwise check if data is for expand printable region
+			elif "PT:" + str(self.eepromOffsets["expandPrintableRegion"]["offset"]) + " " in data :
+			
+				# Convert data to value
+				self.printerExpandPrintableRegion = int(data[data.find("DT:") + 3 :]) != 0
+				
+				# Check if set to automatically collect printer settings
+				if self._settings.get_boolean(["AutomaticallyObtainSettings"]) :
+					self._settings.set_boolean(["ExpandPrintableRegion"], self.printerExpandPrintableRegion)
+			
+			# Otherwise check if data is for external bed height
+			elif "PT:" + str(self.eepromOffsets["externalBedHeight"]["offset"]) + " " in data :
+			
+				# Convert data to float
+				value = self.intToFloat(int(data[data.find("DT:") + 3 :]))
+				
+				if not isinstance(value, float) or math.isnan(value) :
+					self.printerExternalBedHeight = self.get_settings_defaults()["ExternalBedHeight"]
+				else :
+					self.printerExternalBedHeight = round(value, 6)
+				
+				# Check if set to automatically collect printer settings
+				if self._settings.get_boolean(["AutomaticallyObtainSettings"]) :
+					self._settings.set_float(["ExternalBedHeight"], self.printerExternalBedHeight)
+			
 			# Otherwise check if data is for bed orientation version
 			elif "PT:" + str(self.eepromOffsets["bedOrientationVersion"]["offset"]) + " " in data :
 			
 				# Set invalid bed orientation
-				self.invalidBedOrientation = data[data.find("DT:") + 3 :] == "0" or self.invalidBedOrientation
+				self.invalidBedOrientation = data[data.find("DT:") + 3 :] == "0" or data[data.find("DT:") + 3 :] == "255" or self.invalidBedOrientation
 				
 				# Check if not automatically collecting settings from printer
 				if not self._settings.get_boolean(["AutomaticallyObtainSettings"]) :
@@ -8381,6 +8999,14 @@ class M33FioPlugin(
 		softwareCalibrateZ0Correction = self._settings.get_float(["CalibrateZ0Correction"])
 		if not isinstance(softwareCalibrateZ0Correction, float) :
 			softwareCalibrateZ0Correction = self.get_settings_defaults()["CalibrateZ0Correction"]
+		
+		softwareExpandPrintableRegion = self._settings.get_boolean(["ExpandPrintableRegion"])
+		if not isinstance(softwareExpandPrintableRegion, bool) :
+			softwareExpandPrintableRegion = self.get_settings_defaults()["ExpandPrintableRegion"]
+		
+		softwareExternalBedHeight = self._settings.get_float(["ExternalBedHeight"])
+		if not isinstance(softwareExternalBedHeight, float) :
+			softwareExternalBedHeight = self.get_settings_defaults()["ExternalBedHeight"]
 		
 		# Check if backlash Xs differ
 		commandList = []
@@ -8559,6 +9185,22 @@ class M33FioPlugin(
 
 				# Add new value to list
 				commandList += ["M618 S" + str(self.eepromOffsets["calibrateZ0Correction"]["offset"]) + " T" + str(self.eepromOffsets["calibrateZ0Correction"]["bytes"]) + " P" + str(self.floatToInt(softwareCalibrateZ0Correction)), "M619 S" + str(self.eepromOffsets["calibrateZ0Correction"]["offset"]) + " T" + str(self.eepromOffsets["calibrateZ0Correction"]["bytes"])]
+			
+			# Check if expand printable regions differ
+			if hasattr(self, "printerExpandPrintableRegion") and self.printerExpandPrintableRegion != softwareExpandPrintableRegion :
+
+				# Add new value to list
+				newValue = 0
+				if softwareExpandPrintableRegion :
+					newValue = 1
+				
+				commandList += ["M618 S" + str(self.eepromOffsets["expandPrintableRegion"]["offset"]) + " T" + str(self.eepromOffsets["expandPrintableRegion"]["bytes"]) + " P" + str(newValue), "M619 S" + str(self.eepromOffsets["expandPrintableRegion"]["offset"]) + " T" + str(self.eepromOffsets["expandPrintableRegion"]["bytes"])]
+			
+			# Check if external bed heights differ
+			if hasattr(self, "printerExternalBedHeight") and self.printerExternalBedHeight != softwareExternalBedHeight :
+
+				# Add new value to list
+				commandList += ["M618 S" + str(self.eepromOffsets["externalBedHeight"]["offset"]) + " T" + str(self.eepromOffsets["externalBedHeight"]["bytes"]) + " P" + str(self.floatToInt(softwareExternalBedHeight)), "M619 S" + str(self.eepromOffsets["externalBedHeight"]["offset"]) + " T" + str(self.eepromOffsets["externalBedHeight"]["bytes"])]
 			
 		# Return command list
 		return commandList
@@ -9284,6 +9926,9 @@ class M33FioPlugin(
 	
 	# Get current adjustment Z
 	def getCurrentAdjustmentZ(self) :
+	
+		# Increment wave step
+		self.waveStep = (self.waveStep + 1) % 4
 
 		# Set adjustment
 		if self.waveStep == 0 :
@@ -9292,9 +9937,6 @@ class M33FioPlugin(
 			adjustment = -1.5
 		else :
 			adjustment = 0
-	
-		# Increment wave step
-		self.waveStep = (self.waveStep + 1) % 4
 		
 		# Return adjustment
 		return adjustment * self.waveSize
@@ -10995,7 +11637,7 @@ class M33FioPlugin(
 				
 				# Create profile
 				toProfile = getattr(profileManager.Profile, "from_" + flask.request.values["Slicer Name"] + "_ini")
-				try:
+				try :
 					profileDict = toProfile(temp)[0]
 				except :
 					profileDict = toProfile(temp)
@@ -11305,7 +11947,7 @@ class M33FioPlugin(
 			
 					except :
 					
-						try:
+						try :
 							self.linuxSleepService = dbus.Interface(bus.get_object("org.freedesktop.ScreenSaver", "/org/freedesktop/ScreenSaver"), "org.freedesktop.ScreenSaver")
 							self.linuxSleepPrevention = self.linuxSleepService.Inhibit("M33 Fio", "Disabled by M33 Fio")
 						
@@ -11407,7 +12049,7 @@ class M33FioPlugin(
 			if platform.uname()[0].startswith("Linux") :
 				
 				# Try using WiringPi to access the port
-				try:
+				try :
 					subprocess.call(["gpio", "-g", "mode", str(gpioPin), "out"])
 					subprocess.call(["gpio", "-g", "write", str(gpioPin), "0"])
 				

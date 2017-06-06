@@ -148,6 +148,14 @@ body > div.modal-scrollable.hideOverflow {
 	width: calc(100% - 24px);
 }
 
+#settings_plugin_m33fio label.camera {
+	width: 86px !important;
+}
+
+#settings_plugin_m33fio label.gpio {
+	width: 69px !important;
+}
+
 #settings_plugin_m33fio label.noWrap {
 	white-space: nowrap;
 }
@@ -247,7 +255,6 @@ body > div.modal-scrollable.hideOverflow {
 	margin-right: 4px;
 	position: relative;
 	top: 13px;
-	text-align: center;
 }
 
 #settings_plugin_m33fio select.short.windows {
@@ -258,7 +265,7 @@ body > div.modal-scrollable.hideOverflow {
 	top: 5px;
 }
 
-#settings_plugin_m33fio .disabled {
+#settings_plugin_m33fio div.control-group.disabled, #settings_plugin_m33fio div.control-group:not(.disabled) .disabled {
 	opacity: 0.5;
 	-ms-pointer-events: none;
 	-moz-pointer-events: none;
