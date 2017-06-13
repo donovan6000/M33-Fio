@@ -155,6 +155,9 @@ extern "C" {
 	EXPORT void setMidPrintFilamentChangeLayers(const char *value);
 	EXPORT void setChangeLedBrightness(bool value);
 	EXPORT void setFirmwareType(const char *value);
+	EXPORT void setSkewX(double value);
+	EXPORT void setSkewY(double value);
+	EXPORT void setUseSkewCompensationPreprocessor(bool value);
 	
 	/*
 	Name: Get values

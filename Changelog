@@ -1,5 +1,9 @@
 Changelog:
 
+V1.21 June X 2017
+
+	* Implemented skew compensation pre-processor
+
 V1.20 June 6 2017
 
 	* Fixes settings that have invalid values when they are saved

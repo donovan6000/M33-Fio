@@ -183,6 +183,13 @@
 			</label>
 		</div>
 	</div>
+	<div class="control-group micro3d">
+		<div class="controls">
+			<label class="checkbox" title="{{_("Adjusts the X and Y values of all G-code commands based on the current height of the extruder to account for the printer's frame being skewed" | replace("\"", "&quot;"))}}">
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.UseSkewCompensationPreprocessor"><span>{{_("Skew compensation")}}</span>
+			</label>
+		</div>
+	</div>
 	<div class="control-group title micro3d">
 		<h4>{{_("Printer settings")}}</h4>
 	</div>
@@ -308,6 +315,24 @@
 			<label class="checkbox" title="{{_("Expands printable region to include everywhere the extruder can move" | replace("\"", "&quot;"))}}">
 				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.ExpandPrintableRegion"><span>{{_("External bed expands printable region to max")}}</span>
 			</label>
+		</div>
+	</div>
+	<div class="control-group micro3d" title="{{_("Total skew of the X axis from the lowest to the highest Z position that the extruder can go. If your using an external bed then make sure that the lowest Z position is when the external bed is attached." | replace("\"", "&quot;"))}}">
+		<label class="control-label">{{_("Skew X")}}</label>
+		<div class="controls">
+			<div class="input-append">
+				<input type="number" step="0.000001" min="-40" max="40" class="input-block-level" data-bind="value: settings.plugins.m33fio.SkewX">
+				<span class="add-on">mm</span>
+			</div>
+		</div>
+	</div>
+	<div class="control-group micro3d" title="{{_("Total skew of the Y axis from the lowest to the highest Z position that the extruder can go. If your using an external bed then make sure that the lowest Z position is when the external bed is attached." | replace("\"", "&quot;"))}}">
+		<label class="control-label">{{_("Skew Y")}}</label>
+		<div class="controls">
+			<div class="input-append">
+				<input type="number" step="0.000001" min="-40" max="40" class="input-block-level" data-bind="value: settings.plugins.m33fio.SkewY">
+				<span class="add-on">mm</span>
+			</div>
 		</div>
 	</div>
 	<div class="control-group micro3d" title="{{_("Extruder's printing temperature" | replace("\"", "&quot;"))}}">

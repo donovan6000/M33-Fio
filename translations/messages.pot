@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OctoPrint-M33Fio 1.20\n"
 "Report-Msgid-Bugs-To: i18n@octoprint.org\n"
-"POT-Creation-Date: 2017-06-06 02:45-0700\n"
+"POT-Creation-Date: 2017-06-13 03:13-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,191 +18,191 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.4.0\n"
 
-#: octoprint_m33fio/__init__.py:751
+#: octoprint_m33fio/__init__.py:768
 msgid "Heatbed removed"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:751
+#: octoprint_m33fio/__init__.py:768
 msgid "Heatbed has been disconnected"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:835
+#: octoprint_m33fio/__init__.py:852
 msgid "Heatbed detected"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:835
+#: octoprint_m33fio/__init__.py:852
 msgid "Heatbed has been connected"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:851
+#: octoprint_m33fio/__init__.py:868
 msgid "Heatbed error"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:851
+#: octoprint_m33fio/__init__.py:868
 msgid "Failed to connect to heatbed"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:1127
+#: octoprint_m33fio/__init__.py:1144
 msgid "Hosting camera failed"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:1127
+#: octoprint_m33fio/__init__.py:1144
 msgid "Camera Host Status"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:2820
+#: octoprint_m33fio/__init__.py:2862
 msgid "Preparing test border print…"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:2820 octoprint_m33fio/__init__.py:2823
-#: octoprint_m33fio/__init__.py:6749 octoprint_m33fio/static/js/m33fio.js:9887
-#: octoprint_m33fio/static/js/m33fio.js:10189
-#: octoprint_m33fio/static/js/m33fio.js:10230
-#: octoprint_m33fio/static/js/m33fio.js:10310
-#: octoprint_m33fio/static/js/m33fio.js:10342
-#: octoprint_m33fio/static/js/m33fio.js:10366
-#: octoprint_m33fio/static/js/m33fio.js:12040
-#: octoprint_m33fio/static/js/m33fio.js:14453
-#: octoprint_m33fio/static/js/m33fio.js:14568
-#: octoprint_m33fio/static/js/m33fio.js:18610
+#: octoprint_m33fio/__init__.py:2862 octoprint_m33fio/__init__.py:2865
+#: octoprint_m33fio/__init__.py:6821 octoprint_m33fio/static/js/m33fio.js:9905
+#: octoprint_m33fio/static/js/m33fio.js:10207
+#: octoprint_m33fio/static/js/m33fio.js:10248
+#: octoprint_m33fio/static/js/m33fio.js:10328
+#: octoprint_m33fio/static/js/m33fio.js:10360
+#: octoprint_m33fio/static/js/m33fio.js:10384
+#: octoprint_m33fio/static/js/m33fio.js:12058
+#: octoprint_m33fio/static/js/m33fio.js:14471
+#: octoprint_m33fio/static/js/m33fio.js:14586
+#: octoprint_m33fio/static/js/m33fio.js:18628
 msgid "Printing Status"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:2823
+#: octoprint_m33fio/__init__.py:2865
 msgid "Preparing backlash calibration print…"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6145
+#: octoprint_m33fio/__init__.py:6217
 msgid "Firmware parser returned a parse error"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6147
+#: octoprint_m33fio/__init__.py:6219
 msgid "Firmware parser returned a not supported protocol error"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6149
+#: octoprint_m33fio/__init__.py:6221
 msgid "Firmware parser returned an ASCII buffer overflow error"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6151
+#: octoprint_m33fio/__init__.py:6223
 msgid "Firmware parser returned a number expected error"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6153
+#: octoprint_m33fio/__init__.py:6225
 msgid "Firmware parser returned a number overload error"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6155
+#: octoprint_m33fio/__init__.py:6227
 msgid "Firmware parser returned an unknown error"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6157
+#: octoprint_m33fio/__init__.py:6229
 msgid "Firmware interpreter returned an unsupported error"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6159
+#: octoprint_m33fio/__init__.py:6231
 msgid "Firmware interpreter returned an unknown error"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6161
+#: octoprint_m33fio/__init__.py:6233
 msgid "M110 without a line number"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6163
+#: octoprint_m33fio/__init__.py:6235
 msgid "Cannot cold extrude"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6165
+#: octoprint_m33fio/__init__.py:6237
 msgid "Cannot calibrate in an unknown state"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6167
+#: octoprint_m33fio/__init__.py:6239
 msgid "Unknown G‐code"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6169
+#: octoprint_m33fio/__init__.py:6241
 msgid "Unknown M‐code"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6171
+#: octoprint_m33fio/__init__.py:6243
 msgid "Unknown command"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6173
+#: octoprint_m33fio/__init__.py:6245
 msgid "Heater failed"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6175
+#: octoprint_m33fio/__init__.py:6247
 msgid "Move to large"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6177
+#: octoprint_m33fio/__init__.py:6249
 msgid ""
 "Printer has been inactive for too long, heater and motors have been "
 "turned off"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6179
+#: octoprint_m33fio/__init__.py:6251
 msgid "M618 or M619 was sent with invalid parameters"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6181
+#: octoprint_m33fio/__init__.py:6253
 msgid "There was an error initializing the hardware"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6183
+#: octoprint_m33fio/__init__.py:6255
 msgid "EEPROM address read/write size is invalid"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6185
+#: octoprint_m33fio/__init__.py:6257
 msgid "Commanded temperature is outside the commandable range"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6187
+#: octoprint_m33fio/__init__.py:6259
 msgid "An error has occured"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6212 octoprint_m33fio/__init__.py:7384
-#: octoprint_m33fio/__init__.py:7407 octoprint_m33fio/__init__.py:7420
-#: octoprint_m33fio/__init__.py:7438 octoprint_m33fio/__init__.py:7621
+#: octoprint_m33fio/__init__.py:6284 octoprint_m33fio/__init__.py:7456
+#: octoprint_m33fio/__init__.py:7479 octoprint_m33fio/__init__.py:7492
+#: octoprint_m33fio/__init__.py:7510 octoprint_m33fio/__init__.py:7711
 msgid "Error Status"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6749 octoprint_m33fio/static/js/m33fio.js:17125
+#: octoprint_m33fio/__init__.py:6821 octoprint_m33fio/static/js/m33fio.js:17143
 msgid "Collecting print information…"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6804
+#: octoprint_m33fio/__init__.py:6876
 msgid "Print failed"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6804
+#: octoprint_m33fio/__init__.py:6876
 msgid ""
 "Could not print the file. The dimensions of the model go outside the "
 "bounds of the printer."
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6816 octoprint_m33fio/__init__.py:6822
-#: octoprint_m33fio/__init__.py:6828 octoprint_m33fio/__init__.py:9323
-#: octoprint_m33fio/__init__.py:9329 octoprint_m33fio/__init__.py:9335
+#: octoprint_m33fio/__init__.py:6888 octoprint_m33fio/__init__.py:6894
+#: octoprint_m33fio/__init__.py:6900 octoprint_m33fio/__init__.py:9486
+#: octoprint_m33fio/__init__.py:9492 octoprint_m33fio/__init__.py:9498
 msgid "Print warning"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6816 octoprint_m33fio/__init__.py:9323
+#: octoprint_m33fio/__init__.py:6888 octoprint_m33fio/__init__.py:9486
 msgid ""
 "No fan speed has been detected in this file which could cause the print "
 "to fail"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6822 octoprint_m33fio/__init__.py:9329
+#: octoprint_m33fio/__init__.py:6894 octoprint_m33fio/__init__.py:9492
 msgid "This file uses mid‐print filament change commands"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6828 octoprint_m33fio/__init__.py:9335
+#: octoprint_m33fio/__init__.py:6900 octoprint_m33fio/__init__.py:9498
 msgid "Object too large to center on print bed"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:7135 octoprint_m33fio/__init__.py:11797
+#: octoprint_m33fio/__init__.py:7207 octoprint_m33fio/__init__.py:12028
 msgid ""
 "No Micro 3D printer detected. If your not using a Micro 3D printer then "
 "make sure to enable the Settings &gt; M33 Fio &gt; \"Not using a Micro 3D"
@@ -210,26 +210,26 @@ msgid ""
 "again."
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:7135 octoprint_m33fio/__init__.py:7154
-#: octoprint_m33fio/__init__.py:7166 octoprint_m33fio/__init__.py:7189
-#: octoprint_m33fio/__init__.py:7227 octoprint_m33fio/__init__.py:7249
-#: octoprint_m33fio/__init__.py:7258 octoprint_m33fio/__init__.py:7281
-#: octoprint_m33fio/__init__.py:7290 octoprint_m33fio/__init__.py:7834
-#: octoprint_m33fio/__init__.py:7843 octoprint_m33fio/__init__.py:7884
-#: octoprint_m33fio/__init__.py:7902 octoprint_m33fio/__init__.py:7927
-#: octoprint_m33fio/__init__.py:7977 octoprint_m33fio/__init__.py:8041
-#: octoprint_m33fio/__init__.py:8060 octoprint_m33fio/__init__.py:11797
-#: octoprint_m33fio/__init__.py:11826 octoprint_m33fio/__init__.py:11841
+#: octoprint_m33fio/__init__.py:7207 octoprint_m33fio/__init__.py:7226
+#: octoprint_m33fio/__init__.py:7238 octoprint_m33fio/__init__.py:7261
+#: octoprint_m33fio/__init__.py:7299 octoprint_m33fio/__init__.py:7321
+#: octoprint_m33fio/__init__.py:7330 octoprint_m33fio/__init__.py:7353
+#: octoprint_m33fio/__init__.py:7362 octoprint_m33fio/__init__.py:7924
+#: octoprint_m33fio/__init__.py:7933 octoprint_m33fio/__init__.py:7974
+#: octoprint_m33fio/__init__.py:7992 octoprint_m33fio/__init__.py:8017
+#: octoprint_m33fio/__init__.py:8067 octoprint_m33fio/__init__.py:8131
+#: octoprint_m33fio/__init__.py:8150 octoprint_m33fio/__init__.py:12028
+#: octoprint_m33fio/__init__.py:12057 octoprint_m33fio/__init__.py:12072
 msgid "Connection Status"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:7154 octoprint_m33fio/__init__.py:7189
-#: octoprint_m33fio/__init__.py:7227 octoprint_m33fio/__init__.py:7249
-#: octoprint_m33fio/__init__.py:7281 octoprint_m33fio/__init__.py:7290
-#: octoprint_m33fio/__init__.py:7834 octoprint_m33fio/__init__.py:7843
-#: octoprint_m33fio/__init__.py:7884 octoprint_m33fio/__init__.py:7927
-#: octoprint_m33fio/__init__.py:8041 octoprint_m33fio/__init__.py:8060
-#: octoprint_m33fio/__init__.py:11826
+#: octoprint_m33fio/__init__.py:7226 octoprint_m33fio/__init__.py:7261
+#: octoprint_m33fio/__init__.py:7299 octoprint_m33fio/__init__.py:7321
+#: octoprint_m33fio/__init__.py:7353 octoprint_m33fio/__init__.py:7362
+#: octoprint_m33fio/__init__.py:7924 octoprint_m33fio/__init__.py:7933
+#: octoprint_m33fio/__init__.py:7974 octoprint_m33fio/__init__.py:8017
+#: octoprint_m33fio/__init__.py:8131 octoprint_m33fio/__init__.py:8150
+#: octoprint_m33fio/__init__.py:12057
 msgid ""
 "Unable to connect to the printer. If your not using a Micro 3D printer "
 "then make sure to enable the Settings &gt; M33 Fio &gt; \"Not using a "
@@ -237,56 +237,56 @@ msgid ""
 " try again."
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:7384
+#: octoprint_m33fio/__init__.py:7456
 msgid "Setting fan failed"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:7407
+#: octoprint_m33fio/__init__.py:7479
 msgid "Updating fan settings failed"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:7420
+#: octoprint_m33fio/__init__.py:7492
 msgid "Updating extruder current failed"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:7438
+#: octoprint_m33fio/__init__.py:7510
 msgid "Updating version changes failed"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:7621
+#: octoprint_m33fio/__init__.py:7711
 msgid "Updating EEPROM values failed"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:7632 octoprint_m33fio/__init__.py:7648
-#: octoprint_m33fio/__init__.py:7657 octoprint_m33fio/__init__.py:7667
-#: octoprint_m33fio/__init__.py:7693 octoprint_m33fio/__init__.py:7695
-#: octoprint_m33fio/__init__.py:7712 octoprint_m33fio/__init__.py:7721
-#: octoprint_m33fio/__init__.py:7731 octoprint_m33fio/static/js/m33fio.js:16778
-#: octoprint_m33fio/static/js/m33fio.js:16792
-#: octoprint_m33fio/static/js/m33fio.js:16806
-#: octoprint_m33fio/static/js/m33fio.js:16817
-#: octoprint_m33fio/static/js/m33fio.js:16849
-#: octoprint_m33fio/static/js/m33fio.js:17428
-#: octoprint_m33fio/static/js/m33fio.js:17434
-#: octoprint_m33fio/static/js/m33fio.js:17453
+#: octoprint_m33fio/__init__.py:7722 octoprint_m33fio/__init__.py:7738
+#: octoprint_m33fio/__init__.py:7747 octoprint_m33fio/__init__.py:7757
+#: octoprint_m33fio/__init__.py:7783 octoprint_m33fio/__init__.py:7785
+#: octoprint_m33fio/__init__.py:7802 octoprint_m33fio/__init__.py:7811
+#: octoprint_m33fio/__init__.py:7821 octoprint_m33fio/static/js/m33fio.js:16796
+#: octoprint_m33fio/static/js/m33fio.js:16810
+#: octoprint_m33fio/static/js/m33fio.js:16824
+#: octoprint_m33fio/static/js/m33fio.js:16835
+#: octoprint_m33fio/static/js/m33fio.js:16867
+#: octoprint_m33fio/static/js/m33fio.js:17446
+#: octoprint_m33fio/static/js/m33fio.js:17452
+#: octoprint_m33fio/static/js/m33fio.js:17471
 msgid "Firmware Status"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:7648 octoprint_m33fio/__init__.py:7712
-#: octoprint_m33fio/static/js/m33fio.js:16817
-#: octoprint_m33fio/static/js/m33fio.js:17434
+#: octoprint_m33fio/__init__.py:7738 octoprint_m33fio/__init__.py:7802
+#: octoprint_m33fio/static/js/m33fio.js:16835
+#: octoprint_m33fio/static/js/m33fio.js:17452
 msgid "Updating firmware…"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:7657 octoprint_m33fio/__init__.py:7721
+#: octoprint_m33fio/__init__.py:7747 octoprint_m33fio/__init__.py:7811
 msgid "Updating firmware failed"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:7667 octoprint_m33fio/__init__.py:7731
+#: octoprint_m33fio/__init__.py:7757 octoprint_m33fio/__init__.py:7821
 msgid "Updating firmware was successful"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:7745
+#: octoprint_m33fio/__init__.py:7835
 msgid ""
 "The creator of M33 Fio would like to examine your printer's bootloader to"
 " assist in further reverse engineering of the Micro 3D printer. Would you"
@@ -295,51 +295,51 @@ msgid ""
 "lot."
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:7745 octoprint_m33fio/__init__.py:7772
-#: octoprint_m33fio/__init__.py:7782 octoprint_m33fio/__init__.py:7797
-#: octoprint_m33fio/__init__.py:7821
+#: octoprint_m33fio/__init__.py:7835 octoprint_m33fio/__init__.py:7862
+#: octoprint_m33fio/__init__.py:7872 octoprint_m33fio/__init__.py:7887
+#: octoprint_m33fio/__init__.py:7911
 msgid "Developer's Message"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:7772
+#: octoprint_m33fio/__init__.py:7862
 msgid "Extracting and uploading your printer's bootloader…"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:7782 octoprint_m33fio/__init__.py:7797
+#: octoprint_m33fio/__init__.py:7872 octoprint_m33fio/__init__.py:7887
 msgid "Extracting and uploading your printer's bootloader failed"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:7821
+#: octoprint_m33fio/__init__.py:7911
 msgid ""
 "Extracting and uploading your printer's bootloader was successful. Thanks"
 " for helping."
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:9235
+#: octoprint_m33fio/__init__.py:9398
 msgid "Collecting print information …"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:9296
+#: octoprint_m33fio/__init__.py:9459
 msgid "Slicing failed"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:9296
+#: octoprint_m33fio/__init__.py:9459
 msgid ""
 "Could not slice the file. The dimensions of the model go outside the "
 "bounds of the printer."
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:9302
+#: octoprint_m33fio/__init__.py:9465
 msgid ""
 "Could not upload the file. The dimensions of the model go outside the "
 "bounds of the printer."
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:9346
+#: octoprint_m33fio/__init__.py:9509
 msgid "Pre‐processing …"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:10116
+#: octoprint_m33fio/__init__.py:10279
 #, python-format
 msgid "Pre‐processing … (%(percent)s)"
 msgstr ""
@@ -357,12 +357,12 @@ msgid "Last recorded Z value"
 msgstr ""
 
 #: octoprint_m33fio/static/js/m33fio.js:295
-#: octoprint_m33fio/templates/m33fio_settings.jinja2:190
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:197
 msgid "Backlash X"
 msgstr ""
 
 #: octoprint_m33fio/static/js/m33fio.js:301
-#: octoprint_m33fio/templates/m33fio_settings.jinja2:199
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:206
 msgid "Backlash Y"
 msgstr ""
 
@@ -391,8 +391,8 @@ msgid "Filament type and location"
 msgstr ""
 
 #: octoprint_m33fio/static/js/m33fio.js:343
-#: octoprint_m33fio/static/js/m33fio.js:9564
-#: octoprint_m33fio/templates/m33fio_settings.jinja2:314
+#: octoprint_m33fio/static/js/m33fio.js:9582
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:339
 msgid "Filament temperature"
 msgstr ""
 
@@ -441,7 +441,7 @@ msgid "Bed offset front left"
 msgstr ""
 
 #: octoprint_m33fio/static/js/m33fio.js:415
-#: octoprint_m33fio/templates/m33fio_settings.jinja2:253
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:260
 msgid "Bed height offset"
 msgstr ""
 
@@ -450,7 +450,7 @@ msgid "Reserved"
 msgstr ""
 
 #: octoprint_m33fio/static/js/m33fio.js:427
-#: octoprint_m33fio/templates/m33fio_settings.jinja2:208
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:215
 msgid "Backlash speed"
 msgstr ""
 
@@ -459,27 +459,27 @@ msgid "Bed orientation version"
 msgstr ""
 
 #: octoprint_m33fio/static/js/m33fio.js:439
-#: octoprint_m33fio/templates/m33fio_settings.jinja2:350
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:375
 msgid "Speed limit X"
 msgstr ""
 
 #: octoprint_m33fio/static/js/m33fio.js:445
-#: octoprint_m33fio/templates/m33fio_settings.jinja2:359
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:384
 msgid "Speed limit Y"
 msgstr ""
 
 #: octoprint_m33fio/static/js/m33fio.js:451
-#: octoprint_m33fio/templates/m33fio_settings.jinja2:368
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:393
 msgid "Speed limit Z"
 msgstr ""
 
 #: octoprint_m33fio/static/js/m33fio.js:457
-#: octoprint_m33fio/templates/m33fio_settings.jinja2:377
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:402
 msgid "Speed limit E+"
 msgstr ""
 
 #: octoprint_m33fio/static/js/m33fio.js:463
-#: octoprint_m33fio/templates/m33fio_settings.jinja2:386
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:411
 msgid "Speed limit E−"
 msgstr ""
 
@@ -496,2029 +496,2040 @@ msgid "Bed orientation first sample"
 msgstr ""
 
 #: octoprint_m33fio/static/js/m33fio.js:487
-msgid "Expand printable region"
+#: octoprint_m33fio/static/js/m33fio.js:1329
+#: octoprint_m33fio/static/js/m33fio.js:1330
+#: octoprint_m33fio/static/js/m33fio.js:9591
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:348
+msgid "Heatbed temperature"
 msgstr ""
 
 #: octoprint_m33fio/static/js/m33fio.js:493
-#: octoprint_m33fio/templates/m33fio_settings.jinja2:298
-msgid "External bed height"
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:321
+msgid "Skew X"
 msgstr ""
 
 #: octoprint_m33fio/static/js/m33fio.js:499
-#: octoprint_m33fio/templates/m33fio_settings.jinja2:452
-msgid "Calibrate Z0 correction"
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:330
+msgid "Skew Y"
 msgstr ""
 
 #: octoprint_m33fio/static/js/m33fio.js:505
-msgid "X jerk sensitivity"
+msgid "Expand printable region"
 msgstr ""
 
 #: octoprint_m33fio/static/js/m33fio.js:511
-msgid "Y jerk sensitivity"
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:305
+msgid "External bed height"
 msgstr ""
 
 #: octoprint_m33fio/static/js/m33fio.js:517
-msgid "Last recorded X value"
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:477
+msgid "Calibrate Z0 correction"
 msgstr ""
 
 #: octoprint_m33fio/static/js/m33fio.js:523
-msgid "Last recorded Y value"
+msgid "X jerk sensitivity"
 msgstr ""
 
 #: octoprint_m33fio/static/js/m33fio.js:529
-msgid "Last recorded X direction"
+msgid "Y jerk sensitivity"
 msgstr ""
 
 #: octoprint_m33fio/static/js/m33fio.js:535
-msgid "Last recorded Y direction"
+msgid "Last recorded X value"
 msgstr ""
 
 #: octoprint_m33fio/static/js/m33fio.js:541
-msgid "Saved X state"
+msgid "Last recorded Y value"
 msgstr ""
 
 #: octoprint_m33fio/static/js/m33fio.js:547
-msgid "Saved Y state"
+msgid "Last recorded X direction"
 msgstr ""
 
 #: octoprint_m33fio/static/js/m33fio.js:553
-msgid "Fan type"
+msgid "Last recorded Y direction"
 msgstr ""
 
 #: octoprint_m33fio/static/js/m33fio.js:559
-msgid "Fan offset"
+msgid "Saved X state"
 msgstr ""
 
 #: octoprint_m33fio/static/js/m33fio.js:565
-msgid "Fan scale"
+msgid "Saved Y state"
 msgstr ""
 
 #: octoprint_m33fio/static/js/m33fio.js:571
-msgid "Heater calibration mode"
+msgid "Fan type"
 msgstr ""
 
 #: octoprint_m33fio/static/js/m33fio.js:577
-msgid "X motor current"
+msgid "Fan offset"
 msgstr ""
 
 #: octoprint_m33fio/static/js/m33fio.js:583
-msgid "Y motor current"
+msgid "Fan scale"
 msgstr ""
 
 #: octoprint_m33fio/static/js/m33fio.js:589
-msgid "Z motor current"
+msgid "Heater calibration mode"
 msgstr ""
 
 #: octoprint_m33fio/static/js/m33fio.js:595
-msgid "Hardware status"
+msgid "X motor current"
 msgstr ""
 
 #: octoprint_m33fio/static/js/m33fio.js:601
-msgid "Heater temperature measurement B"
+msgid "Y motor current"
 msgstr ""
 
 #: octoprint_m33fio/static/js/m33fio.js:607
-msgid "Hours counter"
+msgid "Z motor current"
 msgstr ""
 
 #: octoprint_m33fio/static/js/m33fio.js:613
-#: octoprint_m33fio/templates/m33fio_settings.jinja2:398
-msgid "X motor steps/mm"
+msgid "Hardware status"
 msgstr ""
 
 #: octoprint_m33fio/static/js/m33fio.js:619
-#: octoprint_m33fio/templates/m33fio_settings.jinja2:407
-msgid "Y motor steps/mm"
+msgid "Heater temperature measurement B"
 msgstr ""
 
 #: octoprint_m33fio/static/js/m33fio.js:625
-#: octoprint_m33fio/templates/m33fio_settings.jinja2:416
-msgid "Z motor steps/mm"
+msgid "Hours counter"
 msgstr ""
 
 #: octoprint_m33fio/static/js/m33fio.js:631
-#: octoprint_m33fio/templates/m33fio_settings.jinja2:425
-msgid "E motor steps/mm"
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:423
+msgid "X motor steps/mm"
 msgstr ""
 
 #: octoprint_m33fio/static/js/m33fio.js:637
-msgid "Saved Z state"
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:432
+msgid "Y motor steps/mm"
 msgstr ""
 
 #: octoprint_m33fio/static/js/m33fio.js:643
-msgid "E motor current"
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:441
+msgid "Z motor steps/mm"
 msgstr ""
 
 #: octoprint_m33fio/static/js/m33fio.js:649
-msgid "Heater resistance M"
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:450
+msgid "E motor steps/mm"
 msgstr ""
 
 #: octoprint_m33fio/static/js/m33fio.js:655
+msgid "Saved Z state"
+msgstr ""
+
+#: octoprint_m33fio/static/js/m33fio.js:661
+msgid "E motor current"
+msgstr ""
+
+#: octoprint_m33fio/static/js/m33fio.js:667
+msgid "Heater resistance M"
+msgstr ""
+
+#: octoprint_m33fio/static/js/m33fio.js:673
 msgid "Serial number"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:788
+#: octoprint_m33fio/static/js/m33fio.js:806
 msgid "Operation couldn't be completed because the printer was disconnected"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:788
-#: octoprint_m33fio/static/js/m33fio.js:9196
-#: octoprint_m33fio/static/js/m33fio.js:9281
-#: octoprint_m33fio/static/js/m33fio.js:10506
-#: octoprint_m33fio/static/js/m33fio.js:10577
-#: octoprint_m33fio/static/js/m33fio.js:10638
-#: octoprint_m33fio/static/js/m33fio.js:10872
-#: octoprint_m33fio/static/js/m33fio.js:10897
-#: octoprint_m33fio/static/js/m33fio.js:10996
-#: octoprint_m33fio/static/js/m33fio.js:11018
-#: octoprint_m33fio/static/js/m33fio.js:11043
-#: octoprint_m33fio/static/js/m33fio.js:11151
-#: octoprint_m33fio/static/js/m33fio.js:11187
-#: octoprint_m33fio/static/js/m33fio.js:11213
-#: octoprint_m33fio/static/js/m33fio.js:11619
-#: octoprint_m33fio/static/js/m33fio.js:11733
-#: octoprint_m33fio/static/js/m33fio.js:11802
-#: octoprint_m33fio/static/js/m33fio.js:12150
-#: octoprint_m33fio/static/js/m33fio.js:12254
-#: octoprint_m33fio/static/js/m33fio.js:12268
-#: octoprint_m33fio/static/js/m33fio.js:12411
-#: octoprint_m33fio/static/js/m33fio.js:12687
-#: octoprint_m33fio/static/js/m33fio.js:12862
-#: octoprint_m33fio/static/js/m33fio.js:12928
-#: octoprint_m33fio/static/js/m33fio.js:13454
-#: octoprint_m33fio/static/js/m33fio.js:13589
-#: octoprint_m33fio/static/js/m33fio.js:13950
-#: octoprint_m33fio/static/js/m33fio.js:14037
-#: octoprint_m33fio/static/js/m33fio.js:14124
-#: octoprint_m33fio/static/js/m33fio.js:14211
-#: octoprint_m33fio/static/js/m33fio.js:14310
-#: octoprint_m33fio/static/js/m33fio.js:14412
-#: octoprint_m33fio/static/js/m33fio.js:14938
-#: octoprint_m33fio/static/js/m33fio.js:15652
-#: octoprint_m33fio/static/js/m33fio.js:15695
-#: octoprint_m33fio/static/js/m33fio.js:15738
-#: octoprint_m33fio/static/js/m33fio.js:15794
-#: octoprint_m33fio/static/js/m33fio.js:15850
-#: octoprint_m33fio/static/js/m33fio.js:15906
-#: octoprint_m33fio/static/js/m33fio.js:15965
-#: octoprint_m33fio/static/js/m33fio.js:16011
-#: octoprint_m33fio/static/js/m33fio.js:16038
-#: octoprint_m33fio/static/js/m33fio.js:16119
-#: octoprint_m33fio/static/js/m33fio.js:16175
-#: octoprint_m33fio/static/js/m33fio.js:16257
-#: octoprint_m33fio/static/js/m33fio.js:16324
-#: octoprint_m33fio/static/js/m33fio.js:16354
-#: octoprint_m33fio/static/js/m33fio.js:16417
-#: octoprint_m33fio/static/js/m33fio.js:16461
-#: octoprint_m33fio/static/js/m33fio.js:16610
-#: octoprint_m33fio/static/js/m33fio.js:16694
-#: octoprint_m33fio/static/js/m33fio.js:16742
-#: octoprint_m33fio/static/js/m33fio.js:16778
-#: octoprint_m33fio/static/js/m33fio.js:16792
-#: octoprint_m33fio/static/js/m33fio.js:16806
-#: octoprint_m33fio/static/js/m33fio.js:16849
-#: octoprint_m33fio/static/js/m33fio.js:17214
-#: octoprint_m33fio/static/js/m33fio.js:17317
-#: octoprint_m33fio/static/js/m33fio.js:17453
-#: octoprint_m33fio/static/js/m33fio.js:17608
-#: octoprint_m33fio/static/js/m33fio.js:17770
-#: octoprint_m33fio/static/js/m33fio.js:17893
-#: octoprint_m33fio/static/js/m33fio.js:17971
-#: octoprint_m33fio/static/js/m33fio.js:18064
-#: octoprint_m33fio/static/js/m33fio.js:18262
+#: octoprint_m33fio/static/js/m33fio.js:806
+#: octoprint_m33fio/static/js/m33fio.js:9214
+#: octoprint_m33fio/static/js/m33fio.js:9299
+#: octoprint_m33fio/static/js/m33fio.js:10524
+#: octoprint_m33fio/static/js/m33fio.js:10595
+#: octoprint_m33fio/static/js/m33fio.js:10656
+#: octoprint_m33fio/static/js/m33fio.js:10890
+#: octoprint_m33fio/static/js/m33fio.js:10915
+#: octoprint_m33fio/static/js/m33fio.js:11014
+#: octoprint_m33fio/static/js/m33fio.js:11036
+#: octoprint_m33fio/static/js/m33fio.js:11061
+#: octoprint_m33fio/static/js/m33fio.js:11169
+#: octoprint_m33fio/static/js/m33fio.js:11205
+#: octoprint_m33fio/static/js/m33fio.js:11231
+#: octoprint_m33fio/static/js/m33fio.js:11637
+#: octoprint_m33fio/static/js/m33fio.js:11751
+#: octoprint_m33fio/static/js/m33fio.js:11820
+#: octoprint_m33fio/static/js/m33fio.js:12168
+#: octoprint_m33fio/static/js/m33fio.js:12272
+#: octoprint_m33fio/static/js/m33fio.js:12286
+#: octoprint_m33fio/static/js/m33fio.js:12429
+#: octoprint_m33fio/static/js/m33fio.js:12705
+#: octoprint_m33fio/static/js/m33fio.js:12880
+#: octoprint_m33fio/static/js/m33fio.js:12946
+#: octoprint_m33fio/static/js/m33fio.js:13472
+#: octoprint_m33fio/static/js/m33fio.js:13607
+#: octoprint_m33fio/static/js/m33fio.js:13968
+#: octoprint_m33fio/static/js/m33fio.js:14055
+#: octoprint_m33fio/static/js/m33fio.js:14142
+#: octoprint_m33fio/static/js/m33fio.js:14229
+#: octoprint_m33fio/static/js/m33fio.js:14328
+#: octoprint_m33fio/static/js/m33fio.js:14430
+#: octoprint_m33fio/static/js/m33fio.js:14956
+#: octoprint_m33fio/static/js/m33fio.js:15670
+#: octoprint_m33fio/static/js/m33fio.js:15713
+#: octoprint_m33fio/static/js/m33fio.js:15756
+#: octoprint_m33fio/static/js/m33fio.js:15812
+#: octoprint_m33fio/static/js/m33fio.js:15868
+#: octoprint_m33fio/static/js/m33fio.js:15924
+#: octoprint_m33fio/static/js/m33fio.js:15983
+#: octoprint_m33fio/static/js/m33fio.js:16029
+#: octoprint_m33fio/static/js/m33fio.js:16056
+#: octoprint_m33fio/static/js/m33fio.js:16137
+#: octoprint_m33fio/static/js/m33fio.js:16193
+#: octoprint_m33fio/static/js/m33fio.js:16275
+#: octoprint_m33fio/static/js/m33fio.js:16342
+#: octoprint_m33fio/static/js/m33fio.js:16372
+#: octoprint_m33fio/static/js/m33fio.js:16435
+#: octoprint_m33fio/static/js/m33fio.js:16479
+#: octoprint_m33fio/static/js/m33fio.js:16628
+#: octoprint_m33fio/static/js/m33fio.js:16712
+#: octoprint_m33fio/static/js/m33fio.js:16760
+#: octoprint_m33fio/static/js/m33fio.js:16796
+#: octoprint_m33fio/static/js/m33fio.js:16810
+#: octoprint_m33fio/static/js/m33fio.js:16824
+#: octoprint_m33fio/static/js/m33fio.js:16867
+#: octoprint_m33fio/static/js/m33fio.js:17232
+#: octoprint_m33fio/static/js/m33fio.js:17335
+#: octoprint_m33fio/static/js/m33fio.js:17471
+#: octoprint_m33fio/static/js/m33fio.js:17626
+#: octoprint_m33fio/static/js/m33fio.js:17788
+#: octoprint_m33fio/static/js/m33fio.js:17911
+#: octoprint_m33fio/static/js/m33fio.js:17989
+#: octoprint_m33fio/static/js/m33fio.js:18082
+#: octoprint_m33fio/static/js/m33fio.js:18280
 msgid "OK"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:858
-#: octoprint_m33fio/static/js/m33fio.js:10996
-#: octoprint_m33fio/static/js/m33fio.js:11151
-#: octoprint_m33fio/static/js/m33fio.js:12862
-#: octoprint_m33fio/static/js/m33fio.js:12928
-#: octoprint_m33fio/static/js/m33fio.js:13454
-#: octoprint_m33fio/static/js/m33fio.js:13589
-#: octoprint_m33fio/static/js/m33fio.js:13950
-#: octoprint_m33fio/static/js/m33fio.js:14037
-#: octoprint_m33fio/static/js/m33fio.js:14124
-#: octoprint_m33fio/static/js/m33fio.js:14211
-#: octoprint_m33fio/static/js/m33fio.js:14310
-#: octoprint_m33fio/static/js/m33fio.js:14412
-#: octoprint_m33fio/static/js/m33fio.js:14760
-#: octoprint_m33fio/static/js/m33fio.js:14803
-#: octoprint_m33fio/static/js/m33fio.js:14846
-#: octoprint_m33fio/static/js/m33fio.js:14889
-#: octoprint_m33fio/static/js/m33fio.js:14938
-#: octoprint_m33fio/static/js/m33fio.js:15380
-#: octoprint_m33fio/static/js/m33fio.js:15488
-#: octoprint_m33fio/static/js/m33fio.js:15695
-#: octoprint_m33fio/static/js/m33fio.js:15738
-#: octoprint_m33fio/static/js/m33fio.js:15794
-#: octoprint_m33fio/static/js/m33fio.js:15850
-#: octoprint_m33fio/static/js/m33fio.js:15906
-#: octoprint_m33fio/static/js/m33fio.js:15983
-#: octoprint_m33fio/static/js/m33fio.js:16011
-#: octoprint_m33fio/static/js/m33fio.js:16119
-#: octoprint_m33fio/static/js/m33fio.js:16175
-#: octoprint_m33fio/static/js/m33fio.js:16257
-#: octoprint_m33fio/static/js/m33fio.js:16354
-#: octoprint_m33fio/static/js/m33fio.js:16849
-#: octoprint_m33fio/static/js/m33fio.js:17453
-#: octoprint_m33fio/static/js/m33fio.js:17608
-#: octoprint_m33fio/static/js/m33fio.js:17770
+#: octoprint_m33fio/static/js/m33fio.js:876
+#: octoprint_m33fio/static/js/m33fio.js:11014
+#: octoprint_m33fio/static/js/m33fio.js:11169
+#: octoprint_m33fio/static/js/m33fio.js:12880
+#: octoprint_m33fio/static/js/m33fio.js:12946
+#: octoprint_m33fio/static/js/m33fio.js:13472
+#: octoprint_m33fio/static/js/m33fio.js:13607
+#: octoprint_m33fio/static/js/m33fio.js:13968
+#: octoprint_m33fio/static/js/m33fio.js:14055
+#: octoprint_m33fio/static/js/m33fio.js:14142
+#: octoprint_m33fio/static/js/m33fio.js:14229
+#: octoprint_m33fio/static/js/m33fio.js:14328
+#: octoprint_m33fio/static/js/m33fio.js:14430
+#: octoprint_m33fio/static/js/m33fio.js:14778
+#: octoprint_m33fio/static/js/m33fio.js:14821
+#: octoprint_m33fio/static/js/m33fio.js:14864
+#: octoprint_m33fio/static/js/m33fio.js:14907
+#: octoprint_m33fio/static/js/m33fio.js:14956
+#: octoprint_m33fio/static/js/m33fio.js:15398
+#: octoprint_m33fio/static/js/m33fio.js:15506
+#: octoprint_m33fio/static/js/m33fio.js:15713
+#: octoprint_m33fio/static/js/m33fio.js:15756
+#: octoprint_m33fio/static/js/m33fio.js:15812
+#: octoprint_m33fio/static/js/m33fio.js:15868
+#: octoprint_m33fio/static/js/m33fio.js:15924
+#: octoprint_m33fio/static/js/m33fio.js:16001
+#: octoprint_m33fio/static/js/m33fio.js:16029
+#: octoprint_m33fio/static/js/m33fio.js:16137
+#: octoprint_m33fio/static/js/m33fio.js:16193
+#: octoprint_m33fio/static/js/m33fio.js:16275
+#: octoprint_m33fio/static/js/m33fio.js:16372
+#: octoprint_m33fio/static/js/m33fio.js:16867
+#: octoprint_m33fio/static/js/m33fio.js:17471
+#: octoprint_m33fio/static/js/m33fio.js:17626
+#: octoprint_m33fio/static/js/m33fio.js:17788
 msgid "Done"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:861
-#: octoprint_m33fio/static/js/m33fio.js:9887
-#: octoprint_m33fio/static/js/m33fio.js:12040
-#: octoprint_m33fio/static/js/m33fio.js:14444
-#: octoprint_m33fio/static/js/m33fio.js:14453
-#: octoprint_m33fio/static/js/m33fio.js:14568
-#: octoprint_m33fio/static/js/m33fio.js:18610
+#: octoprint_m33fio/static/js/m33fio.js:879
+#: octoprint_m33fio/static/js/m33fio.js:9905
+#: octoprint_m33fio/static/js/m33fio.js:12058
+#: octoprint_m33fio/static/js/m33fio.js:14462
+#: octoprint_m33fio/static/js/m33fio.js:14471
+#: octoprint_m33fio/static/js/m33fio.js:14586
+#: octoprint_m33fio/static/js/m33fio.js:18628
 msgid "Print"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:870
-#: octoprint_m33fio/static/js/m33fio.js:872
-#: octoprint_m33fio/static/js/m33fio.js:873
-#: octoprint_m33fio/static/js/m33fio.js:9379
-#: octoprint_m33fio/static/js/m33fio.js:13059
-#: octoprint_m33fio/static/js/m33fio.js:18092
+#: octoprint_m33fio/static/js/m33fio.js:888
+#: octoprint_m33fio/static/js/m33fio.js:890
+#: octoprint_m33fio/static/js/m33fio.js:891
+#: octoprint_m33fio/static/js/m33fio.js:9397
+#: octoprint_m33fio/static/js/m33fio.js:13077
+#: octoprint_m33fio/static/js/m33fio.js:18110
 msgid "Unload"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:870
-#: octoprint_m33fio/static/js/m33fio.js:872
-#: octoprint_m33fio/static/js/m33fio.js:9380
-#: octoprint_m33fio/static/js/m33fio.js:13219
-#: octoprint_m33fio/static/js/m33fio.js:18168
+#: octoprint_m33fio/static/js/m33fio.js:888
+#: octoprint_m33fio/static/js/m33fio.js:890
+#: octoprint_m33fio/static/js/m33fio.js:9398
+#: octoprint_m33fio/static/js/m33fio.js:13237
+#: octoprint_m33fio/static/js/m33fio.js:18186
 msgid "Load"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:870
-#: octoprint_m33fio/static/js/m33fio.js:18228
+#: octoprint_m33fio/static/js/m33fio.js:888
+#: octoprint_m33fio/static/js/m33fio.js:18246
 msgid "Set"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:872
+#: octoprint_m33fio/static/js/m33fio.js:890
 msgid "Unload temperature"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:872
+#: octoprint_m33fio/static/js/m33fio.js:890
 msgid "Load temperature"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:872
+#: octoprint_m33fio/static/js/m33fio.js:890
 msgid "New temperature"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:873
+#: octoprint_m33fio/static/js/m33fio.js:891
 msgid "Recommended"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:873
+#: octoprint_m33fio/static/js/m33fio.js:891
 #, python-format
 msgid "%(temperature)s for %(type)s"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1131
-#: octoprint_m33fio/static/js/m33fio.js:1161
-#: octoprint_m33fio/static/js/m33fio.js:17006
-#: octoprint_m33fio/static/js/m33fio.js:17021
+#: octoprint_m33fio/static/js/m33fio.js:1149
+#: octoprint_m33fio/static/js/m33fio.js:1179
+#: octoprint_m33fio/static/js/m33fio.js:17024
+#: octoprint_m33fio/static/js/m33fio.js:17039
 msgid "Tools"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1133
+#: octoprint_m33fio/static/js/m33fio.js:1151
 msgid "Homes extruder on the X and Y axis"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1134
+#: octoprint_m33fio/static/js/m33fio.js:1152
 msgid "Homes extruder on the Z axis"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1161
-#: octoprint_m33fio/static/js/m33fio.js:9314
-#: octoprint_m33fio/static/js/m33fio.js:9315
-#: octoprint_m33fio/static/js/m33fio.js:17021
+#: octoprint_m33fio/static/js/m33fio.js:1179
+#: octoprint_m33fio/static/js/m33fio.js:9332
+#: octoprint_m33fio/static/js/m33fio.js:9333
+#: octoprint_m33fio/static/js/m33fio.js:17039
 msgid "Extruder"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1163
-#: octoprint_m33fio/static/js/m33fio.js:12666
+#: octoprint_m33fio/static/js/m33fio.js:1181
+#: octoprint_m33fio/static/js/m33fio.js:12684
 #, python-format
 msgid "Set extruder's X position to %(x)s and Y position to %(y)s"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1164
-#: octoprint_m33fio/static/js/m33fio.js:12735
+#: octoprint_m33fio/static/js/m33fio.js:1182
+#: octoprint_m33fio/static/js/m33fio.js:12753
 #, python-format
 msgid "Set extruder's Z position to %(z)s"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1245
+#: octoprint_m33fio/static/js/m33fio.js:1263
 msgid "Modify Profile"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1251
+#: octoprint_m33fio/static/js/m33fio.js:1269
 msgid "Basic Settings"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1254
-#: octoprint_m33fio/static/js/m33fio.js:1521
-#: octoprint_m33fio/static/js/m33fio.js:1596
+#: octoprint_m33fio/static/js/m33fio.js:1272
+#: octoprint_m33fio/static/js/m33fio.js:1539
+#: octoprint_m33fio/static/js/m33fio.js:1614
 msgid "Extra low quality"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1255
-#: octoprint_m33fio/static/js/m33fio.js:1525
-#: octoprint_m33fio/static/js/m33fio.js:1600
+#: octoprint_m33fio/static/js/m33fio.js:1273
+#: octoprint_m33fio/static/js/m33fio.js:1543
+#: octoprint_m33fio/static/js/m33fio.js:1618
 msgid "Low quality"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1256
-#: octoprint_m33fio/static/js/m33fio.js:1529
-#: octoprint_m33fio/static/js/m33fio.js:1604
+#: octoprint_m33fio/static/js/m33fio.js:1274
+#: octoprint_m33fio/static/js/m33fio.js:1547
+#: octoprint_m33fio/static/js/m33fio.js:1622
 msgid "Medium quality"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1257
-#: octoprint_m33fio/static/js/m33fio.js:1533
-#: octoprint_m33fio/static/js/m33fio.js:1608
+#: octoprint_m33fio/static/js/m33fio.js:1275
+#: octoprint_m33fio/static/js/m33fio.js:1551
+#: octoprint_m33fio/static/js/m33fio.js:1626
 msgid "High quality"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1258
-#: octoprint_m33fio/static/js/m33fio.js:1537
-#: octoprint_m33fio/static/js/m33fio.js:1612
+#: octoprint_m33fio/static/js/m33fio.js:1276
+#: octoprint_m33fio/static/js/m33fio.js:1555
+#: octoprint_m33fio/static/js/m33fio.js:1630
 msgid "Extra high quality"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1259
-#: octoprint_m33fio/static/js/m33fio.js:1541
-#: octoprint_m33fio/static/js/m33fio.js:1616
+#: octoprint_m33fio/static/js/m33fio.js:1277
+#: octoprint_m33fio/static/js/m33fio.js:1559
+#: octoprint_m33fio/static/js/m33fio.js:1634
 msgid "Highest quality"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1263
-#: octoprint_m33fio/static/js/m33fio.js:1555
-#: octoprint_m33fio/static/js/m33fio.js:1630
+#: octoprint_m33fio/static/js/m33fio.js:1281
+#: octoprint_m33fio/static/js/m33fio.js:1573
+#: octoprint_m33fio/static/js/m33fio.js:1648
 msgid "Hollow thin fill"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1264
-#: octoprint_m33fio/static/js/m33fio.js:1559
-#: octoprint_m33fio/static/js/m33fio.js:1634
+#: octoprint_m33fio/static/js/m33fio.js:1282
+#: octoprint_m33fio/static/js/m33fio.js:1577
+#: octoprint_m33fio/static/js/m33fio.js:1652
 msgid "Hollow thick fill"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1265
-#: octoprint_m33fio/static/js/m33fio.js:1563
-#: octoprint_m33fio/static/js/m33fio.js:1638
+#: octoprint_m33fio/static/js/m33fio.js:1283
+#: octoprint_m33fio/static/js/m33fio.js:1581
+#: octoprint_m33fio/static/js/m33fio.js:1656
 msgid "Low fill"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1266
-#: octoprint_m33fio/static/js/m33fio.js:1567
-#: octoprint_m33fio/static/js/m33fio.js:1642
+#: octoprint_m33fio/static/js/m33fio.js:1284
+#: octoprint_m33fio/static/js/m33fio.js:1585
+#: octoprint_m33fio/static/js/m33fio.js:1660
 msgid "Medium fill"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1267
-#: octoprint_m33fio/static/js/m33fio.js:1571
-#: octoprint_m33fio/static/js/m33fio.js:1646
+#: octoprint_m33fio/static/js/m33fio.js:1285
+#: octoprint_m33fio/static/js/m33fio.js:1589
+#: octoprint_m33fio/static/js/m33fio.js:1664
 msgid "High fill"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1268
-#: octoprint_m33fio/static/js/m33fio.js:1575
-#: octoprint_m33fio/static/js/m33fio.js:1650
+#: octoprint_m33fio/static/js/m33fio.js:1286
+#: octoprint_m33fio/static/js/m33fio.js:1593
+#: octoprint_m33fio/static/js/m33fio.js:1668
 msgid "Extra high fill"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1269
-#: octoprint_m33fio/static/js/m33fio.js:1579
-#: octoprint_m33fio/static/js/m33fio.js:1654
+#: octoprint_m33fio/static/js/m33fio.js:1287
+#: octoprint_m33fio/static/js/m33fio.js:1597
+#: octoprint_m33fio/static/js/m33fio.js:1672
 msgid "Full fill"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1273
-#: octoprint_m33fio/static/js/m33fio.js:1682
+#: octoprint_m33fio/static/js/m33fio.js:1291
+#: octoprint_m33fio/static/js/m33fio.js:1700
 msgid "Line fill pattern"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1274
-#: octoprint_m33fio/static/js/m33fio.js:1670
+#: octoprint_m33fio/static/js/m33fio.js:1292
+#: octoprint_m33fio/static/js/m33fio.js:1688
 msgid "Rectilinear fill pattern"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1275
-#: octoprint_m33fio/static/js/m33fio.js:1690
+#: octoprint_m33fio/static/js/m33fio.js:1293
+#: octoprint_m33fio/static/js/m33fio.js:1708
 msgid "Honeycomb fill pattern"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1276
-#: octoprint_m33fio/static/js/m33fio.js:1694
+#: octoprint_m33fio/static/js/m33fio.js:1294
+#: octoprint_m33fio/static/js/m33fio.js:1712
 msgid "3D honeycomb fill pattern"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1277
-#: octoprint_m33fio/static/js/m33fio.js:1686
+#: octoprint_m33fio/static/js/m33fio.js:1295
+#: octoprint_m33fio/static/js/m33fio.js:1704
 msgid "Concentric fill pattern"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1278
-#: octoprint_m33fio/static/js/m33fio.js:1678
+#: octoprint_m33fio/static/js/m33fio.js:1296
+#: octoprint_m33fio/static/js/m33fio.js:1696
 msgid "Hilbert curve fill pattern"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1279
-#: octoprint_m33fio/static/js/m33fio.js:1674
+#: octoprint_m33fio/static/js/m33fio.js:1297
+#: octoprint_m33fio/static/js/m33fio.js:1692
 msgid "Octagram spiral fill pattern"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1280
-#: octoprint_m33fio/static/js/m33fio.js:1666
+#: octoprint_m33fio/static/js/m33fio.js:1298
+#: octoprint_m33fio/static/js/m33fio.js:1684
 msgid "Archimedean chords fill pattern"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1284
-#: octoprint_m33fio/static/js/m33fio.js:1710
+#: octoprint_m33fio/static/js/m33fio.js:1302
+#: octoprint_m33fio/static/js/m33fio.js:1728
 msgid "Rectilinear top/bottom fill pattern"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1285
-#: octoprint_m33fio/static/js/m33fio.js:1722
+#: octoprint_m33fio/static/js/m33fio.js:1303
+#: octoprint_m33fio/static/js/m33fio.js:1740
 msgid "Concentric top/bottom fill pattern"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1286
-#: octoprint_m33fio/static/js/m33fio.js:1718
+#: octoprint_m33fio/static/js/m33fio.js:1304
+#: octoprint_m33fio/static/js/m33fio.js:1736
 msgid "Hilbert curve top/bottom fill pattern"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1287
-#: octoprint_m33fio/static/js/m33fio.js:1706
+#: octoprint_m33fio/static/js/m33fio.js:1305
+#: octoprint_m33fio/static/js/m33fio.js:1724
 msgid "Archimedean chords top/bottom fill pattern"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1288
-#: octoprint_m33fio/static/js/m33fio.js:1714
+#: octoprint_m33fio/static/js/m33fio.js:1306
+#: octoprint_m33fio/static/js/m33fio.js:1732
 msgid "Octagram spiral top/bottom fill pattern"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1291
+#: octoprint_m33fio/static/js/m33fio.js:1309
 msgid "Prints a breakaway support underneath overhanging parts of the model"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1291
+#: octoprint_m33fio/static/js/m33fio.js:1309
 msgid "Use support material"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1292
+#: octoprint_m33fio/static/js/m33fio.js:1310
 msgid "Allows support material to be created on top of models"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1292
+#: octoprint_m33fio/static/js/m33fio.js:1310
 msgid "Use model on model support"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1293
+#: octoprint_m33fio/static/js/m33fio.js:1311
 msgid ""
 "Experimental option for preventing support material from being generated "
 "under bridged areas"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1293
+#: octoprint_m33fio/static/js/m33fio.js:1311
 msgid "Don't support bridges"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1294
+#: octoprint_m33fio/static/js/m33fio.js:1312
 msgid "Prints a raft underneath the model"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1294
+#: octoprint_m33fio/static/js/m33fio.js:1312
 msgid "Use raft"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1295
+#: octoprint_m33fio/static/js/m33fio.js:1313
 msgid "Prints a brim connected to the first layer of the model"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1295
+#: octoprint_m33fio/static/js/m33fio.js:1313
 msgid "Use brim"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1296
+#: octoprint_m33fio/static/js/m33fio.js:1314
 msgid "Prints an outline around the model"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1296
+#: octoprint_m33fio/static/js/m33fio.js:1314
 msgid "Use skirt"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1297
+#: octoprint_m33fio/static/js/m33fio.js:1315
 msgid "Retracts the filament when moving over gaps"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1297
+#: octoprint_m33fio/static/js/m33fio.js:1315
 msgid "Use retraction"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1302
+#: octoprint_m33fio/static/js/m33fio.js:1320
 msgid "Manual Settings"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1304
-#: octoprint_m33fio/static/js/m33fio.js:1305
+#: octoprint_m33fio/static/js/m33fio.js:1322
+#: octoprint_m33fio/static/js/m33fio.js:1323
 msgid "Printing temperature"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1311
-#: octoprint_m33fio/static/js/m33fio.js:1312
-#: octoprint_m33fio/static/js/m33fio.js:9573
-#: octoprint_m33fio/templates/m33fio_settings.jinja2:323
-msgid "Heatbed temperature"
-msgstr ""
-
-#: octoprint_m33fio/static/js/m33fio.js:1318
+#: octoprint_m33fio/static/js/m33fio.js:1336
 msgid "Height of each layer"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1319
+#: octoprint_m33fio/static/js/m33fio.js:1337
 msgid "Layer height"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1325
+#: octoprint_m33fio/static/js/m33fio.js:1343
 msgid "Percentage of the model that is filled in"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1326
+#: octoprint_m33fio/static/js/m33fio.js:1344
 msgid "Fill density"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1332
+#: octoprint_m33fio/static/js/m33fio.js:1350
 msgid "Thickness of the model"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1333
+#: octoprint_m33fio/static/js/m33fio.js:1351
 msgid "Thickness"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1336
+#: octoprint_m33fio/static/js/m33fio.js:1354
 msgid "wall(s)"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1339
+#: octoprint_m33fio/static/js/m33fio.js:1357
 msgid "Speed of the extruder's movements while printing"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1340
+#: octoprint_m33fio/static/js/m33fio.js:1358
 msgid "Print speed"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1346
+#: octoprint_m33fio/static/js/m33fio.js:1364
 msgid "Number of layers that the top and bottom each consist of"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1347
+#: octoprint_m33fio/static/js/m33fio.js:1365
 msgid "Top/bottom"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1350
-#: octoprint_m33fio/static/js/m33fio.js:1357
-#: octoprint_m33fio/static/js/m33fio.js:1364
-#: octoprint_m33fio/static/js/m33fio.js:1385
+#: octoprint_m33fio/static/js/m33fio.js:1368
+#: octoprint_m33fio/static/js/m33fio.js:1375
+#: octoprint_m33fio/static/js/m33fio.js:1382
+#: octoprint_m33fio/static/js/m33fio.js:1403
 msgid "layer(s)"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1353
+#: octoprint_m33fio/static/js/m33fio.js:1371
 msgid "Number of layers that the top consist of"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1354
+#: octoprint_m33fio/static/js/m33fio.js:1372
 msgid "Top"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1360
+#: octoprint_m33fio/static/js/m33fio.js:1378
 msgid "Number of layers that the bottom consist of"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1361
+#: octoprint_m33fio/static/js/m33fio.js:1379
 msgid "Bottom"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1367
+#: octoprint_m33fio/static/js/m33fio.js:1385
 msgid "Distance between the raft and the model"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1368
+#: octoprint_m33fio/static/js/m33fio.js:1386
 msgid "Raft airgap"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1374
+#: octoprint_m33fio/static/js/m33fio.js:1392
 msgid "The amount of lines used for the brim"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1375
+#: octoprint_m33fio/static/js/m33fio.js:1393
 msgid "Brim line count"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1378
-#: octoprint_m33fio/static/js/m33fio.js:1406
+#: octoprint_m33fio/static/js/m33fio.js:1396
+#: octoprint_m33fio/static/js/m33fio.js:1424
 msgid "line(s)"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1381
+#: octoprint_m33fio/static/js/m33fio.js:1399
 msgid "Raft height in number of layers"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1382
+#: octoprint_m33fio/static/js/m33fio.js:1400
 msgid "Raft"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1388
+#: octoprint_m33fio/static/js/m33fio.js:1406
 msgid "Width of brim around perimeters"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1389
+#: octoprint_m33fio/static/js/m33fio.js:1407
 msgid "Brim width"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1395
+#: octoprint_m33fio/static/js/m33fio.js:1413
 msgid "How far away the skirt is from the model"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1396
+#: octoprint_m33fio/static/js/m33fio.js:1414
 msgid "Skirt gap"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1402
+#: octoprint_m33fio/static/js/m33fio.js:1420
 msgid ""
 "Number of loops for the skirt. If the Minimum Extrusion Length option is "
 "set, the number of loops might be greater than the one configured here. "
 "Set this to zero to disable skirt completely."
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1403
+#: octoprint_m33fio/static/js/m33fio.js:1421
 msgid "Skirts"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1413
+#: octoprint_m33fio/static/js/m33fio.js:1431
 msgid "Advanced Settings"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1545
-#: octoprint_m33fio/static/js/m33fio.js:1620
-#: octoprint_m33fio/static/js/m33fio.js:2587
-#: octoprint_m33fio/static/js/m33fio.js:2678
-#: octoprint_m33fio/static/js/m33fio.js:2738
-#: octoprint_m33fio/static/js/m33fio.js:2750
+#: octoprint_m33fio/static/js/m33fio.js:1563
+#: octoprint_m33fio/static/js/m33fio.js:1638
+#: octoprint_m33fio/static/js/m33fio.js:2605
+#: octoprint_m33fio/static/js/m33fio.js:2696
+#: octoprint_m33fio/static/js/m33fio.js:2756
+#: octoprint_m33fio/static/js/m33fio.js:2768
 msgid "Unknown quality"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1583
-#: octoprint_m33fio/static/js/m33fio.js:1658
-#: octoprint_m33fio/static/js/m33fio.js:2604
-#: octoprint_m33fio/static/js/m33fio.js:2633
+#: octoprint_m33fio/static/js/m33fio.js:1601
+#: octoprint_m33fio/static/js/m33fio.js:1676
+#: octoprint_m33fio/static/js/m33fio.js:2622
+#: octoprint_m33fio/static/js/m33fio.js:2651
 msgid "Unknown fill"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1698
+#: octoprint_m33fio/static/js/m33fio.js:1716
 msgid "Unknown fill pattern"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1726
+#: octoprint_m33fio/static/js/m33fio.js:1744
 msgid "Unknown top/bottom fill pattern"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:1886
-#: octoprint_m33fio/static/js/m33fio.js:11575
+#: octoprint_m33fio/static/js/m33fio.js:1904
+#: octoprint_m33fio/static/js/m33fio.js:11593
 msgid "Loading Profile…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:2067
-#: octoprint_m33fio/static/js/m33fio.js:2074
-#: octoprint_m33fio/static/js/m33fio.js:2079
-#: octoprint_m33fio/static/js/m33fio.js:2126
-#: octoprint_m33fio/static/js/m33fio.js:3200
-#: octoprint_m33fio/static/js/m33fio.js:3210
-#: octoprint_m33fio/static/js/m33fio.js:3219
-#: octoprint_m33fio/static/js/m33fio.js:3376
-#: octoprint_m33fio/static/js/m33fio.js:3661
-#: octoprint_m33fio/static/js/m33fio.js:7796
-#: octoprint_m33fio/static/js/m33fio.js:9713
+#: octoprint_m33fio/static/js/m33fio.js:2085
+#: octoprint_m33fio/static/js/m33fio.js:2092
+#: octoprint_m33fio/static/js/m33fio.js:2097
+#: octoprint_m33fio/static/js/m33fio.js:2144
+#: octoprint_m33fio/static/js/m33fio.js:3218
+#: octoprint_m33fio/static/js/m33fio.js:3228
+#: octoprint_m33fio/static/js/m33fio.js:3237
+#: octoprint_m33fio/static/js/m33fio.js:3394
+#: octoprint_m33fio/static/js/m33fio.js:3679
+#: octoprint_m33fio/static/js/m33fio.js:7814
+#: octoprint_m33fio/static/js/m33fio.js:9731
 msgid "Close"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:2069
-#: octoprint_m33fio/static/js/m33fio.js:2072
-#: octoprint_m33fio/static/js/m33fio.js:2077
-#: octoprint_m33fio/static/js/m33fio.js:2142
-#: octoprint_m33fio/static/js/m33fio.js:9713
+#: octoprint_m33fio/static/js/m33fio.js:2087
+#: octoprint_m33fio/static/js/m33fio.js:2090
+#: octoprint_m33fio/static/js/m33fio.js:2095
+#: octoprint_m33fio/static/js/m33fio.js:2160
+#: octoprint_m33fio/static/js/m33fio.js:9731
 msgid "Open"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:3153
+#: octoprint_m33fio/static/js/m33fio.js:3171
 msgid "Modify Model"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:3157
+#: octoprint_m33fio/static/js/m33fio.js:3175
 msgid "Black printer"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:3158
+#: octoprint_m33fio/static/js/m33fio.js:3176
 msgid "White printer"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:3159
+#: octoprint_m33fio/static/js/m33fio.js:3177
 msgid "Blue printer"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:3160
+#: octoprint_m33fio/static/js/m33fio.js:3178
 msgid "Green printer"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:3161
+#: octoprint_m33fio/static/js/m33fio.js:3179
 msgid "Orange printer"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:3162
+#: octoprint_m33fio/static/js/m33fio.js:3180
 msgid "Clear printer"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:3163
+#: octoprint_m33fio/static/js/m33fio.js:3181
 msgid "Silver printer"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:3164
+#: octoprint_m33fio/static/js/m33fio.js:3182
 msgid "Purple printer"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:3167
+#: octoprint_m33fio/static/js/m33fio.js:3185
 msgid "White filament"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:3168
+#: octoprint_m33fio/static/js/m33fio.js:3186
 msgid "Pink filament"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:3169
+#: octoprint_m33fio/static/js/m33fio.js:3187
 msgid "Red filament"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:3170
+#: octoprint_m33fio/static/js/m33fio.js:3188
 msgid "Orange filament"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:3171
+#: octoprint_m33fio/static/js/m33fio.js:3189
 msgid "Yellow filament"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:3172
+#: octoprint_m33fio/static/js/m33fio.js:3190
 msgid "Green filament"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:3173
+#: octoprint_m33fio/static/js/m33fio.js:3191
 msgid "Light blue filament"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:3174
+#: octoprint_m33fio/static/js/m33fio.js:3192
 msgid "Blue filament"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:3175
+#: octoprint_m33fio/static/js/m33fio.js:3193
 msgid "Purple filament"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:3176
+#: octoprint_m33fio/static/js/m33fio.js:3194
 msgid "Black filament"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:3180
-#: octoprint_m33fio/static/js/m33fio.js:3368
-#: octoprint_m33fio/static/js/m33fio.js:3385
-#: octoprint_m33fio/static/js/m33fio.js:3665
-#: octoprint_m33fio/static/js/m33fio.js:4267
+#: octoprint_m33fio/static/js/m33fio.js:3198
+#: octoprint_m33fio/static/js/m33fio.js:3386
+#: octoprint_m33fio/static/js/m33fio.js:3403
+#: octoprint_m33fio/static/js/m33fio.js:3683
+#: octoprint_m33fio/static/js/m33fio.js:4285
 msgid "Import from server"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:3181
+#: octoprint_m33fio/static/js/m33fio.js:3199
 msgid "Import from file"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:3182
-#: octoprint_m33fio/static/js/m33fio.js:7792
+#: octoprint_m33fio/static/js/m33fio.js:3200
+#: octoprint_m33fio/static/js/m33fio.js:7810
 msgid "Translate"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:3183
-#: octoprint_m33fio/static/js/m33fio.js:7793
+#: octoprint_m33fio/static/js/m33fio.js:3201
+#: octoprint_m33fio/static/js/m33fio.js:7811
 msgid "Rotate"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:3184
-#: octoprint_m33fio/static/js/m33fio.js:7794
+#: octoprint_m33fio/static/js/m33fio.js:3202
+#: octoprint_m33fio/static/js/m33fio.js:7812
 msgid "Scale"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:3185
-#: octoprint_m33fio/static/js/m33fio.js:6913
+#: octoprint_m33fio/static/js/m33fio.js:3203
+#: octoprint_m33fio/static/js/m33fio.js:6931
 msgid "Enable snap"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:3186
+#: octoprint_m33fio/static/js/m33fio.js:3204
 msgid "Delete"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:3187
+#: octoprint_m33fio/static/js/m33fio.js:3205
 msgid "Clone"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:3188
+#: octoprint_m33fio/static/js/m33fio.js:3206
 msgid "Reset"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:3189
-#: octoprint_m33fio/static/js/m33fio.js:7248
-#: octoprint_m33fio/static/js/m33fio.js:8440
+#: octoprint_m33fio/static/js/m33fio.js:3207
+#: octoprint_m33fio/static/js/m33fio.js:7266
+#: octoprint_m33fio/static/js/m33fio.js:8458
 msgid "Cut"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:3190
+#: octoprint_m33fio/static/js/m33fio.js:3208
 msgid "Merge"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:3193
-#: octoprint_m33fio/static/js/m33fio.js:3575
+#: octoprint_m33fio/static/js/m33fio.js:3211
+#: octoprint_m33fio/static/js/m33fio.js:3593
 msgid "Hide axes"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:3193
-#: octoprint_m33fio/static/js/m33fio.js:3577
+#: octoprint_m33fio/static/js/m33fio.js:3211
+#: octoprint_m33fio/static/js/m33fio.js:3595
 msgid "Show axes"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:3194
-#: octoprint_m33fio/static/js/m33fio.js:3600
+#: octoprint_m33fio/static/js/m33fio.js:3212
+#: octoprint_m33fio/static/js/m33fio.js:3618
 msgid "Hide boundaries"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:3194
-#: octoprint_m33fio/static/js/m33fio.js:3602
+#: octoprint_m33fio/static/js/m33fio.js:3212
+#: octoprint_m33fio/static/js/m33fio.js:3620
 msgid "Show boundaries"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:3195
-#: octoprint_m33fio/static/js/m33fio.js:3630
+#: octoprint_m33fio/static/js/m33fio.js:3213
+#: octoprint_m33fio/static/js/m33fio.js:3648
 msgid "Hide measurements"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:3195
-#: octoprint_m33fio/static/js/m33fio.js:3632
+#: octoprint_m33fio/static/js/m33fio.js:3213
+#: octoprint_m33fio/static/js/m33fio.js:3650
 msgid "Show measurements"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:3196
-#: octoprint_m33fio/static/js/m33fio.js:3649
+#: octoprint_m33fio/static/js/m33fio.js:3214
+#: octoprint_m33fio/static/js/m33fio.js:3667
 msgid "Hide grid"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:3196
-#: octoprint_m33fio/static/js/m33fio.js:3651
-#: octoprint_m33fio/static/js/m33fio.js:5096
+#: octoprint_m33fio/static/js/m33fio.js:3214
+#: octoprint_m33fio/static/js/m33fio.js:3669
+#: octoprint_m33fio/static/js/m33fio.js:5114
 msgid "Show grid"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:3203
+#: octoprint_m33fio/static/js/m33fio.js:3221
 msgid "Import"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:3220
+#: octoprint_m33fio/static/js/m33fio.js:3238
 msgid "Cube stencil"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:3221
+#: octoprint_m33fio/static/js/m33fio.js:3239
 msgid "Sphere stencil"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:3222
+#: octoprint_m33fio/static/js/m33fio.js:3240
 msgid "Apply cut"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:3282
-#: octoprint_m33fio/static/js/m33fio.js:3400
-#: octoprint_m33fio/static/js/m33fio.js:5265
-#: octoprint_m33fio/static/js/m33fio.js:11762
+#: octoprint_m33fio/static/js/m33fio.js:3300
+#: octoprint_m33fio/static/js/m33fio.js:3418
+#: octoprint_m33fio/static/js/m33fio.js:5283
+#: octoprint_m33fio/static/js/m33fio.js:11780
 msgid "Loading Model…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:3518
+#: octoprint_m33fio/static/js/m33fio.js:3536
 msgid "Cloning Model…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:4006
+#: octoprint_m33fio/static/js/m33fio.js:4024
 msgid "Modify G‐Code"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:4057
+#: octoprint_m33fio/static/js/m33fio.js:4075
 msgid "Loading G‐Code…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:4822
+#: octoprint_m33fio/static/js/m33fio.js:4840
 msgid "Load default profile"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:4873
+#: octoprint_m33fio/static/js/m33fio.js:4891
 msgid "View"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:4948
-#: octoprint_m33fio/static/js/m33fio.js:5020
+#: octoprint_m33fio/static/js/m33fio.js:4966
+#: octoprint_m33fio/static/js/m33fio.js:5038
 msgid "Edit"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:4990
-#: octoprint_m33fio/static/js/m33fio.js:5059
-#: octoprint_m33fio/static/js/m33fio.js:9174
+#: octoprint_m33fio/static/js/m33fio.js:5008
+#: octoprint_m33fio/static/js/m33fio.js:5077
+#: octoprint_m33fio/static/js/m33fio.js:9192
 #, python-format
 msgid "Editing %(fileName)s"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:4990
-#: octoprint_m33fio/static/js/m33fio.js:5059
-#: octoprint_m33fio/static/js/m33fio.js:9174
-#: octoprint_m33fio/static/js/m33fio.js:9303
-#: octoprint_m33fio/static/js/m33fio.js:10802
-#: octoprint_m33fio/static/js/m33fio.js:10937
-#: octoprint_m33fio/static/js/m33fio.js:11076
+#: octoprint_m33fio/static/js/m33fio.js:5008
+#: octoprint_m33fio/static/js/m33fio.js:5077
+#: octoprint_m33fio/static/js/m33fio.js:9192
+#: octoprint_m33fio/static/js/m33fio.js:9321
+#: octoprint_m33fio/static/js/m33fio.js:10820
+#: octoprint_m33fio/static/js/m33fio.js:10955
+#: octoprint_m33fio/static/js/m33fio.js:11094
 msgid "Save"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:5081
+#: octoprint_m33fio/static/js/m33fio.js:5099
 msgid "Model Viewer"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:5095
+#: octoprint_m33fio/static/js/m33fio.js:5113
 msgid "Autorotate"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:5125
+#: octoprint_m33fio/static/js/m33fio.js:5143
 msgid "Model viewer is disabled since your web browser doesn't support WebGL"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:6903
+#: octoprint_m33fio/static/js/m33fio.js:6921
 msgid "Disable snap"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:7847
-#: octoprint_m33fio/static/js/m33fio.js:12314
+#: octoprint_m33fio/static/js/m33fio.js:7865
+#: octoprint_m33fio/static/js/m33fio.js:12332
 msgid "Unlock"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:7847
-#: octoprint_m33fio/static/js/m33fio.js:12329
+#: octoprint_m33fio/static/js/m33fio.js:7865
+#: octoprint_m33fio/static/js/m33fio.js:12347
 msgid "Lock"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:8435
+#: octoprint_m33fio/static/js/m33fio.js:8453
 msgid "Applying Cut…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:8679
+#: octoprint_m33fio/static/js/m33fio.js:8697
 msgid "Applying Merge…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9196
-#: octoprint_m33fio/static/js/m33fio.js:9281
+#: octoprint_m33fio/static/js/m33fio.js:9214
+#: octoprint_m33fio/static/js/m33fio.js:9299
 msgid "Profile Status"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9196
-#: octoprint_m33fio/static/js/m33fio.js:11619
+#: octoprint_m33fio/static/js/m33fio.js:9214
+#: octoprint_m33fio/static/js/m33fio.js:11637
 msgid "Profile isn't available"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9281
+#: octoprint_m33fio/static/js/m33fio.js:9299
 msgid "Default profile isn't available"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9299
-#: octoprint_m33fio/static/js/m33fio.js:18074
+#: octoprint_m33fio/static/js/m33fio.js:9317
+#: octoprint_m33fio/static/js/m33fio.js:18092
 msgid "Mid‐print filament change"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9300
+#: octoprint_m33fio/static/js/m33fio.js:9318
 msgid ""
 "Mid‐print filament change commands will be added at the start of each "
 "specified layer. Layer numbers should be seperated by a space."
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9300
+#: octoprint_m33fio/static/js/m33fio.js:9318
 msgid "Layers"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9301
+#: octoprint_m33fio/static/js/m33fio.js:9319
 msgid "Add current layer"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9302
+#: octoprint_m33fio/static/js/m33fio.js:9320
 msgid "Clear all layers"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9325
+#: octoprint_m33fio/static/js/m33fio.js:9343
 msgid "Turns on printer's motors"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9325
+#: octoprint_m33fio/static/js/m33fio.js:9343
 msgid "Motors on"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9327
+#: octoprint_m33fio/static/js/m33fio.js:9345
 msgid "Turns off printer's motors"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9331
+#: octoprint_m33fio/static/js/m33fio.js:9349
 msgid "Fan on"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9332
+#: octoprint_m33fio/static/js/m33fio.js:9350
 msgid "Fan off"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9339
+#: octoprint_m33fio/static/js/m33fio.js:9357
 msgid "LED on"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9345
+#: octoprint_m33fio/static/js/m33fio.js:9363
 msgid "Turns off front LED"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9345
+#: octoprint_m33fio/static/js/m33fio.js:9363
 msgid "LED off"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9351
+#: octoprint_m33fio/static/js/m33fio.js:9369
 msgid "Sets GPIO pin high"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9351
+#: octoprint_m33fio/static/js/m33fio.js:9369
 msgid "GPIO high"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9357
+#: octoprint_m33fio/static/js/m33fio.js:9375
 msgid "Sets GPIO pin low"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9357
+#: octoprint_m33fio/static/js/m33fio.js:9375
 msgid "GPIO low"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9363
+#: octoprint_m33fio/static/js/m33fio.js:9381
 msgid "Sets extruder to use absolute positioning"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9363
+#: octoprint_m33fio/static/js/m33fio.js:9381
 msgid "Absolute mode"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9369
+#: octoprint_m33fio/static/js/m33fio.js:9387
 msgid "Sets extruder to use relative positioning"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9369
+#: octoprint_m33fio/static/js/m33fio.js:9387
 msgid "Relative mode"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9370
+#: octoprint_m33fio/static/js/m33fio.js:9388
 msgid "Print settings"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9371
+#: octoprint_m33fio/static/js/m33fio.js:9389
 msgid "Emergency stop"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9377
+#: octoprint_m33fio/static/js/m33fio.js:9395
 msgid "Filament"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9381
+#: octoprint_m33fio/static/js/m33fio.js:9399
 msgid "Mid‐print change"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9389
+#: octoprint_m33fio/static/js/m33fio.js:9407
 msgid "Calibration"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9391
+#: octoprint_m33fio/static/js/m33fio.js:9409
 msgid "Calibrate bed center Z0"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9392
+#: octoprint_m33fio/static/js/m33fio.js:9410
 msgid "Calibrate bed orientation"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9395
+#: octoprint_m33fio/static/js/m33fio.js:9413
 msgid "Save Z as front left Z0"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9398
+#: octoprint_m33fio/static/js/m33fio.js:9416
 msgid "Save Z as front right Z0"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9401
+#: octoprint_m33fio/static/js/m33fio.js:9419
 msgid "Save Z as back right Z0"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9404
+#: octoprint_m33fio/static/js/m33fio.js:9422
 msgid "Save Z as back left Z0"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9405
+#: octoprint_m33fio/static/js/m33fio.js:9423
 msgid "Save Z as bed center Z0"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9406
+#: octoprint_m33fio/static/js/m33fio.js:9424
 msgid "Save Z as external bed height"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9407
+#: octoprint_m33fio/static/js/m33fio.js:9425
 #, python-format
 msgid "Print %(thickness)s test border"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9408
+#: octoprint_m33fio/static/js/m33fio.js:9426
 msgid "Print backlash calibration"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9409
+#: octoprint_m33fio/static/js/m33fio.js:9427
 msgid "Run complete bed calibration"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9410
+#: octoprint_m33fio/static/js/m33fio.js:9428
 msgid "Save printer settings to file"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9411
+#: octoprint_m33fio/static/js/m33fio.js:9429
 msgid "Restore printer settings from file"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9420
+#: octoprint_m33fio/static/js/m33fio.js:9438
 msgid "Advanced"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9422
-#: octoprint_m33fio/static/js/m33fio.js:9423
-#: octoprint_m33fio/static/js/m33fio.js:9424
-#: octoprint_m33fio/static/js/m33fio.js:9425
-#: octoprint_m33fio/static/js/m33fio.js:9426
+#: octoprint_m33fio/static/js/m33fio.js:9440
+#: octoprint_m33fio/static/js/m33fio.js:9441
+#: octoprint_m33fio/static/js/m33fio.js:9442
+#: octoprint_m33fio/static/js/m33fio.js:9443
+#: octoprint_m33fio/static/js/m33fio.js:9444
 #, python-format
 msgid "%(type)s fan"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9427
-#: octoprint_m33fio/static/js/m33fio.js:9428
+#: octoprint_m33fio/static/js/m33fio.js:9445
+#: octoprint_m33fio/static/js/m33fio.js:9446
 #, python-format
 msgid "%(current)s extruder current"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9472
+#: octoprint_m33fio/static/js/m33fio.js:9490
 msgid "EEPROM"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9475
+#: octoprint_m33fio/static/js/m33fio.js:9493
 msgid "Hexadecimal"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9476
+#: octoprint_m33fio/static/js/m33fio.js:9494
 msgid "Decimal"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9477
+#: octoprint_m33fio/static/js/m33fio.js:9495
 msgid "ASCII"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9478
+#: octoprint_m33fio/static/js/m33fio.js:9496
 msgid "Read EEPROM"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9479
+#: octoprint_m33fio/static/js/m33fio.js:9497
 msgid "Write EEPROM"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9504
-#: octoprint_m33fio/static/js/m33fio.js:9531
+#: octoprint_m33fio/static/js/m33fio.js:9522
+#: octoprint_m33fio/static/js/m33fio.js:9549
 msgid "Temperature"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9510
+#: octoprint_m33fio/static/js/m33fio.js:9528
 msgid "Turns off extruder's heater"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9510
-#: octoprint_m33fio/static/js/m33fio.js:9537
+#: octoprint_m33fio/static/js/m33fio.js:9528
+#: octoprint_m33fio/static/js/m33fio.js:9555
 msgid "Heater off"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9512
+#: octoprint_m33fio/static/js/m33fio.js:9530
 msgid "Heatbed"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9537
+#: octoprint_m33fio/static/js/m33fio.js:9555
 msgid "Turns off heatbed's heater"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9551
+#: octoprint_m33fio/static/js/m33fio.js:9569
 msgid "Applies extruder's position adjustment in the positive direction"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9552
+#: octoprint_m33fio/static/js/m33fio.js:9570
 msgid "Applies extruder's position adjustment in the negative direction"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9555
-#: octoprint_m33fio/static/js/m33fio.js:9556
-#: octoprint_m33fio/static/js/m33fio.js:9557
-#: octoprint_m33fio/static/js/m33fio.js:9558
-#: octoprint_m33fio/static/js/m33fio.js:18725
-#: octoprint_m33fio/static/js/m33fio.js:18726
-#: octoprint_m33fio/static/js/m33fio.js:18727
-#: octoprint_m33fio/static/js/m33fio.js:18728
-#: octoprint_m33fio/static/js/m33fio.js:18729
+#: octoprint_m33fio/static/js/m33fio.js:9573
+#: octoprint_m33fio/static/js/m33fio.js:9574
+#: octoprint_m33fio/static/js/m33fio.js:9575
+#: octoprint_m33fio/static/js/m33fio.js:9576
+#: octoprint_m33fio/static/js/m33fio.js:18743
+#: octoprint_m33fio/static/js/m33fio.js:18744
+#: octoprint_m33fio/static/js/m33fio.js:18745
+#: octoprint_m33fio/static/js/m33fio.js:18746
+#: octoprint_m33fio/static/js/m33fio.js:18747
 #, python-format
 msgid "Sets extruder's position adjustment to %(distance)s"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9562
+#: octoprint_m33fio/static/js/m33fio.js:9580
 msgid "Print Settings"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9582
-#: octoprint_m33fio/templates/m33fio_settings.jinja2:332
+#: octoprint_m33fio/static/js/m33fio.js:9600
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:357
 msgid "Filament type"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9585
-#: octoprint_m33fio/static/js/m33fio.js:9586
-#: octoprint_m33fio/static/js/m33fio.js:9587
-#: octoprint_m33fio/static/js/m33fio.js:9588
-#: octoprint_m33fio/static/js/m33fio.js:9589
-#: octoprint_m33fio/static/js/m33fio.js:9590
-#: octoprint_m33fio/static/js/m33fio.js:9591
-#: octoprint_m33fio/templates/m33fio_settings.jinja2:335
-#: octoprint_m33fio/templates/m33fio_settings.jinja2:336
-#: octoprint_m33fio/templates/m33fio_settings.jinja2:337
-#: octoprint_m33fio/templates/m33fio_settings.jinja2:338
-#: octoprint_m33fio/templates/m33fio_settings.jinja2:339
-#: octoprint_m33fio/templates/m33fio_settings.jinja2:340
-#: octoprint_m33fio/templates/m33fio_settings.jinja2:341
+#: octoprint_m33fio/static/js/m33fio.js:9603
+#: octoprint_m33fio/static/js/m33fio.js:9604
+#: octoprint_m33fio/static/js/m33fio.js:9605
+#: octoprint_m33fio/static/js/m33fio.js:9606
+#: octoprint_m33fio/static/js/m33fio.js:9607
+#: octoprint_m33fio/static/js/m33fio.js:9608
+#: octoprint_m33fio/static/js/m33fio.js:9609
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:360
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:361
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:362
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:363
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:364
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:365
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:366
 #, python-format
 msgid "%(type)s (Recommended %(temperature)s)"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9592
-#: octoprint_m33fio/templates/m33fio_settings.jinja2:342
+#: octoprint_m33fio/static/js/m33fio.js:9610
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:367
 msgid "Other"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9598
+#: octoprint_m33fio/static/js/m33fio.js:9616
 msgid ""
 "Moves the extruder in a wave pattern during the first layer of a print to"
 " improve adhesion with the print bed"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9599
+#: octoprint_m33fio/static/js/m33fio.js:9617
 msgid "Use wave bonding"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9605
+#: octoprint_m33fio/static/js/m33fio.js:9623
 msgid "Filament Settings"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9622
+#: octoprint_m33fio/static/js/m33fio.js:9640
 msgid "Do not refresh this page or disconnect from the server at this time"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9639
-#: octoprint_m33fio/static/js/m33fio.js:11444
+#: octoprint_m33fio/static/js/m33fio.js:9657
+#: octoprint_m33fio/static/js/m33fio.js:11462
 msgid "Select Profile"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9643
+#: octoprint_m33fio/static/js/m33fio.js:9661
 msgid "Save local copy"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9643
+#: octoprint_m33fio/static/js/m33fio.js:9661
 msgid "Save on server"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9646
-#: octoprint_m33fio/static/js/m33fio.js:11611
+#: octoprint_m33fio/static/js/m33fio.js:9664
+#: octoprint_m33fio/static/js/m33fio.js:11629
 msgid "Skip model editor"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9658
+#: octoprint_m33fio/static/js/m33fio.js:9676
 msgid "Movement"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9809
+#: octoprint_m33fio/static/js/m33fio.js:9827
 msgid "Appends current layer to mid‐print filament change layers"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9829
+#: octoprint_m33fio/static/js/m33fio.js:9847
 msgid "Clears all mid‐print filament change layers"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9839
+#: octoprint_m33fio/static/js/m33fio.js:9857
 msgid "Saves current mid‐print filament change layers"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9845
-#: octoprint_m33fio/static/js/m33fio.js:10506
-#: octoprint_m33fio/static/js/m33fio.js:10577
-#: octoprint_m33fio/static/js/m33fio.js:10638
-#: octoprint_m33fio/static/js/m33fio.js:10797
-#: octoprint_m33fio/static/js/m33fio.js:10872
-#: octoprint_m33fio/static/js/m33fio.js:10897
-#: octoprint_m33fio/static/js/m33fio.js:10926
-#: octoprint_m33fio/static/js/m33fio.js:10996
-#: octoprint_m33fio/static/js/m33fio.js:11018
-#: octoprint_m33fio/static/js/m33fio.js:11043
-#: octoprint_m33fio/static/js/m33fio.js:11065
-#: octoprint_m33fio/static/js/m33fio.js:11151
-#: octoprint_m33fio/static/js/m33fio.js:11187
-#: octoprint_m33fio/static/js/m33fio.js:11213
-#: octoprint_m33fio/static/js/m33fio.js:11733
-#: octoprint_m33fio/static/js/m33fio.js:11802
-#: octoprint_m33fio/static/js/m33fio.js:12150
-#: octoprint_m33fio/static/js/m33fio.js:12254
-#: octoprint_m33fio/static/js/m33fio.js:12268
+#: octoprint_m33fio/static/js/m33fio.js:9863
+#: octoprint_m33fio/static/js/m33fio.js:10524
+#: octoprint_m33fio/static/js/m33fio.js:10595
+#: octoprint_m33fio/static/js/m33fio.js:10656
+#: octoprint_m33fio/static/js/m33fio.js:10815
+#: octoprint_m33fio/static/js/m33fio.js:10890
+#: octoprint_m33fio/static/js/m33fio.js:10915
+#: octoprint_m33fio/static/js/m33fio.js:10944
+#: octoprint_m33fio/static/js/m33fio.js:11014
+#: octoprint_m33fio/static/js/m33fio.js:11036
+#: octoprint_m33fio/static/js/m33fio.js:11061
+#: octoprint_m33fio/static/js/m33fio.js:11083
+#: octoprint_m33fio/static/js/m33fio.js:11169
+#: octoprint_m33fio/static/js/m33fio.js:11205
+#: octoprint_m33fio/static/js/m33fio.js:11231
+#: octoprint_m33fio/static/js/m33fio.js:11751
+#: octoprint_m33fio/static/js/m33fio.js:11820
+#: octoprint_m33fio/static/js/m33fio.js:12168
+#: octoprint_m33fio/static/js/m33fio.js:12272
+#: octoprint_m33fio/static/js/m33fio.js:12286
 msgid "Saving Status"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9845
+#: octoprint_m33fio/static/js/m33fio.js:9863
 msgid "Saving changes…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:9944
-#: octoprint_m33fio/static/js/m33fio.js:10883
-#: octoprint_m33fio/static/js/m33fio.js:11029
-#: octoprint_m33fio/static/js/m33fio.js:11199
-#: octoprint_m33fio/static/js/m33fio.js:12096
-#: octoprint_m33fio/static/js/m33fio.js:13208
-#: octoprint_m33fio/static/js/m33fio.js:13368
-#: octoprint_m33fio/static/js/m33fio.js:14503
-#: octoprint_m33fio/static/js/m33fio.js:14527
-#: octoprint_m33fio/static/js/m33fio.js:14538
-#: octoprint_m33fio/static/js/m33fio.js:14618
-#: octoprint_m33fio/static/js/m33fio.js:15477
-#: octoprint_m33fio/static/js/m33fio.js:18666
+#: octoprint_m33fio/static/js/m33fio.js:9962
+#: octoprint_m33fio/static/js/m33fio.js:10901
+#: octoprint_m33fio/static/js/m33fio.js:11047
+#: octoprint_m33fio/static/js/m33fio.js:11217
+#: octoprint_m33fio/static/js/m33fio.js:12114
+#: octoprint_m33fio/static/js/m33fio.js:13226
+#: octoprint_m33fio/static/js/m33fio.js:13386
+#: octoprint_m33fio/static/js/m33fio.js:14521
+#: octoprint_m33fio/static/js/m33fio.js:14545
+#: octoprint_m33fio/static/js/m33fio.js:14556
+#: octoprint_m33fio/static/js/m33fio.js:14636
+#: octoprint_m33fio/static/js/m33fio.js:15495
+#: octoprint_m33fio/static/js/m33fio.js:18684
 msgid "Cancel"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:10189
+#: octoprint_m33fio/static/js/m33fio.js:10207
 msgid "Pausing print…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:10230
-#: octoprint_m33fio/static/js/m33fio.js:18268
+#: octoprint_m33fio/static/js/m33fio.js:10248
+#: octoprint_m33fio/static/js/m33fio.js:18286
 msgid "Resuming print…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:10310
-#: octoprint_m33fio/static/js/m33fio.js:10342
-#: octoprint_m33fio/static/js/m33fio.js:10366
+#: octoprint_m33fio/static/js/m33fio.js:10328
+#: octoprint_m33fio/static/js/m33fio.js:10360
+#: octoprint_m33fio/static/js/m33fio.js:10384
 msgid "Canceling print…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:10446
-#: octoprint_m33fio/static/js/m33fio.js:10816
-#: octoprint_m33fio/static/js/m33fio.js:11674
+#: octoprint_m33fio/static/js/m33fio.js:10464
+#: octoprint_m33fio/static/js/m33fio.js:10834
+#: octoprint_m33fio/static/js/m33fio.js:11692
 msgid "Saving Profile…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:10506
-#: octoprint_m33fio/static/js/m33fio.js:10897
-#: octoprint_m33fio/static/js/m33fio.js:11802
+#: octoprint_m33fio/static/js/m33fio.js:10524
+#: octoprint_m33fio/static/js/m33fio.js:10915
+#: octoprint_m33fio/static/js/m33fio.js:11820
 msgid "Profile is invalid"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:10527
-#: octoprint_m33fio/static/js/m33fio.js:10952
-#: octoprint_m33fio/static/js/m33fio.js:11827
+#: octoprint_m33fio/static/js/m33fio.js:10545
+#: octoprint_m33fio/static/js/m33fio.js:10970
+#: octoprint_m33fio/static/js/m33fio.js:11845
 msgid "Saving Model…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:10577
-#: octoprint_m33fio/static/js/m33fio.js:11043
-#: octoprint_m33fio/static/js/m33fio.js:12150
+#: octoprint_m33fio/static/js/m33fio.js:10595
+#: octoprint_m33fio/static/js/m33fio.js:11061
+#: octoprint_m33fio/static/js/m33fio.js:12168
 msgid "Scene is invalid"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:10602
-#: octoprint_m33fio/static/js/m33fio.js:11091
-#: octoprint_m33fio/static/js/m33fio.js:12175
+#: octoprint_m33fio/static/js/m33fio.js:10620
+#: octoprint_m33fio/static/js/m33fio.js:11109
+#: octoprint_m33fio/static/js/m33fio.js:12193
 msgid "Saving G‐Code…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:10638
-#: octoprint_m33fio/static/js/m33fio.js:11213
-#: octoprint_m33fio/static/js/m33fio.js:12268
+#: octoprint_m33fio/static/js/m33fio.js:10656
+#: octoprint_m33fio/static/js/m33fio.js:11231
+#: octoprint_m33fio/static/js/m33fio.js:12286
 msgid "G‐code is invalid"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:10798
+#: octoprint_m33fio/static/js/m33fio.js:10816
 msgid "Profile name"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:10802
+#: octoprint_m33fio/static/js/m33fio.js:10820
 msgid ""
 "A profile with that name already exists. Saving will overwrite that "
 "existing profile."
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:10872
-#: octoprint_m33fio/static/js/m33fio.js:11733
+#: octoprint_m33fio/static/js/m33fio.js:10890
+#: octoprint_m33fio/static/js/m33fio.js:11751
 msgid "Saving profile failed"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:10927
+#: octoprint_m33fio/static/js/m33fio.js:10945
 msgid "Model location"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:10929
-#: octoprint_m33fio/static/js/m33fio.js:11068
+#: octoprint_m33fio/static/js/m33fio.js:10947
+#: octoprint_m33fio/static/js/m33fio.js:11086
 msgid "Local"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:10930
-#: octoprint_m33fio/static/js/m33fio.js:11069
+#: octoprint_m33fio/static/js/m33fio.js:10948
+#: octoprint_m33fio/static/js/m33fio.js:11087
 msgid "SD card"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:10933
+#: octoprint_m33fio/static/js/m33fio.js:10951
 msgid "Model path"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:10937
+#: octoprint_m33fio/static/js/m33fio.js:10955
 msgid ""
 "A model with that location and path already exists. Saving will overwrite"
 " that existing model."
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:11018
+#: octoprint_m33fio/static/js/m33fio.js:11036
 msgid "Saving model failed"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:11066
+#: octoprint_m33fio/static/js/m33fio.js:11084
 msgid "G‐code location"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:11072
+#: octoprint_m33fio/static/js/m33fio.js:11090
 msgid "G‐code path"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:11076
+#: octoprint_m33fio/static/js/m33fio.js:11094
 msgid ""
 "A G‐code file with that location and path already exists. Saving will "
 "overwrite that existing file."
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:11187
-#: octoprint_m33fio/static/js/m33fio.js:12254
+#: octoprint_m33fio/static/js/m33fio.js:11205
+#: octoprint_m33fio/static/js/m33fio.js:12272
 msgid "Saving G‐code file failed"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:11314
+#: octoprint_m33fio/static/js/m33fio.js:11332
 msgid "Conversion Status"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:11314
+#: octoprint_m33fio/static/js/m33fio.js:11332
 #, python-format
 msgid "Converting %(oldFileName)s to %(newFileName)s…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:11436
-#: octoprint_m33fio/static/js/m33fio.js:11497
-#: octoprint_m33fio/static/js/m33fio.js:11611
-#: octoprint_m33fio/static/js/m33fio.js:15337
+#: octoprint_m33fio/static/js/m33fio.js:11454
+#: octoprint_m33fio/static/js/m33fio.js:11515
+#: octoprint_m33fio/static/js/m33fio.js:11629
+#: octoprint_m33fio/static/js/m33fio.js:15355
 msgid "Next"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:11605
-#: octoprint_m33fio/static/js/m33fio.js:11767
+#: octoprint_m33fio/static/js/m33fio.js:11623
+#: octoprint_m33fio/static/js/m33fio.js:11785
 msgid "Slice"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:11605
+#: octoprint_m33fio/static/js/m33fio.js:11623
 msgid "Model editor will be skipped since your web browser doesn't support WebGL"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:11619
-#: octoprint_m33fio/static/js/m33fio.js:11802
-#: octoprint_m33fio/static/js/m33fio.js:12150
-#: octoprint_m33fio/static/js/m33fio.js:17214
+#: octoprint_m33fio/static/js/m33fio.js:11637
+#: octoprint_m33fio/static/js/m33fio.js:11820
+#: octoprint_m33fio/static/js/m33fio.js:12168
+#: octoprint_m33fio/static/js/m33fio.js:17232
 msgid "Slicer Status"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:11879
+#: octoprint_m33fio/static/js/m33fio.js:11897
 msgid "Applying Changes…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:12411
+#: octoprint_m33fio/static/js/m33fio.js:12429
 msgid "Command Status"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:12411
+#: octoprint_m33fio/static/js/m33fio.js:12429
 msgid "Can't manually send reserved commands"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:12450
+#: octoprint_m33fio/static/js/m33fio.js:12468
 msgid "Increases extruder's X position by the specified amount"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:12486
+#: octoprint_m33fio/static/js/m33fio.js:12504
 msgid "Decreases extruder's X position by the specified amount"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:12522
+#: octoprint_m33fio/static/js/m33fio.js:12540
 msgid "Increases extruder's Y position by the specified amount"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:12558
+#: octoprint_m33fio/static/js/m33fio.js:12576
 msgid "Decreases extruder's Y position by the specified amount"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:12594
+#: octoprint_m33fio/static/js/m33fio.js:12612
 msgid "Increases extruder's Z position by the specified amount"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:12630
+#: octoprint_m33fio/static/js/m33fio.js:12648
 msgid "Decreases extruder's Z position by the specified amount"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:12687
+#: octoprint_m33fio/static/js/m33fio.js:12705
 msgid "Movement Status"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:12687
+#: octoprint_m33fio/static/js/m33fio.js:12705
 msgid "Extruder is too high to home without running into the printer's frame"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:12766
+#: octoprint_m33fio/static/js/m33fio.js:12784
 msgid "Extrudes the specified amount of filament"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:12797
+#: octoprint_m33fio/static/js/m33fio.js:12815
 msgid "Retracts the specified amount of filament"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:12828
+#: octoprint_m33fio/static/js/m33fio.js:12846
 msgid "Sets extruder's temperature to the specified amount"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:12840
-#: octoprint_m33fio/static/js/m33fio.js:12851
-#: octoprint_m33fio/static/js/m33fio.js:12862
-#: octoprint_m33fio/static/js/m33fio.js:12906
-#: octoprint_m33fio/static/js/m33fio.js:12917
-#: octoprint_m33fio/static/js/m33fio.js:12928
+#: octoprint_m33fio/static/js/m33fio.js:12858
+#: octoprint_m33fio/static/js/m33fio.js:12869
+#: octoprint_m33fio/static/js/m33fio.js:12880
+#: octoprint_m33fio/static/js/m33fio.js:12924
+#: octoprint_m33fio/static/js/m33fio.js:12935
+#: octoprint_m33fio/static/js/m33fio.js:12946
 msgid "Temperature Status"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:12840
-#: octoprint_m33fio/static/js/m33fio.js:12906
-#: octoprint_m33fio/static/js/m33fio.js:13082
-#: octoprint_m33fio/static/js/m33fio.js:13242
-#: octoprint_m33fio/static/js/m33fio.js:18117
-#: octoprint_m33fio/static/js/m33fio.js:18177
-#: octoprint_m33fio/static/js/m33fio.js:18234
+#: octoprint_m33fio/static/js/m33fio.js:12858
+#: octoprint_m33fio/static/js/m33fio.js:12924
+#: octoprint_m33fio/static/js/m33fio.js:13100
+#: octoprint_m33fio/static/js/m33fio.js:13260
+#: octoprint_m33fio/static/js/m33fio.js:18135
+#: octoprint_m33fio/static/js/m33fio.js:18195
+#: octoprint_m33fio/static/js/m33fio.js:18252
 msgid "Warming up…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:12851
-#: octoprint_m33fio/static/js/m33fio.js:12917
-#: octoprint_m33fio/static/js/m33fio.js:13100
-#: octoprint_m33fio/static/js/m33fio.js:13260
-#: octoprint_m33fio/static/js/m33fio.js:18134
-#: octoprint_m33fio/static/js/m33fio.js:18194
-#: octoprint_m33fio/static/js/m33fio.js:18251
+#: octoprint_m33fio/static/js/m33fio.js:12869
+#: octoprint_m33fio/static/js/m33fio.js:12935
+#: octoprint_m33fio/static/js/m33fio.js:13118
+#: octoprint_m33fio/static/js/m33fio.js:13278
+#: octoprint_m33fio/static/js/m33fio.js:18152
+#: octoprint_m33fio/static/js/m33fio.js:18212
+#: octoprint_m33fio/static/js/m33fio.js:18269
 msgid "Warming up"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:12894
+#: octoprint_m33fio/static/js/m33fio.js:12912
 msgid "Sets heatbed's temperature to the specified amount"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:12960
+#: octoprint_m33fio/static/js/m33fio.js:12978
 msgid "Turns on extruder's fan"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:12983
+#: octoprint_m33fio/static/js/m33fio.js:13001
 msgid "Turns off extruder's fan"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:13006
+#: octoprint_m33fio/static/js/m33fio.js:13024
 msgid "Turns on front LED"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:13029
+#: octoprint_m33fio/static/js/m33fio.js:13047
 msgid "Opens print settings"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:13038
+#: octoprint_m33fio/static/js/m33fio.js:13056
 msgid "Stops current operation"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:13056
+#: octoprint_m33fio/static/js/m33fio.js:13074
 msgid "Unloads filament"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:13059
-#: octoprint_m33fio/static/js/m33fio.js:13065
-#: octoprint_m33fio/static/js/m33fio.js:13082
+#: octoprint_m33fio/static/js/m33fio.js:13077
+#: octoprint_m33fio/static/js/m33fio.js:13083
 #: octoprint_m33fio/static/js/m33fio.js:13100
-#: octoprint_m33fio/static/js/m33fio.js:13111
-#: octoprint_m33fio/static/js/m33fio.js:13128
-#: octoprint_m33fio/static/js/m33fio.js:13219
-#: octoprint_m33fio/static/js/m33fio.js:13225
-#: octoprint_m33fio/static/js/m33fio.js:13242
+#: octoprint_m33fio/static/js/m33fio.js:13118
+#: octoprint_m33fio/static/js/m33fio.js:13129
+#: octoprint_m33fio/static/js/m33fio.js:13146
+#: octoprint_m33fio/static/js/m33fio.js:13237
+#: octoprint_m33fio/static/js/m33fio.js:13243
 #: octoprint_m33fio/static/js/m33fio.js:13260
-#: octoprint_m33fio/static/js/m33fio.js:13271
-#: octoprint_m33fio/static/js/m33fio.js:13288
-#: octoprint_m33fio/static/js/m33fio.js:13379
-#: octoprint_m33fio/static/js/m33fio.js:18058
-#: octoprint_m33fio/static/js/m33fio.js:18064
-#: octoprint_m33fio/static/js/m33fio.js:18092
-#: octoprint_m33fio/static/js/m33fio.js:18117
-#: octoprint_m33fio/static/js/m33fio.js:18134
-#: octoprint_m33fio/static/js/m33fio.js:18145
-#: octoprint_m33fio/static/js/m33fio.js:18162
-#: octoprint_m33fio/static/js/m33fio.js:18168
-#: octoprint_m33fio/static/js/m33fio.js:18177
-#: octoprint_m33fio/static/js/m33fio.js:18194
-#: octoprint_m33fio/static/js/m33fio.js:18205
-#: octoprint_m33fio/static/js/m33fio.js:18222
-#: octoprint_m33fio/static/js/m33fio.js:18228
-#: octoprint_m33fio/static/js/m33fio.js:18234
-#: octoprint_m33fio/static/js/m33fio.js:18251
-#: octoprint_m33fio/static/js/m33fio.js:18262
-#: octoprint_m33fio/static/js/m33fio.js:18268
+#: octoprint_m33fio/static/js/m33fio.js:13278
+#: octoprint_m33fio/static/js/m33fio.js:13289
+#: octoprint_m33fio/static/js/m33fio.js:13306
+#: octoprint_m33fio/static/js/m33fio.js:13397
+#: octoprint_m33fio/static/js/m33fio.js:18076
+#: octoprint_m33fio/static/js/m33fio.js:18082
+#: octoprint_m33fio/static/js/m33fio.js:18110
+#: octoprint_m33fio/static/js/m33fio.js:18135
+#: octoprint_m33fio/static/js/m33fio.js:18152
+#: octoprint_m33fio/static/js/m33fio.js:18163
+#: octoprint_m33fio/static/js/m33fio.js:18180
+#: octoprint_m33fio/static/js/m33fio.js:18186
+#: octoprint_m33fio/static/js/m33fio.js:18195
+#: octoprint_m33fio/static/js/m33fio.js:18212
+#: octoprint_m33fio/static/js/m33fio.js:18223
+#: octoprint_m33fio/static/js/m33fio.js:18240
+#: octoprint_m33fio/static/js/m33fio.js:18246
+#: octoprint_m33fio/static/js/m33fio.js:18252
+#: octoprint_m33fio/static/js/m33fio.js:18269
+#: octoprint_m33fio/static/js/m33fio.js:18280
+#: octoprint_m33fio/static/js/m33fio.js:18286
 msgid "Filament Status"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:13065
-#: octoprint_m33fio/static/js/m33fio.js:13225
+#: octoprint_m33fio/static/js/m33fio.js:13083
+#: octoprint_m33fio/static/js/m33fio.js:13243
 msgid "Positioning extruder…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:13111
-#: octoprint_m33fio/static/js/m33fio.js:18145
+#: octoprint_m33fio/static/js/m33fio.js:13129
+#: octoprint_m33fio/static/js/m33fio.js:18163
 msgid "Remove filament…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:13128
-#: octoprint_m33fio/static/js/m33fio.js:18162
+#: octoprint_m33fio/static/js/m33fio.js:13146
+#: octoprint_m33fio/static/js/m33fio.js:18180
 msgid "Was filament removed?"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:13128
-#: octoprint_m33fio/static/js/m33fio.js:13288
-#: octoprint_m33fio/static/js/m33fio.js:13405
-#: octoprint_m33fio/static/js/m33fio.js:13522
-#: octoprint_m33fio/static/js/m33fio.js:13776
-#: octoprint_m33fio/static/js/m33fio.js:13811
-#: octoprint_m33fio/static/js/m33fio.js:13846
-#: octoprint_m33fio/static/js/m33fio.js:13881
-#: octoprint_m33fio/static/js/m33fio.js:13916
-#: octoprint_m33fio/static/js/m33fio.js:14003
-#: octoprint_m33fio/static/js/m33fio.js:14090
-#: octoprint_m33fio/static/js/m33fio.js:14177
-#: octoprint_m33fio/static/js/m33fio.js:14264
-#: octoprint_m33fio/static/js/m33fio.js:14378
-#: octoprint_m33fio/static/js/m33fio.js:15267
-#: octoprint_m33fio/static/js/m33fio.js:15325
-#: octoprint_m33fio/static/js/m33fio.js:15331
-#: octoprint_m33fio/static/js/m33fio.js:15713
-#: octoprint_m33fio/static/js/m33fio.js:15769
-#: octoprint_m33fio/static/js/m33fio.js:15825
-#: octoprint_m33fio/static/js/m33fio.js:15881
-#: octoprint_m33fio/static/js/m33fio.js:15937
-#: octoprint_m33fio/static/js/m33fio.js:16094
-#: octoprint_m33fio/static/js/m33fio.js:16150
-#: octoprint_m33fio/static/js/m33fio.js:16283
-#: octoprint_m33fio/static/js/m33fio.js:17428
-#: octoprint_m33fio/static/js/m33fio.js:17541
-#: octoprint_m33fio/static/js/m33fio.js:17712
-#: octoprint_m33fio/static/js/m33fio.js:17928
-#: octoprint_m33fio/static/js/m33fio.js:18162
-#: octoprint_m33fio/static/js/m33fio.js:18222
-#: octoprint_m33fio/static/js/m33fio.js:18775
-#: octoprint_m33fio/static/js/m33fio.js:18814
+#: octoprint_m33fio/static/js/m33fio.js:13146
+#: octoprint_m33fio/static/js/m33fio.js:13306
+#: octoprint_m33fio/static/js/m33fio.js:13423
+#: octoprint_m33fio/static/js/m33fio.js:13540
+#: octoprint_m33fio/static/js/m33fio.js:13794
+#: octoprint_m33fio/static/js/m33fio.js:13829
+#: octoprint_m33fio/static/js/m33fio.js:13864
+#: octoprint_m33fio/static/js/m33fio.js:13899
+#: octoprint_m33fio/static/js/m33fio.js:13934
+#: octoprint_m33fio/static/js/m33fio.js:14021
+#: octoprint_m33fio/static/js/m33fio.js:14108
+#: octoprint_m33fio/static/js/m33fio.js:14195
+#: octoprint_m33fio/static/js/m33fio.js:14282
+#: octoprint_m33fio/static/js/m33fio.js:14396
+#: octoprint_m33fio/static/js/m33fio.js:15285
+#: octoprint_m33fio/static/js/m33fio.js:15343
+#: octoprint_m33fio/static/js/m33fio.js:15349
+#: octoprint_m33fio/static/js/m33fio.js:15731
+#: octoprint_m33fio/static/js/m33fio.js:15787
+#: octoprint_m33fio/static/js/m33fio.js:15843
+#: octoprint_m33fio/static/js/m33fio.js:15899
+#: octoprint_m33fio/static/js/m33fio.js:15955
+#: octoprint_m33fio/static/js/m33fio.js:16112
+#: octoprint_m33fio/static/js/m33fio.js:16168
+#: octoprint_m33fio/static/js/m33fio.js:16301
+#: octoprint_m33fio/static/js/m33fio.js:17446
+#: octoprint_m33fio/static/js/m33fio.js:17559
+#: octoprint_m33fio/static/js/m33fio.js:17730
+#: octoprint_m33fio/static/js/m33fio.js:17946
+#: octoprint_m33fio/static/js/m33fio.js:18180
+#: octoprint_m33fio/static/js/m33fio.js:18240
+#: octoprint_m33fio/static/js/m33fio.js:18793
+#: octoprint_m33fio/static/js/m33fio.js:18832
 msgid "Yes"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:13153
-#: octoprint_m33fio/static/js/m33fio.js:13313
-#: octoprint_m33fio/static/js/m33fio.js:13511
-#: octoprint_m33fio/static/js/m33fio.js:13661
-#: octoprint_m33fio/static/js/m33fio.js:13800
-#: octoprint_m33fio/static/js/m33fio.js:13835
-#: octoprint_m33fio/static/js/m33fio.js:13870
-#: octoprint_m33fio/static/js/m33fio.js:13905
-#: octoprint_m33fio/static/js/m33fio.js:13992
-#: octoprint_m33fio/static/js/m33fio.js:14079
-#: octoprint_m33fio/static/js/m33fio.js:14166
-#: octoprint_m33fio/static/js/m33fio.js:14253
-#: octoprint_m33fio/static/js/m33fio.js:14367
-#: octoprint_m33fio/static/js/m33fio.js:14433
-#: octoprint_m33fio/static/js/m33fio.js:15294
-#: octoprint_m33fio/static/js/m33fio.js:15527
-#: octoprint_m33fio/static/js/m33fio.js:15572
-#: octoprint_m33fio/static/js/m33fio.js:15758
-#: octoprint_m33fio/static/js/m33fio.js:15814
-#: octoprint_m33fio/static/js/m33fio.js:15870
-#: octoprint_m33fio/static/js/m33fio.js:15926
-#: octoprint_m33fio/static/js/m33fio.js:16060
-#: octoprint_m33fio/static/js/m33fio.js:16139
-#: octoprint_m33fio/static/js/m33fio.js:16195
-#: octoprint_m33fio/static/js/m33fio.js:16375
-#: octoprint_m33fio/static/js/m33fio.js:17473
-#: octoprint_m33fio/static/js/m33fio.js:17680
-#: octoprint_m33fio/static/js/m33fio.js:17828
-#: octoprint_m33fio/static/js/m33fio.js:17946
-#: octoprint_m33fio/static/js/m33fio.js:18300
-#: octoprint_m33fio/static/js/m33fio.js:18341
-#: octoprint_m33fio/static/js/m33fio.js:18790
-#: octoprint_m33fio/static/js/m33fio.js:18829
+#: octoprint_m33fio/static/js/m33fio.js:13171
+#: octoprint_m33fio/static/js/m33fio.js:13331
+#: octoprint_m33fio/static/js/m33fio.js:13529
+#: octoprint_m33fio/static/js/m33fio.js:13679
+#: octoprint_m33fio/static/js/m33fio.js:13818
+#: octoprint_m33fio/static/js/m33fio.js:13853
+#: octoprint_m33fio/static/js/m33fio.js:13888
+#: octoprint_m33fio/static/js/m33fio.js:13923
+#: octoprint_m33fio/static/js/m33fio.js:14010
+#: octoprint_m33fio/static/js/m33fio.js:14097
+#: octoprint_m33fio/static/js/m33fio.js:14184
+#: octoprint_m33fio/static/js/m33fio.js:14271
+#: octoprint_m33fio/static/js/m33fio.js:14385
+#: octoprint_m33fio/static/js/m33fio.js:14451
+#: octoprint_m33fio/static/js/m33fio.js:15312
+#: octoprint_m33fio/static/js/m33fio.js:15545
+#: octoprint_m33fio/static/js/m33fio.js:15590
+#: octoprint_m33fio/static/js/m33fio.js:15776
+#: octoprint_m33fio/static/js/m33fio.js:15832
+#: octoprint_m33fio/static/js/m33fio.js:15888
+#: octoprint_m33fio/static/js/m33fio.js:15944
+#: octoprint_m33fio/static/js/m33fio.js:16078
+#: octoprint_m33fio/static/js/m33fio.js:16157
+#: octoprint_m33fio/static/js/m33fio.js:16213
+#: octoprint_m33fio/static/js/m33fio.js:16393
+#: octoprint_m33fio/static/js/m33fio.js:17491
+#: octoprint_m33fio/static/js/m33fio.js:17698
+#: octoprint_m33fio/static/js/m33fio.js:17846
+#: octoprint_m33fio/static/js/m33fio.js:17964
+#: octoprint_m33fio/static/js/m33fio.js:18318
+#: octoprint_m33fio/static/js/m33fio.js:18359
+#: octoprint_m33fio/static/js/m33fio.js:18808
+#: octoprint_m33fio/static/js/m33fio.js:18847
 msgid "No"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:13216
+#: octoprint_m33fio/static/js/m33fio.js:13234
 msgid "Loads filament"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:13271
-#: octoprint_m33fio/static/js/m33fio.js:18205
+#: octoprint_m33fio/static/js/m33fio.js:13289
+#: octoprint_m33fio/static/js/m33fio.js:18223
 msgid "Insert filament…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:13288
-#: octoprint_m33fio/static/js/m33fio.js:18222
+#: octoprint_m33fio/static/js/m33fio.js:13306
+#: octoprint_m33fio/static/js/m33fio.js:18240
 msgid "Was filament inserted?"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:13376
+#: octoprint_m33fio/static/js/m33fio.js:13394
 msgid "Changes filament during a print"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:13379
-#: octoprint_m33fio/static/js/m33fio.js:18058
+#: octoprint_m33fio/static/js/m33fio.js:13397
+#: octoprint_m33fio/static/js/m33fio.js:18076
 msgid "Starting mid‐print filament change…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:13402
+#: octoprint_m33fio/static/js/m33fio.js:13420
 msgid "Automatically calibrates the bed's center's Z0"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:13405
-#: octoprint_m33fio/static/js/m33fio.js:13411
-#: octoprint_m33fio/static/js/m33fio.js:13454
-#: octoprint_m33fio/static/js/m33fio.js:13522
-#: octoprint_m33fio/static/js/m33fio.js:13528
-#: octoprint_m33fio/static/js/m33fio.js:13589
-#: octoprint_m33fio/static/js/m33fio.js:13776
-#: octoprint_m33fio/static/js/m33fio.js:13811
-#: octoprint_m33fio/static/js/m33fio.js:13846
-#: octoprint_m33fio/static/js/m33fio.js:13881
-#: octoprint_m33fio/static/js/m33fio.js:13916
-#: octoprint_m33fio/static/js/m33fio.js:13922
-#: octoprint_m33fio/static/js/m33fio.js:13950
-#: octoprint_m33fio/static/js/m33fio.js:14003
-#: octoprint_m33fio/static/js/m33fio.js:14009
-#: octoprint_m33fio/static/js/m33fio.js:14037
-#: octoprint_m33fio/static/js/m33fio.js:14090
-#: octoprint_m33fio/static/js/m33fio.js:14096
-#: octoprint_m33fio/static/js/m33fio.js:14124
-#: octoprint_m33fio/static/js/m33fio.js:14177
-#: octoprint_m33fio/static/js/m33fio.js:14183
-#: octoprint_m33fio/static/js/m33fio.js:14211
-#: octoprint_m33fio/static/js/m33fio.js:14264
-#: octoprint_m33fio/static/js/m33fio.js:14270
-#: octoprint_m33fio/static/js/m33fio.js:14310
-#: octoprint_m33fio/static/js/m33fio.js:14378
-#: octoprint_m33fio/static/js/m33fio.js:14384
-#: octoprint_m33fio/static/js/m33fio.js:14412
-#: octoprint_m33fio/static/js/m33fio.js:14444
-#: octoprint_m33fio/static/js/m33fio.js:14538
-#: octoprint_m33fio/static/js/m33fio.js:14650
-#: octoprint_m33fio/static/js/m33fio.js:14687
-#: octoprint_m33fio/static/js/m33fio.js:14745
-#: octoprint_m33fio/static/js/m33fio.js:14760
-#: octoprint_m33fio/static/js/m33fio.js:14766
-#: octoprint_m33fio/static/js/m33fio.js:14788
-#: octoprint_m33fio/static/js/m33fio.js:14803
-#: octoprint_m33fio/static/js/m33fio.js:14809
-#: octoprint_m33fio/static/js/m33fio.js:14831
-#: octoprint_m33fio/static/js/m33fio.js:14846
-#: octoprint_m33fio/static/js/m33fio.js:14852
-#: octoprint_m33fio/static/js/m33fio.js:14874
-#: octoprint_m33fio/static/js/m33fio.js:14889
-#: octoprint_m33fio/static/js/m33fio.js:14895
-#: octoprint_m33fio/static/js/m33fio.js:14917
-#: octoprint_m33fio/static/js/m33fio.js:14938
-#: octoprint_m33fio/static/js/m33fio.js:15267
-#: octoprint_m33fio/static/js/m33fio.js:15273
-#: octoprint_m33fio/static/js/m33fio.js:15300
-#: octoprint_m33fio/static/js/m33fio.js:15325
-#: octoprint_m33fio/static/js/m33fio.js:15331
-#: octoprint_m33fio/static/js/m33fio.js:15337
+#: octoprint_m33fio/static/js/m33fio.js:13423
+#: octoprint_m33fio/static/js/m33fio.js:13429
+#: octoprint_m33fio/static/js/m33fio.js:13472
+#: octoprint_m33fio/static/js/m33fio.js:13540
+#: octoprint_m33fio/static/js/m33fio.js:13546
+#: octoprint_m33fio/static/js/m33fio.js:13607
+#: octoprint_m33fio/static/js/m33fio.js:13794
+#: octoprint_m33fio/static/js/m33fio.js:13829
+#: octoprint_m33fio/static/js/m33fio.js:13864
+#: octoprint_m33fio/static/js/m33fio.js:13899
+#: octoprint_m33fio/static/js/m33fio.js:13934
+#: octoprint_m33fio/static/js/m33fio.js:13940
+#: octoprint_m33fio/static/js/m33fio.js:13968
+#: octoprint_m33fio/static/js/m33fio.js:14021
+#: octoprint_m33fio/static/js/m33fio.js:14027
+#: octoprint_m33fio/static/js/m33fio.js:14055
+#: octoprint_m33fio/static/js/m33fio.js:14108
+#: octoprint_m33fio/static/js/m33fio.js:14114
+#: octoprint_m33fio/static/js/m33fio.js:14142
+#: octoprint_m33fio/static/js/m33fio.js:14195
+#: octoprint_m33fio/static/js/m33fio.js:14201
+#: octoprint_m33fio/static/js/m33fio.js:14229
+#: octoprint_m33fio/static/js/m33fio.js:14282
+#: octoprint_m33fio/static/js/m33fio.js:14288
+#: octoprint_m33fio/static/js/m33fio.js:14328
+#: octoprint_m33fio/static/js/m33fio.js:14396
+#: octoprint_m33fio/static/js/m33fio.js:14402
+#: octoprint_m33fio/static/js/m33fio.js:14430
+#: octoprint_m33fio/static/js/m33fio.js:14462
+#: octoprint_m33fio/static/js/m33fio.js:14556
+#: octoprint_m33fio/static/js/m33fio.js:14668
+#: octoprint_m33fio/static/js/m33fio.js:14705
+#: octoprint_m33fio/static/js/m33fio.js:14763
+#: octoprint_m33fio/static/js/m33fio.js:14778
+#: octoprint_m33fio/static/js/m33fio.js:14784
+#: octoprint_m33fio/static/js/m33fio.js:14806
+#: octoprint_m33fio/static/js/m33fio.js:14821
+#: octoprint_m33fio/static/js/m33fio.js:14827
+#: octoprint_m33fio/static/js/m33fio.js:14849
+#: octoprint_m33fio/static/js/m33fio.js:14864
+#: octoprint_m33fio/static/js/m33fio.js:14870
+#: octoprint_m33fio/static/js/m33fio.js:14892
+#: octoprint_m33fio/static/js/m33fio.js:14907
+#: octoprint_m33fio/static/js/m33fio.js:14913
+#: octoprint_m33fio/static/js/m33fio.js:14935
+#: octoprint_m33fio/static/js/m33fio.js:14956
+#: octoprint_m33fio/static/js/m33fio.js:15285
+#: octoprint_m33fio/static/js/m33fio.js:15291
+#: octoprint_m33fio/static/js/m33fio.js:15318
 #: octoprint_m33fio/static/js/m33fio.js:15343
-#: octoprint_m33fio/static/js/m33fio.js:15380
-#: octoprint_m33fio/static/js/m33fio.js:15386
-#: octoprint_m33fio/static/js/m33fio.js:15483
-#: octoprint_m33fio/static/js/m33fio.js:15497
-#: octoprint_m33fio/static/js/m33fio.js:15533
-#: octoprint_m33fio/static/js/m33fio.js:17541
-#: octoprint_m33fio/static/js/m33fio.js:17547
-#: octoprint_m33fio/static/js/m33fio.js:17608
-#: octoprint_m33fio/static/js/m33fio.js:17712
-#: octoprint_m33fio/static/js/m33fio.js:17718
-#: octoprint_m33fio/static/js/m33fio.js:17770
+#: octoprint_m33fio/static/js/m33fio.js:15349
+#: octoprint_m33fio/static/js/m33fio.js:15355
+#: octoprint_m33fio/static/js/m33fio.js:15361
+#: octoprint_m33fio/static/js/m33fio.js:15398
+#: octoprint_m33fio/static/js/m33fio.js:15404
+#: octoprint_m33fio/static/js/m33fio.js:15501
+#: octoprint_m33fio/static/js/m33fio.js:15515
+#: octoprint_m33fio/static/js/m33fio.js:15551
+#: octoprint_m33fio/static/js/m33fio.js:17559
+#: octoprint_m33fio/static/js/m33fio.js:17565
+#: octoprint_m33fio/static/js/m33fio.js:17626
+#: octoprint_m33fio/static/js/m33fio.js:17730
+#: octoprint_m33fio/static/js/m33fio.js:17736
+#: octoprint_m33fio/static/js/m33fio.js:17788
 msgid "Calibration Status"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:13405
-#: octoprint_m33fio/static/js/m33fio.js:13522
+#: octoprint_m33fio/static/js/m33fio.js:13423
+#: octoprint_m33fio/static/js/m33fio.js:13540
 msgid "This process can take a while to complete. Proceed?"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:13411
-#: octoprint_m33fio/static/js/m33fio.js:14650
-#: octoprint_m33fio/static/js/m33fio.js:15343
+#: octoprint_m33fio/static/js/m33fio.js:13429
+#: octoprint_m33fio/static/js/m33fio.js:14668
+#: octoprint_m33fio/static/js/m33fio.js:15361
 msgid "Calibrating bed center Z0…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:13519
+#: octoprint_m33fio/static/js/m33fio.js:13537
 msgid "Automatically calibrates the bed's orientation"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:13528
-#: octoprint_m33fio/static/js/m33fio.js:14687
-#: octoprint_m33fio/static/js/m33fio.js:17547
+#: octoprint_m33fio/static/js/m33fio.js:13546
+#: octoprint_m33fio/static/js/m33fio.js:14705
+#: octoprint_m33fio/static/js/m33fio.js:17565
 msgid "Calibrating bed orientation…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:13669
+#: octoprint_m33fio/static/js/m33fio.js:13687
 msgid "Positions extruder above the bed's front left corner"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:13695
+#: octoprint_m33fio/static/js/m33fio.js:13713
 msgid "Positions extruder above the bed's front right corner"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:13721
+#: octoprint_m33fio/static/js/m33fio.js:13739
 msgid "Positions extruder above the bed's back right corner"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:13747
+#: octoprint_m33fio/static/js/m33fio.js:13765
 msgid "Positions extruder above the bed's back left corner"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:13773
+#: octoprint_m33fio/static/js/m33fio.js:13791
 msgid ""
 "Vertically positions the extruder to be at the bed's front left corner's "
 "Z0"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:13776
+#: octoprint_m33fio/static/js/m33fio.js:13794
 msgid ""
 "This will vertically position the extruder to be at the bed's front left "
 "corner's Z0. The extruder can dig into the bed if the front left corner "
 "isn't correctly calibrated. Proceed?"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:13808
+#: octoprint_m33fio/static/js/m33fio.js:13826
 msgid ""
 "Vertically positions the extruder to be at the bed's front right corner's"
 " Z0"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:13811
+#: octoprint_m33fio/static/js/m33fio.js:13829
 msgid ""
 "This will vertically position the extruder to be at the bed's front right"
 " corner's Z0. The extruder can dig into the bed if the front right corner"
 " isn't correctly calibrated. Proceed?"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:13843
+#: octoprint_m33fio/static/js/m33fio.js:13861
 msgid ""
 "Vertically positions the extruder to be at the bed's back right corner's "
 "Z0"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:13846
+#: octoprint_m33fio/static/js/m33fio.js:13864
 msgid ""
 "This will vertically position the extruder to be at the bed's back right "
 "corner's Z0. The extruder can dig into the bed if the back right corner "
 "isn't correctly calibrated. Proceed?"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:13878
+#: octoprint_m33fio/static/js/m33fio.js:13896
 msgid "Vertically positions the extruder to be at the bed's back left corner's Z0"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:13881
+#: octoprint_m33fio/static/js/m33fio.js:13899
 msgid ""
 "This will vertically position the extruder to be at the bed's back left "
 "corner's Z0. The extruder can dig into the bed if the back left corner "
 "isn't correctly calibrated. Proceed?"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:13913
+#: octoprint_m33fio/static/js/m33fio.js:13931
 msgid "Saves the extruder's current Z value as the bed's front left corner's Z0"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:13916
+#: octoprint_m33fio/static/js/m33fio.js:13934
 msgid "This will overwrite the existing front left offset. Proceed?"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:13922
+#: octoprint_m33fio/static/js/m33fio.js:13940
 msgid "Saving Z as front left Z0…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:14000
+#: octoprint_m33fio/static/js/m33fio.js:14018
 msgid "Saves the extruder's current Z value as the bed's front right corner's Z0"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:14003
+#: octoprint_m33fio/static/js/m33fio.js:14021
 msgid "This will overwrite the existing front right offset. Proceed?"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:14009
+#: octoprint_m33fio/static/js/m33fio.js:14027
 msgid "Saving Z as front right Z0…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:14087
+#: octoprint_m33fio/static/js/m33fio.js:14105
 msgid "Saves the extruder's current Z value as the bed's back right corner's Z0"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:14090
+#: octoprint_m33fio/static/js/m33fio.js:14108
 msgid "This will overwrite the existing back right offset. Proceed?"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:14096
+#: octoprint_m33fio/static/js/m33fio.js:14114
 msgid "Saving Z as back right Z0…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:14174
+#: octoprint_m33fio/static/js/m33fio.js:14192
 msgid "Saves the extruder's current Z value as the bed's back left corner's Z0"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:14177
+#: octoprint_m33fio/static/js/m33fio.js:14195
 msgid "This will overwrite the existing back left offset. Proceed?"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:14183
+#: octoprint_m33fio/static/js/m33fio.js:14201
 msgid "Saving Z as back left Z0…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:14261
+#: octoprint_m33fio/static/js/m33fio.js:14279
 msgid "Saves the extruder's current Z value as the bed center's Z0"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:14264
+#: octoprint_m33fio/static/js/m33fio.js:14282
 msgid "This will overwrite the existing bed center calibration. Proceed?"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:14270
+#: octoprint_m33fio/static/js/m33fio.js:14288
 msgid "Saving Z as bed center Z0…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:14375
+#: octoprint_m33fio/static/js/m33fio.js:14393
 msgid "Saves the extruder's current Z value as the external bed's height"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:14378
+#: octoprint_m33fio/static/js/m33fio.js:14396
 msgid "This will overwrite the existing external bed height. Proceed?"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:14384
-#: octoprint_m33fio/static/js/m33fio.js:15386
+#: octoprint_m33fio/static/js/m33fio.js:14402
+#: octoprint_m33fio/static/js/m33fio.js:15404
 msgid "Saving Z as external bed height…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:14441
+#: octoprint_m33fio/static/js/m33fio.js:14459
 #, python-format
 msgid "Prints %(thickness)s test border"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:14444
+#: octoprint_m33fio/static/js/m33fio.js:14462
 msgid ""
 "It's recommended to print this test border after completely calibrating "
 "the bed to ensure that the calibration is accurate. The test border "
 "should print as a solid, even extruded border"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:14444
+#: octoprint_m33fio/static/js/m33fio.js:14462
 msgid ""
 "The \"Back Left Offset\", \"Back Right Offset\", \"Front Right Offset\", "
 "and \"Front Left Offset\" values can be adjusted to correct any issues "
@@ -2526,11 +2537,11 @@ msgid ""
 "high."
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:14444
+#: octoprint_m33fio/static/js/m33fio.js:14462
 msgid "If the test border contains missing gaps, then it is too low."
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:14444
+#: octoprint_m33fio/static/js/m33fio.js:14462
 msgid ""
 "It's also recommended to print a model with a raft after this is done to "
 "see if the \"Bed Height Offset\" value needs to be adjusted. If the raft "
@@ -2540,11 +2551,11 @@ msgid ""
 "in the \"General\" section of OctoPrint's Control tab. Proceed?"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:14535
+#: octoprint_m33fio/static/js/m33fio.js:14553
 msgid "Prints a specified backlash calibration"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:14538
+#: octoprint_m33fio/static/js/m33fio.js:14556
 msgid ""
 "It's recommended to print the backlash calibration prints after the print"
 " bed has been accurately calibrated. Make sure to set the \"Backlash X\" "
@@ -2559,7 +2570,7 @@ msgid ""
 "prominent."
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:14538
+#: octoprint_m33fio/static/js/m33fio.js:14556
 msgid ""
 "Once the correct sample has been located, the following chart can help "
 "determine the compensation in millimeters to fix the axis's backlash. "
@@ -2567,7 +2578,7 @@ msgid ""
 "compensation value to get a more accurate final value."
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:14538
+#: octoprint_m33fio/static/js/m33fio.js:14556
 msgid ""
 "For more information check out <a target=\"_blank\" rel=\"nofollow\" "
 "href=\"http://www.thingiverse.com/thing:2040624\">Muele's quick backlash "
@@ -2577,90 +2588,90 @@ msgid ""
 "continue."
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:14538
+#: octoprint_m33fio/static/js/m33fio.js:14556
 msgid "X axis calibration"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:14538
+#: octoprint_m33fio/static/js/m33fio.js:14556
 msgid "Y axis calibration"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:14644
+#: octoprint_m33fio/static/js/m33fio.js:14662
 msgid ""
 "Manually calibrates an external bed's height, automatically calibrates "
 "the bed's center's Z0, automatically calibrates the bed's orientation, "
 "and manually calibrates the Z0 values for the bed's four corners"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:14745
+#: octoprint_m33fio/static/js/m33fio.js:14763
 msgid "Calibrating front left offset…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:14760
-#: octoprint_m33fio/static/js/m33fio.js:14803
-#: octoprint_m33fio/static/js/m33fio.js:14846
-#: octoprint_m33fio/static/js/m33fio.js:14889
+#: octoprint_m33fio/static/js/m33fio.js:14778
+#: octoprint_m33fio/static/js/m33fio.js:14821
+#: octoprint_m33fio/static/js/m33fio.js:14864
+#: octoprint_m33fio/static/js/m33fio.js:14907
 msgid ""
 "Lower the print head until it barely touches the bed. One way to get to "
 "that point is to place a single sheet of paper on the bed under the print"
 " head, and lower the print head until the paper can no longer be moved."
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:14766
+#: octoprint_m33fio/static/js/m33fio.js:14784
 msgid "Saving front left offset…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:14788
+#: octoprint_m33fio/static/js/m33fio.js:14806
 msgid "Calibrating front right offset…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:14809
+#: octoprint_m33fio/static/js/m33fio.js:14827
 msgid "Saving front right offset…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:14831
+#: octoprint_m33fio/static/js/m33fio.js:14849
 msgid "Calibrating back right offset…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:14852
+#: octoprint_m33fio/static/js/m33fio.js:14870
 msgid "Saving back right offset…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:14874
+#: octoprint_m33fio/static/js/m33fio.js:14892
 msgid "Calibrating back left offset…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:14895
+#: octoprint_m33fio/static/js/m33fio.js:14913
 msgid "Saving back left offset…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:14917
+#: octoprint_m33fio/static/js/m33fio.js:14935
 msgid "Finishing calibration…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:15267
+#: octoprint_m33fio/static/js/m33fio.js:15285
 msgid "Does the external bed extend the printable region to its max?"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:15273
+#: octoprint_m33fio/static/js/m33fio.js:15291
 msgid "Setting expand printable region…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:15300
+#: octoprint_m33fio/static/js/m33fio.js:15318
 msgid "Clearing expand printable region…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:15325
+#: octoprint_m33fio/static/js/m33fio.js:15343
 msgid ""
 "This process can take a while to complete and will require your input "
 "during some steps. Proceed?"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:15331
+#: octoprint_m33fio/static/js/m33fio.js:15349
 msgid "Are you using an external bed, such as a heatbed or a sheet of glass?"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:15337
+#: octoprint_m33fio/static/js/m33fio.js:15355
 #, python-format
 msgid ""
 "Your external bed is currently set to be %(externalBedHeight)s taller "
@@ -2671,7 +2682,7 @@ msgid ""
 " is."
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:15380
+#: octoprint_m33fio/static/js/m33fio.js:15398
 msgid ""
 "Now raise the print head so that you can attach the external bed, and "
 "then lower the print head until it barely touches the external bed. One "
@@ -2680,290 +2691,290 @@ msgid ""
 "longer be moved."
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:15483
+#: octoprint_m33fio/static/js/m33fio.js:15501
 msgid "Enter the new external bed height"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:15497
+#: octoprint_m33fio/static/js/m33fio.js:15515
 msgid "Saving value as external bed height…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:15519
+#: octoprint_m33fio/static/js/m33fio.js:15537
 msgid "Skip"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:15533
+#: octoprint_m33fio/static/js/m33fio.js:15551
 msgid "Clearing external bed settings…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:15580
+#: octoprint_m33fio/static/js/m33fio.js:15598
 msgid "Saves printer settings to a file"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:15583
-#: octoprint_m33fio/static/js/m33fio.js:15652
-#: octoprint_m33fio/static/js/m33fio.js:15662
-#: octoprint_m33fio/static/js/m33fio.js:15695
+#: octoprint_m33fio/static/js/m33fio.js:15601
+#: octoprint_m33fio/static/js/m33fio.js:15670
+#: octoprint_m33fio/static/js/m33fio.js:15680
+#: octoprint_m33fio/static/js/m33fio.js:15713
 msgid "Settings Status"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:15583
+#: octoprint_m33fio/static/js/m33fio.js:15601
 msgid "Obtaining printer settings…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:15633
+#: octoprint_m33fio/static/js/m33fio.js:15651
 msgid "Restores printer settings from a file"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:15652
-#: octoprint_m33fio/static/js/m33fio.js:16694
-#: octoprint_m33fio/static/js/m33fio.js:16778
+#: octoprint_m33fio/static/js/m33fio.js:15670
+#: octoprint_m33fio/static/js/m33fio.js:16712
+#: octoprint_m33fio/static/js/m33fio.js:16796
 msgid "Invalid file"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:15662
+#: octoprint_m33fio/static/js/m33fio.js:15680
 msgid "Restoring printer settings…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:15695
-#: octoprint_m33fio/static/js/m33fio.js:15738
-#: octoprint_m33fio/static/js/m33fio.js:15794
-#: octoprint_m33fio/static/js/m33fio.js:15850
-#: octoprint_m33fio/static/js/m33fio.js:15906
-#: octoprint_m33fio/static/js/m33fio.js:15965
-#: octoprint_m33fio/static/js/m33fio.js:16011
-#: octoprint_m33fio/static/js/m33fio.js:16038
-#: octoprint_m33fio/static/js/m33fio.js:16119
-#: octoprint_m33fio/static/js/m33fio.js:16175
-#: octoprint_m33fio/static/js/m33fio.js:16257
-#: octoprint_m33fio/static/js/m33fio.js:16354
-#: octoprint_m33fio/static/js/m33fio.js:16849
-#: octoprint_m33fio/static/js/m33fio.js:17453
+#: octoprint_m33fio/static/js/m33fio.js:15713
+#: octoprint_m33fio/static/js/m33fio.js:15756
+#: octoprint_m33fio/static/js/m33fio.js:15812
+#: octoprint_m33fio/static/js/m33fio.js:15868
+#: octoprint_m33fio/static/js/m33fio.js:15924
+#: octoprint_m33fio/static/js/m33fio.js:15983
+#: octoprint_m33fio/static/js/m33fio.js:16029
+#: octoprint_m33fio/static/js/m33fio.js:16056
+#: octoprint_m33fio/static/js/m33fio.js:16137
+#: octoprint_m33fio/static/js/m33fio.js:16193
+#: octoprint_m33fio/static/js/m33fio.js:16275
+#: octoprint_m33fio/static/js/m33fio.js:16372
+#: octoprint_m33fio/static/js/m33fio.js:16867
+#: octoprint_m33fio/static/js/m33fio.js:17471
 msgid "Failed"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:15710
-#: octoprint_m33fio/static/js/m33fio.js:15766
-#: octoprint_m33fio/static/js/m33fio.js:15822
-#: octoprint_m33fio/static/js/m33fio.js:15878
+#: octoprint_m33fio/static/js/m33fio.js:15728
+#: octoprint_m33fio/static/js/m33fio.js:15784
+#: octoprint_m33fio/static/js/m33fio.js:15840
+#: octoprint_m33fio/static/js/m33fio.js:15896
 #, python-format
 msgid "Sets fan to %(type)s fan"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:15713
-#: octoprint_m33fio/static/js/m33fio.js:15719
-#: octoprint_m33fio/static/js/m33fio.js:15738
-#: octoprint_m33fio/static/js/m33fio.js:15769
-#: octoprint_m33fio/static/js/m33fio.js:15775
-#: octoprint_m33fio/static/js/m33fio.js:15794
-#: octoprint_m33fio/static/js/m33fio.js:15825
-#: octoprint_m33fio/static/js/m33fio.js:15831
-#: octoprint_m33fio/static/js/m33fio.js:15850
-#: octoprint_m33fio/static/js/m33fio.js:15881
-#: octoprint_m33fio/static/js/m33fio.js:15887
-#: octoprint_m33fio/static/js/m33fio.js:15906
-#: octoprint_m33fio/static/js/m33fio.js:15937
-#: octoprint_m33fio/static/js/m33fio.js:15943
-#: octoprint_m33fio/static/js/m33fio.js:15965
-#: octoprint_m33fio/static/js/m33fio.js:15978
-#: octoprint_m33fio/static/js/m33fio.js:15992
-#: octoprint_m33fio/static/js/m33fio.js:16011
-#: octoprint_m33fio/static/js/m33fio.js:16038
+#: octoprint_m33fio/static/js/m33fio.js:15731
+#: octoprint_m33fio/static/js/m33fio.js:15737
+#: octoprint_m33fio/static/js/m33fio.js:15756
+#: octoprint_m33fio/static/js/m33fio.js:15787
+#: octoprint_m33fio/static/js/m33fio.js:15793
+#: octoprint_m33fio/static/js/m33fio.js:15812
+#: octoprint_m33fio/static/js/m33fio.js:15843
+#: octoprint_m33fio/static/js/m33fio.js:15849
+#: octoprint_m33fio/static/js/m33fio.js:15868
+#: octoprint_m33fio/static/js/m33fio.js:15899
+#: octoprint_m33fio/static/js/m33fio.js:15905
+#: octoprint_m33fio/static/js/m33fio.js:15924
+#: octoprint_m33fio/static/js/m33fio.js:15955
+#: octoprint_m33fio/static/js/m33fio.js:15961
+#: octoprint_m33fio/static/js/m33fio.js:15983
+#: octoprint_m33fio/static/js/m33fio.js:15996
+#: octoprint_m33fio/static/js/m33fio.js:16010
+#: octoprint_m33fio/static/js/m33fio.js:16029
+#: octoprint_m33fio/static/js/m33fio.js:16056
 msgid "Fan Status"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:15713
-#: octoprint_m33fio/static/js/m33fio.js:15769
-#: octoprint_m33fio/static/js/m33fio.js:15825
-#: octoprint_m33fio/static/js/m33fio.js:15881
-#: octoprint_m33fio/static/js/m33fio.js:15937
+#: octoprint_m33fio/static/js/m33fio.js:15731
+#: octoprint_m33fio/static/js/m33fio.js:15787
+#: octoprint_m33fio/static/js/m33fio.js:15843
+#: octoprint_m33fio/static/js/m33fio.js:15899
+#: octoprint_m33fio/static/js/m33fio.js:15955
 msgid "This will overwrite the existing fan settings. Proceed?"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:15719
-#: octoprint_m33fio/static/js/m33fio.js:15775
-#: octoprint_m33fio/static/js/m33fio.js:15831
-#: octoprint_m33fio/static/js/m33fio.js:15887
-#: octoprint_m33fio/static/js/m33fio.js:15943
+#: octoprint_m33fio/static/js/m33fio.js:15737
+#: octoprint_m33fio/static/js/m33fio.js:15793
+#: octoprint_m33fio/static/js/m33fio.js:15849
+#: octoprint_m33fio/static/js/m33fio.js:15905
+#: octoprint_m33fio/static/js/m33fio.js:15961
 #, python-format
 msgid "Setting fan to %(type)s…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:15934
+#: octoprint_m33fio/static/js/m33fio.js:15952
 msgid "Sets fan to a manually calibrated custom fan"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:15978
+#: octoprint_m33fio/static/js/m33fio.js:15996
 msgid "Increase this value until the fan starts spinning"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:15992
+#: octoprint_m33fio/static/js/m33fio.js:16010
 msgid "Setting custom fan calibration…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:16091
-#: octoprint_m33fio/static/js/m33fio.js:16147
+#: octoprint_m33fio/static/js/m33fio.js:16109
+#: octoprint_m33fio/static/js/m33fio.js:16165
 #, python-format
 msgid "Sets extruder's current to %(current)s"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:16094
-#: octoprint_m33fio/static/js/m33fio.js:16100
-#: octoprint_m33fio/static/js/m33fio.js:16119
-#: octoprint_m33fio/static/js/m33fio.js:16150
-#: octoprint_m33fio/static/js/m33fio.js:16156
-#: octoprint_m33fio/static/js/m33fio.js:16175
+#: octoprint_m33fio/static/js/m33fio.js:16112
+#: octoprint_m33fio/static/js/m33fio.js:16118
+#: octoprint_m33fio/static/js/m33fio.js:16137
+#: octoprint_m33fio/static/js/m33fio.js:16168
+#: octoprint_m33fio/static/js/m33fio.js:16174
+#: octoprint_m33fio/static/js/m33fio.js:16193
 msgid "Extruder Current Status"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:16094
-#: octoprint_m33fio/static/js/m33fio.js:16150
+#: octoprint_m33fio/static/js/m33fio.js:16112
+#: octoprint_m33fio/static/js/m33fio.js:16168
 msgid "This will overwrite the existing extruder current settings. Proceed?"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:16100
-#: octoprint_m33fio/static/js/m33fio.js:16156
+#: octoprint_m33fio/static/js/m33fio.js:16118
+#: octoprint_m33fio/static/js/m33fio.js:16174
 #, python-format
 msgid "Setting extruder current to %(current)s…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:16203
+#: octoprint_m33fio/static/js/m33fio.js:16221
 msgid "Displays EEPROM as hexadecimal values"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:16204
+#: octoprint_m33fio/static/js/m33fio.js:16222
 msgid "Displays EEPROM as decimal values"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:16205
+#: octoprint_m33fio/static/js/m33fio.js:16223
 msgid "Displays EEPROM as ASCII values"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:16235
+#: octoprint_m33fio/static/js/m33fio.js:16253
 msgid "Reads EEPROM from the printer"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:16238
-#: octoprint_m33fio/static/js/m33fio.js:16257
-#: octoprint_m33fio/static/js/m33fio.js:16283
-#: octoprint_m33fio/static/js/m33fio.js:16324
-#: octoprint_m33fio/static/js/m33fio.js:16335
-#: octoprint_m33fio/static/js/m33fio.js:16354
+#: octoprint_m33fio/static/js/m33fio.js:16256
+#: octoprint_m33fio/static/js/m33fio.js:16275
+#: octoprint_m33fio/static/js/m33fio.js:16301
+#: octoprint_m33fio/static/js/m33fio.js:16342
+#: octoprint_m33fio/static/js/m33fio.js:16353
+#: octoprint_m33fio/static/js/m33fio.js:16372
 msgid "EEPROM Status"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:16238
+#: octoprint_m33fio/static/js/m33fio.js:16256
 msgid "Reading EEPROM…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:16280
+#: octoprint_m33fio/static/js/m33fio.js:16298
 msgid "Writes changes to the printer's EEPROM"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:16283
+#: octoprint_m33fio/static/js/m33fio.js:16301
 msgid "This will overwrite the existing EEPROM. Proceed?"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:16324
+#: octoprint_m33fio/static/js/m33fio.js:16342
 msgid "Invalid EEPROM value"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:16335
+#: octoprint_m33fio/static/js/m33fio.js:16353
 msgid "Writing EEPROM…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:16392
-#: octoprint_m33fio/static/js/m33fio.js:16417
-#: octoprint_m33fio/static/js/m33fio.js:16436
-#: octoprint_m33fio/static/js/m33fio.js:16461
-#: octoprint_m33fio/static/js/m33fio.js:16490
-#: octoprint_m33fio/static/js/m33fio.js:16549
-#: octoprint_m33fio/static/js/m33fio.js:16610
-#: octoprint_m33fio/static/js/m33fio.js:16662
-#: octoprint_m33fio/static/js/m33fio.js:16694
-#: octoprint_m33fio/static/js/m33fio.js:16705
-#: octoprint_m33fio/static/js/m33fio.js:16742
+#: octoprint_m33fio/static/js/m33fio.js:16410
+#: octoprint_m33fio/static/js/m33fio.js:16435
+#: octoprint_m33fio/static/js/m33fio.js:16454
+#: octoprint_m33fio/static/js/m33fio.js:16479
+#: octoprint_m33fio/static/js/m33fio.js:16508
+#: octoprint_m33fio/static/js/m33fio.js:16567
+#: octoprint_m33fio/static/js/m33fio.js:16628
+#: octoprint_m33fio/static/js/m33fio.js:16680
+#: octoprint_m33fio/static/js/m33fio.js:16712
+#: octoprint_m33fio/static/js/m33fio.js:16723
+#: octoprint_m33fio/static/js/m33fio.js:16760
 msgid "OctoPrint Status"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:16392
-#: octoprint_m33fio/static/js/m33fio.js:16436
-#: octoprint_m33fio/static/js/m33fio.js:16705
+#: octoprint_m33fio/static/js/m33fio.js:16410
+#: octoprint_m33fio/static/js/m33fio.js:16454
+#: octoprint_m33fio/static/js/m33fio.js:16723
 msgid "Creating OctoPrint instance…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:16417
-#: octoprint_m33fio/static/js/m33fio.js:16461
-#: octoprint_m33fio/static/js/m33fio.js:16742
+#: octoprint_m33fio/static/js/m33fio.js:16435
+#: octoprint_m33fio/static/js/m33fio.js:16479
+#: octoprint_m33fio/static/js/m33fio.js:16760
 msgid "Failed to create OctoPrint instance"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:16490
+#: octoprint_m33fio/static/js/m33fio.js:16508
 msgid "Obtaining OctoPrint instance's settings…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:16549
+#: octoprint_m33fio/static/js/m33fio.js:16567
 msgid "Closing OctoPrint instance…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:16610
+#: octoprint_m33fio/static/js/m33fio.js:16628
 msgid "Unable to close the OctoPrint instance"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:16662
+#: octoprint_m33fio/static/js/m33fio.js:16680
 msgid "Navigating to OctoPrint instance…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:16792
+#: octoprint_m33fio/static/js/m33fio.js:16810
 msgid "Invalid file name"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:16806
+#: octoprint_m33fio/static/js/m33fio.js:16824
 msgid "Invalid file size"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:16928
+#: octoprint_m33fio/static/js/m33fio.js:16946
 #, python-format
 msgid "Currently using an unknown firmware V%(firmwareVersion)s"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:16930
+#: octoprint_m33fio/static/js/m33fio.js:16948
 #, python-format
 msgid "Currently using %(firmwareType)s firmware V%(firmwareVersion)s"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:16976
+#: octoprint_m33fio/static/js/m33fio.js:16994
 #, python-format
 msgid "%(formattedSerialNumber)s at %(currentPort)s"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:16979
+#: octoprint_m33fio/static/js/m33fio.js:16997
 #, python-format
 msgid "Printer at %(currentPort)s"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:17038
+#: octoprint_m33fio/static/js/m33fio.js:17056
 #, python-format
 msgid "Device %(cameraPort)s"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:17093
-#: octoprint_m33fio/static/js/m33fio.js:17095
+#: octoprint_m33fio/static/js/m33fio.js:17111
+#: octoprint_m33fio/static/js/m33fio.js:17113
 msgid "Uploading …"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:17118
-#: octoprint_m33fio/static/js/m33fio.js:17125
+#: octoprint_m33fio/static/js/m33fio.js:17136
+#: octoprint_m33fio/static/js/m33fio.js:17143
 msgid "Pre‐Processing Status"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:17190
+#: octoprint_m33fio/static/js/m33fio.js:17208
 msgid ""
 "It's recommended that you install a slicer on this server to allow "
 "slicing from within OctoPrint"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:17192
+#: octoprint_m33fio/static/js/m33fio.js:17210
 #, python-format
 msgid ""
 "It's recommended that you install the latest <a "
@@ -2974,7 +2985,7 @@ msgid ""
 "allow slicing from within OctoPrint"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:17194
+#: octoprint_m33fio/static/js/m33fio.js:17212
 #, python-format
 msgid ""
 "It's recommended that you install the latest <a "
@@ -2983,7 +2994,7 @@ msgid ""
 "this server to allow slicing from within OctoPrint"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:17196
+#: octoprint_m33fio/static/js/m33fio.js:17214
 #, python-format
 msgid ""
 "It's recommended that you install the latest <a "
@@ -2992,161 +3003,161 @@ msgid ""
 "allow slicing from within OctoPrint"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:17253
-#: octoprint_m33fio/static/js/m33fio.js:17335
+#: octoprint_m33fio/static/js/m33fio.js:17271
+#: octoprint_m33fio/static/js/m33fio.js:17353
 msgid "Disable reminder"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:17299
+#: octoprint_m33fio/static/js/m33fio.js:17317
 msgid ""
 "It's recommended that you disable this server's sleep functionality while"
 " printing if it's not already disabled"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:17317
+#: octoprint_m33fio/static/js/m33fio.js:17335
 msgid "Sleep Status"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:17392
+#: octoprint_m33fio/static/js/m33fio.js:17410
 #, python-format
 msgid "Instance at port %(processPort)s"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:17421
+#: octoprint_m33fio/static/js/m33fio.js:17439
 #, python-format
 msgid "Updates printer's firmware to %(firmwareType)s V%(firmwareVersion)s"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:17421
+#: octoprint_m33fio/static/js/m33fio.js:17439
 #, python-format
 msgid "Update firmware to %(firmwareType)s V%(firmwareVersion)s"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:17428
+#: octoprint_m33fio/static/js/m33fio.js:17446
 #, python-format
 msgid ""
 "M3D Mod is a modified version of M3D firmware that increases the max "
 "temperature from %(oldTemperature)s to %(newTemperature)s. Proceed?"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:17428
+#: octoprint_m33fio/static/js/m33fio.js:17446
 msgid "This will update the printer's current firmware. Proceed?"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:17485
+#: octoprint_m33fio/static/js/m33fio.js:17503
 msgid "Updates printer's firmware with a provided file"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:17485
+#: octoprint_m33fio/static/js/m33fio.js:17503
 msgid "Update firmware with file"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:17523
+#: octoprint_m33fio/static/js/m33fio.js:17541
 msgid "Invalid bed orientation. Calibrate?"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:17692
+#: octoprint_m33fio/static/js/m33fio.js:17710
 msgid "Invalid bed plane. Calibrate?"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:17694
+#: octoprint_m33fio/static/js/m33fio.js:17712
 msgid "Invalid bed center Z0. Calibrate?"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:17718
+#: octoprint_m33fio/static/js/m33fio.js:17736
 msgid "Calibrating bed plane"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:17718
+#: octoprint_m33fio/static/js/m33fio.js:17736
 msgid "Calibrating bed center Z0"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:17853
+#: octoprint_m33fio/static/js/m33fio.js:17871
 #, python-format
 msgid "You don't have read/write access to %(port)s"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:17915
+#: octoprint_m33fio/static/js/m33fio.js:17933
 #, python-format
 msgid ""
 "Firmware is corrupt. Update to %(firmwareType)s firmware version "
 "%(firmwareVersion)s?"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:17917
+#: octoprint_m33fio/static/js/m33fio.js:17935
 #, python-format
 msgid ""
 "Firmware is incompatible. Update to %(firmwareType)s firmware version "
 "%(firmwareVersion)s?"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:17919
+#: octoprint_m33fio/static/js/m33fio.js:17937
 #, python-format
 msgid ""
 "Newer firmware available. Update to %(firmwareType)s firmware version "
 "%(firmwareVersion)s?"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:18064
+#: octoprint_m33fio/static/js/m33fio.js:18082
 msgid ""
 "The filament can't be changed since the extruder can't be moved away from"
 " the print"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:18262
+#: octoprint_m33fio/static/js/m33fio.js:18280
 msgid ""
 "Make sure the nozzle is clean before continuing. It will be hot, so be "
 "careful."
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:18485
+#: octoprint_m33fio/static/js/m33fio.js:18503
 #, python-format
 msgid "Slicing %(fileName)s"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:18723
+#: octoprint_m33fio/static/js/m33fio.js:18741
 msgid "Sets feed rate to the specified amount"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:18724
+#: octoprint_m33fio/static/js/m33fio.js:18742
 msgid "Sets flow rate to the specified amount"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:18730
+#: octoprint_m33fio/static/js/m33fio.js:18748
 msgid "Sets tool to specified value"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:18775
-#: octoprint_m33fio/static/js/m33fio.js:18785
-#: octoprint_m33fio/static/js/m33fio.js:18804
-#: octoprint_m33fio/static/js/m33fio.js:18814
-#: octoprint_m33fio/static/js/m33fio.js:18824
+#: octoprint_m33fio/static/js/m33fio.js:18793
+#: octoprint_m33fio/static/js/m33fio.js:18803
+#: octoprint_m33fio/static/js/m33fio.js:18822
+#: octoprint_m33fio/static/js/m33fio.js:18832
+#: octoprint_m33fio/static/js/m33fio.js:18842
 msgid "Server Status"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:18775
+#: octoprint_m33fio/static/js/m33fio.js:18793
 msgid ""
 "You've been disconnected from the server which has most likely caused the"
 " printer's current operation to fail. It's recommended that you refresh "
 "this page to prevent further problems. Refresh now?"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:18785
-#: octoprint_m33fio/static/js/m33fio.js:18824
+#: octoprint_m33fio/static/js/m33fio.js:18803
+#: octoprint_m33fio/static/js/m33fio.js:18842
 msgid "Refreshing page…"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:18814
+#: octoprint_m33fio/static/js/m33fio.js:18832
 msgid ""
 "You've been disconnected from the server. It's recommended that you "
 "refresh this page to prevent further problems. Refresh now?"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:19064
+#: octoprint_m33fio/static/js/m33fio.js:19082
 msgid "Slicing Status"
 msgstr ""
 
-#: octoprint_m33fio/static/js/m33fio.js:19064
+#: octoprint_m33fio/static/js/m33fio.js:19082
 msgid "Slicing…"
 msgstr ""
 
@@ -3289,63 +3300,67 @@ msgstr ""
 msgid "Backlash compensation"
 msgstr ""
 
-#: octoprint_m33fio/templates/m33fio_settings.jinja2:187
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:189
+msgid "Skew compensation"
+msgstr ""
+
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:194
 msgid "Printer settings"
 msgstr ""
 
-#: octoprint_m33fio/templates/m33fio_settings.jinja2:217
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:224
 msgid "Back left orientation"
 msgstr ""
 
-#: octoprint_m33fio/templates/m33fio_settings.jinja2:226
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:233
 msgid "Back right orientation"
 msgstr ""
 
-#: octoprint_m33fio/templates/m33fio_settings.jinja2:235
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:242
 msgid "Front right orientation"
 msgstr ""
 
-#: octoprint_m33fio/templates/m33fio_settings.jinja2:244
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:251
 msgid "Front left orientation"
 msgstr ""
 
-#: octoprint_m33fio/templates/m33fio_settings.jinja2:262
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:269
 msgid "Back left offset"
 msgstr ""
 
-#: octoprint_m33fio/templates/m33fio_settings.jinja2:271
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:278
 msgid "Back right offset"
 msgstr ""
 
-#: octoprint_m33fio/templates/m33fio_settings.jinja2:280
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:287
 msgid "Front right offset"
 msgstr ""
 
-#: octoprint_m33fio/templates/m33fio_settings.jinja2:289
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:296
 msgid "Front left offset"
 msgstr ""
 
-#: octoprint_m33fio/templates/m33fio_settings.jinja2:309
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:316
 msgid "External bed expands printable region to max"
 msgstr ""
 
-#: octoprint_m33fio/templates/m33fio_settings.jinja2:347
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:372
 msgid ""
 "Changes to speed limits require restarting the printer to<br>take effect "
 "when using M3D or M3D Mod firmware"
 msgstr ""
 
-#: octoprint_m33fio/templates/m33fio_settings.jinja2:395
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:420
 msgid ""
 "Steps/mm, jerk sensitivity, and calibrate Z0 correction<br>settings are "
 "only used by iMe firmware"
 msgstr ""
 
-#: octoprint_m33fio/templates/m33fio_settings.jinja2:434
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:459
 msgid "X jerk homing sensitivity"
 msgstr ""
 
-#: octoprint_m33fio/templates/m33fio_settings.jinja2:443
+#: octoprint_m33fio/templates/m33fio_settings.jinja2:468
 msgid "Y jerk homing sensitivity"
 msgstr ""
 

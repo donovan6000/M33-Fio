@@ -483,6 +483,24 @@ $(function() {
 				bytes: 4,
 				color: "rgb(200, 200, 200)"
 			},
+			heatbedTemperature: {
+				name: gettext("Heatbed temperature"),
+				offset: 0x28B,
+				bytes: 1,
+				color: "rgb(100, 180, 120)"
+			},
+			skewX: {
+				name: gettext("Skew X"),
+				offset: 0x28C,
+				bytes: 4,
+				color: "rgb(120, 220, 120)"
+			},
+			skewY: {
+				name: gettext("Skew Y"),
+				offset: 0x290,
+				bytes: 4,
+				color: "rgb(120, 220, 220)"
+			},
 			expandPrintableRegion: {
 				name: gettext("Expand printable region"),
 				offset: 0x294,

@@ -309,6 +309,18 @@ class M33FioPlugin(
 				offset = 0x106,
 				bytes = 4
 			),
+			heatbedTemperature = dict(
+				offset = 0x28B,
+				bytes = 1
+			),
+			skewX = dict(
+				offset = 0x28C,
+				bytes = 4
+			),
+			skewY = dict(
+				offset = 0x290,
+				bytes = 4
+			),
 			expandPrintableRegion = dict(
 				offset = 0x294,
 				bytes = 1
@@ -555,6 +567,11 @@ class M33FioPlugin(
 		self.backlashPositionRelativeZ = 0
 		self.backlashPositionRelativeE = 0
 		self.backlashCompensationExtraGcode = Gcode()
+		
+		# Skew compensation pre-processor settings
+		self.skewCompensationRelativeMode = False
+		self.skewCompensationPositionAbsoluteZ = 0
+		self.skewCompensationPositionRelativeZ = 0
 	
 	# Get cpu hardware
 	def getCpuHardware(self) :
@@ -1308,6 +1325,9 @@ class M33FioPlugin(
 			self.sharedLibrary.setFirmwareType(ctypes.c_char_p(""))
 		else :
 			self.sharedLibrary.setFirmwareType(ctypes.c_char_p(self.currentFirmwareType))
+		self.sharedLibrary.setSkewX(ctypes.c_double(self._settings.get_float(["SkewX"])))
+		self.sharedLibrary.setSkewY(ctypes.c_double(self._settings.get_float(["SkewY"])))
+		self.sharedLibrary.setUseSkewCompensationPreprocessor(ctypes.c_bool(self._settings.get_boolean(["UseSkewCompensationPreprocessor"])))
 	
 	# Get newest firmware name
 	def getNewestFirmwareName(self, firmwareType) :
@@ -2052,6 +2072,25 @@ class M33FioPlugin(
 		value = self._settings.get(["Micro3DBootloaderVersionsUploaded"])
 		if not isinstance(value, (str, unicode)) :
 			self._settings.set(["Micro3DBootloaderVersionsUploaded"], self.get_settings_defaults()["Micro3DBootloaderVersionsUploaded"])
+		
+		# Make sure skew X is valid
+		value = self._settings.get_float(["SkewX"])
+		if not isinstance(value, float) or math.isnan(value) :
+			self._settings.set_float(["SkewX"], self.get_settings_defaults()["SkewX"])
+		elif value < -40 or value > 40 :
+			self._settings.set_float(["SkewX"], min(40, max(-40, value)))
+		
+		# Make sure skew Y is valid
+		value = self._settings.get_float(["SkewY"])
+		if not isinstance(value, float) or math.isnan(value) :
+			self._settings.set_float(["SkewY"], self.get_settings_defaults()["SkewY"])
+		elif value < -40 or value > 40 :
+			self._settings.set_float(["SkewY"], min(40, max(-40, value)))
+		
+		# Make sure use skew compensation preprocessor is valid
+		value = self._settings.get_boolean(["UseSkewCompensationPreprocessor"])
+		if not isinstance(value, bool) :
+			self._settings.set_boolean(["UseSkewCompensationPreprocessor"], self.get_settings_defaults()["UseSkewCompensationPreprocessor"])
 	
 	# Set default slicer profile
 	def setDefaultSlicerProfile(self, overwrite) :
@@ -2173,7 +2212,10 @@ class M33FioPlugin(
 			UseDebugLogging = False,
 			SlicerNeverRemind = False,
 			SleepNeverRemind = False,
-			Micro3DBootloaderVersionsUploaded = ""
+			Micro3DBootloaderVersionsUploaded = "",
+			SkewX = 0.0,
+			SkewY = 0.0,
+			UseSkewCompensationPreprocessor = True
 		)
 	
 	# Get IP address
@@ -3302,7 +3344,10 @@ class M33FioPlugin(
 					EMotorStepsPerMm = self._settings.get_float(["EMotorStepsPerMm"]),
 					XJerkSensitivity = self._settings.get_int(["XJerkSensitivity"]),
 					YJerkSensitivity = self._settings.get_int(["YJerkSensitivity"]),
-					CalibrateZ0Correction = self._settings.get_float(["CalibrateZ0Correction"])
+					CalibrateZ0Correction = self._settings.get_float(["CalibrateZ0Correction"]),
+					SkewX = self._settings.get_float(["SkewX"]),
+					SkewY = self._settings.get_float(["SkewY"]),
+					HeatbedTemperature = self._settings.get_int(["HeatbedTemperature"])
 				)
 				
 				# Set file's destination
@@ -3414,6 +3459,15 @@ class M33FioPlugin(
 				
 				if "CalibrateZ0Correction" in printerSettings :
 					self._settings.set_float(["CalibrateZ0Correction"], float(printerSettings["CalibrateZ0Correction"]))
+				
+				if "SkewX" in printerSettings :
+					self._settings.set_float(["SkewX"], float(printerSettings["SkewX"]))
+				
+				if "SkewY" in printerSettings :
+					self._settings.set_float(["SkewY"], float(printerSettings["SkewY"]))
+				
+				if "HeatbedTemperature" in printerSettings :
+					self._settings.set_int(["HeatbedTemperature"], int(printerSettings["HeatbedTemperature"]))
 				
 				# Check if a Micro 3D is connected and not printing
 				if not self.invalidPrinter and not self._printer.is_printing() :
@@ -5032,6 +5086,24 @@ class M33FioPlugin(
 		
 											# Set error to if setting E motor steps/mm in EEPROM failed
 											error = self.eepromSetFloat(connection, "eMotorStepsPerMm", self._settings.get_float(["EMotorStepsPerMm"]))
+										
+										# Check if an error hasn't occured
+										if not error :
+									
+											# Set error to if setting skew X in EEPROM failed
+											error = self.eepromSetFloat(connection, "skewX", self._settings.get_float(["SkewX"]))
+										
+										# Check if an error hasn't occured
+										if not error :
+									
+											# Set error to if setting skew Y in EEPROM failed
+											error = self.eepromSetFloat(connection, "skewY", self._settings.get_float(["SkewY"]))
+										
+										# Check if an error hasn't occured
+										if not error :
+									
+											# Set error to if setting heatbed temperature in EEPROM failed
+											error = self.eepromSetInt(connection, "heatbedTemperature", self._settings.get_int(["HeatbedTemperature"]))
 								
 									# Otherwise check if going from a different firmware to M3D or M3D Mod firmware
 									elif (oldFirmwareType != "M3D" and oldFirmwareType != "M3D Mod") and (newFirmwareType == "M3D" or newFirmwareType == "M3D Mod") :
@@ -5051,8 +5123,8 @@ class M33FioPlugin(
 										# Check if an error hasn't occured
 										if not error :
 									
-											# Set error to if clearing expand printable region, external bed height, calibrate Z0 correction, and X and Y jerk sensitivity, value, direction, and validity in EEPROM failed
-											error = self.eepromSetInt(connection, "expandPrintableRegion", 0, self.eepromOffsets["savedYState"]["offset"] + self.eepromOffsets["savedYState"]["bytes"] - self.eepromOffsets["expandPrintableRegion"]["offset"])
+											# Set error to if clearing heatbed temperature, skew X and Y, expand printable region, external bed height, calibrate Z0 correction, and X and Y jerk sensitivity, value, direction, and validity in EEPROM failed
+											error = self.eepromSetInt(connection, "heatbedTemperature", 0, self.eepromOffsets["savedYState"]["offset"] + self.eepromOffsets["savedYState"]["bytes"] - self.eepromOffsets["heatbedTemperature"]["offset"])
 										
 										# Check if an error hasn't occured
 										if not error :
@@ -7512,7 +7584,7 @@ class M33FioPlugin(
 											# Check if an error hasn't occured
 											if not error :
 						
-												# Set error to if filament temperature failed
+												# Set error to if limiting filament temperature failed
 												error = self.eepromKeepIntWithinRange(connection, "filamentTemperature", 150 - 100, 315 - 100, self.get_settings_defaults()["FilamentTemperature"] - 100)
 											
 											# Check if an error hasn't occured
@@ -7607,7 +7679,25 @@ class M33FioPlugin(
 							
 													# Set error to if limiting external bed height failed
 													error = self.eepromKeepFloatWithinRange(connection, "externalBedHeight", 0, 50, self.get_settings_defaults()["ExternalBedHeight"])
-										
+													
+												# Check if an error hasn't occured
+												if not error :
+							
+													# Set error to if limiting skew X failed
+													error = self.eepromKeepFloatWithinRange(connection, "skewX", -40, 40, self.get_settings_defaults()["SkewX"])
+							
+												# Check if an error hasn't occured
+												if not error :
+							
+													# Set error to if limiting skew Y failed
+													error = self.eepromKeepFloatWithinRange(connection, "skewY", -40, 40, self.get_settings_defaults()["SkewY"])
+												
+												# Check if an error hasn't occured
+												if not error :
+						
+													# Set error to if limiting heatbed temperature failed
+													error = self.eepromKeepIntWithinRange(connection, "heatbedTemperature", 0, 110, self.get_settings_defaults()["HeatbedTemperature"])
+											
 											# Check if an error hasn't occured
 											if not error :
 							
@@ -8123,7 +8213,10 @@ class M33FioPlugin(
 						"M619 S" + str(self.eepromOffsets["yJerkSensitivity"]["offset"]) + " T" + str(self.eepromOffsets["yJerkSensitivity"]["bytes"]),
 						"M619 S" + str(self.eepromOffsets["calibrateZ0Correction"]["offset"]) + " T" + str(self.eepromOffsets["calibrateZ0Correction"]["bytes"]),
 						"M619 S" + str(self.eepromOffsets["expandPrintableRegion"]["offset"]) + " T" + str(self.eepromOffsets["expandPrintableRegion"]["bytes"]),
-						"M619 S" + str(self.eepromOffsets["externalBedHeight"]["offset"]) + " T" + str(self.eepromOffsets["externalBedHeight"]["bytes"])
+						"M619 S" + str(self.eepromOffsets["externalBedHeight"]["offset"]) + " T" + str(self.eepromOffsets["externalBedHeight"]["bytes"]),
+						"M619 S" + str(self.eepromOffsets["skewX"]["offset"]) + " T" + str(self.eepromOffsets["skewX"]["bytes"]),
+						"M619 S" + str(self.eepromOffsets["skewY"]["offset"]) + " T" + str(self.eepromOffsets["skewY"]["bytes"]),
+						"M619 S" + str(self.eepromOffsets["heatbedTemperature"]["offset"]) + " T" + str(self.eepromOffsets["heatbedTemperature"]["bytes"])
 					]
 				
 				# Lower LED brightness for clear color printers
@@ -8868,6 +8961,46 @@ class M33FioPlugin(
 				if self._settings.get_boolean(["AutomaticallyObtainSettings"]) :
 					self._settings.set_float(["ExternalBedHeight"], self.printerExternalBedHeight)
 			
+			# Otherwise check if data is for skew X
+			elif "PT:" + str(self.eepromOffsets["skewX"]["offset"]) + " " in data :
+			
+				# Convert data to float
+				value = self.intToFloat(int(data[data.find("DT:") + 3 :]))
+				
+				if not isinstance(value, float) or math.isnan(value) :
+					self.printerSkewX = self.get_settings_defaults()["SkewX"]
+				else :
+					self.printerSkewX = round(value, 6)
+				
+				# Check if set to automatically collect printer settings
+				if self._settings.get_boolean(["AutomaticallyObtainSettings"]) :
+					self._settings.set_float(["SkewX"], self.printerSkewX)
+			
+			# Otherwise check if data is for skew Y
+			elif "PT:" + str(self.eepromOffsets["skewY"]["offset"]) + " " in data :
+			
+				# Convert data to float
+				value = self.intToFloat(int(data[data.find("DT:") + 3 :]))
+				
+				if not isinstance(value, float) or math.isnan(value) :
+					self.printerSkewY = self.get_settings_defaults()["SkewY"]
+				else :
+					self.printerSkewY = round(value, 6)
+				
+				# Check if set to automatically collect printer settings
+				if self._settings.get_boolean(["AutomaticallyObtainSettings"]) :
+					self._settings.set_float(["SkewY"], self.printerSkewY)
+			
+			# Otherwise check if data is for heatbed temperature
+			elif "PT:" + str(self.eepromOffsets["heatbedTemperature"]["offset"]) + " " in data :
+			
+				# Convert data to value
+				self.printerHeatbedTemperature = int(data[data.find("DT:") + 3 :])
+				
+				# Check if set to automatically collect printer settings
+				if self._settings.get_boolean(["AutomaticallyObtainSettings"]) :
+					self._settings.set_int(["HeatbedTemperature"], self.printerHeatbedTemperature)
+			
 			# Otherwise check if data is for bed orientation version
 			elif "PT:" + str(self.eepromOffsets["bedOrientationVersion"]["offset"]) + " " in data :
 			
@@ -9007,6 +9140,18 @@ class M33FioPlugin(
 		softwareExternalBedHeight = self._settings.get_float(["ExternalBedHeight"])
 		if not isinstance(softwareExternalBedHeight, float) :
 			softwareExternalBedHeight = self.get_settings_defaults()["ExternalBedHeight"]
+		
+		softwareSkewX = self._settings.get_float(["SkewX"])
+		if not isinstance(softwareSkewX, float) :
+			softwareSkewX = self.get_settings_defaults()["SkewX"]
+		
+		softwareSkewY = self._settings.get_float(["SkewY"])
+		if not isinstance(softwareSkewY, float) :
+			softwareSkewY = self.get_settings_defaults()["SkewY"]
+		
+		softwareHeatbedTemperature = self._settings.get_int(["HeatbedTemperature"])
+		if not isinstance(softwareHeatbedTemperature, int) :
+			softwareHeatbedTemperature = self.get_settings_defaults()["HeatbedTemperature"]
 		
 		# Check if backlash Xs differ
 		commandList = []
@@ -9201,6 +9346,24 @@ class M33FioPlugin(
 
 				# Add new value to list
 				commandList += ["M618 S" + str(self.eepromOffsets["externalBedHeight"]["offset"]) + " T" + str(self.eepromOffsets["externalBedHeight"]["bytes"]) + " P" + str(self.floatToInt(softwareExternalBedHeight)), "M619 S" + str(self.eepromOffsets["externalBedHeight"]["offset"]) + " T" + str(self.eepromOffsets["externalBedHeight"]["bytes"])]
+			
+			# Check if skew Xs differ
+			if hasattr(self, "printerSkewX") and self.printerSkewX != softwareSkewX :
+
+				# Add new value to list
+				commandList += ["M618 S" + str(self.eepromOffsets["skewX"]["offset"]) + " T" + str(self.eepromOffsets["skewX"]["bytes"]) + " P" + str(self.floatToInt(softwareSkewX)), "M619 S" + str(self.eepromOffsets["skewX"]["offset"]) + " T" + str(self.eepromOffsets["skewX"]["bytes"])]
+
+			# Check if skew Ys differ
+			if hasattr(self, "printerSkewY") and self.printerSkewY != softwareSkewY :
+
+				# Add new value to list
+				commandList += ["M618 S" + str(self.eepromOffsets["skewY"]["offset"]) + " T" + str(self.eepromOffsets["skewY"]["bytes"]) + " P" + str(self.floatToInt(softwareSkewY)), "M619 S" + str(self.eepromOffsets["skewY"]["offset"]) + " T" + str(self.eepromOffsets["skewY"]["bytes"])]
+			
+			# Check if heatbed temperatures differ
+			if hasattr(self, "printerHeatbedTemperature") and self.printerHeatbedTemperature != softwareHeatbedTemperature :
+
+				# Add new value to list
+				commandList += ["M618 S" + str(self.eepromOffsets["heatbedTemperature"]["offset"]) + " T" + str(self.eepromOffsets["heatbedTemperature"]["bytes"]) + " P" + str(softwareHeatbedTemperature), "M619 S" + str(self.eepromOffsets["heatbedTemperature"]["offset"]) + " T" + str(self.eepromOffsets["heatbedTemperature"]["bytes"])]
 			
 		# Return command list
 		return commandList
@@ -11358,6 +11521,74 @@ class M33FioPlugin(
 			
 					# Get next command
 					continue
+			
+			# Check if printing test border or backlash calibration or using skew compensation pre-processor
+			if (self.printingTestBorder or self.printingBacklashCalibration or self._settings.get_boolean(["UseSkewCompensationPreprocessor"])) and "SKEW" not in command.skip :
+
+				# Set command skip
+				command.skip += " SKEW"
+
+				# Check if command contains valid G-code
+				if not gcode.isEmpty() :
+
+					# Check if command is a G command
+					if gcode.hasValue("G") :
+
+						# Check if command is G0 or G1 and it's in absolute mode
+						if (gcode.getValue("G") == "0" or gcode.getValue("G") == "1") and not self.skewCompensationRelativeMode :
+
+							# Set delta value
+							if gcode.hasValue("Z") :
+								deltaZ = float(gcode.getValue("Z")) - self.skewCompensationPositionRelativeZ
+							else :
+								deltaZ = 0
+	
+							# Adjust position absolute and relative values for the changes
+							self.skewCompensationPositionAbsoluteZ += deltaZ
+							self.skewCompensationPositionRelativeZ += deltaZ
+							
+							# Check if line contains an X value
+							if gcode.hasValue("X") :
+
+								# Adjust X value
+								gcode.setValue("X", "%f" % (float(gcode.getValue("X")) + self.skewCompensationPositionAbsoluteZ / (self.bedHighMaxZ - self.bedLowMinZ) * -self._settings.get_float(["SkewX"])))
+
+							# Check if line contains a Y value
+							if gcode.hasValue("Y") :
+
+								# Adjust Y value
+								gcode.setValue("Y", "%f" % (float(gcode.getValue("Y")) + self.skewCompensationPositionAbsoluteZ / (self.bedHighMaxZ - self.bedLowMinZ) * -self._settings.get_float(["SkewY"])))
+
+						# Otherwise check if command is G90
+						elif gcode.getValue("G") == "90" :
+
+							# Clear relative mode
+							self.skewCompensationRelativeMode = False
+
+						# Otherwise check if command is G91
+						elif gcode.getValue("G") == "91" :
+
+							# Set relative mode
+							self.skewCompensationRelativeMode = True
+
+						# Otherwise check if command is G92
+						elif gcode.getValue("G") == "92" :
+
+							# Check if command doesn't have an X, Y, Z, and E value
+							if not gcode.hasValue("X") and not gcode.hasValue("Y") and not gcode.hasValue("Z") and not gcode.hasValue("E") :
+
+								# Set command values to zero
+								gcode.setValue("X", "0")
+								gcode.setValue("Y", "0")
+								gcode.setValue("Z", "0")
+								gcode.setValue("E", "0")
+
+							# Check if not using M3D or M3D Mod firmware
+							if self.currentFirmwareType != "M3D" and self.currentFirmwareType != "M3D Mod" :
+
+								# Set relative position
+								if gcode.hasValue("Z") :
+									self.skewCompensationPositionRelativeZ = float(gcode.getValue("Z"))
 			
 			# Check if command contains valid G-code
 			if not gcode.isEmpty() :
