@@ -8175,6 +8175,11 @@ class M33FioPlugin(
 			# Otherwise
 			else :
 			
+				# Reset invalid values
+				self.invalidBedCenter = False
+				self.invalidBedPlane = False
+				self.invalidBedOrientation = False
+			
 				# Request printer settings
 				commands = [
 					"M117",

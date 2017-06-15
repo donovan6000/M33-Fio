@@ -1114,6 +1114,10 @@ body > div.page-container > div.message .customInput input {
 	min-width: 540px !important;
 }
 
+#slicing_configuration_dialog.model.printerButtons {
+	min-width: 890px !important;
+}
+
 #slicing_configuration_dialog .modal-footer a.saveLocalCopy, #slicing_configuration_dialog .modal-footer a.saveOnServer, button.loadDefaultProfile {
 	float: left;
 	position: relative;
@@ -1157,10 +1161,6 @@ body > div.page-container > div.message .customInput input {
 	position: relative;
 	min-height: 510px;
 	overflow: hidden;
-}
-
-#slicing_configuration_dialog.model.printerButtons .modal-extra {
-	min-height: 600px;
 }
 
 #slicing_configuration_dialog.profile .modal-extra, #slicing_configuration_dialog.gcode .modal-extra {
@@ -1973,6 +1973,8 @@ body > div.page-container > div.message .customInput input {
 	-o-text-shadow: 0 1px 0 #fff;
 	text-shadow: 0 1px 0 #fff;
 	cursor: default;
+	position: relative;
+	top: -1px;
 }
 
 #slicing_configuration_dialog.model .modal-extra > div.values > div > p > span.axis.x {
@@ -2014,7 +2016,7 @@ body > div.page-container > div.message .customInput input {
 	float: right;
 }
 
-#slicing_configuration_dialog.model .modal-extra > div.values > div > p:nth-of-type(3) {
+#slicing_configuration_dialog.model .modal-extra > div.values > div > p:nth-of-type(3), #slicing_configuration_dialog.model .modal-extra > div.values.translate:not(.all) > div > p:nth-of-type(2) {
 	margin-bottom: -5px;
 }
 

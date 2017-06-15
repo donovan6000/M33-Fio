@@ -3227,8 +3227,8 @@ $(function() {
 									<div>\
 										<button class=\"close\" title=\"" + encodeQuotes(gettext("Close")) + "\"><div></div><i class=\"icon-remove-sign\"></i></button>\
 										<p><span class=\"axis x\">X</span><input type=\"number\" step=\"any\" name=\"x\"><span></span></p>\
-										<p><span class=\"axis y\">Y</span><input type=\"number\" step=\"any\" name=\"y\"><span></span></p>\
-										<p><span class=\"axis z\">Z</span><input type=\"number\" step=\"any\" name=\"z\"><span></span></p>\
+										<p><span class=\"axis y\">Y</span><input type=\"number\" step=\"any\" name=\"z\"><span></span></p>\
+										<p><span class=\"axis z\">Z</span><input type=\"number\" step=\"any\" name=\"y\"><span></span></p>\
 										<span></span>\
 									</div>\
 								</div>\
@@ -3682,6 +3682,9 @@ $(function() {
 								$("#slicing_configuration_dialog .modal-extra button.importFromServer, #slicing_configuration_dialog .modal-extra button.importFromFile, #slicing_configuration_dialog .modal-extra button.clone").prop("disabled", true);
 								$("#slicing_configuration_dialog .modal-extra button.importFromServer").removeClass("disabled").attr("title", htmlDecode(gettext("Import from server")));
 								$("#slicing_configuration_dialog .modal-extra div.import").removeClass("show");
+								
+								// Set that shown values are displaying all value
+								$("#slicing_configuration_dialog .modal-extra div.values").addClass("all");
 
 								// Show cut shape options
 								$("#slicing_configuration_dialog .modal-extra div.cutShape").addClass("show");
@@ -5964,13 +5967,13 @@ $(function() {
 					this.axes[1] = new THREE.Line(axisGeometry.clone(), axisMaterial.clone());
 					this.axes[1].geometry.vertices[1].y += 20;
 					this.axes[1].position.set(printBedOffsetX, bedLowMinZ - axesOffset, (bedLowMinY + printBedOffsetY) / 2);
-					this.axes[1].material.color.setHex(0x00FF00);
+					this.axes[1].material.color.setHex(0x0000FF);
 					
 					// Create Z axis
 					this.axes[2] = new THREE.Line(axisGeometry.clone(), axisMaterial.clone());
 					this.axes[2].geometry.vertices[1].z += 20;
 					this.axes[2].position.set(printBedOffsetX, bedLowMinZ - axesOffset, (bedLowMinY + printBedOffsetY) / 2);
-					this.axes[2].material.color.setHex(0x0000FF);
+					this.axes[2].material.color.setHex(0x00FF00);
 					
 					// Go through all axes
 					for(var i = 0; i < this.axes.length; i++) {
@@ -7272,6 +7275,9 @@ $(function() {
 						if($("#slicing_configuration_dialog.model .modal-extra > div.import select option").length)
 							$("#slicing_configuration_dialog .modal-extra button.importFromServer").prop("disabled", false);
 						
+						// Set that shown values are not displaying all value
+						$("#slicing_configuration_dialog .modal-extra div.values").removeClass("all");
+						
 						// Hide cut shape options
 						$("#slicing_configuration_dialog .modal-extra div.cutShape").removeClass("show");
 						
@@ -7508,7 +7514,7 @@ $(function() {
 
 								// Set model's rotation
 								if(name === "x")
-									model.rotation.x = THREE.Math.degToRad(adjustedValue);
+									model.rotation.x = THREE.Math.degToRad(-adjustedValue);
 								else if(name === "y")
 									model.rotation.y = THREE.Math.degToRad(adjustedValue);
 								else if(name === "z")
@@ -7524,9 +7530,9 @@ $(function() {
 								// Set model's scale
 								if(name === "x" || modelEditor.scaleLock[0])
 									model.scale.x = adjustedValue;
-								if(name === "y" || modelEditor.scaleLock[1])
+								if(name === "y" || modelEditor.scaleLock[2])
 									model.scale.y = adjustedValue;
-								if(name === "z" || modelEditor.scaleLock[2])
+								if(name === "z" || modelEditor.scaleLock[1])
 									model.scale.z = adjustedValue;
 							break;
 						}
@@ -7852,7 +7858,7 @@ $(function() {
 							
 									// Display rotation values
 									modelEditor.valuesUnits.text("°").attr("title", "");
-									modelEditor.valuesInput[0].val(THREE.Math.radToDeg(model.rotation.x).toFixed(3)).attr("min", "");
+									modelEditor.valuesInput[0].val(THREE.Math.radToDeg(-model.rotation.x).toFixed(3)).attr("min", "");
 									modelEditor.valuesInput[1].val(THREE.Math.radToDeg(model.rotation.y).toFixed(3)).attr("min", "");
 									modelEditor.valuesInput[2].val(THREE.Math.radToDeg(model.rotation.z).toFixed(3)).attr("min", "");
 								break;
@@ -8463,6 +8469,9 @@ $(function() {
 						// Enable import from server button if models exist to import
 						if($("#slicing_configuration_dialog.model .modal-extra > div.import select option").length)
 							$("#slicing_configuration_dialog .modal-extra button.importFromServer").prop("disabled", false);
+						
+						// Set that shown values are not displaying all value
+						$("#slicing_configuration_dialog .modal-extra div.values").removeClass("all");
 						
 						// Hide cut shape options
 						$("#slicing_configuration_dialog .modal-extra div.cutShape").removeClass("show");
@@ -12323,7 +12332,11 @@ $(function() {
 			if(event.which == 1) {
 			
 				// Stop default behavior
+				event.preventDefault();
 				event.stopImmediatePropagation();
+				
+				// Blur inputs
+				$("input:focus").blur();
 			
 				// Check if locking
 				if($(this).text() === "\uF13E") {
@@ -12335,7 +12348,7 @@ $(function() {
 					for(var i = 0; i < 3; i++)
 						if($(this).is($("#slicing_configuration_dialog .modal-extra div.values p span:not(.axis)").eq(i))) {
 							modelEditor.scaleLock[i] = true;
-							modelEditor.transformControls.setLockedAxes((modelEditor.scaleLock[0] ? "X" : "") + (modelEditor.scaleLock[1] ? "Y" : "") + (modelEditor.scaleLock[2] ? "Z" : ""));
+							modelEditor.transformControls.setLockedAxes((modelEditor.scaleLock[0] ? "X" : "") + (modelEditor.scaleLock[2] ? "Y" : "") + (modelEditor.scaleLock[1] ? "Z" : ""));
 							break;
 						}
 				}
@@ -12350,7 +12363,7 @@ $(function() {
 					for(var i = 0; i < 3; i++)
 						if($(this).is($("#slicing_configuration_dialog .modal-extra div.values p span:not(.axis)").eq(i))) {
 							modelEditor.scaleLock[i] = false;
-							modelEditor.transformControls.setLockedAxes((modelEditor.scaleLock[0] ? "X" : "") + (modelEditor.scaleLock[1] ? "Y" : "") + (modelEditor.scaleLock[2] ? "Z" : ""));
+							modelEditor.transformControls.setLockedAxes((modelEditor.scaleLock[0] ? "X" : "") + (modelEditor.scaleLock[2] ? "Y" : "") + (modelEditor.scaleLock[1] ? "Z" : ""));
 							break;
 						}
 				}

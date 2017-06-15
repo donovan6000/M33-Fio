@@ -3,6 +3,7 @@ Changelog:
 V1.21 June X 2017
 
 	* Implemented skew compensation pre-processor
+	* Changed model editor from a Y-up to Z-up coordinate system
 
 V1.20 June 6 2017
 
