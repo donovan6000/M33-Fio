@@ -13,7 +13,7 @@ $(function() {
 		var modelName;
 		var modelOrigin;
 		var modelPath;
-		var slicerName;
+		var slicerName = "";
 		var slicerProfileIdentifier;
 		var slicerProfileName;
 		var slicerProfileContent;
@@ -1229,7 +1229,7 @@ $(function() {
 					currentSlicerDialog = currentDialog;
 		
 					// Show dialog
-					$("#slicing_configuration_dialog").modal("show").removeClass("model gcode printerButtons").addClass("profile");
+					$("#slicing_configuration_dialog").modal("show").removeClass("model gcode printerButtons onlyAdvanced" + (slicerName.length ? " " + slicerName : "")).addClass("profile");
 			
 					// Set header text
 					$("#slicing_configuration_dialog > div.modal-header > h3").html(header);
@@ -1751,7 +1751,6 @@ $(function() {
 							$("#slicing_configuration_dialog .useBrim").prop("checked", getSlicerProfileValue("platform_adhesion") === "Brim");
 							$("#slicing_configuration_dialog .useSkirt").prop("checked", parseInt(getSlicerProfileValue("skirt_line_count")) > 0);
 							$("#slicing_configuration_dialog .useRetraction").prop("checked", getSlicerProfileValue("retraction_enable") === "True");
-							$("#slicing_configuration_dialog").removeClass("slic3r");
 						}
 						else if(slicerName === "slic3r") {
 							$("#slicing_configuration_dialog .useSupportMaterial").prop("checked", parseInt(getSlicerProfileValue("support_material")) == 1);
@@ -1768,7 +1767,6 @@ $(function() {
 								$("#slicing_configuration_dialog .useSkirt").prop("checked", true);
 	
 							$("#slicing_configuration_dialog .useRetraction").prop("checked", parseFloat(getSlicerProfileValue("retract_speed")) > 0);
-							$("#slicing_configuration_dialog").removeClass("cura");
 						}
 
 						// Set manual setting values
@@ -1867,8 +1865,8 @@ $(function() {
 						// Hide basic and manual settings
 						$("#slicing_configuration_dialog .basic, #slicing_configuration_dialog .manual").addClass("dontShow");
 	
-						// Grow text area
-						$("#slicing_configuration_dialog .advanced").addClass("fullSpace");
+						// Set it to only show the advanced section
+						$("#slicing_configuration_dialog").addClass("onlyAdvanced");
 					}
 
 					// Initialize drag leave counter
@@ -3152,7 +3150,7 @@ $(function() {
 						currentSlicerDialog = currentDialog;
 		
 						// Show dialog
-						$("#slicing_configuration_dialog").modal("show").removeClass("profile gcode printerButtons").addClass("model");
+						$("#slicing_configuration_dialog").modal("show").removeClass("profile gcode printerButtons onlyAdvanced" + (slicerName.length ? " " + slicerName : "")).addClass("model");
 			
 						// Set header text
 						$("#slicing_configuration_dialog > div.modal-header > h3").html(header);
@@ -4008,7 +4006,7 @@ $(function() {
 					currentSlicerDialog = currentDialog;
 		
 					// Show dialog
-					$("#slicing_configuration_dialog").modal("show").removeClass("profile model printerButtons").addClass("gcode");
+					$("#slicing_configuration_dialog").modal("show").removeClass("profile model printerButtons onlyAdvanced" + (slicerName.length ? " " + slicerName : "")).addClass("gcode");
 			
 					// Set header text
 					$("#slicing_configuration_dialog > div.modal-header > h3").html(header);
@@ -9184,7 +9182,8 @@ $(function() {
 							value: "View Profile: " + JSON.stringify({
 								slicerName: button.data("slicer"),
 								slicerProfileIdentifier: button.parent().parent().children("td").eq(0).find("span:not(.icon-star)").text(),
-								printerProfileName: self.printerProfile.currentProfile()
+								printerProfileName: self.printerProfile.currentProfile(),
+								setDefaultSlicer: "False"
 							})
 						}),
 						contentType: "application/json; charset=UTF-8",
@@ -11467,7 +11466,7 @@ $(function() {
 						modelEditor.destroy();
 
 					// Restore slicer dialog
-					$("#slicing_configuration_dialog").off("drop dragenter dragleave").removeClass("profile model gcode printerButtons").css("height", "");
+					$("#slicing_configuration_dialog").off("drop dragenter dragleave").removeClass("profile model gcode printerButtons onlyAdvanced" + (slicerName.length ? " " + slicerName : "")).css("height", "");
 					$("#slicing_configuration_dialog p.currentMenu").html(gettext("Select Profile"));
 					$("#slicing_configuration_dialog .modal-extra").remove();
 					$("#slicing_configuration_dialog .modal-body").css("display", "");
@@ -11582,7 +11581,8 @@ $(function() {
 								value: "View Profile: " + JSON.stringify({
 									slicerName: slicerName,
 									slicerProfileIdentifier: slicerProfileIdentifier,
-									printerProfileName: printerProfileName
+									printerProfileName: printerProfileName,
+									setDefaultSlicer: "True"
 								})
 							}),
 							contentType: "application/json; charset=UTF-8",
@@ -11622,6 +11622,11 @@ $(function() {
 								
 											// Display dialog
 											$("#slicing_configuration_dialog").addClass("in");
+											
+											// Update slicers
+											for(var slicer in self.slicers)
+												self.slicers[slicer].requestData();
+											self.slicing.requestData();
 										}, 200);
 									}
 								

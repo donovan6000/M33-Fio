@@ -1086,7 +1086,11 @@ body > div.page-container > div.message .customInput input {
 #slicing_configuration_dialog.profile {
 	max-width: 850px !important;
 	min-width: 810px !important;
-	min-height: 137px !important;
+	min-height: 166px !important;
+}
+
+#slicing_configuration_dialog.profile.onlyAdvanced {
+	min-height: 136px !important;
 }
 
 #slicing_configuration_dialog.gcode {
@@ -1105,7 +1109,7 @@ body > div.page-container > div.message .customInput input {
 }
 
 #slicing_configuration_dialog.model {
-	min-height: 569px !important;
+	min-height: 623px !important;
 	height: -ms-calc(100% - 30px) !important;
 	height: -moz-calc(100% - 30px) !important;
 	height: -webkit-calc(100% - 30px) !important;
@@ -1159,7 +1163,6 @@ body > div.page-container > div.message .customInput input {
 	margin-bottom: -5px;
 	z-index: -1;
 	position: relative;
-	min-height: 510px;
 	overflow: hidden;
 }
 
@@ -1193,7 +1196,7 @@ body > div.page-container > div.message .customInput input {
 	height: 400px;
 }
 
-#slicing_configuration_dialog.profile .modal-extra div.advanced.fullSpace {
+#slicing_configuration_dialog.profile.onlyAdvanced .modal-extra div.advanced {
 	height: 400px;
 	border-top: none !important;
 }
@@ -1797,36 +1800,36 @@ body > div.page-container > div.message .customInput input {
 }
 
 #slicing_configuration_dialog.model .modal-extra > div.values.translate {
-	top: -ms-calc(50% - 139px);
-	top: -moz-calc(50% - 139px);
-	top: -webkit-calc(50% - 139px);
-	top: -o-calc(50% - 139px);
-	top: calc(50% - 139px);
+	top: -ms-calc(50% - 138px);
+	top: -moz-calc(50% - 138px);
+	top: -webkit-calc(50% - 138px);
+	top: -o-calc(50% - 138px);
+	top: calc(50% - 138px);
 }
 
 #slicing_configuration_dialog.model .modal-extra > div.values.rotate {
-	top: -ms-calc(50% - 95px);
-	top: -moz-calc(50% - 95px);
-	top: -webkit-calc(50% - 95px);
-	top: -o-calc(50% - 95px);
-	top: calc(50% - 95px);
+	top: -ms-calc(50% - 94px);
+	top: -moz-calc(50% - 94px);
+	top: -webkit-calc(50% - 94px);
+	top: -o-calc(50% - 94px);
+	top: calc(50% - 94px);
 }
 
 #slicing_configuration_dialog.model .modal-extra > div.values.scale {
-	top: -ms-calc(50% - 53px);
-	top: -moz-calc(50% - 53px);
-	top: -webkit-calc(50% - 53px);
-	top: -o-calc(50% - 53px);
-	top: calc(50% - 53px);
+	top: -ms-calc(50% - 50px);
+	top: -moz-calc(50% - 50px);
+	top: -webkit-calc(50% - 50px);
+	top: -o-calc(50% - 50px);
+	top: calc(50% - 50px);
 }
 
 #slicing_configuration_dialog.model .modal-extra > div.cutShape {
 	left: 60px;
-	top: -ms-calc(50% + 169px);
-	top: -moz-calc(50% + 169px);
-	top: -webkit-calc(50% + 169px);
-	top: -o-calc(50% + 169px);
-	top: calc(50% + 169px);
+	top: -ms-calc(50% + 170px);
+	top: -moz-calc(50% + 170px);
+	top: -webkit-calc(50% + 170px);
+	top: -o-calc(50% + 170px);
+	top: calc(50% + 170px);
 	-ms-transform: translateY(-50%);
 	-moz-transform: translateY(-50%);
 	-webkit-transform: translateY(-50%);
@@ -1841,11 +1844,11 @@ body > div.page-container > div.message .customInput input {
 
 #slicing_configuration_dialog.model .modal-extra > div.import {
 	left: 60px;
-	top: -ms-calc(50% - 227px);
-	top: -moz-calc(50% - 227px);
-	top: -webkit-calc(50% - 227px);
-	top: -o-calc(50% - 227px);
-	top: calc(50% - 227px);
+	top: -ms-calc(50% - 225px);
+	top: -moz-calc(50% - 225px);
+	top: -webkit-calc(50% - 225px);
+	top: -o-calc(50% - 225px);
+	top: calc(50% - 225px);
 	-ms-transform: translateY(-50%);
 	-moz-transform: translateY(-50%);
 	-webkit-transform: translateY(-50%);

@@ -3222,8 +3222,8 @@ class M33FioPlugin(
 				# Get values
 				values = json.loads(data["value"][14 :])
 				
-				# Check if slicer name or slicer profile identifier is invalid
-				if values["slicerName"] is None or values["slicerProfileIdentifier"] is None :
+				# Check if slicer name, slicer profile identifier, or set default slicer are invalid
+				if values["slicerName"] is None or values["slicerProfileIdentifier"] is None or values["setDefaultSlicer"] is None :
 				
 					# Return error
 					return flask.jsonify(dict(value = "Error"))
@@ -3243,8 +3243,9 @@ class M33FioPlugin(
 					# Return error
 					return flask.jsonify(dict(value = "Error"))
 				
-				# Set default slicer
-				octoprint.settings.settings().set(["slicing", "defaultSlicer"], values["slicerName"], True)
+				# Set default slicer if set
+				if values["setDefaultSlicer"] == "True" :
+					octoprint.settings.settings().set(["slicing", "defaultSlicer"], values["slicerName"], True)
 				
 				# Set file's destination
 				destinationName = "slicer_profile"
