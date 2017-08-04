@@ -672,7 +672,7 @@ $(function() {
 			serialNumber: {
 				name: gettext("Serial number"),
 				offset: 0x2EF,
-				bytes: 17,
+				bytes: 16,
 				color: "rgb(230, 210, 250)"
 			}
 		};
@@ -4851,7 +4851,7 @@ $(function() {
 				originalUpdateItems();
 				
 				// Add edit profiles options
-				$(settings).find("table a.icon-star").each(function() {
+				$(settings).find("table a.icon-star, table a.fa.fa-star").each(function() {
 					if(!$(this).next().hasClass("editProfile"))
 						$(this).after("&nbsp;|&nbsp;<a href=\"#\" class=\"icon-pencil editProfile\" title=\"Edit profile\" data-slicer=\"" + encodeQuotes(slicerName) + "\"></a>");
 				});
@@ -4865,7 +4865,7 @@ $(function() {
 				originalChangePage(newPage);
 				
 				// Add edit profiles options
-				$(settings).find("table a.icon-star").each(function() {
+				$(settings).find("table a.icon-star, table a.fa.fa-star").each(function() {
 					if(!$(this).next().hasClass("editProfile"))
 						$(this).after("&nbsp;|&nbsp;<a href=\"#\" class=\"icon-pencil editProfile\" title=\"Edit profile\" data-slicer=\"" + encodeQuotes(slicerName) + "\"></a>");
 				});
@@ -4885,7 +4885,7 @@ $(function() {
 			$("#files div.gcode_files div.entry .action-buttons").each(function() {
 				
 				// Check if file is a model
-				if($(this).children().children("i.icon-magic").length)
+				if($(this).children().children("i.icon-magic, i.fa.fa-magic").length)
 				
 					// Add view button
 					$(this).children("a.btn-mini").after("\
@@ -4960,7 +4960,7 @@ $(function() {
 			$("#files div.gcode_files div.entry .action-buttons").each(function() {
 				
 				// Check if file is a model
-				if($(this).children().children("i.icon-magic").length)
+				if($(this).children().children("i.icon-magic, i.fa.fa-magic").length)
 				
 					// Add edit button
 					$(this).children("a.btn-mini").after("\
@@ -5032,7 +5032,7 @@ $(function() {
 			$("#files div.gcode_files div.entry .action-buttons").each(function() {
 				
 				// Check if file is G-code
-				if($(this).children().children("i.icon-print").length)
+				if($(this).children().children("i.icon-print, i.fa.fa-print").length)
 				
 					// Add edit button
 					$(this).children("a.btn-mini").after("\
@@ -9181,7 +9181,7 @@ $(function() {
 							command: "message",
 							value: "View Profile: " + JSON.stringify({
 								slicerName: button.data("slicer"),
-								slicerProfileIdentifier: button.parent().parent().children("td").eq(0).find("span:not(.icon-star)").text(),
+								slicerProfileIdentifier: button.parent().parent().children("td").eq(0).find("span:not(.icon-star):not(.fa.fa-star)").text(),
 								printerProfileName: self.printerProfile.currentProfile(),
 								setDefaultSlicer: "False"
 							})
@@ -9197,7 +9197,7 @@ $(function() {
 						if(data.value === "OK")
 				
 							// Show slicer profile editor
-							showSlicerProfileEditor(PLUGIN_BASEURL + data.path, button.data("slicer"), button.parent().parent().children("td").eq(0).find("span:not(.icon-star)").text(), "Edit Profile", _.sprintf(gettext("Editing %(fileName)s"), {fileName: button.parent().parent().children("td").eq(1).html()}), gettext("Save"), "", "", function() {
+							showSlicerProfileEditor(PLUGIN_BASEURL + data.path, button.data("slicer"), button.parent().parent().children("td").eq(0).find("span:not(.icon-star):not(.fa.fa-star)").text(), "Edit Profile", _.sprintf(gettext("Editing %(fileName)s"), {fileName: button.parent().parent().children("td").eq(1).html()}), gettext("Save"), "", "", function() {
 								
 								setTimeout(function() {
 								
@@ -10083,12 +10083,16 @@ $(function() {
 		// Set temperature or offset
 		function setTemperatureOrOffset(event) {
 		
+			// TODO: Fix this function to work with OctoPrint V1.3.5's temperature tab features
+		
 			// Check if using a Micro 3D printer
 			if(!self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
 			
 				// Set current tool
 				if($(event.target).closest("tr").children("th").html() === getAlreadyTranslatedText("Hotend"))
 					var currentTool = "Hotend";
+				else if($(event.target).closest("tr").children("th").html() === getAlreadyTranslatedText("Tool"))
+					var currentTool = "Tool";
 				else if($(event.target).closest("tr").children("th").html() === getAlreadyTranslatedText("Bed"))
 					var currentTool = "Bed";
 				
@@ -10112,8 +10116,7 @@ $(function() {
 					else {
 				
 						// Add input value to temperature
-						var input = $(event.target).closest("div.input-append").find("input");
-					
+						var input = $(event.target).closest("td").find("div.input-append").find("input");
 						if(!isNaN(parseInt(input.val())))
 							temperature += parseInt(input.val());
 						else if(!isNaN(parseInt(input.attr("placeholder"))))
@@ -10133,9 +10136,9 @@ $(function() {
 								break;
 							}
 					}
-			
+					
 					// Check if setting extruder temperature
-					if(currentTool === "Hotend")
+					if(currentTool === "Hotend" || currentTool === "Tool")
 				
 						// Set commands
 						var commands = [
@@ -10306,10 +10309,14 @@ $(function() {
 			$(this).blur();
 		
 			// Check if using a Micro 3D printer and connecting to it
-			if(!self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter() && $(this).html() === getAlreadyTranslatedText("Connect"))
-		
+			if(!self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter() && $(this).html() === getAlreadyTranslatedText("Connect")) {
+			
 				// Disable printer connect button
 				$(this).prop("disabled", true);
+			
+				// Show message
+				showMessage(gettext("Connection Status"), gettext("Connecting…"));
+			}
 		});
 		
 		// Cancel print button click event
@@ -10889,11 +10896,6 @@ $(function() {
 												$("#slicing_configuration_dialog .modal-cover").css("z-index", "");
 											}, 200);
 							
-											// Update slicers
-											for(var slicer in self.slicers)
-												self.slicers[slicer].requestData();
-											self.slicing.requestData();
-						
 											// Show message
 											showMessage(gettext("Saving Status"), gettext(data.value === "OK" ? "Done" : "Saving profile failed"), gettext("OK"), function() {
 											
@@ -11477,6 +11479,11 @@ $(function() {
 				
 					// Remove grab, grabbing, and progress cursor
 					$("body").removeClass("grab grabbing progress");
+					
+					// Update slicers
+					for(var slicer in self.slicers)
+						self.slicers[slicer].requestData();
+					self.slicing.requestData();
 				}, 300);
 			}, 0);
 		});
@@ -11622,11 +11629,6 @@ $(function() {
 								
 											// Display dialog
 											$("#slicing_configuration_dialog").addClass("in");
-											
-											// Update slicers
-											for(var slicer in self.slicers)
-												self.slicers[slicer].requestData();
-											self.slicing.requestData();
 										}, 200);
 									}
 								
@@ -11753,11 +11755,6 @@ $(function() {
 											// Hide dialog
 											$("#slicing_configuration_dialog").modal("hide");
 							
-											// Update slicers
-											for(var slicer in self.slicers)
-												self.slicers[slicer].requestData();
-											self.slicing.requestData();
-											
 											// Check if saving profile failed
 											if(data.value !== "OK")
 						
@@ -16973,32 +16970,33 @@ $(function() {
 			else if(data.value === "Printer Details" && typeof data.serialNumber !== "undefined" && typeof data.serialPort !== "undefined") {
 			
 				// Set printer color
-				switch(data.serialNumber.substr(0, 2)) {
-					case "BK":
-						printerColor = "Black"
-						break;
-					case "WH":
-						printerColor = "White"
-						break;
-					case "BL":
-						printerColor = "Blue"
-						break;
-					case "GR":
-						printerColor = "Green"
-						break;
-					case "OR":
-						printerColor = "Orange"
-						break;
-					case "CL":
-						printerColor = "Clear"
-						break;
-					case "SL":
-						printerColor = "Silver"
-						break;
-					case "PL":
-						printerColor = "Purple"
-						break;
-				}
+				if(data.serialNumber.length >= 2)
+					switch(data.serialNumber.substr(0, 2)) {
+						case "BK":
+							printerColor = "Black"
+							break;
+						case "WH":
+							printerColor = "White"
+							break;
+						case "BL":
+							printerColor = "Blue"
+							break;
+						case "GR":
+							printerColor = "Green"
+							break;
+						case "OR":
+							printerColor = "Orange"
+							break;
+						case "CL":
+							printerColor = "Clear"
+							break;
+						case "SL":
+							printerColor = "Silver"
+							break;
+						case "PL":
+							printerColor = "Purple"
+							break;
+					}
 				
 				// Set model editor printer color
 				modelEditorPrinterColor = printerColor;
@@ -17007,7 +17005,7 @@ $(function() {
 				localStorage.modelEditorPrinterColor = modelEditorPrinterColor;
 			
 				// Set text
-				if(data.serialNumber.match(/^[0-9a-z]+$/i)) {
+				if(data.serialNumber.length == eepromOffsets["serialNumber"]["bytes"] && data.serialNumber.match(/^[0-9a-z]+$/i)) {
 					var formattedSerialNumber = data.serialNumber.slice(0, 2) + "-" + data.serialNumber.slice(2, 4) + "-" + data.serialNumber.slice(4, 6) + "-" + data.serialNumber.slice(6, 8) + "-" + data.serialNumber.slice(8, 10) + "-" + data.serialNumber.slice(10, 13) + "-" + data.serialNumber.slice(13, 16);
 					var text = _.sprintf(gettext("%(formattedSerialNumber)s at %(currentPort)s"), {formattedSerialNumber: htmlEncode(formattedSerialNumber), currentPort: htmlEncode(data.serialPort)});
 				}
@@ -18033,10 +18031,17 @@ $(function() {
 				hideMessage();
 			
 			// Otherwise check if data is to allow connecting
-			else if(data.value === "Allow Connecting")
+			else if(data.value === "Allow Connecting") {
+			
+				// Check if connecting message is being displayed
+				if($("body > div.page-container > div.message").hasClass("show") && ($("body > div.page-container > div.message").find("p").eq(0).html() === gettext("Connecting…") || $("body > div.page-container > div.message").find("p").eq(0).html() === gettext("Reconnecting…")))
+			
+					// Hide message
+					hideMessage();
 			
 				// Enable printer connect button
 				$("#printer_connect").prop("disabled", false);
+			}
 			
 			// Otherwise check if data is done waiting
 			else if(data.value === "Done Waiting" && typeof waitingCallback === "function") {
@@ -18268,57 +18273,7 @@ $(function() {
 
 																// Show message
 																showMessage(gettext("Filament Status"), gettext("Warming up…"));
-
-																// Set commands
-																commands = [
-																	"M109 S" + parseInt($("body > div.page-container > div.message > div > div > div.filamentSettings input").eq(0).val()),
-																	"M65536;wait"
-																];
-
-																// Display temperature
-																updateTemperature = setInterval(function() {
-
-																	// Show message
-																	if(self.temperature.temperatures.tool0.actual.length) {
-
-																		var temperature = self.temperature.temperatures.tool0.actual[self.temperature.temperatures.tool0.actual.length - 1][1];
-
-																		if(temperature != 0)
-																			showMessage(gettext("Filament Status"), gettext("Warming up") + ": " + temperature + "°C");
-																	}
-																}, 1000);
-
-																// Set waiting callback
-																waitingCallback = function() {
-
-																	// Stop displaying temperature
-																	clearInterval(updateTemperature);
-	
-																	// Show message
-																	showMessage(gettext("Filament Status"), gettext("Make sure the nozzle is clean before continuing. It will be hot, so be careful."), gettext("OK"), function() {
-		
-																		// Hide message
-																		hideMessage();
-
-																		// Show message
-																		showMessage(gettext("Filament Status"), gettext("Resuming print…"));
-
-																		// Send request
-																		$.ajax({
-																			url: API_BASEURL + "plugin/m33fio",
-																			type: "POST",
-																			dataType: "json",
-																			data: JSON.stringify({
-																				command: "message",
-																				value: "Resume After Mid-Print Filament Change"
-																			}),
-																			contentType: "application/json; charset=UTF-8",
-																			traditional: true,
-																			processData: true
-																		});
-																	});
-																}
-	
+																
 																// Send request
 																$.ajax({
 																	url: API_BASEURL + "plugin/m33fio",
@@ -18326,11 +18281,78 @@ $(function() {
 																	dataType: "json",
 																	data: JSON.stringify({
 																		command: "message",
-																		value: commands
+																		value: "Set Filament Temperature: " + $("body > div.page-container > div.message > div > div > div.filamentSettings input").eq(0).val()
 																	}),
 																	contentType: "application/json; charset=UTF-8",
 																	traditional: true,
 																	processData: true
+					
+																// Done
+																}).done(function() {
+					
+																	// Set commands
+																	commands = [
+																		"M109 S" + parseInt($("body > div.page-container > div.message > div > div > div.filamentSettings input").eq(0).val()),
+																		"M65536;wait"
+																	];
+
+																	// Display temperature
+																	updateTemperature = setInterval(function() {
+
+																		// Show message
+																		if(self.temperature.temperatures.tool0.actual.length) {
+
+																			var temperature = self.temperature.temperatures.tool0.actual[self.temperature.temperatures.tool0.actual.length - 1][1];
+
+																			if(temperature != 0)
+																				showMessage(gettext("Filament Status"), gettext("Warming up") + ": " + temperature + "°C");
+																		}
+																	}, 1000);
+
+																	// Set waiting callback
+																	waitingCallback = function() {
+
+																		// Stop displaying temperature
+																		clearInterval(updateTemperature);
+	
+																		// Show message
+																		showMessage(gettext("Filament Status"), gettext("Make sure the nozzle is clean before continuing. It will be hot, so be careful."), gettext("OK"), function() {
+		
+																			// Hide message
+																			hideMessage();
+
+																			// Show message
+																			showMessage(gettext("Filament Status"), gettext("Resuming print…"));
+
+																			// Send request
+																			$.ajax({
+																				url: API_BASEURL + "plugin/m33fio",
+																				type: "POST",
+																				dataType: "json",
+																				data: JSON.stringify({
+																					command: "message",
+																					value: "Resume After Mid-Print Filament Change"
+																				}),
+																				contentType: "application/json; charset=UTF-8",
+																				traditional: true,
+																				processData: true
+																			});
+																		});
+																	}
+	
+																	// Send request
+																	$.ajax({
+																		url: API_BASEURL + "plugin/m33fio",
+																		type: "POST",
+																		dataType: "json",
+																		data: JSON.stringify({
+																			command: "message",
+																			value: commands
+																		}),
+																		contentType: "application/json; charset=UTF-8",
+																		traditional: true,
+																		processData: true
+																	});
 																});
 															});
 														}, gettext("No"), function() {

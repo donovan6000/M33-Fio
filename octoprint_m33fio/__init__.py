@@ -49,8 +49,8 @@ import requests
 from .gcode import Gcode
 from .vector import Vector
 
-# Check if using Windows or Linux
-if platform.uname()[0].startswith("Windows") or platform.uname()[0].startswith("Linux") :
+# Check if using Windows, Linux, or FreeBSD
+if platform.uname()[0].startswith("Windows") or platform.uname()[0].startswith("Linux") or platform.uname()[0].startswith("FreeBSD") :
 
 	# Import webcam libraries
 	try :
@@ -61,8 +61,8 @@ if platform.uname()[0].startswith("Windows") or platform.uname()[0].startswith("
 	except :
 		pass
 	
-	# Check if using Linux
-	if platform.uname()[0].startswith("Linux") :
+	# Check if using Linux or FreeBSD
+	if platform.uname()[0].startswith("Linux") or platform.uname()[0].startswith("FreeBSD") :
 
 		# Import DBus
 		try :
@@ -161,6 +161,7 @@ class M33FioPlugin(
 		self.serialPortsList = []
 		self.serverData = None
 		self.skipPreprocessing = False
+		self.waitForDisconnect = False
 		
 		# Rom decryption and encryption tables
 		self.romDecryptionTable = [0x26, 0xE2, 0x63, 0xAC, 0x27, 0xDE, 0x0D, 0x94, 0x79, 0xAB, 0x29, 0x87, 0x14, 0x95, 0x1F, 0xAE, 0x5F, 0xED, 0x47, 0xCE, 0x60, 0xBC, 0x11, 0xC3, 0x42, 0xE3, 0x03, 0x8E, 0x6D, 0x9D, 0x6E, 0xF2, 0x4D, 0x84, 0x25, 0xFF, 0x40, 0xC0, 0x44, 0xFD, 0x0F, 0x9B, 0x67, 0x90, 0x16, 0xB4, 0x07, 0x80, 0x39, 0xFB, 0x1D, 0xF9, 0x5A, 0xCA, 0x57, 0xA9, 0x5E, 0xEF, 0x6B, 0xB6, 0x2F, 0x83, 0x65, 0x8A, 0x13, 0xF5, 0x3C, 0xDC, 0x37, 0xD3, 0x0A, 0xF4, 0x77, 0xF3, 0x20, 0xE8, 0x73, 0xDB, 0x7B, 0xBB, 0x0B, 0xFA, 0x64, 0x8F, 0x08, 0xA3, 0x7D, 0xEB, 0x5C, 0x9C, 0x3E, 0x8C, 0x30, 0xB0, 0x7F, 0xBE, 0x2A, 0xD0, 0x68, 0xA2, 0x22, 0xF7, 0x1C, 0xC2, 0x17, 0xCD, 0x78, 0xC7, 0x21, 0x9E, 0x70, 0x99, 0x1A, 0xF8, 0x58, 0xEA, 0x36, 0xB1, 0x69, 0xC9, 0x04, 0xEE, 0x3B, 0xD6, 0x34, 0xFE, 0x55, 0xE7, 0x1B, 0xA6, 0x4A, 0x9A, 0x54, 0xE6, 0x51, 0xA0, 0x4E, 0xCF, 0x32, 0x88, 0x48, 0xA4, 0x33, 0xA5, 0x5B, 0xB9, 0x62, 0xD4, 0x6F, 0x98, 0x6C, 0xE1, 0x53, 0xCB, 0x46, 0xDD, 0x01, 0xE5, 0x7A, 0x86, 0x75, 0xDF, 0x31, 0xD2, 0x02, 0x97, 0x66, 0xE4, 0x38, 0xEC, 0x12, 0xB7, 0x00, 0x93, 0x15, 0x8B, 0x6A, 0xC5, 0x71, 0x92, 0x45, 0xA1, 0x59, 0xF0, 0x06, 0xA8, 0x5D, 0x82, 0x2C, 0xC4, 0x43, 0xCC, 0x2D, 0xD5, 0x35, 0xD7, 0x3D, 0xB2, 0x74, 0xB3, 0x09, 0xC6, 0x7C, 0xBF, 0x2E, 0xB8, 0x28, 0x9F, 0x41, 0xBA, 0x10, 0xAF, 0x0C, 0xFC, 0x23, 0xD9, 0x49, 0xF6, 0x7E, 0x8D, 0x18, 0x96, 0x56, 0xD1, 0x2B, 0xAD, 0x4B, 0xC1, 0x4F, 0xC8, 0x3A, 0xF1, 0x1E, 0xBD, 0x4C, 0xDA, 0x50, 0xA7, 0x52, 0xE9, 0x76, 0xD8, 0x19, 0x91, 0x72, 0x85, 0x3F, 0x81, 0x61, 0xAA, 0x05, 0x89, 0x0E, 0xB5, 0x24, 0xE0]
@@ -435,7 +436,7 @@ class M33FioPlugin(
 			),
 			serialNumber = dict(
 				offset = 0x2EF,
-				bytes = 17
+				bytes = 16
 			)
 		)
 		
@@ -591,6 +592,39 @@ class M33FioPlugin(
 		# Return empty string
 		return ""
 	
+	# Get printer type
+	def getPrinterType(self, currentPort) :
+		
+		# Go through all connected serial ports
+		for port in list(serial.tools.list_ports.comports()) :
+			
+			# Check if port is specified
+			if currentPort == port[0] :
+			
+				# Check if port contains the correct VID and PID to be a Micro 3D printer
+				if re.match("^USB VID:PID=0?3EB:2404(?: |$)", port[2], re.IGNORECASE) is not None :
+				
+					# Return printer type
+					return "Micro 3D"
+				
+				# Otherwise check if port contains the correct VID and PID to be an M3D Pro printer
+				elif re.match("^USB VID:PID=0?483:A21E(?: |$)", port[2], re.IGNORECASE) is not None :
+				
+					# Return printer type
+					return "M3D Pro"
+				
+				# Otherwise check if port contains the correct VID and PID to be a Micro+ printer
+				elif re.match("^USB VID:PID=0?483:A21F(?: |$)", port[2], re.IGNORECASE) is not None :
+				
+					# Return printer type
+					return "Micro+"
+				
+				# Break
+				break
+				
+		# Return none
+		return None
+	
 	# Save ports
 	def savePorts(self, currentPort) :
 	
@@ -600,11 +634,8 @@ class M33FioPlugin(
 		# Go through all connected serial ports
 		for port in list(serial.tools.list_ports.comports()) :
 		
-			# Get device
-			device = port[2].upper()
-			
-			# Check if port contains the correct VID and PID
-			if device.startswith("USB VID:PID=03EB:2404") or device.startswith("USB VID:PID=3EB:2404") :
+			# Check if port contains the correct VID and PID to be a Micro 3D, M3D Pro, or Micro+ printer
+			if re.match("^USB VID:PID=0?3EB:2404(?: |$)", port[2], re.IGNORECASE) is not None or re.match("^USB VID:PID=0?483:A21E(?: |$)", port[2], re.IGNORECASE) is not None or re.match("^USB VID:PID=0?483:A21F(?: |$)", port[2], re.IGNORECASE) is not None :
 			
 				# Save serial port
 				self.allSerialPorts += [port[0]]
@@ -630,17 +661,14 @@ class M33FioPlugin(
 				# Check if searching for current port or searching for a new port
 				if (searchForCurrent and (self.currentSerialPort is None or port[0] == self.currentSerialPort)) or (not searchForCurrent and port[0] not in self.allSerialPorts) :
 		
-					# Get device
-					device = port[2].upper()
-			
-					# Check if port contains the correct VID and PID
-					if device.startswith("USB VID:PID=03EB:2404") or device.startswith("USB VID:PID=3EB:2404") :
+					# Check if port contains the correct VID and PID to be a Micro 3D, M3D Pro, or Micro+ printer
+					if re.match("^USB VID:PID=0?3EB:2404(?: |$)", port[2], re.IGNORECASE) is not None or re.match("^USB VID:PID=0?483:A21E(?: |$)", port[2], re.IGNORECASE) is not None or re.match("^USB VID:PID=0?483:A21F(?: |$)", port[2], re.IGNORECASE) is not None :
 					
 						# Check if first time connecting
 						if searchForCurrent and self.currentSerialPort is None :
 						
 							# Check if printer is initialized
-							if "SNR" in device :
+							if " SNR=" in port[2].upper() :
 							
 								# Save port
 								firstInitializedPrinter = port[0]
@@ -706,11 +734,8 @@ class M33FioPlugin(
 			# Go through all connected serial ports
 			for port in newestSerialPortsList :
 		
-				# Get device
-				device = port[2].upper()
-			
-				# Check if port contains the correct VID and PID
-				if device.startswith("USB VID:PID=1A86:7523") :
+				# Check if port contains the correct VID and PID to be a Micro 3D heatbed
+				if re.match("^USB VID:PID=1A86:7523(?: |$)", port[2], re.IGNORECASE) is not None :
 			
 					# Return serial port
 					return port[0]
@@ -730,8 +755,8 @@ class M33FioPlugin(
 				# Send command to keep printer from being inactive for too long
 				self._printer.commands("G4")
 		
-			# Delay 10 minutes
-			time.sleep(10 * 60)
+			# Delay 5 minutes
+			time.sleep(5 * 60)
 	
 	# Monitor heatbed
 	def monitorHeatbed(self) :
@@ -775,8 +800,8 @@ class M33FioPlugin(
 				try :
 					self.heatbedConnection = serial.Serial(heatbedPort, 115200, timeout = 5)
 					
-					# check if using macOS or Linux and the user lacks read/write access to the heatbed
-					if (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(str(heatbedPort), os.R_OK | os.W_OK) :
+					# check if using macOS, Linux, or FreeBSD and the user lacks read/write access to the heatbed
+					if (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux") or platform.uname()[0].startswith("FreeBSD")) and not os.access(str(heatbedPort), os.R_OK | os.W_OK) :
 					
 						# Set error
 						error = True
@@ -1023,8 +1048,8 @@ class M33FioPlugin(
 			# Turn off using shared library setting
 			self._settings.set_boolean(["UseSharedLibrary"], False)
 		
-		# Check if not using Linux
-		if not platform.uname()[0].startswith("Linux") :
+		# Check if not using Linux or FreeBSD
+		if not platform.uname()[0].startswith("Linux") and not platform.uname()[0].startswith("FreeBSD") :
 		
 			# Turn off use GPIO setting
 			self._settings.set_boolean(["UseGpio"], False)
@@ -1223,7 +1248,13 @@ class M33FioPlugin(
 	
 					# Set shared library
 					self.sharedLibrary = ctypes.cdll.LoadLibrary(self._basefolder.replace("\\", "/") + "/static/libraries/preprocessor_x86-64.dylib")
-
+			
+			# Otherwise check if running FreeBSD
+			elif platform.uname()[0].startswith("FreeBSD") :
+			
+				# TODO: Compile FreeBSD shared library pre-processors
+				pass
+			
 			# Check if shared library was set
 			if self.sharedLibrary :
 
@@ -1260,8 +1291,8 @@ class M33FioPlugin(
 		# Check if shared library is loaded
 		if self.sharedLibrary :
 		
-			# Check if running on Linux or macOS
-			if platform.uname()[0].startswith("Linux") or platform.uname()[0].startswith("Darwin") :
+			# Check if running on macOS, Linux, or FreeBSD
+			if platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux") or platform.uname()[0].startswith("FreeBSD") :
 		
 				# Close shared library
 				_ctypes.dlclose(self.sharedLibrary._handle)
@@ -2547,8 +2578,8 @@ class M33FioPlugin(
 						# Set error
 						error = True
 					
-					# Otherwise check if using macOS or Linux and the user lacks read/write access to the printer
-					elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
+					# Otherwise check if using macOS, Linux, or FreeBSD and the user lacks read/write access to the printer
+					elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux") or platform.uname()[0].startswith("FreeBSD")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
 					
 						# Set error
 						error = True
@@ -2656,8 +2687,8 @@ class M33FioPlugin(
 						# Set error
 						error = True
 					
-					# Otherwise check if using macOS or Linux and the user lacks read/write access to the printer
-					elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
+					# Otherwise check if using macOS, Linux, or FreeBSD and the user lacks read/write access to the printer
+					elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux") or platform.uname()[0].startswith("FreeBSD")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
 					
 						# Set error
 						error = True
@@ -2769,8 +2800,8 @@ class M33FioPlugin(
 						# Set error
 						error = True
 					
-					# Otherwise check if using macOS or Linux and the user lacks read/write access to the printer
-					elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
+					# Otherwise check if using macOS, Linux, or FreeBSD and the user lacks read/write access to the printer
+					elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux") or platform.uname()[0].startswith("FreeBSD")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
 					
 						# Set error
 						error = True
@@ -2988,8 +3019,8 @@ class M33FioPlugin(
 						# Set error
 						error = True
 					
-					# Otherwise check if using macOS or Linux and the user lacks read/write access to the printer
-					elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
+					# Otherwise check if using macOS, Linux, or FreeBSD and the user lacks read/write access to the printer
+					elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux") or platform.uname()[0].startswith("FreeBSD")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
 					
 						# Set error
 						error = True
@@ -3091,8 +3122,8 @@ class M33FioPlugin(
 							# Set error
 							error = True
 						
-						# Otherwise check if using macOS or Linux and the user lacks read/write access to the printer
-						elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
+						# Otherwise check if using macOS, Linux, or FreeBSD and the user lacks read/write access to the printer
+						elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux") or platform.uname()[0].startswith("FreeBSD")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
 					
 							# Set error
 							error = True
@@ -3515,6 +3546,18 @@ class M33FioPlugin(
 				# Send message
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Refresh Settings"))
 			
+			# Otherwise check if parameter is to set filament temperature
+			elif data["value"].startswith("Set Filament Temperature:") :
+			
+				# Set filament temperature
+				self._settings.set_int(["FilamentTemperature"], int(data["value"][26 :]))
+			
+				# Save software settings
+				octoprint.settings.settings().save()
+				
+				# Send message
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Refresh Settings"))
+			
 			# Otherwise check if parameter is to remove temporary files
 			elif data["value"] == "Remove Temp" :
 			
@@ -3574,8 +3617,8 @@ class M33FioPlugin(
 						# Set error
 						error = True
 					
-					# Otherwise check if using macOS or Linux and the user lacks read/write access to the printer
-					elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
+					# Otherwise check if using macOS, Linux, or FreeBSD and the user lacks read/write access to the printer
+					elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux") or platform.uname()[0].startswith("FreeBSD")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
 					
 						# Set error
 						error = True
@@ -3885,6 +3928,9 @@ class M33FioPlugin(
 				# Check if connection was saved
 				if hasattr(self, "savedCurrentPort") and self.savedCurrentPort is not None and hasattr(self, "savedCurrentBaudrate") and self.savedCurrentBaudrate is not None and hasattr(self, "savedCurrentProfile") and self.savedCurrentProfile is not None :
 				
+					# Display message
+					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Reconnecting…"), header = gettext("Connection Status")))
+					
 					# Set reconnecting to printer
 					self.reconnectingToPrinter = True
 					
@@ -4054,8 +4100,8 @@ class M33FioPlugin(
 						# Set error
 						error = True
 					
-					# Otherwise check if using macOS or Linux and the user lacks read/write access to the printer
-					elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
+					# Otherwise check if using macOS, Linux, or FreeBSD and the user lacks read/write access to the printer
+					elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux") or platform.uname()[0].startswith("FreeBSD")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
 					
 						# Set error
 						error = True
@@ -4228,8 +4274,8 @@ class M33FioPlugin(
 				# Set error
 				error = True
 			
-			# Otherwise check if using macOS or Linux and the user lacks read/write access to the printer
-			elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
+			# Otherwise check if using macOS, Linux, or FreeBSD and the user lacks read/write access to the printer
+			elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux") or platform.uname()[0].startswith("FreeBSD")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
 			
 				# Set error
 				error = True
@@ -4771,8 +4817,8 @@ class M33FioPlugin(
 																						# Set error
 																						error = True
 			
-																						# Otherwise check if using macOS or Linux and the user lacks read/write access to the printer
-																					elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
+																						# Otherwise check if using macOS, Linux, or FreeBSD and the user lacks read/write access to the printer
+																					elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux") or platform.uname()[0].startswith("FreeBSD")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
 
 																						# Set error
 																						error = True
@@ -4857,6 +4903,9 @@ class M33FioPlugin(
 		
 			# Request that chip be erased
 			connection.write("E")
+			
+			# Delay
+			time.sleep(1)
 		
 			# Check if chip was erased successfully
 			if connection.read() == "\r" :
@@ -4882,6 +4931,9 @@ class M33FioPlugin(
 						connection.write("B")
 						connection.write(chr((self.chipPageSize * 2 >> 8) & 0xFF))
 						connection.write(chr((self.chipPageSize * 2) & 0xFF))
+						
+						# Delay
+						time.sleep(0.00005)
 
 						# Go through all values for the page
 						pageAddress = 0
@@ -4911,6 +4963,9 @@ class M33FioPlugin(
 
 								# Send padding
 								connection.write(chr(self.romEncryptionTable[0xFF]))
+							
+							# Delay
+							time.sleep(0.00005)
 			
 							# Increment page address
 							pageAddress += 1
@@ -4921,9 +4976,6 @@ class M33FioPlugin(
 							# Set error
 							error = True
 							break
-						
-						# Delay
-						time.sleep(0.02)
 		
 						# Increment index
 						index += 1
@@ -5001,7 +5053,7 @@ class M33FioPlugin(
 					
 									# Get firmware version from EEPROM
 									eepromFirmwareVersion = self.eepromGetInt("firmwareVersion")
-								
+									
 									# Get old firmware type
 									oldFirmwareType = None
 									for firmware in self.providedFirmwares :
@@ -5015,7 +5067,7 @@ class M33FioPlugin(
 										if int(self.providedFirmwares[firmware]["Version"]) / 100000000 == romVersion / 100000000 :
 											newFirmwareType = self.providedFirmwares[firmware]["Type"]
 											break
-								
+									
 									# Check if going from M3D or M3D Mod firmware to a different firmware
 									if (oldFirmwareType == "M3D" or oldFirmwareType == "M3D Mod") and (newFirmwareType != "M3D" and newFirmwareType != "M3D Mod") :
 								
@@ -5027,7 +5079,7 @@ class M33FioPlugin(
 									
 											# Convert current Z to single-precision floating-point format used by other firmwares
 											currentValueZ /= 5170.635833481
-									
+											
 											# Set error to if setting current Z in EEPROM failed
 											error = self.eepromSetFloat(connection, "lastRecordedZValue", currentValueZ)
 											
@@ -5117,7 +5169,7 @@ class M33FioPlugin(
 									
 											# Convert current Z to unsigned 32-bit integer format used by M3D and M3D Mod firmwares
 											currentValueZ = int(round(currentValueZ * 5170.635833481))
-									
+											
 											# Set error to if saving current Z in EEPROM failed
 											error = self.eepromSetInt(connection, "lastRecordedZValue", currentValueZ)
 									
@@ -5135,7 +5187,7 @@ class M33FioPlugin(
 								
 								# Check if an error hasn't occured
 								if not error :
-							
+									
 									# Set error to if updating firmware version in EEPROM failed
 									error = self.eepromSetInt(connection, "firmwareVersion", romVersion)
 								
@@ -5274,7 +5326,7 @@ class M33FioPlugin(
 			while not self._printer._comm._send_queue.empty() :
 				try :
 					command = list(self._printer._comm._send_queue.get(block = False))
-				except queue.Empty :
+				except :
 					break
 				command.pop(1)
 				commands += [tuple(command)]
@@ -5286,7 +5338,7 @@ class M33FioPlugin(
 				while not self._printer._comm._commandQueue.empty() :
 					try :
 						commands += [self._printer._comm._commandQueue.get(block = False)]
-					except queue.Empty :
+					except :
 						break
 			
 				# Insert list into queue
@@ -5303,7 +5355,7 @@ class M33FioPlugin(
 				while not self._printer._comm._command_queue.empty() :
 					try :
 						commands += [self._printer._comm._command_queue.get(block = False)]
-					except queue.Empty :
+					except :
 						break
 			
 				# Insert list into queue
@@ -5369,7 +5421,7 @@ class M33FioPlugin(
 			while not self._printer._comm._send_queue.empty() :
 				try :
 					self._printer._comm._send_queue.get(block = False)
-				except queue.Empty :
+				except :
 					break
 			
 			# Check if deprecated queue name is valid
@@ -5379,7 +5431,7 @@ class M33FioPlugin(
 				while not self._printer._comm._commandQueue.empty() :
 					try :
 						self._printer._comm._commandQueue.get(block = False)
-					except queue.Empty :
+					except :
 						break
 			
 			# Otherwise
@@ -5389,7 +5441,7 @@ class M33FioPlugin(
 				while not self._printer._comm._command_queue.empty() :
 					try :
 						self._printer._comm._command_queue.get(block = False)
-					except queue.Empty :
+					except :
 						break
 	
 	# Process write
@@ -6343,6 +6395,12 @@ class M33FioPlugin(
 						pipLocations = [
 							"/usr/bin/pip"
 						]
+					
+					elif platform.uname()[0].startswith("FreeBSD") :
+	
+						pipLocations = [
+							"/usr/bin/pip"
+						]
 				
 				except KeyError :
 					pass
@@ -6389,6 +6447,13 @@ class M33FioPlugin(
 	
 						checkoutFolderLocations = [
 							"/home/" + os.environ["USER"] + "/.octoprint/checkout"
+						]
+					
+					elif platform.uname()[0].startswith("FreeBSD") :
+	
+						checkoutFolderLocations = [
+							"/home/" + os.environ["USER"] + "/.octoprint/checkout",
+							"/usr/home/" + os.environ["USER"] + "/.octoprint/checkout"
 						]
 				
 				except KeyError :
@@ -6439,6 +6504,15 @@ class M33FioPlugin(
 								"/usr/bin/CuraEngine",
 								"/usr/local/bin/cura_engine"
 							]
+						
+						elif platform.uname()[0].startswith("FreeBSD") :
+				
+							curaEngineLocations = [
+								"/usr/share/cura/CuraEngine",
+								"/usr/local/bin/CuraEngine",
+								"/usr/bin/CuraEngine",
+								"/usr/local/bin/cura_engine"
+							]
 					
 					except KeyError :
 						pass
@@ -6478,6 +6552,13 @@ class M33FioPlugin(
 							]
 				
 						elif platform.uname()[0].startswith("Linux") :
+				
+							slic3rLocations = [
+								"/usr/bin/slic3r",
+								"/opt/Slic3r/bin/slic3r"
+							]
+						
+						elif platform.uname()[0].startswith("FreeBSD") :
 				
 							slic3rLocations = [
 								"/usr/bin/slic3r",
@@ -6649,6 +6730,9 @@ class M33FioPlugin(
 			
 				# Send printer status
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Micro 3D Not Connected"))
+				
+				# Enable printer connect button
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Allow Connecting"))
 			
 			# Check if using a Micro 3D printer
 			if not self._settings.get_boolean(["NotUsingAMicro3DPrinter"]) :
@@ -6665,6 +6749,9 @@ class M33FioPlugin(
 				self.sentCommands = {}
 				self.resetLineNumberCommandSent = False
 				self.numberWrapCounter = 0
+			
+			# Clear wait for disconnect
+			self.waitForDisconnect = False
 		
 		# Otherwise check if client connects
 		elif event == octoprint.events.Events.CLIENT_OPENED :
@@ -6735,7 +6822,7 @@ class M33FioPlugin(
 			self.setFileLocations()
 			
 			# Send message for enabling/disabling GPIO settings
-			if platform.uname()[0].startswith("Linux") :
+			if platform.uname()[0].startswith("Linux") or platform.uname()[0].startswith("FreeBSD") :
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Enable GPIO Settings"))
 			else :
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Disable GPIO Settings"))
@@ -7112,7 +7199,7 @@ class M33FioPlugin(
 	def eepromGetString(self, eepromName) :
 	
 		# Get string from EEPROM
-		return self.eeprom[self.eepromOffsets[eepromName]["offset"] : self.eepromOffsets[eepromName]["offset"] + self.eepromOffsets[eepromName]["bytes"] - 1]
+		return self.eeprom[self.eepromOffsets[eepromName]["offset"] : self.eepromOffsets[eepromName]["offset"] + self.eepromOffsets[eepromName]["bytes"]]
 	
 	# EEPROM keep int within range
 	def eepromKeepIntWithinRange(self, connection, eepromName, minValue, maxValue, defaultValue) :
@@ -7199,7 +7286,11 @@ class M33FioPlugin(
 				except :
 					pass
 			
+			# Wait for printer to disconnect
+			self.waitForDisconnect = True
 			self._printer.disconnect()
+			while self.waitForDisconnect :
+				time.sleep(0.01)
 			
 			# Check if printer wasn't found
 			if currentPort is None :
@@ -7209,6 +7300,10 @@ class M33FioPlugin(
 			
 			# Otherwise
 			else :
+			
+				# Display printer type
+				if self.getPrinterType(currentPort) is not None :
+					self._logger.info("Connecting to a " + self.getPrinterType(currentPort) + " printer")
 			
 				# Attempt to connect to the printer
 				try :
@@ -7229,8 +7324,8 @@ class M33FioPlugin(
 				# Check if no errors occured
 				if not error :
 				
-					# Otherwise check if using macOS or Linux and the user lacks read/write access to the printer
-					if (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
+					# Otherwise check if using macOS, Linux, or FreeBSD and the user lacks read/write access to the printer
+					if (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux") or platform.uname()[0].startswith("FreeBSD")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
 					
 						# Set error
 						error = True
@@ -7282,6 +7377,10 @@ class M33FioPlugin(
 									pass
 					
 								time.sleep(1)
+								
+								# Wait until printer is fully disconnected
+								while not self._printer.is_closed_or_error() :
+									time.sleep(0.01)
 					
 								# Close connection
 								connection.close()
@@ -7321,8 +7420,8 @@ class M33FioPlugin(
 										# Send message
 										self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings &gt; M33 Fio &gt; \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
 								
-									# Otherwise check if using macOS or Linux and the user lacks read/write access to the printer
-									elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
+									# Otherwise check if using macOS, Linux, or FreeBSD and the user lacks read/write access to the printer
+									elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux") or platform.uname()[0].startswith("FreeBSD")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
 	
 										# Set error
 										error = True
@@ -7406,59 +7505,63 @@ class M33FioPlugin(
 					
 										# Get serial number from EEPROM
 										serialNumber = self.eepromGetString("serialNumber")
-				
+										
 										# Set printer color
-										color = serialNumber[0 : 2]
-										if color == "BK" :
-											self.printerColor = "Black"
-										elif color == "WH" :
-											self.printerColor = "White"
-										elif color == "BL" :
-											self.printerColor = "Blue"
-										elif color == "GR" :
-											self.printerColor = "Green"
-										elif color == "OR" :
-											self.printerColor = "Orange"
-										elif color == "CL" :
-											self.printerColor = "Clear"
-										elif color == "SL" :
-											self.printerColor = "Silver"
-										elif color == "PL" :
-											self.printerColor = "Purple"
-				
+										if len(serialNumber) >= 2 :
+											color = serialNumber[0 : 2]
+											if color == "BK" :
+												self.printerColor = "Black"
+											elif color == "WH" :
+												self.printerColor = "White"
+											elif color == "BL" :
+												self.printerColor = "Blue"
+											elif color == "GR" :
+												self.printerColor = "Green"
+											elif color == "OR" :
+												self.printerColor = "Orange"
+											elif color == "CL" :
+												self.printerColor = "Clear"
+											elif color == "SL" :
+												self.printerColor = "Silver"
+											elif color == "PL" :
+												self.printerColor = "Purple"
+			
 										# Get fan type from EEPROM
 										fanType = self.eepromGetInt("fanType")
-				
+			
 										# Check if fan hasn't been set yet
 										if fanType == 0 or fanType == 0xFF :
-		
-											# Check if device is newer
-											if int(serialNumber[2 : 8]) >= 150602 :
-		
-												# Set default newer fan
-												fanName = "Shenzhew"
-					
-											# Otherwise
-											else :
-					
-												# Set default older fan
-												fanName = "HengLiXin"
-					
-											# Check if setting fan failed
-											if not self.setFan(connection, fanName) :
-			
-												# Set error
-												error = True
-					
-											# Check if an error occured
-											if error :
-					
-												# Display error
-												self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Setting fan failed"), header = gettext("Error Status"), confirm = True))
+										
+											# Check if serial number's date isn't malformed
+											if len(serialNumber) >= 8 and serialNumber[2 : 8].isdigit() :
+	
+												# Check if device is newer
+												if int(serialNumber[2 : 8]) >= 150602 :
+	
+													# Set default newer fan
+													fanName = "Shenzhew"
 				
+												# Otherwise
+												else :
+				
+													# Set default older fan
+													fanName = "HengLiXin"
+				
+												# Check if setting fan failed
+												if not self.setFan(connection, fanName) :
+		
+													# Set error
+													error = True
+				
+												# Check if an error occured
+												if error :
+				
+													# Display error
+													self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Setting fan failed"), header = gettext("Error Status"), confirm = True))
+			
 										# Otherwise
 										else :
-				
+			
 											# Set fan name
 											fanName = None
 											if fanType == 1 :
@@ -7469,28 +7572,29 @@ class M33FioPlugin(
 												fanName = "Shenzhew"
 											elif fanType == 4 :
 												fanName = "Xinyujie"
-					
+				
 											# Check if updating fan failed
 											if fanName is not None and not self.setFan(connection, fanName) :
-					
+				
 												# Set error
 												error = True
-					
+				
 												# Display error
 												self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Updating fan settings failed"), header = gettext("Error Status"), confirm = True))
-				
+			
 										# Check if printer uses 500mA extruder current
-										shortSerialNumber = serialNumber[0 : 13]
-										if not error and (shortSerialNumber == "BK15033001100" or shortSerialNumber == "BK15040201050" or shortSerialNumber == "BK15040301050" or shortSerialNumber == "BK15040602050" or shortSerialNumber == "BK15040801050" or shortSerialNumber == "BK15040802100" or shortSerialNumber == "GR15032702100" or shortSerialNumber == "GR15033101100" or shortSerialNumber == "GR15040601100" or shortSerialNumber == "GR15040701100" or shortSerialNumber == "OR15032701100" or shortSerialNumber == "SL15032601050") :
+										if len(serialNumber) >= 13 :
+											shortSerialNumber = serialNumber[0 : 13]
+											if not error and (shortSerialNumber == "BK15033001100" or shortSerialNumber == "BK15040201050" or shortSerialNumber == "BK15040301050" or shortSerialNumber == "BK15040602050" or shortSerialNumber == "BK15040801050" or shortSerialNumber == "BK15040802100" or shortSerialNumber == "GR15032702100" or shortSerialNumber == "GR15033101100" or shortSerialNumber == "GR15040601100" or shortSerialNumber == "GR15040701100" or shortSerialNumber == "OR15032701100" or shortSerialNumber == "SL15032601050") :
+			
+												# Check if setting extruder current failed
+												if not self.setExtruderCurrent(connection, 500) :
 				
-											# Check if setting extruder current failed
-											if not self.setExtruderCurrent(connection, 500) :
-					
-												# Set error
-												error = True
-					
-												# Display error
-												self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Updating extruder current failed"), header = gettext("Error Status"), confirm = True))
+													# Set error
+													error = True
+				
+													# Display error
+													self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Updating extruder current failed"), header = gettext("Error Status"), confirm = True))
 				
 										# Check if using M3D or M3D Mod firmware and it's from before new bed orientation and adjustable backlash speed
 										if not error and ((firmwareType == "M3D" and firmwareVersion < 2015080402) or (firmwareType == "M3D Mod" and firmwareVersion < 2115080402)) :
@@ -7760,6 +7864,9 @@ class M33FioPlugin(
 													# Wait until response is obtained
 													while self.messageResponse is None :
 														time.sleep(0.01)
+													
+													# Display message
+													self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Connecting…"), header = gettext("Connection Status")))
 					
 										# Otherwise check if firmware is outdated or incompatible
 										elif not error and (firmwareType is None or firmwareType == "iMe Debug" or firmwareVersion < int(self.providedFirmwares[self.getNewestFirmwareName(firmwareType)]["Version"])) :
@@ -7773,7 +7880,7 @@ class M33FioPlugin(
 											elif firmwareType == "M3D Mod" :
 												incompatible = firmwareVersion < 2115122112
 											elif firmwareType == "iMe" :
-												incompatible = firmwareVersion < 1900000123
+												incompatible = firmwareVersion < 1900000125
 								
 											# Check if printer is incompatible or not reconnecting to printer
 											if incompatible or not self.reconnectingToPrinter :
@@ -7792,9 +7899,17 @@ class M33FioPlugin(
 												# Check if response was no
 												if not self.messageResponse :
 					
-													# Set error if incompatible
+													# Check if incompatible
 													if incompatible :
+													
+														# Set error
 														error = True
+													
+													# Otherwise
+													else :
+													
+														# Display message
+														self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Connecting…"), header = gettext("Connection Status")))
 				
 												# Otherwise
 												else :
@@ -7824,6 +7939,9 @@ class M33FioPlugin(
 														# Wait until response is obtained
 														while self.messageResponse is None :
 															time.sleep(0.01)
+														
+														# Display message
+														self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Connecting…"), header = gettext("Connection Status")))
 										
 										# Check if an error hasn't occured, the printer's firmware is provided, the printer's bootloader isn't known, and the server is connected to the internet
 										if not error and firmwareType is not None and (firmwareType + " " + str(firmwareVersion)) in self.providedFirmwares and self.serverData is not None and int(bootloaderVersion[1 :]) not in self.serverData["Micro 3D"]["Bootloader Versions"] and str(int(bootloaderVersion[1 :])) not in str(self._settings.get(["Micro3DBootloaderVersionsUploaded"])).split() and self.connectedToInternet() :
@@ -7855,6 +7973,9 @@ class M33FioPlugin(
 													
 													# Send message
 													self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Refresh Settings"))
+													
+													# Display message
+													self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Connecting…"), header = gettext("Connection Status")))
 												
 												# Otherwise
 												else :
@@ -7862,9 +7983,8 @@ class M33FioPlugin(
 													# Send message
 													self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Extracting and uploading your printer's bootloader…"), header = gettext("Developer's Message")))
 													
-													# Check if updating to iMe Debug firmware failed
-													debugRom = open(self._basefolder.replace("\\", "/") + "/static/files/" + self.providedFirmwares[self.getNewestFirmwareName("iMe Debug")]["File"], "rb")
-													if not self.updateFirmware(connection, debugRom.read(), int(self.providedFirmwares[self.getNewestFirmwareName("iMe Debug")]["Version"])) :
+													# Check if updating to iMe Debug firmware failed or reading EEPROM failed
+													if not self.updateToProvidedFirmware(connection, self.getNewestFirmwareName("iMe Debug")) or not self.getEeprom(connection) :
 					
 														# Set error
 														error = True
@@ -7914,6 +8034,9 @@ class M33FioPlugin(
 															# Wait until response is obtained
 															while self.messageResponse is None :
 																time.sleep(0.01)
+															
+															# Display message
+															self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Connecting…"), header = gettext("Connection Status")))
 										
 										# Check if no errors occured and getting EEPROM failed
 										if not error and not self.getEeprom(connection, True) :
@@ -7977,8 +8100,8 @@ class M33FioPlugin(
 					# Check if an error hasn't occured
 					if not error :
 					
-						# Check if using macOS or Linux and the user lacks read/write access to the printer
-						if (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
+						# Check if using macOS, Linux, or FreeBSD and the user lacks read/write access to the printer
+						if (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux") or platform.uname()[0].startswith("FreeBSD")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
 						
 							# Set error
 							error = True
@@ -8048,8 +8171,8 @@ class M33FioPlugin(
 								# Otherwise
 								else :
 								
-									# Check if using macOS or Linux and the user lacks read/write access to the printer
-									if (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
+									# Check if using macOS, Linux, or FreeBSD and the user lacks read/write access to the printer
+									if (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux") or platform.uname()[0].startswith("FreeBSD")) and not os.access(str(currentPort), os.R_OK | os.W_OK) :
 									
 										# Clear EEPROM
 										self.eeprom = None
@@ -8086,13 +8209,13 @@ class M33FioPlugin(
 											# Save original write and read functions
 											self.originalWrite = self._printer.get_transport().write
 											self.originalRead = self._printer.get_transport().readline
-	
+											
 											# Overwrite write functions to process write function
 											self._printer.get_transport().write = self.processWrite
 							
 											# Delay
 											time.sleep(1)
-							
+											
 											# Clear invalid printer
 											self.invalidPrinter = False
 							
@@ -8150,14 +8273,20 @@ class M33FioPlugin(
 											# Send message
 											self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings &gt; M33 Fio &gt; \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
 			
+			# Check if failed to connect to the printer
+			if self._printer.is_closed_or_error() :
+			
+				# Send printer status
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Micro 3D Not Connected"))
+			
+				# Enable printer connect button
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Allow Connecting"))
+			
 			# Clear reconnecting to printer
 			self.reconnectingToPrinter = False
 			
 			# Clear initializing printer connection
 			self.initializingPrinterConnection = False
-			
-			# Enable printer connect button
-			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Allow Connecting"))
 		
 		# Otherwise check if data contains printer information
 		elif "MACHINE_TYPE:" in data :
@@ -8172,6 +8301,12 @@ class M33FioPlugin(
 				
 				# Set invalid printer
 				self.invalidPrinter = True
+				
+				# Send printer status
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Micro 3D Not Connected"))
+				
+				# Enable printer connect button
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Allow Connecting"))
 			
 			# Otherwise
 			else :
@@ -9027,6 +9162,9 @@ class M33FioPlugin(
 					
 					# Send message
 					self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Refresh Settings"))
+				
+				# Enable printer connect button
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Allow Connecting"))
 				
 				# Send invalid values
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Invalid", bedCenter = self.invalidBedCenter, bedPlane = self.invalidBedPlane, bedOrientation = self.invalidBedOrientation))
@@ -11528,8 +11666,8 @@ class M33FioPlugin(
 					# Get next command
 					continue
 			
-			# Check if printing test border or backlash calibration or using skew compensation pre-processor
-			if (self.printingTestBorder or self.printingBacklashCalibration or self._settings.get_boolean(["UseSkewCompensationPreprocessor"])) and "SKEW" not in command.skip :
+			# Check if using M3D or M3D Mod and printing test border or backlash calibration or using skew compentation pre-processor
+			if (self.currentFirmwareType == "M3D" or self.currentFirmwareType == "M3D Mod") and (self.printingTestBorder or self.printingBacklashCalibration or self._settings.get_boolean(["UseSkewCompensationPreprocessor"])) and "SKEW" not in command.skip :
 
 				# Set command skip
 				command.skip += " SKEW"
@@ -12033,6 +12171,9 @@ class M33FioPlugin(
 				# Send message
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("No Micro 3D printer detected. If your not using a Micro 3D printer then make sure to enable the Settings &gt; M33 Fio &gt; \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
 				
+				# Send printer status
+				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Micro 3D Not Connected"))
+				
 				# Enable printer connect button
 				self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Allow Connecting"))
 				
@@ -12062,11 +12203,14 @@ class M33FioPlugin(
 			# Send message
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Message", message = gettext("Unable to connect to the printer. If your not using a Micro 3D printer then make sure to enable the Settings &gt; M33 Fio &gt; \"Not using a Micro 3D printer\" setting. Otherwise try cycling the printer's power and try again."), header = gettext("Connection Status"), confirm = True))
 			
+			# Send printer status
+			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Micro 3D Not Connected"))
+			
 			# Enable printer connect button
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Allow Connecting"))
 		
-		# Otherwise check if using macOS or Linux and the user lacks read/write access to the printer
-		elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux")) and not os.access(str(port), os.R_OK | os.W_OK) :
+		# Otherwise check if using macOS, Linux, or FreeBSD and the user lacks read/write access to the printer
+		elif (platform.uname()[0].startswith("Darwin") or platform.uname()[0].startswith("Linux") or platform.uname()[0].startswith("FreeBSD")) and not os.access(str(port), os.R_OK | os.W_OK) :
 		
 			# Close connection
 			connection.close()
@@ -12076,6 +12220,9 @@ class M33FioPlugin(
 		
 			# Send message
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Show Port Access Denied Message", port = port, header = gettext("Connection Status"), confirm = True))
+			
+			# Send printer status
+			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Micro 3D Not Connected"))
 			
 			# Enable printer connect button
 			self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Allow Connecting"))
@@ -12154,11 +12301,11 @@ class M33FioPlugin(
 			if error == 0 :
 				return True
 		
-		# Otherwise check if using Linux and DBus is usable
-		elif platform.uname()[0].startswith("Linux") and "dbus" in sys.modules :
+		# Otherwise check if using Linux or FreeBSD and DBus is usable
+		elif (platform.uname()[0].startswith("Linux") or platform.uname()[0].startswith("FreeBSD")) and "dbus" in sys.modules :
 			
 			# Check if sleep service doesn't exist
-			if not hasattr(self, "linuxSleepService") or self.linuxSleepService is None :
+			if not hasattr(self, "dbusSleepService") or self.dbusSleepService is None :
 			
 				# Initialize DBus session
 				try :
@@ -12166,37 +12313,37 @@ class M33FioPlugin(
 				
 				except :
 					
-					self.linuxSleepService = None
+					self.dbusSleepService = None
 			
 					# Return false
 					return False
 			
 				# Inhibit sleep service
 				try :
-					self.linuxSleepService = dbus.Interface(bus.get_object("org.gnome.ScreenSaver", "/org/gnome/ScreenSaver"), "org.gnome.ScreenSaver")
-					self.linuxSleepPrevention = self.linuxSleepService.Inhibit("M33 Fio", "Disabled by M33 Fio")
+					self.dbusSleepService = dbus.Interface(bus.get_object("org.gnome.ScreenSaver", "/org/gnome/ScreenSaver"), "org.gnome.ScreenSaver")
+					self.dbusSleepPrevention = self.dbusSleepService.Inhibit("M33 Fio", "Disabled by M33 Fio")
 			
 				except :
 				
 					try :
-						self.linuxSleepService = dbus.Interface(bus.get_object("org.gnome.ScreenSaver", "/ScreenSaver"), "org.gnome.ScreenSaver")
-						self.linuxSleepPrevention = self.linuxSleepService.Inhibit("M33 Fio", "Disabled by M33 Fio")
+						self.dbusSleepService = dbus.Interface(bus.get_object("org.gnome.ScreenSaver", "/ScreenSaver"), "org.gnome.ScreenSaver")
+						self.dbusSleepPrevention = self.dbusSleepService.Inhibit("M33 Fio", "Disabled by M33 Fio")
 			
 					except :
 					
 						try :
-							self.linuxSleepService = dbus.Interface(bus.get_object("org.freedesktop.ScreenSaver", "/org/freedesktop/ScreenSaver"), "org.freedesktop.ScreenSaver")
-							self.linuxSleepPrevention = self.linuxSleepService.Inhibit("M33 Fio", "Disabled by M33 Fio")
+							self.dbusSleepService = dbus.Interface(bus.get_object("org.freedesktop.ScreenSaver", "/org/freedesktop/ScreenSaver"), "org.freedesktop.ScreenSaver")
+							self.dbusSleepPrevention = self.dbusSleepService.Inhibit("M33 Fio", "Disabled by M33 Fio")
 						
 						except :
 			
 							try :
-								self.linuxSleepService = dbus.Interface(bus.get_object("org.freedesktop.ScreenSaver", "/ScreenSaver"), "org.freedesktop.ScreenSaver")
-								self.linuxSleepPrevention = self.linuxSleepService.Inhibit("M33 Fio", "Disabled by M33 Fio")
+								self.dbusSleepService = dbus.Interface(bus.get_object("org.freedesktop.ScreenSaver", "/ScreenSaver"), "org.freedesktop.ScreenSaver")
+								self.dbusSleepPrevention = self.dbusSleepService.Inhibit("M33 Fio", "Disabled by M33 Fio")
 				
 							except :
 					
-								self.linuxSleepService = None
+								self.dbusSleepService = None
 						
 								# Return false
 								return False
@@ -12205,11 +12352,11 @@ class M33FioPlugin(
 			else :
 			
 				try :
-					self.linuxSleepPrevention = self.linuxSleepService.Inhibit("M33 Fio", "Disabled by M33 Fio")
+					self.dbusSleepPrevention = self.dbusSleepService.Inhibit("M33 Fio", "Disabled by M33 Fio")
 				
 				except :
 					
-					self.linuxSleepService = None
+					self.dbusSleepService = None
 			
 					# Return false
 					return False
@@ -12240,15 +12387,15 @@ class M33FioPlugin(
 				self.osXSleepFramework.IOPMAssertionRelease(self.osXSleepPrevention)
 				self.osXSleepFramework = None
 		
-		# Otherwise check if using Linux and DBus is usable
-		elif platform.uname()[0].startswith("Linux") and "dbus" in sys.modules :
+		# Otherwise check if using Linux or FreeBSD and DBus is usable
+		elif (platform.uname()[0].startswith("Linux") or platform.uname()[0].startswith("FreeBSD")) and "dbus" in sys.modules :
 		
 			# Check if sleep service exists
-			if hasattr(self, "linuxSleepService") and self.linuxSleepService is not None :
+			if hasattr(self, "dbusSleepService") and self.dbusSleepService is not None :
 					
 				# Uninhibit sleep service
-				self.linuxSleepService.UnInhibit(self.linuxSleepPrevention)
-				self.linuxSleepService = None
+				self.dbusSleepService.UnInhibit(self.dbusSleepPrevention)
+				self.dbusSleepService = None
 	
 	# Set GPIO pin high
 	def setGpioPinHigh(self) :
@@ -12274,6 +12421,21 @@ class M33FioPlugin(
 						os.system("echo \"out\" > /sys/class/gpio/gpio" + str(gpioPin) + "/direction")
 						os.system("echo \"1\" > /sys/class/gpio/gpio" + str(gpioPin) + "/value")
 						os.system("echo \"" + str(gpioPin) + "\" > /sys/class/gpio/unexport")
+			
+			# Otherwise check if using FreeBSD
+			elif platform.uname()[0].startswith("FreeBSD") :
+			
+				# Try using GPIO control utility to access the port
+				try :
+					subprocess.call(["gpioctl", "-c", str(gpioPin), "OUT"])
+					subprocess.call(["gpioctl", str(gpioPin), "1"])
+				
+				# Check if GPIO control utility isn't installed
+				except OSError as exception :
+					if exception.errno == os.errno.ENOENT :
+				
+						# pass
+						pass
 	
 	# Set GPIO pin low
 	def setGpioPinLow(self) :
@@ -12299,6 +12461,21 @@ class M33FioPlugin(
 						os.system("echo \"out\" > /sys/class/gpio/gpio" + str(gpioPin) + "/direction")
 						os.system("echo \"0\" > /sys/class/gpio/gpio" + str(gpioPin) + "/value")
 						os.system("echo \"" + str(gpioPin) + "\" > /sys/class/gpio/unexport")
+			
+			# Otherwise check if using FreeBSD
+			elif platform.uname()[0].startswith("FreeBSD") :
+			
+				# Try using GPIO control utility to access the port
+				try :
+					subprocess.call(["gpioctl", "-c", str(gpioPin), "OUT"])
+					subprocess.call(["gpioctl", str(gpioPin), "0"])
+				
+				# Check if GPIO control utility isn't installed
+				except OSError as exception :
+					if exception.errno == os.errno.ENOENT :
+				
+						# pass
+						pass
 
 
 # Plugin info

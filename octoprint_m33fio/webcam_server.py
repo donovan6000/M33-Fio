@@ -11,8 +11,8 @@ import BaseHTTPServer
 import SocketServer
 import socket
 
-# Check if using Windows or Linux
-if platform.uname()[0].startswith("Windows") or platform.uname()[0].startswith("Linux") :
+# Check if using Windows, Linux, or FreeBSD
+if platform.uname()[0].startswith("Windows") or platform.uname()[0].startswith("Linux") or platform.uname()[0].startswith("FreeBSD") :
 
 	# Import webcam libraries
 	import StringIO

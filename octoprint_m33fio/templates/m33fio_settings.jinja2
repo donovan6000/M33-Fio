@@ -186,7 +186,7 @@
 	<div class="control-group micro3d">
 		<div class="controls">
 			<label class="checkbox" title="{{_("Adjusts the X and Y values of all G-code commands based on the current height of the extruder to account for the printer's frame being skewed" | replace("\"", "&quot;"))}}">
-				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.UseSkewCompensationPreprocessor"><span>{{_("Skew compensation")}}</span>
+				<input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.m33fio.UseSkewCompensationPreprocessor"><span>{{_("Skew compensation")}} <span class="label label-important">{{_("Always internally enabled when using iMe firmware")}}</span></span>
 			</label>
 		</div>
 	</div>
@@ -317,7 +317,7 @@
 			</label>
 		</div>
 	</div>
-	<div class="control-group micro3d" title="{{_("Total skew of the X axis from the lowest to the highest Z position that the extruder can go. If your using an external bed then make sure that the lowest Z position is when the external bed is attached." | replace("\"", "&quot;"))}}">
+	<div class="control-group micro3d" title="{{_("Total skew of the X axis from the lowest to the highest Z position that the extruder can go when in the center of the bed. If your using an external bed then make sure that the lowest and highest Z positions are when the external bed is attached." | replace("\"", "&quot;"))}}">
 		<label class="control-label">{{_("Skew X")}}</label>
 		<div class="controls">
 			<div class="input-append">
@@ -326,7 +326,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="control-group micro3d" title="{{_("Total skew of the Y axis from the lowest to the highest Z position that the extruder can go. If your using an external bed then make sure that the lowest Z position is when the external bed is attached." | replace("\"", "&quot;"))}}">
+	<div class="control-group micro3d" title="{{_("Total skew of the Y axis from the lowest to the highest Z position that the extruder can go when in the center of the bed. If your using an external bed then make sure that the lowest and highest Z positions are when the external bed is attached." | replace("\"", "&quot;"))}}">
 		<label class="control-label">{{_("Skew Y")}}</label>
 		<div class="controls">
 			<div class="input-append">

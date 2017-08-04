@@ -2736,8 +2736,8 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 			}
 		}
 		
-		// Check if printing test border or backlash calibration or using skew compensation pre-processor
-		if((printingTestBorder || printingBacklashCalibration || useSkewCompensationPreprocessor) && command.skip < SKEW) {
+		// Check if using M3D or M3D Mod firmware and printing test border or backlash calibration or using skew compentation pre-processor
+		if((firmwareType == M3D || firmwareType == M3D_MOD) && (printingTestBorder || printingBacklashCalibration || useSkewCompensationPreprocessor) && command.skip < SKEW) {
 
 			// Set command skip
 			command.skip = SKEW;
