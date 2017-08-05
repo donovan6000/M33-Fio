@@ -66,7 +66,7 @@ enum directions {POSITIVE, NEGATIVE, NEITHER};
 enum printTiers {LOW, MEDIUM, HIGH};
 
 // Pre-processor stages
-enum preprocessorStages {NONE, INPUT, MID_PRINT, CENTER, VALIDATION, PREPARATION, WAVE, THERMAL, BED, BACKLASH};
+enum preprocessorStages {NONE, INPUT, MID_PRINT, CENTER, VALIDATION, PREPARATION, WAVE, THERMAL, BED, BACKLASH, SKEW};
 
 // Printer colors
 enum printerColors {BLACK, WHITE, BLUE, GREEN, ORANGE, CLEAR, SILVER, PURPLE};
@@ -173,6 +173,9 @@ bool detectedMidPrintFilamentChange;
 bool objectSuccessfullyCentered;
 bool changeLedBrightness;
 firmwareTypes firmwareType;
+double skewX;
+double skewY;
+bool useSkewCompensationPreprocessor;
 
 // Return value
 string returnValue;
@@ -247,6 +250,11 @@ double backlashPositionRelativeY;
 double backlashPositionRelativeZ;
 double backlashPositionRelativeE;
 Gcode backlashCompensationExtraGcode;
+
+// Skew compensation pre-processor settings
+bool skewCompensationRelativeMode;
+double skewCompensationPositionAbsoluteZ;
+double skewCompensationPositionRelativeZ;
 
 // Print dimensions
 double maxXExtruderLow;
@@ -827,6 +835,24 @@ EXPORT void setFirmwareType(const char *value) {
 		firmwareType = UNKNOWN;
 }
 
+EXPORT void setSkewX(double value) {
+
+	// Set skew X
+	skewX = value;
+}
+
+EXPORT void setSkewY(double value) {
+
+	// Set skew Y
+	skewY = value;
+}
+
+EXPORT void setUseSkewCompensationPreprocessor(bool value) {
+
+	// Set use skew compensation pre-processor
+	useSkewCompensationPreprocessor = value;
+}
+
 EXPORT double getMaxXExtruderLow() {
 
 	// Return max X extruder low
@@ -987,6 +1013,11 @@ EXPORT void resetPreprocessorSettings() {
 	backlashPositionRelativeZ = 0;
 	backlashPositionRelativeE = 0;
 	backlashCompensationExtraGcode.clear();
+	
+	// Skew compensation pre-processor settings
+	skewCompensationRelativeMode = false;
+	skewCompensationPositionAbsoluteZ = 0;
+	skewCompensationPositionRelativeZ = 0;
 }
 
 EXPORT bool collectPrintInformation(const char *file, bool applyPreprocessors) {
@@ -2703,6 +2734,77 @@ EXPORT const char *preprocess(const char *input, const char *output, bool lastCo
 				// Get next command
 				continue;
 			}
+		}
+		
+		// Check if using M3D or M3D Mod firmware and printing test border or backlash calibration or using skew compentation pre-processor
+		if((firmwareType == M3D || firmwareType == M3D_MOD) && (printingTestBorder || printingBacklashCalibration || useSkewCompensationPreprocessor) && command.skip < SKEW) {
+
+			// Set command skip
+			command.skip = SKEW;
+			
+			// Check if command contains valid G-code
+			if(!gcode.isEmpty())
+			
+				// Check if command is a G command
+				if(gcode.hasValue('G')) {
+
+					// Check if command is G0 or G1 and it's in absolute mode
+					if((gcode.getValue('G') == "0" || gcode.getValue('G') == "1") && !skewCompensationRelativeMode) {
+
+						// Set delta value
+						double deltaZ = !gcode.hasValue('Z') ? 0 : stod(gcode.getValue('Z')) - skewCompensationPositionRelativeZ;
+
+						// Adjust position absolute and relative values for the changes
+						skewCompensationPositionAbsoluteZ += deltaZ;
+						skewCompensationPositionRelativeZ += deltaZ;
+						
+						// Check if line contains an X value
+						if(gcode.hasValue('X'))
+						
+							// Adjust X value
+							gcode.setValue('X', to_string(stod(gcode.getValue('X')) + skewCompensationPositionAbsoluteZ / (bedHighMaxZ - BED_LOW_MIN_Z) * -skewX));
+
+						// Check if line contains a Y value
+						if(gcode.hasValue('Y'))
+
+							// Adjust Y value
+							gcode.setValue('Y', to_string(stod(gcode.getValue('Y')) + skewCompensationPositionAbsoluteZ / (bedHighMaxZ - BED_LOW_MIN_Z) * -skewY));
+					}
+
+					// Otherwise check if command is G90
+					else if(gcode.getValue('G') == "90")
+
+						// Clear relative mode
+						skewCompensationRelativeMode = false;
+
+					// Otherwise check if command is G91
+					else if(gcode.getValue('G') == "91")
+
+						// Set relative mode
+						skewCompensationRelativeMode = true;
+
+					// Otherwise check if command is G92
+					else if(gcode.getValue('G') == "92") {
+
+						// Check if command doesn't have an X, Y, Z, and E value
+						if(!gcode.hasValue('X') && !gcode.hasValue('Y') && !gcode.hasValue('Z') && !gcode.hasValue('E')) {
+
+							// Set command values to zero
+							gcode.setValue('X', "0");
+							gcode.setValue('Y', "0");
+							gcode.setValue('Z', "0");
+							gcode.setValue('E', "0");
+						}
+						
+						// Check if not using M3D or M3D Mod firmware
+						if(firmwareType != M3D && firmwareType != M3D_MOD) {
+
+							// Set relative position
+							if(gcode.hasValue('Z'))
+								skewCompensationPositionRelativeZ = stod(gcode.getValue('Z'));
+						}
+					}
+				}
 		}
 		
 		// Check if command contains valid G-code

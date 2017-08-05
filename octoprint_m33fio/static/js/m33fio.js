@@ -13,7 +13,7 @@ $(function() {
 		var modelName;
 		var modelOrigin;
 		var modelPath;
-		var slicerName;
+		var slicerName = "";
 		var slicerProfileIdentifier;
 		var slicerProfileName;
 		var slicerProfileContent;
@@ -483,6 +483,24 @@ $(function() {
 				bytes: 4,
 				color: "rgb(200, 200, 200)"
 			},
+			heatbedTemperature: {
+				name: gettext("Heatbed temperature"),
+				offset: 0x28B,
+				bytes: 1,
+				color: "rgb(100, 180, 120)"
+			},
+			skewX: {
+				name: gettext("Skew X"),
+				offset: 0x28C,
+				bytes: 4,
+				color: "rgb(120, 220, 120)"
+			},
+			skewY: {
+				name: gettext("Skew Y"),
+				offset: 0x290,
+				bytes: 4,
+				color: "rgb(120, 220, 220)"
+			},
 			expandPrintableRegion: {
 				name: gettext("Expand printable region"),
 				offset: 0x294,
@@ -654,7 +672,7 @@ $(function() {
 			serialNumber: {
 				name: gettext("Serial number"),
 				offset: 0x2EF,
-				bytes: 17,
+				bytes: 16,
 				color: "rgb(230, 210, 250)"
 			}
 		};
@@ -1211,7 +1229,7 @@ $(function() {
 					currentSlicerDialog = currentDialog;
 		
 					// Show dialog
-					$("#slicing_configuration_dialog").modal("show").removeClass("model gcode printerButtons").addClass("profile");
+					$("#slicing_configuration_dialog").modal("show").removeClass("model gcode printerButtons onlyAdvanced" + (slicerName.length ? " " + slicerName : "")).addClass("profile");
 			
 					// Set header text
 					$("#slicing_configuration_dialog > div.modal-header > h3").html(header);
@@ -1733,7 +1751,6 @@ $(function() {
 							$("#slicing_configuration_dialog .useBrim").prop("checked", getSlicerProfileValue("platform_adhesion") === "Brim");
 							$("#slicing_configuration_dialog .useSkirt").prop("checked", parseInt(getSlicerProfileValue("skirt_line_count")) > 0);
 							$("#slicing_configuration_dialog .useRetraction").prop("checked", getSlicerProfileValue("retraction_enable") === "True");
-							$("#slicing_configuration_dialog").removeClass("slic3r");
 						}
 						else if(slicerName === "slic3r") {
 							$("#slicing_configuration_dialog .useSupportMaterial").prop("checked", parseInt(getSlicerProfileValue("support_material")) == 1);
@@ -1750,7 +1767,6 @@ $(function() {
 								$("#slicing_configuration_dialog .useSkirt").prop("checked", true);
 	
 							$("#slicing_configuration_dialog .useRetraction").prop("checked", parseFloat(getSlicerProfileValue("retract_speed")) > 0);
-							$("#slicing_configuration_dialog").removeClass("cura");
 						}
 
 						// Set manual setting values
@@ -1849,8 +1865,8 @@ $(function() {
 						// Hide basic and manual settings
 						$("#slicing_configuration_dialog .basic, #slicing_configuration_dialog .manual").addClass("dontShow");
 	
-						// Grow text area
-						$("#slicing_configuration_dialog .advanced").addClass("fullSpace");
+						// Set it to only show the advanced section
+						$("#slicing_configuration_dialog").addClass("onlyAdvanced");
 					}
 
 					// Initialize drag leave counter
@@ -3134,7 +3150,7 @@ $(function() {
 						currentSlicerDialog = currentDialog;
 		
 						// Show dialog
-						$("#slicing_configuration_dialog").modal("show").removeClass("profile gcode printerButtons").addClass("model");
+						$("#slicing_configuration_dialog").modal("show").removeClass("profile gcode printerButtons onlyAdvanced" + (slicerName.length ? " " + slicerName : "")).addClass("model");
 			
 						// Set header text
 						$("#slicing_configuration_dialog > div.modal-header > h3").html(header);
@@ -3209,8 +3225,8 @@ $(function() {
 									<div>\
 										<button class=\"close\" title=\"" + encodeQuotes(gettext("Close")) + "\"><div></div><i class=\"icon-remove-sign\"></i></button>\
 										<p><span class=\"axis x\">X</span><input type=\"number\" step=\"any\" name=\"x\"><span></span></p>\
-										<p><span class=\"axis y\">Y</span><input type=\"number\" step=\"any\" name=\"y\"><span></span></p>\
-										<p><span class=\"axis z\">Z</span><input type=\"number\" step=\"any\" name=\"z\"><span></span></p>\
+										<p><span class=\"axis y\">Y</span><input type=\"number\" step=\"any\" name=\"z\"><span></span></p>\
+										<p><span class=\"axis z\">Z</span><input type=\"number\" step=\"any\" name=\"y\"><span></span></p>\
 										<span></span>\
 									</div>\
 								</div>\
@@ -3664,6 +3680,9 @@ $(function() {
 								$("#slicing_configuration_dialog .modal-extra button.importFromServer, #slicing_configuration_dialog .modal-extra button.importFromFile, #slicing_configuration_dialog .modal-extra button.clone").prop("disabled", true);
 								$("#slicing_configuration_dialog .modal-extra button.importFromServer").removeClass("disabled").attr("title", htmlDecode(gettext("Import from server")));
 								$("#slicing_configuration_dialog .modal-extra div.import").removeClass("show");
+								
+								// Set that shown values are displaying all value
+								$("#slicing_configuration_dialog .modal-extra div.values").addClass("all");
 
 								// Show cut shape options
 								$("#slicing_configuration_dialog .modal-extra div.cutShape").addClass("show");
@@ -3987,7 +4006,7 @@ $(function() {
 					currentSlicerDialog = currentDialog;
 		
 					// Show dialog
-					$("#slicing_configuration_dialog").modal("show").removeClass("profile model printerButtons").addClass("gcode");
+					$("#slicing_configuration_dialog").modal("show").removeClass("profile model printerButtons onlyAdvanced" + (slicerName.length ? " " + slicerName : "")).addClass("gcode");
 			
 					// Set header text
 					$("#slicing_configuration_dialog > div.modal-header > h3").html(header);
@@ -4832,7 +4851,7 @@ $(function() {
 				originalUpdateItems();
 				
 				// Add edit profiles options
-				$(settings).find("table a.icon-star").each(function() {
+				$(settings).find("table a.icon-star, table a.fa.fa-star").each(function() {
 					if(!$(this).next().hasClass("editProfile"))
 						$(this).after("&nbsp;|&nbsp;<a href=\"#\" class=\"icon-pencil editProfile\" title=\"Edit profile\" data-slicer=\"" + encodeQuotes(slicerName) + "\"></a>");
 				});
@@ -4846,7 +4865,7 @@ $(function() {
 				originalChangePage(newPage);
 				
 				// Add edit profiles options
-				$(settings).find("table a.icon-star").each(function() {
+				$(settings).find("table a.icon-star, table a.fa.fa-star").each(function() {
 					if(!$(this).next().hasClass("editProfile"))
 						$(this).after("&nbsp;|&nbsp;<a href=\"#\" class=\"icon-pencil editProfile\" title=\"Edit profile\" data-slicer=\"" + encodeQuotes(slicerName) + "\"></a>");
 				});
@@ -4866,7 +4885,7 @@ $(function() {
 			$("#files div.gcode_files div.entry .action-buttons").each(function() {
 				
 				// Check if file is a model
-				if($(this).children().children("i.icon-magic").length)
+				if($(this).children().children("i.icon-magic, i.fa.fa-magic").length)
 				
 					// Add view button
 					$(this).children("a.btn-mini").after("\
@@ -4941,7 +4960,7 @@ $(function() {
 			$("#files div.gcode_files div.entry .action-buttons").each(function() {
 				
 				// Check if file is a model
-				if($(this).children().children("i.icon-magic").length)
+				if($(this).children().children("i.icon-magic, i.fa.fa-magic").length)
 				
 					// Add edit button
 					$(this).children("a.btn-mini").after("\
@@ -5013,7 +5032,7 @@ $(function() {
 			$("#files div.gcode_files div.entry .action-buttons").each(function() {
 				
 				// Check if file is G-code
-				if($(this).children().children("i.icon-print").length)
+				if($(this).children().children("i.icon-print, i.fa.fa-print").length)
 				
 					// Add edit button
 					$(this).children("a.btn-mini").after("\
@@ -5946,13 +5965,13 @@ $(function() {
 					this.axes[1] = new THREE.Line(axisGeometry.clone(), axisMaterial.clone());
 					this.axes[1].geometry.vertices[1].y += 20;
 					this.axes[1].position.set(printBedOffsetX, bedLowMinZ - axesOffset, (bedLowMinY + printBedOffsetY) / 2);
-					this.axes[1].material.color.setHex(0x00FF00);
+					this.axes[1].material.color.setHex(0x0000FF);
 					
 					// Create Z axis
 					this.axes[2] = new THREE.Line(axisGeometry.clone(), axisMaterial.clone());
 					this.axes[2].geometry.vertices[1].z += 20;
 					this.axes[2].position.set(printBedOffsetX, bedLowMinZ - axesOffset, (bedLowMinY + printBedOffsetY) / 2);
-					this.axes[2].material.color.setHex(0x0000FF);
+					this.axes[2].material.color.setHex(0x00FF00);
 					
 					// Go through all axes
 					for(var i = 0; i < this.axes.length; i++) {
@@ -7254,6 +7273,9 @@ $(function() {
 						if($("#slicing_configuration_dialog.model .modal-extra > div.import select option").length)
 							$("#slicing_configuration_dialog .modal-extra button.importFromServer").prop("disabled", false);
 						
+						// Set that shown values are not displaying all value
+						$("#slicing_configuration_dialog .modal-extra div.values").removeClass("all");
+						
 						// Hide cut shape options
 						$("#slicing_configuration_dialog .modal-extra div.cutShape").removeClass("show");
 						
@@ -7490,7 +7512,7 @@ $(function() {
 
 								// Set model's rotation
 								if(name === "x")
-									model.rotation.x = THREE.Math.degToRad(adjustedValue);
+									model.rotation.x = THREE.Math.degToRad(-adjustedValue);
 								else if(name === "y")
 									model.rotation.y = THREE.Math.degToRad(adjustedValue);
 								else if(name === "z")
@@ -7506,9 +7528,9 @@ $(function() {
 								// Set model's scale
 								if(name === "x" || modelEditor.scaleLock[0])
 									model.scale.x = adjustedValue;
-								if(name === "y" || modelEditor.scaleLock[1])
+								if(name === "y" || modelEditor.scaleLock[2])
 									model.scale.y = adjustedValue;
-								if(name === "z" || modelEditor.scaleLock[2])
+								if(name === "z" || modelEditor.scaleLock[1])
 									model.scale.z = adjustedValue;
 							break;
 						}
@@ -7834,7 +7856,7 @@ $(function() {
 							
 									// Display rotation values
 									modelEditor.valuesUnits.text("°").attr("title", "");
-									modelEditor.valuesInput[0].val(THREE.Math.radToDeg(model.rotation.x).toFixed(3)).attr("min", "");
+									modelEditor.valuesInput[0].val(THREE.Math.radToDeg(-model.rotation.x).toFixed(3)).attr("min", "");
 									modelEditor.valuesInput[1].val(THREE.Math.radToDeg(model.rotation.y).toFixed(3)).attr("min", "");
 									modelEditor.valuesInput[2].val(THREE.Math.radToDeg(model.rotation.z).toFixed(3)).attr("min", "");
 								break;
@@ -8445,6 +8467,9 @@ $(function() {
 						// Enable import from server button if models exist to import
 						if($("#slicing_configuration_dialog.model .modal-extra > div.import select option").length)
 							$("#slicing_configuration_dialog .modal-extra button.importFromServer").prop("disabled", false);
+						
+						// Set that shown values are not displaying all value
+						$("#slicing_configuration_dialog .modal-extra div.values").removeClass("all");
 						
 						// Hide cut shape options
 						$("#slicing_configuration_dialog .modal-extra div.cutShape").removeClass("show");
@@ -9156,8 +9181,9 @@ $(function() {
 							command: "message",
 							value: "View Profile: " + JSON.stringify({
 								slicerName: button.data("slicer"),
-								slicerProfileIdentifier: button.parent().parent().children("td").eq(0).find("span:not(.icon-star)").text(),
-								printerProfileName: self.printerProfile.currentProfile()
+								slicerProfileIdentifier: button.parent().parent().children("td").eq(0).find("span:not(.icon-star):not(.fa.fa-star)").text(),
+								printerProfileName: self.printerProfile.currentProfile(),
+								setDefaultSlicer: "False"
 							})
 						}),
 						contentType: "application/json; charset=UTF-8",
@@ -9171,7 +9197,7 @@ $(function() {
 						if(data.value === "OK")
 				
 							// Show slicer profile editor
-							showSlicerProfileEditor(PLUGIN_BASEURL + data.path, button.data("slicer"), button.parent().parent().children("td").eq(0).find("span:not(.icon-star)").text(), "Edit Profile", _.sprintf(gettext("Editing %(fileName)s"), {fileName: button.parent().parent().children("td").eq(1).html()}), gettext("Save"), "", "", function() {
+							showSlicerProfileEditor(PLUGIN_BASEURL + data.path, button.data("slicer"), button.parent().parent().children("td").eq(0).find("span:not(.icon-star):not(.fa.fa-star)").text(), "Edit Profile", _.sprintf(gettext("Editing %(fileName)s"), {fileName: button.parent().parent().children("td").eq(1).html()}), gettext("Save"), "", "", function() {
 								
 								setTimeout(function() {
 								
@@ -10063,6 +10089,8 @@ $(function() {
 				// Set current tool
 				if($(event.target).closest("tr").children("th").html() === getAlreadyTranslatedText("Hotend"))
 					var currentTool = "Hotend";
+				else if($(event.target).closest("tr").children("th").html() === getAlreadyTranslatedText("Tool"))
+					var currentTool = "Tool";
 				else if($(event.target).closest("tr").children("th").html() === getAlreadyTranslatedText("Bed"))
 					var currentTool = "Bed";
 				
@@ -10086,8 +10114,7 @@ $(function() {
 					else {
 				
 						// Add input value to temperature
-						var input = $(event.target).closest("div.input-append").find("input");
-					
+						var input = $(event.target).closest("td").find("div.input-append").find("input");
 						if(!isNaN(parseInt(input.val())))
 							temperature += parseInt(input.val());
 						else if(!isNaN(parseInt(input.attr("placeholder"))))
@@ -10100,16 +10127,16 @@ $(function() {
 								// Check if setting offset
 								if(input.is($(event.target).closest("tr").find("input").eq(1)))
 							
-									// Add tool's target to temperature
-									temperature += self.temperature.tools()[tool].target();
+									// Return
+									return;
 							
 								// Break
 								break;
 							}
 					}
-			
+					
 					// Check if setting extruder temperature
-					if(currentTool === "Hotend")
+					if(currentTool === "Hotend" || currentTool === "Tool")
 				
 						// Set commands
 						var commands = [
@@ -10280,10 +10307,14 @@ $(function() {
 			$(this).blur();
 		
 			// Check if using a Micro 3D printer and connecting to it
-			if(!self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter() && $(this).html() === getAlreadyTranslatedText("Connect"))
-		
+			if(!self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter() && $(this).html() === getAlreadyTranslatedText("Connect")) {
+			
 				// Disable printer connect button
 				$(this).prop("disabled", true);
+			
+				// Show message
+				showMessage(gettext("Connection Status"), gettext("Connecting…"));
+			}
 		});
 		
 		// Cancel print button click event
@@ -10863,11 +10894,6 @@ $(function() {
 												$("#slicing_configuration_dialog .modal-cover").css("z-index", "");
 											}, 200);
 							
-											// Update slicers
-											for(var slicer in self.slicers)
-												self.slicers[slicer].requestData();
-											self.slicing.requestData();
-						
 											// Show message
 											showMessage(gettext("Saving Status"), gettext(data.value === "OK" ? "Done" : "Saving profile failed"), gettext("OK"), function() {
 											
@@ -11440,7 +11466,7 @@ $(function() {
 						modelEditor.destroy();
 
 					// Restore slicer dialog
-					$("#slicing_configuration_dialog").off("drop dragenter dragleave").removeClass("profile model gcode printerButtons").css("height", "");
+					$("#slicing_configuration_dialog").off("drop dragenter dragleave").removeClass("profile model gcode printerButtons onlyAdvanced" + (slicerName.length ? " " + slicerName : "")).css("height", "");
 					$("#slicing_configuration_dialog p.currentMenu").html(gettext("Select Profile"));
 					$("#slicing_configuration_dialog .modal-extra").remove();
 					$("#slicing_configuration_dialog .modal-body").css("display", "");
@@ -11451,6 +11477,11 @@ $(function() {
 				
 					// Remove grab, grabbing, and progress cursor
 					$("body").removeClass("grab grabbing progress");
+					
+					// Update slicers
+					for(var slicer in self.slicers)
+						self.slicers[slicer].requestData();
+					self.slicing.requestData();
 				}, 300);
 			}, 0);
 		});
@@ -11555,7 +11586,8 @@ $(function() {
 								value: "View Profile: " + JSON.stringify({
 									slicerName: slicerName,
 									slicerProfileIdentifier: slicerProfileIdentifier,
-									printerProfileName: printerProfileName
+									printerProfileName: printerProfileName,
+									setDefaultSlicer: "True"
 								})
 							}),
 							contentType: "application/json; charset=UTF-8",
@@ -11721,11 +11753,6 @@ $(function() {
 											// Hide dialog
 											$("#slicing_configuration_dialog").modal("hide");
 							
-											// Update slicers
-											for(var slicer in self.slicers)
-												self.slicers[slicer].requestData();
-											self.slicing.requestData();
-											
 											// Check if saving profile failed
 											if(data.value !== "OK")
 						
@@ -12305,7 +12332,11 @@ $(function() {
 			if(event.which == 1) {
 			
 				// Stop default behavior
+				event.preventDefault();
 				event.stopImmediatePropagation();
+				
+				// Blur inputs
+				$("input:focus").blur();
 			
 				// Check if locking
 				if($(this).text() === "\uF13E") {
@@ -12317,7 +12348,7 @@ $(function() {
 					for(var i = 0; i < 3; i++)
 						if($(this).is($("#slicing_configuration_dialog .modal-extra div.values p span:not(.axis)").eq(i))) {
 							modelEditor.scaleLock[i] = true;
-							modelEditor.transformControls.setLockedAxes((modelEditor.scaleLock[0] ? "X" : "") + (modelEditor.scaleLock[1] ? "Y" : "") + (modelEditor.scaleLock[2] ? "Z" : ""));
+							modelEditor.transformControls.setLockedAxes((modelEditor.scaleLock[0] ? "X" : "") + (modelEditor.scaleLock[2] ? "Y" : "") + (modelEditor.scaleLock[1] ? "Z" : ""));
 							break;
 						}
 				}
@@ -12332,7 +12363,7 @@ $(function() {
 					for(var i = 0; i < 3; i++)
 						if($(this).is($("#slicing_configuration_dialog .modal-extra div.values p span:not(.axis)").eq(i))) {
 							modelEditor.scaleLock[i] = false;
-							modelEditor.transformControls.setLockedAxes((modelEditor.scaleLock[0] ? "X" : "") + (modelEditor.scaleLock[1] ? "Y" : "") + (modelEditor.scaleLock[2] ? "Z" : ""));
+							modelEditor.transformControls.setLockedAxes((modelEditor.scaleLock[0] ? "X" : "") + (modelEditor.scaleLock[2] ? "Y" : "") + (modelEditor.scaleLock[1] ? "Z" : ""));
 							break;
 						}
 				}
@@ -14535,7 +14566,7 @@ $(function() {
 		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(18)").attr("title", htmlDecode(gettext("Prints a specified backlash calibration"))).click(function() {
 		
 			// Show message
-			showMessage(gettext("Calibration Status"), gettext("It's recommended to print the backlash calibration prints after the print bed has been accurately calibrated. Make sure to set the \"Backlash X\" and \"Backlash Y\" values to 0 before printing a backlash calibration print which will print the model without any backlash compensation applied to it. The X backlash calibration and Y backlash calibration prints each assist in determining the X and Y backlash respectively.<br><br>The backlash values can be determined by finding the sample with the highest possible value that doesn't curve. Identifying the first sample that curves can be difficult, but it can be made easier by using a ruler and a flashlight to make the curves appear more prominent.") + "<img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/backlash-printed.png\">" + gettext("Once the correct sample has been located, the following chart can help determine the compensation in millimeters to fix the axis's backlash. It's recommended to print several copies and take the average compensation value to get a more accurate final value.") + "<img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/backlash-layout.png\">" + gettext("For more information check out <a target=\"_blank\" rel=\"nofollow\" href=\"http://www.thingiverse.com/thing:2040624\">Muele's quick backlash calibration method</a>.<br><br>All the referenced values can be found by clicking the \"Print settings\" button in the \"General\" section of OctoPrint's Control tab.<br><br>Choose a backlash calibration print to continue.") + "<span class=\"backlash\"><button class=\"btn btn-block\">" + gettext("X axis calibration") + "</button><button class=\"btn btn-block\">" + gettext("Y axis calibration") + "</button></span>", gettext("Cancel"), function() {
+			showMessage(gettext("Calibration Status"), gettext("It's recommended to print the backlash calibration prints after the print bed has been accurately calibrated. Make sure to set the \"Backlash X\" and \"Backlash Y\" values to 0 before printing a backlash calibration print which will print the model without any backlash compensation applied to it. The X backlash calibration and Y backlash calibration prints each assist in determining the X and Y backlash respectively.<br><br>The backlash values can be determined by finding the sample with the highest possible value that doesn't curve. Identifying the first sample that curves can be difficult, but it can be made easier by using a ruler and a flashlight to make the curves appear more prominent.") + "<img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/backlash-printed.png\">" + gettext("Once the correct sample has been located, the following chart can help determine the compensation in millimeters to fix the axis's backlash. It's recommended to print several copies and take the average compensation value to get a more accurate final value.") + "<img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/backlash-layout.png\">" + gettext("For more information check out <a target=\"_blank\" rel=\"nofollow\" href=\"http://www.thingiverse.com/thing:2040624\">Muele's quick backlash calibration method</a>, or check out <a target=\"_blank\" rel=\"nofollow\" href=\"http://www.thingiverse.com/thing:2371069\">Muele's backlash tower</a> for an alternative backlash calibration method.<br><br>All the referenced values can be found by clicking the \"Print settings\" button in the \"General\" section of OctoPrint's Control tab.<br><br>Choose a backlash calibration print to continue.") + "<span class=\"backlash\"><button class=\"btn btn-block\">" + gettext("X axis calibration") + "</button><button class=\"btn btn-block\">" + gettext("Y axis calibration") + "</button></span>", gettext("Cancel"), function() {
 			
 				// Hide message
 				hideMessage();
@@ -16937,32 +16968,33 @@ $(function() {
 			else if(data.value === "Printer Details" && typeof data.serialNumber !== "undefined" && typeof data.serialPort !== "undefined") {
 			
 				// Set printer color
-				switch(data.serialNumber.substr(0, 2)) {
-					case "BK":
-						printerColor = "Black"
-						break;
-					case "WH":
-						printerColor = "White"
-						break;
-					case "BL":
-						printerColor = "Blue"
-						break;
-					case "GR":
-						printerColor = "Green"
-						break;
-					case "OR":
-						printerColor = "Orange"
-						break;
-					case "CL":
-						printerColor = "Clear"
-						break;
-					case "SL":
-						printerColor = "Silver"
-						break;
-					case "PL":
-						printerColor = "Purple"
-						break;
-				}
+				if(data.serialNumber.length >= 2)
+					switch(data.serialNumber.substr(0, 2)) {
+						case "BK":
+							printerColor = "Black"
+							break;
+						case "WH":
+							printerColor = "White"
+							break;
+						case "BL":
+							printerColor = "Blue"
+							break;
+						case "GR":
+							printerColor = "Green"
+							break;
+						case "OR":
+							printerColor = "Orange"
+							break;
+						case "CL":
+							printerColor = "Clear"
+							break;
+						case "SL":
+							printerColor = "Silver"
+							break;
+						case "PL":
+							printerColor = "Purple"
+							break;
+					}
 				
 				// Set model editor printer color
 				modelEditorPrinterColor = printerColor;
@@ -16971,7 +17003,7 @@ $(function() {
 				localStorage.modelEditorPrinterColor = modelEditorPrinterColor;
 			
 				// Set text
-				if(data.serialNumber.match(/^[0-9a-z]+$/i)) {
+				if(data.serialNumber.length == eepromOffsets["serialNumber"]["bytes"] && data.serialNumber.match(/^[0-9a-z]+$/i)) {
 					var formattedSerialNumber = data.serialNumber.slice(0, 2) + "-" + data.serialNumber.slice(2, 4) + "-" + data.serialNumber.slice(4, 6) + "-" + data.serialNumber.slice(6, 8) + "-" + data.serialNumber.slice(8, 10) + "-" + data.serialNumber.slice(10, 13) + "-" + data.serialNumber.slice(13, 16);
 					var text = _.sprintf(gettext("%(formattedSerialNumber)s at %(currentPort)s"), {formattedSerialNumber: htmlEncode(formattedSerialNumber), currentPort: htmlEncode(data.serialPort)});
 				}
@@ -17997,10 +18029,17 @@ $(function() {
 				hideMessage();
 			
 			// Otherwise check if data is to allow connecting
-			else if(data.value === "Allow Connecting")
+			else if(data.value === "Allow Connecting") {
+			
+				// Check if connecting message is being displayed
+				if($("body > div.page-container > div.message").hasClass("show") && ($("body > div.page-container > div.message").find("p").eq(0).html() === gettext("Connecting…") || $("body > div.page-container > div.message").find("p").eq(0).html() === gettext("Reconnecting…")))
+			
+					// Hide message
+					hideMessage();
 			
 				// Enable printer connect button
 				$("#printer_connect").prop("disabled", false);
+			}
 			
 			// Otherwise check if data is done waiting
 			else if(data.value === "Done Waiting" && typeof waitingCallback === "function") {
@@ -18232,57 +18271,7 @@ $(function() {
 
 																// Show message
 																showMessage(gettext("Filament Status"), gettext("Warming up…"));
-
-																// Set commands
-																commands = [
-																	"M109 S" + parseInt($("body > div.page-container > div.message > div > div > div.filamentSettings input").eq(0).val()),
-																	"M65536;wait"
-																];
-
-																// Display temperature
-																updateTemperature = setInterval(function() {
-
-																	// Show message
-																	if(self.temperature.temperatures.tool0.actual.length) {
-
-																		var temperature = self.temperature.temperatures.tool0.actual[self.temperature.temperatures.tool0.actual.length - 1][1];
-
-																		if(temperature != 0)
-																			showMessage(gettext("Filament Status"), gettext("Warming up") + ": " + temperature + "°C");
-																	}
-																}, 1000);
-
-																// Set waiting callback
-																waitingCallback = function() {
-
-																	// Stop displaying temperature
-																	clearInterval(updateTemperature);
-	
-																	// Show message
-																	showMessage(gettext("Filament Status"), gettext("Make sure the nozzle is clean before continuing. It will be hot, so be careful."), gettext("OK"), function() {
-		
-																		// Hide message
-																		hideMessage();
-
-																		// Show message
-																		showMessage(gettext("Filament Status"), gettext("Resuming print…"));
-
-																		// Send request
-																		$.ajax({
-																			url: API_BASEURL + "plugin/m33fio",
-																			type: "POST",
-																			dataType: "json",
-																			data: JSON.stringify({
-																				command: "message",
-																				value: "Resume After Mid-Print Filament Change"
-																			}),
-																			contentType: "application/json; charset=UTF-8",
-																			traditional: true,
-																			processData: true
-																		});
-																	});
-																}
-	
+																
 																// Send request
 																$.ajax({
 																	url: API_BASEURL + "plugin/m33fio",
@@ -18290,11 +18279,78 @@ $(function() {
 																	dataType: "json",
 																	data: JSON.stringify({
 																		command: "message",
-																		value: commands
+																		value: "Set Filament Temperature: " + $("body > div.page-container > div.message > div > div > div.filamentSettings input").eq(0).val()
 																	}),
 																	contentType: "application/json; charset=UTF-8",
 																	traditional: true,
 																	processData: true
+					
+																// Done
+																}).done(function() {
+					
+																	// Set commands
+																	commands = [
+																		"M109 S" + parseInt($("body > div.page-container > div.message > div > div > div.filamentSettings input").eq(0).val()),
+																		"M65536;wait"
+																	];
+
+																	// Display temperature
+																	updateTemperature = setInterval(function() {
+
+																		// Show message
+																		if(self.temperature.temperatures.tool0.actual.length) {
+
+																			var temperature = self.temperature.temperatures.tool0.actual[self.temperature.temperatures.tool0.actual.length - 1][1];
+
+																			if(temperature != 0)
+																				showMessage(gettext("Filament Status"), gettext("Warming up") + ": " + temperature + "°C");
+																		}
+																	}, 1000);
+
+																	// Set waiting callback
+																	waitingCallback = function() {
+
+																		// Stop displaying temperature
+																		clearInterval(updateTemperature);
+	
+																		// Show message
+																		showMessage(gettext("Filament Status"), gettext("Make sure the nozzle is clean before continuing. It will be hot, so be careful."), gettext("OK"), function() {
+		
+																			// Hide message
+																			hideMessage();
+
+																			// Show message
+																			showMessage(gettext("Filament Status"), gettext("Resuming print…"));
+
+																			// Send request
+																			$.ajax({
+																				url: API_BASEURL + "plugin/m33fio",
+																				type: "POST",
+																				dataType: "json",
+																				data: JSON.stringify({
+																					command: "message",
+																					value: "Resume After Mid-Print Filament Change"
+																				}),
+																				contentType: "application/json; charset=UTF-8",
+																				traditional: true,
+																				processData: true
+																			});
+																		});
+																	}
+	
+																	// Send request
+																	$.ajax({
+																		url: API_BASEURL + "plugin/m33fio",
+																		type: "POST",
+																		dataType: "json",
+																		data: JSON.stringify({
+																			command: "message",
+																			value: commands
+																		}),
+																		contentType: "application/json; charset=UTF-8",
+																		traditional: true,
+																		processData: true
+																	});
 																});
 															});
 														}, gettext("No"), function() {

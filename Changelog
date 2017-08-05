@@ -1,5 +1,15 @@
 Changelog:
 
+V1.21 August 4 2017
+
+	* Implemented skew compensation pre-processor
+	* Changed model editor from a Y-up to Z-up coordinate system
+	* Fixed issue where Z values saved in the printer would get messed up when extracting the printer's bootloader when the initial firmware was M3D or M3D Mod
+	* Connecting message gets displayed when connecting to a Micro 3D printer and is hidden when all information about the printer is obtained
+	* Fixed issue where printer would sometimes disconnect immediatley after connecting on OctoPrint V1.3.4
+	* Updated iMe firmware to version V00.00.01.25
+	* Fixed compatibility with OctoPrint V1.3.5rc2
+
 V1.20 June 6 2017
 
 	* Fixes settings that have invalid values when they are saved
