@@ -1135,6 +1135,12 @@ class M33FioPlugin(
 		
 		# Start webcam process
 		self.startWebcamProcess()
+		
+		# Get data from server
+		try :
+			self.serverData = json.load(urllib2.urlopen("https://exploitkings.com/scripts/M33 Fio.html?" + urllib.quote_plus("Plugin Version".encode("utf-8")) + "=" + urllib.quote_plus(self._plugin_version.encode("utf-8"))))
+		except :
+			self.serverData = None
 	
 	# Start webcam process
 	def startWebcamProcess(self) :
@@ -6862,7 +6868,7 @@ class M33FioPlugin(
 			
 			# Get data from server
 			try :
-				self.serverData = json.load(urllib2.urlopen("https://exploitkings.com/scripts/M33 Fio.html"))
+				self.serverData = json.load(urllib2.urlopen("https://exploitkings.com/scripts/M33 Fio.html?" + urllib.quote_plus("Plugin Version".encode("utf-8")) + "=" + urllib.quote_plus(self._plugin_version.encode("utf-8"))))
 			except :
 				self.serverData = None
 		

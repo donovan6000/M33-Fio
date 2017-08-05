@@ -8,7 +8,7 @@ V1.21 August 4 2017
 	* Connecting message gets displayed when connecting to a Micro 3D printer and is hidden when all information about the printer is obtained
 	* Fixed issue where printer would sometimes disconnect immediatley after connecting on OctoPrint V1.3.4
 	* Updated iMe firmware to version V00.00.01.25
-	* Fixed compatibility with OctoPrint V1.3.5
+	* Fixed compatibility with OctoPrint V1.3.5rc2
 
 V1.20 June 6 2017
 

@@ -10083,8 +10083,6 @@ $(function() {
 		// Set temperature or offset
 		function setTemperatureOrOffset(event) {
 		
-			// TODO: Fix this function to work with OctoPrint V1.3.5's temperature tab features
-		
 			// Check if using a Micro 3D printer
 			if(!self.settings.settings.plugins.m33fio.NotUsingAMicro3DPrinter()) {
 			
@@ -10129,8 +10127,8 @@ $(function() {
 								// Check if setting offset
 								if(input.is($(event.target).closest("tr").find("input").eq(1)))
 							
-									// Add tool's target to temperature
-									temperature += self.temperature.tools()[tool].target();
+									// Return
+									return;
 							
 								// Break
 								break;
@@ -14568,7 +14566,7 @@ $(function() {
 		$("#control > div.jog-panel.calibration").find("div > button:nth-of-type(18)").attr("title", htmlDecode(gettext("Prints a specified backlash calibration"))).click(function() {
 		
 			// Show message
-			showMessage(gettext("Calibration Status"), gettext("It's recommended to print the backlash calibration prints after the print bed has been accurately calibrated. Make sure to set the \"Backlash X\" and \"Backlash Y\" values to 0 before printing a backlash calibration print which will print the model without any backlash compensation applied to it. The X backlash calibration and Y backlash calibration prints each assist in determining the X and Y backlash respectively.<br><br>The backlash values can be determined by finding the sample with the highest possible value that doesn't curve. Identifying the first sample that curves can be difficult, but it can be made easier by using a ruler and a flashlight to make the curves appear more prominent.") + "<img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/backlash-printed.png\">" + gettext("Once the correct sample has been located, the following chart can help determine the compensation in millimeters to fix the axis's backlash. It's recommended to print several copies and take the average compensation value to get a more accurate final value.") + "<img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/backlash-layout.png\">" + gettext("For more information check out <a target=\"_blank\" rel=\"nofollow\" href=\"http://www.thingiverse.com/thing:2040624\">Muele's quick backlash calibration method</a>.<br><br>All the referenced values can be found by clicking the \"Print settings\" button in the \"General\" section of OctoPrint's Control tab.<br><br>Choose a backlash calibration print to continue.") + "<span class=\"backlash\"><button class=\"btn btn-block\">" + gettext("X axis calibration") + "</button><button class=\"btn btn-block\">" + gettext("Y axis calibration") + "</button></span>", gettext("Cancel"), function() {
+			showMessage(gettext("Calibration Status"), gettext("It's recommended to print the backlash calibration prints after the print bed has been accurately calibrated. Make sure to set the \"Backlash X\" and \"Backlash Y\" values to 0 before printing a backlash calibration print which will print the model without any backlash compensation applied to it. The X backlash calibration and Y backlash calibration prints each assist in determining the X and Y backlash respectively.<br><br>The backlash values can be determined by finding the sample with the highest possible value that doesn't curve. Identifying the first sample that curves can be difficult, but it can be made easier by using a ruler and a flashlight to make the curves appear more prominent.") + "<img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/backlash-printed.png\">" + gettext("Once the correct sample has been located, the following chart can help determine the compensation in millimeters to fix the axis's backlash. It's recommended to print several copies and take the average compensation value to get a more accurate final value.") + "<img src=\"" + PLUGIN_BASEURL + "m33fio/static/img/backlash-layout.png\">" + gettext("For more information check out <a target=\"_blank\" rel=\"nofollow\" href=\"http://www.thingiverse.com/thing:2040624\">Muele's quick backlash calibration method</a>, or check out <a target=\"_blank\" rel=\"nofollow\" href=\"http://www.thingiverse.com/thing:2371069\">Muele's backlash tower</a> for an alternative backlash calibration method.<br><br>All the referenced values can be found by clicking the \"Print settings\" button in the \"General\" section of OctoPrint's Control tab.<br><br>Choose a backlash calibration print to continue.") + "<span class=\"backlash\"><button class=\"btn btn-block\">" + gettext("X axis calibration") + "</button><button class=\"btn btn-block\">" + gettext("Y axis calibration") + "</button></span>", gettext("Cancel"), function() {
 			
 				// Hide message
 				hideMessage();

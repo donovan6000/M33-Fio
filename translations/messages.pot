@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OctoPrint-M33Fio 1.21\n"
 "Report-Msgid-Bugs-To: i18n@octoprint.org\n"
-"POT-Creation-Date: 2017-08-04 06:43-0700\n"
+"POT-Creation-Date: 2017-08-04 20:46-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,44 +18,66 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.4.0\n"
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:793
 #: octoprint_m33fio/__init__.py:793
 msgid "Heatbed removed"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:793
 #: octoprint_m33fio/__init__.py:793
 msgid "Heatbed has been disconnected"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:877
 #: octoprint_m33fio/__init__.py:877
 msgid "Heatbed detected"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:877
 #: octoprint_m33fio/__init__.py:877
 msgid "Heatbed has been connected"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:893
 #: octoprint_m33fio/__init__.py:893
 msgid "Heatbed error"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:893
 #: octoprint_m33fio/__init__.py:893
 msgid "Failed to connect to heatbed"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:1169
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:1175
+#: octoprint_m33fio/__init__.py:1175
 msgid "Hosting camera failed"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:1169
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:1175
+#: octoprint_m33fio/__init__.py:1175
 msgid "Camera Host Status"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:2893
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:2899
+#: octoprint_m33fio/__init__.py:2899
 msgid "Preparing test border print…"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:2893 octoprint_m33fio/__init__.py:2896
-#: octoprint_m33fio/__init__.py:6909 octoprint_m33fio/static/js/m33fio.js:9913
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:2899
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:2902
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:6915
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9913
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:10216
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:10257
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:10341
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:10373
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:10397
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:12067
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14484
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14599
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18666
+#: octoprint_m33fio/__init__.py:2899 octoprint_m33fio/__init__.py:2902
+#: octoprint_m33fio/__init__.py:6915 octoprint_m33fio/static/js/m33fio.js:9913
 #: octoprint_m33fio/static/js/m33fio.js:10216
 #: octoprint_m33fio/static/js/m33fio.js:10257
 #: octoprint_m33fio/static/js/m33fio.js:10341
@@ -68,162 +90,238 @@ msgstr ""
 msgid "Printing Status"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:2896
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:2902
+#: octoprint_m33fio/__init__.py:2902
 msgid "Preparing backlash calibration print…"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:3932 octoprint_m33fio/static/js/m33fio.js:18035
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:3938
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18035
+#: octoprint_m33fio/__init__.py:3938 octoprint_m33fio/static/js/m33fio.js:18035
 msgid "Reconnecting…"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:3932 octoprint_m33fio/__init__.py:7299
-#: octoprint_m33fio/__init__.py:7322 octoprint_m33fio/__init__.py:7334
-#: octoprint_m33fio/__init__.py:7357 octoprint_m33fio/__init__.py:7399
-#: octoprint_m33fio/__init__.py:7421 octoprint_m33fio/__init__.py:7430
-#: octoprint_m33fio/__init__.py:7453 octoprint_m33fio/__init__.py:7462
-#: octoprint_m33fio/__init__.py:7869 octoprint_m33fio/__init__.py:7912
-#: octoprint_m33fio/__init__.py:7944 octoprint_m33fio/__init__.py:7978
-#: octoprint_m33fio/__init__.py:8039 octoprint_m33fio/__init__.py:8048
-#: octoprint_m33fio/__init__.py:8057 octoprint_m33fio/__init__.py:8098
-#: octoprint_m33fio/__init__.py:8116 octoprint_m33fio/__init__.py:8141
-#: octoprint_m33fio/__init__.py:8191 octoprint_m33fio/__init__.py:8255
-#: octoprint_m33fio/__init__.py:8274 octoprint_m33fio/__init__.py:12172
-#: octoprint_m33fio/__init__.py:12204 octoprint_m33fio/__init__.py:12222
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:3938
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7305
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7328
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7340
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7363
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7405
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7427
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7436
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7459
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7468
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7875
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7918
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7950
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7984
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:8045
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:8054
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:8063
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:8104
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:8122
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:8147
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:8197
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:8261
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:8280
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:12178
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:12210
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:12228
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:10316
+#: octoprint_m33fio/__init__.py:3938 octoprint_m33fio/__init__.py:7305
+#: octoprint_m33fio/__init__.py:7328 octoprint_m33fio/__init__.py:7340
+#: octoprint_m33fio/__init__.py:7363 octoprint_m33fio/__init__.py:7405
+#: octoprint_m33fio/__init__.py:7427 octoprint_m33fio/__init__.py:7436
+#: octoprint_m33fio/__init__.py:7459 octoprint_m33fio/__init__.py:7468
+#: octoprint_m33fio/__init__.py:7875 octoprint_m33fio/__init__.py:7918
+#: octoprint_m33fio/__init__.py:7950 octoprint_m33fio/__init__.py:7984
+#: octoprint_m33fio/__init__.py:8045 octoprint_m33fio/__init__.py:8054
+#: octoprint_m33fio/__init__.py:8063 octoprint_m33fio/__init__.py:8104
+#: octoprint_m33fio/__init__.py:8122 octoprint_m33fio/__init__.py:8147
+#: octoprint_m33fio/__init__.py:8197 octoprint_m33fio/__init__.py:8261
+#: octoprint_m33fio/__init__.py:8280 octoprint_m33fio/__init__.py:12178
+#: octoprint_m33fio/__init__.py:12210 octoprint_m33fio/__init__.py:12228
 #: octoprint_m33fio/static/js/m33fio.js:10316
 msgid "Connection Status"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6270
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:6276
+#: octoprint_m33fio/__init__.py:6276
 msgid "Firmware parser returned a parse error"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6272
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:6278
+#: octoprint_m33fio/__init__.py:6278
 msgid "Firmware parser returned a not supported protocol error"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6274
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:6280
+#: octoprint_m33fio/__init__.py:6280
 msgid "Firmware parser returned an ASCII buffer overflow error"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6276
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:6282
+#: octoprint_m33fio/__init__.py:6282
 msgid "Firmware parser returned a number expected error"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6278
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:6284
+#: octoprint_m33fio/__init__.py:6284
 msgid "Firmware parser returned a number overload error"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6280
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:6286
+#: octoprint_m33fio/__init__.py:6286
 msgid "Firmware parser returned an unknown error"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6282
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:6288
+#: octoprint_m33fio/__init__.py:6288
 msgid "Firmware interpreter returned an unsupported error"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6284
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:6290
+#: octoprint_m33fio/__init__.py:6290
 msgid "Firmware interpreter returned an unknown error"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6286
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:6292
+#: octoprint_m33fio/__init__.py:6292
 msgid "M110 without a line number"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6288
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:6294
+#: octoprint_m33fio/__init__.py:6294
 msgid "Cannot cold extrude"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6290
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:6296
+#: octoprint_m33fio/__init__.py:6296
 msgid "Cannot calibrate in an unknown state"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6292
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:6298
+#: octoprint_m33fio/__init__.py:6298
 msgid "Unknown G‐code"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6294
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:6300
+#: octoprint_m33fio/__init__.py:6300
 msgid "Unknown M‐code"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6296
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:6302
+#: octoprint_m33fio/__init__.py:6302
 msgid "Unknown command"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6298
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:6304
+#: octoprint_m33fio/__init__.py:6304
 msgid "Heater failed"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6300
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:6306
+#: octoprint_m33fio/__init__.py:6306
 msgid "Move to large"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6302
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:6308
+#: octoprint_m33fio/__init__.py:6308
 msgid ""
 "Printer has been inactive for too long, heater and motors have been "
 "turned off"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6304
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:6310
+#: octoprint_m33fio/__init__.py:6310
 msgid "M618 or M619 was sent with invalid parameters"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6306
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:6312
+#: octoprint_m33fio/__init__.py:6312
 msgid "There was an error initializing the hardware"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6308
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:6314
+#: octoprint_m33fio/__init__.py:6314
 msgid "EEPROM address read/write size is invalid"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6310
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:6316
+#: octoprint_m33fio/__init__.py:6316
 msgid "Commanded temperature is outside the commandable range"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6312
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:6318
+#: octoprint_m33fio/__init__.py:6318
 msgid "An error has occured"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6337 octoprint_m33fio/__init__.py:7560
-#: octoprint_m33fio/__init__.py:7583 octoprint_m33fio/__init__.py:7597
-#: octoprint_m33fio/__init__.py:7615 octoprint_m33fio/__init__.py:7816
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:6343
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7566
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7589
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7603
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7621
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7822
+#: octoprint_m33fio/__init__.py:6343 octoprint_m33fio/__init__.py:7566
+#: octoprint_m33fio/__init__.py:7589 octoprint_m33fio/__init__.py:7603
+#: octoprint_m33fio/__init__.py:7621 octoprint_m33fio/__init__.py:7822
 msgid "Error Status"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6909 octoprint_m33fio/static/js/m33fio.js:17157
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:6915
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17157
+#: octoprint_m33fio/__init__.py:6915 octoprint_m33fio/static/js/m33fio.js:17157
 msgid "Collecting print information…"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6964
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:6970
+#: octoprint_m33fio/__init__.py:6970
 msgid "Print failed"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6964
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:6970
+#: octoprint_m33fio/__init__.py:6970
 msgid ""
 "Could not print the file. The dimensions of the model go outside the "
 "bounds of the printer."
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6976 octoprint_m33fio/__init__.py:6982
-#: octoprint_m33fio/__init__.py:6988 octoprint_m33fio/__init__.py:9630
-#: octoprint_m33fio/__init__.py:9636 octoprint_m33fio/__init__.py:9642
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:6982
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:6988
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:6994
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:9636
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:9642
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:9648
+#: octoprint_m33fio/__init__.py:6982 octoprint_m33fio/__init__.py:6988
+#: octoprint_m33fio/__init__.py:6994 octoprint_m33fio/__init__.py:9636
+#: octoprint_m33fio/__init__.py:9642 octoprint_m33fio/__init__.py:9648
 msgid "Print warning"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6976 octoprint_m33fio/__init__.py:9630
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:6982
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:9636
+#: octoprint_m33fio/__init__.py:6982 octoprint_m33fio/__init__.py:9636
 msgid ""
 "No fan speed has been detected in this file which could cause the print "
 "to fail"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6982 octoprint_m33fio/__init__.py:9636
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:6988
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:9642
+#: octoprint_m33fio/__init__.py:6988 octoprint_m33fio/__init__.py:9642
 msgid "This file uses mid‐print filament change commands"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:6988 octoprint_m33fio/__init__.py:9642
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:6994
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:9648
+#: octoprint_m33fio/__init__.py:6994 octoprint_m33fio/__init__.py:9648
 msgid "Object too large to center on print bed"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:7299 octoprint_m33fio/__init__.py:12172
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7305
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:12178
+#: octoprint_m33fio/__init__.py:7305 octoprint_m33fio/__init__.py:12178
 msgid ""
 "No Micro 3D printer detected. If your not using a Micro 3D printer then "
 "make sure to enable the Settings &gt; M33 Fio &gt; \"Not using a Micro 3D"
@@ -231,13 +329,26 @@ msgid ""
 "again."
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:7322 octoprint_m33fio/__init__.py:7357
-#: octoprint_m33fio/__init__.py:7399 octoprint_m33fio/__init__.py:7421
-#: octoprint_m33fio/__init__.py:7453 octoprint_m33fio/__init__.py:7462
-#: octoprint_m33fio/__init__.py:8048 octoprint_m33fio/__init__.py:8057
-#: octoprint_m33fio/__init__.py:8098 octoprint_m33fio/__init__.py:8141
-#: octoprint_m33fio/__init__.py:8255 octoprint_m33fio/__init__.py:8274
-#: octoprint_m33fio/__init__.py:12204
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7328
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7363
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7405
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7427
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7459
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7468
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:8054
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:8063
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:8104
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:8147
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:8261
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:8280
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:12210
+#: octoprint_m33fio/__init__.py:7328 octoprint_m33fio/__init__.py:7363
+#: octoprint_m33fio/__init__.py:7405 octoprint_m33fio/__init__.py:7427
+#: octoprint_m33fio/__init__.py:7459 octoprint_m33fio/__init__.py:7468
+#: octoprint_m33fio/__init__.py:8054 octoprint_m33fio/__init__.py:8063
+#: octoprint_m33fio/__init__.py:8104 octoprint_m33fio/__init__.py:8147
+#: octoprint_m33fio/__init__.py:8261 octoprint_m33fio/__init__.py:8280
+#: octoprint_m33fio/__init__.py:12210
 msgid ""
 "Unable to connect to the printer. If your not using a Micro 3D printer "
 "then make sure to enable the Settings &gt; M33 Fio &gt; \"Not using a "
@@ -245,31 +356,53 @@ msgid ""
 " try again."
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:7560
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7566
+#: octoprint_m33fio/__init__.py:7566
 msgid "Setting fan failed"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:7583
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7589
+#: octoprint_m33fio/__init__.py:7589
 msgid "Updating fan settings failed"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:7597
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7603
+#: octoprint_m33fio/__init__.py:7603
 msgid "Updating extruder current failed"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:7615
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7621
+#: octoprint_m33fio/__init__.py:7621
 msgid "Updating version changes failed"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:7816
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7822
+#: octoprint_m33fio/__init__.py:7822
 msgid "Updating EEPROM values failed"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:7827 octoprint_m33fio/__init__.py:7843
-#: octoprint_m33fio/__init__.py:7852 octoprint_m33fio/__init__.py:7862
-#: octoprint_m33fio/__init__.py:7891 octoprint_m33fio/__init__.py:7893
-#: octoprint_m33fio/__init__.py:7918 octoprint_m33fio/__init__.py:7927
-#: octoprint_m33fio/__init__.py:7937 octoprint_m33fio/static/js/m33fio.js:16809
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7833
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7849
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7858
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7868
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7897
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7899
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7924
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7933
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7943
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16809
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16823
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16837
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16848
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16880
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17460
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17466
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17485
+#: octoprint_m33fio/__init__.py:7833 octoprint_m33fio/__init__.py:7849
+#: octoprint_m33fio/__init__.py:7858 octoprint_m33fio/__init__.py:7868
+#: octoprint_m33fio/__init__.py:7897 octoprint_m33fio/__init__.py:7899
+#: octoprint_m33fio/__init__.py:7924 octoprint_m33fio/__init__.py:7933
+#: octoprint_m33fio/__init__.py:7943 octoprint_m33fio/static/js/m33fio.js:16809
 #: octoprint_m33fio/static/js/m33fio.js:16823
 #: octoprint_m33fio/static/js/m33fio.js:16837
 #: octoprint_m33fio/static/js/m33fio.js:16848
@@ -280,28 +413,44 @@ msgstr ""
 msgid "Firmware Status"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:7843 octoprint_m33fio/__init__.py:7918
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7849
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7924
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16848
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17466
+#: octoprint_m33fio/__init__.py:7849 octoprint_m33fio/__init__.py:7924
 #: octoprint_m33fio/static/js/m33fio.js:16848
 #: octoprint_m33fio/static/js/m33fio.js:17466
 msgid "Updating firmware…"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:7852 octoprint_m33fio/__init__.py:7927
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7858
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7933
+#: octoprint_m33fio/__init__.py:7858 octoprint_m33fio/__init__.py:7933
 msgid "Updating firmware failed"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:7862 octoprint_m33fio/__init__.py:7937
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7868
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7943
+#: octoprint_m33fio/__init__.py:7868 octoprint_m33fio/__init__.py:7943
 msgid "Updating firmware was successful"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:7869 octoprint_m33fio/__init__.py:7912
-#: octoprint_m33fio/__init__.py:7944 octoprint_m33fio/__init__.py:7978
-#: octoprint_m33fio/__init__.py:8039 octoprint_m33fio/static/js/m33fio.js:10316
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7875
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7918
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7950
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7984
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:8045
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:10316
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18035
+#: octoprint_m33fio/__init__.py:7875 octoprint_m33fio/__init__.py:7918
+#: octoprint_m33fio/__init__.py:7950 octoprint_m33fio/__init__.py:7984
+#: octoprint_m33fio/__init__.py:8045 octoprint_m33fio/static/js/m33fio.js:10316
 #: octoprint_m33fio/static/js/m33fio.js:18035
 msgid "Connecting…"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:7954
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7960
+#: octoprint_m33fio/__init__.py:7960
 msgid ""
 "The creator of M33 Fio would like to examine your printer's bootloader to"
 " assist in further reverse engineering of the Micro 3D printer. Would you"
@@ -310,206 +459,272 @@ msgid ""
 "lot."
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:7954 octoprint_m33fio/__init__.py:7984
-#: octoprint_m33fio/__init__.py:7993 octoprint_m33fio/__init__.py:8008
-#: octoprint_m33fio/__init__.py:8032
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7960
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7990
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7999
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:8014
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:8038
+#: octoprint_m33fio/__init__.py:7960 octoprint_m33fio/__init__.py:7990
+#: octoprint_m33fio/__init__.py:7999 octoprint_m33fio/__init__.py:8014
+#: octoprint_m33fio/__init__.py:8038
 msgid "Developer's Message"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:7984
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7990
+#: octoprint_m33fio/__init__.py:7990
 msgid "Extracting and uploading your printer's bootloader…"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:7993 octoprint_m33fio/__init__.py:8008
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:7999
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:8014
+#: octoprint_m33fio/__init__.py:7999 octoprint_m33fio/__init__.py:8014
 msgid "Extracting and uploading your printer's bootloader failed"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:8032
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:8038
+#: octoprint_m33fio/__init__.py:8038
 msgid ""
 "Extracting and uploading your printer's bootloader was successful. Thanks"
 " for helping."
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:9542
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:9548
+#: octoprint_m33fio/__init__.py:9548
 msgid "Collecting print information …"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:9603
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:9609
+#: octoprint_m33fio/__init__.py:9609
 msgid "Slicing failed"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:9603
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:9609
+#: octoprint_m33fio/__init__.py:9609
 msgid ""
 "Could not slice the file. The dimensions of the model go outside the "
 "bounds of the printer."
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:9609
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:9615
+#: octoprint_m33fio/__init__.py:9615
 msgid ""
 "Could not upload the file. The dimensions of the model go outside the "
 "bounds of the printer."
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:9653
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:9659
+#: octoprint_m33fio/__init__.py:9659
 msgid "Pre‐processing …"
 msgstr ""
 
-#: octoprint_m33fio/__init__.py:10423
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/__init__.py:10429
+#: octoprint_m33fio/__init__.py:10429
 #, python-format
 msgid "Pre‐processing … (%(percent)s)"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:277
 #: octoprint_m33fio/static/js/m33fio.js:277
 msgid "Firmware version"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:283
 #: octoprint_m33fio/static/js/m33fio.js:283
 msgid "Firmware CRC"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:289
 #: octoprint_m33fio/static/js/m33fio.js:289
 msgid "Last recorded Z value"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:295
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:197
 #: octoprint_m33fio/static/js/m33fio.js:295
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:197
 msgid "Backlash X"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:301
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:206
 #: octoprint_m33fio/static/js/m33fio.js:301
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:206
 msgid "Backlash Y"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:307
 #: octoprint_m33fio/static/js/m33fio.js:307
 msgid "Bed orientation back right"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:313
 #: octoprint_m33fio/static/js/m33fio.js:313
 msgid "Bed orientation back left"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:319
 #: octoprint_m33fio/static/js/m33fio.js:319
 msgid "Bed orientation front left"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:325
 #: octoprint_m33fio/static/js/m33fio.js:325
 msgid "Bed orientation front right"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:331
 #: octoprint_m33fio/static/js/m33fio.js:331
 msgid "Filament color"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:337
 #: octoprint_m33fio/static/js/m33fio.js:337
 msgid "Filament type and location"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:343
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9590
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:339
 #: octoprint_m33fio/static/js/m33fio.js:343
 #: octoprint_m33fio/static/js/m33fio.js:9590
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:339
 msgid "Filament temperature"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:349
 #: octoprint_m33fio/static/js/m33fio.js:349
 msgid "Filament amount"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:355
 #: octoprint_m33fio/static/js/m33fio.js:355
 msgid "Backlash expansion X+"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:361
 #: octoprint_m33fio/static/js/m33fio.js:361
 msgid "Backlash expansion YL+"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:367
 #: octoprint_m33fio/static/js/m33fio.js:367
 msgid "Backlash expansion YR+"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:373
 #: octoprint_m33fio/static/js/m33fio.js:373
 msgid "Backlash expansion YR−"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:379
 #: octoprint_m33fio/static/js/m33fio.js:379
 msgid "Backlash expansion Z"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:385
 #: octoprint_m33fio/static/js/m33fio.js:385
 msgid "Backlash expansion E"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:391
 #: octoprint_m33fio/static/js/m33fio.js:391
 msgid "Bed offset back left"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:397
 #: octoprint_m33fio/static/js/m33fio.js:397
 msgid "Bed offset back right"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:403
 #: octoprint_m33fio/static/js/m33fio.js:403
 msgid "Bed offset front right"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:409
 #: octoprint_m33fio/static/js/m33fio.js:409
 msgid "Bed offset front left"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:415
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:260
 #: octoprint_m33fio/static/js/m33fio.js:415
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:260
 msgid "Bed height offset"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:421
 #: octoprint_m33fio/static/js/m33fio.js:421
 msgid "Reserved"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:427
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:215
 #: octoprint_m33fio/static/js/m33fio.js:427
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:215
 msgid "Backlash speed"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:433
 #: octoprint_m33fio/static/js/m33fio.js:433
 msgid "Bed orientation version"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:439
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:375
 #: octoprint_m33fio/static/js/m33fio.js:439
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:375
 msgid "Speed limit X"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:445
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:384
 #: octoprint_m33fio/static/js/m33fio.js:445
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:384
 msgid "Speed limit Y"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:451
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:393
 #: octoprint_m33fio/static/js/m33fio.js:451
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:393
 msgid "Speed limit Z"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:457
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:402
 #: octoprint_m33fio/static/js/m33fio.js:457
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:402
 msgid "Speed limit E+"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:463
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:411
 #: octoprint_m33fio/static/js/m33fio.js:463
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:411
 msgid "Speed limit E−"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:469
 #: octoprint_m33fio/static/js/m33fio.js:469
 msgid "Filament Size"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:475
 #: octoprint_m33fio/static/js/m33fio.js:475
 msgid "Filament UID"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:481
 #: octoprint_m33fio/static/js/m33fio.js:481
 msgid "Bed orientation first sample"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:487
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1329
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1330
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9599
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:348
 #: octoprint_m33fio/static/js/m33fio.js:487
 #: octoprint_m33fio/static/js/m33fio.js:1329
 #: octoprint_m33fio/static/js/m33fio.js:1330
@@ -518,142 +733,247 @@ msgstr ""
 msgid "Heatbed temperature"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:493
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:321
 #: octoprint_m33fio/static/js/m33fio.js:493
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:321
 msgid "Skew X"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:499
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:330
 #: octoprint_m33fio/static/js/m33fio.js:499
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:330
 msgid "Skew Y"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:505
 #: octoprint_m33fio/static/js/m33fio.js:505
 msgid "Expand printable region"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:511
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:305
 #: octoprint_m33fio/static/js/m33fio.js:511
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:305
 msgid "External bed height"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:517
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:477
 #: octoprint_m33fio/static/js/m33fio.js:517
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:477
 msgid "Calibrate Z0 correction"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:523
 #: octoprint_m33fio/static/js/m33fio.js:523
 msgid "X jerk sensitivity"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:529
 #: octoprint_m33fio/static/js/m33fio.js:529
 msgid "Y jerk sensitivity"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:535
 #: octoprint_m33fio/static/js/m33fio.js:535
 msgid "Last recorded X value"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:541
 #: octoprint_m33fio/static/js/m33fio.js:541
 msgid "Last recorded Y value"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:547
 #: octoprint_m33fio/static/js/m33fio.js:547
 msgid "Last recorded X direction"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:553
 #: octoprint_m33fio/static/js/m33fio.js:553
 msgid "Last recorded Y direction"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:559
 #: octoprint_m33fio/static/js/m33fio.js:559
 msgid "Saved X state"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:565
 #: octoprint_m33fio/static/js/m33fio.js:565
 msgid "Saved Y state"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:571
 #: octoprint_m33fio/static/js/m33fio.js:571
 msgid "Fan type"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:577
 #: octoprint_m33fio/static/js/m33fio.js:577
 msgid "Fan offset"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:583
 #: octoprint_m33fio/static/js/m33fio.js:583
 msgid "Fan scale"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:589
 #: octoprint_m33fio/static/js/m33fio.js:589
 msgid "Heater calibration mode"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:595
 #: octoprint_m33fio/static/js/m33fio.js:595
 msgid "X motor current"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:601
 #: octoprint_m33fio/static/js/m33fio.js:601
 msgid "Y motor current"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:607
 #: octoprint_m33fio/static/js/m33fio.js:607
 msgid "Z motor current"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:613
 #: octoprint_m33fio/static/js/m33fio.js:613
 msgid "Hardware status"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:619
 #: octoprint_m33fio/static/js/m33fio.js:619
 msgid "Heater temperature measurement B"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:625
 #: octoprint_m33fio/static/js/m33fio.js:625
 msgid "Hours counter"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:631
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:423
 #: octoprint_m33fio/static/js/m33fio.js:631
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:423
 msgid "X motor steps/mm"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:637
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:432
 #: octoprint_m33fio/static/js/m33fio.js:637
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:432
 msgid "Y motor steps/mm"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:643
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:441
 #: octoprint_m33fio/static/js/m33fio.js:643
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:441
 msgid "Z motor steps/mm"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:649
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:450
 #: octoprint_m33fio/static/js/m33fio.js:649
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:450
 msgid "E motor steps/mm"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:655
 #: octoprint_m33fio/static/js/m33fio.js:655
 msgid "Saved Z state"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:661
 #: octoprint_m33fio/static/js/m33fio.js:661
 msgid "E motor current"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:667
 #: octoprint_m33fio/static/js/m33fio.js:667
 msgid "Heater resistance M"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:673
 #: octoprint_m33fio/static/js/m33fio.js:673
 msgid "Serial number"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:806
 #: octoprint_m33fio/static/js/m33fio.js:806
 msgid "Operation couldn't be completed because the printer was disconnected"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:806
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9222
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9307
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:10537
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:10608
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:10669
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:10898
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:10923
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11022
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11044
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11069
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11177
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11213
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11239
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11651
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11760
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11829
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:12177
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:12281
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:12295
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:12442
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:12718
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:12893
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:12959
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13485
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13620
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13981
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14068
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14155
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14242
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14341
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14443
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14969
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15683
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15726
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15769
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15825
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15881
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15937
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15996
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16042
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16069
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16150
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16206
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16288
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16355
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16385
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16448
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16492
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16641
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16725
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16773
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16809
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16823
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16837
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16880
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17246
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17349
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17485
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17640
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17802
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17925
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18003
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18103
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18317
 #: octoprint_m33fio/static/js/m33fio.js:806
 #: octoprint_m33fio/static/js/m33fio.js:9222
 #: octoprint_m33fio/static/js/m33fio.js:9307
@@ -722,6 +1042,41 @@ msgstr ""
 msgid "OK"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:876
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11022
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11177
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:12893
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:12959
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13485
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13620
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13981
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14068
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14155
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14242
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14341
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14443
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14791
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14834
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14877
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14920
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14969
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15411
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15519
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15726
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15769
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15825
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15881
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15937
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16014
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16042
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16150
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16206
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16288
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16385
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16880
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17485
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17640
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17802
 #: octoprint_m33fio/static/js/m33fio.js:876
 #: octoprint_m33fio/static/js/m33fio.js:11022
 #: octoprint_m33fio/static/js/m33fio.js:11177
@@ -760,6 +1115,13 @@ msgstr ""
 msgid "Done"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:879
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9913
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:12067
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14475
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14484
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14599
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18666
 #: octoprint_m33fio/static/js/m33fio.js:879
 #: octoprint_m33fio/static/js/m33fio.js:9913
 #: octoprint_m33fio/static/js/m33fio.js:12067
@@ -770,6 +1132,12 @@ msgstr ""
 msgid "Print"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:888
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:890
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:891
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9405
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13090
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18131
 #: octoprint_m33fio/static/js/m33fio.js:888
 #: octoprint_m33fio/static/js/m33fio.js:890
 #: octoprint_m33fio/static/js/m33fio.js:891
@@ -779,6 +1147,11 @@ msgstr ""
 msgid "Unload"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:888
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:890
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9406
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13250
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18207
 #: octoprint_m33fio/static/js/m33fio.js:888
 #: octoprint_m33fio/static/js/m33fio.js:890
 #: octoprint_m33fio/static/js/m33fio.js:9406
@@ -787,32 +1160,43 @@ msgstr ""
 msgid "Load"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:888
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18267
 #: octoprint_m33fio/static/js/m33fio.js:888
 #: octoprint_m33fio/static/js/m33fio.js:18267
 msgid "Set"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:890
 #: octoprint_m33fio/static/js/m33fio.js:890
 msgid "Unload temperature"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:890
 #: octoprint_m33fio/static/js/m33fio.js:890
 msgid "Load temperature"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:890
 #: octoprint_m33fio/static/js/m33fio.js:890
 msgid "New temperature"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:891
 #: octoprint_m33fio/static/js/m33fio.js:891
 msgid "Recommended"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:891
 #: octoprint_m33fio/static/js/m33fio.js:891
 #, python-format
 msgid "%(temperature)s for %(type)s"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1149
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1179
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17038
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17053
 #: octoprint_m33fio/static/js/m33fio.js:1149
 #: octoprint_m33fio/static/js/m33fio.js:1179
 #: octoprint_m33fio/static/js/m33fio.js:17038
@@ -820,14 +1204,20 @@ msgstr ""
 msgid "Tools"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1151
 #: octoprint_m33fio/static/js/m33fio.js:1151
 msgid "Homes extruder on the X and Y axis"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1152
 #: octoprint_m33fio/static/js/m33fio.js:1152
 msgid "Homes extruder on the Z axis"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1179
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9340
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9341
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17053
 #: octoprint_m33fio/static/js/m33fio.js:1179
 #: octoprint_m33fio/static/js/m33fio.js:9340
 #: octoprint_m33fio/static/js/m33fio.js:9341
@@ -835,280 +1225,383 @@ msgstr ""
 msgid "Extruder"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1181
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:12697
 #: octoprint_m33fio/static/js/m33fio.js:1181
 #: octoprint_m33fio/static/js/m33fio.js:12697
 #, python-format
 msgid "Set extruder's X position to %(x)s and Y position to %(y)s"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1182
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:12766
 #: octoprint_m33fio/static/js/m33fio.js:1182
 #: octoprint_m33fio/static/js/m33fio.js:12766
 #, python-format
 msgid "Set extruder's Z position to %(z)s"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1263
 #: octoprint_m33fio/static/js/m33fio.js:1263
 msgid "Modify Profile"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1269
 #: octoprint_m33fio/static/js/m33fio.js:1269
 msgid "Basic Settings"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1272
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1539
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1614
 #: octoprint_m33fio/static/js/m33fio.js:1272
 #: octoprint_m33fio/static/js/m33fio.js:1539
 #: octoprint_m33fio/static/js/m33fio.js:1614
 msgid "Extra low quality"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1273
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1543
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1618
 #: octoprint_m33fio/static/js/m33fio.js:1273
 #: octoprint_m33fio/static/js/m33fio.js:1543
 #: octoprint_m33fio/static/js/m33fio.js:1618
 msgid "Low quality"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1274
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1547
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1622
 #: octoprint_m33fio/static/js/m33fio.js:1274
 #: octoprint_m33fio/static/js/m33fio.js:1547
 #: octoprint_m33fio/static/js/m33fio.js:1622
 msgid "Medium quality"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1275
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1551
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1626
 #: octoprint_m33fio/static/js/m33fio.js:1275
 #: octoprint_m33fio/static/js/m33fio.js:1551
 #: octoprint_m33fio/static/js/m33fio.js:1626
 msgid "High quality"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1276
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1555
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1630
 #: octoprint_m33fio/static/js/m33fio.js:1276
 #: octoprint_m33fio/static/js/m33fio.js:1555
 #: octoprint_m33fio/static/js/m33fio.js:1630
 msgid "Extra high quality"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1277
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1559
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1634
 #: octoprint_m33fio/static/js/m33fio.js:1277
 #: octoprint_m33fio/static/js/m33fio.js:1559
 #: octoprint_m33fio/static/js/m33fio.js:1634
 msgid "Highest quality"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1281
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1573
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1648
 #: octoprint_m33fio/static/js/m33fio.js:1281
 #: octoprint_m33fio/static/js/m33fio.js:1573
 #: octoprint_m33fio/static/js/m33fio.js:1648
 msgid "Hollow thin fill"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1282
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1577
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1652
 #: octoprint_m33fio/static/js/m33fio.js:1282
 #: octoprint_m33fio/static/js/m33fio.js:1577
 #: octoprint_m33fio/static/js/m33fio.js:1652
 msgid "Hollow thick fill"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1283
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1581
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1656
 #: octoprint_m33fio/static/js/m33fio.js:1283
 #: octoprint_m33fio/static/js/m33fio.js:1581
 #: octoprint_m33fio/static/js/m33fio.js:1656
 msgid "Low fill"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1284
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1585
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1660
 #: octoprint_m33fio/static/js/m33fio.js:1284
 #: octoprint_m33fio/static/js/m33fio.js:1585
 #: octoprint_m33fio/static/js/m33fio.js:1660
 msgid "Medium fill"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1285
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1589
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1664
 #: octoprint_m33fio/static/js/m33fio.js:1285
 #: octoprint_m33fio/static/js/m33fio.js:1589
 #: octoprint_m33fio/static/js/m33fio.js:1664
 msgid "High fill"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1286
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1593
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1668
 #: octoprint_m33fio/static/js/m33fio.js:1286
 #: octoprint_m33fio/static/js/m33fio.js:1593
 #: octoprint_m33fio/static/js/m33fio.js:1668
 msgid "Extra high fill"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1287
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1597
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1672
 #: octoprint_m33fio/static/js/m33fio.js:1287
 #: octoprint_m33fio/static/js/m33fio.js:1597
 #: octoprint_m33fio/static/js/m33fio.js:1672
 msgid "Full fill"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1291
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1700
 #: octoprint_m33fio/static/js/m33fio.js:1291
 #: octoprint_m33fio/static/js/m33fio.js:1700
 msgid "Line fill pattern"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1292
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1688
 #: octoprint_m33fio/static/js/m33fio.js:1292
 #: octoprint_m33fio/static/js/m33fio.js:1688
 msgid "Rectilinear fill pattern"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1293
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1708
 #: octoprint_m33fio/static/js/m33fio.js:1293
 #: octoprint_m33fio/static/js/m33fio.js:1708
 msgid "Honeycomb fill pattern"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1294
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1712
 #: octoprint_m33fio/static/js/m33fio.js:1294
 #: octoprint_m33fio/static/js/m33fio.js:1712
 msgid "3D honeycomb fill pattern"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1295
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1704
 #: octoprint_m33fio/static/js/m33fio.js:1295
 #: octoprint_m33fio/static/js/m33fio.js:1704
 msgid "Concentric fill pattern"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1296
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1696
 #: octoprint_m33fio/static/js/m33fio.js:1296
 #: octoprint_m33fio/static/js/m33fio.js:1696
 msgid "Hilbert curve fill pattern"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1297
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1692
 #: octoprint_m33fio/static/js/m33fio.js:1297
 #: octoprint_m33fio/static/js/m33fio.js:1692
 msgid "Octagram spiral fill pattern"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1298
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1684
 #: octoprint_m33fio/static/js/m33fio.js:1298
 #: octoprint_m33fio/static/js/m33fio.js:1684
 msgid "Archimedean chords fill pattern"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1302
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1728
 #: octoprint_m33fio/static/js/m33fio.js:1302
 #: octoprint_m33fio/static/js/m33fio.js:1728
 msgid "Rectilinear top/bottom fill pattern"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1303
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1740
 #: octoprint_m33fio/static/js/m33fio.js:1303
 #: octoprint_m33fio/static/js/m33fio.js:1740
 msgid "Concentric top/bottom fill pattern"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1304
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1736
 #: octoprint_m33fio/static/js/m33fio.js:1304
 #: octoprint_m33fio/static/js/m33fio.js:1736
 msgid "Hilbert curve top/bottom fill pattern"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1305
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1724
 #: octoprint_m33fio/static/js/m33fio.js:1305
 #: octoprint_m33fio/static/js/m33fio.js:1724
 msgid "Archimedean chords top/bottom fill pattern"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1306
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1732
 #: octoprint_m33fio/static/js/m33fio.js:1306
 #: octoprint_m33fio/static/js/m33fio.js:1732
 msgid "Octagram spiral top/bottom fill pattern"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1309
 #: octoprint_m33fio/static/js/m33fio.js:1309
 msgid "Prints a breakaway support underneath overhanging parts of the model"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1309
 #: octoprint_m33fio/static/js/m33fio.js:1309
 msgid "Use support material"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1310
 #: octoprint_m33fio/static/js/m33fio.js:1310
 msgid "Allows support material to be created on top of models"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1310
 #: octoprint_m33fio/static/js/m33fio.js:1310
 msgid "Use model on model support"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1311
 #: octoprint_m33fio/static/js/m33fio.js:1311
 msgid ""
 "Experimental option for preventing support material from being generated "
 "under bridged areas"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1311
 #: octoprint_m33fio/static/js/m33fio.js:1311
 msgid "Don't support bridges"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1312
 #: octoprint_m33fio/static/js/m33fio.js:1312
 msgid "Prints a raft underneath the model"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1312
 #: octoprint_m33fio/static/js/m33fio.js:1312
 msgid "Use raft"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1313
 #: octoprint_m33fio/static/js/m33fio.js:1313
 msgid "Prints a brim connected to the first layer of the model"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1313
 #: octoprint_m33fio/static/js/m33fio.js:1313
 msgid "Use brim"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1314
 #: octoprint_m33fio/static/js/m33fio.js:1314
 msgid "Prints an outline around the model"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1314
 #: octoprint_m33fio/static/js/m33fio.js:1314
 msgid "Use skirt"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1315
 #: octoprint_m33fio/static/js/m33fio.js:1315
 msgid "Retracts the filament when moving over gaps"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1315
 #: octoprint_m33fio/static/js/m33fio.js:1315
 msgid "Use retraction"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1320
 #: octoprint_m33fio/static/js/m33fio.js:1320
 msgid "Manual Settings"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1322
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1323
 #: octoprint_m33fio/static/js/m33fio.js:1322
 #: octoprint_m33fio/static/js/m33fio.js:1323
 msgid "Printing temperature"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1336
 #: octoprint_m33fio/static/js/m33fio.js:1336
 msgid "Height of each layer"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1337
 #: octoprint_m33fio/static/js/m33fio.js:1337
 msgid "Layer height"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1343
 #: octoprint_m33fio/static/js/m33fio.js:1343
 msgid "Percentage of the model that is filled in"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1344
 #: octoprint_m33fio/static/js/m33fio.js:1344
 msgid "Fill density"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1350
 #: octoprint_m33fio/static/js/m33fio.js:1350
 msgid "Thickness of the model"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1351
 #: octoprint_m33fio/static/js/m33fio.js:1351
 msgid "Thickness"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1354
 #: octoprint_m33fio/static/js/m33fio.js:1354
 msgid "wall(s)"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1357
 #: octoprint_m33fio/static/js/m33fio.js:1357
 msgid "Speed of the extruder's movements while printing"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1358
 #: octoprint_m33fio/static/js/m33fio.js:1358
 msgid "Print speed"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1364
 #: octoprint_m33fio/static/js/m33fio.js:1364
 msgid "Number of layers that the top and bottom each consist of"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1365
 #: octoprint_m33fio/static/js/m33fio.js:1365
 msgid "Top/bottom"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1368
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1375
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1382
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1403
 #: octoprint_m33fio/static/js/m33fio.js:1368
 #: octoprint_m33fio/static/js/m33fio.js:1375
 #: octoprint_m33fio/static/js/m33fio.js:1382
@@ -1116,67 +1609,84 @@ msgstr ""
 msgid "layer(s)"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1371
 #: octoprint_m33fio/static/js/m33fio.js:1371
 msgid "Number of layers that the top consist of"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1372
 #: octoprint_m33fio/static/js/m33fio.js:1372
 msgid "Top"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1378
 #: octoprint_m33fio/static/js/m33fio.js:1378
 msgid "Number of layers that the bottom consist of"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1379
 #: octoprint_m33fio/static/js/m33fio.js:1379
 msgid "Bottom"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1385
 #: octoprint_m33fio/static/js/m33fio.js:1385
 msgid "Distance between the raft and the model"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1386
 #: octoprint_m33fio/static/js/m33fio.js:1386
 msgid "Raft airgap"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1392
 #: octoprint_m33fio/static/js/m33fio.js:1392
 msgid "The amount of lines used for the brim"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1393
 #: octoprint_m33fio/static/js/m33fio.js:1393
 msgid "Brim line count"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1396
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1424
 #: octoprint_m33fio/static/js/m33fio.js:1396
 #: octoprint_m33fio/static/js/m33fio.js:1424
 msgid "line(s)"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1399
 #: octoprint_m33fio/static/js/m33fio.js:1399
 msgid "Raft height in number of layers"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1400
 #: octoprint_m33fio/static/js/m33fio.js:1400
 msgid "Raft"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1406
 #: octoprint_m33fio/static/js/m33fio.js:1406
 msgid "Width of brim around perimeters"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1407
 #: octoprint_m33fio/static/js/m33fio.js:1407
 msgid "Brim width"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1413
 #: octoprint_m33fio/static/js/m33fio.js:1413
 msgid "How far away the skirt is from the model"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1414
 #: octoprint_m33fio/static/js/m33fio.js:1414
 msgid "Skirt gap"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1420
 #: octoprint_m33fio/static/js/m33fio.js:1420
 msgid ""
 "Number of loops for the skirt. If the Minimum Extrusion Length option is "
@@ -1184,14 +1694,22 @@ msgid ""
 "Set this to zero to disable skirt completely."
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1421
 #: octoprint_m33fio/static/js/m33fio.js:1421
 msgid "Skirts"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1431
 #: octoprint_m33fio/static/js/m33fio.js:1431
 msgid "Advanced Settings"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1563
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1638
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:2603
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:2694
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:2754
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:2766
 #: octoprint_m33fio/static/js/m33fio.js:1563
 #: octoprint_m33fio/static/js/m33fio.js:1638
 #: octoprint_m33fio/static/js/m33fio.js:2603
@@ -1201,6 +1719,10 @@ msgstr ""
 msgid "Unknown quality"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1601
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1676
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:2620
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:2649
 #: octoprint_m33fio/static/js/m33fio.js:1601
 #: octoprint_m33fio/static/js/m33fio.js:1676
 #: octoprint_m33fio/static/js/m33fio.js:2620
@@ -1208,19 +1730,34 @@ msgstr ""
 msgid "Unknown fill"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1716
 #: octoprint_m33fio/static/js/m33fio.js:1716
 msgid "Unknown fill pattern"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1744
 #: octoprint_m33fio/static/js/m33fio.js:1744
 msgid "Unknown top/bottom fill pattern"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:1902
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11607
 #: octoprint_m33fio/static/js/m33fio.js:1902
 #: octoprint_m33fio/static/js/m33fio.js:11607
 msgid "Loading Profile…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:2083
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:2090
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:2095
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:2142
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3216
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3226
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3235
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3392
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3677
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:7818
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9739
 #: octoprint_m33fio/static/js/m33fio.js:2083
 #: octoprint_m33fio/static/js/m33fio.js:2090
 #: octoprint_m33fio/static/js/m33fio.js:2095
@@ -1235,6 +1772,11 @@ msgstr ""
 msgid "Close"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:2085
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:2088
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:2093
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:2158
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9739
 #: octoprint_m33fio/static/js/m33fio.js:2085
 #: octoprint_m33fio/static/js/m33fio.js:2088
 #: octoprint_m33fio/static/js/m33fio.js:2093
@@ -1243,82 +1785,106 @@ msgstr ""
 msgid "Open"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3169
 #: octoprint_m33fio/static/js/m33fio.js:3169
 msgid "Modify Model"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3173
 #: octoprint_m33fio/static/js/m33fio.js:3173
 msgid "Black printer"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3174
 #: octoprint_m33fio/static/js/m33fio.js:3174
 msgid "White printer"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3175
 #: octoprint_m33fio/static/js/m33fio.js:3175
 msgid "Blue printer"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3176
 #: octoprint_m33fio/static/js/m33fio.js:3176
 msgid "Green printer"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3177
 #: octoprint_m33fio/static/js/m33fio.js:3177
 msgid "Orange printer"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3178
 #: octoprint_m33fio/static/js/m33fio.js:3178
 msgid "Clear printer"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3179
 #: octoprint_m33fio/static/js/m33fio.js:3179
 msgid "Silver printer"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3180
 #: octoprint_m33fio/static/js/m33fio.js:3180
 msgid "Purple printer"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3183
 #: octoprint_m33fio/static/js/m33fio.js:3183
 msgid "White filament"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3184
 #: octoprint_m33fio/static/js/m33fio.js:3184
 msgid "Pink filament"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3185
 #: octoprint_m33fio/static/js/m33fio.js:3185
 msgid "Red filament"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3186
 #: octoprint_m33fio/static/js/m33fio.js:3186
 msgid "Orange filament"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3187
 #: octoprint_m33fio/static/js/m33fio.js:3187
 msgid "Yellow filament"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3188
 #: octoprint_m33fio/static/js/m33fio.js:3188
 msgid "Green filament"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3189
 #: octoprint_m33fio/static/js/m33fio.js:3189
 msgid "Light blue filament"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3190
 #: octoprint_m33fio/static/js/m33fio.js:3190
 msgid "Blue filament"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3191
 #: octoprint_m33fio/static/js/m33fio.js:3191
 msgid "Purple filament"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3192
 #: octoprint_m33fio/static/js/m33fio.js:3192
 msgid "Black filament"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3196
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3384
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3401
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3681
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:4286
 #: octoprint_m33fio/static/js/m33fio.js:3196
 #: octoprint_m33fio/static/js/m33fio.js:3384
 #: octoprint_m33fio/static/js/m33fio.js:3401
@@ -1327,109 +1893,150 @@ msgstr ""
 msgid "Import from server"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3197
 #: octoprint_m33fio/static/js/m33fio.js:3197
 msgid "Import from file"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3198
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:7814
 #: octoprint_m33fio/static/js/m33fio.js:3198
 #: octoprint_m33fio/static/js/m33fio.js:7814
 msgid "Translate"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3199
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:7815
 #: octoprint_m33fio/static/js/m33fio.js:3199
 #: octoprint_m33fio/static/js/m33fio.js:7815
 msgid "Rotate"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3200
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:7816
 #: octoprint_m33fio/static/js/m33fio.js:3200
 #: octoprint_m33fio/static/js/m33fio.js:7816
 msgid "Scale"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3201
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:6932
 #: octoprint_m33fio/static/js/m33fio.js:3201
 #: octoprint_m33fio/static/js/m33fio.js:6932
 msgid "Enable snap"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3202
 #: octoprint_m33fio/static/js/m33fio.js:3202
 msgid "Delete"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3203
 #: octoprint_m33fio/static/js/m33fio.js:3203
 msgid "Clone"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3204
 #: octoprint_m33fio/static/js/m33fio.js:3204
 msgid "Reset"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3205
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:7267
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:8462
 #: octoprint_m33fio/static/js/m33fio.js:3205
 #: octoprint_m33fio/static/js/m33fio.js:7267
 #: octoprint_m33fio/static/js/m33fio.js:8462
 msgid "Cut"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3206
 #: octoprint_m33fio/static/js/m33fio.js:3206
 msgid "Merge"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3209
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3591
 #: octoprint_m33fio/static/js/m33fio.js:3209
 #: octoprint_m33fio/static/js/m33fio.js:3591
 msgid "Hide axes"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3209
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3593
 #: octoprint_m33fio/static/js/m33fio.js:3209
 #: octoprint_m33fio/static/js/m33fio.js:3593
 msgid "Show axes"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3210
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3616
 #: octoprint_m33fio/static/js/m33fio.js:3210
 #: octoprint_m33fio/static/js/m33fio.js:3616
 msgid "Hide boundaries"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3210
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3618
 #: octoprint_m33fio/static/js/m33fio.js:3210
 #: octoprint_m33fio/static/js/m33fio.js:3618
 msgid "Show boundaries"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3211
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3646
 #: octoprint_m33fio/static/js/m33fio.js:3211
 #: octoprint_m33fio/static/js/m33fio.js:3646
 msgid "Hide measurements"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3211
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3648
 #: octoprint_m33fio/static/js/m33fio.js:3211
 #: octoprint_m33fio/static/js/m33fio.js:3648
 msgid "Show measurements"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3212
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3665
 #: octoprint_m33fio/static/js/m33fio.js:3212
 #: octoprint_m33fio/static/js/m33fio.js:3665
 msgid "Hide grid"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3212
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3667
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:5115
 #: octoprint_m33fio/static/js/m33fio.js:3212
 #: octoprint_m33fio/static/js/m33fio.js:3667
 #: octoprint_m33fio/static/js/m33fio.js:5115
 msgid "Show grid"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3219
 #: octoprint_m33fio/static/js/m33fio.js:3219
 msgid "Import"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3236
 #: octoprint_m33fio/static/js/m33fio.js:3236
 msgid "Cube stencil"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3237
 #: octoprint_m33fio/static/js/m33fio.js:3237
 msgid "Sphere stencil"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3238
 #: octoprint_m33fio/static/js/m33fio.js:3238
 msgid "Apply cut"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3298
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3416
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:5284
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11789
 #: octoprint_m33fio/static/js/m33fio.js:3298
 #: octoprint_m33fio/static/js/m33fio.js:3416
 #: octoprint_m33fio/static/js/m33fio.js:5284
@@ -1437,31 +2044,41 @@ msgstr ""
 msgid "Loading Model…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:3534
 #: octoprint_m33fio/static/js/m33fio.js:3534
 msgid "Cloning Model…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:4025
 #: octoprint_m33fio/static/js/m33fio.js:4025
 msgid "Modify G‐Code"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:4076
 #: octoprint_m33fio/static/js/m33fio.js:4076
 msgid "Loading G‐Code…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:4841
 #: octoprint_m33fio/static/js/m33fio.js:4841
 msgid "Load default profile"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:4892
 #: octoprint_m33fio/static/js/m33fio.js:4892
 msgid "View"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:4967
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:5039
 #: octoprint_m33fio/static/js/m33fio.js:4967
 #: octoprint_m33fio/static/js/m33fio.js:5039
 msgid "Edit"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:5009
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:5078
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9200
 #: octoprint_m33fio/static/js/m33fio.js:5009
 #: octoprint_m33fio/static/js/m33fio.js:5078
 #: octoprint_m33fio/static/js/m33fio.js:9200
@@ -1469,6 +2086,13 @@ msgstr ""
 msgid "Editing %(fileName)s"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:5009
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:5078
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9200
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9329
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:10833
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:10963
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11102
 #: octoprint_m33fio/static/js/m33fio.js:5009
 #: octoprint_m33fio/static/js/m33fio.js:5078
 #: octoprint_m33fio/static/js/m33fio.js:9200
@@ -1479,218 +2103,279 @@ msgstr ""
 msgid "Save"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:5100
 #: octoprint_m33fio/static/js/m33fio.js:5100
 msgid "Model Viewer"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:5114
 #: octoprint_m33fio/static/js/m33fio.js:5114
 msgid "Autorotate"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:5144
 #: octoprint_m33fio/static/js/m33fio.js:5144
 msgid "Model viewer is disabled since your web browser doesn't support WebGL"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:6922
 #: octoprint_m33fio/static/js/m33fio.js:6922
 msgid "Disable snap"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:7869
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:12345
 #: octoprint_m33fio/static/js/m33fio.js:7869
 #: octoprint_m33fio/static/js/m33fio.js:12345
 msgid "Unlock"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:7869
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:12360
 #: octoprint_m33fio/static/js/m33fio.js:7869
 #: octoprint_m33fio/static/js/m33fio.js:12360
 msgid "Lock"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:8457
 #: octoprint_m33fio/static/js/m33fio.js:8457
 msgid "Applying Cut…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:8704
 #: octoprint_m33fio/static/js/m33fio.js:8704
 msgid "Applying Merge…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9222
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9307
 #: octoprint_m33fio/static/js/m33fio.js:9222
 #: octoprint_m33fio/static/js/m33fio.js:9307
 msgid "Profile Status"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9222
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11651
 #: octoprint_m33fio/static/js/m33fio.js:9222
 #: octoprint_m33fio/static/js/m33fio.js:11651
 msgid "Profile isn't available"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9307
 #: octoprint_m33fio/static/js/m33fio.js:9307
 msgid "Default profile isn't available"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9325
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18113
 #: octoprint_m33fio/static/js/m33fio.js:9325
 #: octoprint_m33fio/static/js/m33fio.js:18113
 msgid "Mid‐print filament change"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9326
 #: octoprint_m33fio/static/js/m33fio.js:9326
 msgid ""
 "Mid‐print filament change commands will be added at the start of each "
 "specified layer. Layer numbers should be seperated by a space."
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9326
 #: octoprint_m33fio/static/js/m33fio.js:9326
 msgid "Layers"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9327
 #: octoprint_m33fio/static/js/m33fio.js:9327
 msgid "Add current layer"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9328
 #: octoprint_m33fio/static/js/m33fio.js:9328
 msgid "Clear all layers"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9351
 #: octoprint_m33fio/static/js/m33fio.js:9351
 msgid "Turns on printer's motors"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9351
 #: octoprint_m33fio/static/js/m33fio.js:9351
 msgid "Motors on"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9353
 #: octoprint_m33fio/static/js/m33fio.js:9353
 msgid "Turns off printer's motors"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9357
 #: octoprint_m33fio/static/js/m33fio.js:9357
 msgid "Fan on"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9358
 #: octoprint_m33fio/static/js/m33fio.js:9358
 msgid "Fan off"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9365
 #: octoprint_m33fio/static/js/m33fio.js:9365
 msgid "LED on"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9371
 #: octoprint_m33fio/static/js/m33fio.js:9371
 msgid "Turns off front LED"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9371
 #: octoprint_m33fio/static/js/m33fio.js:9371
 msgid "LED off"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9377
 #: octoprint_m33fio/static/js/m33fio.js:9377
 msgid "Sets GPIO pin high"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9377
 #: octoprint_m33fio/static/js/m33fio.js:9377
 msgid "GPIO high"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9383
 #: octoprint_m33fio/static/js/m33fio.js:9383
 msgid "Sets GPIO pin low"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9383
 #: octoprint_m33fio/static/js/m33fio.js:9383
 msgid "GPIO low"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9389
 #: octoprint_m33fio/static/js/m33fio.js:9389
 msgid "Sets extruder to use absolute positioning"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9389
 #: octoprint_m33fio/static/js/m33fio.js:9389
 msgid "Absolute mode"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9395
 #: octoprint_m33fio/static/js/m33fio.js:9395
 msgid "Sets extruder to use relative positioning"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9395
 #: octoprint_m33fio/static/js/m33fio.js:9395
 msgid "Relative mode"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9396
 #: octoprint_m33fio/static/js/m33fio.js:9396
 msgid "Print settings"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9397
 #: octoprint_m33fio/static/js/m33fio.js:9397
 msgid "Emergency stop"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9403
 #: octoprint_m33fio/static/js/m33fio.js:9403
 msgid "Filament"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9407
 #: octoprint_m33fio/static/js/m33fio.js:9407
 msgid "Mid‐print change"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9415
 #: octoprint_m33fio/static/js/m33fio.js:9415
 msgid "Calibration"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9417
 #: octoprint_m33fio/static/js/m33fio.js:9417
 msgid "Calibrate bed center Z0"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9418
 #: octoprint_m33fio/static/js/m33fio.js:9418
 msgid "Calibrate bed orientation"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9421
 #: octoprint_m33fio/static/js/m33fio.js:9421
 msgid "Save Z as front left Z0"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9424
 #: octoprint_m33fio/static/js/m33fio.js:9424
 msgid "Save Z as front right Z0"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9427
 #: octoprint_m33fio/static/js/m33fio.js:9427
 msgid "Save Z as back right Z0"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9430
 #: octoprint_m33fio/static/js/m33fio.js:9430
 msgid "Save Z as back left Z0"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9431
 #: octoprint_m33fio/static/js/m33fio.js:9431
 msgid "Save Z as bed center Z0"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9432
 #: octoprint_m33fio/static/js/m33fio.js:9432
 msgid "Save Z as external bed height"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9433
 #: octoprint_m33fio/static/js/m33fio.js:9433
 #, python-format
 msgid "Print %(thickness)s test border"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9434
 #: octoprint_m33fio/static/js/m33fio.js:9434
 msgid "Print backlash calibration"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9435
 #: octoprint_m33fio/static/js/m33fio.js:9435
 msgid "Run complete bed calibration"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9436
 #: octoprint_m33fio/static/js/m33fio.js:9436
 msgid "Save printer settings to file"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9437
 #: octoprint_m33fio/static/js/m33fio.js:9437
 msgid "Restore printer settings from file"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9446
 #: octoprint_m33fio/static/js/m33fio.js:9446
 msgid "Advanced"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9448
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9449
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9450
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9451
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9452
 #: octoprint_m33fio/static/js/m33fio.js:9448
 #: octoprint_m33fio/static/js/m33fio.js:9449
 #: octoprint_m33fio/static/js/m33fio.js:9450
@@ -1700,66 +2385,92 @@ msgstr ""
 msgid "%(type)s fan"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9453
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9454
 #: octoprint_m33fio/static/js/m33fio.js:9453
 #: octoprint_m33fio/static/js/m33fio.js:9454
 #, python-format
 msgid "%(current)s extruder current"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9498
 #: octoprint_m33fio/static/js/m33fio.js:9498
 msgid "EEPROM"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9501
 #: octoprint_m33fio/static/js/m33fio.js:9501
 msgid "Hexadecimal"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9502
 #: octoprint_m33fio/static/js/m33fio.js:9502
 msgid "Decimal"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9503
 #: octoprint_m33fio/static/js/m33fio.js:9503
 msgid "ASCII"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9504
 #: octoprint_m33fio/static/js/m33fio.js:9504
 msgid "Read EEPROM"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9505
 #: octoprint_m33fio/static/js/m33fio.js:9505
 msgid "Write EEPROM"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9530
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9557
 #: octoprint_m33fio/static/js/m33fio.js:9530
 #: octoprint_m33fio/static/js/m33fio.js:9557
 msgid "Temperature"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9536
 #: octoprint_m33fio/static/js/m33fio.js:9536
 msgid "Turns off extruder's heater"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9536
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9563
 #: octoprint_m33fio/static/js/m33fio.js:9536
 #: octoprint_m33fio/static/js/m33fio.js:9563
 msgid "Heater off"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9538
 #: octoprint_m33fio/static/js/m33fio.js:9538
 msgid "Heatbed"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9563
 #: octoprint_m33fio/static/js/m33fio.js:9563
 msgid "Turns off heatbed's heater"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9577
 #: octoprint_m33fio/static/js/m33fio.js:9577
 msgid "Applies extruder's position adjustment in the positive direction"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9578
 #: octoprint_m33fio/static/js/m33fio.js:9578
 msgid "Applies extruder's position adjustment in the negative direction"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9581
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9582
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9583
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9584
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18781
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18782
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18783
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18784
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18785
 #: octoprint_m33fio/static/js/m33fio.js:9581
 #: octoprint_m33fio/static/js/m33fio.js:9582
 #: octoprint_m33fio/static/js/m33fio.js:9583
@@ -1773,15 +2484,32 @@ msgstr ""
 msgid "Sets extruder's position adjustment to %(distance)s"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9588
 #: octoprint_m33fio/static/js/m33fio.js:9588
 msgid "Print Settings"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9608
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:357
 #: octoprint_m33fio/static/js/m33fio.js:9608
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:357
 msgid "Filament type"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9611
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9612
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9613
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9614
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9615
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9616
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9617
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:360
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:361
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:362
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:363
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:364
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:365
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:366
 #: octoprint_m33fio/static/js/m33fio.js:9611
 #: octoprint_m33fio/static/js/m33fio.js:9612
 #: octoprint_m33fio/static/js/m33fio.js:9613
@@ -1800,63 +2528,99 @@ msgstr ""
 msgid "%(type)s (Recommended %(temperature)s)"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9618
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:367
 #: octoprint_m33fio/static/js/m33fio.js:9618
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:367
 msgid "Other"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9624
 #: octoprint_m33fio/static/js/m33fio.js:9624
 msgid ""
 "Moves the extruder in a wave pattern during the first layer of a print to"
 " improve adhesion with the print bed"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9625
 #: octoprint_m33fio/static/js/m33fio.js:9625
 msgid "Use wave bonding"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9631
 #: octoprint_m33fio/static/js/m33fio.js:9631
 msgid "Filament Settings"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9648
 #: octoprint_m33fio/static/js/m33fio.js:9648
 msgid "Do not refresh this page or disconnect from the server at this time"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9665
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11470
 #: octoprint_m33fio/static/js/m33fio.js:9665
 #: octoprint_m33fio/static/js/m33fio.js:11470
 msgid "Select Profile"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9669
 #: octoprint_m33fio/static/js/m33fio.js:9669
 msgid "Save local copy"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9669
 #: octoprint_m33fio/static/js/m33fio.js:9669
 msgid "Save on server"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9672
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11643
 #: octoprint_m33fio/static/js/m33fio.js:9672
 #: octoprint_m33fio/static/js/m33fio.js:11643
 msgid "Skip model editor"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9684
 #: octoprint_m33fio/static/js/m33fio.js:9684
 msgid "Movement"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9835
 #: octoprint_m33fio/static/js/m33fio.js:9835
 msgid "Appends current layer to mid‐print filament change layers"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9855
 #: octoprint_m33fio/static/js/m33fio.js:9855
 msgid "Clears all mid‐print filament change layers"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9865
 #: octoprint_m33fio/static/js/m33fio.js:9865
 msgid "Saves current mid‐print filament change layers"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9871
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:10537
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:10608
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:10669
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:10828
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:10898
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:10923
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:10952
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11022
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11044
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11069
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11091
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11177
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11213
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11239
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11760
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11829
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:12177
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:12281
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:12295
 #: octoprint_m33fio/static/js/m33fio.js:9871
 #: octoprint_m33fio/static/js/m33fio.js:10537
 #: octoprint_m33fio/static/js/m33fio.js:10608
@@ -1880,10 +2644,25 @@ msgstr ""
 msgid "Saving Status"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9871
 #: octoprint_m33fio/static/js/m33fio.js:9871
 msgid "Saving changes…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:9970
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:10909
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11055
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11225
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:12123
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13239
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13399
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14534
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14558
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14569
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14649
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15508
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18722
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:19160
 #: octoprint_m33fio/static/js/m33fio.js:9970
 #: octoprint_m33fio/static/js/m33fio.js:10909
 #: octoprint_m33fio/static/js/m33fio.js:11055
@@ -1900,128 +2679,175 @@ msgstr ""
 msgid "Cancel"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:10216
 #: octoprint_m33fio/static/js/m33fio.js:10216
 msgid "Pausing print…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:10257
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18323
 #: octoprint_m33fio/static/js/m33fio.js:10257
 #: octoprint_m33fio/static/js/m33fio.js:18323
 msgid "Resuming print…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:10341
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:10373
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:10397
 #: octoprint_m33fio/static/js/m33fio.js:10341
 #: octoprint_m33fio/static/js/m33fio.js:10373
 #: octoprint_m33fio/static/js/m33fio.js:10397
 msgid "Canceling print…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:10477
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:10847
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11706
 #: octoprint_m33fio/static/js/m33fio.js:10477
 #: octoprint_m33fio/static/js/m33fio.js:10847
 #: octoprint_m33fio/static/js/m33fio.js:11706
 msgid "Saving Profile…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:10537
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:10923
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11829
 #: octoprint_m33fio/static/js/m33fio.js:10537
 #: octoprint_m33fio/static/js/m33fio.js:10923
 #: octoprint_m33fio/static/js/m33fio.js:11829
 msgid "Profile is invalid"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:10558
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:10978
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11854
 #: octoprint_m33fio/static/js/m33fio.js:10558
 #: octoprint_m33fio/static/js/m33fio.js:10978
 #: octoprint_m33fio/static/js/m33fio.js:11854
 msgid "Saving Model…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:10608
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11069
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:12177
 #: octoprint_m33fio/static/js/m33fio.js:10608
 #: octoprint_m33fio/static/js/m33fio.js:11069
 #: octoprint_m33fio/static/js/m33fio.js:12177
 msgid "Scene is invalid"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:10633
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11117
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:12202
 #: octoprint_m33fio/static/js/m33fio.js:10633
 #: octoprint_m33fio/static/js/m33fio.js:11117
 #: octoprint_m33fio/static/js/m33fio.js:12202
 msgid "Saving G‐Code…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:10669
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11239
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:12295
 #: octoprint_m33fio/static/js/m33fio.js:10669
 #: octoprint_m33fio/static/js/m33fio.js:11239
 #: octoprint_m33fio/static/js/m33fio.js:12295
 msgid "G‐code is invalid"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:10829
 #: octoprint_m33fio/static/js/m33fio.js:10829
 msgid "Profile name"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:10833
 #: octoprint_m33fio/static/js/m33fio.js:10833
 msgid ""
 "A profile with that name already exists. Saving will overwrite that "
 "existing profile."
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:10898
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11760
 #: octoprint_m33fio/static/js/m33fio.js:10898
 #: octoprint_m33fio/static/js/m33fio.js:11760
 msgid "Saving profile failed"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:10953
 #: octoprint_m33fio/static/js/m33fio.js:10953
 msgid "Model location"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:10955
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11094
 #: octoprint_m33fio/static/js/m33fio.js:10955
 #: octoprint_m33fio/static/js/m33fio.js:11094
 msgid "Local"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:10956
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11095
 #: octoprint_m33fio/static/js/m33fio.js:10956
 #: octoprint_m33fio/static/js/m33fio.js:11095
 msgid "SD card"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:10959
 #: octoprint_m33fio/static/js/m33fio.js:10959
 msgid "Model path"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:10963
 #: octoprint_m33fio/static/js/m33fio.js:10963
 msgid ""
 "A model with that location and path already exists. Saving will overwrite"
 " that existing model."
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11044
 #: octoprint_m33fio/static/js/m33fio.js:11044
 msgid "Saving model failed"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11092
 #: octoprint_m33fio/static/js/m33fio.js:11092
 msgid "G‐code location"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11098
 #: octoprint_m33fio/static/js/m33fio.js:11098
 msgid "G‐code path"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11102
 #: octoprint_m33fio/static/js/m33fio.js:11102
 msgid ""
 "A G‐code file with that location and path already exists. Saving will "
 "overwrite that existing file."
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11213
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:12281
 #: octoprint_m33fio/static/js/m33fio.js:11213
 #: octoprint_m33fio/static/js/m33fio.js:12281
 msgid "Saving G‐code file failed"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11340
 #: octoprint_m33fio/static/js/m33fio.js:11340
 msgid "Conversion Status"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11340
 #: octoprint_m33fio/static/js/m33fio.js:11340
 #, python-format
 msgid "Converting %(oldFileName)s to %(newFileName)s…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11462
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11528
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11643
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15368
 #: octoprint_m33fio/static/js/m33fio.js:11462
 #: octoprint_m33fio/static/js/m33fio.js:11528
 #: octoprint_m33fio/static/js/m33fio.js:11643
@@ -2029,15 +2855,22 @@ msgstr ""
 msgid "Next"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11637
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11794
 #: octoprint_m33fio/static/js/m33fio.js:11637
 #: octoprint_m33fio/static/js/m33fio.js:11794
 msgid "Slice"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11637
 #: octoprint_m33fio/static/js/m33fio.js:11637
 msgid "Model editor will be skipped since your web browser doesn't support WebGL"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11651
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11829
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:12177
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17246
 #: octoprint_m33fio/static/js/m33fio.js:11651
 #: octoprint_m33fio/static/js/m33fio.js:11829
 #: octoprint_m33fio/static/js/m33fio.js:12177
@@ -2045,62 +2878,82 @@ msgstr ""
 msgid "Slicer Status"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:11906
 #: octoprint_m33fio/static/js/m33fio.js:11906
 msgid "Applying Changes…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:12442
 #: octoprint_m33fio/static/js/m33fio.js:12442
 msgid "Command Status"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:12442
 #: octoprint_m33fio/static/js/m33fio.js:12442
 msgid "Can't manually send reserved commands"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:12481
 #: octoprint_m33fio/static/js/m33fio.js:12481
 msgid "Increases extruder's X position by the specified amount"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:12517
 #: octoprint_m33fio/static/js/m33fio.js:12517
 msgid "Decreases extruder's X position by the specified amount"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:12553
 #: octoprint_m33fio/static/js/m33fio.js:12553
 msgid "Increases extruder's Y position by the specified amount"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:12589
 #: octoprint_m33fio/static/js/m33fio.js:12589
 msgid "Decreases extruder's Y position by the specified amount"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:12625
 #: octoprint_m33fio/static/js/m33fio.js:12625
 msgid "Increases extruder's Z position by the specified amount"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:12661
 #: octoprint_m33fio/static/js/m33fio.js:12661
 msgid "Decreases extruder's Z position by the specified amount"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:12718
 #: octoprint_m33fio/static/js/m33fio.js:12718
 msgid "Movement Status"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:12718
 #: octoprint_m33fio/static/js/m33fio.js:12718
 msgid "Extruder is too high to home without running into the printer's frame"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:12797
 #: octoprint_m33fio/static/js/m33fio.js:12797
 msgid "Extrudes the specified amount of filament"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:12828
 #: octoprint_m33fio/static/js/m33fio.js:12828
 msgid "Retracts the specified amount of filament"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:12859
 #: octoprint_m33fio/static/js/m33fio.js:12859
 msgid "Sets extruder's temperature to the specified amount"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:12871
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:12882
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:12893
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:12937
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:12948
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:12959
 #: octoprint_m33fio/static/js/m33fio.js:12871
 #: octoprint_m33fio/static/js/m33fio.js:12882
 #: octoprint_m33fio/static/js/m33fio.js:12893
@@ -2110,6 +2963,13 @@ msgstr ""
 msgid "Temperature Status"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:12871
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:12937
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13113
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13273
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18156
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18216
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18273
 #: octoprint_m33fio/static/js/m33fio.js:12871
 #: octoprint_m33fio/static/js/m33fio.js:12937
 #: octoprint_m33fio/static/js/m33fio.js:13113
@@ -2120,6 +2980,13 @@ msgstr ""
 msgid "Warming up…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:12882
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:12948
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13131
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13291
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18173
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18233
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18306
 #: octoprint_m33fio/static/js/m33fio.js:12882
 #: octoprint_m33fio/static/js/m33fio.js:12948
 #: octoprint_m33fio/static/js/m33fio.js:13131
@@ -2130,34 +2997,71 @@ msgstr ""
 msgid "Warming up"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:12925
 #: octoprint_m33fio/static/js/m33fio.js:12925
 msgid "Sets heatbed's temperature to the specified amount"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:12991
 #: octoprint_m33fio/static/js/m33fio.js:12991
 msgid "Turns on extruder's fan"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13014
 #: octoprint_m33fio/static/js/m33fio.js:13014
 msgid "Turns off extruder's fan"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13037
 #: octoprint_m33fio/static/js/m33fio.js:13037
 msgid "Turns on front LED"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13060
 #: octoprint_m33fio/static/js/m33fio.js:13060
 msgid "Opens print settings"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13069
 #: octoprint_m33fio/static/js/m33fio.js:13069
 msgid "Stops current operation"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13087
 #: octoprint_m33fio/static/js/m33fio.js:13087
 msgid "Unloads filament"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13090
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13096
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13113
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13131
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13142
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13159
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13250
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13256
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13273
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13291
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13302
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13319
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13410
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18097
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18103
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18131
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18156
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18173
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18184
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18201
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18207
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18216
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18233
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18244
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18261
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18267
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18273
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18306
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18317
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18323
 #: octoprint_m33fio/static/js/m33fio.js:13090
 #: octoprint_m33fio/static/js/m33fio.js:13096
 #: octoprint_m33fio/static/js/m33fio.js:13113
@@ -2191,21 +3095,60 @@ msgstr ""
 msgid "Filament Status"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13096
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13256
 #: octoprint_m33fio/static/js/m33fio.js:13096
 #: octoprint_m33fio/static/js/m33fio.js:13256
 msgid "Positioning extruder…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13142
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18184
 #: octoprint_m33fio/static/js/m33fio.js:13142
 #: octoprint_m33fio/static/js/m33fio.js:18184
 msgid "Remove filament…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13159
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18201
 #: octoprint_m33fio/static/js/m33fio.js:13159
 #: octoprint_m33fio/static/js/m33fio.js:18201
 msgid "Was filament removed?"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13159
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13319
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13436
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13553
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13807
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13842
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13877
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13912
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13947
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14034
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14121
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14208
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14295
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14409
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15298
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15356
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15362
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15744
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15800
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15856
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15912
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15968
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16125
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16181
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16314
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17460
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17573
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17744
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17960
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18201
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18261
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18831
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18870
 #: octoprint_m33fio/static/js/m33fio.js:13159
 #: octoprint_m33fio/static/js/m33fio.js:13319
 #: octoprint_m33fio/static/js/m33fio.js:13436
@@ -2242,6 +3185,39 @@ msgstr ""
 msgid "Yes"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13184
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13344
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13542
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13692
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13831
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13866
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13901
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13936
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14023
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14110
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14197
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14284
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14398
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14464
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15325
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15558
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15603
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15789
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15845
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15901
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15957
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16091
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16170
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16226
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16406
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17505
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17712
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17860
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17978
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18356
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18397
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18846
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18885
 #: octoprint_m33fio/static/js/m33fio.js:13184
 #: octoprint_m33fio/static/js/m33fio.js:13344
 #: octoprint_m33fio/static/js/m33fio.js:13542
@@ -2278,33 +3254,107 @@ msgstr ""
 msgid "No"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13247
 #: octoprint_m33fio/static/js/m33fio.js:13247
 msgid "Loads filament"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13302
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18244
 #: octoprint_m33fio/static/js/m33fio.js:13302
 #: octoprint_m33fio/static/js/m33fio.js:18244
 msgid "Insert filament…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13319
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18261
 #: octoprint_m33fio/static/js/m33fio.js:13319
 #: octoprint_m33fio/static/js/m33fio.js:18261
 msgid "Was filament inserted?"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13407
 #: octoprint_m33fio/static/js/m33fio.js:13407
 msgid "Changes filament during a print"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13410
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18097
 #: octoprint_m33fio/static/js/m33fio.js:13410
 #: octoprint_m33fio/static/js/m33fio.js:18097
 msgid "Starting mid‐print filament change…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13433
 #: octoprint_m33fio/static/js/m33fio.js:13433
 msgid "Automatically calibrates the bed's center's Z0"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13436
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13442
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13485
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13553
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13559
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13620
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13807
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13842
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13877
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13912
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13947
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13953
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13981
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14034
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14040
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14068
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14121
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14127
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14155
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14208
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14214
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14242
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14295
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14301
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14341
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14409
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14415
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14443
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14475
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14569
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14681
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14718
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14776
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14791
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14797
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14819
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14834
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14840
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14862
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14877
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14883
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14905
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14920
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14926
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14948
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14969
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15298
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15304
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15331
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15356
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15362
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15368
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15374
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15411
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15417
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15514
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15528
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15564
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17573
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17579
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17640
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17744
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17750
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17802
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:19160
 #: octoprint_m33fio/static/js/m33fio.js:13436
 #: octoprint_m33fio/static/js/m33fio.js:13442
 #: octoprint_m33fio/static/js/m33fio.js:13485
@@ -2372,49 +3422,64 @@ msgstr ""
 msgid "Calibration Status"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13436
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13553
 #: octoprint_m33fio/static/js/m33fio.js:13436
 #: octoprint_m33fio/static/js/m33fio.js:13553
 msgid "This process can take a while to complete. Proceed?"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13442
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14681
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15374
 #: octoprint_m33fio/static/js/m33fio.js:13442
 #: octoprint_m33fio/static/js/m33fio.js:14681
 #: octoprint_m33fio/static/js/m33fio.js:15374
 msgid "Calibrating bed center Z0…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13550
 #: octoprint_m33fio/static/js/m33fio.js:13550
 msgid "Automatically calibrates the bed's orientation"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13559
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14718
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17579
 #: octoprint_m33fio/static/js/m33fio.js:13559
 #: octoprint_m33fio/static/js/m33fio.js:14718
 #: octoprint_m33fio/static/js/m33fio.js:17579
 msgid "Calibrating bed orientation…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13700
 #: octoprint_m33fio/static/js/m33fio.js:13700
 msgid "Positions extruder above the bed's front left corner"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13726
 #: octoprint_m33fio/static/js/m33fio.js:13726
 msgid "Positions extruder above the bed's front right corner"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13752
 #: octoprint_m33fio/static/js/m33fio.js:13752
 msgid "Positions extruder above the bed's back right corner"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13778
 #: octoprint_m33fio/static/js/m33fio.js:13778
 msgid "Positions extruder above the bed's back left corner"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13804
 #: octoprint_m33fio/static/js/m33fio.js:13804
 msgid ""
 "Vertically positions the extruder to be at the bed's front left corner's "
 "Z0"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13807
 #: octoprint_m33fio/static/js/m33fio.js:13807
 msgid ""
 "This will vertically position the extruder to be at the bed's front left "
@@ -2422,12 +3487,14 @@ msgid ""
 "isn't correctly calibrated. Proceed?"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13839
 #: octoprint_m33fio/static/js/m33fio.js:13839
 msgid ""
 "Vertically positions the extruder to be at the bed's front right corner's"
 " Z0"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13842
 #: octoprint_m33fio/static/js/m33fio.js:13842
 msgid ""
 "This will vertically position the extruder to be at the bed's front right"
@@ -2435,12 +3502,14 @@ msgid ""
 " isn't correctly calibrated. Proceed?"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13874
 #: octoprint_m33fio/static/js/m33fio.js:13874
 msgid ""
 "Vertically positions the extruder to be at the bed's back right corner's "
 "Z0"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13877
 #: octoprint_m33fio/static/js/m33fio.js:13877
 msgid ""
 "This will vertically position the extruder to be at the bed's back right "
@@ -2448,10 +3517,12 @@ msgid ""
 "isn't correctly calibrated. Proceed?"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13909
 #: octoprint_m33fio/static/js/m33fio.js:13909
 msgid "Vertically positions the extruder to be at the bed's back left corner's Z0"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13912
 #: octoprint_m33fio/static/js/m33fio.js:13912
 msgid ""
 "This will vertically position the extruder to be at the bed's back left "
@@ -2459,84 +3530,105 @@ msgid ""
 "isn't correctly calibrated. Proceed?"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13944
 #: octoprint_m33fio/static/js/m33fio.js:13944
 msgid "Saves the extruder's current Z value as the bed's front left corner's Z0"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13947
 #: octoprint_m33fio/static/js/m33fio.js:13947
 msgid "This will overwrite the existing front left offset. Proceed?"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:13953
 #: octoprint_m33fio/static/js/m33fio.js:13953
 msgid "Saving Z as front left Z0…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14031
 #: octoprint_m33fio/static/js/m33fio.js:14031
 msgid "Saves the extruder's current Z value as the bed's front right corner's Z0"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14034
 #: octoprint_m33fio/static/js/m33fio.js:14034
 msgid "This will overwrite the existing front right offset. Proceed?"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14040
 #: octoprint_m33fio/static/js/m33fio.js:14040
 msgid "Saving Z as front right Z0…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14118
 #: octoprint_m33fio/static/js/m33fio.js:14118
 msgid "Saves the extruder's current Z value as the bed's back right corner's Z0"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14121
 #: octoprint_m33fio/static/js/m33fio.js:14121
 msgid "This will overwrite the existing back right offset. Proceed?"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14127
 #: octoprint_m33fio/static/js/m33fio.js:14127
 msgid "Saving Z as back right Z0…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14205
 #: octoprint_m33fio/static/js/m33fio.js:14205
 msgid "Saves the extruder's current Z value as the bed's back left corner's Z0"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14208
 #: octoprint_m33fio/static/js/m33fio.js:14208
 msgid "This will overwrite the existing back left offset. Proceed?"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14214
 #: octoprint_m33fio/static/js/m33fio.js:14214
 msgid "Saving Z as back left Z0…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14292
 #: octoprint_m33fio/static/js/m33fio.js:14292
 msgid "Saves the extruder's current Z value as the bed center's Z0"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14295
 #: octoprint_m33fio/static/js/m33fio.js:14295
 msgid "This will overwrite the existing bed center calibration. Proceed?"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14301
 #: octoprint_m33fio/static/js/m33fio.js:14301
 msgid "Saving Z as bed center Z0…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14406
 #: octoprint_m33fio/static/js/m33fio.js:14406
 msgid "Saves the extruder's current Z value as the external bed's height"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14409
 #: octoprint_m33fio/static/js/m33fio.js:14409
 msgid "This will overwrite the existing external bed height. Proceed?"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14415
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15417
 #: octoprint_m33fio/static/js/m33fio.js:14415
 #: octoprint_m33fio/static/js/m33fio.js:15417
 msgid "Saving Z as external bed height…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14472
 #: octoprint_m33fio/static/js/m33fio.js:14472
 #, python-format
 msgid "Prints %(thickness)s test border"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14475
 #: octoprint_m33fio/static/js/m33fio.js:14475
 msgid ""
 "It's recommended to print this test border after completely calibrating "
@@ -2544,6 +3636,7 @@ msgid ""
 "should print as a solid, even extruded border"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14475
 #: octoprint_m33fio/static/js/m33fio.js:14475
 msgid ""
 "The \"Back Left Offset\", \"Back Right Offset\", \"Front Right Offset\", "
@@ -2552,10 +3645,12 @@ msgid ""
 "high."
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14475
 #: octoprint_m33fio/static/js/m33fio.js:14475
 msgid "If the test border contains missing gaps, then it is too low."
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14475
 #: octoprint_m33fio/static/js/m33fio.js:14475
 msgid ""
 "It's also recommended to print a model with a raft after this is done to "
@@ -2566,10 +3661,13 @@ msgid ""
 "in the \"General\" section of OctoPrint's Control tab. Proceed?"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14566
 #: octoprint_m33fio/static/js/m33fio.js:14566
 msgid "Prints a specified backlash calibration"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14569
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:19160
 #: octoprint_m33fio/static/js/m33fio.js:14569
 msgid ""
 "It's recommended to print the backlash calibration prints after the print"
@@ -2585,6 +3683,8 @@ msgid ""
 "prominent."
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14569
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:19160
 #: octoprint_m33fio/static/js/m33fio.js:14569
 msgid ""
 "Once the correct sample has been located, the following chart can help "
@@ -2593,24 +3693,34 @@ msgid ""
 "compensation value to get a more accurate final value."
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14569
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:19160
 #: octoprint_m33fio/static/js/m33fio.js:14569
 msgid ""
 "For more information check out <a target=\"_blank\" rel=\"nofollow\" "
 "href=\"http://www.thingiverse.com/thing:2040624\">Muele's quick backlash "
-"calibration method</a>.<br><br>All the referenced values can be found by "
-"clicking the \"Print settings\" button in the \"General\" section of "
-"OctoPrint's Control tab.<br><br>Choose a backlash calibration print to "
-"continue."
+"calibration method</a>, or check out <a target=\"_blank\" "
+"rel=\"nofollow\" "
+"href=\"http://www.thingiverse.com/thing:2371069\">Muele's backlash "
+"tower</a> for an alternative backlash calibration method.<br><br>All the "
+"referenced values can be found by clicking the \"Print settings\" button "
+"in the \"General\" section of OctoPrint's Control tab.<br><br>Choose a "
+"backlash calibration print to continue."
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14569
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:19160
 #: octoprint_m33fio/static/js/m33fio.js:14569
 msgid "X axis calibration"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14569
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:19160
 #: octoprint_m33fio/static/js/m33fio.js:14569
 msgid "Y axis calibration"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14675
 #: octoprint_m33fio/static/js/m33fio.js:14675
 msgid ""
 "Manually calibrates an external bed's height, automatically calibrates "
@@ -2618,10 +3728,15 @@ msgid ""
 "and manually calibrates the Z0 values for the bed's four corners"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14776
 #: octoprint_m33fio/static/js/m33fio.js:14776
 msgid "Calibrating front left offset…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14791
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14834
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14877
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14920
 #: octoprint_m33fio/static/js/m33fio.js:14791
 #: octoprint_m33fio/static/js/m33fio.js:14834
 #: octoprint_m33fio/static/js/m33fio.js:14877
@@ -2632,60 +3747,74 @@ msgid ""
 " head, and lower the print head until the paper can no longer be moved."
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14797
 #: octoprint_m33fio/static/js/m33fio.js:14797
 msgid "Saving front left offset…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14819
 #: octoprint_m33fio/static/js/m33fio.js:14819
 msgid "Calibrating front right offset…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14840
 #: octoprint_m33fio/static/js/m33fio.js:14840
 msgid "Saving front right offset…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14862
 #: octoprint_m33fio/static/js/m33fio.js:14862
 msgid "Calibrating back right offset…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14883
 #: octoprint_m33fio/static/js/m33fio.js:14883
 msgid "Saving back right offset…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14905
 #: octoprint_m33fio/static/js/m33fio.js:14905
 msgid "Calibrating back left offset…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14926
 #: octoprint_m33fio/static/js/m33fio.js:14926
 msgid "Saving back left offset…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:14948
 #: octoprint_m33fio/static/js/m33fio.js:14948
 msgid "Finishing calibration…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15298
 #: octoprint_m33fio/static/js/m33fio.js:15298
 msgid "Does the external bed extend the printable region to its max?"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15304
 #: octoprint_m33fio/static/js/m33fio.js:15304
 msgid "Setting expand printable region…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15331
 #: octoprint_m33fio/static/js/m33fio.js:15331
 msgid "Clearing expand printable region…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15356
 #: octoprint_m33fio/static/js/m33fio.js:15356
 msgid ""
 "This process can take a while to complete and will require your input "
 "during some steps. Proceed?"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15362
 #: octoprint_m33fio/static/js/m33fio.js:15362
 msgid "Are you using an external bed, such as a heatbed or a sheet of glass?"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15368
 #: octoprint_m33fio/static/js/m33fio.js:15368
 #, python-format
 msgid ""
@@ -2697,6 +3826,7 @@ msgid ""
 " is."
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15411
 #: octoprint_m33fio/static/js/m33fio.js:15411
 msgid ""
 "Now raise the print head so that you can attach the external bed, and "
@@ -2706,26 +3836,35 @@ msgid ""
 "longer be moved."
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15514
 #: octoprint_m33fio/static/js/m33fio.js:15514
 msgid "Enter the new external bed height"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15528
 #: octoprint_m33fio/static/js/m33fio.js:15528
 msgid "Saving value as external bed height…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15550
 #: octoprint_m33fio/static/js/m33fio.js:15550
 msgid "Skip"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15564
 #: octoprint_m33fio/static/js/m33fio.js:15564
 msgid "Clearing external bed settings…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15611
 #: octoprint_m33fio/static/js/m33fio.js:15611
 msgid "Saves printer settings to a file"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15614
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15683
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15693
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15726
 #: octoprint_m33fio/static/js/m33fio.js:15614
 #: octoprint_m33fio/static/js/m33fio.js:15683
 #: octoprint_m33fio/static/js/m33fio.js:15693
@@ -2733,24 +3872,44 @@ msgstr ""
 msgid "Settings Status"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15614
 #: octoprint_m33fio/static/js/m33fio.js:15614
 msgid "Obtaining printer settings…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15664
 #: octoprint_m33fio/static/js/m33fio.js:15664
 msgid "Restores printer settings from a file"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15683
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16725
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16809
 #: octoprint_m33fio/static/js/m33fio.js:15683
 #: octoprint_m33fio/static/js/m33fio.js:16725
 #: octoprint_m33fio/static/js/m33fio.js:16809
 msgid "Invalid file"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15693
 #: octoprint_m33fio/static/js/m33fio.js:15693
 msgid "Restoring printer settings…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15726
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15769
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15825
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15881
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15937
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15996
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16042
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16069
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16150
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16206
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16288
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16385
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16880
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17485
 #: octoprint_m33fio/static/js/m33fio.js:15726
 #: octoprint_m33fio/static/js/m33fio.js:15769
 #: octoprint_m33fio/static/js/m33fio.js:15825
@@ -2768,6 +3927,10 @@ msgstr ""
 msgid "Failed"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15741
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15797
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15853
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15909
 #: octoprint_m33fio/static/js/m33fio.js:15741
 #: octoprint_m33fio/static/js/m33fio.js:15797
 #: octoprint_m33fio/static/js/m33fio.js:15853
@@ -2776,6 +3939,25 @@ msgstr ""
 msgid "Sets fan to %(type)s fan"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15744
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15750
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15769
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15800
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15806
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15825
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15856
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15862
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15881
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15912
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15918
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15937
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15968
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15974
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15996
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16009
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16023
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16042
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16069
 #: octoprint_m33fio/static/js/m33fio.js:15744
 #: octoprint_m33fio/static/js/m33fio.js:15750
 #: octoprint_m33fio/static/js/m33fio.js:15769
@@ -2798,6 +3980,11 @@ msgstr ""
 msgid "Fan Status"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15744
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15800
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15856
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15912
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15968
 #: octoprint_m33fio/static/js/m33fio.js:15744
 #: octoprint_m33fio/static/js/m33fio.js:15800
 #: octoprint_m33fio/static/js/m33fio.js:15856
@@ -2806,6 +3993,11 @@ msgstr ""
 msgid "This will overwrite the existing fan settings. Proceed?"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15750
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15806
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15862
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15918
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15974
 #: octoprint_m33fio/static/js/m33fio.js:15750
 #: octoprint_m33fio/static/js/m33fio.js:15806
 #: octoprint_m33fio/static/js/m33fio.js:15862
@@ -2815,24 +4007,35 @@ msgstr ""
 msgid "Setting fan to %(type)s…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:15965
 #: octoprint_m33fio/static/js/m33fio.js:15965
 msgid "Sets fan to a manually calibrated custom fan"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16009
 #: octoprint_m33fio/static/js/m33fio.js:16009
 msgid "Increase this value until the fan starts spinning"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16023
 #: octoprint_m33fio/static/js/m33fio.js:16023
 msgid "Setting custom fan calibration…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16122
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16178
 #: octoprint_m33fio/static/js/m33fio.js:16122
 #: octoprint_m33fio/static/js/m33fio.js:16178
 #, python-format
 msgid "Sets extruder's current to %(current)s"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16125
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16131
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16150
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16181
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16187
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16206
 #: octoprint_m33fio/static/js/m33fio.js:16125
 #: octoprint_m33fio/static/js/m33fio.js:16131
 #: octoprint_m33fio/static/js/m33fio.js:16150
@@ -2842,33 +4045,47 @@ msgstr ""
 msgid "Extruder Current Status"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16125
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16181
 #: octoprint_m33fio/static/js/m33fio.js:16125
 #: octoprint_m33fio/static/js/m33fio.js:16181
 msgid "This will overwrite the existing extruder current settings. Proceed?"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16131
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16187
 #: octoprint_m33fio/static/js/m33fio.js:16131
 #: octoprint_m33fio/static/js/m33fio.js:16187
 #, python-format
 msgid "Setting extruder current to %(current)s…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16234
 #: octoprint_m33fio/static/js/m33fio.js:16234
 msgid "Displays EEPROM as hexadecimal values"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16235
 #: octoprint_m33fio/static/js/m33fio.js:16235
 msgid "Displays EEPROM as decimal values"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16236
 #: octoprint_m33fio/static/js/m33fio.js:16236
 msgid "Displays EEPROM as ASCII values"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16266
 #: octoprint_m33fio/static/js/m33fio.js:16266
 msgid "Reads EEPROM from the printer"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16269
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16288
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16314
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16355
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16366
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16385
 #: octoprint_m33fio/static/js/m33fio.js:16269
 #: octoprint_m33fio/static/js/m33fio.js:16288
 #: octoprint_m33fio/static/js/m33fio.js:16314
@@ -2878,26 +4095,42 @@ msgstr ""
 msgid "EEPROM Status"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16269
 #: octoprint_m33fio/static/js/m33fio.js:16269
 msgid "Reading EEPROM…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16311
 #: octoprint_m33fio/static/js/m33fio.js:16311
 msgid "Writes changes to the printer's EEPROM"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16314
 #: octoprint_m33fio/static/js/m33fio.js:16314
 msgid "This will overwrite the existing EEPROM. Proceed?"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16355
 #: octoprint_m33fio/static/js/m33fio.js:16355
 msgid "Invalid EEPROM value"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16366
 #: octoprint_m33fio/static/js/m33fio.js:16366
 msgid "Writing EEPROM…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16423
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16448
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16467
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16492
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16521
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16580
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16641
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16693
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16725
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16736
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16773
 #: octoprint_m33fio/static/js/m33fio.js:16423
 #: octoprint_m33fio/static/js/m33fio.js:16448
 #: octoprint_m33fio/static/js/m33fio.js:16467
@@ -2912,83 +4145,106 @@ msgstr ""
 msgid "OctoPrint Status"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16423
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16467
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16736
 #: octoprint_m33fio/static/js/m33fio.js:16423
 #: octoprint_m33fio/static/js/m33fio.js:16467
 #: octoprint_m33fio/static/js/m33fio.js:16736
 msgid "Creating OctoPrint instance…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16448
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16492
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16773
 #: octoprint_m33fio/static/js/m33fio.js:16448
 #: octoprint_m33fio/static/js/m33fio.js:16492
 #: octoprint_m33fio/static/js/m33fio.js:16773
 msgid "Failed to create OctoPrint instance"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16521
 #: octoprint_m33fio/static/js/m33fio.js:16521
 msgid "Obtaining OctoPrint instance's settings…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16580
 #: octoprint_m33fio/static/js/m33fio.js:16580
 msgid "Closing OctoPrint instance…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16641
 #: octoprint_m33fio/static/js/m33fio.js:16641
 msgid "Unable to close the OctoPrint instance"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16693
 #: octoprint_m33fio/static/js/m33fio.js:16693
 msgid "Navigating to OctoPrint instance…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16823
 #: octoprint_m33fio/static/js/m33fio.js:16823
 msgid "Invalid file name"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16837
 #: octoprint_m33fio/static/js/m33fio.js:16837
 msgid "Invalid file size"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16959
 #: octoprint_m33fio/static/js/m33fio.js:16959
 #, python-format
 msgid "Currently using an unknown firmware V%(firmwareVersion)s"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:16961
 #: octoprint_m33fio/static/js/m33fio.js:16961
 #, python-format
 msgid "Currently using %(firmwareType)s firmware V%(firmwareVersion)s"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17008
 #: octoprint_m33fio/static/js/m33fio.js:17008
 #, python-format
 msgid "%(formattedSerialNumber)s at %(currentPort)s"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17011
 #: octoprint_m33fio/static/js/m33fio.js:17011
 #, python-format
 msgid "Printer at %(currentPort)s"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17070
 #: octoprint_m33fio/static/js/m33fio.js:17070
 #, python-format
 msgid "Device %(cameraPort)s"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17125
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17127
 #: octoprint_m33fio/static/js/m33fio.js:17125
 #: octoprint_m33fio/static/js/m33fio.js:17127
 msgid "Uploading …"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17150
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17157
 #: octoprint_m33fio/static/js/m33fio.js:17150
 #: octoprint_m33fio/static/js/m33fio.js:17157
 msgid "Pre‐Processing Status"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17222
 #: octoprint_m33fio/static/js/m33fio.js:17222
 msgid ""
 "It's recommended that you install a slicer on this server to allow "
 "slicing from within OctoPrint"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17224
 #: octoprint_m33fio/static/js/m33fio.js:17224
 #, python-format
 msgid ""
@@ -3000,6 +4256,7 @@ msgid ""
 "allow slicing from within OctoPrint"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17226
 #: octoprint_m33fio/static/js/m33fio.js:17226
 #, python-format
 msgid ""
@@ -3009,6 +4266,7 @@ msgid ""
 "this server to allow slicing from within OctoPrint"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17228
 #: octoprint_m33fio/static/js/m33fio.js:17228
 #, python-format
 msgid ""
@@ -3018,36 +4276,44 @@ msgid ""
 "allow slicing from within OctoPrint"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17285
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17367
 #: octoprint_m33fio/static/js/m33fio.js:17285
 #: octoprint_m33fio/static/js/m33fio.js:17367
 msgid "Disable reminder"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17331
 #: octoprint_m33fio/static/js/m33fio.js:17331
 msgid ""
 "It's recommended that you disable this server's sleep functionality while"
 " printing if it's not already disabled"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17349
 #: octoprint_m33fio/static/js/m33fio.js:17349
 msgid "Sleep Status"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17424
 #: octoprint_m33fio/static/js/m33fio.js:17424
 #, python-format
 msgid "Instance at port %(processPort)s"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17453
 #: octoprint_m33fio/static/js/m33fio.js:17453
 #, python-format
 msgid "Updates printer's firmware to %(firmwareType)s V%(firmwareVersion)s"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17453
 #: octoprint_m33fio/static/js/m33fio.js:17453
 #, python-format
 msgid "Update firmware to %(firmwareType)s V%(firmwareVersion)s"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17460
 #: octoprint_m33fio/static/js/m33fio.js:17460
 #, python-format
 msgid ""
@@ -3055,43 +4321,53 @@ msgid ""
 "temperature from %(oldTemperature)s to %(newTemperature)s. Proceed?"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17460
 #: octoprint_m33fio/static/js/m33fio.js:17460
 msgid "This will update the printer's current firmware. Proceed?"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17517
 #: octoprint_m33fio/static/js/m33fio.js:17517
 msgid "Updates printer's firmware with a provided file"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17517
 #: octoprint_m33fio/static/js/m33fio.js:17517
 msgid "Update firmware with file"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17555
 #: octoprint_m33fio/static/js/m33fio.js:17555
 msgid "Invalid bed orientation. Calibrate?"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17724
 #: octoprint_m33fio/static/js/m33fio.js:17724
 msgid "Invalid bed plane. Calibrate?"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17726
 #: octoprint_m33fio/static/js/m33fio.js:17726
 msgid "Invalid bed center Z0. Calibrate?"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17750
 #: octoprint_m33fio/static/js/m33fio.js:17750
 msgid "Calibrating bed plane"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17750
 #: octoprint_m33fio/static/js/m33fio.js:17750
 msgid "Calibrating bed center Z0"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17885
 #: octoprint_m33fio/static/js/m33fio.js:17885
 #, python-format
 msgid "You don't have read/write access to %(port)s"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17947
 #: octoprint_m33fio/static/js/m33fio.js:17947
 #, python-format
 msgid ""
@@ -3099,6 +4375,7 @@ msgid ""
 "%(firmwareVersion)s?"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17949
 #: octoprint_m33fio/static/js/m33fio.js:17949
 #, python-format
 msgid ""
@@ -3106,6 +4383,7 @@ msgid ""
 "%(firmwareVersion)s?"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:17951
 #: octoprint_m33fio/static/js/m33fio.js:17951
 #, python-format
 msgid ""
@@ -3113,35 +4391,46 @@ msgid ""
 "%(firmwareVersion)s?"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18103
 #: octoprint_m33fio/static/js/m33fio.js:18103
 msgid ""
 "The filament can't be changed since the extruder can't be moved away from"
 " the print"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18317
 #: octoprint_m33fio/static/js/m33fio.js:18317
 msgid ""
 "Make sure the nozzle is clean before continuing. It will be hot, so be "
 "careful."
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18541
 #: octoprint_m33fio/static/js/m33fio.js:18541
 #, python-format
 msgid "Slicing %(fileName)s"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18779
 #: octoprint_m33fio/static/js/m33fio.js:18779
 msgid "Sets feed rate to the specified amount"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18780
 #: octoprint_m33fio/static/js/m33fio.js:18780
 msgid "Sets flow rate to the specified amount"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18786
 #: octoprint_m33fio/static/js/m33fio.js:18786
 msgid "Sets tool to specified value"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18831
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18841
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18860
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18870
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18880
 #: octoprint_m33fio/static/js/m33fio.js:18831
 #: octoprint_m33fio/static/js/m33fio.js:18841
 #: octoprint_m33fio/static/js/m33fio.js:18860
@@ -3150,6 +4439,7 @@ msgstr ""
 msgid "Server Status"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18831
 #: octoprint_m33fio/static/js/m33fio.js:18831
 msgid ""
 "You've been disconnected from the server which has most likely caused the"
@@ -3157,225 +4447,281 @@ msgid ""
 "this page to prevent further problems. Refresh now?"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18841
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18880
 #: octoprint_m33fio/static/js/m33fio.js:18841
 #: octoprint_m33fio/static/js/m33fio.js:18880
 msgid "Refreshing page…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:18870
 #: octoprint_m33fio/static/js/m33fio.js:18870
 msgid ""
 "You've been disconnected from the server. It's recommended that you "
 "refresh this page to prevent further problems. Refresh now?"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:19120
 #: octoprint_m33fio/static/js/m33fio.js:19120
 msgid "Slicing Status"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/static/js/m33fio.js:19120
 #: octoprint_m33fio/static/js/m33fio.js:19120
 msgid "Slicing…"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_navbar.jinja2:2
 #: octoprint_m33fio/templates/m33fio_navbar.jinja2:2
 msgid "Create instance with default settings"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_navbar.jinja2:3
 #: octoprint_m33fio/templates/m33fio_navbar.jinja2:3
 msgid "Create instance with current settings"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_navbar.jinja2:4
 #: octoprint_m33fio/templates/m33fio_navbar.jinja2:4
 msgid "Create instance with provided settings"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_navbar.jinja2:5
 #: octoprint_m33fio/templates/m33fio_navbar.jinja2:5
 msgid "Download current settings"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_navbar.jinja2:6
 #: octoprint_m33fio/templates/m33fio_navbar.jinja2:6
 msgid "Close current instance"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:3
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:3
 msgid "General"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:8
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:8
 msgid "Not using a Micro 3D printer"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:15
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:15
 msgid "Log debug information to plugin_m33fio_debug.log"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:22
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:22
 msgid "Host camera"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:28
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:28
 msgid "Camera width"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:37
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:37
 msgid "Camera height"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:46
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:46
 msgid "Camera frames/second"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:57
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:57
 msgid "Obtain printer settings automatically when a Micro 3D printer connects"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:64
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:64
 msgid "Pre‐process on the fly"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:70
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:70
 msgid ""
 "A dialog box will appear right before printing to allow changing print "
 "settings"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:78
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:78
 msgid "Use shared library"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:85
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:85
 msgid "Ignore print dimension limitations"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:85
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:85
 msgid "Dangerous"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:90
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:90
 msgid "Pre‐processor stages"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:95
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:95
 msgid "Mid‐print filament change layers"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:103
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:103
 msgid "Center model"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:110
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:110
 msgid "Validation"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:117
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:117
 msgid "Remove fan commands"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:124
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:124
 msgid "Remove temperature commands"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:131
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:131
 msgid "Preparation"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:138
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:138
 msgid "Change LED brightness"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:145
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:145
 msgid "Calibrate before print"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:145
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:145
 msgid "Caution"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:152
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:152
 msgid "Use GPIO"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:161
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:161
 msgid "Thermal bonding"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:168
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:168
 msgid "Wave bonding"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:175
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:175
 msgid "Bed compensation"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:175
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:182
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:189
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:175
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:182
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:189
 msgid "Always internally enabled when using iMe firmware"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:182
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:182
 msgid "Backlash compensation"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:189
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:189
 msgid "Skew compensation"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:194
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:194
 msgid "Printer settings"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:224
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:224
 msgid "Back left orientation"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:233
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:233
 msgid "Back right orientation"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:242
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:242
 msgid "Front right orientation"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:251
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:251
 msgid "Front left orientation"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:269
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:269
 msgid "Back left offset"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:278
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:278
 msgid "Back right offset"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:287
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:287
 msgid "Front right offset"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:296
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:296
 msgid "Front left offset"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:316
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:316
 msgid "External bed expands printable region to max"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:372
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:372
 msgid ""
 "Changes to speed limits require restarting the printer to<br>take effect "
 "when using M3D or M3D Mod firmware"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:420
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:420
 msgid ""
 "Steps/mm, jerk sensitivity, and calibrate Z0 correction<br>settings are "
 "only used by iMe firmware"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:459
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:459
 msgid "X jerk homing sensitivity"
 msgstr ""
 
+#: build/lib.linux-x86_64-2.7/octoprint_m33fio/templates/m33fio_settings.jinja2:468
 #: octoprint_m33fio/templates/m33fio_settings.jinja2:468
 msgid "Y jerk homing sensitivity"
 msgstr ""
