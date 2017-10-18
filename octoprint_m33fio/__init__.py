@@ -2967,9 +2967,11 @@ class M33FioPlugin(
 				self.emptyCommandQueue()
 				
 				# Set first line number to zero and clear history
-				if self._printer._comm is not None :
+				try :
 					self._printer._comm._gcode_M110_sending("N0")
 					self._printer._comm._long_running_command = True
+				except AttributeError :
+					pass
 				
 				# Clear sent commands
 				self.sentCommands = {}
@@ -3997,9 +3999,11 @@ class M33FioPlugin(
 				self.emptyCommandQueue()
 				
 				# Set first line number to zero and clear history
-				if self._printer._comm is not None :
+				try :
 					self._printer._comm._gcode_M110_sending("N0")
 					self._printer._comm._long_running_command = True
+				except AttributeError :
+					pass
 				
 				# Clear sent commands
 				self.sentCommands = {}
@@ -4022,9 +4026,11 @@ class M33FioPlugin(
 				self.emptyCommandQueue()
 				
 				# Set first line number to zero and clear history
-				if self._printer._comm is not None :
+				try :
 					self._printer._comm._gcode_M110_sending("N0")
 					self._printer._comm._long_running_command = True
+				except AttributeError :
+					pass
 				
 				# Clear sent commands
 				self.sentCommands = {}
@@ -5327,25 +5333,35 @@ class M33FioPlugin(
 			# Make sure commands is a list
 			if not isinstance(commands, list) :
 				commands = [commands]
+			
+			try :
 		
-			# Append all currently queued commands to list
-			while not self._printer._comm._send_queue.empty() :
-				try :
-					command = list(self._printer._comm._send_queue.get(block = False))
-				except :
-					break
-				command.pop(1)
-				commands += [tuple(command)]
+				# Append all currently queued commands to list
+				while not self._printer._comm._send_queue.empty() :
+					try :
+						command = list(self._printer._comm._send_queue.get(block = False))
+					except :
+						break
+					command.pop(1)
+					commands += [tuple(command)]
+			
+			except AttributeError :
+				pass
 			
 			# Check if deprecated queue name is valid
 			if hasattr(self._printer._comm, "_commandQueue") :
 			
-				# Append all currently queued commands to list
-				while not self._printer._comm._commandQueue.empty() :
-					try :
-						commands += [self._printer._comm._commandQueue.get(block = False)]
-					except :
-						break
+				try :
+			
+					# Append all currently queued commands to list
+					while not self._printer._comm._commandQueue.empty() :
+						try :
+							commands += [self._printer._comm._commandQueue.get(block = False)]
+						except :
+							break
+				
+				except AttributeError :
+					pass
 			
 				# Insert list into queue
 				for command in commands :
@@ -5357,12 +5373,17 @@ class M33FioPlugin(
 			# Otherwise
 			else :
 			
-				# Append all currently queued commands to list
-				while not self._printer._comm._command_queue.empty() :
-					try :
-						commands += [self._printer._comm._command_queue.get(block = False)]
-					except :
-						break
+				try :
+			
+					# Append all currently queued commands to list
+					while not self._printer._comm._command_queue.empty() :
+						try :
+							commands += [self._printer._comm._command_queue.get(block = False)]
+						except :
+							break
+				
+				except AttributeError :
+					pass
 			
 				# Insert list into queue
 				for command in commands :
@@ -5423,32 +5444,47 @@ class M33FioPlugin(
 		# Check if communication layer has been established
 		if self._printer._comm is not None :
 		
-			# Empty command queues
-			while not self._printer._comm._send_queue.empty() :
-				try :
-					self._printer._comm._send_queue.get(block = False)
-				except :
-					break
+			try :
+		
+				# Empty command queues
+				while not self._printer._comm._send_queue.empty() :
+					try :
+						self._printer._comm._send_queue.get(block = False)
+					except :
+						break
+			
+			except AttributeError :
+				pass
 			
 			# Check if deprecated queue name is valid
 			if hasattr(self._printer._comm, "_commandQueue") :
 			
-				# Empty command queues
-				while not self._printer._comm._commandQueue.empty() :
-					try :
-						self._printer._comm._commandQueue.get(block = False)
-					except :
-						break
+				try :
+			
+					# Empty command queues
+					while not self._printer._comm._commandQueue.empty() :
+						try :
+							self._printer._comm._commandQueue.get(block = False)
+						except :
+							break
+				
+				except AttributeError :
+					pass
 			
 			# Otherwise
 			else :
 			
-				# Empty command queues
-				while not self._printer._comm._command_queue.empty() :
-					try :
-						self._printer._comm._command_queue.get(block = False)
-					except :
-						break
+				try :
+			
+					# Empty command queues
+					while not self._printer._comm._command_queue.empty() :
+						try :
+							self._printer._comm._command_queue.get(block = False)
+						except :
+							break
+				
+				except AttributeError :
+					pass
 	
 	# Process write
 	def processWrite(self, data) :
@@ -5475,8 +5511,10 @@ class M33FioPlugin(
 			while not self.readyToPrint and self._printer.is_printing() :
 			
 				# Update communication timeout to prevent other commands from being sent
-				if self._printer._comm is not None :
+				try :
 					self._printer._comm._gcode_G4_sent("G4 P10")
+				except AttributeError :
+					pass
 				
 				time.sleep(0.01)
 			
@@ -5490,9 +5528,11 @@ class M33FioPlugin(
 				self.emptyCommandQueue()
 
 				# Set first line number to zero and clear history
-				if self._printer._comm is not None :
+				try :
 					self._printer._comm._gcode_M110_sending("N0")
 					self._printer._comm._long_running_command = True
+				except AttributeError :
+					pass
 
 				# Clear sent commands
 				self.sentCommands = {}
@@ -5528,9 +5568,11 @@ class M33FioPlugin(
 					self.emptyCommandQueue()
 
 					# Set first line number to zero and clear history
-					if self._printer._comm is not None :
+					try :
 						self._printer._comm._gcode_M110_sending("N0")
 						self._printer._comm._long_running_command = True
+					except AttributeError :
+						pass
 
 					# Clear sent commands
 					self.sentCommands = {}
@@ -5579,9 +5621,11 @@ class M33FioPlugin(
 					while len(self.sentCommands) :
 				
 						# Update communication timeout to prevent other commands from being sent
-						if self._printer._comm is not None :
+						try :
 							self._printer._comm._long_running_command = True
 							self._printer._comm._gcode_G4_sent("G4 P10")
+						except AttributeError :
+							pass
 		
 						time.sleep(0.01)
 	
@@ -5596,9 +5640,11 @@ class M33FioPlugin(
 					self.emptyCommandQueue()
 	
 					# Set first line number to zero and clear history
-					if self._printer._comm is not None :
+					try :
 						self._printer._comm._gcode_M110_sending("N0")
 						self._printer._comm._long_running_command = True
+					except AttributeError :
+						pass
 	
 					# Clear sent commands
 					self.sentCommands = {}
@@ -5618,8 +5664,10 @@ class M33FioPlugin(
 					]
 					
 					# Set long running command
-					if self._printer._comm is not None :
+					try :
 						self._printer._comm._long_running_command = True
+					except AttributeError :
+						pass
 		
 					# Send commands with line numbers
 					self.sendCommandsWithLineNumbers(commands)
@@ -5722,8 +5770,11 @@ class M33FioPlugin(
 							self.settingHeatbedTemperature = True
 						
 							# Start processing temperature
-							self._printer._comm._heating = True
-							self._printer._comm._heatupWaitStartTime = time.time()
+							try :
+								self._printer._comm._heating = True
+								self._printer._comm._heatupWaitStartTime = time.time()
+							except AttributeError :
+								pass
 							
 							# Loop forever
 							readingTemperature = True
@@ -5746,19 +5797,23 @@ class M33FioPlugin(
 								# Check it not done
 								if readingTemperature :
 								
-									# Display heatbed temperature
-									if len(self._printer._comm.getTemp()) and self._printer._comm.getTemp()[0][0] is not None :
-										command = "T:%.4f B:%s" % (self._printer._comm.getTemp()[0][0], heatbedTemperature)
-									else :
-										command = "T:0.0 B:" + heatbedTemperature
+									try :
 								
-									self._printer._comm._processTemperatures(command)
-									self._printer._comm._callback.on_comm_temperature_update(self._printer._comm.getTemp(), self._printer._comm.getBedTemp())
-									self._printer._addLog("Recv: " + command)
+										# Display heatbed temperature
+										if len(self._printer._comm.getTemp()) and self._printer._comm.getTemp()[0][0] is not None :
+											command = "T:%.4f B:%s" % (self._printer._comm.getTemp()[0][0], heatbedTemperature)
+										else :
+											command = "T:0.0 B:" + heatbedTemperature
 								
-									# Update communication timeout to prevent other commands from being sent
-									if self._printer._comm is not None :
+										self._printer._comm._processTemperatures(command)
+										self._printer._comm._callback.on_comm_temperature_update(self._printer._comm.getTemp(), self._printer._comm.getBedTemp())
+										self._printer._addLog("Recv: " + command)
+								
+										# Update communication timeout to prevent other commands from being sent
 										self._printer._comm._gcode_G4_sent("G4 S1")
+									
+									except AttributeError :
+										pass
 								
 									# Delay
 									time.sleep(1)
@@ -5806,15 +5861,21 @@ class M33FioPlugin(
 						while len(self.sentCommands) :
 						
 							# Update communication timeout to prevent other commands from being sent
-							if self._printer._comm is not None :
+							try :
 								self._printer._comm._long_running_command = True
 								self._printer._comm._gcode_G4_sent("G4 P10")
+							except AttributeError :
+								pass
 				
 							time.sleep(0.01)
 						
-						# Pause print
 						if self._printer._comm is not None :
-							self._printer._comm.setPause(True)
+							
+							# Pause print
+							try :
+								self._printer._comm.setPause(True)
+							except AttributeError :
+								pass
 							
 							# Wait until printer is done printing
 							while self._printer.is_printing() :
@@ -5824,9 +5885,11 @@ class M33FioPlugin(
 						self.emptyCommandQueue()
 			
 						# Set first line number to zero and clear history
-						if self._printer._comm is not None :
+						try :
 							self._printer._comm._gcode_M110_sending("N0")
 							self._printer._comm._long_running_command = True
+						except AttributeError :
+							pass
 			
 						# Clear sent commands
 						self.sentCommands = {}
@@ -5847,9 +5910,11 @@ class M33FioPlugin(
 						self.emptyCommandQueue()
 				
 						# Set first line number to zero and clear history
-						if self._printer._comm is not None :
+						try :
 							self._printer._comm._gcode_M110_sending("N0")
 							self._printer._comm._long_running_command = True
+						except AttributeError :
+							pass
 				
 						# Clear sent commands
 						self.sentCommands = {}
@@ -5857,14 +5922,18 @@ class M33FioPlugin(
 						self.numberWrapCounter = 0
 					
 						# Resume print
-						if self._printer._comm is not None :
+						try :
 							self._printer._comm.setPause(False)
+						except AttributeError :
+							pass
 						
 						# Restart line numbers
 						self.sendCommands(["N0 M110", "G90"])
-						if self._printer._comm is not None :
+						try :
 							self._printer._comm._gcode_M110_sending("N1")
 							self._printer._comm._long_running_command = True
+						except AttributeError :
+							pass
 					
 					# Set command to nothing
 					gcode.removeParameter("M")
@@ -5883,15 +5952,21 @@ class M33FioPlugin(
 						while len(self.sentCommands) :
 						
 							# Update communication timeout to prevent other commands from being sent
-							if self._printer._comm is not None :
+							try :
 								self._printer._comm._long_running_command = True
 								self._printer._comm._gcode_G4_sent("G4 P10")
+							except AttributeError :
+								pass
 				
 							time.sleep(0.01)
 						
-						# Pause print
 						if self._printer._comm is not None :
-							self._printer._comm.setPause(True)
+						
+							# Pause print
+							try :
+								self._printer._comm.setPause(True)
+							except AttributeError :
+								pass
 							
 							# Wait until printer is done printing
 							while self._printer.is_printing() :
@@ -5901,9 +5976,11 @@ class M33FioPlugin(
 						self.emptyCommandQueue()
 			
 						# Set first line number to zero and clear history
-						if self._printer._comm is not None :
+						try :
 							self._printer._comm._gcode_M110_sending("N0")
 							self._printer._comm._long_running_command = True
+						except AttributeError :
+							pass
 			
 						# Clear sent commands
 						self.sentCommands = {}
@@ -5920,8 +5997,10 @@ class M33FioPlugin(
 						]
 						
 						# Set long running command
-						if self._printer._comm is not None :
+						try :
 							self._printer._comm._long_running_command = True
+						except AttributeError :
+							pass
 			
 						# Send commands with line numbers
 						self.sendCommandsWithLineNumbers(commands)
@@ -5973,9 +6052,11 @@ class M33FioPlugin(
 					while len(self.sentCommands) :
 					
 						# Update communication timeout to prevent other commands from being sent
-						if self._printer._comm is not None :
+						try :
 							self._printer._comm._long_running_command = True
 							self._printer._comm._gcode_G4_sent("G4 P10")
+						except AttributeError :
+							pass
 			
 						time.sleep(0.01)
 					
@@ -5983,9 +6064,11 @@ class M33FioPlugin(
 					self.emptyCommandQueue()
 		
 					# Set first line number to zero and clear history
-					if self._printer._comm is not None :
+					try :
 						self._printer._comm._gcode_M110_sending("N0")
 						self._printer._comm._long_running_command = True
+					except AttributeError :
+						pass
 		
 					# Clear sent commands
 					self.sentCommands = {}
@@ -6027,8 +6110,10 @@ class M33FioPlugin(
 					while len(self.sentCommands) :
 				
 						# Update communication timeout to prevent other commands from being sent
-						if self._printer._comm is not None :
+						try :
 							self._printer._comm._gcode_G4_sent("G4 P10")
+						except AttributeError :
+							pass
 					
 						time.sleep(0.01)
 					
@@ -6096,7 +6181,10 @@ class M33FioPlugin(
 		
 		# Reset consecutive timeouts
 		if self._printer._comm is not None and hasattr(self._printer._comm, "_consecutive_timeouts") and response is not None and response.strip() is not "" :
-			self._printer._comm._consecutive_timeouts = 0
+			try :
+				self._printer._comm._consecutive_timeouts = 0
+			except AttributeError :
+				pass
 		
 		# Log received data
 		self._m33fio_logger.debug("Original Response: " + response)
@@ -6747,9 +6835,11 @@ class M33FioPlugin(
 				self.emptyCommandQueue()
 			
 				# Set first line number to zero and clear history
-				if self._printer._comm is not None :
+				try :
 					self._printer._comm._gcode_M110_sending("N0")
 					self._printer._comm._long_running_command = True
+				except AttributeError :
+					pass
 			
 				# Clear sent commands
 				self.sentCommands = {}
@@ -7009,9 +7099,11 @@ class M33FioPlugin(
 				while len(self.sentCommands) :
 			
 					# Update communication timeout to prevent other commands from being sent
-					if self._printer._comm is not None :
+					try :
 						self._printer._comm._long_running_command = True
 						self._printer._comm._gcode_G4_sent("G4 P10")
+					except AttributeError :
+						pass
 	
 					time.sleep(0.01)
 				
@@ -7023,9 +7115,11 @@ class M33FioPlugin(
 				self.emptyCommandQueue()
 
 				# Set first line number to zero and clear history
-				if self._printer._comm is not None :
+				try :
 					self._printer._comm._gcode_M110_sending("N0")
 					self._printer._comm._long_running_command = True
+				except AttributeError :
+					pass
 
 				# Clear sent commands
 				self.sentCommands = {}
@@ -7042,8 +7136,10 @@ class M33FioPlugin(
 				]
 				
 				# Set long running command
-				if self._printer._comm is not None :
+				try :
 					self._printer._comm._long_running_command = True
+				except AttributeError :
+					pass
 	
 				# Send commands with line numbers
 				self.sendCommandsWithLineNumbers(commands)
@@ -8237,7 +8333,10 @@ class M33FioPlugin(
 												self.sendPrinterDetails()
 								
 												# Set printer state to operational
-												self._printer._comm._changeState(self._printer._comm.STATE_OPERATIONAL)
+												try :
+													self._printer._comm._changeState(self._printer._comm.STATE_OPERATIONAL)
+												except AttributeError :
+													pass
 								
 												# Send message
 												self._plugin_manager.send_plugin_message(self._identifier, dict(value = "Connected To Printer"))

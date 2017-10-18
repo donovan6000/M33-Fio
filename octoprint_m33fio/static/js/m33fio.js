@@ -10339,6 +10339,9 @@ $(function() {
 							
 								// Show message
 								showMessage(gettext("Printing Status"), gettext("Canceling print…"));
+								
+								// Enable changing mid-print filament change layers
+								$("#gcode div.midPrintFilamentChange button").eq(2).removeClass("disabled");
 	
 								// Send request
 								$.ajax({
@@ -10371,6 +10374,9 @@ $(function() {
 					
 							// Show message
 							showMessage(gettext("Printing Status"), gettext("Canceling print…"));
+							
+							// Enable changing mid-print filament change layers
+							$("#gcode div.midPrintFilamentChange button").eq(2).removeClass("disabled");
 	
 							// Send request
 							$.ajax({
@@ -10395,6 +10401,9 @@ $(function() {
 				
 					// Show message
 					showMessage(gettext("Printing Status"), gettext("Canceling print…"));
+					
+					// Enable changing mid-print filament change layers
+					$("#gcode div.midPrintFilamentChange button").eq(2).removeClass("disabled");
 
 					// Send request
 					$.ajax({
@@ -18473,13 +18482,13 @@ $(function() {
 			// Check if printing or paused
 			if(self.printerState.isPrinting() || self.printerState.isPaused())
 		
-				// Disable changing mid-print filement change layers
+				// Disable changing mid-print filament change layers
 				$("#gcode div.midPrintFilamentChange button").eq(2).addClass("disabled");
 		
 			// Otherwise
 			else
 		
-				// Enable changing mid-print filement change layers
+				// Enable changing mid-print filament change layers
 				$("#gcode div.midPrintFilamentChange button").eq(2).removeClass("disabled");
 			
 			// Add edit buttons to models
@@ -19095,21 +19104,21 @@ $(function() {
 		// On print started event
 		self.onEventPrintStarted = function() {
 		
-			// Disable changing mid-print filement change layers
+			// Disable changing mid-print filament change layers
 			$("#gcode div.midPrintFilamentChange button").eq(2).addClass("disabled");
 		}
 		
 		// On print started event
 		self.onEventPrintFailed = function() {
 		
-			// Enable changing mid-print filement change layers
+			// Enable changing mid-print filament change layers
 			$("#gcode div.midPrintFilamentChange button").eq(2).removeClass("disabled");
 		}
 		
 		// On print done event
 		self.onEventPrintDone = function() {
 		
-			// Enable changing mid-print filement change layers
+			// Enable changing mid-print filament change layers
 			$("#gcode div.midPrintFilamentChange button").eq(2).removeClass("disabled");
 		}
 		

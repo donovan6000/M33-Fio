@@ -1,5 +1,10 @@
 Changelog:
 
+V1.22 October X 2017
+
+	* Fixed issue where the saving mide-print filament change layers button would remain disabled after a print was canceled
+	* Added more exception handling
+
 V1.21 August 4 2017
 
 	* Implemented skew compensation pre-processor
