@@ -383,11 +383,11 @@ else :
 	output.write("infill_speed = 0\n")
 
 if sparseInfillLineDistance == -1 :
-	output.write("fill_density = 0\n")
+	output.write("fill_density = 0 %\n")
 elif sparseInfillLineDistance == extrusionWidth :
-	output.write("fill_density = 100\n")
+	output.write("fill_density = 100%\n")
 else :
-	output.write("fill_density = " + str(100 * edgeWidth * 1000 / sparseInfillLineDistance) + '\n')
+	output.write("fill_density = " + str(100 * edgeWidth * 1000 / sparseInfillLineDistance) + '%\n')
 
 if inset0Speed != printSpeed :
 	output.write("inset0_speed = " + str(inset0Speed) + '\n')
