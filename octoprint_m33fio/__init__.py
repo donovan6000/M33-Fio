@@ -5753,7 +5753,7 @@ class M33FioPlugin(
 										command = "T:0.0 B:" + heatbedTemperature
 								
 									self._printer._comm._processTemperatures(command)
-									self._printer._comm._callback.on_comm_temperature_update(self._printer._comm.getTemp(), self._printer._comm.getBedTemp(), None)
+									self._printer._comm._callback.on_comm_temperature_update(self._printer._comm.getTemp(), self._printer._comm.getBedTemp())
 									self._printer._addLog("Recv: " + command)
 								
 									# Update communication timeout to prevent other commands from being sent
