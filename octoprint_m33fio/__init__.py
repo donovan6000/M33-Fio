@@ -6900,13 +6900,13 @@ class M33FioPlugin(
 				self.resetPreprocessorSettings()
 			
 				# Check if printing test border
-				if payload["filename"] == os.path.basename(self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "test border.gcode").replace("\\", "/")) :
+				if payload["name"] == os.path.basename(self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "test border.gcode").replace("\\", "/")) :
 	
 					# Set printing test border
 					self.printingTestBorder = True
 	
 				# Otherwise check if printing backlash calibration
-				elif payload["filename"] == os.path.basename(self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "QuickBacklash-v2-X.gcode").replace("\\", "/")) or payload["filename"] == os.path.basename(self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "QuickBacklash-v2-Y.gcode").replace("\\", "/")) :
+				elif payload["name"] == os.path.basename(self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "QuickBacklash-v2-X.gcode").replace("\\", "/")) or payload["name"] == os.path.basename(self._file_manager.path_on_disk(octoprint.filemanager.destinations.FileDestinations.LOCAL, "QuickBacklash-v2-Y.gcode").replace("\\", "/")) :
 				
 					# Set printing backlash calibration
 					self.printingBacklashCalibration = True
@@ -6921,7 +6921,7 @@ class M33FioPlugin(
 					self.setSharedLibrarySettings()
 				
 					# Collect print information
-					printIsValid = self.sharedLibrary.collectPrintInformation(ctypes.c_char_p(payload["file"]), ctypes.c_bool(self._settings.get_boolean(["PreprocessOnTheFly"])))
+					printIsValid = self.sharedLibrary.collectPrintInformation(ctypes.c_char_p(payload["path"]), ctypes.c_bool(self._settings.get_boolean(["PreprocessOnTheFly"])))
 				
 					# Get extruder min and max movements
 					self.maxXExtruderLow = self.sharedLibrary.getMaxXExtruderLow()
@@ -6958,7 +6958,7 @@ class M33FioPlugin(
 				else :
 	
 					# Collect print information
-					printIsValid = self.collectPrintInformation(payload["file"], self._settings.get_boolean(["PreprocessOnTheFly"]))
+					printIsValid = self.collectPrintInformation(payload["path"], self._settings.get_boolean(["PreprocessOnTheFly"]))
 			
 				# Check if pre-processing on the fly
 				if self._settings.get_boolean(["PreprocessOnTheFly"]) :
