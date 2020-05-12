@@ -970,13 +970,6 @@ class M33FioPlugin(
 				priority = 2,
 				type = "rss",
 				url = "https://exploitkings.com/scripts/M33 Fio.xml"), True)
-			
-			# Enable M33 Fio channel
-			enabledChannels = octoprint.settings.settings().get(["plugins", "announcements", "enabled_channels"])
-			if enabledChannels is None :
-				enabledChannels = []
-			enabledChannels += ['_m33fio']
-			octoprint.settings.settings().set(["plugins", "announcements", "enabled_channels"], enabledChannels, True)
 	
 	# On startup
 	def on_startup(self, host, port) :
